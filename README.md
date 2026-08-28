@@ -43,6 +43,8 @@ item one, are the framework's pilot evidence.
 - `STEER-Operating-Model.docx` — accountabilities and organizational operation.
 - `STEER-Sizing-and-Scoping.docx` — Practice Note 1, with the complete guidance
   for exam-writability, splitting, aging bands, and percentile forecasting.
+- `STEER-Providing-Intent.docx` — Practice Note 2, defining the interview-first,
+  no-invention path from natural language to committed artifacts.
 
 ## Implementation evidence
 

@@ -26,11 +26,12 @@ describe("automated accessibility gauntlet", () => {
     expect(await seriousViolations(dialog)).toEqual([]);
   });
 
-  it("exposes the scope check in guided brief authoring", () => {
+  it("starts brief authoring as an interview without exposing a raw artifact", () => {
     render(<App />);
     fireEvent.click(screen.getByRole("button", { name: /draft a brief/i }));
-    expect(screen.getByText("Scope check")).toBeTruthy();
-    expect(screen.getByRole("checkbox", { name: /one crisp/i })).toBeTruthy();
-    expect(screen.getByRole("checkbox", { name: /one coherent shape/i })).toBeTruthy();
+    expect(screen.getByText("Tell me what you know")).toBeTruthy();
+    expect(screen.getByText("What short working title should we use?")).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: /your answer/i })).toBeTruthy();
+    expect(screen.queryByText(/# Brief:/)).toBeNull();
   });
 });

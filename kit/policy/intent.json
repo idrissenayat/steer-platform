@@ -1,0 +1,29 @@
+{
+  "version": "steer-intent/v1",
+  "principle": "The agent provides structure; the human provides judgment.",
+  "originatorExperience": {
+    "mode": "interview",
+    "showRawArtifacts": false,
+    "acceptedInputs": ["sentence", "channel-message", "voice-note", "email", "meeting-snippet", "band-breach", "support-ticket"]
+  },
+  "draftingRules": {
+    "inventMissingFacts": false,
+    "unknownDestination": "open-questions",
+    "systemNames": "resolve-against-versioned-context",
+    "ambiguityTreatment": "surface"
+  },
+  "corrections": {
+    "repeatThreshold": 2,
+    "destination": "versioned-context"
+  },
+  "stages": {
+    "brief": "interview",
+    "spec": "options-dialogue",
+    "exam": "meaning-first",
+    "plan": "interrogation"
+  },
+  "commit": {
+    "trigger": "human-accepts-rendered-draft",
+    "identityBinding": "originator"
+  }
+}

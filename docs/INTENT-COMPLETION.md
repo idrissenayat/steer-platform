@@ -8,7 +8,7 @@ Last implementation audit: 2026-08-28.
 The local pilot now demonstrates the complete human journey against a fixture
 repository: computed workspace, role-specific decisions, Gate-specific review,
 revision-safe sign/send-back, evidence assembly, continuous work-item threads,
-guided brief authoring, scope checks, and aging-band huddle signals. The Phase
+interview-first brief authoring, scope checks, and aging-band huddle signals. The Phase
 0 kit is independently adoptable.
 
 This is not yet a production completion claim. The intent itself requires
@@ -48,6 +48,15 @@ enforces one outcome / one exam / one shape at Frame, raises the configured
 20-file or 4-system plan-sprawl alarm at Engineer, escalates historical
 cycle-time band breaches to a huddle, and provides P85 forecasting functions.
 These are flow controls; they do not create production cycle-time history.
+
+## Providing-intent practice-note reconciliation
+
+`STEER-Providing-Intent.docx` is included as Practice Note 2 and is reflected in
+the Operating Model, Framework document set, adoption playbook, machine-readable
+intent policy, and platform composer. The originator now answers one question at
+a time, corrects a rendered draft, and never sees raw Markdown. Unverified system
+names move to Open Questions, accepted drafts bind the pilot identity, and the
+domain exposes the two-correction threshold for versioned context promotion.
 
 ## Human-owned completion gates
 

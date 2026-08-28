@@ -12,6 +12,8 @@ into any repository and run STEER without the platform.
 5. Record the first pilot item's baseline using `metrics/definitions.json`.
 6. Use `policy/sizing.json` and `practices/sizing-and-scoping.md` before Gate 1
    and again when an Engineer plan raises a sprawl alarm.
+7. Use `policy/intent.json` and `practices/providing-intent.md` for every
+   originator intake, rendered draft, and repeated-correction context update.
 
 The platform reads these files; it does not replace them. Git remains the
 authoritative record for artifacts, signatures, gate notes, and learning

@@ -322,6 +322,31 @@ h1 { margin-bottom: 0; color: var(--ink); font-size: clamp(1.65rem, 3vw, 2.35rem
 .brief-form label small { color: var(--muted); font-weight: 500; }
 .brief-form input, .brief-form textarea { width: 100%; resize: vertical; border: 1px solid var(--line); border-radius: 0.5rem; background: #fffaf8; color: var(--ink); padding: 0.62rem; font-size: 0.66rem; }
 .brief-preview { max-height: 250px; overflow: auto; border: 1px solid var(--line); border-radius: 0.65rem; background: #fff9f2; color: #6d4b5c; padding: 0.75rem; white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.52rem; line-height: 1.55; }
+.interview-workspace { display: grid; gap: 1rem; background: linear-gradient(160deg, #fffafb, #fff9f0); }
+.interview-thread { display: grid; gap: 0.55rem; }
+.message-pair { display: grid; gap: 0.55rem; }
+.message { width: min(88%, 430px); border: 1px solid var(--line); border-radius: 0.8rem 0.8rem 0.8rem 0.2rem; background: #fff; padding: 0.72rem 0.8rem; box-shadow: 0 5px 14px rgba(113, 58, 81, 0.04); }
+.message > span { display: block; margin-bottom: 0.25rem; color: #b54d70; font-size: 0.47rem; font-weight: 850; letter-spacing: 0.07em; text-transform: uppercase; }
+.message p { margin: 0; color: var(--ink); font-size: 0.62rem; line-height: 1.48; }
+.message small { display: block; margin-top: 0.35rem; color: var(--muted); font-size: 0.52rem; line-height: 1.4; }
+.message--human { justify-self: end; border-radius: 0.8rem 0.8rem 0.2rem 0.8rem; background: linear-gradient(135deg, #ffe9ef, #fff1d7); }
+.message--human button { margin-top: 0.42rem; border: 0; background: transparent; color: #9c3e60; padding: 0; font-size: 0.5rem; font-weight: 800; }
+.message--current { border-color: #e9b6c5; box-shadow: 0 8px 20px rgba(186, 77, 112, 0.09); }
+.interview-answer { display: grid; gap: 0.35rem; color: #654456; font-size: 0.58rem; font-weight: 800; }
+.interview-answer textarea { width: 100%; resize: vertical; border: 1px solid #e7b6c4; border-radius: 0.65rem; background: white; color: var(--ink); padding: 0.72rem; font-size: 0.66rem; line-height: 1.5; }
+.interview-actions { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.interview-actions small, .context-hint { margin: 0; color: var(--muted); font-size: 0.5rem; line-height: 1.45; }
+.draft-render { display: grid; gap: 0.62rem; background: linear-gradient(160deg, #fffafb, #fff9f0); }
+.draft-title { border: 1px solid #ebc7d0; border-radius: 0.75rem; background: linear-gradient(135deg, #ffe8ef, #fff1ce); padding: 0.9rem; }
+.draft-title > span, .draft-section header span { color: #a64064; font-size: 0.48rem; font-weight: 850; letter-spacing: 0.07em; text-transform: uppercase; }
+.draft-title h3 { margin: 0.28rem 0; font-size: 1rem; }
+.draft-title p, .draft-section p { margin: 0; color: var(--muted); font-size: 0.6rem; line-height: 1.5; }
+.draft-section { border: 1px solid var(--line); border-radius: 0.65rem; background: rgba(255,255,255,0.78); padding: 0.72rem; }
+.draft-section header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem; }
+.draft-section header button { border: 0; background: transparent; color: #9c3e60; padding: 0; font-size: 0.5rem; font-weight: 800; }
+.draft-section ul { margin: 0; padding-left: 1rem; color: var(--muted); font-size: 0.58rem; line-height: 1.5; }
+.draft-section--questions { border-color: #e9c57d; background: #fff9e8; }
+.resolution-warning { margin: 0; border-left: 3px solid #e9ac42; background: #fff4d6; color: #7d5719; padding: 0.65rem; font-size: 0.54rem; line-height: 1.45; }
 .evidence-badge--waiting { background: #fff0c9; color: #8e5b10; }
 .action-feedback { position: fixed; top: 0.8rem; left: 50%; z-index: 220; display: flex; min-width: min(520px, calc(100vw - 2rem)); align-items: center; justify-content: space-between; gap: 1rem; border: 1px solid #e7b6c4; border-radius: 0.7rem; background: linear-gradient(110deg, #fff0f4, #fff3ce); color: var(--ink); padding: 0.75rem 0.85rem; box-shadow: var(--shadow); transform: translateX(-50%); font-size: 0.64rem; font-weight: 700; }
 .action-feedback button { border: 0; background: transparent; color: #9d3d61; font-size: 1rem; }

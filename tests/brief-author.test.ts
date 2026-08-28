@@ -5,18 +5,22 @@ describe("guided brief authoring", () => {
   it("produces every required brief section using only supplied system names", () => {
     const draft = draftBrief({
       title: "Decision clarity",
+      author: "Idriss Enayat (pilot|product-lead)",
       problem: "Reviewers leave the workspace to assemble evidence.",
       outcome: "Reviewers decide with evidence in one place.",
       users: ["Tech Leads"],
       systems: ["STEER platform", "Pilot repository"],
       constraints: ["No private status database"],
       openQuestions: ["Which repository adapter ships first?"],
+      successMeasure: "Median time to decision",
     });
     expect(draft.validation).toEqual({ valid: true, missing: [] });
     expect(draft.markdown).toContain("## Problem");
     expect(draft.markdown).toContain("## Proposed outcome");
     expect(draft.markdown).toContain("STEER platform");
     expect(draft.markdown).toContain("Pilot repository");
+    expect(draft.markdown).toContain("Originator: Idriss Enayat (pilot|product-lead)");
+    expect(draft.markdown).toContain("Success signal: Median time to decision");
     expect(draft.markdown).not.toContain("Jira");
   });
 

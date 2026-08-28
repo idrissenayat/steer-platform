@@ -4,6 +4,7 @@ import { demoAsOf, demoChain } from "./data/demo-chain";
 import { applyGateAction } from "./domain/actions";
 import { draftBrief, draftRevision } from "./domain/brief-author";
 import { assembleEvidence } from "./domain/evidence";
+import { blankIntentAnswers, buildInterviewDraft, intentInterviewQuestions, pilotSystemContext, type IntentAnswers } from "./domain/intent-interview";
 import { buildReadModel, decisionsForRole } from "./domain/read-model";
 import { assessScope } from "./domain/sizing";
 import type {
@@ -238,36 +239,58 @@ function WorkItemPanel({ item, onClose }: { item: ProjectedWorkItem; onClose: ()
   );
 }
 
-function BriefComposer({ onClose, onSave }: { onClose: () => void; onSave: (item: WorkItemChain) => void }) {
-  const [title, setTitle] = useState("");
-  const [problem, setProblem] = useState("");
-  const [outcome, setOutcome] = useState("");
-  const [users, setUsers] = useState("");
-  const [systems, setSystems] = useState("");
-  const [constraints, setConstraints] = useState("");
-  const [questions, setQuestions] = useState("");
+function BriefComposer({ onClose, onSave, originator }: { onClose: () => void; onSave: (item: WorkItemChain) => void; originator: IdentityContext }) {
+  const [answers, setAnswers] = useState<IntentAnswers>(blankIntentAnswers);
+  const [step, setStep] = useState(0);
+  const [response, setResponse] = useState("");
+  const [editing, setEditing] = useState(false);
   const [examWritable, setExamWritable] = useState(false);
   const [coherentShape, setCoherentShape] = useState(false);
-  const [plannedFiles, setPlannedFiles] = useState("");
-  const split = (value: string) => value.split(",").map((entry) => entry.trim()).filter(Boolean);
-  const systemList = split(systems);
+  const interviewComplete = step >= intentInterviewQuestions.length;
+  const currentQuestion = interviewComplete ? undefined : intentInterviewQuestions[step];
+  const interview = buildInterviewDraft(answers, pilotSystemContext);
   const scope = assessScope({
-    outcomeCount: outcome.trim() ? 1 : 0,
+    outcomeCount: interview.outcome ? 1 : 0,
     examCount: examWritable ? 1 : 0,
     examWritable,
     coherentShape,
-    touchedFiles: Number(plannedFiles) || 0,
-    touchedSystems: systemList.length,
+    touchedSystems: interview.resolvedSystems.length,
   });
-  const draft = draftBrief({ title, problem, outcome, users: split(users), systems: systemList, constraints: split(constraints), openQuestions: split(questions), sizing: { examWritable, coherentShape, plannedFiles: Number(plannedFiles) || undefined } });
+  const draft = draftBrief({
+    author: `${originator.displayName} (${originator.subject})`,
+    title: interview.title,
+    problem: interview.problem,
+    outcome: interview.outcome,
+    successMeasure: interview.successMeasure,
+    users: interview.users,
+    systems: interview.resolvedSystems,
+    constraints: interview.constraints,
+    openQuestions: interview.openQuestions,
+    sizing: { examWritable, coherentShape },
+  });
+
+  function submitAnswer() {
+    if (!currentQuestion || !response.trim()) return;
+    setAnswers((current) => ({ ...current, [currentQuestion.key]: response.trim() }));
+    setResponse("");
+    setStep(editing ? intentInterviewQuestions.length : step + 1);
+    setEditing(false);
+  }
+
+  function editAnswer(index: number) {
+    const question = intentInterviewQuestions[index];
+    setStep(index);
+    setResponse(answers[question.key]);
+    setEditing(true);
+  }
 
   function save() {
     if (!draft.validation.valid) return;
     const revision = draftRevision(draft.markdown);
     const now = new Date().toISOString();
     onSave({
-      id: `FD-${String(100 + title.length).padStart(3, "0")}`,
-      title: title.trim(), summary: problem.trim(), outcome: outcome.trim(),
+      id: `FD-${String(100 + interview.title.length).padStart(3, "0")}`,
+      title: interview.title, summary: interview.problem, outcome: interview.outcome,
       riskDomains: ["integrations"], userFacing: true,
       artifacts: [{ kind: "brief", path: `intent/${revision}/BRIEF.md`, revision, updatedAt: now, content: draft.markdown }],
       signatures: [],
@@ -276,32 +299,49 @@ function BriefComposer({ onClose, onSave }: { onClose: () => void; onSave: (item
 
   return (
     <DrawerFrame label="Guided brief authoring" onClose={onClose}>
-      <header className="review-panel__header"><div><p className="eyebrow">Originator path</p><h2>Describe the problem</h2><p>No repository terminology is required. You remain the author.</p></div></header>
-      <div className="brief-form review-panel__section">
-        <label><span>Working title</span><input onChange={(event) => setTitle(event.target.value)} value={title} /></label>
-        <label><span>What is happening?</span><textarea onChange={(event) => setProblem(event.target.value)} rows={4} value={problem} /></label>
-        <label><span>What should become true?</span><textarea onChange={(event) => setOutcome(event.target.value)} rows={3} value={outcome} /></label>
-        <label><span>Who is affected? <small>Separate with commas</small></span><input onChange={(event) => setUsers(event.target.value)} value={users} /></label>
-        <label><span>Which systems are involved?</span><input onChange={(event) => setSystems(event.target.value)} value={systems} /></label>
-        <label><span>Constraints</span><input onChange={(event) => setConstraints(event.target.value)} value={constraints} /></label>
-        <label><span>Open questions</span><input onChange={(event) => setQuestions(event.target.value)} value={questions} /></label>
-        <fieldset className="scope-fields"><legend>Can this stay one brief?</legend>
-          <label className="check-field"><input checked={examWritable} onChange={(event) => setExamWritable(event.target.checked)} type="checkbox" /><span>I can describe one crisp, independently authored exam.</span></label>
-          <label className="check-field"><input checked={coherentShape} onChange={(event) => setCoherentShape(event.target.checked)} type="checkbox" /><span>The Critic can review this as one coherent shape.</span></label>
-          <label><span>Expected files touched <small>Optional plan-sprawl signal</small></span><input inputMode="numeric" min="0" onChange={(event) => setPlannedFiles(event.target.value)} type="number" value={plannedFiles} /></label>
-        </fieldset>
-      </div>
-      <div className="review-panel__section scope-check" data-status={scope.status}>
+      <header className="review-panel__header"><div><p className="eyebrow">Originator interview</p><h2>Tell me what you know</h2><p>I will provide the structure. You provide the judgment; anything uncertain stays an open question.</p></div></header>
+      {!interviewComplete ? <div className="review-panel__section interview-workspace">
+        <div className="interview-thread" aria-label="Intent interview transcript">
+          <article className="message message--agent"><span>Intake agent</span><p>Start anywhere. I will interview backward from the brief and will not invent missing facts.</p></article>
+          {intentInterviewQuestions.slice(0, step).map((question, index) => <div className="message-pair" key={question.key}>
+            <article className="message message--agent"><span>Intake agent</span><p>{question.prompt}</p></article>
+            <article className="message message--human"><span>You</span><p>{answers[question.key]}</p><button onClick={() => editAnswer(index)} type="button">Correct answer</button></article>
+          </div>)}
+          {currentQuestion ? <article className="message message--agent message--current"><span>Intake agent · {step + 1} of {intentInterviewQuestions.length}</span><p>{currentQuestion.prompt}</p><small>{currentQuestion.help}</small></article> : null}
+        </div>
+        <label className="interview-answer"><span>Your answer</span><textarea autoFocus onChange={(event) => setResponse(event.target.value)} onKeyDown={(event) => { if ((event.metaKey || event.ctrlKey) && event.key === "Enter") submitAnswer(); }} rows={4} value={response} /></label>
+        {currentQuestion?.key === "systems" ? <p className="context-hint">Pilot context can resolve: {pilotSystemContext.join(" · ")}</p> : null}
+        <div className="interview-actions"><small>Press ⌘ Enter to continue.</small><button className="primary-button" disabled={!response.trim()} onClick={submitAnswer} type="button">{editing ? "Apply correction" : step === intentInterviewQuestions.length - 1 ? "Render draft" : "Continue interview"}</button></div>
+      </div> : <>
+        <div className="review-panel__section draft-render">
+          <div className="evidence-heading"><p className="section-label">Rendered brief</p><span className={`evidence-badge ${draft.validation.valid ? "" : "evidence-badge--waiting"}`}>{draft.validation.valid ? "Complete template" : "Needs clarification"}</span></div>
+          <article className="draft-title"><span>Draft brief</span><h3>{interview.title || "Untitled intent"}</h3><p>Originator · {originator.displayName}</p></article>
+          {[
+            ["Problem", interview.problem, 1],
+            ["Proposed outcome", interview.outcome, 3],
+            ["Success signal", interview.successMeasure || "Open question", 4],
+            ["Affected users", interview.users.join(" · ") || "Open question", 2],
+            ["Resolved systems", interview.resolvedSystems.join(" · ") || "Open question", 5],
+            ["Constraints", interview.constraints.join(" · ") || "None stated", 6],
+          ].map(([label, value, index]) => <article className="draft-section" key={String(label)}><header><span>{label}</span><button onClick={() => editAnswer(Number(index))} type="button">Correct</button></header><p>{value}</p></article>)}
+          <article className="draft-section draft-section--questions"><header><span>Open questions</span><button onClick={() => editAnswer(7)} type="button">Correct</button></header>{interview.openQuestions.length ? <ul>{interview.openQuestions.map((question) => <li key={question}>{question}</li>)}</ul> : <p>None surfaced.</p>}</article>
+          {interview.unresolvedSystems.length ? <p className="resolution-warning">Unverified system names were moved to Open Questions instead of being written as facts.</p> : null}
+        </div>
+        <div className="review-panel__section scope-check" data-status={scope.status}>
         <div className="evidence-heading"><p className="section-label">Scope check</p><span className={`evidence-badge ${scope.rightSized ? "" : "evidence-badge--waiting"}`}>{scope.rightSized ? "Right-sized for Frame" : scope.status === "split-at-engineer" ? "Plan-sprawl alarm" : "Split before Gate 1"}</span></div>
         <div className="scope-rule-grid">
-          <span data-pass={Boolean(outcome.trim())}><b>{outcome.trim() ? "✓" : "○"}</b>One outcome</span>
+          <span data-pass={Boolean(interview.outcome)}><b>{interview.outcome ? "✓" : "○"}</b>One outcome</span>
           <span data-pass={examWritable}><b>{examWritable ? "✓" : "○"}</b>One exam</span>
           <span data-pass={coherentShape}><b>{coherentShape ? "✓" : "○"}</b>One shape</span>
         </div>
         {!scope.rightSized ? <p>Suggested split lines: {scope.suggestedSplitLines.join(" · ")}. This is an ambiguity check, not an effort estimate.</p> : <p>Scope can freeze at Gate 1. New wants return as a revision or a new brief.</p>}
-      </div>
-      <div className="review-panel__section"><div className="evidence-heading"><p className="section-label">Draft readiness</p><span className={`evidence-badge ${draft.validation.valid ? "" : "evidence-badge--waiting"}`}>{draft.validation.valid ? "Ready for your review" : `${draft.validation.missing.length} required fields`}</span></div><pre className="brief-preview">{draft.markdown}</pre></div>
-      <footer className="review-panel__footer"><p>Saving adds a revision-bound BRIEF to the configured intent-home connector.</p><button className="primary-button" disabled={!draft.validation.valid} onClick={save} type="button">Save draft to intent home</button></footer>
+        <fieldset className="scope-fields"><legend>Can this stay one brief?</legend>
+          <label className="check-field"><input checked={examWritable} onChange={(event) => setExamWritable(event.target.checked)} type="checkbox" /><span>I can describe one crisp, independently authored exam.</span></label>
+          <label className="check-field"><input checked={coherentShape} onChange={(event) => setCoherentShape(event.target.checked)} type="checkbox" /><span>The Critic can review this as one coherent shape.</span></label>
+        </fieldset>
+        </div>
+      </>}
+      <footer className="review-panel__footer"><p>Save commits the rendered draft under {originator.displayName}'s identity. The underlying artifact stays behind the intent-home seam.</p><button className="primary-button" disabled={!interviewComplete || !draft.validation.valid} onClick={save} type="button">Commit accepted draft</button></footer>
     </DrawerFrame>
   );
 }
@@ -397,7 +437,7 @@ export default function App() {
 
       {selected && selectedItem ? <ReviewPanel decision={selected} item={selectedItem} onAction={handleAction} onClose={() => setSelected(null)} /> : null}
       {threadItem ? <WorkItemPanel item={threadItem} onClose={() => setThreadItem(null)} /> : null}
-      {composing ? <BriefComposer onClose={() => setComposing(false)} onSave={saveBrief} /> : null}
+      {composing ? <BriefComposer onClose={() => setComposing(false)} onSave={saveBrief} originator={actor} /> : null}
     </div>
   );
 }

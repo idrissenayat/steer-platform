@@ -7,7 +7,9 @@ const required = [
   "kit/templates/PLAN.md",
   "kit/policy/gates.json",
   "kit/policy/sizing.json",
+  "kit/policy/intent.json",
   "kit/practices/sizing-and-scoping.md",
+  "kit/practices/providing-intent.md",
   "kit/guardrails/guardrails.json",
   "kit/bands/default.json",
   "kit/metrics/definitions.json",
@@ -35,6 +37,14 @@ if (!gatePolicy.defaultClosedDomains.includes("accessibility")) {
 const sizingPolicy = JSON.parse(await readFile("kit/policy/sizing.json", "utf8"));
 if (sizingPolicy.frame.maxOutcomes !== 1 || sizingPolicy.frame.maxExams !== 1) {
   throw new Error("Sizing policy must preserve one outcome and one exam per brief.");
+}
+
+const intentPolicy = JSON.parse(await readFile("kit/policy/intent.json", "utf8"));
+if (intentPolicy.originatorExperience.mode !== "interview" || intentPolicy.originatorExperience.showRawArtifacts !== false) {
+  throw new Error("Originators must receive an interview and rendered draft, never raw artifacts.");
+}
+if (intentPolicy.draftingRules.inventMissingFacts !== false || intentPolicy.corrections.repeatThreshold !== 2) {
+  throw new Error("Providing-intent policy must forbid invention and promote repeated corrections at two occurrences.");
 }
 if (sizingPolicy.forecast.percentile !== 0.85 || sizingPolicy.scopeFreeze !== "gate-1") {
   throw new Error("Sizing policy must use P85 forecasting and freeze scope at Gate 1.");

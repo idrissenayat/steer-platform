@@ -1,4 +1,5 @@
 export interface BriefDraftInput {
+  author?: string;
   title: string;
   problem: string;
   outcome: string;
@@ -6,6 +7,7 @@ export interface BriefDraftInput {
   systems: string[];
   constraints: string[];
   openQuestions: string[];
+  successMeasure?: string;
   sizing?: {
     coherentShape: boolean;
     examWritable: boolean;
@@ -34,6 +36,7 @@ export function draftBrief(input: BriefDraftInput): BriefDraft {
   const markdown = `# Brief: ${input.title.trim() || "Untitled intent"}
 
 Status: draft, originator review required.
+Originator: ${input.author?.trim() || "To be bound by the configured connector"}
 
 ## Problem
 
@@ -45,6 +48,7 @@ ${input.outcome.trim()}
 
 ## Outcome contract
 
+- Success signal: ${input.successMeasure?.trim() || "To be confirmed in Open Questions."}
 - Baseline: to be captured before Gate 1.
 - Target: originator and Product Lead to define.
 - Observation window: to be defined.

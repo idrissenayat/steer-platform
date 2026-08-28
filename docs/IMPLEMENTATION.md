@@ -11,6 +11,8 @@ rebuildable fixture connector.
 - revision-safe sign and send-back actions that bind identity and sequence;
 - continuous work-item thread from brief through evidence and signatures;
 - guided non-engineer brief authoring with deterministic validation/revision;
+- an interview-first originator experience with rendered draft correction,
+  context-resolved system names, and no raw artifact exposure;
 - a live scope check for one outcome, one exam, and one coherent shape, plus
   plan-sprawl alarms and split guidance;
 - P85 cycle-time forecasting and aging-band domain functions;
@@ -25,6 +27,11 @@ rebuildable fixture connector.
 The source for this behavior is `STEER-Sizing-and-Scoping.docx` (Practice Note
 1). Its rules are mirrored in `kit/policy/sizing.json` so the platform and the
 adoption kit enforce the same operating model.
+
+`STEER-Providing-Intent.docx` (Practice Note 2) defines the intent interaction
+model. Its no-invention, ambiguity-surfacing, rendered-draft, correction, and
+identity-binding rules are mirrored in `kit/policy/intent.json` and the guided
+interview domain.
 
 ## Current boundary
 
