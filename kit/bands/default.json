@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "bands": [
+    {
+      "metric": "event-to-board-latency-seconds-p95",
+      "healthyMax": 60,
+      "breachAction": "diagnose-read-only",
+      "repeatBreachAction": "draft-brief"
+    },
+    {
+      "metric": "reconciliation-heal-seconds-p95",
+      "healthyMax": 600,
+      "breachAction": "diagnose-read-only",
+      "repeatBreachAction": "draft-brief"
+    },
+    {
+      "metric": "escaped-defects",
+      "healthyMax": 0,
+      "breachAction": "create-permanent-eval",
+      "repeatBreachAction": "contract-autonomy"
+    }
+  ]
+}

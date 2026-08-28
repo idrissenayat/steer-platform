@@ -13,8 +13,20 @@ export const demoChain: WorkItemChain[] = [
     riskDomains: ["accessibility", "integrations"],
     userFacing: true,
     artifacts: [
-      { kind: "brief", revision: "b81d2e1", updatedAt: "2026-08-28T12:00:00Z" },
-      { kind: "spec", revision: "c52e0a4", updatedAt: "2026-08-28T13:00:00Z" },
+      {
+        kind: "brief",
+        path: "intent/FD-001/BRIEF.md",
+        revision: "b81d2e1",
+        updatedAt: "2026-08-28T12:00:00Z",
+        content: "Reviewers cannot tell which judgment needs their attention without scanning several tools.",
+      },
+      {
+        kind: "spec",
+        path: "intent/FD-001/SPEC.md",
+        revision: "c52e0a4",
+        updatedAt: "2026-08-28T13:00:00Z",
+        content: "Make the role-aware decision inbox the home screen. Keep all non-decision activity ambient.",
+      },
     ],
     signatures: [
       {
@@ -63,7 +75,13 @@ export const demoChain: WorkItemChain[] = [
     artifacts: [
       { kind: "brief", revision: "13e59a1", updatedAt: "2026-08-25T10:00:00Z" },
       { kind: "spec", revision: "248acb2", updatedAt: "2026-08-25T12:00:00Z" },
-      { kind: "exam", revision: "35bbdc3", updatedAt: "2026-08-26T09:00:00Z" },
+      {
+        kind: "exam",
+        path: "intent/FD-003/EXAM.md",
+        revision: "35bbdc3",
+        updatedAt: "2026-08-26T09:00:00Z",
+        content: "Keyboard-complete review, zero serious accessibility violations, and revision-current evidence.",
+      },
       { kind: "plan", revision: "46cbed4", updatedAt: "2026-08-26T11:00:00Z" },
       { kind: "diff", revision: "57dcfe5", updatedAt: "2026-08-28T13:00:00Z" },
       { kind: "review", revision: "57dcfe5", updatedAt: "2026-08-28T15:00:00Z" },
@@ -86,6 +104,14 @@ export const demoChain: WorkItemChain[] = [
       criticFindings: 1,
       planConformant: true,
       checkedAt: "2026-08-28T15:00:00Z",
+      planRevision: "57dcfe5",
+      examCases: [
+        { id: "F-15", name: "Automated accessibility scan", passed: true, revision: "57dcfe5" },
+        { id: "F-16", name: "Keyboard-complete review flow", passed: true, revision: "57dcfe5" },
+      ],
+      findings: [
+        { id: "CR-17", rank: "minor", summary: "Clarify the revision label for screen readers", revision: "57dcfe5" },
+      ],
     },
     decisionReadyAt: "2026-08-28T15:00:00Z",
     decisionDueAt: "2026-08-28T22:00:00Z",

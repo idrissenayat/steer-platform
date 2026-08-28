@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": 1,
+  "defaultClosedDomains": [
+    "security",
+    "privacy",
+    "accessibility",
+    "money",
+    "legal",
+    "reliability",
+    "irreversible-operations"
+  ],
+  "gates": {
+    "1": {
+      "question": "What are we building, and why?",
+      "artifact": "SPEC",
+      "required": ["product-lead", "product-designer"]
+    },
+    "2": {
+      "question": "What does provably done look like?",
+      "artifact": "EXAM",
+      "required": ["tech-lead"]
+    },
+    "3": {
+      "question": "Does the evidence support release?",
+      "artifact": "diff",
+      "required": ["product-lead", "tech-lead"],
+      "productDesignerWhen": "user-facing"
+    }
+  },
+  "specialistSeat": {
+    "activatesFor": "default-closed-domain-tag",
+    "slaHours": 24,
+    "escalation": "visible"
+  },
+  "invariants": {
+    "builderMayEditExam": false,
+    "signatureBinds": ["identity", "sequence", "artifact-revision"],
+    "productionRequiresNamedAuthorization": true
+  }
+}

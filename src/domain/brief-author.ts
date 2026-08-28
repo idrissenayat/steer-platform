@@ -1,0 +1,86 @@
+export interface BriefDraftInput {
+  title: string;
+  problem: string;
+  outcome: string;
+  users: string[];
+  systems: string[];
+  constraints: string[];
+  openQuestions: string[];
+}
+
+export interface BriefDraft {
+  markdown: string;
+  templateVersion: "steer-brief/v1";
+  validation: { valid: boolean; missing: string[] };
+}
+
+const requiredSections = [
+  "## Problem",
+  "## Proposed outcome",
+  "## Affected users and systems",
+  "## Constraints",
+  "## Open questions",
+];
+
+const list = (values: string[], fallback: string) =>
+  (values.length ? values : [fallback]).map((value) => `- ${value}`).join("\n");
+
+export function draftBrief(input: BriefDraftInput): BriefDraft {
+  const markdown = `# Brief: ${input.title.trim() || "Untitled intent"}
+
+Status: draft, originator review required.
+
+## Problem
+
+${input.problem.trim()}
+
+## Proposed outcome
+
+${input.outcome.trim()}
+
+## Outcome contract
+
+- Baseline: to be captured before Gate 1.
+- Target: originator and Product Lead to define.
+- Observation window: to be defined.
+- Guardrail: human hours per shipped item must not rise.
+
+## Affected users and systems
+
+### Users
+${list(input.users, "No user group supplied")}
+
+### Systems
+${list(input.systems, "No system supplied")}
+
+## Constraints
+
+${list(input.constraints, "No additional constraint supplied")}
+
+## Domain tags
+
+- To be classified before Gate 1.
+
+## Open questions
+
+${list(input.openQuestions, "No open question supplied")}
+`;
+  const missing = [
+    !input.problem.trim() ? "problem" : "",
+    !input.outcome.trim() ? "proposed outcome" : "",
+    !input.users.some((value) => value.trim()) ? "affected users" : "",
+    !input.systems.some((value) => value.trim()) ? "affected systems" : "",
+    ...requiredSections.filter((section) => !markdown.includes(section)),
+  ].filter(Boolean);
+
+  return { markdown, templateVersion: "steer-brief/v1", validation: { valid: missing.length === 0, missing } };
+}
+
+export function draftRevision(markdown: string): string {
+  let hash = 0x811c9dc5;
+  for (const character of markdown) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return (hash >>> 0).toString(16).padStart(8, "0");
+}

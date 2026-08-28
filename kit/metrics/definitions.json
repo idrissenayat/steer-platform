@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "metrics": [
+    {"id": "outcome-impact", "requires": ["baseline", "target", "denominator", "observationWindow"]},
+    {"id": "first-pass-verification-rate", "pairedWith": "escaped-defects"},
+    {"id": "escaped-defects", "pairedWith": "first-pass-verification-rate"},
+    {"id": "human-hours-per-shipped-item", "northStar": true},
+    {"id": "gate-wait-time", "unit": "hours", "statistic": "median"},
+    {"id": "decision-centralization-rate", "unit": "percent"},
+    {"id": "manual-status-updates", "target": 0}
+  ],
+  "pilot": {"minimumItems": 10, "maximumItems": 20, "recordFromItem": 1}
+}

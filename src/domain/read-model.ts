@@ -13,7 +13,11 @@ import type {
 
 const defaultClosedDomains = new Set<RiskDomain>([
   "accessibility",
+  "irreversible-operations",
+  "legal",
+  "money",
   "privacy",
+  "reliability",
   "security",
 ]);
 
@@ -32,7 +36,7 @@ function artifact(item: WorkItemChain, kind: ArtifactKind): ArtifactRef | undefi
   return item.artifacts.find((candidate) => candidate.kind === kind);
 }
 
-function artifactRevisionForGate(item: WorkItemChain, gate: Gate): string | undefined {
+export function artifactRevisionForGate(item: WorkItemChain, gate: Gate): string | undefined {
   if (gate === 1) return artifact(item, "spec")?.revision;
   if (gate === 2) return artifact(item, "exam")?.revision;
   return artifact(item, "diff")?.revision;
@@ -54,7 +58,7 @@ export function requiredRoles(item: WorkItemChain, gate: Gate): Role[] {
   return gateThreeRoles;
 }
 
-function isGateComplete(item: WorkItemChain, gate: Gate): boolean {
+export function isGateComplete(item: WorkItemChain, gate: Gate): boolean {
   const revision = artifactRevisionForGate(item, gate);
   if (!revision) return false;
 
@@ -70,7 +74,7 @@ function hasArtifacts(item: WorkItemChain, kinds: ArtifactKind[]): boolean {
   return kinds.every((kind) => Boolean(artifact(item, kind)));
 }
 
-function evidenceIsFresh(item: WorkItemChain): boolean {
+export function evidenceIsFresh(item: WorkItemChain): boolean {
   const diff = artifact(item, "diff");
   return Boolean(
     diff &&
@@ -92,7 +96,7 @@ function deriveStage(item: WorkItemChain, completion: Record<Gate, boolean>): Fl
   return "learn";
 }
 
-function gateReady(item: WorkItemChain, gate: Gate, completion: Record<Gate, boolean>): boolean {
+export function gateReady(item: WorkItemChain, gate: Gate, completion: Record<Gate, boolean>): boolean {
   if (gate === 1) return hasArtifacts(item, ["brief", "spec"]);
   if (gate === 2) return completion[1] && hasArtifacts(item, ["exam"]);
   return (
@@ -123,7 +127,8 @@ function pendingDecisions(
     const revision = artifactRevisionForGate(item, gate);
     if (!revision || completion[gate] || !gateReady(item, gate, completion)) continue;
 
-    for (const role of requiredRoles(item, gate)) {
+    const roles = requiredRoles(item, gate);
+    for (const role of roles) {
       const alreadySigned = item.signatures.some(
         (signature) =>
           signature.gate === gate &&
@@ -146,6 +151,8 @@ function pendingDecisions(
         dueAt,
         urgency: urgency(dueAt, asOf),
         evidenceState: gate === 3 ? "fresh" : "not-required",
+        sequencePosition: roles.indexOf(role) + 1,
+        slaBreached: urgency(dueAt, asOf) === "overdue",
       });
     }
   }

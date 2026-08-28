@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "defaultClosed": {
+    "security": ["token-scope-audit", "webhook-authenticity", "secret-log-scrub"],
+    "privacy": ["originator-retention", "problem-text-log-scrub"],
+    "accessibility": ["axe-critical-serious-zero", "keyboard-complete", "screen-reader-manual"],
+    "money": ["named-human-authorization"],
+    "irreversible-operations": ["named-human-authorization", "rollback-evidence"]
+  },
+  "pairingRules": [
+    ["first-pass-verification-rate", "escaped-defects"],
+    ["outcome-impact", "human-hours-per-shipped-item"]
+  ]
+}

@@ -11,7 +11,11 @@ export type Gate = 1 | 2 | 3;
 export type RiskDomain =
   | "accessibility"
   | "integrations"
+  | "irreversible-operations"
+  | "legal"
+  | "money"
   | "privacy"
+  | "reliability"
   | "security";
 
 export type ArtifactKind =
@@ -37,16 +41,34 @@ export type FlightStage =
 
 export interface ArtifactRef {
   kind: ArtifactKind;
+  path?: string;
   revision: string;
   updatedAt: string;
+  content?: string;
 }
 
 export interface GateSignature {
   gate: Gate;
   role: Role;
   revision: string;
+  sequence?: number;
   signedAt: string;
   signer: string;
+  subject?: string;
+}
+
+export interface ExamCaseResult {
+  id: string;
+  name: string;
+  passed: boolean;
+  revision: string;
+}
+
+export interface CriticFinding {
+  id: string;
+  rank: "blocker" | "major" | "minor" | "nit";
+  summary: string;
+  revision: string;
 }
 
 export interface EvidenceBundle {
@@ -55,6 +77,20 @@ export interface EvidenceBundle {
   criticFindings: number;
   planConformant: boolean;
   checkedAt: string;
+  examCases?: ExamCaseResult[];
+  findings?: CriticFinding[];
+  planRevision?: string;
+}
+
+export interface GateDecisionEvent {
+  action: "send-back";
+  actorRole: Role;
+  actorSubject: string;
+  at: string;
+  gate: Gate;
+  note: string;
+  revision: string;
+  routeTo: FlightStage;
 }
 
 export interface WorkItemChain {
@@ -66,6 +102,7 @@ export interface WorkItemChain {
   userFacing: boolean;
   artifacts: ArtifactRef[];
   signatures: GateSignature[];
+  decisionEvents?: GateDecisionEvent[];
   evidence?: EvidenceBundle;
   decisionReadyAt?: string;
   decisionDueAt?: string;
@@ -85,12 +122,36 @@ export interface DecisionCard {
   dueAt: string;
   urgency: "on-track" | "due-soon" | "overdue";
   evidenceState: "not-required" | "fresh";
+  sequencePosition: number;
+  slaBreached: boolean;
 }
 
 export interface ProjectedWorkItem extends WorkItemChain {
   stage: FlightStage;
   gateCompletion: Record<Gate, boolean>;
   evidenceFresh: boolean;
+}
+
+export interface IdentityContext {
+  subject: string;
+  displayName: string;
+  roles: Role[];
+  specialties?: RiskDomain[];
+}
+
+export interface GateAction {
+  decisionId: string;
+  displayedRevision: string;
+  kind: "sign" | "send-back";
+  note?: string;
+  at: string;
+}
+
+export interface ProjectionEvent {
+  id: string;
+  item: WorkItemChain;
+  occurredAt: string;
+  sequence: number;
 }
 
 export interface ReadModel {

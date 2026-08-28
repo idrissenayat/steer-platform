@@ -31,3 +31,10 @@ item one, are the framework's pilot evidence.
 - The exam is write-protected from Builders (hook enforced).
 - Accessibility, security, and privacy are default-closed domains.
 - Changes to these operating files are eval-gated like any fleet config.
+
+## Implementation evidence
+
+The active implementation and its intent-by-intent ledger are documented in
+`docs/IMPLEMENTATION.md` and `docs/INTENT-COMPLETION.md`. Run `pnpm check` to
+validate the Phase 0 kit, scope policy, TypeScript, automated exam cases, and
+production build.

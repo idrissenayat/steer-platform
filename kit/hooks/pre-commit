@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+
+if git diff --cached --name-only | grep -Eq '(^|/)EXAM\.md$'; then
+  case "${STEER_ACCOUNTABILITY:-builder}" in
+    tech-lead|test-agent|critic) ;;
+    *)
+      echo "STEER: Builders cannot edit an EXAM. Set STEER_ACCOUNTABILITY only to the independently assigned exam owner." >&2
+      exit 1
+      ;;
+  esac
+fi
