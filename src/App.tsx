@@ -45,12 +45,27 @@ function formatDue(date: string): string {
   }).format(new Date(date));
 }
 
-function MetricCard({ label, value, note }: { label: string; value: string; note: string }) {
+function MetricCard({
+  icon,
+  label,
+  note,
+  tone,
+  value,
+}: {
+  icon: string;
+  label: string;
+  note: string;
+  tone: "aqua" | "amber" | "blue" | "coral";
+  value: string;
+}) {
   return (
     <article className="metric-card">
-      <p>{label}</p>
-      <strong>{value}</strong>
-      <span>{note}</span>
+      <span aria-hidden="true" className={`metric-card__icon metric-card__icon--${tone}`}>{icon}</span>
+      <div>
+        <p>{label}</p>
+        <strong>{value}</strong>
+        <span>{note}</span>
+      </div>
     </article>
   );
 }
@@ -215,11 +230,16 @@ export default function App() {
   const model = useMemo(() => buildReadModel(demoChain, demoAsOf), []);
   const [role, setRole] = useState<Role>("tech-lead");
   const [gateFilter, setGateFilter] = useState<"all" | Gate>("all");
+  const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<DecisionCard | null>(null);
 
   const roleDecisions = decisionsForRole(model, role);
   const visibleDecisions = roleDecisions.filter(
-    (decision) => gateFilter === "all" || decision.gate === gateFilter,
+    (decision) =>
+      (gateFilter === "all" || decision.gate === gateFilter) &&
+      `${decision.itemId} ${decision.title} ${decision.summary}`
+        .toLowerCase()
+        .includes(query.trim().toLowerCase()),
   );
 
   const stageCounts = model.items.reduce<Record<FlightStage, number>>(
@@ -240,11 +260,17 @@ export default function App() {
     <div className="app-shell">
       <aside aria-hidden={selected ? true : undefined} className="sidebar">
         <div className="brand">
-          <span className="brand__mark" aria-hidden="true">S</span>
+          <span className="brand__mark" aria-hidden="true"><i /><i /><i /></span>
           <div>
             <strong>STEER</strong>
-            <span>Platform pod</span>
+            <span>Work Management</span>
           </div>
+        </div>
+
+        <div className="workspace-switcher">
+          <span className="workspace-avatar" aria-hidden="true">SP</span>
+          <div><strong>STEER Platform</strong><span>Pilot workspace · v3</span></div>
+          <b aria-hidden="true">⌄</b>
         </div>
 
         <nav aria-label="Primary navigation" className="primary-nav">
@@ -258,6 +284,11 @@ export default function App() {
           <a className="nav-item" href="#trust"><ShieldIcon />Trust ledger</a>
         </nav>
 
+        <div className="authority-card">
+          <span>Authority boundary</span>
+          <p>Humans hold intent and judgment. This foundation remains read only.</p>
+        </div>
+
         <div className="sidebar__status">
           <span className="status-dot" />
           <div>
@@ -268,10 +299,30 @@ export default function App() {
       </aside>
 
       <main aria-hidden={selected ? true : undefined} id="main-content">
+        <header className="app-topbar">
+          <label className="global-search">
+            <span aria-hidden="true">⌕</span>
+            <input
+              aria-label="Search decisions"
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search decisions, items, or revisions"
+              type="search"
+              value={query}
+            />
+            <kbd>⌘ K</kbd>
+          </label>
+          <div className="top-actions">
+            <span className="locked-state">◆ Gate writes locked</span>
+            <span className="pilot-pill">Read-only pilot</span>
+          </div>
+        </header>
+
+        <div className="main-content">
         <header className="topbar">
           <div>
-            <p className="eyebrow">Platform pod · Pilot workspace</p>
-            <h1>Good afternoon, Idriss.</h1>
+            <p className="eyebrow">Human control tower</p>
+            <h1>Good afternoon. Here is where to act.</h1>
+            <p>Start with the next consequential judgment. The rest of the system stays ambient.</p>
           </div>
           <label className="role-control">
             <span>Viewing as</span>
@@ -284,10 +335,10 @@ export default function App() {
         </header>
 
         <section aria-label="Workspace metrics" className="metrics-grid">
-          <MetricCard label="Your decisions" note={`${model.metrics.readyDecisions} across the pod`} value={String(roleDecisions.length)} />
-          <MetricCard label="Items in flight" note="Computed, never updated by hand" value={String(model.metrics.inFlightItems)} />
-          <MetricCard label="Evidence fresh" note="Bound to displayed revisions" value={`${model.metrics.evidenceFreshPercent}%`} />
-          <MetricCard label="Median gate wait" note="Pilot baseline in progress" value={formatWait(model.metrics.medianGateWaitHours)} />
+          <MetricCard icon="◆" label="Your decisions" note={`${model.metrics.readyDecisions} across the pod`} tone="amber" value={String(roleDecisions.length)} />
+          <MetricCard icon="▥" label="Items in flight" note="Computed, never updated by hand" tone="aqua" value={String(model.metrics.inFlightItems)} />
+          <MetricCard icon="✓" label="Evidence fresh" note="Bound to displayed revisions" tone="blue" value={`${model.metrics.evidenceFreshPercent}%`} />
+          <MetricCard icon="◷" label="Median gate wait" note="Pilot baseline in progress" tone="coral" value={formatWait(model.metrics.medianGateWaitHours)} />
         </section>
 
         <section className="inbox-section" id="inbox">
@@ -355,6 +406,7 @@ export default function App() {
           </div>
           <code>BRIEF → SPEC → EXAM → PLAN → evidence</code>
         </section>
+        </div>
       </main>
 
       {selected ? <ReviewPanel decision={selected} onClose={() => setSelected(null)} /> : null}
