@@ -1,0 +1,23 @@
+{
+  "version": "steer-sizing/v1",
+  "principle": "Size ambiguity, not agent effort.",
+  "frame": {
+    "maxOutcomes": 1,
+    "maxExams": 1,
+    "requireExamWritable": true,
+    "requireCoherentShape": true
+  },
+  "engineer": {
+    "planSprawlFileThreshold": 20,
+    "planSprawlSystemThreshold": 4
+  },
+  "splitLines": ["user-path", "domain-tag", "interface-seam", "legacy-on-ramp"],
+  "forecast": {
+    "measure": "cycle-time-by-brief-shape",
+    "percentile": 0.85
+  },
+  "aging": {
+    "breachAction": "escalate-to-huddle"
+  },
+  "scopeFreeze": "gate-1"
+}

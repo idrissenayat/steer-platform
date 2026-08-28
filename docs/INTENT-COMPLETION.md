@@ -8,7 +8,8 @@ Last implementation audit: 2026-08-28.
 The local pilot now demonstrates the complete human journey against a fixture
 repository: computed workspace, role-specific decisions, Gate-specific review,
 revision-safe sign/send-back, evidence assembly, continuous work-item threads,
-and guided brief authoring. The Phase 0 kit is independently adoptable.
+guided brief authoring, scope checks, and aging-band huddle signals. The Phase
+0 kit is independently adoptable.
 
 This is not yet a production completion claim. The intent itself requires
 human policy rulings, live identity/code-host configuration, specialist manual
@@ -37,6 +38,16 @@ evidence, and a 90-day pilot window. Those cannot be replaced by fixture data.
 | G17 | Inbox under 2s at p95 for 50 decisions/10 repos | 50-decision projection budget test | green for projection; network p95 pending |
 | G18 | Event latency and 5% dropped-webhook healing | deterministic 100-event chaos run repairs 5% drop | green for reconciliation; live event p95 pending |
 | G19 | Self-hosted container, no SaaS core dependency | multi-stage container and health endpoint | partial: full connector service smoke pending |
+
+## Sizing practice-note reconciliation
+
+`STEER-Sizing-and-Scoping.docx` is included as Practice Note 1 and is reflected
+in the Framework guide, repository templates, machine-readable sizing policy,
+brief composer, Flight Board aging state, and automated tests. The platform now
+enforces one outcome / one exam / one shape at Frame, raises the configured
+20-file or 4-system plan-sprawl alarm at Engineer, escalates historical
+cycle-time band breaches to a huddle, and provides P85 forecasting functions.
+These are flow controls; they do not create production cycle-time history.
 
 ## Human-owned completion gates
 

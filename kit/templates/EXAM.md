@@ -4,6 +4,12 @@ Derived from: `<brief and spec paths and revisions>`
 Author accountability: Tech Lead or independent Test Agent
 Status: draft, write-protected from Builders
 
+## Scope-writability check
+
+- This exam proves exactly one brief outcome:
+- The cases form one coherent shape:
+- If either statement is false, split the brief before Gate 1.
+
 ## Functional acceptance
 
 1. Given / when / then:

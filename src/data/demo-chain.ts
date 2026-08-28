@@ -39,6 +39,8 @@ export const demoChain: WorkItemChain[] = [
     ],
     decisionReadyAt: "2026-08-28T14:00:00Z",
     decisionDueAt: "2026-08-28T18:00:00Z",
+    stageEnteredAt: "2026-08-28T13:00:00Z",
+    stageBandHours: 12,
   },
   {
     id: "FD-002",
@@ -64,6 +66,8 @@ export const demoChain: WorkItemChain[] = [
     ],
     decisionReadyAt: "2026-08-28T17:00:00Z",
     decisionDueAt: "2026-08-29T17:00:00Z",
+    stageEnteredAt: "2026-08-28T10:00:00Z",
+    stageBandHours: 18,
   },
   {
     id: "FD-003",
@@ -115,6 +119,8 @@ export const demoChain: WorkItemChain[] = [
     },
     decisionReadyAt: "2026-08-28T15:00:00Z",
     decisionDueAt: "2026-08-28T22:00:00Z",
+    stageEnteredAt: "2026-08-28T15:00:00Z",
+    stageBandHours: 8,
   },
   {
     id: "FD-004",
@@ -140,6 +146,8 @@ export const demoChain: WorkItemChain[] = [
       },
       { gate: 2, role: "tech-lead", revision: "80af2b8", signedAt, signer: "Morgan Lee" },
     ],
+    stageEnteredAt: "2026-08-28T09:00:00Z",
+    stageBandHours: 8,
   },
   {
     id: "FD-005",
@@ -152,5 +160,7 @@ export const demoChain: WorkItemChain[] = [
       { kind: "brief", revision: "a2c14da", updatedAt: "2026-08-28T16:00:00Z" },
     ],
     signatures: [],
+    stageEnteredAt: "2026-08-28T16:00:00Z",
+    stageBandHours: 12,
   },
 ];

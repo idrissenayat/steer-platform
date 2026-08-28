@@ -6,6 +6,8 @@ const required = [
   "kit/templates/EXAM.md",
   "kit/templates/PLAN.md",
   "kit/policy/gates.json",
+  "kit/policy/sizing.json",
+  "kit/practices/sizing-and-scoping.md",
   "kit/guardrails/guardrails.json",
   "kit/bands/default.json",
   "kit/metrics/definitions.json",
@@ -28,6 +30,14 @@ if (gatePolicy.gates["1"].required.join(",") !== "product-lead,product-designer"
 }
 if (!gatePolicy.defaultClosedDomains.includes("accessibility")) {
   throw new Error("Accessibility must remain default-closed.");
+}
+
+const sizingPolicy = JSON.parse(await readFile("kit/policy/sizing.json", "utf8"));
+if (sizingPolicy.frame.maxOutcomes !== 1 || sizingPolicy.frame.maxExams !== 1) {
+  throw new Error("Sizing policy must preserve one outcome and one exam per brief.");
+}
+if (sizingPolicy.forecast.percentile !== 0.85 || sizingPolicy.scopeFreeze !== "gate-1") {
+  throw new Error("Sizing policy must use P85 forecasting and freeze scope at Gate 1.");
 }
 
 console.log(`STEER Phase 0 kit valid (${required.length} required artifacts).`);

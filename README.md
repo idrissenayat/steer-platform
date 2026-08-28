@@ -31,6 +31,18 @@ item one, are the framework's pilot evidence.
 - The exam is write-protected from Builders (hook enforced).
 - Accessibility, security, and privacy are default-closed domains.
 - Changes to these operating files are eval-gated like any fleet config.
+- Work is sized by exam-writability and brief shape, never by story points.
+- Scope freezes at Gate 1; aging bands and P85 cycle time replace rollover and
+  velocity forecasts.
+
+## Framework documents
+
+- `STEER-Methodology.docx` — why the system exists.
+- `STEER-Framework.docx` — structure, lifecycle, gates, measurement, and the
+  sizing/scoping rules that connect Frame to forecasting.
+- `STEER-Operating-Model.docx` — accountabilities and organizational operation.
+- `STEER-Sizing-and-Scoping.docx` — Practice Note 1, with the complete guidance
+  for exam-writability, splitting, aging bands, and percentile forecasting.
 
 ## Implementation evidence
 

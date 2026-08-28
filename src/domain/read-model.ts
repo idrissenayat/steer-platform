@@ -10,6 +10,7 @@ import type {
   Role,
   WorkItemChain,
 } from "./types";
+import { agingBandStatus } from "./sizing";
 
 const defaultClosedDomains = new Set<RiskDomain>([
   "accessibility",
@@ -176,6 +177,9 @@ export function buildReadModel(items: WorkItemChain[], asOf: string): ReadModel 
         2: isGateComplete(item, 2),
         3: isGateComplete(item, 3),
       };
+      const enteredAt = item.stageEnteredAt ?? item.artifacts.at(-1)?.updatedAt ?? asOf;
+      const ageHours = Math.max(0, Math.round(((new Date(asOf).getTime() - new Date(enteredAt).getTime()) / (60 * 60 * 1000)) * 10) / 10);
+      const expectedMaxHours = item.stageBandHours ?? 24;
       return {
         ...item,
         artifacts: [...item.artifacts],
@@ -184,6 +188,7 @@ export function buildReadModel(items: WorkItemChain[], asOf: string): ReadModel 
         gateCompletion,
         evidenceFresh: evidenceIsFresh(item),
         stage: deriveStage(item, gateCompletion),
+        aging: { ageHours, expectedMaxHours, state: agingBandStatus(ageHours, expectedMaxHours) },
       };
     })
     .sort((left, right) => left.id.localeCompare(right.id));

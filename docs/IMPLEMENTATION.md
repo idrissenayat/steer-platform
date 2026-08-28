@@ -11,6 +11,9 @@ rebuildable fixture connector.
 - revision-safe sign and send-back actions that bind identity and sequence;
 - continuous work-item thread from brief through evidence and signatures;
 - guided non-engineer brief authoring with deterministic validation/revision;
+- a live scope check for one outcome, one exam, and one coherent shape, plus
+  plan-sprawl alarms and split guidance;
+- P85 cycle-time forecasting and aging-band domain functions;
 - pilot telemetry for wait time, centralization, and human effort;
 - Phase 0 templates, gate policy, guardrails, bands, metrics, culture, seams,
   and an EXAM-protection hook;
@@ -18,6 +21,10 @@ rebuildable fixture connector.
   retention control;
 - automated structural accessibility and performance checks; and
 - a self-hosted static container with security headers and health endpoint.
+
+The source for this behavior is `STEER-Sizing-and-Scoping.docx` (Practice Note
+1). Its rules are mirrored in `kit/policy/sizing.json` so the platform and the
+adoption kit enforce the same operating model.
 
 ## Current boundary
 

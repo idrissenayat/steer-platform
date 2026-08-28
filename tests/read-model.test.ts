@@ -54,4 +54,14 @@ describe("artifact-chain read model", () => {
       "FD-005": "sense",
     });
   });
+
+  it("projects historical state-band breaches as huddle signals", () => {
+    const model = buildReadModel(demoChain, demoAsOf);
+    expect(model.items.find((item) => item.id === "FD-004")?.aging).toEqual({
+      ageHours: 10,
+      expectedMaxHours: 8,
+      state: "huddle",
+    });
+    expect(model.items.find((item) => item.id === "FD-003")?.aging.state).toBe("within-band");
+  });
 });

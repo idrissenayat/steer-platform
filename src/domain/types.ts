@@ -106,6 +106,8 @@ export interface WorkItemChain {
   evidence?: EvidenceBundle;
   decisionReadyAt?: string;
   decisionDueAt?: string;
+  stageBandHours?: number;
+  stageEnteredAt?: string;
 }
 
 export interface DecisionCard {
@@ -130,6 +132,11 @@ export interface ProjectedWorkItem extends WorkItemChain {
   stage: FlightStage;
   gateCompletion: Record<Gate, boolean>;
   evidenceFresh: boolean;
+  aging: {
+    ageHours: number;
+    expectedMaxHours: number;
+    state: "within-band" | "huddle";
+  };
 }
 
 export interface IdentityContext {

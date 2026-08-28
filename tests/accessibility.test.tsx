@@ -25,4 +25,12 @@ describe("automated accessibility gauntlet", () => {
     expect(screen.getByRole("button", { name: /close review/i })).toBeTruthy();
     expect(await seriousViolations(dialog)).toEqual([]);
   });
+
+  it("exposes the scope check in guided brief authoring", () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole("button", { name: /draft a brief/i }));
+    expect(screen.getByText("Scope check")).toBeTruthy();
+    expect(screen.getByRole("checkbox", { name: /one crisp/i })).toBeTruthy();
+    expect(screen.getByRole("checkbox", { name: /one coherent shape/i })).toBeTruthy();
+  });
 });

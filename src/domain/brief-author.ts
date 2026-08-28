@@ -6,6 +6,11 @@ export interface BriefDraftInput {
   systems: string[];
   constraints: string[];
   openQuestions: string[];
+  sizing?: {
+    coherentShape: boolean;
+    examWritable: boolean;
+    plannedFiles?: number;
+  };
 }
 
 export interface BriefDraft {
@@ -56,6 +61,15 @@ ${list(input.systems, "No system supplied")}
 ## Constraints
 
 ${list(input.constraints, "No additional constraint supplied")}
+
+## Sizing and scoping
+
+- One outcome: ${input.outcome.trim() ? "yes" : "not yet"}
+- One crisp exam can be written: ${input.sizing?.examWritable ? "yes" : "not yet confirmed"}
+- One coherent shape: ${input.sizing?.coherentShape ? "yes" : "not yet confirmed"}
+- Expected systems touched: ${input.systems.length || "not yet known"}
+- Expected files touched: ${input.sizing?.plannedFiles || "not yet known"}
+- Scope freezes at Gate 1; new wants return as a revision or a new brief.
 
 ## Domain tags
 

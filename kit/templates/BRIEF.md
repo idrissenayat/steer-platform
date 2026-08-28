@@ -27,6 +27,16 @@ Describe the change in the user's or system's reality.
 
 -
 
+## Sizing and scoping
+
+- One outcome:
+- One crisp exam can be written:
+- One coherent shape:
+- Expected systems touched:
+- Expected files touched:
+- Deadline, if real (record as a constraint, not an estimate):
+- Scope freezes at Gate 1; new wants become a gated revision or a new brief.
+
 ## Domain tags
 
 Choose all that apply: security, privacy, accessibility, money, legal,

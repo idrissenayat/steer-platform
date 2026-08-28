@@ -5,6 +5,7 @@ import { applyGateAction } from "./domain/actions";
 import { draftBrief, draftRevision } from "./domain/brief-author";
 import { assembleEvidence } from "./domain/evidence";
 import { buildReadModel, decisionsForRole } from "./domain/read-model";
+import { assessScope } from "./domain/sizing";
 import type {
   DecisionCard,
   FlightStage,
@@ -219,6 +220,7 @@ function WorkItemPanel({ item, onClose }: { item: ProjectedWorkItem; onClose: ()
     <DrawerFrame label={`${item.title} work item thread`} onClose={onClose}>
       <header className="review-panel__header"><div><p className="eyebrow">{item.id} · {stageLabels[item.stage]}</p><h2>{item.title}</h2><p>{item.summary}</p></div></header>
       <div className="review-panel__section"><p className="section-label">Outcome contract</p><p className="outcome-copy">{item.outcome}</p></div>
+      <div className="review-panel__section"><p className="section-label">State aging</p><p className="outcome-copy">{formatWait(item.aging.ageHours)} in {stageLabels[item.stage]} · expected band {formatWait(item.aging.expectedMaxHours)} · {item.aging.state === "huddle" ? "huddle required" : "within band"}</p></div>
       <div className="review-panel__section">
         <p className="section-label">Continuous artifact thread</p>
         <ol className="artifact-thread">
@@ -244,8 +246,20 @@ function BriefComposer({ onClose, onSave }: { onClose: () => void; onSave: (item
   const [systems, setSystems] = useState("");
   const [constraints, setConstraints] = useState("");
   const [questions, setQuestions] = useState("");
+  const [examWritable, setExamWritable] = useState(false);
+  const [coherentShape, setCoherentShape] = useState(false);
+  const [plannedFiles, setPlannedFiles] = useState("");
   const split = (value: string) => value.split(",").map((entry) => entry.trim()).filter(Boolean);
-  const draft = draftBrief({ title, problem, outcome, users: split(users), systems: split(systems), constraints: split(constraints), openQuestions: split(questions) });
+  const systemList = split(systems);
+  const scope = assessScope({
+    outcomeCount: outcome.trim() ? 1 : 0,
+    examCount: examWritable ? 1 : 0,
+    examWritable,
+    coherentShape,
+    touchedFiles: Number(plannedFiles) || 0,
+    touchedSystems: systemList.length,
+  });
+  const draft = draftBrief({ title, problem, outcome, users: split(users), systems: systemList, constraints: split(constraints), openQuestions: split(questions), sizing: { examWritable, coherentShape, plannedFiles: Number(plannedFiles) || undefined } });
 
   function save() {
     if (!draft.validation.valid) return;
@@ -271,6 +285,20 @@ function BriefComposer({ onClose, onSave }: { onClose: () => void; onSave: (item
         <label><span>Which systems are involved?</span><input onChange={(event) => setSystems(event.target.value)} value={systems} /></label>
         <label><span>Constraints</span><input onChange={(event) => setConstraints(event.target.value)} value={constraints} /></label>
         <label><span>Open questions</span><input onChange={(event) => setQuestions(event.target.value)} value={questions} /></label>
+        <fieldset className="scope-fields"><legend>Can this stay one brief?</legend>
+          <label className="check-field"><input checked={examWritable} onChange={(event) => setExamWritable(event.target.checked)} type="checkbox" /><span>I can describe one crisp, independently authored exam.</span></label>
+          <label className="check-field"><input checked={coherentShape} onChange={(event) => setCoherentShape(event.target.checked)} type="checkbox" /><span>The Critic can review this as one coherent shape.</span></label>
+          <label><span>Expected files touched <small>Optional plan-sprawl signal</small></span><input inputMode="numeric" min="0" onChange={(event) => setPlannedFiles(event.target.value)} type="number" value={plannedFiles} /></label>
+        </fieldset>
+      </div>
+      <div className="review-panel__section scope-check" data-status={scope.status}>
+        <div className="evidence-heading"><p className="section-label">Scope check</p><span className={`evidence-badge ${scope.rightSized ? "" : "evidence-badge--waiting"}`}>{scope.rightSized ? "Right-sized for Frame" : scope.status === "split-at-engineer" ? "Plan-sprawl alarm" : "Split before Gate 1"}</span></div>
+        <div className="scope-rule-grid">
+          <span data-pass={Boolean(outcome.trim())}><b>{outcome.trim() ? "✓" : "○"}</b>One outcome</span>
+          <span data-pass={examWritable}><b>{examWritable ? "✓" : "○"}</b>One exam</span>
+          <span data-pass={coherentShape}><b>{coherentShape ? "✓" : "○"}</b>One shape</span>
+        </div>
+        {!scope.rightSized ? <p>Suggested split lines: {scope.suggestedSplitLines.join(" · ")}. This is an ambiguity check, not an effort estimate.</p> : <p>Scope can freeze at Gate 1. New wants return as a revision or a new brief.</p>}
       </div>
       <div className="review-panel__section"><div className="evidence-heading"><p className="section-label">Draft readiness</p><span className={`evidence-badge ${draft.validation.valid ? "" : "evidence-badge--waiting"}`}>{draft.validation.valid ? "Ready for your review" : `${draft.validation.missing.length} required fields`}</span></div><pre className="brief-preview">{draft.markdown}</pre></div>
       <footer className="review-panel__footer"><p>Saving adds a revision-bound BRIEF to the configured intent-home connector.</p><button className="primary-button" disabled={!draft.validation.valid} onClick={save} type="button">Save draft to intent home</button></footer>
@@ -294,6 +322,7 @@ export default function App() {
   const actor: IdentityContext = { subject: `pilot|${role}`, displayName: actorNames[role], roles: [role] };
   const modalOpen = Boolean(selected || threadItem || composing);
   const stageCounts = model.items.reduce<Record<FlightStage, number>>((counts, item) => ({ ...counts, [item.stage]: counts[item.stage] + 1 }), { sense: 0, "frame-intent": 0, "frame-exam": 0, engineer: 0, evaluate: 0, release: 0, observe: 0, learn: 0 });
+  const agingCounts = model.items.reduce<Record<FlightStage, number>>((counts, item) => ({ ...counts, [item.stage]: counts[item.stage] + (item.aging.state === "huddle" ? 1 : 0) }), { sense: 0, "frame-intent": 0, "frame-exam": 0, engineer: 0, evaluate: 0, release: 0, observe: 0, learn: 0 });
 
   function handleAction(kind: "sign" | "send-back", note?: string) {
     if (!selected) return;
@@ -353,13 +382,13 @@ export default function App() {
           </section>
 
           <section className="flight-section" id="flight-board">
-            <div className="section-heading section-heading--compact"><div><p className="eyebrow">Computed from the chain</p><h2>Flight Board</h2></div><span className="read-model-note">Rebuildable projection · {model.items.length} items</span></div>
-            <div className="flight-track">{(Object.keys(stageLabels) as FlightStage[]).map((stage, index) => <div className="flight-stage" key={stage}><span className="flight-stage__index">{String(index + 1).padStart(2, "0")}</span><strong>{stageLabels[stage]}</strong><span>{stageCounts[stage]} {stageCounts[stage] === 1 ? "item" : "items"}</span></div>)}</div>
+            <div className="section-heading section-heading--compact"><div><p className="eyebrow">Computed from the chain</p><h2>Flight Board</h2></div><span className="read-model-note">Rebuildable projection · historical aging bands · {model.items.length} items</span></div>
+            <div className="flight-track">{(Object.keys(stageLabels) as FlightStage[]).map((stage, index) => <div className="flight-stage" key={stage}><span className="flight-stage__index">{String(index + 1).padStart(2, "0")}</span><strong>{stageLabels[stage]}</strong><span>{stageCounts[stage]} {stageCounts[stage] === 1 ? "item" : "items"}{agingCounts[stage] ? ` · ${agingCounts[stage]} aging` : ""}</span></div>)}</div>
           </section>
 
           <section className="work-items-section" id="work-items">
             <div className="section-heading"><div><p className="eyebrow">Brief to current state</p><h2>Work-item threads</h2><p>Artifacts, evidence, and signatures in one continuous view.</p></div></div>
-            <div className="work-item-grid">{model.items.map((item) => <button className="work-item-card" key={item.id} onClick={() => setThreadItem(item)} type="button"><span>{item.id} · {stageLabels[item.stage]}</span><strong>{item.title}</strong><small>{item.artifacts.length} artifacts · {item.signatures.length} signatures</small><b aria-hidden="true">→</b></button>)}</div>
+            <div className="work-item-grid">{model.items.map((item) => <button className="work-item-card" key={item.id} onClick={() => setThreadItem(item)} type="button"><span>{item.id} · {stageLabels[item.stage]}</span><strong>{item.title}</strong><small>{item.artifacts.length} artifacts · {item.signatures.length} signatures</small><em data-aging={item.aging.state}>{formatWait(item.aging.ageHours)} in state{item.aging.state === "huddle" ? " · huddle" : ""}</em><b aria-hidden="true">→</b></button>)}</div>
           </section>
 
           <section className="principle-strip" id="trust"><div className="principle-strip__mark"><ChainIcon /></div><div><p className="eyebrow">Iron rule</p><h2>The platform projects truth. It never owns it.</h2><p>Destroy the cache, replay the artifact chain, and the same workspace returns.</p></div><code>BRIEF → SPEC → EXAM → PLAN → evidence</code></section>
