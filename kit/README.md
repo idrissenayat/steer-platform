@@ -14,6 +14,8 @@ into any repository and run STEER without the platform.
    and again when an Engineer plan raises a sprawl alarm.
 7. Use `policy/intent.json` and `practices/providing-intent.md` for every
    originator intake, rendered draft, and repeated-correction context update.
+8. Use `policy/surfaces.json` and `practices/three-surfaces.md` to preserve the
+   intent/work-item pull boundary and the inbox-first attention order.
 
 The platform reads these files; it does not replace them. Git remains the
 authoritative record for artifacts, signatures, gate notes, and learning

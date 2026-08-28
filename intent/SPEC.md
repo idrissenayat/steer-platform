@@ -51,6 +51,24 @@ Per signed-in human, the list of decisions waiting on them, ranked by SLA:
 Every signature records identity, sequence position, and artifact revision.
 Nothing signs on the platform's own authority.
 
+### Intent backlog (Product Lead home)
+The selection surface, peer to the decision inbox. Each intent card shows:
+problem, proposed outcome with a measurable-today badge, domain tags,
+provenance (band breach with evidence, ticket cluster, named originator),
+duplicate-cluster hints, and computed mission-fit against the pod's
+quarterly brief. Four actions: pull into flight (blocked at the WIP limit,
+which renders on this screen), decline with a reason (recorded; tunes the
+Scout and bands), merge, send back one question. Untouched intents
+auto-expire per the pod's decay policy; expiry is recorded, not deleted.
+
+### Three-pane role home
+Every accountability gets the same shape with role-specific content:
+candidates pane, in-motion pane, decision inbox. Attention hierarchy is
+enforced by design: inbox ranks first always; candidates surface on pull
+triggers (open WIP slot, high-signal arrival); the in-motion pane is
+ambient and never pushes except on band breach. No progress-polling
+affordances exist: the bands watch flight, humans do not.
+
 ### Work item thread
 Clicking any item opens one continuous view, brief to current state, with
 CI results and review findings pulled in rather than linked out. Phase 1

@@ -1,0 +1,22 @@
+{
+  "version": "steer-surfaces/v1",
+  "intentBoundary": {
+    "candidateState": "intent-backlog",
+    "commitAction": "product-lead-pull",
+    "resultingState": "work-item-in-flight",
+    "automaticPromotion": false
+  },
+  "intentBacklog": {
+    "actions": ["pull", "decline-with-reason", "merge", "ask-one-question"],
+    "measurableBeforePull": true,
+    "decayPolicy": "expire-record-do-not-delete",
+    "missionFit": "computed-human-decides",
+    "wipLimitVisible": true
+  },
+  "attentionOrder": ["decision-inbox", "triggered-candidates", "ambient-flight"],
+  "notifications": {
+    "decisionInbox": "sla-risk",
+    "candidatePane": "pull-trigger-only",
+    "inMotionPane": "aging-band-breach-only"
+  }
+}

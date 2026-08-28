@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BoardIcon, ChainIcon, CloseIcon, InboxIcon, ShieldIcon } from "./components/Icons";
 import { demoAsOf, demoChain } from "./data/demo-chain";
+import { demoIntents, pilotMetrics, pilotWipLimit } from "./data/demo-intents";
 import { applyGateAction } from "./domain/actions";
 import { draftBrief, draftRevision } from "./domain/brief-author";
 import { assembleEvidence } from "./domain/evidence";
 import { blankIntentAnswers, buildInterviewDraft, intentInterviewQuestions, pilotSystemContext, type IntentAnswers } from "./domain/intent-interview";
+import { declineIntent, projectIntentBacklog, pullDisposition, type IntentCandidate, type ProjectedIntent } from "./domain/intent-backlog";
 import { buildReadModel, decisionsForRole } from "./domain/read-model";
 import { assessScope } from "./domain/sizing";
 import type {
@@ -239,7 +241,7 @@ function WorkItemPanel({ item, onClose }: { item: ProjectedWorkItem; onClose: ()
   );
 }
 
-function BriefComposer({ onClose, onSave, originator }: { onClose: () => void; onSave: (item: WorkItemChain) => void; originator: IdentityContext }) {
+function BriefComposer({ onClose, onSave, originator }: { onClose: () => void; onSave: (intent: IntentCandidate) => void; originator: IdentityContext }) {
   const [answers, setAnswers] = useState<IntentAnswers>(blankIntentAnswers);
   const [step, setStep] = useState(0);
   const [response, setResponse] = useState("");
@@ -289,11 +291,19 @@ function BriefComposer({ onClose, onSave, originator }: { onClose: () => void; o
     const revision = draftRevision(draft.markdown);
     const now = new Date().toISOString();
     onSave({
-      id: `FD-${String(100 + interview.title.length).padStart(3, "0")}`,
-      title: interview.title, summary: interview.problem, outcome: interview.outcome,
-      riskDomains: ["integrations"], userFacing: true,
-      artifacts: [{ kind: "brief", path: `intent/${revision}/BRIEF.md`, revision, updatedAt: now, content: draft.markdown }],
-      signatures: [],
+      id: `IN-${String(100 + interview.title.length).padStart(3, "0")}`,
+      artifactRevision: revision,
+      originator: originator.displayName,
+      title: interview.title,
+      problem: interview.problem,
+      outcome: interview.outcome,
+      successMetric: interview.successMeasure,
+      domainTags: ["integrations"],
+      provenance: `Named originator · ${originator.displayName}`,
+      duplicateKey: `originator-${revision}`,
+      lastTouchedAt: now,
+      decayDays: 30,
+      status: "candidate",
     });
   }
 
@@ -346,9 +356,49 @@ function BriefComposer({ onClose, onSave, originator }: { onClose: () => void; o
   );
 }
 
+const roleCandidateContent: Record<Role, { title: string; note: string }> = {
+  "product-lead": { title: "Intent backlog", note: "Candidates awaiting a pull decision." },
+  "tech-lead": { title: "Exams awaiting draft review", note: "Candidate exams surface when a review trigger fires." },
+  "product-designer": { title: "Design passes pending", note: "User-facing candidates awaiting design judgment." },
+  "platform-engineer": { title: "Fleet and hook changes queued", note: "Configuration candidates remain eval-gated." },
+  specialist: { title: "Tagged domain reviews", note: "Only candidates carrying your risk domain appear here." },
+};
+
+function CandidatePane({ declineReasons, inFlightCount, intents, onAsk, onDecline, onMerge, onPull, onReasonChange, role }: {
+  declineReasons: Record<string, string>;
+  inFlightCount: number;
+  intents: ProjectedIntent[];
+  onAsk: (intent: ProjectedIntent) => void;
+  onDecline: (intent: ProjectedIntent) => void;
+  onMerge: (intent: ProjectedIntent) => void;
+  onPull: (intent: ProjectedIntent) => void;
+  onReasonChange: (intentId: string, reason: string) => void;
+  role: Role;
+}) {
+  const content = roleCandidateContent[role];
+  return (
+    <section className="candidate-section" id="intent-backlog">
+      <div className="section-heading"><div><p className="eyebrow">Future · pull trigger only</p><h2>{content.title}</h2><p>{content.note}</p></div><span className="capacity-pill">{inFlightCount} of {pilotWipLimit} WIP slots in flight</span></div>
+      {role === "product-lead" ? <div className="intent-grid">
+        {intents.length ? intents.map((intent) => <article className="intent-card" key={intent.id}>
+          <header><div><span>{intent.id}</span><h3>{intent.title}</h3></div><span className={intent.measurableToday ? "measure-badge" : "measure-badge measure-badge--waiting"}>{intent.measurableToday ? "Measurable today" : "Metric unresolved"}</span></header>
+          <p>{intent.problem}</p>
+          <div className="intent-outcome"><small>Proposed outcome</small><strong>{intent.outcome}</strong></div>
+          <dl><div><dt>Mission fit</dt><dd>{intent.missionOutcome ?? "Moves no current mission outcome"}</dd></div><div><dt>Provenance</dt><dd>{intent.provenance}</dd></div></dl>
+          <div className="tag-row">{intent.domainTags.map((domain) => <span className="domain-tag" key={domain}>{domain}</span>)}{intent.duplicateCount > 1 ? <span className="cluster-badge">{intent.duplicateCount} in cluster</span> : null}</div>
+          <label className="decline-reason"><span>Decline reason</span><select aria-label={`Decline reason for ${intent.title}`} onChange={(event) => onReasonChange(intent.id, event.target.value)} value={declineReasons[intent.id] ?? "off-mission"}><option value="off-mission">Does not move the current mission</option><option value="duplicate">Duplicate signal</option><option value="insufficient-evidence">Insufficient evidence</option></select></label>
+          <div className="intent-actions"><button className="primary-button" onClick={() => onPull(intent)} type="button">Pull into flight</button><button onClick={() => onDecline(intent)} type="button">Decline with reason</button><button disabled={intent.duplicateCount < 2} onClick={() => onMerge(intent)} type="button">Merge</button><button onClick={() => onAsk(intent)} type="button">Ask one question</button></div>
+        </article>) : <div className="empty-state"><span aria-hidden="true">✓</span><h3>No triggered candidates</h3><p>The backlog remains quiet until capacity opens or a high-signal intent arrives.</p></div>}
+      </div> : <article className="role-candidate-card"><span>{roleLabels[role]} lens</span><h3>{content.title}</h3><p>{content.note} This pane stays quiet unless its trigger fires.</p></article>}
+    </section>
+  );
+}
+
 export default function App() {
   const [chain, setChain] = useState<WorkItemChain[]>(() => structuredClone(demoChain));
-  const [role, setRole] = useState<Role>("tech-lead");
+  const [intents, setIntents] = useState<IntentCandidate[]>(() => structuredClone(demoIntents));
+  const [declineReasons, setDeclineReasons] = useState<Record<string, string>>({});
+  const [role, setRole] = useState<Role>("product-lead");
   const [gateFilter, setGateFilter] = useState<"all" | Gate>("all");
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<DecisionCard | null>(null);
@@ -356,6 +406,8 @@ export default function App() {
   const [composing, setComposing] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const model = useMemo(() => buildReadModel(chain, demoAsOf), [chain]);
+  const projectedIntents = useMemo(() => projectIntentBacklog(intents, demoAsOf, pilotMetrics), [intents]);
+  const activeIntents = projectedIntents.filter((intent) => intent.status === "candidate");
   const roleDecisions = decisionsForRole(model, role);
   const visibleDecisions = roleDecisions.filter((decision) => (gateFilter === "all" || decision.gate === gateFilter) && `${decision.itemId} ${decision.title} ${decision.summary}`.toLowerCase().includes(query.trim().toLowerCase()));
   const selectedItem = selected ? model.items.find((item) => item.id === selected.itemId) : undefined;
@@ -372,9 +424,37 @@ export default function App() {
     setFeedback(kind === "sign" ? `Signed ${selected.revision} as ${actor.displayName}.` : "Sent back with the note attached; the gate remains unsigned.");
   }
 
-  function saveBrief(item: WorkItemChain) {
-    setChain((current) => [...current, item]); setComposing(false);
-    setFeedback(`${item.id} was added to the intent home as a draft BRIEF.`);
+  function saveIntent(intent: IntentCandidate) {
+    setIntents((current) => [...current, intent]); setComposing(false);
+    setFeedback(`${intent.id} was committed to the intent backlog. It is not a work item until a Product Lead pulls it.`);
+  }
+
+  function pullIntent(intent: ProjectedIntent) {
+    const disposition = pullDisposition(model.metrics.inFlightItems, pilotWipLimit);
+    if (!disposition.allowed) { setFeedback(disposition.message); return; }
+    const revision = intent.artifactRevision ?? `intent-${intent.id.toLowerCase()}`;
+    setChain((current) => [...current, {
+      id: `FD-${intent.id.slice(3)}`,
+      title: intent.title,
+      summary: intent.problem,
+      outcome: intent.outcome,
+      riskDomains: intent.domainTags,
+      userFacing: true,
+      artifacts: [{ kind: "brief", path: `intent/${intent.id}/BRIEF.md`, revision, updatedAt: demoAsOf }],
+      signatures: [],
+      stageEnteredAt: demoAsOf,
+      stageBandHours: 12,
+    }]);
+    setIntents((current) => current.map((candidate) => candidate.id === intent.id ? { ...candidate, status: "pulled" } : candidate));
+    setFeedback(`${intent.id} crossed the pull boundary and is now a work item in flight.`);
+  }
+
+  function declineCandidate(intent: ProjectedIntent) {
+    const reason = declineReasons[intent.id] ?? "off-mission";
+    const labels: Record<string, string> = { "off-mission": "Does not move the current mission", duplicate: "Duplicate signal", "insufficient-evidence": "Insufficient evidence" };
+    const result = declineIntent(intent, labels[reason], demoAsOf);
+    setIntents((current) => current.map((candidate) => candidate.id === intent.id ? result.intent : candidate));
+    setFeedback(`${intent.id} was declined with a recorded reason and retained as Scout tuning input.`);
   }
 
   return (
@@ -385,6 +465,7 @@ export default function App() {
         <div className="workspace-switcher"><span className="workspace-avatar" aria-hidden="true">SP</span><div><strong>STEER Platform</strong><span>Pilot workspace · v3</span></div><b aria-hidden="true">⌄</b></div>
         <nav aria-label="Primary navigation" className="primary-nav">
           <a aria-current="page" className="nav-item nav-item--active" href="#inbox"><InboxIcon />Decision inbox<span className="nav-count">{roleDecisions.length}</span></a>
+          <a className="nav-item" href="#intent-backlog"><ChainIcon />Candidates</a>
           <a className="nav-item" href="#flight-board"><BoardIcon />Flight board</a>
           <a className="nav-item" href="#work-items"><ChainIcon />Work threads</a>
           <a className="nav-item" href="#trust"><ShieldIcon />Trust evidence</a>
@@ -401,7 +482,7 @@ export default function App() {
 
         <div className="main-content">
           <header className="topbar">
-            <div><p className="eyebrow">Human control tower</p><h1>Good afternoon. Here is where to act.</h1><p>Start with the next consequential judgment. The rest of the system stays ambient.</p></div>
+            <div><p className="eyebrow">Three surfaces · one truth</p><h1>Good afternoon. Here is where to act.</h1><p>Clear decisions, pull only against capacity, and trust the bands with everything in between.</p></div>
             <label className="role-control"><span>Viewing as</span><select value={role} onChange={(event) => { setRole(event.target.value as Role); setSelected(null); }}>
               {Object.entries(roleLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </select></label>
@@ -421,8 +502,10 @@ export default function App() {
             <div className="decision-list">{visibleDecisions.length ? visibleDecisions.map((decision) => <DecisionItem decision={decision} key={decision.id} onOpen={setSelected} />) : <div className="empty-state"><span aria-hidden="true">✓</span><h3>No decisions in this view</h3><p>Your attention is clear. The projection will surface the next judgment when it is ready.</p></div>}</div>
           </section>
 
+          <CandidatePane declineReasons={declineReasons} inFlightCount={model.metrics.inFlightItems} intents={activeIntents} onAsk={(intent) => setFeedback(`${intent.id}: one clarifying question was routed to the named originator.`)} onDecline={declineCandidate} onMerge={(intent) => setFeedback(`${intent.id} is ready to merge with its ${intent.duplicateCount}-intent cluster.`)} onPull={pullIntent} onReasonChange={(intentId, reason) => setDeclineReasons((current) => ({ ...current, [intentId]: reason }))} role={role} />
+
           <section className="flight-section" id="flight-board">
-            <div className="section-heading section-heading--compact"><div><p className="eyebrow">Computed from the chain</p><h2>Flight Board</h2></div><span className="read-model-note">Rebuildable projection · historical aging bands · {model.items.length} items</span></div>
+            <div className="section-heading section-heading--compact"><div><p className="eyebrow">Present · ambient unless a band breaches</p><h2>Flight Board</h2></div><span className="read-model-note">Rebuildable projection · historical aging bands · {model.items.length} items</span></div>
             <div className="flight-track">{(Object.keys(stageLabels) as FlightStage[]).map((stage, index) => <div className="flight-stage" key={stage}><span className="flight-stage__index">{String(index + 1).padStart(2, "0")}</span><strong>{stageLabels[stage]}</strong><span>{stageCounts[stage]} {stageCounts[stage] === 1 ? "item" : "items"}{agingCounts[stage] ? ` · ${agingCounts[stage]} aging` : ""}</span></div>)}</div>
           </section>
 
@@ -437,7 +520,7 @@ export default function App() {
 
       {selected && selectedItem ? <ReviewPanel decision={selected} item={selectedItem} onAction={handleAction} onClose={() => setSelected(null)} /> : null}
       {threadItem ? <WorkItemPanel item={threadItem} onClose={() => setThreadItem(null)} /> : null}
-      {composing ? <BriefComposer onClose={() => setComposing(false)} onSave={saveBrief} originator={actor} /> : null}
+      {composing ? <BriefComposer onClose={() => setComposing(false)} onSave={saveIntent} originator={actor} /> : null}
     </div>
   );
 }

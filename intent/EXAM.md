@@ -50,6 +50,27 @@ edit this file; the exam-protection hook enforces it.
     provided context). Eval suite reruns on any change to the assistant's
     prompt or template; a pass-rate drop blocks the merge.
 
+## D2. Intent backlog and role home
+
+9a. Pull is refused, with the limit shown, when the pod is at its WIP
+    limit; the refusal is logged and no work item is created.
+9b. The measurable-today badge is true if and only if the outcome
+    contract's metric resolves against the connected telemetry store
+    (fixture-tested both ways).
+9c. Duplicate clustering: seeded near-duplicate intents group under one
+    cluster with a correct count; unrelated intents never group
+    (property-tested on generated corpora).
+9d. Decay policy: an intent untouched past the configured window expires,
+    is recorded as expired with its timestamps, and reappears only if
+    redrafted by a new signal; nothing is hard-deleted.
+9e. Declines record the reason and surface it to the Scout's tuning
+    input; a declined intent's cluster does not re-notify for the
+    configured cool-down.
+9f. Attention hierarchy: with items present in all three panes, the
+    default view order is inbox, then triggered candidates, then ambient
+    flight; the flight pane emits no notification except a band breach
+    (verified against a notification capture).
+
 ## E. Security and privacy (default-closed)
 
 11. Token scopes: read plus approval-write only; a scope audit in CI fails

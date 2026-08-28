@@ -34,4 +34,14 @@ describe("automated accessibility gauntlet", () => {
     expect(screen.getByRole("textbox", { name: /your answer/i })).toBeTruthy();
     expect(screen.queryByText(/# Brief:/)).toBeNull();
   });
+
+  it("orders the role home as inbox, candidates, then ambient flight", () => {
+    render(<App />);
+    const inbox = screen.getByRole("heading", { name: "Decision inbox" });
+    const candidates = screen.getByRole("heading", { name: "Intent backlog" });
+    const flight = screen.getByRole("heading", { name: "Flight Board" });
+    expect(inbox.compareDocumentPosition(candidates) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(candidates.compareDocumentPosition(flight) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getAllByRole("button", { name: "Pull into flight" }).length).toBeGreaterThan(0);
+  });
 });

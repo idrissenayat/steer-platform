@@ -13,6 +13,8 @@ rebuildable fixture connector.
 - guided non-engineer brief authoring with deterministic validation/revision;
 - an interview-first originator experience with rendered draft correction,
   context-resolved system names, and no raw artifact exposure;
+- a three-surface role home ordered as decision inbox, triggered candidates,
+  and ambient flight, with a WIP-gated Product Lead intent backlog;
 - a live scope check for one outcome, one exam, and one coherent shape, plus
   plan-sprawl alarms and split guidance;
 - P85 cycle-time forecasting and aging-band domain functions;
@@ -32,6 +34,11 @@ adoption kit enforce the same operating model.
 model. Its no-invention, ambiguity-surfacing, rendered-draft, correction, and
 identity-binding rules are mirrored in `kit/policy/intent.json` and the guided
 interview domain.
+
+`STEER-The-Three-Surfaces.docx` (Practice Note 3) defines the intent/work-item
+pull boundary and protected attention hierarchy. Its candidate controls,
+measurable-today rule, decay record, WIP refusal, and notification boundaries
+are mirrored in `kit/policy/surfaces.json` and the intent-backlog domain.
 
 ## Current boundary
 

@@ -1,0 +1,61 @@
+import type { IntentCandidate } from "../domain/intent-backlog";
+
+export const pilotWipLimit = 5;
+export const pilotMetrics = ["gate_wait_hours", "decision_acceptance_rate", "legacy_escape_rate"] as const;
+
+export const demoIntents: IntentCandidate[] = [
+  {
+    id: "IN-014",
+    title: "Outcome contract telemetry",
+    problem: "Product Leads cannot tell whether an outcome can be measured before pull.",
+    outcome: "Every candidate shows whether its success metric resolves today.",
+    successMetric: "gate_wait_hours",
+    domainTags: ["integrations"],
+    provenance: "Band breach · gate wait evidence",
+    missionOutcome: "Shorten time from intent to decision",
+    duplicateKey: "outcome-telemetry",
+    lastTouchedAt: "2026-08-27T15:00:00Z",
+    decayDays: 30,
+    status: "candidate",
+  },
+  {
+    id: "IN-015",
+    title: "Outcome telemetry from support",
+    problem: "Support signals arrive without a measurable outcome contract.",
+    outcome: "Candidate intents connect support evidence to a resolvable metric.",
+    successMetric: "gate_wait_hours",
+    domainTags: ["integrations"],
+    provenance: "Ticket cluster · 6 related reports",
+    missionOutcome: "Shorten time from intent to decision",
+    duplicateKey: "outcome-telemetry",
+    lastTouchedAt: "2026-08-28T13:00:00Z",
+    decayDays: 30,
+    status: "candidate",
+  },
+  {
+    id: "IN-016",
+    title: "Legacy on-ramp evidence",
+    problem: "Legacy changes enter flight without a visible characterization baseline.",
+    outcome: "Every legacy on-ramp carries characterization evidence before Gate 1.",
+    successMetric: "legacy_escape_rate",
+    domainTags: ["reliability"],
+    provenance: "Named originator · Platform Engineer",
+    missionOutcome: "Hold trust while reducing human effort",
+    duplicateKey: "legacy-on-ramp",
+    lastTouchedAt: "2026-08-28T11:00:00Z",
+    decayDays: 30,
+    status: "candidate",
+  },
+  {
+    id: "IN-009",
+    title: "Daily progress digest",
+    problem: "Stakeholders ask for a daily list of item activity.",
+    outcome: "A daily activity digest is delivered.",
+    domainTags: ["integrations"],
+    provenance: "Hallway idea · named originator",
+    duplicateKey: "daily-progress-digest",
+    lastTouchedAt: "2026-06-01T10:00:00Z",
+    decayDays: 30,
+    status: "candidate",
+  },
+];

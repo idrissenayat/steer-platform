@@ -45,6 +45,8 @@ item one, are the framework's pilot evidence.
   for exam-writability, splitting, aging bands, and percentile forecasting.
 - `STEER-Providing-Intent.docx` — Practice Note 2, defining the interview-first,
   no-invention path from natural language to committed artifacts.
+- `STEER-The-Three-Surfaces.docx` — Practice Note 3, defining the intent
+  backlog, pull boundary, role home, and protected attention hierarchy.
 
 ## Implementation evidence
 

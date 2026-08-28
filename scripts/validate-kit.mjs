@@ -8,8 +8,10 @@ const required = [
   "kit/policy/gates.json",
   "kit/policy/sizing.json",
   "kit/policy/intent.json",
+  "kit/policy/surfaces.json",
   "kit/practices/sizing-and-scoping.md",
   "kit/practices/providing-intent.md",
+  "kit/practices/three-surfaces.md",
   "kit/guardrails/guardrails.json",
   "kit/bands/default.json",
   "kit/metrics/definitions.json",
@@ -45,6 +47,13 @@ if (intentPolicy.originatorExperience.mode !== "interview" || intentPolicy.origi
 }
 if (intentPolicy.draftingRules.inventMissingFacts !== false || intentPolicy.corrections.repeatThreshold !== 2) {
   throw new Error("Providing-intent policy must forbid invention and promote repeated corrections at two occurrences.");
+}
+const surfacesPolicy = JSON.parse(await readFile("kit/policy/surfaces.json", "utf8"));
+if (surfacesPolicy.intentBoundary.automaticPromotion !== false || surfacesPolicy.intentBoundary.commitAction !== "product-lead-pull") {
+  throw new Error("An intent may become a work item only through a Product Lead pull.");
+}
+if (surfacesPolicy.attentionOrder.join(",") !== "decision-inbox,triggered-candidates,ambient-flight") {
+  throw new Error("The three surfaces must preserve the protected attention order.");
 }
 if (sizingPolicy.forecast.percentile !== 0.85 || sizingPolicy.scopeFreeze !== "gate-1") {
   throw new Error("Sizing policy must use P85 forecasting and freeze scope at Gate 1.");

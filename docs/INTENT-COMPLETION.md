@@ -29,6 +29,12 @@ evidence, and a 90-day pilot window. Those cannot be replaced by fixture data.
 | C8 | Current exam cases, ranked findings, conformance | `assembleEvidence`; stale element test; Gate 3 UI | green locally |
 | D9 | Guided session creates valid attributed BRIEF without tool terminology | deterministic authoring, validation, revision, live form | partial: live connector attribution pending |
 | D10 | 20-prompt assistant eval and regression gate | 20-scenario originator eval; exact system-name containment | green for deterministic adapter; live model revalidation pending |
+| D2-9a | Pull refuses at the visible WIP limit | `intent-backlog.test.ts`; Product Lead candidate pane | green locally |
+| D2-9b | Measurable-today resolves against telemetry | exact metric-resolution fixture tests and badges | green locally |
+| D2-9c | Duplicate clustering separates unrelated intents | seeded cluster-count tests | green locally |
+| D2-9d | Decay expires without deletion | expiry projection retains the original record | green locally |
+| D2-9e | Decline reason becomes Scout tuning input | deterministic decline record | green locally |
+| D2-9f | Inbox, candidates, ambient flight; breach-only push | DOM order, notification-domain tests, responsive UI | green locally |
 | E11 | Read + approval-write token scopes only | workflow scope audit and runtime scope policy | green for CI; live connector pending |
 | E12 | No secrets/tokens/problem text in logs | seeded canary scrub tests | green |
 | E13 | Authentic webhook; reject forged/replayed events | HMAC and replay-guard tests | green at control layer |
@@ -57,6 +63,15 @@ intent policy, and platform composer. The originator now answers one question at
 a time, corrects a rendered draft, and never sees raw Markdown. Unverified system
 names move to Open Questions, accepted drafts bind the pilot identity, and the
 domain exposes the two-correction threshold for versioned context promotion.
+
+## Three-surfaces practice-note reconciliation
+
+`STEER-The-Three-Surfaces.docx` is included as Practice Note 3 and is reflected
+in the Framework, Operating Model, adoption playbook, machine-readable surfaces
+policy, authoritative SPEC/EXAM revisions, and platform home. The Product Lead
+sees candidate intents as distinct from work items, the visible WIP limit blocks
+automatic promotion, and all roles receive the inbox-first, triggered-candidate,
+ambient-flight attention order.
 
 ## Human-owned completion gates
 
