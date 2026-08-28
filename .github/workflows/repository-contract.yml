@@ -1,0 +1,48 @@
+name: Repository contract
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  repository-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Verify the STEER v3 baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          required=(
+            README.md
+            intent/BRIEF.md
+            intent/SPEC.md
+            intent/EXAM.md
+            STEER-Methodology.docx
+            STEER-Framework.docx
+            STEER-Operating-Model.docx
+          )
+
+          for path in "${required[@]}"; do
+            test -s "$path"
+          done
+
+          python -m zipfile -t STEER-Methodology.docx
+          python -m zipfile -t STEER-Framework.docx
+          python -m zipfile -t STEER-Operating-Model.docx
+
+          grep -Fq 'intent/BRIEF.md' README.md
+          grep -Fq 'intent/SPEC.md' README.md
+          grep -Fq 'intent/EXAM.md' README.md
+
+          if git ls-files | grep -Eq '^(v2/|platform-app/|issue-[0-9]+-|STEER_Framework_Guidebook|STEERFramework)'; then
+            echo 'Legacy STEER material must remain outside the v3 repository.' >&2
+            exit 1
+          fi

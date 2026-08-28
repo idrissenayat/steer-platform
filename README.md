@@ -1,0 +1,33 @@
+# Flight Deck — the STEER platform pod
+
+This folder is the intent home of the pod building the STEER platform.
+The platform is built using STEER itself: every feature enters as a brief,
+carries an exam, and passes the gates. The pod's own metrics, recorded from
+item one, are the framework's pilot evidence.
+
+## The chain so far
+
+| Artifact | Status | Next signature |
+|---|---|---|
+| intent/BRIEF.md | draft | Gate 1 — Product Lead + Product Designer; Tech Lead feasibility |
+| intent/SPEC.md | draft | signed with the brief at Gate 1; flagged concerns routed first |
+| intent/EXAM.md | draft | Gate 2 — Tech Lead, after Critic findings resolved |
+| PLAN.md | not yet | produced by an agent in a read-only planning pass after Gate 2 |
+
+## Before Gate 1 (human actions, in order)
+
+1. Resolve the flagged concerns in SPEC.md with their policy owners
+   (signature weight, single-host binding, notification design,
+   assistant data handling).
+2. Answer the brief's open questions or carry them forward explicitly.
+3. Confirm the outcome contract is measurable on day one: gate-wait
+   baseline captured, decision instrumentation defined.
+4. Run the naming search; "Flight Deck" is a working title.
+
+## Working rules for this pod
+
+- Git is the sole system of record; the platform never stores state the
+  chain does not hold.
+- The exam is write-protected from Builders (hook enforced).
+- Accessibility, security, and privacy are default-closed domains.
+- Changes to these operating files are eval-gated like any fleet config.
