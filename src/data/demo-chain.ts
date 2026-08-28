@@ -1,0 +1,130 @@
+import type { WorkItemChain } from "../domain/types";
+
+const signedAt = "2026-08-28T14:00:00Z";
+
+export const demoAsOf = "2026-08-28T19:00:00Z";
+
+export const demoChain: WorkItemChain[] = [
+  {
+    id: "FD-001",
+    title: "Decision inbox foundation",
+    summary: "Make the human judgment queue the first and clearest platform surface.",
+    outcome: "A signer can identify their next decision in under 20 seconds.",
+    riskDomains: ["accessibility", "integrations"],
+    userFacing: true,
+    artifacts: [
+      { kind: "brief", revision: "b81d2e1", updatedAt: "2026-08-28T12:00:00Z" },
+      { kind: "spec", revision: "c52e0a4", updatedAt: "2026-08-28T13:00:00Z" },
+    ],
+    signatures: [
+      {
+        gate: 1,
+        role: "product-lead",
+        revision: "c52e0a4",
+        signedAt,
+        signer: "Idriss Enayat",
+      },
+    ],
+    decisionReadyAt: "2026-08-28T14:00:00Z",
+    decisionDueAt: "2026-08-28T18:00:00Z",
+  },
+  {
+    id: "FD-002",
+    title: "GitHub adapter seam",
+    summary: "Project repository events into a disposable, vendor-neutral read model.",
+    outcome: "Destroying and replaying the projection produces identical state.",
+    riskDomains: ["integrations", "security"],
+    userFacing: false,
+    artifacts: [
+      { kind: "brief", revision: "d07a2ef", updatedAt: "2026-08-27T15:00:00Z" },
+      { kind: "spec", revision: "e139f21", updatedAt: "2026-08-27T16:00:00Z" },
+      { kind: "exam", revision: "f24cb90", updatedAt: "2026-08-28T10:00:00Z" },
+    ],
+    signatures: [
+      { gate: 1, role: "product-lead", revision: "e139f21", signedAt, signer: "Idriss Enayat" },
+      {
+        gate: 1,
+        role: "product-designer",
+        revision: "e139f21",
+        signedAt,
+        signer: "Avery Chen",
+      },
+    ],
+    decisionReadyAt: "2026-08-28T17:00:00Z",
+    decisionDueAt: "2026-08-29T17:00:00Z",
+  },
+  {
+    id: "FD-003",
+    title: "Accessible decision cards",
+    summary: "Present intent, evidence, and consequence without forcing tool switching.",
+    outcome: "The full review path is keyboard complete and screen-reader coherent.",
+    riskDomains: ["accessibility", "privacy"],
+    userFacing: true,
+    artifacts: [
+      { kind: "brief", revision: "13e59a1", updatedAt: "2026-08-25T10:00:00Z" },
+      { kind: "spec", revision: "248acb2", updatedAt: "2026-08-25T12:00:00Z" },
+      { kind: "exam", revision: "35bbdc3", updatedAt: "2026-08-26T09:00:00Z" },
+      { kind: "plan", revision: "46cbed4", updatedAt: "2026-08-26T11:00:00Z" },
+      { kind: "diff", revision: "57dcfe5", updatedAt: "2026-08-28T13:00:00Z" },
+      { kind: "review", revision: "57dcfe5", updatedAt: "2026-08-28T15:00:00Z" },
+    ],
+    signatures: [
+      { gate: 1, role: "product-lead", revision: "248acb2", signedAt, signer: "Idriss Enayat" },
+      {
+        gate: 1,
+        role: "product-designer",
+        revision: "248acb2",
+        signedAt,
+        signer: "Avery Chen",
+      },
+      { gate: 2, role: "tech-lead", revision: "35bbdc3", signedAt, signer: "Morgan Lee" },
+      { gate: 2, role: "specialist", revision: "35bbdc3", signedAt, signer: "Jordan Patel" },
+    ],
+    evidence: {
+      revision: "57dcfe5",
+      examPassed: true,
+      criticFindings: 1,
+      planConformant: true,
+      checkedAt: "2026-08-28T15:00:00Z",
+    },
+    decisionReadyAt: "2026-08-28T15:00:00Z",
+    decisionDueAt: "2026-08-28T22:00:00Z",
+  },
+  {
+    id: "FD-004",
+    title: "Deterministic cache replay",
+    summary: "Prove that the platform can lose every projection and rebuild without drift.",
+    outcome: "Two independent replays produce byte-identical JSON snapshots.",
+    riskDomains: ["integrations"],
+    userFacing: false,
+    artifacts: [
+      { kind: "brief", revision: "68ed0f6", updatedAt: "2026-08-24T09:00:00Z" },
+      { kind: "spec", revision: "79fe1a7", updatedAt: "2026-08-24T11:00:00Z" },
+      { kind: "exam", revision: "80af2b8", updatedAt: "2026-08-25T09:00:00Z" },
+      { kind: "plan", revision: "91b03c9", updatedAt: "2026-08-28T09:00:00Z" },
+    ],
+    signatures: [
+      { gate: 1, role: "product-lead", revision: "79fe1a7", signedAt, signer: "Idriss Enayat" },
+      {
+        gate: 1,
+        role: "product-designer",
+        revision: "79fe1a7",
+        signedAt,
+        signer: "Avery Chen",
+      },
+      { gate: 2, role: "tech-lead", revision: "80af2b8", signedAt, signer: "Morgan Lee" },
+    ],
+  },
+  {
+    id: "FD-005",
+    title: "Regulated signature profile",
+    summary: "Define the legally meaningful signing boundary before implementation.",
+    outcome: "The audit posture is explicit before any regulated pilot is offered.",
+    riskDomains: ["privacy", "security"],
+    userFacing: false,
+    artifacts: [
+      { kind: "brief", revision: "a2c14da", updatedAt: "2026-08-28T16:00:00Z" },
+    ],
+    signatures: [],
+  },
+];

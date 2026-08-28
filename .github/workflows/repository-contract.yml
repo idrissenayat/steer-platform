@@ -14,6 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24"
+          cache: pnpm
 
       - name: Verify the STEER v3 baseline
         shell: bash
@@ -34,9 +41,9 @@ jobs:
             test -s "$path"
           done
 
-          python -m zipfile -t STEER-Methodology.docx
-          python -m zipfile -t STEER-Framework.docx
-          python -m zipfile -t STEER-Operating-Model.docx
+          python3 -m zipfile -t STEER-Methodology.docx
+          python3 -m zipfile -t STEER-Framework.docx
+          python3 -m zipfile -t STEER-Operating-Model.docx
 
           grep -Fq 'intent/BRIEF.md' README.md
           grep -Fq 'intent/SPEC.md' README.md
@@ -46,3 +53,9 @@ jobs:
             echo 'Legacy STEER material must remain outside the v3 repository.' >&2
             exit 1
           fi
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck, test, and build
+        run: pnpm check
