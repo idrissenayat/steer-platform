@@ -35,6 +35,11 @@ evidence, and a 90-day pilot window. Those cannot be replaced by fixture data.
 | D2-9d | Decay expires without deletion | expiry projection retains the original record | green locally |
 | D2-9e | Decline reason becomes Scout tuning input | deterministic decline record | green locally |
 | D2-9f | Inbox, candidates, ambient flight; breach-only push | DOM order, notification-domain tests, responsive UI | green locally |
+| IDV-A | Complete rendered candidate detail and provenance variants | intent-detail fixtures and panel UI | green locally |
+| IDV-B | Revision-safe pull, decline, merge, and send-back | domain contracts and WIP-blocked live flow | green locally |
+| IDV-C | Deep link, current truth, no private view state | hash-driven panel and ephemeral session model | green locally |
+| IDV-D | Labeled, trapped, keyboard-complete detail panel | axe and browser walkthrough | partial: manual specialist record pending |
+| IDV-E | Detail action and external-exit instrumentation | event-schema and outcome-summary tests | green locally |
 | E11 | Read + approval-write token scopes only | workflow scope audit and runtime scope policy | green for CI; live connector pending |
 | E12 | No secrets/tokens/problem text in logs | seeded canary scrub tests | green |
 | E13 | Authentic webhook; reject forged/replayed events | HMAC and replay-guard tests | green at control layer |

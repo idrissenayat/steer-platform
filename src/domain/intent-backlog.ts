@@ -2,7 +2,29 @@ import type { RiskDomain } from "./types";
 
 export type IntentStatus = "candidate" | "declined" | "expired" | "pulled";
 
+export interface OutcomeContract {
+  baseline?: string;
+  missing?: string;
+  observationWindow?: string;
+  primaryMetric: string;
+  target?: string;
+}
+
+export type ProvenanceEvidence =
+  | { band: string; kind: "band-breach"; observed: string; threshold: string; windowHref: string; windowLabel: string }
+  | { count: number; excerpts: string[]; kind: "ticket-cluster"; sources: string[] }
+  | { channel: string; identity: string; kind: "named-originator" };
+
+export interface IntentRevision {
+  author: string;
+  firstChangedLine: string;
+  revision: string;
+  timestamp: string;
+}
+
 export interface IntentCandidate {
+  affectedUsers?: string[];
+  artifactPath?: string;
   decayDays: number;
   domainTags: RiskDomain[];
   duplicateKey: string;
@@ -11,10 +33,19 @@ export interface IntentCandidate {
   lastTouchedAt: string;
   missionOutcome?: string;
   outcome: string;
+  outcomeContract?: OutcomeContract;
+  openQuestions?: string[];
   problem: string;
   provenance: string;
+  provenanceEvidence?: ProvenanceEvidence;
+  clusterMemberIds?: string[];
+  clusterCooldownUntil?: string;
+  constraints?: string[];
   originator?: string;
+  originatorChannel?: string;
+  revisionHistory?: IntentRevision[];
   successMetric?: string;
+  systems?: string[];
   title: string;
   status: IntentStatus;
 }
@@ -62,8 +93,9 @@ export function pullDisposition(inFlightCount: number, wipLimit: number): { allo
 
 export function declineIntent(intent: IntentCandidate, reason: string, declinedAt: string): { intent: IntentCandidate; record: DeclineRecord } {
   if (!reason.trim()) throw new Error("A decline reason is required.");
+  const cooldownUntil = new Date(new Date(declinedAt).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
   return {
-    intent: { ...intent, status: "declined" },
+    intent: { ...intent, clusterCooldownUntil: cooldownUntil, status: "declined" },
     record: { declinedAt, intentId: intent.id, reason: reason.trim(), scoutTuningInput: true },
   };
 }

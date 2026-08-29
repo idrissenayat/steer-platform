@@ -5,6 +5,7 @@ import { demoIntents, pilotMetrics, pilotWipLimit } from "./data/demo-intents";
 import { applyGateAction } from "./domain/actions";
 import { draftBrief, draftRevision } from "./domain/brief-author";
 import { assembleEvidence } from "./domain/evidence";
+import { performDetailAction, previewMergedIntent, recordExternalExit, type DetailAction, type DetailActionEvent, type DetailActionResult } from "./domain/intent-detail";
 import { blankIntentAnswers, buildInterviewDraft, intentInterviewQuestions, pilotSystemContext, type IntentAnswers } from "./domain/intent-interview";
 import { declineIntent, projectIntentBacklog, pullDisposition, type IntentCandidate, type ProjectedIntent } from "./domain/intent-backlog";
 import { buildReadModel, decisionsForRole } from "./domain/read-model";
@@ -110,10 +111,11 @@ function DecisionItem({ decision, onOpen }: { decision: DecisionCard; onOpen: (d
   );
 }
 
-function DrawerFrame({ children, label, onClose }: {
+function DrawerFrame({ children, label, onClose, wide = false }: {
   children: React.ReactNode;
   label: string;
   onClose: () => void;
+  wide?: boolean;
 }) {
   const panelRef = useRef<HTMLElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -136,8 +138,8 @@ function DrawerFrame({ children, label, onClose }: {
   }
 
   return (
-    <div aria-label={label} aria-modal="true" className="review-backdrop" onKeyDown={handleKeyDown} role="dialog">
-      <section className="review-panel" ref={panelRef}>
+    <div aria-label={label} aria-modal="true" className="review-backdrop" onKeyDown={handleKeyDown} onMouseDown={(event) => { if (event.currentTarget === event.target) onClose(); }} role="dialog">
+      <section className={wide ? "review-panel review-panel--wide" : "review-panel"} ref={panelRef}>
         <button aria-label="Close review" className="drawer-close icon-button" onClick={onClose} ref={closeButtonRef} type="button"><CloseIcon /></button>
         {children}
       </section>
@@ -356,6 +358,87 @@ function BriefComposer({ onClose, onSave, originator }: { onClose: () => void; o
   );
 }
 
+function IntentDetailPanel({ allIntents, displayedRevision, inFlightCount, intent, onAction, onBack, onClose, onExternalExit, onNavigate }: {
+  allIntents: ProjectedIntent[];
+  displayedRevision: string;
+  inFlightCount: number;
+  intent: ProjectedIntent;
+  onAction: (action: DetailAction, detail?: { members?: string[]; question?: string; reason?: string }) => DetailActionResult;
+  onBack?: () => void;
+  onClose: () => void;
+  onExternalExit: () => void;
+  onNavigate: (intentId: string) => void;
+}) {
+  const [declineReason, setDeclineReason] = useState("");
+  const [declineCategory, setDeclineCategory] = useState("");
+  const [question, setQuestion] = useState("");
+  const [mergePreviewOpen, setMergePreviewOpen] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const clusterMembers = (intent.clusterMemberIds ?? []).map((id) => allIntents.find((candidate) => candidate.id === id)).filter((candidate): candidate is ProjectedIntent => Boolean(candidate));
+  const [selectedMembers, setSelectedMembers] = useState<string[]>(() => clusterMembers.map((member) => member.id));
+  const mergePreview = previewMergedIntent(intent, clusterMembers.filter((member) => selectedMembers.includes(member.id)));
+  const revision = intent.artifactRevision ?? `intent-${intent.id.toLowerCase()}`;
+  const capacityAvailable = pullDisposition(inFlightCount, pilotWipLimit).allowed;
+  const sourceUrl = `https://github.com/idrissenayat/steer-platform/blob/codex/phase-1-foundation/${intent.artifactPath ?? "intent/intent-detail-view.md"}`;
+
+  useEffect(() => {
+    setDeclineReason("");
+    setDeclineCategory("");
+    setQuestion("");
+    setMergePreviewOpen(false);
+    setNotice(null);
+    setSelectedMembers(clusterMembers.map((member) => member.id));
+  }, [intent.id]);
+
+  function act(action: DetailAction, detail?: { members?: string[]; question?: string; reason?: string }) {
+    const result = onAction(action, detail);
+    if (!result.ok) setNotice(result.message);
+  }
+
+  function EvidenceBlock() {
+    const evidence = intent.provenanceEvidence;
+    if (!evidence) return <p className="detail-copy">{intent.provenance}</p>;
+    if (evidence.kind === "band-breach") return <div className="provenance-card"><strong>{evidence.band}</strong><p>{evidence.observed} observed against a {evidence.threshold} threshold.</p><a href={evidence.windowHref}>View {evidence.windowLabel}</a></div>;
+    if (evidence.kind === "ticket-cluster") return <div className="provenance-card"><strong>{evidence.count} related signals</strong><p>{evidence.sources.join(" · ")}</p><ol>{evidence.excerpts.slice(0, 3).map((excerpt) => <li key={excerpt}>“{excerpt}”</li>)}</ol></div>;
+    return <div className="provenance-card"><strong>{evidence.identity}</strong><p>Provided through {evidence.channel}.</p></div>;
+  }
+
+  return (
+    <DrawerFrame label={`${intent.title} intent detail`} onClose={onClose} wide>
+      <header className="review-panel__header intent-detail__header">
+        <div>
+          <p className="eyebrow">{intent.id} · {intent.status === "expired" ? "Expired candidate" : "Candidate · not pulled"}</p>
+          <h2>{intent.title}</h2>
+          <p>{intent.originator ? `${intent.originator}${intent.originatorChannel ? ` · ${intent.originatorChannel}` : ""}` : "Originator not named"} · rendered version {revision}</p>
+          <div className="intent-detail__header-actions">{onBack ? <button onClick={onBack} type="button">← Back to previous intent</button> : null}<a href={sourceUrl} onClick={onExternalExit} rel="noreferrer" target="_blank">Open source file <span>· leaves workspace ↗</span></a></div>
+        </div>
+      </header>
+      {notice ? <div className="detail-notice" role="status"><strong>Action not applied</strong><span>{notice}</span>{displayedRevision !== revision ? <span>The panel refreshed from {displayedRevision} to {revision}.</span> : null}</div> : null}
+
+      <section className="review-panel__section" data-detail-section="problem"><p className="section-label">Problem</p><p className="detail-copy detail-copy--lead">{intent.problem}</p></section>
+      <section className="review-panel__section" data-detail-section="outcome"><p className="section-label">Proposed outcome</p><p className="outcome-copy">{intent.outcome}</p></section>
+      <section className="review-panel__section" data-detail-section="outcome-contract">
+        <div className="evidence-heading"><p className="section-label">Outcome contract</p><span className={intent.measurableToday ? "evidence-badge" : "evidence-badge evidence-badge--waiting"}>{intent.measurableToday ? "Measurable today" : "Needs resolution"}</span></div>
+        <dl className="detail-facts"><div><dt>Primary metric</dt><dd>{intent.outcomeContract?.primaryMetric ?? intent.successMetric ?? "Not specified"}</dd></div>{intent.outcomeContract?.baseline ? <div><dt>Baseline</dt><dd>{intent.outcomeContract.baseline}</dd></div> : null}{intent.outcomeContract?.target ? <div><dt>Target</dt><dd>{intent.outcomeContract.target}</dd></div> : null}{intent.outcomeContract?.observationWindow ? <div><dt>Window</dt><dd>{intent.outcomeContract.observationWindow}</dd></div> : null}{intent.outcomeContract?.missing ? <div className="detail-facts__missing"><dt>Still missing</dt><dd>{intent.outcomeContract.missing}</dd></div> : null}</dl>
+      </section>
+      {intent.constraints?.length ? <section className="review-panel__section" data-detail-section="constraints"><p className="section-label">Constraints</p><ul className="detail-list">{intent.constraints.map((constraint) => <li key={constraint}>{constraint}</li>)}</ul></section> : null}
+      <section className="review-panel__section" data-detail-section="domains"><p className="section-label">Domain tags and review route</p><div className="tag-row">{intent.domainTags.map((domain) => <span className="domain-tag" key={domain}>{domain}</span>)}</div><p className="detail-route">{intent.domainTags.includes("accessibility") ? "Accessibility is active: a specialist seat is required at Gate 2 and Gate 3." : "Default-open route: specialist seats activate only when a tagged risk domain requires them."}</p></section>
+      {intent.affectedUsers?.length || intent.systems?.length ? <section className="review-panel__section" data-detail-section="affected-users-systems"><p className="section-label">Affected users and systems</p><div className="detail-columns">{intent.affectedUsers?.length ? <div><strong>People</strong><ul>{intent.affectedUsers.map((user) => <li key={user}>{user}</li>)}</ul></div> : null}{intent.systems?.length ? <div><strong>Systems</strong><ul>{intent.systems.map((system) => <li key={system}>{system}</li>)}</ul></div> : null}</div></section> : null}
+      {intent.openQuestions?.length ? <section className="review-panel__section" data-detail-section="open-questions"><p className="section-label">Open questions · {intent.openQuestions.length}</p><ol className="detail-list detail-list--questions">{intent.openQuestions.map((openQuestion) => <li key={openQuestion}>{openQuestion}</li>)}</ol></section> : null}
+      <section className="review-panel__section" data-detail-section="provenance"><p className="section-label">Provenance evidence</p><EvidenceBlock /></section>
+      {clusterMembers.length ? <section className="review-panel__section" data-detail-section="cluster-members"><p className="section-label">Cluster members</p><div className="cluster-member-list">{clusterMembers.map((member) => <button key={member.id} onClick={() => onNavigate(member.id)} type="button"><span>{member.id}</span><strong>{member.title}</strong><small>Open in this panel →</small></button>)}</div></section> : null}
+      {intent.revisionHistory?.length ? <section className="review-panel__section" data-detail-section="revision-history"><p className="section-label">Revision history</p><ol className="revision-list">{[...intent.revisionHistory].sort((a, b) => b.timestamp.localeCompare(a.timestamp)).map((entry) => <li key={entry.revision}><code>{entry.revision}</code><div><strong>{entry.firstChangedLine}</strong><span>{entry.author} · {formatDue(entry.timestamp)}</span></div></li>)}</ol></section> : null}
+
+      <footer className="review-panel__footer intent-detail__footer">
+        <div className="detail-action detail-action--pull"><div><strong>Pull into flight</strong><span>{inFlightCount} of {pilotWipLimit} live slots are occupied.</span></div><button className="primary-button" disabled={!capacityAvailable || intent.status !== "candidate"} onClick={() => act("pull")} type="button">Pull into flight · {inFlightCount}/{pilotWipLimit} slots</button>{!capacityAvailable ? <small>Capacity must open before this candidate can cross the pull boundary.</small> : null}</div>
+        <div className="detail-action"><div><strong>Decline</strong><span>Keep the signal and record why it will not move forward.</span></div><select aria-label="Optional decline category" onChange={(event) => setDeclineCategory(event.target.value)} value={declineCategory}><option value="">Optional category</option><option value="off-mission">Off mission</option><option value="duplicate">Duplicate signal</option><option value="insufficient-evidence">Insufficient evidence</option></select><textarea aria-label="Decline reason" onChange={(event) => setDeclineReason(event.target.value)} placeholder="Required reason" rows={2} value={declineReason} /><button className="secondary-button" disabled={!declineReason.trim()} onClick={() => act("decline", { reason: `${declineCategory ? `${declineCategory}: ` : ""}${declineReason}` })} type="button">Decline with reason</button></div>
+        <div className="detail-action"><div><strong>Merge cluster</strong><span>Preview the surviving intent and members before confirming.</span></div>{clusterMembers.length ? <div className="merge-picker">{clusterMembers.map((member) => <label key={member.id}><input checked={selectedMembers.includes(member.id)} onChange={(event) => setSelectedMembers((current) => event.target.checked ? [...current, member.id] : current.filter((id) => id !== member.id))} type="checkbox" />{member.id} · {member.title}</label>)}</div> : <small>No cluster members are available.</small>}{mergePreviewOpen ? <div className="merge-preview"><span>Merge preview</span><strong>{mergePreview.title}</strong><p>{mergePreview.outcome}</p><small>Members: {mergePreview.memberIds.join(" · ") || "none selected"}</small><div><button className="secondary-button" onClick={() => setMergePreviewOpen(false)} type="button">Cancel</button><button className="primary-button" disabled={!selectedMembers.length} onClick={() => act("merge", { members: selectedMembers })} type="button">Confirm merge</button></div></div> : <button className="secondary-button" disabled={!selectedMembers.length} onClick={() => setMergePreviewOpen(true)} type="button">Preview merge</button>}</div>
+        <div className="detail-action"><div><strong>Send back one question</strong><span>Ask for one missing judgment without turning the candidate into work.</span></div><textarea aria-label="Question for originator" onChange={(event) => setQuestion(event.target.value)} placeholder="What single question must the originator answer?" rows={2} value={question} /><button className="secondary-button" disabled={!question.trim()} onClick={() => act("send-back", { question })} type="button">Send one question</button></div>
+      </footer>
+    </DrawerFrame>
+  );
+}
+
 const roleCandidateContent: Record<Role, { title: string; note: string }> = {
   "product-lead": { title: "Intent backlog", note: "Candidates awaiting a pull decision." },
   "tech-lead": { title: "Exams awaiting draft review", note: "Candidate exams surface when a review trigger fires." },
@@ -364,15 +447,10 @@ const roleCandidateContent: Record<Role, { title: string; note: string }> = {
   specialist: { title: "Tagged domain reviews", note: "Only candidates carrying your risk domain appear here." },
 };
 
-function CandidatePane({ declineReasons, inFlightCount, intents, onAsk, onDecline, onMerge, onPull, onReasonChange, role }: {
-  declineReasons: Record<string, string>;
+function CandidatePane({ inFlightCount, intents, onOpen, role }: {
   inFlightCount: number;
   intents: ProjectedIntent[];
-  onAsk: (intent: ProjectedIntent) => void;
-  onDecline: (intent: ProjectedIntent) => void;
-  onMerge: (intent: ProjectedIntent) => void;
-  onPull: (intent: ProjectedIntent) => void;
-  onReasonChange: (intentId: string, reason: string) => void;
+  onOpen: (intent: ProjectedIntent) => void;
   role: Role;
 }) {
   const content = roleCandidateContent[role];
@@ -386,8 +464,7 @@ function CandidatePane({ declineReasons, inFlightCount, intents, onAsk, onDeclin
           <div className="intent-outcome"><small>Proposed outcome</small><strong>{intent.outcome}</strong></div>
           <dl><div><dt>Mission fit</dt><dd>{intent.missionOutcome ?? "Moves no current mission outcome"}</dd></div><div><dt>Provenance</dt><dd>{intent.provenance}</dd></div></dl>
           <div className="tag-row">{intent.domainTags.map((domain) => <span className="domain-tag" key={domain}>{domain}</span>)}{intent.duplicateCount > 1 ? <span className="cluster-badge">{intent.duplicateCount} in cluster</span> : null}</div>
-          <label className="decline-reason"><span>Decline reason</span><select aria-label={`Decline reason for ${intent.title}`} onChange={(event) => onReasonChange(intent.id, event.target.value)} value={declineReasons[intent.id] ?? "off-mission"}><option value="off-mission">Does not move the current mission</option><option value="duplicate">Duplicate signal</option><option value="insufficient-evidence">Insufficient evidence</option></select></label>
-          <div className="intent-actions"><button className="primary-button" onClick={() => onPull(intent)} type="button">Pull into flight</button><button onClick={() => onDecline(intent)} type="button">Decline with reason</button><button disabled={intent.duplicateCount < 2} onClick={() => onMerge(intent)} type="button">Merge</button><button onClick={() => onAsk(intent)} type="button">Ask one question</button></div>
+          <button className="intent-card__open" onClick={() => onOpen(intent)} type="button">Open full brief <span aria-hidden="true">→</span></button>
         </article>) : <div className="empty-state"><span aria-hidden="true">✓</span><h3>No triggered candidates</h3><p>The backlog remains quiet until capacity opens or a high-signal intent arrives.</p></div>}
       </div> : <article className="role-candidate-card"><span>{roleLabels[role]} lens</span><h3>{content.title}</h3><p>{content.note} This pane stays quiet unless its trigger fires.</p></article>}
     </section>
@@ -397,24 +474,46 @@ function CandidatePane({ declineReasons, inFlightCount, intents, onAsk, onDeclin
 export default function App() {
   const [chain, setChain] = useState<WorkItemChain[]>(() => structuredClone(demoChain));
   const [intents, setIntents] = useState<IntentCandidate[]>(() => structuredClone(demoIntents));
-  const [declineReasons, setDeclineReasons] = useState<Record<string, string>>({});
   const [role, setRole] = useState<Role>("product-lead");
   const [gateFilter, setGateFilter] = useState<"all" | Gate>("all");
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<DecisionCard | null>(null);
   const [threadItem, setThreadItem] = useState<ProjectedWorkItem | null>(null);
   const [composing, setComposing] = useState(false);
+  const [detailIntentId, setDetailIntentId] = useState<string | null>(null);
+  const [displayedDetailRevision, setDisplayedDetailRevision] = useState("");
+  const [detailHistory, setDetailHistory] = useState<string[]>([]);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [, setDetailEvents] = useState<DetailActionEvent[]>([]);
+  const detailOpenedAt = useRef(0);
+  const detailSessionId = useRef(`detail-${Math.random().toString(36).slice(2)}`);
   const model = useMemo(() => buildReadModel(chain, demoAsOf), [chain]);
   const projectedIntents = useMemo(() => projectIntentBacklog(intents, demoAsOf, pilotMetrics), [intents]);
   const activeIntents = projectedIntents.filter((intent) => intent.status === "candidate");
+  const detailIntent = detailIntentId ? projectedIntents.find((intent) => intent.id === detailIntentId) : undefined;
   const roleDecisions = decisionsForRole(model, role);
   const visibleDecisions = roleDecisions.filter((decision) => (gateFilter === "all" || decision.gate === gateFilter) && `${decision.itemId} ${decision.title} ${decision.summary}`.toLowerCase().includes(query.trim().toLowerCase()));
   const selectedItem = selected ? model.items.find((item) => item.id === selected.itemId) : undefined;
   const actor: IdentityContext = { subject: `pilot|${role}`, displayName: actorNames[role], roles: [role] };
-  const modalOpen = Boolean(selected || threadItem || composing);
+  const modalOpen = Boolean(selected || threadItem || composing || detailIntent);
   const stageCounts = model.items.reduce<Record<FlightStage, number>>((counts, item) => ({ ...counts, [item.stage]: counts[item.stage] + 1 }), { sense: 0, "frame-intent": 0, "frame-exam": 0, engineer: 0, evaluate: 0, release: 0, observe: 0, learn: 0 });
   const agingCounts = model.items.reduce<Record<FlightStage, number>>((counts, item) => ({ ...counts, [item.stage]: counts[item.stage] + (item.aging.state === "huddle" ? 1 : 0) }), { sense: 0, "frame-intent": 0, "frame-exam": 0, engineer: 0, evaluate: 0, release: 0, observe: 0, learn: 0 });
+
+  useEffect(() => {
+    function syncDetailFromHash() {
+      const match = window.location.hash.match(/^#intent-backlog\/([^/?#]+)/);
+      const id = match ? decodeURIComponent(match[1]) : null;
+      const candidate = id ? demoIntents.find((intent) => intent.id === id) : undefined;
+      setDetailIntentId(candidate?.id ?? null);
+      if (candidate) {
+        setDisplayedDetailRevision(candidate.artifactRevision ?? `intent-${candidate.id.toLowerCase()}`);
+        detailOpenedAt.current = Date.now();
+      }
+    }
+    syncDetailFromHash();
+    window.addEventListener("hashchange", syncDetailFromHash);
+    return () => window.removeEventListener("hashchange", syncDetailFromHash);
+  }, []);
 
   function handleAction(kind: "sign" | "send-back", note?: string) {
     if (!selected) return;
@@ -449,12 +548,76 @@ export default function App() {
     setFeedback(`${intent.id} crossed the pull boundary and is now a work item in flight.`);
   }
 
-  function declineCandidate(intent: ProjectedIntent) {
-    const reason = declineReasons[intent.id] ?? "off-mission";
-    const labels: Record<string, string> = { "off-mission": "Does not move the current mission", duplicate: "Duplicate signal", "insufficient-evidence": "Insufficient evidence" };
-    const result = declineIntent(intent, labels[reason], demoAsOf);
-    setIntents((current) => current.map((candidate) => candidate.id === intent.id ? result.intent : candidate));
-    setFeedback(`${intent.id} was declined with a recorded reason and retained as Scout tuning input.`);
+  function openIntent(intent: ProjectedIntent) {
+    setDetailIntentId(intent.id);
+    setDisplayedDetailRevision(intent.artifactRevision ?? `intent-${intent.id.toLowerCase()}`);
+    setDetailHistory([]);
+    detailOpenedAt.current = Date.now();
+    window.history.replaceState(null, "", `#intent-backlog/${encodeURIComponent(intent.id)}`);
+  }
+
+  function closeIntent() {
+    setDetailIntentId(null);
+    setDetailHistory([]);
+    window.history.replaceState(null, "", "#intent-backlog");
+  }
+
+  function navigateIntent(intentId: string) {
+    if (detailIntentId) setDetailHistory((current) => [...current, detailIntentId]);
+    const candidate = projectedIntents.find((intent) => intent.id === intentId);
+    if (!candidate) return;
+    setDetailIntentId(candidate.id);
+    setDisplayedDetailRevision(candidate.artifactRevision ?? `intent-${candidate.id.toLowerCase()}`);
+    detailOpenedAt.current = Date.now();
+    window.history.replaceState(null, "", `#intent-backlog/${encodeURIComponent(candidate.id)}`);
+  }
+
+  function backFromIntent() {
+    const previous = detailHistory.at(-1);
+    if (!previous) return;
+    setDetailHistory((current) => current.slice(0, -1));
+    const candidate = projectedIntents.find((intent) => intent.id === previous);
+    if (!candidate) return;
+    setDetailIntentId(candidate.id);
+    setDisplayedDetailRevision(candidate.artifactRevision ?? `intent-${candidate.id.toLowerCase()}`);
+    window.history.replaceState(null, "", `#intent-backlog/${encodeURIComponent(candidate.id)}`);
+  }
+
+  function handleIntentDetailAction(action: DetailAction, detail: { members?: string[]; question?: string; reason?: string } = {}): DetailActionResult {
+    if (!detailIntent) return { currentRevision: "", message: "The intent is no longer available.", ok: false, reason: "validation" };
+    const currentRevision = detailIntent.artifactRevision ?? `intent-${detailIntent.id.toLowerCase()}`;
+    const result = performDetailAction({
+      action,
+      at: demoAsOf,
+      currentRevision,
+      displayedRevision: displayedDetailRevision,
+      durationMs: Math.max(0, Date.now() - detailOpenedAt.current),
+      inFlightCount: model.metrics.inFlightItems,
+      intent: detailIntent,
+      members: detail.members,
+      question: detail.question,
+      reason: detail.reason,
+      sessionId: detailSessionId.current,
+      wipLimit: pilotWipLimit,
+    });
+    if (!result.ok) {
+      if (result.reason === "stale") setDisplayedDetailRevision(result.currentRevision);
+      return result;
+    }
+    setDetailEvents((current) => [...current, result.event]);
+    if (action === "pull") pullIntent(detailIntent);
+    if (action === "decline") {
+      const declined = declineIntent(detailIntent, detail.reason ?? "", demoAsOf);
+      setIntents((current) => current.map((candidate) => candidate.id === detailIntent.id ? declined.intent : candidate));
+      setFeedback(`${detailIntent.id} was declined with a recorded reason and retained as Scout tuning input.`);
+    }
+    if (action === "merge") {
+      setIntents((current) => current.map((candidate) => detail.members?.includes(candidate.id) ? { ...candidate, status: "declined" } : candidate));
+      setFeedback(`${detailIntent.id} remains the primary candidate; ${detail.members?.join(", ")} merged into its evidence cluster.`);
+    }
+    if (action === "send-back") setFeedback(`${detailIntent.id}: one question was sent to ${detailIntent.originator ?? "the originator"}; the candidate remains unpulled.`);
+    closeIntent();
+    return result;
   }
 
   return (
@@ -502,7 +665,7 @@ export default function App() {
             <div className="decision-list">{visibleDecisions.length ? visibleDecisions.map((decision) => <DecisionItem decision={decision} key={decision.id} onOpen={setSelected} />) : <div className="empty-state"><span aria-hidden="true">✓</span><h3>No decisions in this view</h3><p>Your attention is clear. The projection will surface the next judgment when it is ready.</p></div>}</div>
           </section>
 
-          <CandidatePane declineReasons={declineReasons} inFlightCount={model.metrics.inFlightItems} intents={activeIntents} onAsk={(intent) => setFeedback(`${intent.id}: one clarifying question was routed to the named originator.`)} onDecline={declineCandidate} onMerge={(intent) => setFeedback(`${intent.id} is ready to merge with its ${intent.duplicateCount}-intent cluster.`)} onPull={pullIntent} onReasonChange={(intentId, reason) => setDeclineReasons((current) => ({ ...current, [intentId]: reason }))} role={role} />
+          <CandidatePane inFlightCount={model.metrics.inFlightItems} intents={activeIntents} onOpen={openIntent} role={role} />
 
           <section className="flight-section" id="flight-board">
             <div className="section-heading section-heading--compact"><div><p className="eyebrow">Present · ambient unless a band breaches</p><h2>Flight Board</h2></div><span className="read-model-note">Rebuildable projection · historical aging bands · {model.items.length} items</span></div>
@@ -521,6 +684,7 @@ export default function App() {
       {selected && selectedItem ? <ReviewPanel decision={selected} item={selectedItem} onAction={handleAction} onClose={() => setSelected(null)} /> : null}
       {threadItem ? <WorkItemPanel item={threadItem} onClose={() => setThreadItem(null)} /> : null}
       {composing ? <BriefComposer onClose={() => setComposing(false)} onSave={saveIntent} originator={actor} /> : null}
+      {detailIntent ? <IntentDetailPanel allIntents={projectedIntents} displayedRevision={displayedDetailRevision} inFlightCount={model.metrics.inFlightItems} intent={detailIntent} onAction={handleIntentDetailAction} onBack={detailHistory.length ? backFromIntent : undefined} onClose={closeIntent} onExternalExit={() => setDetailEvents((current) => recordExternalExit(current, { at: demoAsOf, durationMs: Math.max(0, Date.now() - detailOpenedAt.current), intentId: detailIntent.id, revision: detailIntent.artifactRevision ?? `intent-${detailIntent.id.toLowerCase()}`, sessionId: detailSessionId.current }))} onNavigate={navigateIntent} /> : null}
     </div>
   );
 }

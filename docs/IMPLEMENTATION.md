@@ -15,6 +15,8 @@ rebuildable fixture connector.
   context-resolved system names, and no raw artifact exposure;
 - a three-surface role home ordered as decision inbox, triggered candidates,
   and ambient flight, with a WIP-gated Product Lead intent backlog;
+- an in-place rendered intent-detail panel with revision-safe actions,
+  provenance evidence, clusters, history, and outcome instrumentation;
 - a live scope check for one outcome, one exam, and one coherent shape, plus
   plan-sprawl alarms and split guidance;
 - P85 cycle-time forecasting and aging-band domain functions;

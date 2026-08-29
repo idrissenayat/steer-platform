@@ -4,7 +4,10 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import App from "../src/App";
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  window.history.replaceState(null, "", window.location.pathname);
+});
 
 async function seriousViolations(container: HTMLElement) {
   const result = await axe.run(container, { rules: { "color-contrast": { enabled: false } } });
@@ -42,6 +45,33 @@ describe("automated accessibility gauntlet", () => {
     const flight = screen.getByRole("heading", { name: "Flight Board" });
     expect(inbox.compareDocumentPosition(candidates) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(candidates.compareDocumentPosition(flight) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(screen.getAllByRole("button", { name: "Pull into flight" }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("button", { name: "Open full brief" }).length).toBeGreaterThan(0);
+  });
+
+  it("opens the full intent as a keyboard-contained, WIP-aware dialog", async () => {
+    render(<App />);
+    const opener = screen.getAllByRole("button", { name: "Open full brief" })[0];
+    opener.focus();
+    fireEvent.click(opener);
+    const dialog = screen.getByRole("dialog", { name: /outcome contract telemetry intent detail/i });
+    expect(window.location.hash).toBe("#intent-backlog/IN-014");
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: /close review/i }));
+    expect((screen.getByRole("button", { name: /pull into flight · 5\/5 slots/i }) as HTMLButtonElement).disabled).toBe(true);
+    expect(dialog.querySelectorAll("[data-detail-section]").length).toBe(10);
+    expect((screen.getByRole("button", { name: /decline with reason/i }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: /preview merge/i }) as HTMLButtonElement).disabled).toBe(false);
+    expect((screen.getByRole("button", { name: /send one question/i }) as HTMLButtonElement).disabled).toBe(true);
+    expect(await seriousViolations(dialog)).toEqual([]);
+    fireEvent.keyDown(dialog, { key: "Escape" });
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(document.activeElement).toBe(opener);
+  });
+
+  it("deep-links to an expired recorded intent rather than an error", async () => {
+    window.history.replaceState(null, "", "#intent-backlog/IN-009");
+    render(<App />);
+    const dialog = await screen.findByRole("dialog", { name: /daily progress digest intent detail/i });
+    expect(dialog.textContent).toContain("Expired candidate");
+    expect(dialog.textContent).toContain("A measurable success signal");
   });
 });

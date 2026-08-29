@@ -14,6 +14,17 @@ item one, are the framework's pilot evidence.
 | intent/EXAM.md | draft | Gate 2 — Tech Lead, after Critic findings resolved |
 | PLAN.md | not yet | produced by an agent in a read-only planning pass after Gate 2 |
 
+## Item: intent-detail-view (candidate, not yet pulled)
+
+| Artifact | Status | Next signature |
+|---|---|---|
+| intent/intent-detail-view.md | candidate in the intent backlog | pull by Product Lead |
+| intent/intent-detail-view.SPEC.md | draft | Gate 1, after pull; accessibility flagged |
+| intent/intent-detail-view.EXAM.md | draft | Gate 2; section D approved before code (default-closed) |
+
+Sequencing note: the instrumentation baseline item precedes this one per
+the spec; the outcome contract's baseline must exist before this ships.
+
 ## Before Gate 1 (human actions, in order)
 
 1. Resolve the flagged concerns in SPEC.md with their policy owners
