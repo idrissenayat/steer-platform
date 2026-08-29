@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BoardIcon, ChainIcon, CloseIcon, InboxIcon, ShieldIcon } from "./components/Icons";
+import { GlossaryPeek, LearnHub } from "./components/LearnHub";
 import { demoAsOf, demoChain } from "./data/demo-chain";
 import { demoIntents, pilotMetrics, pilotWipLimit } from "./data/demo-intents";
 import { applyGateAction } from "./domain/actions";
 import { draftBrief, draftRevision } from "./domain/brief-author";
 import { assembleEvidence } from "./domain/evidence";
 import { performDetailAction, previewMergedIntent, recordExternalExit, type DetailAction, type DetailActionEvent, type DetailActionResult } from "./domain/intent-detail";
+import type { HubEvent, LearnPage } from "./domain/learn";
 import { blankIntentAnswers, buildInterviewDraft, intentInterviewQuestions, pilotSystemContext, type IntentAnswers } from "./domain/intent-interview";
 import { declineIntent, projectIntentBacklog, pullDisposition, type IntentCandidate, type ProjectedIntent } from "./domain/intent-backlog";
 import { buildReadModel, decisionsForRole } from "./domain/read-model";
@@ -484,7 +486,9 @@ export default function App() {
   const [displayedDetailRevision, setDisplayedDetailRevision] = useState("");
   const [detailHistory, setDetailHistory] = useState<string[]>([]);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [globalGlossaryTerm, setGlobalGlossaryTerm] = useState<string | null>(null);
   const [, setDetailEvents] = useState<DetailActionEvent[]>([]);
+  const [, setHubEvents] = useState<HubEvent[]>([]);
   const detailOpenedAt = useRef(0);
   const detailSessionId = useRef(`detail-${Math.random().toString(36).slice(2)}`);
   const model = useMemo(() => buildReadModel(chain, demoAsOf), [chain]);
@@ -495,7 +499,7 @@ export default function App() {
   const visibleDecisions = roleDecisions.filter((decision) => (gateFilter === "all" || decision.gate === gateFilter) && `${decision.itemId} ${decision.title} ${decision.summary}`.toLowerCase().includes(query.trim().toLowerCase()));
   const selectedItem = selected ? model.items.find((item) => item.id === selected.itemId) : undefined;
   const actor: IdentityContext = { subject: `pilot|${role}`, displayName: actorNames[role], roles: [role] };
-  const modalOpen = Boolean(selected || threadItem || composing || detailIntent);
+  const modalOpen = Boolean(selected || threadItem || composing || detailIntent || globalGlossaryTerm);
   const stageCounts = model.items.reduce<Record<FlightStage, number>>((counts, item) => ({ ...counts, [item.stage]: counts[item.stage] + 1 }), { sense: 0, "frame-intent": 0, "frame-exam": 0, engineer: 0, evaluate: 0, release: 0, observe: 0, learn: 0 });
   const agingCounts = model.items.reduce<Record<FlightStage, number>>((counts, item) => ({ ...counts, [item.stage]: counts[item.stage] + (item.aging.state === "huddle" ? 1 : 0) }), { sense: 0, "frame-intent": 0, "frame-exam": 0, engineer: 0, evaluate: 0, release: 0, observe: 0, learn: 0 });
 
@@ -620,6 +624,35 @@ export default function App() {
     return result;
   }
 
+  function fileLearnChangeIntent(page: LearnPage, section: string) {
+    const sectionLabel = page.sections.find((candidate) => candidate.id === section)?.title ?? section;
+    const id = `IN-L${String(intents.length + 1).padStart(3, "0")}`;
+    const now = new Date().toISOString();
+    const candidate: IntentCandidate = {
+      id,
+      artifactRevision: `learn-${page.id}-${section}`,
+      originator: actor.displayName,
+      originatorChannel: "Learn hub · suggest a change",
+      title: `Improve ${page.title}: ${sectionLabel}`,
+      problem: `A reader identified a possible correction or improvement in ${page.title}, section ${sectionLabel}.`,
+      outcome: "The operational canon is corrected through its governed artifact chain and the Learn hub reflects the accepted revision.",
+      domainTags: ["integrations"],
+      provenance: `Named originator · ${actor.displayName} · Learn hub`,
+      provenanceEvidence: { kind: "named-originator", identity: actor.displayName, channel: "Learn hub · suggest a change" },
+      duplicateKey: `learn-${page.id}-${section}`,
+      lastTouchedAt: now,
+      decayDays: 30,
+      status: "candidate",
+      constraints: ["The Learn hub never edits canon content in place.", "The accepted change must keep the kit and Learn corpus versions aligned."],
+      openQuestions: ["What exact wording or evidence should change?"],
+      systems: [page.path, page.sourcePath],
+      affectedUsers: ["STEER learners", "Agent fleet"],
+      outcomeContract: { primaryMetric: "framework_version_match", target: "Learn corpus version equals the kit version" },
+    };
+    setIntents((current) => [...current, candidate]);
+    setFeedback(`${id} was filed in the intent backlog for ${page.title} · ${sectionLabel}. The canon was not edited in place.`);
+  }
+
   return (
     <div className="app-shell">
       {feedback ? <div className="action-feedback" role="status"><span>{feedback}</span><button aria-label="Dismiss message" onClick={() => setFeedback(null)} type="button">×</button></div> : null}
@@ -632,6 +665,7 @@ export default function App() {
           <a className="nav-item" href="#flight-board"><BoardIcon />Flight board</a>
           <a className="nav-item" href="#work-items"><ChainIcon />Work threads</a>
           <a className="nav-item" href="#trust"><ShieldIcon />Trust evidence</a>
+          <a className="nav-item" href="#learn"><BoardIcon />Learn STEER</a>
         </nav>
         <div className="authority-card"><span>Authority boundary</span><p>Humans own intent and judgment. Every action binds identity and revision.</p></div>
         <div className="sidebar__status"><span className="status-dot" /><div><strong>Projection healthy</strong><span>Fixture connector · rebuildable</span></div></div>
@@ -658,6 +692,8 @@ export default function App() {
             <MetricCard icon="◷" label="Median gate wait" note="Pilot baseline in progress" tone="coral" value={formatWait(model.metrics.medianGateWaitHours)} />
           </section>
 
+          <section aria-label="Glossary quick peeks" className="glossary-strip"><span>Shared STEER language</span>{["intent", "pull", "work item", "exam", "gate", "band"].map((term) => <button key={term} onClick={() => setGlobalGlossaryTerm(term)} type="button">{term}</button>)}</section>
+
           <section className="inbox-section" id="inbox">
             <div className="section-heading"><div><p className="eyebrow">Minimum sufficient judgment</p><h2>Decision inbox</h2><p>Only the judgments waiting on you. Everything else stays ambient.</p></div><div aria-label="Filter decisions by gate" className="filter-group" role="group">
               {(["all", 1, 2, 3] as const).map((filter) => <button aria-pressed={gateFilter === filter} className={gateFilter === filter ? "filter-chip filter-chip--active" : "filter-chip"} key={filter} onClick={() => setGateFilter(filter)} type="button">{filter === "all" ? "All" : `Gate ${filter}`}</button>)}
@@ -678,6 +714,8 @@ export default function App() {
           </section>
 
           <section className="principle-strip" id="trust"><div className="principle-strip__mark"><ChainIcon /></div><div><p className="eyebrow">Iron rule</p><h2>The platform projects truth. It never owns it.</h2><p>Destroy the cache, replay the artifact chain, and the same workspace returns.</p></div><code>BRIEF → SPEC → EXAM → PLAN → evidence</code></section>
+
+          <LearnHub onEvent={(event) => setHubEvents((current) => [...current, event])} onSuggestChange={fileLearnChangeIntent} role={role} />
         </div>
       </main>
 
@@ -685,6 +723,7 @@ export default function App() {
       {threadItem ? <WorkItemPanel item={threadItem} onClose={() => setThreadItem(null)} /> : null}
       {composing ? <BriefComposer onClose={() => setComposing(false)} onSave={saveIntent} originator={actor} /> : null}
       {detailIntent ? <IntentDetailPanel allIntents={projectedIntents} displayedRevision={displayedDetailRevision} inFlightCount={model.metrics.inFlightItems} intent={detailIntent} onAction={handleIntentDetailAction} onBack={detailHistory.length ? backFromIntent : undefined} onClose={closeIntent} onExternalExit={() => setDetailEvents((current) => recordExternalExit(current, { at: demoAsOf, durationMs: Math.max(0, Date.now() - detailOpenedAt.current), intentId: detailIntent.id, revision: detailIntent.artifactRevision ?? `intent-${detailIntent.id.toLowerCase()}`, sessionId: detailSessionId.current }))} onNavigate={navigateIntent} /> : null}
+      {globalGlossaryTerm ? <GlossaryPeek onClose={() => setGlobalGlossaryTerm(null)} term={globalGlossaryTerm} /> : null}
     </div>
   );
 }

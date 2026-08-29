@@ -18,6 +18,13 @@ const required = [
   "kit/CULTURE.md",
   "kit/seams/contracts.md",
   "kit/hooks/pre-commit",
+  "kit/version.json",
+  "kit/learn-manifest.json",
+  "kit/canon/methodology.md",
+  "kit/canon/framework.md",
+  "kit/canon/operating-model.md",
+  "kit/canon/glossary.md",
+  "kit/canon/guidebook.md",
 ];
 
 for (const path of required) {
@@ -57,6 +64,22 @@ if (surfacesPolicy.attentionOrder.join(",") !== "decision-inbox,triggered-candid
 }
 if (sizingPolicy.forecast.percentile !== 0.85 || sizingPolicy.scopeFreeze !== "gate-1") {
   throw new Error("Sizing policy must use P85 forecasting and freeze scope at Gate 1.");
+}
+
+const kitVersion = JSON.parse(await readFile("kit/version.json", "utf8"));
+const learnManifest = JSON.parse(await readFile("kit/learn-manifest.json", "utf8"));
+if (learnManifest.frameworkVersion !== kitVersion.frameworkVersion || learnManifest.tag !== kitVersion.tag) {
+  throw new Error(`Learn corpus ${learnManifest.tag} does not match kit ${kitVersion.tag}.`);
+}
+for (const document of learnManifest.documents) {
+  const info = await stat(document.path);
+  if (!info.isFile() || info.size === 0) throw new Error(`Learn manifest points to a missing source: ${document.path}`);
+}
+for (const role of ["product-lead", "product-designer", "tech-lead", "platform-engineer", "builder"]) {
+  if (!learnManifest.agentSlices[role]?.length) throw new Error(`Learn manifest has no corpus slice for ${role}.`);
+}
+if (learnManifest.agentSlices.builder.includes("operating-model") || !learnManifest.agentSlices.builder.includes("framework")) {
+  throw new Error("The Builder slice must include the exam invariant through the Framework and exclude portfolio-layer Operating Model content.");
 }
 
 console.log(`STEER Phase 0 kit valid (${required.length} required artifacts).`);

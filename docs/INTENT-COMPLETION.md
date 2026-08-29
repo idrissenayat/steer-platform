@@ -40,6 +40,12 @@ evidence, and a 90-day pilot window. Those cannot be replaced by fixture data.
 | IDV-C | Deep link, current truth, no private view state | hash-driven panel and ephemeral session model | green locally |
 | IDV-D | Labeled, trapped, keyboard-complete detail panel | axe and browser walkthrough | partial: manual specialist record pending |
 | IDV-E | Detail action and external-exit instrumentation | event-schema and outcome-summary tests | green locally |
+| LRN-A | Canon fidelity and framework-version build guard | kit manifest, raw corpus imports, seeded mismatch test | green locally |
+| LRN-B | Page navigation, search, glossary peek, and governed corrections | deep-link/search/focus tests and change-intent flow | green locally |
+| LRN-C | Per-role agent corpus slices and Builder invariant | manifest resolver and byte-identity tests | green locally |
+| LRN-D | Five-step stateless accountability orientations | four manifest fixtures and live action links | green locally |
+| LRN-E | Accessible Learn surfaces | axe and focus tests | partial: manual specialist record pending |
+| LRN-F | Coarse Learn telemetry and first-action computation | event-shape and median tests | partial: 0002 production baseline pending |
 | E11 | Read + approval-write token scopes only | workflow scope audit and runtime scope policy | green for CI; live connector pending |
 | E12 | No secrets/tokens/problem text in logs | seeded canary scrub tests | green |
 | E13 | Authentic webhook; reject forged/replayed events | HMAC and replay-guard tests | green at control layer |

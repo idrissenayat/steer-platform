@@ -17,6 +17,8 @@ rebuildable fixture connector.
   and ambient flight, with a WIP-gated Product Lead intent backlog;
 - an in-place rendered intent-detail panel with revision-safe actions,
   provenance evidence, clusters, history, and outcome instrumentation;
+- a repository-sourced Learn STEER hub with version-aligned canon pages,
+  section search, glossary peeks, stateless role orientations, and agent slices;
 - a live scope check for one outcome, one exam, and one coherent shape, plus
   plan-sprawl alarms and split guidance;
 - P85 cycle-time forecasting and aging-band domain functions;

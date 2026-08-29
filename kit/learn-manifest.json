@@ -1,0 +1,52 @@
+{
+  "frameworkVersion": "3.0",
+  "tag": "v3.0",
+  "documents": [
+    { "id": "methodology", "title": "Methodology", "kind": "why", "summary": "The constraint shift, Agile values, five moves, and governing principles.", "path": "kit/canon/methodology.md", "sourcePath": "STEER-Methodology.docx" },
+    { "id": "framework", "title": "Framework", "kind": "what", "summary": "The artifact chain, surfaces, plays, gates, measurement, and sizing.", "path": "kit/canon/framework.md", "sourcePath": "STEER-Framework.docx" },
+    { "id": "operating-model", "title": "Operating Model", "kind": "how", "summary": "Accountabilities, decision rights, trust, culture, scale, and adoption.", "path": "kit/canon/operating-model.md", "sourcePath": "STEER-Operating-Model.docx" },
+    { "id": "sizing-and-scoping", "title": "Practice Note 1 · Sizing and Scoping", "kind": "practice", "summary": "Exam-writability, splitting, aging bands, and percentile forecasting.", "path": "kit/practices/sizing-and-scoping.md", "sourcePath": "STEER-Sizing-and-Scoping.docx" },
+    { "id": "providing-intent", "title": "Practice Note 2 · Providing Intent", "kind": "practice", "summary": "Interview-first authoring, no invention, and rendered human approval.", "path": "kit/practices/providing-intent.md", "sourcePath": "STEER-Providing-Intent.docx" },
+    { "id": "three-surfaces", "title": "Practice Note 3 · The Three Surfaces", "kind": "practice", "summary": "Intent backlog, pull boundary, role home, and protected attention.", "path": "kit/practices/three-surfaces.md", "sourcePath": "STEER-The-Three-Surfaces.docx" },
+    { "id": "glossary", "title": "Glossary", "kind": "reference", "summary": "Shared operational definitions, including intent versus work item.", "path": "kit/canon/glossary.md", "sourcePath": "kit/canon/glossary.md" },
+    { "id": "guidebook", "title": "Guidebook", "kind": "reference", "summary": "The ordered reading map across the operational canon.", "path": "kit/canon/guidebook.md", "sourcePath": "kit/canon/guidebook.md" }
+  ],
+  "agentSlices": {
+    "product-lead": ["methodology", "framework", "operating-model", "three-surfaces", "providing-intent", "glossary"],
+    "product-designer": ["methodology", "framework", "operating-model", "providing-intent", "glossary"],
+    "tech-lead": ["methodology", "framework", "operating-model", "sizing-and-scoping", "providing-intent", "glossary"],
+    "platform-engineer": ["framework", "operating-model", "sizing-and-scoping", "providing-intent", "three-surfaces", "glossary"],
+    "specialist": ["framework", "operating-model", "glossary"],
+    "builder": ["framework", "sizing-and-scoping", "providing-intent", "glossary"]
+  },
+  "orientationPaths": {
+    "product-lead": [
+      { "pageId": "methodology", "section": "the-constraint-shift", "label": "Understand the constraint shift" },
+      { "pageId": "framework", "section": "the-three-surfaces", "label": "Learn the three surfaces" },
+      { "pageId": "operating-model", "section": "four-accountabilities-signature-semantics", "label": "Own the Product Lead accountability" },
+      { "pageId": "three-surfaces", "section": "candidate-controls", "label": "Review the pull boundary" },
+      { "actionHash": "#intent-backlog", "label": "Open a candidate and make a pull decision" }
+    ],
+    "product-designer": [
+      { "pageId": "methodology", "section": "the-values-agile-re-implemented", "label": "Start with STEER's values" },
+      { "pageId": "framework", "section": "the-artifact-chain", "label": "Follow the artifact chain" },
+      { "pageId": "operating-model", "section": "four-accountabilities-signature-semantics", "label": "Own design intent" },
+      { "pageId": "providing-intent", "section": "stage-modes", "label": "See how design dialogue enters the chain" },
+      { "actionHash": "#inbox", "label": "Open the next design decision" }
+    ],
+    "tech-lead": [
+      { "pageId": "methodology", "section": "the-principles", "label": "Learn independent verification" },
+      { "pageId": "framework", "section": "the-three-gates", "label": "Understand Gate 2 and Gate 3" },
+      { "pageId": "operating-model", "section": "trust-metered-autonomy", "label": "Apply trust-metered autonomy" },
+      { "pageId": "sizing-and-scoping", "section": "frame-check", "label": "Check exam-writability" },
+      { "actionHash": "#inbox", "label": "Open the next exam decision" }
+    ],
+    "platform-engineer": [
+      { "pageId": "methodology", "section": "the-five-moves", "label": "See the full thinking loop" },
+      { "pageId": "framework", "section": "three-layers", "label": "Understand the platform layer" },
+      { "pageId": "operating-model", "section": "portability-and-governance", "label": "Own the governed seams" },
+      { "pageId": "providing-intent", "section": "governing-rules", "label": "Keep context truthful" },
+      { "actionHash": "#work-items", "label": "Open a live work-item thread" }
+    ]
+  }
+}

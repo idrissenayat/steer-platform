@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import axe from "axe-core";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import App from "../src/App";
 
@@ -38,6 +38,13 @@ describe("automated accessibility gauntlet", () => {
     expect(screen.queryByText(/# Brief:/)).toBeNull();
   });
 
+  it("opens product-wide tagged terms as an in-place glossary peek", () => {
+    render(<App />);
+    const quickPeeks = screen.getByRole("region", { name: /glossary quick peeks/i });
+    fireEvent.click(within(quickPeeks).getByRole("button", { name: "gate" }));
+    expect(screen.getByRole("dialog", { name: /gate glossary entry/i }).textContent).toContain("three human signature points");
+  });
+
   it("orders the role home as inbox, candidates, then ambient flight", () => {
     render(<App />);
     const inbox = screen.getByRole("heading", { name: "Decision inbox" });
@@ -73,5 +80,49 @@ describe("automated accessibility gauntlet", () => {
     const dialog = await screen.findByRole("dialog", { name: /daily progress digest intent detail/i });
     expect(dialog.textContent).toContain("Expired candidate");
     expect(dialog.textContent).toContain("A measurable success signal");
+  });
+
+  it("renders the Learn hub, section search, and one first-occurrence term link", async () => {
+    window.history.replaceState(null, "", "#learn/framework/the-three-surfaces");
+    const { container } = render(<App />);
+    expect(await screen.findByRole("heading", { name: "Learn STEER" })).toBeTruthy();
+    const section = document.getElementById("learn-framework-the-three-surfaces")!;
+    expect(within(section).getAllByRole("button", { name: /intent.*open glossary definition/i })).toHaveLength(1);
+    fireEvent.change(screen.getByRole("searchbox", { name: /search the operational canon/i }), { target: { value: "builders exam" } });
+    const results = document.querySelector<HTMLElement>(".learn-search-results")!;
+    expect(within(results).getByRole("button", { name: /eight plays/i })).toBeTruthy();
+    expect(await seriousViolations(container)).toEqual([]);
+  });
+
+  it("opens one focus-managed glossary peek and returns focus on dismiss", async () => {
+    window.history.replaceState(null, "", "#learn/framework/the-three-surfaces");
+    render(<App />);
+    await screen.findByRole("heading", { name: "Learn STEER" });
+    const section = document.getElementById("learn-framework-the-three-surfaces")!;
+    const term = within(section).getByRole("button", { name: /intent.*open glossary definition/i });
+    term.focus();
+    fireEvent.click(term);
+    const dialog = screen.getByRole("dialog", { name: /intent glossary entry/i });
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: /close glossary entry/i }));
+    expect(dialog.textContent).toContain("candidate brief in the intent backlog");
+    expect(await seriousViolations(dialog)).toEqual([]);
+    fireEvent.keyDown(dialog, { key: "Escape" });
+    expect(screen.queryByRole("dialog", { name: /intent glossary entry/i })).toBeNull();
+    expect(document.activeElement).toBe(term);
+  });
+
+  it("files a governed change intent without editing Learn content", async () => {
+    window.history.replaceState(null, "", "#learn/guidebook/overview");
+    render(<App />);
+    const button = await screen.findByRole("button", { name: /suggest a change to steer guidebook, overview/i });
+    fireEvent.click(button);
+    expect(screen.getByRole("status").textContent).toContain("was filed in the intent backlog");
+    expect(screen.getByRole("status").textContent).toContain("was not edited in place");
+  });
+
+  it("shows a visible notice when a deep-linked Learn section was removed", async () => {
+    window.history.replaceState(null, "", "#learn/framework/removed-section");
+    render(<App />);
+    expect((await screen.findByRole("status")).textContent).toContain("no longer in the current canon");
   });
 });

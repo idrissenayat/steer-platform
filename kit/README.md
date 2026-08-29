@@ -16,6 +16,8 @@ into any repository and run STEER without the platform.
    originator intake, rendered draft, and repeated-correction context update.
 8. Use `policy/surfaces.json` and `practices/three-surfaces.md` to preserve the
    intent/work-item pull boundary and the inbox-first attention order.
+9. Load `learn-manifest.json` for human Learn pages and role-scoped agent
+   context. `version.json` must match its framework version or CI fails.
 
 The platform reads these files; it does not replace them. Git remains the
 authoritative record for artifacts, signatures, gate notes, and learning
