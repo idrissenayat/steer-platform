@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://steer.local/kit/metrics/events.schema.json",
+  "title": "STEER instrumentation event",
+  "description": "Versioned, content-free event contract for item 0002. Artifact content, problem text, prompts, secrets, and tokens are prohibited.",
+  "oneOf": [
+    { "$ref": "#/$defs/backlogAction" },
+    { "$ref": "#/$defs/externalExit" },
+    { "$ref": "#/$defs/firstLogin" },
+    { "$ref": "#/$defs/firstCompletedAction" },
+    { "$ref": "#/$defs/learnNavigation" }
+  ],
+  "$defs": {
+    "common": {
+      "type": "object",
+      "required": ["schemaVersion", "eventId", "sessionId", "subjectId", "at", "type"],
+      "properties": {
+        "schemaVersion": { "const": "1.0.0" },
+        "eventId": { "type": "string", "minLength": 1 },
+        "sessionId": { "type": "string", "minLength": 1 },
+        "subjectId": { "type": "string", "minLength": 1 },
+        "at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "backlogAction": {
+      "allOf": [
+        { "$ref": "#/$defs/common" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schemaVersion", "eventId", "sessionId", "subjectId", "at", "type", "action", "surface", "intentId", "revision", "durationMs"],
+          "properties": {
+            "schemaVersion": { "const": "1.0.0" },
+            "eventId": { "type": "string" },
+            "sessionId": { "type": "string" },
+            "subjectId": { "type": "string" },
+            "at": { "type": "string", "format": "date-time" },
+            "type": { "const": "backlog-action" },
+            "action": { "enum": ["pull", "decline", "merge", "send-back"] },
+            "surface": { "enum": ["detail_view", "summary_card"] },
+            "intentId": { "type": "string" },
+            "revision": { "type": "string" },
+            "durationMs": { "type": "number", "minimum": 0 }
+          }
+        }
+      ]
+    },
+    "externalExit": {
+      "allOf": [
+        { "$ref": "#/$defs/common" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schemaVersion", "eventId", "sessionId", "subjectId", "at", "type", "exitKind", "surface", "intentId", "revision", "durationMs"],
+          "properties": {
+            "schemaVersion": { "const": "1.0.0" },
+            "eventId": { "type": "string" },
+            "sessionId": { "type": "string" },
+            "subjectId": { "type": "string" },
+            "at": { "type": "string", "format": "date-time" },
+            "type": { "const": "external-exit" },
+            "exitKind": { "enum": ["source-file", "other-external-tool"] },
+            "surface": { "enum": ["detail_view", "summary_card"] },
+            "intentId": { "type": "string" },
+            "revision": { "type": "string" },
+            "durationMs": { "type": "number", "minimum": 0 }
+          }
+        }
+      ]
+    },
+    "firstLogin": {
+      "allOf": [
+        { "$ref": "#/$defs/common" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schemaVersion", "eventId", "sessionId", "subjectId", "at", "type"],
+          "properties": {
+            "schemaVersion": { "const": "1.0.0" },
+            "eventId": { "type": "string" },
+            "sessionId": { "type": "string" },
+            "subjectId": { "type": "string" },
+            "at": { "type": "string", "format": "date-time" },
+            "type": { "const": "first-login" }
+          }
+        }
+      ]
+    },
+    "firstCompletedAction": {
+      "allOf": [
+        { "$ref": "#/$defs/common" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schemaVersion", "eventId", "sessionId", "subjectId", "at", "type", "surface", "page", "section", "durationMs"],
+          "properties": {
+            "schemaVersion": { "const": "1.0.0" },
+            "eventId": { "type": "string" },
+            "sessionId": { "type": "string" },
+            "subjectId": { "type": "string" },
+            "at": { "type": "string", "format": "date-time" },
+            "type": { "const": "first-completed-action" },
+            "surface": { "const": "learn_hub" },
+            "page": { "type": "string" },
+            "section": { "type": "string" },
+            "durationMs": { "type": "number", "minimum": 0 }
+          }
+        }
+      ]
+    },
+    "learnNavigation": {
+      "allOf": [
+        { "$ref": "#/$defs/common" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schemaVersion", "eventId", "sessionId", "subjectId", "at", "type", "surface", "page", "section", "durationMs"],
+          "properties": {
+            "schemaVersion": { "const": "1.0.0" },
+            "eventId": { "type": "string" },
+            "sessionId": { "type": "string" },
+            "subjectId": { "type": "string" },
+            "at": { "type": "string", "format": "date-time" },
+            "type": { "const": "learn-navigation" },
+            "surface": { "const": "learn_hub" },
+            "page": { "type": "string" },
+            "section": { "type": "string" },
+            "durationMs": { "type": "number", "minimum": 0 }
+          }
+        }
+      ]
+    }
+  }
+}

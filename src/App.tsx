@@ -6,7 +6,8 @@ import { demoIntents, pilotMetrics, pilotWipLimit } from "./data/demo-intents";
 import { applyGateAction } from "./domain/actions";
 import { draftBrief, draftRevision } from "./domain/brief-author";
 import { assembleEvidence } from "./domain/evidence";
-import { performDetailAction, previewMergedIntent, recordExternalExit, type DetailAction, type DetailActionEvent, type DetailActionResult } from "./domain/intent-detail";
+import { performDetailAction, previewMergedIntent, type DetailAction, type DetailActionResult } from "./domain/intent-detail";
+import { appendInstrumentationEvent, detailEventToInstrumentation, firstLoginEvent, hubEventToInstrumentation, type InstrumentationEvent } from "./domain/instrumentation";
 import type { HubEvent, LearnPage } from "./domain/learn";
 import { blankIntentAnswers, buildInterviewDraft, intentInterviewQuestions, pilotSystemContext, type IntentAnswers } from "./domain/intent-interview";
 import { declineIntent, projectIntentBacklog, pullDisposition, type IntentCandidate, type ProjectedIntent } from "./domain/intent-backlog";
@@ -487,10 +488,11 @@ export default function App() {
   const [detailHistory, setDetailHistory] = useState<string[]>([]);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [globalGlossaryTerm, setGlobalGlossaryTerm] = useState<string | null>(null);
-  const [, setDetailEvents] = useState<DetailActionEvent[]>([]);
-  const [, setHubEvents] = useState<HubEvent[]>([]);
   const detailOpenedAt = useRef(0);
   const detailSessionId = useRef(`detail-${Math.random().toString(36).slice(2)}`);
+  const instrumentationSessionId = useRef(`pilot-${Math.random().toString(36).slice(2)}`);
+  const telemetrySubjectId = "pilot|local-user";
+  const [, setInstrumentationEvents] = useState<InstrumentationEvent[]>(() => [firstLoginEvent(telemetrySubjectId, instrumentationSessionId.current, new Date().toISOString())]);
   const model = useMemo(() => buildReadModel(chain, demoAsOf), [chain]);
   const projectedIntents = useMemo(() => projectIntentBacklog(intents, demoAsOf, pilotMetrics), [intents]);
   const activeIntents = projectedIntents.filter((intent) => intent.status === "candidate");
@@ -511,7 +513,7 @@ export default function App() {
       setDetailIntentId(candidate?.id ?? null);
       if (candidate) {
         setDisplayedDetailRevision(candidate.artifactRevision ?? `intent-${candidate.id.toLowerCase()}`);
-        detailOpenedAt.current = Date.now();
+        startDetailSession();
       }
     }
     syncDetailFromHash();
@@ -530,6 +532,11 @@ export default function App() {
   function saveIntent(intent: IntentCandidate) {
     setIntents((current) => [...current, intent]); setComposing(false);
     setFeedback(`${intent.id} was committed to the intent backlog. It is not a work item until a Product Lead pulls it.`);
+  }
+
+  function startDetailSession() {
+    detailSessionId.current = `detail-${Math.random().toString(36).slice(2)}`;
+    detailOpenedAt.current = Date.now();
   }
 
   function pullIntent(intent: ProjectedIntent) {
@@ -556,7 +563,7 @@ export default function App() {
     setDetailIntentId(intent.id);
     setDisplayedDetailRevision(intent.artifactRevision ?? `intent-${intent.id.toLowerCase()}`);
     setDetailHistory([]);
-    detailOpenedAt.current = Date.now();
+    startDetailSession();
     window.history.replaceState(null, "", `#intent-backlog/${encodeURIComponent(intent.id)}`);
   }
 
@@ -572,7 +579,7 @@ export default function App() {
     if (!candidate) return;
     setDetailIntentId(candidate.id);
     setDisplayedDetailRevision(candidate.artifactRevision ?? `intent-${candidate.id.toLowerCase()}`);
-    detailOpenedAt.current = Date.now();
+    startDetailSession();
     window.history.replaceState(null, "", `#intent-backlog/${encodeURIComponent(candidate.id)}`);
   }
 
@@ -584,6 +591,7 @@ export default function App() {
     if (!candidate) return;
     setDetailIntentId(candidate.id);
     setDisplayedDetailRevision(candidate.artifactRevision ?? `intent-${candidate.id.toLowerCase()}`);
+    startDetailSession();
     window.history.replaceState(null, "", `#intent-backlog/${encodeURIComponent(candidate.id)}`);
   }
 
@@ -608,7 +616,7 @@ export default function App() {
       if (result.reason === "stale") setDisplayedDetailRevision(result.currentRevision);
       return result;
     }
-    setDetailEvents((current) => [...current, result.event]);
+    setInstrumentationEvents((current) => appendInstrumentationEvent(current, detailEventToInstrumentation(result.event, telemetrySubjectId)));
     if (action === "pull") pullIntent(detailIntent);
     if (action === "decline") {
       const declined = declineIntent(detailIntent, detail.reason ?? "", demoAsOf);
@@ -651,6 +659,24 @@ export default function App() {
     };
     setIntents((current) => [...current, candidate]);
     setFeedback(`${id} was filed in the intent backlog for ${page.title} · ${sectionLabel}. The canon was not edited in place.`);
+  }
+
+  function recordLearnEvent(event: HubEvent) {
+    setInstrumentationEvents((current) => appendInstrumentationEvent(current, hubEventToInstrumentation(event, telemetrySubjectId, instrumentationSessionId.current)));
+  }
+
+  function recordSourceExit() {
+    if (!detailIntent) return;
+    const event = {
+      action: "external-exit" as const,
+      at: new Date().toISOString(),
+      durationMs: Math.max(0, Date.now() - detailOpenedAt.current),
+      intentId: detailIntent.id,
+      revision: detailIntent.artifactRevision ?? `intent-${detailIntent.id.toLowerCase()}`,
+      sessionId: detailSessionId.current,
+      surface: "detail_view" as const,
+    };
+    setInstrumentationEvents((current) => appendInstrumentationEvent(current, detailEventToInstrumentation(event, telemetrySubjectId, "source-file")));
   }
 
   return (
@@ -715,14 +741,14 @@ export default function App() {
 
           <section className="principle-strip" id="trust"><div className="principle-strip__mark"><ChainIcon /></div><div><p className="eyebrow">Iron rule</p><h2>The platform projects truth. It never owns it.</h2><p>Destroy the cache, replay the artifact chain, and the same workspace returns.</p></div><code>BRIEF → SPEC → EXAM → PLAN → evidence</code></section>
 
-          <LearnHub onEvent={(event) => setHubEvents((current) => [...current, event])} onSuggestChange={fileLearnChangeIntent} role={role} />
+          <LearnHub onEvent={recordLearnEvent} onSuggestChange={fileLearnChangeIntent} role={role} />
         </div>
       </main>
 
       {selected && selectedItem ? <ReviewPanel decision={selected} item={selectedItem} onAction={handleAction} onClose={() => setSelected(null)} /> : null}
       {threadItem ? <WorkItemPanel item={threadItem} onClose={() => setThreadItem(null)} /> : null}
       {composing ? <BriefComposer onClose={() => setComposing(false)} onSave={saveIntent} originator={actor} /> : null}
-      {detailIntent ? <IntentDetailPanel allIntents={projectedIntents} displayedRevision={displayedDetailRevision} inFlightCount={model.metrics.inFlightItems} intent={detailIntent} onAction={handleIntentDetailAction} onBack={detailHistory.length ? backFromIntent : undefined} onClose={closeIntent} onExternalExit={() => setDetailEvents((current) => recordExternalExit(current, { at: demoAsOf, durationMs: Math.max(0, Date.now() - detailOpenedAt.current), intentId: detailIntent.id, revision: detailIntent.artifactRevision ?? `intent-${detailIntent.id.toLowerCase()}`, sessionId: detailSessionId.current }))} onNavigate={navigateIntent} /> : null}
+      {detailIntent ? <IntentDetailPanel allIntents={projectedIntents} displayedRevision={displayedDetailRevision} inFlightCount={model.metrics.inFlightItems} intent={detailIntent} onAction={handleIntentDetailAction} onBack={detailHistory.length ? backFromIntent : undefined} onClose={closeIntent} onExternalExit={recordSourceExit} onNavigate={navigateIntent} /> : null}
       {globalGlossaryTerm ? <GlossaryPeek onClose={() => setGlobalGlossaryTerm(null)} term={globalGlossaryTerm} /> : null}
     </div>
   );

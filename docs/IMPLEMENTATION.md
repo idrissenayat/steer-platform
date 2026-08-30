@@ -17,6 +17,9 @@ rebuildable fixture connector.
   and ambient flight, with a WIP-gated Product Lead intent backlog;
 - an in-place rendered intent-detail panel with revision-safe actions,
   provenance evidence, clusters, history, and outcome instrumentation;
+- one versioned, privacy-checked instrumentation contract for backlog actions,
+  deliberate source exits, Learn navigation, first login, and first completed
+  action, with deterministic baseline computation and minimum-sample refusal;
 - a repository-sourced Learn STEER hub with version-aligned canon pages,
   section search, glossary peeks, stateless role orientations, and agent slices;
 - a live scope check for one outcome, one exam, and one coherent shape, plus
@@ -45,6 +48,11 @@ measurable-today rule, decay record, WIP refusal, and notification boundaries
 are mirrored in `kit/policy/surfaces.json` and the intent-backlog domain.
 
 ## Current boundary
+
+The supplied item chains are preserved under `intent/0001` through
+`intent/0004`. `kit/metrics/events.schema.json` is the operating event
+contract for item 0002; `kit/metrics/baselines.json` deliberately records the
+production baselines as pending instead of substituting fixture figures.
 
 The browser preview uses the fixture connector and pilot identities. It proves
 the interaction and domain contracts without requesting credentials or making

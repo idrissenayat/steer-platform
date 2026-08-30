@@ -9,7 +9,9 @@ into any repository and run STEER without the platform.
 2. Assign the four human accountabilities in `policy/gates.json`.
 3. Install `hooks/pre-commit` and protect the default branch.
 4. Run `node scripts/validate-kit.mjs` in CI.
-5. Record the first pilot item's baseline using `metrics/definitions.json`.
+5. Emit content-free pilot events through `metrics/events.schema.json`, use
+   `metrics/definitions.json` for metric semantics, and record approved-window
+   results in `metrics/baselines.json` without substituting fixture figures.
 6. Use `policy/sizing.json` and `practices/sizing-and-scoping.md` before Gate 1
    and again when an Engineer plan raises a sprawl alarm.
 7. Use `policy/intent.json` and `practices/providing-intent.md` for every

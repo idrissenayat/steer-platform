@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "pending-production-window",
+  "captureWindow": null,
+  "minimumSample": {
+    "backlogActions": 20,
+    "newUsers": 5
+  },
+  "records": [
+    {
+      "id": "pre-0003-backlog-external-exit-share",
+      "value": null,
+      "unit": "share-of-actions",
+      "status": "pending-production-window"
+    },
+    {
+      "id": "pre-0004-first-login-to-first-action",
+      "value": null,
+      "unit": "milliseconds-median",
+      "status": "pending-production-window"
+    }
+  ],
+  "notes": [
+    "No production figure is inferred from fixture events.",
+    "The Product Lead must approve the representative capture window before collection.",
+    "The dry-run computation is enforced by tests/instrumentation.test.ts."
+  ]
+}

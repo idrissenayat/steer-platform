@@ -5,22 +5,26 @@ The platform is built using STEER itself: every feature enters as a brief,
 carries an exam, and passes the gates. The pod's own metrics, recorded from
 item one, are the framework's pilot evidence.
 
-## The chain so far
+## The numbered implementation chain
+
+| Item | Canonical artifacts | Platform implementation | Remaining evidence |
+|---|---|---|---|
+| 0001 · Flight Deck foundation | `intent/0001/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md` | Phase 0 kit and Phase 1 fixture-backed workspace are implemented | live connector, human accessibility record, pilot window |
+| 0002 · Instrumentation and baselines | `intent/0002/README.md`, `BRIEF.md` | versioned content-free event schema, adapters, privacy validation, and both baseline computations are implemented | Product Lead-approved production window and representative figures |
+| 0003 · Full brief detail view | `intent/0003/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md` | rendered, deep-linkable, revision-safe detail panel and all four actions are implemented | 0002 production baseline and manual accessibility record |
+| 0004 · Learn STEER hub | `intent/0004/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md` | source-faithful reader, search, glossary, role orientation, agent slices, and corpus build guard are implemented | 0002 production baseline and manual accessibility record |
+
+The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
+`intent/intent-detail-view*` files, remain compatibility paths for earlier
+revisions. The numbered folders preserve the supplied item chains verbatim.
+
+## Item: 0003 · Full brief detail view
 
 | Artifact | Status | Next signature |
 |---|---|---|
-| intent/BRIEF.md | draft | Gate 1 — Product Lead + Product Designer; Tech Lead feasibility |
-| intent/SPEC.md | draft | signed with the brief at Gate 1; flagged concerns routed first |
-| intent/EXAM.md | draft | Gate 2 — Tech Lead, after Critic findings resolved |
-| PLAN.md | not yet | produced by an agent in a read-only planning pass after Gate 2 |
-
-## Item: intent-detail-view (candidate, not yet pulled)
-
-| Artifact | Status | Next signature |
-|---|---|---|
-| intent/intent-detail-view.md | candidate in the intent backlog | pull by Product Lead |
-| intent/intent-detail-view.SPEC.md | draft | Gate 1, after pull; accessibility flagged |
-| intent/intent-detail-view.EXAM.md | draft | Gate 2; section D approved before code (default-closed) |
+| intent/0003/BRIEF.md | candidate in the intent backlog | pull by Product Lead |
+| intent/0003/SPEC.md | draft | Gate 1, after pull; accessibility flagged |
+| intent/0003/EXAM.md | draft | Gate 2; section D approved before code (default-closed) |
 
 Sequencing note: the instrumentation baseline item precedes this one per
 the spec; the outcome contract's baseline must exist before this ships.
@@ -33,7 +37,7 @@ the spec; the outcome contract's baseline must exist before this ships.
 | intent/0004/SPEC.md | draft | Gate 1; content governance and peek UX flagged |
 | intent/0004/EXAM.md | draft | Gate 2; accessibility cases are default-closed |
 
-Implementation is pre-drafted from the requested candidate. Its outcome
+Implementation is present from the requested candidate. Its outcome
 comparison remains dependent on the 0002 first-login baseline.
 
 ## Before Gate 1 (human actions, in order)
