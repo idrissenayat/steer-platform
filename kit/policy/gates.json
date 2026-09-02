@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 1,
+  "version": 2,
   "defaultClosedDomains": [
     "security",
     "privacy",
@@ -33,9 +33,33 @@
     "slaHours": 24,
     "escalation": "visible"
   },
+  "minimumDistinctSigners": {
+    "commercial": {
+      "defaultOpen": {
+        "humans": 1,
+        "critic": "passing-fresh-context"
+      },
+      "defaultClosed": {
+        "humans": 1,
+        "critic": "passing-fresh-context-zero-unresolved",
+        "secondLook": "gate-3-separate-session-after-build-critic"
+      }
+    },
+    "regulated": {
+      "defaultOpen": {
+        "humans": 1,
+        "critic": "passing-fresh-context"
+      },
+      "defaultClosed": {
+        "humans": 2,
+        "critic": "passing-fresh-context-zero-unresolved",
+        "onboardingDisclosure": true
+      }
+    }
+  },
   "invariants": {
     "builderMayEditExam": false,
-    "signatureBinds": ["identity", "sequence", "artifact-revision"],
+    "signatureBinds": ["identity", "hat", "sequence", "artifact-revision"],
     "productionRequiresNamedAuthorization": true
   }
 }

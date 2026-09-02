@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BoardIcon, ChainIcon, CloseIcon, InboxIcon, ShieldIcon } from "./components/Icons";
 import { GlossaryPeek, LearnHub } from "./components/LearnHub";
+import { OnboardingPanel } from "./components/OnboardingPanel";
 import { demoAsOf, demoChain } from "./data/demo-chain";
 import { demoIntents, pilotMetrics, pilotWipLimit } from "./data/demo-intents";
 import { applyGateAction } from "./domain/actions";
@@ -9,6 +10,7 @@ import { assembleEvidence } from "./domain/evidence";
 import { performDetailAction, previewMergedIntent, type DetailAction, type DetailActionResult } from "./domain/intent-detail";
 import { appendInstrumentationEvent, detailEventToInstrumentation, firstLoginEvent, hubEventToInstrumentation, type InstrumentationEvent } from "./domain/instrumentation";
 import type { HubEvent, LearnPage } from "./domain/learn";
+import { personalCapacityDisposition, proposeOrganizationSetup, type OrganizationProposal } from "./domain/organization";
 import { blankIntentAnswers, buildInterviewDraft, intentInterviewQuestions, pilotSystemContext, type IntentAnswers } from "./domain/intent-interview";
 import { declineIntent, projectIntentBacklog, pullDisposition, type IntentCandidate, type ProjectedIntent } from "./domain/intent-backlog";
 import { buildReadModel, decisionsForRole } from "./domain/read-model";
@@ -24,6 +26,9 @@ import type {
 } from "./domain/types";
 
 const roleLabels: Record<Role, string> = {
+  "org-admin": "Org Admin",
+  "portfolio-lead": "Portfolio Lead",
+  "product-steward": "Product Steward",
   "product-lead": "Product Lead",
   "product-designer": "Product Designer",
   "tech-lead": "Tech Lead",
@@ -49,6 +54,9 @@ const gateDescriptions: Record<Gate, string> = {
 };
 
 const actorNames: Record<Role, string> = {
+  "org-admin": "Idriss Enayat",
+  "portfolio-lead": "Idriss Enayat",
+  "product-steward": "Idriss Enayat",
   "product-lead": "Idriss Enayat",
   "product-designer": "Avery Chen",
   "tech-lead": "Morgan Lee",
@@ -70,6 +78,12 @@ function formatDue(date: string): string {
     hour: "numeric",
     minute: "2-digit",
   }).format(new Date(date));
+}
+
+function measurementLabel(intent: ProjectedIntent): string {
+  if (intent.measurementState === "measurable-today") return "Measurable today";
+  if (intent.measurementState === "greenfield") return "Greenfield indicator";
+  return "Metric unresolved";
 }
 
 function MetricCard({ icon, label, note, tone, value }: {
@@ -421,7 +435,7 @@ function IntentDetailPanel({ allIntents, displayedRevision, inFlightCount, inten
       <section className="review-panel__section" data-detail-section="problem"><p className="section-label">Problem</p><p className="detail-copy detail-copy--lead">{intent.problem}</p></section>
       <section className="review-panel__section" data-detail-section="outcome"><p className="section-label">Proposed outcome</p><p className="outcome-copy">{intent.outcome}</p></section>
       <section className="review-panel__section" data-detail-section="outcome-contract">
-        <div className="evidence-heading"><p className="section-label">Outcome contract</p><span className={intent.measurableToday ? "evidence-badge" : "evidence-badge evidence-badge--waiting"}>{intent.measurableToday ? "Measurable today" : "Needs resolution"}</span></div>
+        <div className="evidence-heading"><p className="section-label">Outcome contract</p><span className={`evidence-badge${intent.measurementState === "unresolved" ? " evidence-badge--waiting" : intent.measurementState === "greenfield" ? " evidence-badge--greenfield" : ""}`}>{measurementLabel(intent)}</span></div>
         <dl className="detail-facts"><div><dt>Primary metric</dt><dd>{intent.outcomeContract?.primaryMetric ?? intent.successMetric ?? "Not specified"}</dd></div>{intent.outcomeContract?.baseline ? <div><dt>Baseline</dt><dd>{intent.outcomeContract.baseline}</dd></div> : null}{intent.outcomeContract?.target ? <div><dt>Target</dt><dd>{intent.outcomeContract.target}</dd></div> : null}{intent.outcomeContract?.observationWindow ? <div><dt>Window</dt><dd>{intent.outcomeContract.observationWindow}</dd></div> : null}{intent.outcomeContract?.missing ? <div className="detail-facts__missing"><dt>Still missing</dt><dd>{intent.outcomeContract.missing}</dd></div> : null}</dl>
       </section>
       {intent.constraints?.length ? <section className="review-panel__section" data-detail-section="constraints"><p className="section-label">Constraints</p><ul className="detail-list">{intent.constraints.map((constraint) => <li key={constraint}>{constraint}</li>)}</ul></section> : null}
@@ -433,7 +447,7 @@ function IntentDetailPanel({ allIntents, displayedRevision, inFlightCount, inten
       {intent.revisionHistory?.length ? <section className="review-panel__section" data-detail-section="revision-history"><p className="section-label">Revision history</p><ol className="revision-list">{[...intent.revisionHistory].sort((a, b) => b.timestamp.localeCompare(a.timestamp)).map((entry) => <li key={entry.revision}><code>{entry.revision}</code><div><strong>{entry.firstChangedLine}</strong><span>{entry.author} · {formatDue(entry.timestamp)}</span></div></li>)}</ol></section> : null}
 
       <footer className="review-panel__footer intent-detail__footer">
-        <div className="detail-action detail-action--pull"><div><strong>Pull into flight</strong><span>{inFlightCount} of {pilotWipLimit} live slots are occupied.</span></div><button className="primary-button" disabled={!capacityAvailable || intent.status !== "candidate"} onClick={() => act("pull")} type="button">Pull into flight · {inFlightCount}/{pilotWipLimit} slots</button>{!capacityAvailable ? <small>Capacity must open before this candidate can cross the pull boundary.</small> : null}</div>
+        <div className="detail-action detail-action--pull"><div><strong>Pull into flight</strong><span>{inFlightCount} of {pilotWipLimit} personal attention slots are occupied across pods and hats.</span></div><button className="primary-button" disabled={!capacityAvailable || intent.status !== "candidate"} onClick={() => act("pull")} type="button">Pull into flight · {inFlightCount}/{pilotWipLimit} slots</button>{!capacityAvailable ? <small>Personal capacity must open before this candidate can cross the pull boundary.</small> : null}</div>
         <div className="detail-action"><div><strong>Decline</strong><span>Keep the signal and record why it will not move forward.</span></div><select aria-label="Optional decline category" onChange={(event) => setDeclineCategory(event.target.value)} value={declineCategory}><option value="">Optional category</option><option value="off-mission">Off mission</option><option value="duplicate">Duplicate signal</option><option value="insufficient-evidence">Insufficient evidence</option></select><textarea aria-label="Decline reason" onChange={(event) => setDeclineReason(event.target.value)} placeholder="Required reason" rows={2} value={declineReason} /><button className="secondary-button" disabled={!declineReason.trim()} onClick={() => act("decline", { reason: `${declineCategory ? `${declineCategory}: ` : ""}${declineReason}` })} type="button">Decline with reason</button></div>
         <div className="detail-action"><div><strong>Merge cluster</strong><span>Preview the surviving intent and members before confirming.</span></div>{clusterMembers.length ? <div className="merge-picker">{clusterMembers.map((member) => <label key={member.id}><input checked={selectedMembers.includes(member.id)} onChange={(event) => setSelectedMembers((current) => event.target.checked ? [...current, member.id] : current.filter((id) => id !== member.id))} type="checkbox" />{member.id} · {member.title}</label>)}</div> : <small>No cluster members are available.</small>}{mergePreviewOpen ? <div className="merge-preview"><span>Merge preview</span><strong>{mergePreview.title}</strong><p>{mergePreview.outcome}</p><small>Members: {mergePreview.memberIds.join(" · ") || "none selected"}</small><div><button className="secondary-button" onClick={() => setMergePreviewOpen(false)} type="button">Cancel</button><button className="primary-button" disabled={!selectedMembers.length} onClick={() => act("merge", { members: selectedMembers })} type="button">Confirm merge</button></div></div> : <button className="secondary-button" disabled={!selectedMembers.length} onClick={() => setMergePreviewOpen(true)} type="button">Preview merge</button>}</div>
         <div className="detail-action"><div><strong>Send back one question</strong><span>Ask for one missing judgment without turning the candidate into work.</span></div><textarea aria-label="Question for originator" onChange={(event) => setQuestion(event.target.value)} placeholder="What single question must the originator answer?" rows={2} value={question} /><button className="secondary-button" disabled={!question.trim()} onClick={() => act("send-back", { question })} type="button">Send one question</button></div>
@@ -443,6 +457,9 @@ function IntentDetailPanel({ allIntents, displayedRevision, inFlightCount, inten
 }
 
 const roleCandidateContent: Record<Role, { title: string; note: string }> = {
+  "org-admin": { title: "Organization changes queued", note: "Identity, agent, budget, and policy changes remain versioned and signature-bound." },
+  "portfolio-lead": { title: "Mission briefs queued", note: "Portfolio outcomes guide pods without managing their work items." },
+  "product-steward": { title: "Product contracts queued", note: "Cross-pod product and interface decisions surface only when shared ownership is needed." },
   "product-lead": { title: "Intent backlog", note: "Candidates awaiting a pull decision." },
   "tech-lead": { title: "Exams awaiting draft review", note: "Candidate exams surface when a review trigger fires." },
   "product-designer": { title: "Design passes pending", note: "User-facing candidates awaiting design judgment." },
@@ -459,13 +476,13 @@ function CandidatePane({ inFlightCount, intents, onOpen, role }: {
   const content = roleCandidateContent[role];
   return (
     <section className="candidate-section" id="intent-backlog">
-      <div className="section-heading"><div><p className="eyebrow">Future · pull trigger only</p><h2>{content.title}</h2><p>{content.note}</p></div><span className="capacity-pill">{inFlightCount} of {pilotWipLimit} WIP slots in flight</span></div>
+      <div className="section-heading"><div><p className="eyebrow">Future · pull trigger only</p><h2>{content.title}</h2><p>{content.note}</p></div><span className="capacity-pill">{inFlightCount} of {pilotWipLimit} personal attention slots across pods and hats</span></div>
       {role === "product-lead" ? <div className="intent-grid">
         {intents.length ? intents.map((intent) => <article className="intent-card" key={intent.id}>
-          <header><div><span>{intent.id}</span><h3>{intent.title}</h3></div><span className={intent.measurableToday ? "measure-badge" : "measure-badge measure-badge--waiting"}>{intent.measurableToday ? "Measurable today" : "Metric unresolved"}</span></header>
+          <header><div><span>{intent.id}</span><h3>{intent.title}</h3></div><span className={`measure-badge${intent.measurementState === "unresolved" ? " measure-badge--waiting" : intent.measurementState === "greenfield" ? " measure-badge--greenfield" : ""}`}>{measurementLabel(intent)}</span></header>
           <p>{intent.problem}</p>
           <div className="intent-outcome"><small>Proposed outcome</small><strong>{intent.outcome}</strong></div>
-          <dl><div><dt>Mission fit</dt><dd>{intent.missionOutcome ?? "Moves no current mission outcome"}</dd></div><div><dt>Provenance</dt><dd>{intent.provenance}</dd></div></dl>
+          <dl><div><dt>Mission fit</dt><dd>{intent.missionOutcome ?? "Unscored · mission brief pending"}</dd></div><div><dt>Provenance</dt><dd>{intent.provenance}</dd></div></dl>
           <div className="tag-row">{intent.domainTags.map((domain) => <span className="domain-tag" key={domain}>{domain}</span>)}{intent.duplicateCount > 1 ? <span className="cluster-badge">{intent.duplicateCount} in cluster</span> : null}</div>
           <button className="intent-card__open" onClick={() => onOpen(intent)} type="button">Open full brief <span aria-hidden="true">→</span></button>
         </article>) : <div className="empty-state"><span aria-hidden="true">✓</span><h3>No triggered candidates</h3><p>The backlog remains quiet until capacity opens or a high-signal intent arrives.</p></div>}
@@ -488,6 +505,8 @@ export default function App() {
   const [detailHistory, setDetailHistory] = useState<string[]>([]);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [globalGlossaryTerm, setGlobalGlossaryTerm] = useState<string | null>(null);
+  const [onboarding, setOnboarding] = useState(false);
+  const [organizationSetup, setOrganizationSetup] = useState<OrganizationProposal>(() => proposeOrganizationSetup({ description: "A governed platform for human judgment and agent delivery", humanName: "Idriss Enayat", profile: "commercial", repositoryMode: "existing", teamMode: "solo" }));
   const detailOpenedAt = useRef(0);
   const detailSessionId = useRef(`detail-${Math.random().toString(36).slice(2)}`);
   const instrumentationSessionId = useRef(`pilot-${Math.random().toString(36).slice(2)}`);
@@ -500,10 +519,11 @@ export default function App() {
   const roleDecisions = decisionsForRole(model, role);
   const visibleDecisions = roleDecisions.filter((decision) => (gateFilter === "all" || decision.gate === gateFilter) && `${decision.itemId} ${decision.title} ${decision.summary}`.toLowerCase().includes(query.trim().toLowerCase()));
   const selectedItem = selected ? model.items.find((item) => item.id === selected.itemId) : undefined;
-  const actor: IdentityContext = { subject: `pilot|${role}`, displayName: actorNames[role], roles: [role] };
-  const modalOpen = Boolean(selected || threadItem || composing || detailIntent || globalGlossaryTerm);
+  const actor: IdentityContext = { subject: role === "specialist" ? "pilot|jordan" : "pilot|idriss", displayName: actorNames[role], roles: [role] };
+  const modalOpen = Boolean(selected || threadItem || composing || detailIntent || globalGlossaryTerm || onboarding);
   const stageCounts = model.items.reduce<Record<FlightStage, number>>((counts, item) => ({ ...counts, [item.stage]: counts[item.stage] + 1 }), { sense: 0, "frame-intent": 0, "frame-exam": 0, engineer: 0, evaluate: 0, release: 0, observe: 0, learn: 0 });
   const agingCounts = model.items.reduce<Record<FlightStage, number>>((counts, item) => ({ ...counts, [item.stage]: counts[item.stage] + (item.aging.state === "huddle" ? 1 : 0) }), { sense: 0, "frame-intent": 0, "frame-exam": 0, engineer: 0, evaluate: 0, release: 0, observe: 0, learn: 0 });
+  const personalCapacity = personalCapacityDisposition([{ inFlight: model.metrics.inFlightItems, podId: organizationSetup.ids.pod, subject: "pilot|idriss" }], "pilot|idriss", pilotWipLimit);
 
   useEffect(() => {
     function syncDetailFromHash() {
@@ -523,7 +543,7 @@ export default function App() {
 
   function handleAction(kind: "sign" | "send-back", note?: string) {
     if (!selected) return;
-    const result = applyGateAction(chain, actor, { decisionId: selected.id, displayedRevision: selected.revision, kind, note, at: demoAsOf });
+    const result = applyGateAction(chain, actor, { decisionId: selected.id, displayedRevision: selected.revision, kind, note, sessionId: instrumentationSessionId.current, at: demoAsOf });
     if (!result.ok) { setFeedback(result.message); return; }
     setChain(result.chain); setSelected(null);
     setFeedback(kind === "sign" ? `Signed ${selected.revision} as ${actor.displayName}.` : "Sent back with the note attached; the gate remains unsigned.");
@@ -540,7 +560,7 @@ export default function App() {
   }
 
   function pullIntent(intent: ProjectedIntent) {
-    const disposition = pullDisposition(model.metrics.inFlightItems, pilotWipLimit);
+    const disposition = personalCapacity;
     if (!disposition.allowed) { setFeedback(disposition.message); return; }
     const revision = intent.artifactRevision ?? `intent-${intent.id.toLowerCase()}`;
     setChain((current) => [...current, {
@@ -552,6 +572,7 @@ export default function App() {
       userFacing: true,
       artifacts: [{ kind: "brief", path: `intent/${intent.id}/BRIEF.md`, revision, updatedAt: demoAsOf }],
       signatures: [],
+      signerPolicy: { criticFreshContext: false, profile: organizationSetup.profile },
       stageEnteredAt: demoAsOf,
       stageBandHours: 12,
     }]);
@@ -604,7 +625,7 @@ export default function App() {
       currentRevision,
       displayedRevision: displayedDetailRevision,
       durationMs: Math.max(0, Date.now() - detailOpenedAt.current),
-      inFlightCount: model.metrics.inFlightItems,
+      inFlightCount: personalCapacity.inFlight,
       intent: detailIntent,
       members: detail.members,
       question: detail.question,
@@ -679,18 +700,25 @@ export default function App() {
     setInstrumentationEvents((current) => appendInstrumentationEvent(current, detailEventToInstrumentation(event, telemetrySubjectId, "source-file")));
   }
 
+  function completeOnboarding(proposal: OrganizationProposal) {
+    setOrganizationSetup(proposal);
+    setOnboarding(false);
+    setFeedback(`${proposal.ids.organization} is ready from one signed operating summary. The agent drafted ${proposal.readiness.filter((finding) => finding.onRampBrief).length} on-ramp briefs; no hidden organization state was created.`);
+  }
+
   return (
     <div className="app-shell">
       {feedback ? <div className="action-feedback" role="status"><span>{feedback}</span><button aria-label="Dismiss message" onClick={() => setFeedback(null)} type="button">×</button></div> : null}
       <aside aria-hidden={modalOpen ? true : undefined} className="sidebar">
         <div className="brand"><span className="brand__mark" aria-hidden="true"><i /><i /><i /></span><div><strong>STEER</strong><span>Work Management</span></div></div>
-        <div className="workspace-switcher"><span className="workspace-avatar" aria-hidden="true">SP</span><div><strong>STEER Platform</strong><span>Pilot workspace · v3</span></div><b aria-hidden="true">⌄</b></div>
+        <div className="workspace-switcher"><span className="workspace-avatar" aria-hidden="true">SP</span><div><strong>STEER Platform</strong><span>Pilot workspace · v3.1</span></div><b aria-hidden="true">⌄</b></div>
         <nav aria-label="Primary navigation" className="primary-nav">
           <a aria-current="page" className="nav-item nav-item--active" href="#inbox"><InboxIcon />Decision inbox<span className="nav-count">{roleDecisions.length}</span></a>
           <a className="nav-item" href="#intent-backlog"><ChainIcon />Candidates</a>
           <a className="nav-item" href="#flight-board"><BoardIcon />Flight board</a>
           <a className="nav-item" href="#work-items"><ChainIcon />Work threads</a>
           <a className="nav-item" href="#trust"><ShieldIcon />Trust evidence</a>
+          <a className="nav-item" href="#organization"><BoardIcon />Organization</a>
           <a className="nav-item" href="#learn"><BoardIcon />Learn STEER</a>
         </nav>
         <div className="authority-card"><span>Authority boundary</span><p>Humans own intent and judgment. Every action binds identity and revision.</p></div>
@@ -700,7 +728,7 @@ export default function App() {
       <main aria-hidden={modalOpen ? true : undefined} id="main-content">
         <header className="app-topbar">
           <label className="global-search"><span aria-hidden="true">⌕</span><input aria-label="Search decisions" onChange={(event) => setQuery(event.target.value)} placeholder="Search decisions, items, or revisions" type="search" value={query} /><kbd>⌘ K</kbd></label>
-          <div className="top-actions"><button className="author-brief-button" onClick={() => setComposing(true)} type="button">＋ Draft a brief</button><span className="pilot-pill">Pilot identity</span></div>
+          <div className="top-actions"><button className="agent-setup-button" onClick={() => setOnboarding(true)} type="button">✦ Ask setup agent</button><button className="author-brief-button" onClick={() => setComposing(true)} type="button">＋ Draft a brief</button><span className="pilot-pill">Pilot identity</span></div>
         </header>
 
         <div className="main-content">
@@ -713,7 +741,7 @@ export default function App() {
 
           <section aria-label="Workspace metrics" className="metrics-grid">
             <MetricCard icon="◆" label="Your decisions" note={`${model.metrics.readyDecisions} across the pod`} tone="amber" value={String(roleDecisions.length)} />
-            <MetricCard icon="▥" label="Items in flight" note="Computed, never updated by hand" tone="aqua" value={String(model.metrics.inFlightItems)} />
+            <MetricCard icon="▥" label="Personal attention" note="Across every pod and hat" tone="aqua" value={`${personalCapacity.inFlight}/${pilotWipLimit}`} />
             <MetricCard icon="✓" label="Evidence fresh" note="Bound to displayed revisions" tone="blue" value={`${model.metrics.evidenceFreshPercent}%`} />
             <MetricCard icon="◷" label="Median gate wait" note="Pilot baseline in progress" tone="coral" value={formatWait(model.metrics.medianGateWaitHours)} />
           </section>
@@ -727,7 +755,7 @@ export default function App() {
             <div className="decision-list">{visibleDecisions.length ? visibleDecisions.map((decision) => <DecisionItem decision={decision} key={decision.id} onOpen={setSelected} />) : <div className="empty-state"><span aria-hidden="true">✓</span><h3>No decisions in this view</h3><p>Your attention is clear. The projection will surface the next judgment when it is ready.</p></div>}</div>
           </section>
 
-          <CandidatePane inFlightCount={model.metrics.inFlightItems} intents={activeIntents} onOpen={openIntent} role={role} />
+          <CandidatePane inFlightCount={personalCapacity.inFlight} intents={activeIntents} onOpen={openIntent} role={role} />
 
           <section className="flight-section" id="flight-board">
             <div className="section-heading section-heading--compact"><div><p className="eyebrow">Present · ambient unless a band breaches</p><h2>Flight Board</h2></div><span className="read-model-note">Rebuildable projection · historical aging bands · {model.items.length} items</span></div>
@@ -741,6 +769,17 @@ export default function App() {
 
           <section className="principle-strip" id="trust"><div className="principle-strip__mark"><ChainIcon /></div><div><p className="eyebrow">Iron rule</p><h2>The platform projects truth. It never owns it.</h2><p>Destroy the cache, replay the artifact chain, and the same workspace returns.</p></div><code>BRIEF → SPEC → EXAM → PLAN → evidence</code></section>
 
+          <section className="organization-section" id="organization">
+            <div className="section-heading"><div><p className="eyebrow">Operating Model v3.1 · agent-first</p><h2>Organization projection</h2><p>One operating repository declares the organization; product repositories hold each item chain.</p></div><button className="primary-action" onClick={() => setOnboarding(true)} type="button">Talk to the setup agent</button></div>
+            <div className="organization-grid">
+              <article><span>Topology</span><strong>Organization → Portfolio → Product → Pod</strong><p>{organizationSetup.ids.organization} / {organizationSetup.ids.portfolio} / {organizationSetup.ids.product} / {organizationSetup.ids.pod}</p></article>
+              <article><span>Solo-mode hats</span><strong>{organizationSetup.assignments.length} explicit assignments</strong><p>Every signature records one identity and the active hat. Nothing is silently reassigned.</p></article>
+              <article><span>Registered agent</span><strong>{organizationSetup.agentIdentity.status}</strong><p>{organizationSetup.agentIdentity.id} · tenant-scoped</p></article>
+              <article><span>Stack and readiness</span><strong>{organizationSetup.stackPack}</strong><p>{organizationSetup.readiness.filter((finding) => finding.onRampBrief).length} on-ramp briefs drafted from the readiness scan.</p></article>
+            </div>
+            <div className="organization-policy"><span>{organizationSetup.profile} signer policy</span><p>{organizationSetup.signerConstraint}</p></div>
+          </section>
+
           <LearnHub onEvent={recordLearnEvent} onSuggestChange={fileLearnChangeIntent} role={role} />
         </div>
       </main>
@@ -748,8 +787,9 @@ export default function App() {
       {selected && selectedItem ? <ReviewPanel decision={selected} item={selectedItem} onAction={handleAction} onClose={() => setSelected(null)} /> : null}
       {threadItem ? <WorkItemPanel item={threadItem} onClose={() => setThreadItem(null)} /> : null}
       {composing ? <BriefComposer onClose={() => setComposing(false)} onSave={saveIntent} originator={actor} /> : null}
-      {detailIntent ? <IntentDetailPanel allIntents={projectedIntents} displayedRevision={displayedDetailRevision} inFlightCount={model.metrics.inFlightItems} intent={detailIntent} onAction={handleIntentDetailAction} onBack={detailHistory.length ? backFromIntent : undefined} onClose={closeIntent} onExternalExit={recordSourceExit} onNavigate={navigateIntent} /> : null}
+      {detailIntent ? <IntentDetailPanel allIntents={projectedIntents} displayedRevision={displayedDetailRevision} inFlightCount={personalCapacity.inFlight} intent={detailIntent} onAction={handleIntentDetailAction} onBack={detailHistory.length ? backFromIntent : undefined} onClose={closeIntent} onExternalExit={recordSourceExit} onNavigate={navigateIntent} /> : null}
       {globalGlossaryTerm ? <GlossaryPeek onClose={() => setGlobalGlossaryTerm(null)} term={globalGlossaryTerm} /> : null}
+      {onboarding ? <OnboardingPanel humanName="Idriss Enayat" onClose={() => setOnboarding(false)} onComplete={completeOnboarding} /> : null}
     </div>
   );
 }

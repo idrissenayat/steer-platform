@@ -5,10 +5,15 @@ const required = [
   "kit/templates/SPEC.md",
   "kit/templates/EXAM.md",
   "kit/templates/PLAN.md",
+  "kit/templates/ORG.md",
+  "kit/templates/PORTFOLIO.md",
+  "kit/templates/PRODUCT.md",
+  "kit/templates/POD.md",
   "kit/policy/gates.json",
   "kit/policy/sizing.json",
   "kit/policy/intent.json",
   "kit/policy/surfaces.json",
+  "kit/policy/organization.json",
   "kit/practices/sizing-and-scoping.md",
   "kit/practices/providing-intent.md",
   "kit/practices/three-surfaces.md",
@@ -17,6 +22,8 @@ const required = [
   "kit/metrics/definitions.json",
   "kit/metrics/events.schema.json",
   "kit/metrics/baselines.json",
+  "kit/stack-packs/typescript-react-web.json",
+  "kit/readiness/checks.json",
   "kit/CULTURE.md",
   "kit/seams/contracts.md",
   "kit/hooks/pre-commit",
@@ -44,6 +51,12 @@ if (gatePolicy.gates["1"].required.join(",") !== "product-lead,product-designer"
 if (!gatePolicy.defaultClosedDomains.includes("accessibility")) {
   throw new Error("Accessibility must remain default-closed.");
 }
+if (gatePolicy.minimumDistinctSigners?.commercial?.defaultClosed?.secondLook !== "gate-3-separate-session-after-build-critic") {
+  throw new Error("Commercial default-closed work must retain the Gate 3 second-look rule.");
+}
+if (gatePolicy.minimumDistinctSigners?.regulated?.defaultClosed?.humans !== 2 || !gatePolicy.invariants.signatureBinds.includes("hat")) {
+  throw new Error("Operating Model v3.1 requires two distinct regulated signers and identity-plus-hat signatures.");
+}
 
 const sizingPolicy = JSON.parse(await readFile("kit/policy/sizing.json", "utf8"));
 if (sizingPolicy.frame.maxOutcomes !== 1 || sizingPolicy.frame.maxExams !== 1) {
@@ -64,6 +77,9 @@ if (surfacesPolicy.intentBoundary.automaticPromotion !== false || surfacesPolicy
 if (surfacesPolicy.attentionOrder.join(",") !== "decision-inbox,triggered-candidates,ambient-flight") {
   throw new Error("The three surfaces must preserve the protected attention order.");
 }
+if (surfacesPolicy.intentBacklog.wipScope !== "person-across-pods-and-hats" || !surfacesPolicy.intentBacklog.measurementStates.includes("greenfield")) {
+  throw new Error("Operating Model v3.1 requires personal capacity and a greenfield measurement state.");
+}
 if (sizingPolicy.forecast.percentile !== 0.85 || sizingPolicy.scopeFreeze !== "gate-1") {
   throw new Error("Sizing policy must use P85 forecasting and freeze scope at Gate 1.");
 }
@@ -77,11 +93,21 @@ for (const document of learnManifest.documents) {
   const info = await stat(document.path);
   if (!info.isFile() || info.size === 0) throw new Error(`Learn manifest points to a missing source: ${document.path}`);
 }
-for (const role of ["product-lead", "product-designer", "tech-lead", "platform-engineer", "builder"]) {
+for (const role of ["org-admin", "portfolio-lead", "product-steward", "product-lead", "product-designer", "tech-lead", "platform-engineer", "specialist", "builder"]) {
   if (!learnManifest.agentSlices[role]?.length) throw new Error(`Learn manifest has no corpus slice for ${role}.`);
 }
 if (learnManifest.agentSlices.builder.includes("operating-model") || !learnManifest.agentSlices.builder.includes("framework")) {
   throw new Error("The Builder slice must include the exam invariant through the Framework and exclude portfolio-layer Operating Model content.");
+}
+
+const organizationPolicy = JSON.parse(await readFile("kit/policy/organization.json", "utf8"));
+const stackPack = JSON.parse(await readFile("kit/stack-packs/typescript-react-web.json", "utf8"));
+const readiness = JSON.parse(await readFile("kit/readiness/checks.json", "utf8"));
+if (organizationPolicy.frameworkVersion !== kitVersion.frameworkVersion || organizationPolicy.inheritance.mayWeakenDefaultClosed !== false) {
+  throw new Error("Organization policy must align to the kit and forbid weaker lower-level default-closed policy.");
+}
+if (stackPack.frameworkVersion !== kitVersion.frameworkVersion || readiness.findingDestination !== "auto-drafted-on-ramp-brief") {
+  throw new Error("The current Stack Pack and readiness scan must align to Operating Model v3.1.");
 }
 
 const eventSchema = JSON.parse(await readFile("kit/metrics/events.schema.json", "utf8"));

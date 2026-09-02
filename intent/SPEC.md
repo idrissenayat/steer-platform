@@ -81,6 +81,84 @@ to the intent home under their identity through the connector. No git
 concepts are exposed. The drafting assistant is a bound model behind the
 platform seam; its prompt and template are versioned in the kit.
 
+
+## Organization layer (added 2026-09-02, per Operating Model v3.1)
+
+### Structure and topology
+Organization (tenant) → Portfolios → Products → Pods, plus an org-level
+specialist pool. Each level is declared in versioned files in the
+organization's operating repository (ORG.md, portfolios/*.md,
+products/*/PRODUCT.md, pods/*.md, policies, the kit) and projected;
+nothing structural is authoritative in the database. An item's chain
+lives in its product's designated home repository, co-located with code.
+
+### Roles and identities
+Org Admin (identities, agent registration and revocation, gateway keys,
+budgets, policy defaults), Portfolio Lead (signs mission briefs), Product
+Steward (exists only when more than one pod shares a product), the four
+pod accountabilities, specialists. Agents are registered identities
+scoped to the organization and assigned like humans. Hats are explicit:
+a person may hold any number; every signature records identity + hat.
+
+### Inheritance
+Fleet configuration, guardrails, gate policy, bands, and culture inherit
+organization → product → pod. Overrides are versioned and eval-gated;
+a lower level cannot weaken a default-closed domain set above it.
+
+### Capacity per human
+WIP limits roll up per person across every pod and hat. The platform
+computes a personal attention budget and refuses pulls that exceed it.
+Specialist SLAs span pods.
+
+### Minimum distinct signers (gate policy)
+Commercial defaults: default-open needs one human + a passing
+fresh-context Critic; default-closed needs one human + Critic pass with
+zero unresolved findings + the second-look rule (Gate 3 signed in a
+separate session from Gate 2, after the Critic's report on the build).
+Regulated profile: default-closed needs two distinct humans; the
+platform states this constraint at onboarding, not at the gate.
+
+### Stack Packs and readiness scan
+The product profile selects a Stack Pack from the kit (Builder runtime
+binding, language guardrails, exam templates, release-rails adapter,
+starter context files). Connecting an existing repository triggers an
+agent-readiness scan (tests, seams, secrets hygiene, CI, telemetry) whose
+findings are auto-drafted as on-ramp briefs in the backlog.
+
+### Day-one rules
+Greenfield outcome contracts may use leading indicators until production
+telemetry exists (the measurable badge gains a greenfield state). Trust
+bootstraps from default policy: low-risk domains default-open from item
+one; named high-risk domains default-closed. Mission fit renders as
+unscored, never blocking, until a mission brief is signed.
+
+### Handover and isolation
+Accountability transfer is a recorded event: open gates re-render to the
+new signer, past signatures stay attributed. Memory, keys, sandboxes,
+and evidence are tenant-scoped; no cross-organization retrieval.
+
+## First-run flow (agent-first onboarding)
+
+The platform agent runs onboarding as a conversation; the interface
+shows a live summary beside it. Every step is a tool call the human can
+also make manually, but never needs to.
+
+1. Human: "I'm building X." Agent asks two or three questions (solo or
+   team, existing code or new, regulated or not).
+2. Agent creates the organization, a portfolio, a product, and a pod;
+   proposes hat assignments (solo: all hats to the user; team: from the
+   names given) and the specialist pool.
+3. Agent recommends a Stack Pack from the product brief it drafts; human
+   confirms or changes.
+4. Agent connects or scaffolds the home repository and the operating
+   repository; runs the readiness scan if code exists; drafts on-ramp
+   briefs.
+5. Agent drafts the product brief, a first mission brief, and the first
+   intents from the conversation; sets trust bootstrap tiers from the
+   profile (commercial or regulated) and states any signer constraints.
+6. One summary. The human reads, corrects, and signs once. The loop is
+   live: talk, correct, sign.
+
 ## Architecture notes
 
 - Bindings behind seams: code host adapter (one host first; seam contract

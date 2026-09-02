@@ -1,15 +1,16 @@
 # Initial intent completion ledger
 
 Source of truth: `intent/BRIEF.md`, `intent/SPEC.md`, and `intent/EXAM.md`.
-Last implementation audit: 2026-08-30.
+Last implementation audit: 2026-09-02.
 
 ## Outcome status
 
 The local pilot now demonstrates the complete human journey against a fixture
 repository: computed workspace, role-specific decisions, Gate-specific review,
 revision-safe sign/send-back, evidence assembly, continuous work-item threads,
-interview-first brief authoring, scope checks, and aging-band huddle signals. The Phase
-0 kit is independently adoptable.
+interview-first brief authoring, scope checks, aging-band huddle signals, and
+the v3.1 agent-first organization setup flow. The Phase 0 kit is independently
+adoptable.
 
 This is not yet a production completion claim. The intent itself requires
 human policy rulings, live identity/code-host configuration, specialist manual
@@ -19,7 +20,7 @@ evidence, and a 90-day pilot window. Those cannot be replaced by fixture data.
 
 | Item | Artifact chain | Implemented now | Completion boundary |
 |---|---|---|---|
-| 0001 · Flight Deck foundation | supplied README, BRIEF, SPEC, and EXAM preserved verbatim in `intent/0001` | Phase 0 kit, derived workspace, decisions, evidence, role home, authoring, controls, and local gauntlet | local/automated scope green; live connector, specialist evidence, and pilot outcomes remain |
+| 0001 · Flight Deck foundation | supplied README and EXAM retained; revised supplied BRIEF and SPEC replace the prior revisions exactly in `intent/0001` | Phase 0 kit, derived workspace, decisions, evidence, role home, authoring, controls, v3.1 organization setup, and local gauntlet | local/automated scope green; live connector, specialist evidence, human signatures, and pilot outcomes remain |
 | 0002 · Backlog instrumentation and baselines | supplied README and BRIEF preserved verbatim in `intent/0002` | typed v1 contract, kit JSON Schema, transient platform adapters, privacy rejection, source-exit distinction, two baseline computations, sample gate, and dry-run | production figures remain pending until a representative window is approved and observed; fixture figures are never promoted |
 | 0003 · Full brief detail view | supplied README, BRIEF, SPEC, and EXAM preserved verbatim in `intent/0003` | complete rendered panel, deep links, provenance variants, cluster/back navigation, revision history, WIP/stale controls, all four actions, external-exit telemetry, and automated accessibility | outcome comparison awaits the 0002 production baseline; manual accessibility record remains |
 | 0004 · Learn STEER hub | supplied README and BRIEF match the existing chain; SPEC and EXAM already canonical in `intent/0004` | repository-source reader, search, section links, glossary peeks, governed correction flow, stateless role paths, agent slices, coarse telemetry, and version guard | onboarding comparison awaits the 0002 production baseline; manual accessibility record and optional Whitepaper URL remain |
@@ -56,7 +57,7 @@ signatures as complete.
 | LRN-A | Canon fidelity and framework-version build guard | kit manifest, raw corpus imports, seeded mismatch test | green locally |
 | LRN-B | Page navigation, search, glossary peek, and governed corrections | deep-link/search/focus tests and change-intent flow | green locally |
 | LRN-C | Per-role agent corpus slices and Builder invariant | manifest resolver and byte-identity tests | green locally |
-| LRN-D | Five-step stateless accountability orientations | four manifest fixtures and live action links | green locally |
+| LRN-D | Five-step stateless accountability orientations | eight human-hat manifest paths and live action links | green locally |
 | LRN-E | Accessible Learn surfaces | axe and focus tests | partial: manual specialist record pending |
 | LRN-F | Coarse Learn telemetry and first-action computation | event-shape and median tests | partial: 0002 production baseline pending |
 | E11 | Read + approval-write token scopes only | workflow scope audit and runtime scope policy | green for CI; live connector pending |
@@ -96,6 +97,19 @@ policy, authoritative SPEC/EXAM revisions, and platform home. The Product Lead
 sees candidate intents as distinct from work items, the visible WIP limit blocks
 automatic promotion, and all roles receive the inbox-first, triggered-candidate,
 ambient-flight attention order.
+
+## Operating Model v3.1 amendment reconciliation
+
+The supplied amendment is integrated into the canonical Operating Model and
+the platform rather than stored as a detached note. Organization → Portfolio →
+Product → Pod declarations, explicit hats, registered tenant-scoped agents,
+one operating repository plus product home repositories, non-weakening policy
+inheritance, person-level WIP, cross-pod specialist SLAs, commercial and
+regulated signer rules, Stack Packs, readiness scans, greenfield measurement,
+mission-fit bootstrapping, recorded handover, tenant isolation, and the
+conversation-first setup flow all have machine-readable policy and automated
+domain coverage. The revised 0001 Brief and Spec are exact source copies; the
+existing Exam was not rewritten without a supplied replacement.
 
 ## Human-owned completion gates
 

@@ -10,8 +10,10 @@
     "actions": ["pull", "decline-with-reason", "merge", "ask-one-question"],
     "measurableBeforePull": true,
     "decayPolicy": "expire-record-do-not-delete",
-    "missionFit": "computed-human-decides",
-    "wipLimitVisible": true
+    "missionFit": "unscored-until-signed-mission-brief",
+    "wipLimitVisible": true,
+    "wipScope": "person-across-pods-and-hats",
+    "measurementStates": ["measurable-today", "greenfield", "unresolved"]
   },
   "attentionOrder": ["decision-inbox", "triggered-candidates", "ambient-flight"],
   "notifications": {

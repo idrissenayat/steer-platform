@@ -1,6 +1,6 @@
 # STEER Guidebook
 
-_Framework v3.0 · one operational canon_
+_Framework v3.1 · one operational canon_
 
 The Guidebook is the reading map for the STEER canon. It does not duplicate the source documents: each entry opens the versioned source page used by both the platform and the agent fleet.
 
@@ -14,7 +14,7 @@ Read the Framework for the artifact chain, three surfaces, eight plays, three ga
 
 ## Understand how organizations run it
 
-Read the Operating Model for accountabilities, trust-metered autonomy, culture, scale, governance, adoption, and protected attention.
+Read the Operating Model for the organization topology, solo-mode hats, agent identities, trust-metered autonomy, personal capacity, Stack Packs, readiness, handover, isolation, agent-first onboarding, culture, scale, governance, adoption, and protected attention.
 
 ## Use the practice notes
 

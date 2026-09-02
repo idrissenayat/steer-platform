@@ -9,14 +9,15 @@ item one, are the framework's pilot evidence.
 
 | Item | Canonical artifacts | Platform implementation | Remaining evidence |
 |---|---|---|---|
-| 0001 · Flight Deck foundation | `intent/0001/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md` | Phase 0 kit and Phase 1 fixture-backed workspace are implemented | live connector, human accessibility record, pilot window |
+| 0001 · Flight Deck foundation | `intent/0001/README.md`, revised `BRIEF.md` and `SPEC.md`, and existing `EXAM.md` | Phase 0 kit, Phase 1 fixture-backed workspace, and the v3.1 organization/onboarding model are implemented | live connector, human accessibility record, pilot window, human signatures |
 | 0002 · Instrumentation and baselines | `intent/0002/README.md`, `BRIEF.md` | versioned content-free event schema, adapters, privacy validation, and both baseline computations are implemented | Product Lead-approved production window and representative figures |
 | 0003 · Full brief detail view | `intent/0003/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md` | rendered, deep-linkable, revision-safe detail panel and all four actions are implemented | 0002 production baseline and manual accessibility record |
 | 0004 · Learn STEER hub | `intent/0004/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md` | source-faithful reader, search, glossary, role orientation, agent slices, and corpus build guard are implemented | 0002 production baseline and manual accessibility record |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier
-revisions. The numbered folders preserve the supplied item chains verbatim.
+revisions. The numbered 0001 Brief and Spec match the revised supplied sources;
+the existing Exam remains unchanged because no revised Exam was supplied.
 
 ## Item: 0003 · Full brief detail view
 
@@ -54,6 +55,9 @@ comparison remains dependent on the 0002 first-login baseline.
 
 - Git is the sole system of record; the platform never stores state the
   chain does not hold.
+- Organization, portfolio, product, pod, human hats, and registered agents are
+  versioned declarations, not private platform state.
+- WIP protects each human across every pod and hat they hold.
 - The exam is write-protected from Builders (hook enforced).
 - Accessibility, security, and privacy are default-closed domains.
 - Changes to these operating files are eval-gated like any fleet config.
@@ -66,14 +70,15 @@ comparison remains dependent on the 0002 first-login baseline.
 - `STEER-Methodology.docx` — why the system exists.
 - `STEER-Framework.docx` — structure, lifecycle, gates, measurement, and the
   sizing/scoping rules that connect Frame to forecasting.
-- `STEER-Operating-Model.docx` — accountabilities and organizational operation.
+- `STEER-Operating-Model.docx` — the integrated v3.1 accountabilities,
+  organization topology, signer policy, and agent-first first-run model.
 - `STEER-Sizing-and-Scoping.docx` — Practice Note 1, with the complete guidance
   for exam-writability, splitting, aging bands, and percentile forecasting.
 - `STEER-Providing-Intent.docx` — Practice Note 2, defining the interview-first,
   no-invention path from natural language to committed artifacts.
 - `STEER-The-Three-Surfaces.docx` — Practice Note 3, defining the intent
   backlog, pull boundary, role home, and protected attention hierarchy.
-- `kit/learn-manifest.json` — the v3.0 human and agent corpus map used by the
+- `kit/learn-manifest.json` — the v3.1 human and agent corpus map used by the
   Learn hub, role slices, orientation paths, and build-time version guard.
 
 ## Implementation evidence

@@ -1,10 +1,10 @@
 {
-  "frameworkVersion": "3.0",
-  "tag": "v3.0",
+  "frameworkVersion": "3.1",
+  "tag": "v3.1",
   "documents": [
     { "id": "methodology", "title": "Methodology", "kind": "why", "summary": "The constraint shift, Agile values, five moves, and governing principles.", "path": "kit/canon/methodology.md", "sourcePath": "STEER-Methodology.docx" },
     { "id": "framework", "title": "Framework", "kind": "what", "summary": "The artifact chain, surfaces, plays, gates, measurement, and sizing.", "path": "kit/canon/framework.md", "sourcePath": "STEER-Framework.docx" },
-    { "id": "operating-model", "title": "Operating Model", "kind": "how", "summary": "Accountabilities, decision rights, trust, culture, scale, and adoption.", "path": "kit/canon/operating-model.md", "sourcePath": "STEER-Operating-Model.docx" },
+    { "id": "operating-model", "title": "Operating Model", "kind": "how", "summary": "Organization topology, solo hats, agent-first onboarding, decision rights, trust, and scale.", "path": "kit/canon/operating-model.md", "sourcePath": "STEER-Operating-Model.docx" },
     { "id": "sizing-and-scoping", "title": "Practice Note 1 · Sizing and Scoping", "kind": "practice", "summary": "Exam-writability, splitting, aging bands, and percentile forecasting.", "path": "kit/practices/sizing-and-scoping.md", "sourcePath": "STEER-Sizing-and-Scoping.docx" },
     { "id": "providing-intent", "title": "Practice Note 2 · Providing Intent", "kind": "practice", "summary": "Interview-first authoring, no invention, and rendered human approval.", "path": "kit/practices/providing-intent.md", "sourcePath": "STEER-Providing-Intent.docx" },
     { "id": "three-surfaces", "title": "Practice Note 3 · The Three Surfaces", "kind": "practice", "summary": "Intent backlog, pull boundary, role home, and protected attention.", "path": "kit/practices/three-surfaces.md", "sourcePath": "STEER-The-Three-Surfaces.docx" },
@@ -12,6 +12,9 @@
     { "id": "guidebook", "title": "Guidebook", "kind": "reference", "summary": "The ordered reading map across the operational canon.", "path": "kit/canon/guidebook.md", "sourcePath": "kit/canon/guidebook.md" }
   ],
   "agentSlices": {
+    "org-admin": ["methodology", "framework", "operating-model", "glossary"],
+    "portfolio-lead": ["methodology", "framework", "operating-model", "three-surfaces", "glossary"],
+    "product-steward": ["framework", "operating-model", "sizing-and-scoping", "three-surfaces", "glossary"],
     "product-lead": ["methodology", "framework", "operating-model", "three-surfaces", "providing-intent", "glossary"],
     "product-designer": ["methodology", "framework", "operating-model", "providing-intent", "glossary"],
     "tech-lead": ["methodology", "framework", "operating-model", "sizing-and-scoping", "providing-intent", "glossary"],
@@ -20,6 +23,27 @@
     "builder": ["framework", "sizing-and-scoping", "providing-intent", "glossary"]
   },
   "orientationPaths": {
+    "org-admin": [
+      { "pageId": "operating-model", "section": "two-governing-commitments", "label": "Start with agent-first operation" },
+      { "pageId": "operating-model", "section": "the-organization-layer", "label": "Declare the organization topology" },
+      { "pageId": "operating-model", "section": "repository-topology", "label": "Name the operating and product homes" },
+      { "pageId": "operating-model", "section": "handover-and-isolation", "label": "Protect tenant boundaries" },
+      { "actionHash": "#organization", "label": "Review the operating summary" }
+    ],
+    "portfolio-lead": [
+      { "pageId": "methodology", "section": "the-constraint-shift", "label": "Understand the constraint shift" },
+      { "pageId": "framework", "section": "organization-structure", "label": "Learn the organization structure" },
+      { "pageId": "operating-model", "section": "the-organization-layer", "label": "Own mission briefs" },
+      { "pageId": "operating-model", "section": "day-one", "label": "Handle mission fit before a mission" },
+      { "actionHash": "#organization", "label": "Review the first mission setup" }
+    ],
+    "product-steward": [
+      { "pageId": "framework", "section": "organization-structure", "label": "Learn the product boundary" },
+      { "pageId": "operating-model", "section": "products-stack-packs-and-readiness", "label": "Review product and Stack Pack rules" },
+      { "pageId": "operating-model", "section": "inheritance-and-capacity", "label": "Understand inherited policy" },
+      { "pageId": "three-surfaces", "section": "candidate-controls", "label": "Protect the pull boundary" },
+      { "actionHash": "#organization", "label": "Review shared product contracts" }
+    ],
     "product-lead": [
       { "pageId": "methodology", "section": "the-constraint-shift", "label": "Understand the constraint shift" },
       { "pageId": "framework", "section": "the-three-surfaces", "label": "Learn the three surfaces" },
@@ -47,6 +71,13 @@
       { "pageId": "operating-model", "section": "portability-and-governance", "label": "Own the governed seams" },
       { "pageId": "providing-intent", "section": "governing-rules", "label": "Keep context truthful" },
       { "actionHash": "#work-items", "label": "Open a live work-item thread" }
+    ],
+    "specialist": [
+      { "pageId": "framework", "section": "the-three-gates", "label": "Understand conditional gate seats" },
+      { "pageId": "operating-model", "section": "the-organization-layer", "label": "See the organization specialist pool" },
+      { "pageId": "operating-model", "section": "inheritance-and-capacity", "label": "Review cross-pod SLAs" },
+      { "pageId": "operating-model", "section": "signatures-when-people-are-few", "label": "Apply the signer policy" },
+      { "actionHash": "#inbox", "label": "Open the next specialist decision" }
     ]
   }
 }

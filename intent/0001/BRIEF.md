@@ -33,9 +33,12 @@ The truth cannot drift because the platform stores none of it.
 
 ## Affected users and systems
 
-Product Leads, Tech Leads, Product Designers, Platform Engineers,
-non-engineer originators, portfolio leadership; version control and CI
-(read + approval writes only), identity provider, telemetry store.
+Org Admins, Portfolio Leads, Product Stewards, Product Leads, Tech
+Leads, Product Designers, Platform Engineers, specialists, non-engineer
+originators, and solo operators holding every hat at once; registered
+agents as first-class identities; version control and CI (read +
+approval writes only), identity provider, telemetry store, sandboxes,
+evidence storage.
 
 ## Constraints
 
@@ -54,6 +57,14 @@ non-engineer originators, portfolio leadership; version control and CI
 - Regulated profile (self-hosted, managed policy layer) is a Phase 2
   commitment and a Phase 1 architectural constraint: nothing in Phase 1
   may assume SaaS-only operation.
+- Solo operation is first-class: one human may hold every accountability
+  (organization to pod). Signatures record identity and hat; separation
+  of duties degrades by explicit policy (minimum distinct signers), never
+  silently.
+- Agent-first operation: every interface action is a tool an agent can
+  call under the same authorization. Setup, administration, drafting,
+  routing, and reporting are agent labor; humans talk, correct, and sign.
+  A human filling in a form is a defect, except for a gate signature.
 - The platform is built using STEER: every feature enters as a brief,
   carries an exam, and passes the gates. Its own metrics are recorded
   from item one and are the pilot evidence for the framework.

@@ -1,0 +1,35 @@
+{
+  "version": "steer-organization/v1",
+  "frameworkVersion": "3.1",
+  "topology": ["organization", "portfolio", "product", "pod"],
+  "specialistPool": "organization",
+  "sourceOfTruth": "versioned-operating-repository",
+  "declarations": {
+    "organization": "ORG.md",
+    "portfolio": "portfolios/*.md",
+    "product": "products/*/PRODUCT.md",
+    "pod": "pods/*.md"
+  },
+  "productHome": {
+    "itemChainCoLocatedWithCode": true,
+    "multiRepositoryProductNamesOneHome": true
+  },
+  "inheritance": {
+    "direction": ["organization", "product", "pod"],
+    "properties": ["fleet", "guardrails", "gate-policy", "bands", "culture"],
+    "overrides": "versioned-eval-gated",
+    "mayWeakenDefaultClosed": false
+  },
+  "identities": {
+    "agentsAreFirstClass": true,
+    "issuedAndRevokedBy": "org-admin",
+    "tenantScoped": true,
+    "crossTenantRetrieval": false
+  },
+  "operation": {
+    "soloFirstClass": true,
+    "humanActs": ["talk", "correct", "sign"],
+    "agentLabor": ["setup", "administration", "drafting", "routing", "reporting"],
+    "humanFormEntryIsDefectExcept": "gate-signature"
+  }
+}

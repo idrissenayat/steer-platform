@@ -13,7 +13,7 @@ describe("Learn STEER canon", () => {
   });
 
   it("fails a seeded framework-version mismatch and passes the aligned kit", () => {
-    expect(validateLearnVersion(learnManifest, kitVersion)).toEqual({ ok: true, message: "Learn corpus and kit are aligned at v3.0." });
+    expect(validateLearnVersion(learnManifest, kitVersion)).toEqual({ ok: true, message: "Learn corpus and kit are aligned at v3.1." });
     expect(validateLearnVersion({ ...learnManifest, tag: "v2.9" }, kitVersion)).toMatchObject({ ok: false });
   });
 
@@ -30,7 +30,7 @@ describe("Learn STEER canon", () => {
   });
 
   it("resolves every human and agent role slice from the same source bytes", () => {
-    for (const role of ["product-lead", "product-designer", "tech-lead", "platform-engineer", "builder"]) {
+    for (const role of ["org-admin", "portfolio-lead", "product-steward", "product-lead", "product-designer", "tech-lead", "platform-engineer", "specialist", "builder"]) {
       const slice = resolveAgentSlice(learnManifest, corpus, role);
       expect(slice.map((page) => page.id)).toEqual(learnManifest.agentSlices[role]);
       expect(slice.every((page) => page.raw === learnSources[page.id])).toBe(true);
@@ -41,7 +41,7 @@ describe("Learn STEER canon", () => {
   });
 
   it("provides five stateless orientation steps for every accountability", () => {
-    for (const role of ["product-lead", "product-designer", "tech-lead", "platform-engineer"] as const) {
+    for (const role of ["org-admin", "portfolio-lead", "product-steward", "product-lead", "product-designer", "tech-lead", "platform-engineer", "specialist"] as const) {
       const steps = learnManifest.orientationPaths[role]!;
       expect(steps).toHaveLength(5);
       expect(steps.at(-1)?.actionHash).toMatch(/^#/);

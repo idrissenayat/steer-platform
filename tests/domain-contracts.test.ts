@@ -83,6 +83,38 @@ describe("gate actions", () => {
     });
     expect(result).toMatchObject({ ok: false, code: "not-authorized" });
   });
+
+  it("enforces the commercial Gate 3 second look when signer policy is active", () => {
+    const governed = structuredClone(demoChain);
+    const item = governed.find((candidate) => candidate.id === "FD-003")!;
+    item.signerPolicy = { criticFreshContext: true, profile: "commercial" };
+    item.evidence!.criticFindings = 0;
+    item.signatures.find((signature) => signature.gate === 2 && signature.role === "tech-lead")!.subject = techLead.subject;
+    item.signatures.find((signature) => signature.gate === 2 && signature.role === "tech-lead")!.sessionId = "review-session";
+    item.signatures.push(
+      { gate: 3, role: "product-lead", revision: "57dcfe5", sequence: 1, sessionId: "review-session", signedAt: demoAsOf, signer: "Idriss Enayat", subject: techLead.subject },
+      { gate: 3, role: "product-designer", revision: "57dcfe5", sequence: 3, sessionId: "review-session", signedAt: demoAsOf, signer: "Idriss Enayat", subject: techLead.subject },
+      { gate: 3, role: "specialist", revision: "57dcfe5", sequence: 4, sessionId: "review-session", signedAt: demoAsOf, signer: "Idriss Enayat", subject: techLead.subject },
+    );
+
+    const blocked = applyGateAction(governed, techLead, {
+      decisionId: "FD-003-g3-tech-lead",
+      displayedRevision: "57dcfe5",
+      kind: "sign",
+      sessionId: "review-session",
+      at: demoAsOf,
+    });
+    expect(blocked).toMatchObject({ ok: false, code: "signer-policy" });
+
+    const allowed = applyGateAction(governed, techLead, {
+      decisionId: "FD-003-g3-tech-lead",
+      displayedRevision: "57dcfe5",
+      kind: "sign",
+      sessionId: "release-session",
+      at: demoAsOf,
+    });
+    expect(allowed.ok).toBe(true);
+  });
 });
 
 describe("projection and reconciliation", () => {

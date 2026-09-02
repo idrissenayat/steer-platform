@@ -43,7 +43,7 @@ export function artifactRevisionForGate(item: WorkItemChain, gate: Gate): string
   return artifact(item, "diff")?.revision;
 }
 
-function requiresSpecialist(item: WorkItemChain): boolean {
+export function requiresSpecialist(item: WorkItemChain): boolean {
   return item.riskDomains.some((domain) => defaultClosedDomains.has(domain));
 }
 

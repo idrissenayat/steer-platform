@@ -2,7 +2,7 @@
 
 What the structure is: the artifact chain, the plays, the gates, and the metrics
 
-_Idriss Enayat · Framework v3.0 · August 2026_
+_Idriss Enayat · Framework v3.1 · September 2026_
 
 This document defines STEER's structure: the layers, the artifact chain that forms the lifecycle's backbone, the eight plays, the three gates, and the measurement system. The Methodology document states why; the Operating Model document defines who decides and how organizations run it.
 
@@ -11,6 +11,12 @@ This document defines STEER's structure: the layers, the artifact chain that for
 The framework layer holds principles, accountabilities, gates, and metrics, and changes rarely. The lifecycle layer holds the eight plays across seven operational states, and is the daily rhythm. The platform layer holds agents, evidence, automation, and telemetry as bindings behind seams, so any tool swaps like a feature rather than a migration. Written artifacts are the interface between all three: the entire process ships as files in a repository, versioned like code.
 
 Three layers: the framework changes rarely; the platform swaps like a feature.
+
+## Organization Structure
+
+STEER projects a versioned organization → portfolio → product → pod topology, with an organization-level specialist pool. The operating repository declares governance and inheritance; each product names one home repository for item chains. Org Admins manage tenant identities, agents, keys, budgets, and defaults; Portfolio Leads sign mission briefs; Product Stewards exist when multiple pods share a product; the four pod accountabilities run the loop.
+
+People and agents are identities assigned to explicit hats. One person may hold every hat. Capacity rolls up per human across pods and hats, while tenant boundaries isolate memory, keys, sandboxes, and evidence. Stack Packs make product stack choices operational, and readiness scans turn brownfield gaps into on-ramp briefs.
 
 ## The Artifact Chain
 
@@ -43,13 +49,13 @@ Every role home preserves the same attention order: the decision inbox for what 
 
 ## The Three Gates
 
-Flow stops for a human signature at exactly three points; everything between them moves at machine speed. Gate 1: what are we building, and why. Gate 2: what does provably done look like. Gate 3: does the evidence support release. Each signature is an authenticated approval binding an identity, a sequence position, and an artifact revision, and gates are enforced in tooling (hooks, branch protection, required checks) wherever agents act. Gates tier by risk domain, decided up front: default-open domains ship on green checks; default-closed domains (security, privacy, money, irreversible operations) block until a human signs. One invariant never tiers: the agents that build can never edit the exam.
+Flow stops for a human signature at exactly three points; everything between them moves at machine speed. Gate 1: what are we building, and why. Gate 2: what does provably done look like. Gate 3: does the evidence support release. Each signature is an authenticated approval binding identity, active hat, sequence position, and artifact revision. Gates tier by risk domain and operating profile. Commercial default-closed work requires a passing fresh-context Critic, zero unresolved findings, and a separate-session Gate 3 second look. Regulated default-closed work requires two distinct humans. One invariant never tiers: the agents that build can never edit the exam.
 
 ## Measurement
 
 Activity metrics are retired: velocity, story points, and utilization measure typing, and typing is no longer scarce. Four numbers run the framework, each paired so it cannot be gamed in isolation: outcome impact against the brief's contract (with baseline, denominator, and observation window); first-pass verification rate, read only alongside escaped defects; escaped defects, each one becoming a guardrail; and the north star, human hours per shipped item, trending down release over release while outcomes and guardrails hold. Every play also carries one leading and one lagging indicator, so the loop is measured everywhere it can drift.
 
-Human hours per item trend to the accountability floor while guardrails hold.
+Greenfield products may use explicit leading indicators until production telemetry exists; these render as greenfield rather than falsely measurable. Human hours per item trend to the accountability floor while guardrails hold.
 
 ## Sizing and Scoping
 
@@ -74,4 +80,3 @@ Forecasting uses cycle-time percentiles by brief shape, normally the 85th percen
 - STEER Practice Note 3 · The Three Surfaces · How: intent backlog, pull boundary, role home, and protected attention
 
 The Guidebook is the complete reference; the Whitepaper is the shareable overview.
-

@@ -4,7 +4,7 @@ import { buildLearnCorpus, resolveLearnLocation, searchLearnCorpus, slugifyLearn
 import type { Role } from "../domain/types";
 import { CloseIcon } from "./Icons";
 
-const glossaryTerms = ["outcome contract", "work item", "default-closed", "default-open", "intent", "pull", "exam", "gate", "band"];
+const glossaryTerms = ["greenfield indicator", "outcome contract", "organization", "stack pack", "work item", "default-closed", "default-open", "intent", "pull", "exam", "gate", "band", "hat"];
 
 function scrollLearnIntoView(id: string) {
   const element = document.getElementById(id);

@@ -1,6 +1,18 @@
 # STEER Glossary
 
-_Framework v3.0 · operational language_
+_Framework v3.1 · operational language_
+
+## Organization
+
+The tenant boundary above portfolios, products, and pods. Its operating repository declares identities, registered agents, budgets, policy defaults, inheritance, and the kit.
+
+## Hat
+
+An explicit accountability under which a human or agent acts. A person may hold many hats; every human signature records both identity and active hat.
+
+## Stack Pack
+
+A versioned product-stack bundle containing a Builder runtime binding, language guardrails, exam templates, a release-rails adapter, and starter context.
 
 ## Intent
 
@@ -8,7 +20,7 @@ An intent is a candidate brief in the intent backlog. It has not consumed pod ca
 
 ## Pull
 
-Pull is the Product Lead's deliberate commitment of a candidate intent into flight against the pod's visible WIP limit. It is the boundary where a candidate becomes a work item.
+Pull is the Product Lead's deliberate commitment of a candidate intent into flight against the visible personal attention limit across that human's pods and hats. It is the boundary where a candidate becomes a work item.
 
 ## Work item
 
@@ -29,6 +41,10 @@ A band is the historical cycle-time range for a Flight Board state. A breach esc
 ## Outcome contract
 
 An outcome contract states the measurable production change a brief intends to cause, including its baseline, denominator, target, observation window, and guardrail.
+
+## Greenfield indicator
+
+A leading indicator used before production telemetry exists, such as instrumentation live or adoption by the first users. It is visibly distinct from a production-measurable outcome.
 
 ## Default-open
 

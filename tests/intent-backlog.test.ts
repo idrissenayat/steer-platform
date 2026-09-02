@@ -13,6 +13,8 @@ describe("intent backlog and three-surface home", () => {
     const projected = projectIntentBacklog(demoIntents, demoAsOf, pilotMetrics);
     expect(projected.find((intent) => intent.id === "IN-014")?.measurableToday).toBe(true);
     expect(projected.find((intent) => intent.id === "IN-009")?.measurableToday).toBe(false);
+    expect(projected.find((intent) => intent.id === "IN-018")?.measurementState).toBe("greenfield");
+    expect(projected.find((intent) => intent.id === "IN-009")?.measurementState).toBe("unresolved");
   });
 
   it("clusters seeded duplicates without grouping unrelated intents", () => {

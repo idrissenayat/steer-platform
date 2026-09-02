@@ -1,4 +1,5 @@
-import { buildReadModel, artifactRevisionForGate } from "./read-model";
+import { evaluateSignerPolicy } from "./organization";
+import { buildReadModel, artifactRevisionForGate, evidenceIsFresh, requiredRoles, requiresSpecialist } from "./read-model";
 import type {
   FlightStage,
   Gate,
@@ -11,7 +12,7 @@ export type GateActionResult =
   | { ok: true; chain: WorkItemChain[]; item: WorkItemChain }
   | {
       ok: false;
-      code: "decision-not-found" | "not-authorized" | "note-required" | "stale-revision";
+      code: "decision-not-found" | "not-authorized" | "note-required" | "signer-policy" | "stale-revision";
       message: string;
       currentRevision?: string;
     };
@@ -63,10 +64,32 @@ export function applyGateAction(
       role: decision.role,
       revision: decision.revision,
       sequence: decision.sequencePosition,
+      sessionId: action.sessionId,
       signedAt: action.at,
       signer: actor.displayName,
       subject: actor.subject,
     });
+    if (decision.gate === 3 && updated.signerPolicy) {
+      const gateThreeRolesComplete = requiredRoles(updated, 3).every((role) => updated.signatures.some((signature) => signature.gate === 3 && signature.role === role && signature.revision === decision.revision));
+      if (gateThreeRolesComplete) {
+        const gate2Signatures = updated.signatures.filter((signature) => signature.gate === 2 && signature.subject && signature.sessionId).map((signature) => ({ sessionId: signature.sessionId!, subject: signature.subject! }));
+        const gate3Signatures = updated.signatures.filter((signature) => signature.gate === 3 && signature.revision === decision.revision && signature.subject && signature.sessionId).map((signature) => ({ sessionId: signature.sessionId!, subject: signature.subject! }));
+        const policy = evaluateSignerPolicy({
+          critic: {
+            freshContext: updated.signerPolicy.criticFreshContext,
+            passed: evidenceIsFresh(updated),
+            unresolvedFindings: updated.evidence?.criticFindings ?? Number.POSITIVE_INFINITY,
+          },
+          defaultClosed: requiresSpecialist(updated),
+          gate2Signatures,
+          gate3Signatures,
+          profile: updated.signerPolicy.profile,
+        });
+        if (!policy.allowed) {
+          return { ok: false, code: "signer-policy", message: policy.reasons.join(" ") };
+        }
+      }
+    }
   } else {
     updated.decisionEvents!.push({
       action: "send-back",

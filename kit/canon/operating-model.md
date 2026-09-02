@@ -2,9 +2,9 @@
 
 How organizations run it: accountabilities, decision rights, trust, culture, and scale
 
-_Idriss Enayat · Framework v3.0 · August 2026_
+_Idriss Enayat · Framework v3.1 · September 2026_
 
-This document defines how an organization runs STEER: who holds which decision, how autonomy is metered, what protects the human channel, and how one pod scales to a portfolio. The Methodology document states why; the Framework document defines the structure this model operates.
+This document defines how an organization runs STEER: who holds which decision, how autonomy is metered, what protects the human channel, how one pod scales to a portfolio, and how a new organization starts. The Methodology document states why; the Framework document defines the structure this model operates.
 
 ## Four Accountabilities, Signature Semantics
 
@@ -18,6 +18,56 @@ Agents do the labor; four humans own the decisions. On small teams people wear s
 | Platform Engineer | The agent fleet, its guardrails, its cost; keeps machine speed safe | Fleet and hook changes (eval-gated) |
 
 Specialists (security, accessibility, privacy, legal, reliability) plug in through three sockets rather than standing meetings: guardrails in the exam, a tuned domain agent, and a conditional gate seat that activates only for tagged domains, with written reviews under an SLA that escalates visibly rather than blocking silently.
+
+## Two Governing Commitments
+
+- **Solo operation is a first-class mode.** Any human may hold any number of accountabilities, including all of them. Hats are explicit: every signature records identity and hat. Separation of duties degrades by declared minimum-distinct-signer policy, never silently.
+
+- **Agent-first operation.** Setup, administration, drafting, routing, and reporting are agent labor. A human talks, corrects, and signs. Every interface action is also a tool an agent can call under the same authorization. Human form-filling is a defect except for a deliberate gate signature.
+
+## The Organization Layer
+
+| Level | Declares | Owner | Signs |
+| --- | --- | --- | --- |
+| Organization (tenant) | identities, registered agents, gateway keys, budgets, default policies, kit | Org Admin | agent registration and revocation; policy defaults |
+| Portfolio | mission briefs and pod membership | Portfolio Lead | mission briefs |
+| Product | product brief, stack profile, interface contracts, shared libraries, repositories | Product Steward when multiple pods share the product; otherwise the Product Lead | product brief and contracts |
+| Pod | accountabilities, fleet, Flight Board, gates, metrics | four pod accountabilities | Gates 1, 2, 3 |
+| Specialist pool | shared domain reviewers and SLAs | each specialist for their domain | conditional gate seats |
+
+Each level is declared in versioned files and projected. Agents are registered identities issued and revoked by the Org Admin, scoped to the organization, and assigned like humans. In solo mode one person may hold every hat; onboarding proposes the assignments and the human confirms once.
+
+## Repository Topology
+
+An organization has one operating repository holding `ORG.md`, portfolio, product and pod declarations, policies, and the kit, plus any number of product repositories. An item's chain lives in its product's designated home repository, co-located with the code. A multi-repository product names one home. Organization-wide inheritance is declared in the operating repository.
+
+## Inheritance and Capacity
+
+Fleet configuration, guardrails, gate policy, bands, and culture inherit organization → product → pod. Overrides are versioned and eval-gated; a lower level cannot weaken a default-closed domain established above it.
+
+WIP protects a human rather than a pod. Limits roll up per person across every pod and hat, and the platform refuses pulls that exceed the personal attention budget. Specialist SLAs span pods.
+
+## Signatures When People Are Few
+
+Commercial default-open work requires one human and a passing fresh-context Critic. Commercial default-closed work requires one human, a fresh-context Critic with zero unresolved findings, and a Gate 3 second look in a session separate from Gate 2 after the build Critic report. Regulated default-closed work requires two distinct humans. A solo regulated operator therefore needs a second human before release, and onboarding states that constraint before the first gate.
+
+## Products, Stack Packs, and Readiness
+
+Every product starts with a product brief: what it is, whose problem, the mission it serves, and its stack profile. Intents attach to a product. The stack profile selects a Stack Pack containing the Builder runtime binding, language guardrails, exam templates, release-rails adapter, and starter context. The platform agent recommends a pack; the human confirms.
+
+Connecting an existing repository triggers an agent-readiness scan across tests, seams, secrets hygiene, CI, and telemetry. Findings become drafted on-ramp briefs in the backlog.
+
+## Day One
+
+A greenfield product may use leading indicators until production telemetry exists, and the measurable badge renders a distinct greenfield state. Trust bootstraps from default policy: low-risk domains are default-open; named high-risk domains are default-closed. Until a mission brief is signed, mission fit renders as unscored and never blocks a pull.
+
+## Handover and Isolation
+
+An accountability transfer is a recorded event: open gates re-render to the new signer and past signatures remain attributed. Memory, gateway keys, sandboxes, and evidence are tenant-scoped; agent identities cannot act outside the organization that issued them.
+
+## Agent-First First Run
+
+A new user tells the platform agent what they are building. The agent asks whether the operation is solo or team-based, existing or greenfield, and commercial or regulated. It then proposes the organization, portfolio, product, pod, hats, specialist pool, Stack Pack, repositories, readiness briefs, product brief, mission brief, and first intents. The human reads one summary, corrects it, and signs once. From then on the loop is talk, correct, sign.
 
 ## Trust-Metered Autonomy
 
@@ -72,4 +122,3 @@ Start with one pod and a strict pilot posture: ten to twenty real items through 
 - STEER Practice Note 3 · The Three Surfaces · How intents, in-flight work, and decisions protect human attention
 
 The Guidebook is the complete reference; the Whitepaper is the shareable overview.
-

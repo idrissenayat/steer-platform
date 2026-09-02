@@ -1,0 +1,6 @@
+{
+  "version": "steer-readiness/v1",
+  "checks": ["tests", "seams", "secrets-hygiene", "ci", "telemetry"],
+  "findingDestination": "auto-drafted-on-ramp-brief",
+  "authoritativeMutation": false
+}

@@ -38,6 +38,24 @@ describe("automated accessibility gauntlet", () => {
     expect(screen.queryByText(/# Brief:/)).toBeNull();
   });
 
+  it("runs organization setup as a conversation ending in one signed summary", async () => {
+    const { container } = render(<App />);
+    fireEvent.click(screen.getAllByRole("button", { name: /ask setup agent/i })[0]);
+    const dialog = screen.getByRole("dialog", { name: /agent-first organization onboarding/i });
+    expect(dialog.textContent).toContain("What are you building?");
+    fireEvent.change(within(dialog).getByRole("textbox", { name: /your reply/i }), { target: { value: "A governed service for public-sector case teams" } });
+    fireEvent.click(within(dialog).getByRole("button", { name: /ask the setup questions/i }));
+    expect(dialog.textContent).toContain("solo or with a team");
+    fireEvent.click(within(dialog).getByRole("button", { name: /^regulated$/i }));
+    fireEvent.click(within(dialog).getByRole("button", { name: /build the operating summary/i }));
+    expect(dialog.textContent).toContain("two distinct humans");
+    expect(dialog.textContent).toContain("8 explicit accountabilities");
+    expect(await seriousViolations(dialog)).toEqual([]);
+    fireEvent.click(within(dialog).getByRole("button", { name: /sign once and start the loop/i }));
+    expect(screen.getByRole("status").textContent).toContain("one signed operating summary");
+    expect(container.textContent).toContain("regulated signer policy");
+  });
+
   it("opens product-wide tagged terms as an in-place glossary peek", () => {
     render(<App />);
     const quickPeeks = screen.getByRole("region", { name: /glossary quick peeks/i });
@@ -57,7 +75,8 @@ describe("automated accessibility gauntlet", () => {
 
   it("opens the full intent as a keyboard-contained, WIP-aware dialog", async () => {
     render(<App />);
-    const opener = screen.getAllByRole("button", { name: "Open full brief" })[0];
+    const intentCard = screen.getByRole("heading", { name: "Outcome contract telemetry" }).closest("article")!;
+    const opener = within(intentCard).getByRole("button", { name: "Open full brief" });
     opener.focus();
     fireEvent.click(opener);
     const dialog = screen.getByRole("dialog", { name: /outcome contract telemetry intent detail/i });

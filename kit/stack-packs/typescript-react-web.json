@@ -1,0 +1,9 @@
+{
+  "id": "typescript-react-web",
+  "frameworkVersion": "3.1",
+  "builderRuntime": "node-typescript",
+  "languageGuardrails": ["typescript-strict", "no-secret-client-bundles", "dependency-audit"],
+  "examTemplates": ["vitest-domain", "testing-library-accessibility", "vite-production-build"],
+  "releaseRailsAdapter": "static-container",
+  "starterContext": ["ORG.md", "PRODUCT.md", "CULTURE.md", "BRIEF.md", "SPEC.md", "EXAM.md"]
+}

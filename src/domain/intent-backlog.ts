@@ -28,6 +28,7 @@ export interface IntentCandidate {
   decayDays: number;
   domainTags: RiskDomain[];
   duplicateKey: string;
+  greenfield?: boolean;
   id: string;
   artifactRevision?: string;
   lastTouchedAt: string;
@@ -53,6 +54,7 @@ export interface IntentCandidate {
 export interface ProjectedIntent extends IntentCandidate {
   duplicateCount: number;
   measurableToday: boolean;
+  measurementState: "greenfield" | "measurable-today" | "unresolved";
 }
 
 export interface DeclineRecord {
@@ -78,12 +80,16 @@ export function projectIntentBacklog(intents: IntentCandidate[], asOf: string, a
   const clusterSizes = new Map<string, number>();
   for (const intent of intents) clusterSizes.set(intent.duplicateKey, (clusterSizes.get(intent.duplicateKey) ?? 0) + 1);
 
-  return intents.map((intent) => ({
-    ...intent,
-    status: intent.status === "candidate" && isIntentExpired(intent, asOf) ? "expired" : intent.status,
-    duplicateCount: clusterSizes.get(intent.duplicateKey) ?? 1,
-    measurableToday: metricResolves(intent.successMetric, availableMetrics),
-  }));
+  return intents.map((intent) => {
+    const measurableToday = metricResolves(intent.successMetric, availableMetrics);
+    return {
+      ...intent,
+      status: intent.status === "candidate" && isIntentExpired(intent, asOf) ? "expired" : intent.status,
+      duplicateCount: clusterSizes.get(intent.duplicateKey) ?? 1,
+      measurableToday,
+      measurementState: measurableToday ? "measurable-today" : intent.greenfield ? "greenfield" : "unresolved",
+    };
+  });
 }
 
 export function pullDisposition(inFlightCount: number, wipLimit: number): { allowed: boolean; message: string } {

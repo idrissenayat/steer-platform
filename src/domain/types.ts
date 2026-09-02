@@ -1,4 +1,7 @@
 export const roles = [
+  "org-admin",
+  "portfolio-lead",
+  "product-steward",
   "product-lead",
   "product-designer",
   "tech-lead",
@@ -52,6 +55,7 @@ export interface GateSignature {
   role: Role;
   revision: string;
   sequence?: number;
+  sessionId?: string;
   signedAt: string;
   signer: string;
   subject?: string;
@@ -102,6 +106,10 @@ export interface WorkItemChain {
   userFacing: boolean;
   artifacts: ArtifactRef[];
   signatures: GateSignature[];
+  signerPolicy?: {
+    criticFreshContext: boolean;
+    profile: "commercial" | "regulated";
+  };
   decisionEvents?: GateDecisionEvent[];
   evidence?: EvidenceBundle;
   decisionReadyAt?: string;
@@ -151,6 +159,7 @@ export interface GateAction {
   displayedRevision: string;
   kind: "sign" | "send-back";
   note?: string;
+  sessionId?: string;
   at: string;
 }
 

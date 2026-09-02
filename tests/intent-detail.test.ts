@@ -33,7 +33,7 @@ describe("intent detail contract", () => {
   });
 
   it("models each provenance evidence variant and newest-first revision history", () => {
-    expect(projected.map((intent) => intent.provenanceEvidence?.kind)).toEqual(["band-breach", "ticket-cluster", "named-originator", "named-originator"]);
+    expect(projected.map((intent) => intent.provenanceEvidence?.kind)).toEqual(["named-originator", "band-breach", "ticket-cluster", "named-originator", "named-originator"]);
     expect(clusterMember.provenanceEvidence?.kind === "ticket-cluster" ? clusterMember.provenanceEvidence.excerpts : []).toHaveLength(3);
     expect(fullIntent.revisionHistory?.map((entry) => entry.revision)).toEqual(["9d71a6c", "5e22bf1", "2a1f830", "f7b98e0"]);
   });
