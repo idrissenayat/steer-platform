@@ -40,6 +40,23 @@ const required = [
   "docs/architecture/STEER-platform-end-state-phased.png",
   "intent/0001/ARCHITECTURE.md",
   "intent/0001/PLAN.md",
+  "intent/0005/README.md",
+  "intent/0005/BRIEF.md",
+  "intent/0005/SPEC.md",
+  "intent/0005/EXAM.md",
+  "intent/0005/PLAN.md",
+  "pnpm-workspace.yaml",
+  "turbo.json",
+  "tsconfig.base.json",
+  "apps/web/AGENTS.md",
+  "apps/web/CLAUDE.md",
+  "apps/web/package.json",
+  "apps/web/next.config.ts",
+  "apps/web/tsconfig.json",
+  "apps/web/app/layout.tsx",
+  "apps/web/app/page.tsx",
+  "apps/web/app/styles.css",
+  "apps/web/test/design-tokens.test.mjs",
 ];
 
 for (const path of required) {
@@ -176,6 +193,25 @@ for (const invariant of [
   if (!phaseOnePlan.includes(invariant)) {
     throw new Error(`Phase 1 plan invariant missing: ${invariant}`);
   }
+}
+
+const workspacePackage = JSON.parse(await readFile("package.json", "utf8"));
+const webPackage = JSON.parse(await readFile("apps/web/package.json", "utf8"));
+const workspaceConfig = await readFile("pnpm-workspace.yaml", "utf8");
+if (workspacePackage.packageManager !== "pnpm@11.19.0" || workspacePackage.devDependencies.turbo !== "2.10.12") {
+  throw new Error("The production workspace must pin pnpm and Turborepo.");
+}
+if (!workspacePackage.scripts.build.includes("turbo run build") || !workspacePackage.scripts.typecheck.includes("turbo run typecheck")) {
+  throw new Error("The root build and typecheck must include the production workspace task graph.");
+}
+if (!workspaceConfig.includes('"apps/*"') || !workspaceConfig.includes('"packages/*"')) {
+  throw new Error("The pnpm workspace must reserve application and package boundaries.");
+}
+if (webPackage.dependencies.next !== "16.3.4" || webPackage.name !== "@steer/web") {
+  throw new Error("The production web shell must keep its reviewed Next.js binding.");
+}
+if (!webPackage.scripts.typecheck.startsWith("next typegen")) {
+  throw new Error("The Next.js workspace must generate route types before standalone typechecking.");
 }
 
 const eventSchema = JSON.parse(await readFile("kit/metrics/events.schema.json", "utf8"));

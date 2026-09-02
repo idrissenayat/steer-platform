@@ -14,3 +14,6 @@ The current Vite/React fixture application is the UX and domain prototype for
 this item. `0001-ARCHITECTURE.md` defines the production Phase 1 foundation and
 the walking-skeleton exam that must pass before that architecture is called
 implemented.
+
+Implementation has started through child item `../0005`: the production
+workspace and Next.js web shell. The remaining slices stay unclaimed.

@@ -31,6 +31,11 @@ The implementation therefore contains every locally buildable capability in
 0001-0004. It does not mislabel unavailable production observations or human
 signatures as complete.
 
+Phase 1 production delivery has begun with item 0005. Its pnpm/Turborepo
+workspace and Next.js shell are implemented and verified, while formal Gate
+records and the remaining P1-01 packages/service composition remain open. It is
+not evidence that the Phase 1 walking skeleton exists.
+
 That statement covers the requested feature artifacts in the present
 prototype, not the newly adopted production architecture. The thirteen-case
 walking-skeleton exam must pass before the Phase 1 foundation can be marked

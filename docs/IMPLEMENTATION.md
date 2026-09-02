@@ -7,6 +7,12 @@ implemented. The proposed Gate-bound route is sequenced in
 `intent/0001/PLAN.md`; that read-only planning draft does not authorize the
 production migration.
 
+The first bounded production increment now exists under `intent/0005`: a
+pnpm/Turborepo workspace and Next.js App Router shell. Root `pnpm check` covers
+both it and the unchanged Vite prototype. This is repository-foundation
+evidence only; no provider, database, workflow, or production feature has been
+claimed.
+
 ## Implemented
 
 - deterministic artifact-chain projection and dropped-event reconciliation;

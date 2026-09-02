@@ -1,17 +1,22 @@
 {
-  "name": "steer-platform",
+  "name": "@steer/workspace",
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@11.19.0",
   "engines": {
     "node": ">=24"
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "dev:prototype": "vite",
+    "dev:web": "pnpm --filter @steer/web dev",
+    "build": "pnpm build:prototype && turbo run build --filter=@steer/web",
+    "build:prototype": "tsc --noEmit && vite build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "pnpm typecheck:prototype && turbo run typecheck --filter=@steer/web",
+    "typecheck:prototype": "tsc --noEmit",
     "kit:check": "node scripts/validate-kit.mjs",
     "security:check": "node scripts/audit-workflow-scopes.mjs",
     "check": "pnpm kit:check && pnpm security:check && pnpm typecheck && pnpm test && pnpm build"
@@ -28,6 +33,7 @@
     "axe-core": "^4.13.0",
     "jsdom": "^30.0.1",
     "typescript": "^7.0.2",
+    "turbo": "2.10.12",
     "vite": "^8.2.2",
     "vitest": "^4.1.11"
   }
