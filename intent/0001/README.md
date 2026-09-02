@@ -7,7 +7,7 @@ Stage: work item scope definition for the platform itself (Phase 0-1).
 | 0001-BRIEF.md | Gate 1 accepted at `281c973` | Gate 2 remains separate and binds the Exam |
 | 0001-SPEC.md | Gate 1 accepted at `281c973` | Gate 2 remains separate and binds the Exam |
 | 0001-ARCHITECTURE.md | revision 2 accepted at Gate 1 (`281c973`) | implement and prove the walking skeleton |
-| 0001-EXAM.md | unsigned independent Test Agent candidate; incorporates the supplied Exam and Architecture revision 2 | exact-revision fresh-context Critic, domain reviews, then human Gate 2 decision |
+| 0001-EXAM.md | second Critic HOLD at `ab1d036`: 1 blocker, 1 major | live two-identity Exam PR path and seven human domain reviews |
 | 0001-PLAN.md | Gate 1 accepted at `281c973`; execution still Gate 2-bound | bind to the Gate 2 revision before further gated execution |
 
 The authoritative Gate 1 approval is the detached, provider-recorded signature
@@ -36,6 +36,11 @@ The control-only rollout is recorded at
 The workflow and CODEOWNERS rules are active on protected `main`; the live
 unauthorized-Builder and distinct authorized-Exam-author pull-request tests
 remain pending a separate GitHub identity.
+
+The second exact-revision Critic review is
+[`reviews/gate-2-critic-ab1d036.json`](reviews/gate-2-critic-ab1d036.json).
+It closes four original findings and returns **HOLD / SEND BACK** on the two
+remaining human/external evidence obligations. It is not a Gate 2 signature.
 
 The current Vite/React fixture application is the UX and domain prototype for
 this item. `0001-ARCHITECTURE.md` defines the production Phase 1 foundation and

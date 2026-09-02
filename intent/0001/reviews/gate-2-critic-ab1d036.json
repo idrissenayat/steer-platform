@@ -1,0 +1,101 @@
+{
+  "version": "steer-critic-review/v1",
+  "item": "0001-flight-deck-foundation",
+  "gate": 2,
+  "targetRevision": "ab1d0367b7a1195649aeee03f7d23f26f75c9028",
+  "reviewedAt": "2026-09-02T20:44:33Z",
+  "reviewer": {
+    "type": "fresh-context-critic-agent",
+    "provider": "openai-codex",
+    "task": "/root/gate2_critic_r2",
+    "inheritedConversation": false,
+    "priorConclusionsTreatedAsAuthority": false,
+    "memoryUse": "repository-orientation-checklist-only; every conclusion reverified against the target and live GitHub state"
+  },
+  "validation": {
+    "targetMatchesLocalHeadTrackingAndRemote": true,
+    "workingTreeCleanBeforeAndAfter": true,
+    "gateOneArtifactsByteIdentical": true,
+    "suppliedExamSha256": "5823ddb26d0acbc78b7b58d931d76adfe064adeba84b9cf81fad2557d528eb7b",
+    "pnpmCheckPassed": true,
+    "vitestFilesPassed": 17,
+    "vitestTestsPassed": 87,
+    "examControlTestsPassed": 6,
+    "workspaceTestsPassed": 2,
+    "buildsPassed": 2
+  },
+  "liveGitHubEvidence": {
+    "controlPullRequest": 1,
+    "controlPullRequestState": "merged",
+    "controlMergeCommit": "68f7156644e608f75a6f8549f82d7e7b6e70c6c6",
+    "repositoryContractConclusion": "success",
+    "strictRequiredCheck": true,
+    "requireCodeOwnerReview": true,
+    "dismissStaleReviews": true,
+    "enforceForAdministrators": true,
+    "allowForcePushes": false,
+    "allowDeletions": false,
+    "examCandidateCheckRuns": 0,
+    "examCandidateAssociatedPullRequests": 0,
+    "exactTargetCheckRuns": 0,
+    "exactTargetAssociatedPullRequests": 0
+  },
+  "disposition": "hold-send-back",
+  "pass": false,
+  "unresolved": {
+    "total": 2,
+    "blocker": 1,
+    "major": 1,
+    "minor": 0,
+    "nit": 0
+  },
+  "originalFindingStatus": [
+    {
+      "id": "G2C-001",
+      "status": "resolved",
+      "summary": "The Exam binds the accepted Gate 1 commit and Architecture revision 2 and incorporates OR-01 through OR-25 plus WS-01 through WS-13.",
+      "evidence": ["intent/0001/EXAM.md:9", "intent/0001/EXAM.md:532"]
+    },
+    {
+      "id": "G2C-002",
+      "status": "resolved",
+      "summary": "The complete signature envelope, refusal and signer-policy cases, separate-session rule, and cross-tenant matrix are explicit.",
+      "evidence": ["intent/0001/EXAM.md:368", "intent/0001/EXAM.md:388", "intent/0001/EXAM.md:411"]
+    },
+    {
+      "id": "G2C-003",
+      "status": "partially-resolved-blocker",
+      "summary": "Required CI and protected-main controls exist, but the actual Exam diff has no authenticated GitHub check or PR, the two live identity paths remain pending, and the sole allowlisted/code-owner login cannot distinguish Builder from Test Agent or approve its own governed PR.",
+      "evidence": [
+        "intent/0001/evidence/github-exam-protection-rollout.json:38",
+        "docs/INTENT-COMPLETION.md:157",
+        "scripts/check-exam-protection.mjs:18",
+        "scripts/check-exam-protection.mjs:60",
+        ".github/steer/exam-author-policy.json:4",
+        "intent/0001/EXAM.md:519"
+      ],
+      "requiredResolution": "Establish and live-test a distinct usable Exam-author path and an unauthorized-Builder rejection, then run actor-bound required CI over the actual Exam diff."
+    },
+    {
+      "id": "G2C-004",
+      "status": "resolved",
+      "summary": "Gate 2 acceptance, technical release, and outcome completion are separated with ten real items and four explicit 90-day measures.",
+      "evidence": ["intent/0001/EXAM.md:45", "intent/0001/EXAM.md:483"]
+    },
+    {
+      "id": "G2C-005",
+      "status": "resolved",
+      "summary": "The Exam freezes manifests, hashes, seed and PRNG, serialization, environment, clocks, repetitions, percentiles, evidence outputs, and side effects.",
+      "evidence": ["intent/0001/EXAM.md:63", "intent/0001/EXAM.md:109", "intent/0001/EXAM.md:132"]
+    },
+    {
+      "id": "G2C-006",
+      "status": "partially-resolved-major",
+      "summary": "All seven default-closed domains are explicit, but no current human Gate 2 domain-review record exists for any of them.",
+      "evidence": ["intent/0001/EXAM.md:437", "intent/0001/EXAM.md:455", "intent/0001/EXAM.md:519"],
+      "requiredResolution": "Obtain seven human domain-review records bound to the exact Exam revision."
+    }
+  ],
+  "newFindings": [],
+  "recommendedGate2Disposition": "HOLD / SEND BACK; do not sign Gate 2 at ab1d0367b7a1195649aeee03f7d23f26f75c9028. Complete and live-test the distinct GitHub identity paths, run required CI on the actual Exam diff, and obtain all seven human domain-review records bound to the exact Exam revision."
+}

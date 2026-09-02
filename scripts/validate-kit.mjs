@@ -49,6 +49,7 @@ const required = [
   "intent/0001/sources/README.md",
   "intent/0001/signatures/gate-1.json",
   "intent/0001/reviews/gate-2-critic-a43b32a.json",
+  "intent/0001/reviews/gate-2-critic-ab1d036.json",
   "intent/0001/evidence/github-exam-protection-rollout.json",
   "intent/0005/README.md",
   "intent/0005/BRIEF.md",
@@ -264,6 +265,22 @@ if (
   gateTwoCritic.findings?.length !== 6
 ) {
   throw new Error("The first 0001 Gate 2 fresh-context Critic record must preserve its exact-revision HOLD disposition and six findings.");
+}
+const gateTwoCriticR2 = JSON.parse(await readFile("intent/0001/reviews/gate-2-critic-ab1d036.json", "utf8"));
+if (
+  gateTwoCriticR2.version !== "steer-critic-review/v1" ||
+  gateTwoCriticR2.targetRevision !== "ab1d0367b7a1195649aeee03f7d23f26f75c9028" ||
+  gateTwoCriticR2.reviewer?.inheritedConversation !== false ||
+  gateTwoCriticR2.reviewer?.priorConclusionsTreatedAsAuthority !== false ||
+  gateTwoCriticR2.disposition !== "hold-send-back" ||
+  gateTwoCriticR2.pass !== false ||
+  gateTwoCriticR2.unresolved?.total !== 2 ||
+  gateTwoCriticR2.unresolved?.blocker !== 1 ||
+  gateTwoCriticR2.unresolved?.major !== 1 ||
+  gateTwoCriticR2.originalFindingStatus?.filter((finding) => finding.status === "resolved").length !== 4 ||
+  gateTwoCriticR2.newFindings?.length !== 0
+) {
+  throw new Error("The second 0001 Gate 2 fresh-context Critic record must preserve its exact-revision HOLD disposition and two unresolved findings.");
 }
 
 const sizingPolicy = JSON.parse(await readFile("kit/policy/sizing.json", "utf8"));
