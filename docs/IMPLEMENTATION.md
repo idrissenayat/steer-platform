@@ -109,6 +109,16 @@ regulated signed-log, self-hosted PostHog, and portable-container decisions.
 It does not authorize spending: paid infrastructure requires a separate human
 approval and may not exceed the stated pilot ceiling.
 
+The first fresh-context Gate 2 Critic returned HOLD / SEND BACK. An independent
+Test Agent has prepared a replacement canonical Exam that binds the accepted
+Gate 1 snapshot, preserves the supplied Exam as historical source, incorporates
+all original and walking-skeleton cases, freezes reproducibility requirements,
+and adds complete tenancy, signature, outcome, and specialist matrices. The
+actor-bound GitHub workflow, deny-by-default author policy, CODEOWNERS map, and
+regression tests are repository candidates only until the protected base branch
+requires code-owner review and a live unauthorized-Builder pull request is
+observed failing.
+
 The production foundation still to be built includes the Hono API and typed
 tool registry, MCP v2 transport, GitHub App adapter, Postgres/Drizzle/RLS
 projections, Temporal workers, version-pinned Mastra adapter, LiteLLM gateway,

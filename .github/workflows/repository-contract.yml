@@ -14,6 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
       - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           version: 11.19.0
@@ -53,6 +55,14 @@ jobs:
             echo 'Legacy STEER material must remain outside the v3 repository.' >&2
             exit 1
           fi
+
+      - name: Enforce actor-bound Exam authorship
+        env:
+          STEER_GITHUB_ACTOR: ${{ github.event.pull_request.user.login || github.actor }}
+          STEER_DIFF_BASE: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
+          STEER_DIFF_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          STEER_DIFF_MODE: ${{ github.event_name == 'pull_request' && 'merge-base' || 'direct' }}
+        run: node scripts/check-exam-protection.mjs
 
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile

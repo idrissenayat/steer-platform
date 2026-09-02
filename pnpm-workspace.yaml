@@ -2,6 +2,9 @@ packages:
   - "apps/*"
   - "packages/*"
 
+catalog:
+  '@types/node': 25.0.3
+
 catalogMode: strict
 
 onlyBuiltDependencies:

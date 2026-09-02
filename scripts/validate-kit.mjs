@@ -1,4 +1,5 @@
 import { readFile, readdir, stat } from "node:fs/promises";
+import { createHash } from "node:crypto";
 
 const required = [
   "kit/templates/BRIEF.md",
@@ -36,10 +37,16 @@ const required = [
   "kit/canon/glossary.md",
   "kit/canon/guidebook.md",
   "docs/DOCUMENTATION-MAP.md",
+  "docs/GITHUB-EXAM-PROTECTION.md",
   "docs/architecture/README.md",
   "docs/architecture/STEER-platform-end-state-phased.png",
   "intent/0001/ARCHITECTURE.md",
+  "intent/0001/BRIEF.md",
+  "intent/0001/EXAM.md",
   "intent/0001/PLAN.md",
+  "intent/0001/SPEC.md",
+  "intent/0001/sources/EXAM.supplied.md",
+  "intent/0001/sources/README.md",
   "intent/0001/signatures/gate-1.json",
   "intent/0001/reviews/gate-2-critic-a43b32a.json",
   "intent/0005/README.md",
@@ -68,6 +75,10 @@ const required = [
   "packages/domain/tsconfig.json",
   "packages/domain/src/types.ts",
   "packages/domain/src/read-model.ts",
+  ".github/steer/exam-author-policy.json",
+  "scripts/check-exam-protection.mjs",
+  "tests/exam-protection.test.ts",
+  ".github/CODEOWNERS",
 ];
 
 for (const path of required) {
@@ -90,6 +101,74 @@ if (gatePolicy.minimumDistinctSigners?.commercial?.defaultClosed?.secondLook !==
 }
 if (gatePolicy.minimumDistinctSigners?.regulated?.defaultClosed?.humans !== 2 || !gatePolicy.invariants.signatureBinds.includes("hat")) {
   throw new Error("Operating Model v3.1 requires two distinct regulated signers and identity-plus-hat signatures.");
+}
+
+const sha256 = (value) => createHash("sha256").update(value).digest("hex");
+const signedArtifactHashes = new Map([
+  ["intent/0001/BRIEF.md", "a5af593397de0722666baefae846b31881c6429c9691bec886f4a0771a8bc97f"],
+  ["intent/0001/SPEC.md", "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"],
+  ["intent/0001/ARCHITECTURE.md", "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"],
+  ["intent/0001/PLAN.md", "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"],
+]);
+for (const [path, expected] of signedArtifactHashes) {
+  if (sha256(await readFile(path)) !== expected) {
+    throw new Error(`Gate 1-signed artifact bytes changed: ${path}`);
+  }
+}
+
+const suppliedExam = await readFile("intent/0001/sources/EXAM.supplied.md");
+if (sha256(suppliedExam) !== "5823ddb26d0acbc78b7b58d931d76adfe064adeba84b9cf81fad2557d528eb7b") {
+  throw new Error("The byte-preserved supplied 0001 Exam changed.");
+}
+
+const candidateExam = await readFile("intent/0001/EXAM.md", "utf8");
+if (
+  !candidateExam.includes("281c9736816ec22fa1209b060b58fa8164519f7c") ||
+  !candidateExam.includes("Architecture revision 2") ||
+  [...candidateExam.matchAll(/\*\*OR-\d{2} —/g)].length !== 25 ||
+  [...candidateExam.matchAll(/\*\*WS-\d{2} —/g)].length !== 13
+) {
+  throw new Error("The 0001 Gate 2 candidate must bind Gate 1 and retain all supplied and walking-skeleton cases.");
+}
+for (const required of [
+  "agent/service identity",
+  "commercial default-closed",
+  "regulated default-closed",
+  "Cross-tenant negative matrix",
+  "Technical-release verdict",
+  "Pilot and 90-day outcome verdict",
+  "security | activated",
+  "privacy | activated",
+  "accessibility | activated",
+  "money | activated",
+  "legal | activated",
+  "reliability | activated",
+  "irreversible-operations | activated",
+]) {
+  if (!candidateExam.includes(required)) throw new Error(`The 0001 Gate 2 candidate is missing: ${required}`);
+}
+
+const examAuthorPolicy = JSON.parse(await readFile(".github/steer/exam-author-policy.json", "utf8"));
+if (
+  examAuthorPolicy.version !== "steer-exam-author-policy/v1" ||
+  examAuthorPolicy.denyByDefault !== true ||
+  !examAuthorPolicy.authorizedExamAuthors?.length ||
+  !examAuthorPolicy.authorizedControlMaintainers?.length
+) {
+  throw new Error("GitHub Exam authorship must remain exact-actor and deny-by-default.");
+}
+const codeowners = await readFile(".github/CODEOWNERS", "utf8");
+for (const protectedPath of [
+  "/intent/**/EXAM.md @idrissenayat",
+  "/.github/CODEOWNERS @idrissenayat",
+  "/.github/steer/exam-author-policy.json @idrissenayat",
+  "/.github/workflows/repository-contract.yml @idrissenayat",
+  "/scripts/check-exam-protection.mjs @idrissenayat",
+  "/tests/exam-protection.test.ts @idrissenayat",
+]) {
+  if (!codeowners.includes(protectedPath)) {
+    throw new Error(`CODEOWNERS is missing governed Exam control: ${protectedPath}`);
+  }
 }
 
 const gateOneRecord = JSON.parse(await readFile("intent/0001/signatures/gate-1.json", "utf8"));

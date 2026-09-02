@@ -7,7 +7,7 @@ Stage: work item scope definition for the platform itself (Phase 0-1).
 | 0001-BRIEF.md | Gate 1 accepted at `281c973` | Gate 2 remains separate and binds the Exam |
 | 0001-SPEC.md | Gate 1 accepted at `281c973` | Gate 2 remains separate and binds the Exam |
 | 0001-ARCHITECTURE.md | revision 2 accepted at Gate 1 (`281c973`) | implement and prove the walking skeleton |
-| 0001-EXAM.md | Gate 2 sent back at `a43b32a`: 3 blockers, 3 majors | independent Test Agent revision, then a new fresh-context Critic |
+| 0001-EXAM.md | unsigned independent Test Agent candidate; incorporates the supplied Exam and Architecture revision 2 | exact-revision fresh-context Critic, domain reviews, then human Gate 2 decision |
 | 0001-PLAN.md | Gate 1 accepted at `281c973`; execution still Gate 2-bound | bind to the Gate 2 revision before further gated execution |
 
 The authoritative Gate 1 approval is the detached, provider-recorded signature
@@ -21,6 +21,15 @@ The first fresh-context Gate 2 review is recorded at
 [`reviews/gate-2-critic-a43b32a.json`](reviews/gate-2-critic-a43b32a.json). Its
 disposition is **HOLD / SEND BACK** with six unresolved findings. It is not a
 Gate 2 signature and cannot be used as implementation authorization.
+
+The predecessor Exam reviewed there is preserved byte-for-byte at
+[`sources/EXAM.supplied.md`](sources/EXAM.supplied.md). The canonical Exam is now
+a new unsigned candidate bound to the accepted Gate 1 commit and Architecture
+revision 2. It activates and routes all applicable default-closed domains,
+separates technical-release from pilot-outcome completion, and remains blocked
+on a new exact-revision Critic plus human reviews. Actor-bound repository CI is
+implemented; the external GitHub hardening checklist is
+[`docs/GITHUB-EXAM-PROTECTION.md`](../../docs/GITHUB-EXAM-PROTECTION.md).
 
 The current Vite/React fixture application is the UX and domain prototype for
 this item. `0001-ARCHITECTURE.md` defines the production Phase 1 foundation and

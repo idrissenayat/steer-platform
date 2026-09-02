@@ -1,0 +1,7 @@
+# Governed Exam artifacts and the controls that protect them.
+/intent/**/EXAM.md @idrissenayat
+/.github/CODEOWNERS @idrissenayat
+/.github/steer/exam-author-policy.json @idrissenayat
+/.github/workflows/repository-contract.yml @idrissenayat
+/scripts/check-exam-protection.mjs @idrissenayat
+/tests/exam-protection.test.ts @idrissenayat

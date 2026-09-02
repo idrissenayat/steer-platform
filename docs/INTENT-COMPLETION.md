@@ -16,8 +16,10 @@ This is not yet a production completion claim. Gate 1 is accepted for the exact
 `281c9736816ec22fa1209b060b58fa8164519f7c` snapshot, with its provider-recorded
 signature in `intent/0001/signatures/gate-1.json`. The first fresh-context
 Gate 2 Critic review at `a43b32a` returned HOLD / SEND BACK with three blockers
-and three majors; the governed Exam must be revised and reviewed again. The
-production Phase 1
+and three majors. An independent Test Agent has prepared a revised canonical
+Exam and actor-bound CI candidate while preserving the supplied Exam; a new
+exact-revision Critic is still required, and GitHub code-owner enforcement plus
+the live negative-author test remain external evidence. The production Phase 1
 walking skeleton in `intent/0001/ARCHITECTURE.md` is not implemented. The intent
 also requires Gate 2, live identity/code-host configuration, Gate 3 and
 specialist manual evidence, and a 90-day pilot window. None can be replaced by
@@ -150,9 +152,10 @@ path. Numbered intent sources remain unchanged.
 3. Approve the notification rule: ambient by default; push only at SLA risk.
 4. Approve assistant data handling: session-only originator text, committed
    artifact as the only retained copy.
-5. **Gate 1 recorded; Gate 2 sent back:** resolve all six findings in
-   `intent/0001/reviews/gate-2-critic-a43b32a.json`, then obtain a new passing
-   fresh-context Critic review before requesting the Tech Lead signature.
+5. **Gate 1 recorded; Gate 2 remediation candidate:** independently review the
+   revised Exam at its committed revision, apply and verify the GitHub
+   protection in `docs/GITHUB-EXAM-PROTECTION.md`, and resolve any new Critic
+   findings before requesting the Tech Lead signature.
 6. Run the ten-to-twenty-item pilot and retain 90 days of outcome evidence.
 
 “Complete” means every machine row is green and each human-owned row has an
