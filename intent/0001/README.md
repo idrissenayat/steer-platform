@@ -8,7 +8,7 @@ Stage: work item scope definition for the platform itself (Phase 0-1).
 | 0001-SPEC.md | draft | signed with the brief at Gate 1; flagged concerns routed first |
 | 0001-ARCHITECTURE.md | Gate 1 draft | approve the production foundation, seams, phase boundaries, and owned open decisions |
 | 0001-EXAM.md | draft | Gate 2: Tech Lead, after Critic findings resolved |
-| 0001-PLAN.md | not yet | agent read-only planning pass after Gate 2 |
+| 0001-PLAN.md | planning draft; read-only | bind to the Gate 2 revision before execution |
 
 The current Vite/React fixture application is the UX and domain prototype for
 this item. `0001-ARCHITECTURE.md` defines the production Phase 1 foundation and

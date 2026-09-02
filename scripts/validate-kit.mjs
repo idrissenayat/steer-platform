@@ -39,6 +39,7 @@ const required = [
   "docs/architecture/README.md",
   "docs/architecture/STEER-platform-end-state-phased.png",
   "intent/0001/ARCHITECTURE.md",
+  "intent/0001/PLAN.md",
 ];
 
 for (const path of required) {
@@ -161,6 +162,20 @@ for (const invariant of [
 }
 if (architecture.includes("Before Phase 1 begins") || architecture.includes("Product-analytics adapter (PostHog or existing) | 2")) {
   throw new Error("The production architecture has reintroduced a corrected phase contradiction.");
+}
+
+const phaseOnePlan = await readFile("intent/0001/PLAN.md", "utf8");
+for (const invariant of [
+  "Planning mode: read-only. This file is not execution authorization.",
+  "Plan-sprawl check",
+  "Alarm raised at 20 files or 4 systems: **raised**.",
+  "it is not carried forward as a second production web app",
+  "**Technical release candidate:**",
+  "**Outcome complete:**",
+]) {
+  if (!phaseOnePlan.includes(invariant)) {
+    throw new Error(`Phase 1 plan invariant missing: ${invariant}`);
+  }
 }
 
 const eventSchema = JSON.parse(await readFile("kit/metrics/events.schema.json", "utf8"));

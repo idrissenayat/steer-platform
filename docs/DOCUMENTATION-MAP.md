@@ -16,6 +16,7 @@ and which implementation evidence remains outside the repository.
 | Practice Notes | Detailed operating guidance | the three root `STEER-*.docx` practice notes and `kit/practices/*.md` |
 | Product intent | What this platform must implement and how it is examined | canonical numbered chains under `intent/0001` through `intent/0004` |
 | Production architecture | The Phase 1 foundation, stable seams, phased end state, and architecture exit exam | `intent/0001/ARCHITECTURE.md` and `docs/architecture/STEER-platform-end-state-phased.png` |
+| Execution plan | The Gate-bound implementation sequence, evidence route, stop conditions, and pilot closure | `intent/0001/PLAN.md` |
 | Machine policy | Rules enforced by the kit and platform | `kit/policy`, `kit/guardrails`, `kit/bands`, `kit/metrics`, `kit/stack-packs`, and `kit/readiness` |
 | Implementation record | What exists locally and what evidence is still missing | `docs/IMPLEMENTATION.md` and `docs/INTENT-COMPLETION.md` |
 

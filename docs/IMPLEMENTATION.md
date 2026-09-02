@@ -3,7 +3,9 @@
 This branch implements the Phase 0 kit and a validated UX/domain prototype
 toward Phase 1 against a rebuildable fixture connector. The production Phase 1
 foundation is defined in `intent/0001/ARCHITECTURE.md`; it is not yet
-implemented.
+implemented. The proposed Gate-bound route is sequenced in
+`intent/0001/PLAN.md`; that read-only planning draft does not authorize the
+production migration.
 
 ## Implemented
 
