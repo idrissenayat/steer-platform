@@ -2,7 +2,7 @@
 
 Why a new way of working: the constraint, the values, and the principles
 
-_Idriss Enayat · Framework v3.0 · August 2026_
+_Idriss Enayat · Framework v3.1 · September 2026_
 
 This document states the reasoning behind STEER: the constraint shift that makes a new way of working necessary, the values it keeps from Agile, and the principles that govern every decision inside it. The Framework document defines the structure; the Operating Model document defines how organizations run it.
 
@@ -60,5 +60,10 @@ The five moves. Repeat closes every turn.
 
 - STEER Operating Model · How: accountabilities, decision rights, trust policy, culture, and scale
 
-The Guidebook is the complete reference; the Whitepaper is the shareable overview.
+- STEER Practice Note 1 · Sizing and Scoping Work in STEER · How work is split, aged, and forecast
 
+- STEER Practice Note 2 · Providing Intent · How natural language becomes a committed brief, spec, exam, and plan
+
+- STEER Practice Note 3 · The Three Surfaces · How intents, in-flight work, and decisions protect human attention
+
+The Guidebook is the complete reference; the Whitepaper is the shareable overview.

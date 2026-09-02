@@ -23,4 +23,9 @@ Markdown, and raw templates remain behind the intent-home seam.
 Save commits the accepted rendered draft under the human originator's identity.
 All entry points normalize into one intent home.
 
+The outcome contract must name its measurement state. Existing products use a
+baseline, denominator, and observation window. A greenfield product may use an
+explicit leading indicator until production telemetry exists; unresolved
+measurement remains an open question and cannot be disguised as measurable.
+
 Source: `STEER-Providing-Intent.docx`, Practice Note 2.

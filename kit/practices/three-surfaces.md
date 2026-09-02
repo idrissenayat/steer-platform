@@ -1,8 +1,9 @@
 # The three surfaces
 
 An intent is a candidate. It becomes a work item only when the Product Lead
-pulls it into flight against visible WIP capacity. Machine-speed intake may
-draft many candidates; it may not spend scarce human framing capacity.
+pulls it into flight against visible WIP capacity for the responsible person
+across every pod and hat they hold. Machine-speed intake may draft many
+candidates; it may not spend scarce human framing capacity.
 
 ## Daily attention order
 
@@ -13,9 +14,12 @@ draft many candidates; it may not spend scarce human framing capacity.
 
 ## Candidate controls
 
-Every intent card shows the problem, outcome, measurable-today state, domains,
-provenance, duplicate cluster, and mission fit. The Product Lead may pull,
-decline with a recorded reason, merge, or ask one clarifying question.
+Every intent card shows the problem, outcome, measurement state, domains,
+provenance, duplicate cluster, and mission fit. Measurement renders as
+measurable-today, greenfield with an explicit leading indicator, or unresolved;
+only unresolved measurement blocks a pull. Until a mission brief is signed,
+mission fit renders as unscored and never blocks a pull. The Product Lead may
+pull, decline with a recorded reason, merge, or ask one clarifying question.
 Untouched candidates expire by policy and remain in the record.
 
 Every accountability receives the same three-pane shape with role-specific

@@ -22,4 +22,8 @@ breach escalates to a huddle. Forecast initiatives from the 85th-percentile
 cycle time for comparable brief shapes. Put a real deadline in the brief as a
 constraint, not as an estimate.
 
+Capacity is counted per human across every pod and accountability hat they
+hold. A pull is refused when it would exceed that person's declared attention
+budget; moving the same person to another pod does not create new capacity.
+
 Source: `STEER-Sizing-and-Scoping.docx`, Practice Note 1.

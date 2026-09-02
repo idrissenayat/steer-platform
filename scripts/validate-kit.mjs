@@ -34,6 +34,7 @@ const required = [
   "kit/canon/operating-model.md",
   "kit/canon/glossary.md",
   "kit/canon/guidebook.md",
+  "docs/DOCUMENTATION-MAP.md",
 ];
 
 for (const path of required) {
@@ -92,6 +93,30 @@ if (learnManifest.frameworkVersion !== kitVersion.frameworkVersion || learnManif
 for (const document of learnManifest.documents) {
   const info = await stat(document.path);
   if (!info.isFile() || info.size === 0) throw new Error(`Learn manifest points to a missing source: ${document.path}`);
+}
+
+const methodologyCanon = await readFile("kit/canon/methodology.md", "utf8");
+const frameworkCanon = await readFile("kit/canon/framework.md", "utf8");
+const sizingPractice = await readFile("kit/practices/sizing-and-scoping.md", "utf8");
+const intentPractice = await readFile("kit/practices/providing-intent.md", "utf8");
+const surfacesPractice = await readFile("kit/practices/three-surfaces.md", "utf8");
+if (methodologyCanon.includes("Framework v3.0") || !methodologyCanon.includes("Framework v3.1")) {
+  throw new Error("Methodology projection must identify the current Framework v3.1 canon.");
+}
+if (!frameworkCanon.includes("structure: the organization topology") || !frameworkCanon.includes("## Organization Structure") || !frameworkCanon.includes("Regulated default-closed work requires two distinct humans")) {
+  throw new Error("Framework projection is missing Operating Model v3.1 organization or signer rules.");
+}
+if (!frameworkCanon.includes("Greenfield products may use explicit leading indicators")) {
+  throw new Error("Framework projection must preserve the v3.1 greenfield measurement state.");
+}
+if (!sizingPractice.includes("per human across every pod and accountability hat")) {
+  throw new Error("Sizing guidance must count capacity per person across pods and hats.");
+}
+if (!/A greenfield product may use an\s+explicit leading indicator/.test(intentPractice)) {
+  throw new Error("Providing-intent guidance must state the greenfield measurement rule.");
+}
+if (!surfacesPractice.includes("mission fit renders as unscored") || !surfacesPractice.includes("only unresolved measurement blocks a pull")) {
+  throw new Error("Three-surfaces guidance must preserve greenfield and pre-mission pull behavior.");
 }
 for (const role of ["org-admin", "portfolio-lead", "product-steward", "product-lead", "product-designer", "tech-lead", "platform-engineer", "specialist", "builder"]) {
   if (!learnManifest.agentSlices[role]?.length) throw new Error(`Learn manifest has no corpus slice for ${role}.`);

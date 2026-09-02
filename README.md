@@ -84,6 +84,7 @@ comparison remains dependent on the 0002 first-login baseline.
 ## Implementation evidence
 
 The active implementation and its intent-by-intent ledger are documented in
-`docs/IMPLEMENTATION.md` and `docs/INTENT-COMPLETION.md`. Run `pnpm check` to
-validate the Phase 0 kit, scope policy, TypeScript, automated exam cases, and
-production build.
+`docs/IMPLEMENTATION.md` and `docs/INTENT-COMPLETION.md`. The authority,
+projection, and v3.1 synchronization rules for the full document set are in
+`docs/DOCUMENTATION-MAP.md`. Run `pnpm check` to validate the Phase 0 kit,
+scope policy, TypeScript, automated exam cases, and production build.

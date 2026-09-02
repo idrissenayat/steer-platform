@@ -111,6 +111,13 @@ conversation-first setup flow all have machine-readable policy and automated
 domain coverage. The revised 0001 Brief and Spec are exact source copies; the
 existing Exam was not rewritten without a supplied replacement.
 
+The complete human-readable document set is now version-aligned at v3.1. The
+Framework includes the organization layer and current signer/greenfield rules;
+the three practice notes carry person-level WIP, greenfield measurement, and
+pre-mission unscored behavior where applicable. Their Markdown Learn
+projections match, and `DOCUMENTATION-MAP.md` records the authority and update
+path. Numbered intent sources remain unchanged.
+
 ## Human-owned completion gates
 
 1. Decide whether regulated pilots require cryptographically signed events in

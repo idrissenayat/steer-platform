@@ -4,7 +4,7 @@ What the structure is: the artifact chain, the plays, the gates, and the metrics
 
 _Idriss Enayat · Framework v3.1 · September 2026_
 
-This document defines STEER's structure: the layers, the artifact chain that forms the lifecycle's backbone, the eight plays, the three gates, and the measurement system. The Methodology document states why; the Operating Model document defines who decides and how organizations run it.
+This document defines STEER's structure: the organization topology, the layers, the artifact chain that forms the lifecycle's backbone, the eight plays, the three gates, and the measurement system. The Methodology document states why; the Operating Model document defines who decides and how organizations run it.
 
 ## Three Layers
 
@@ -30,7 +30,7 @@ The Flight Board: eight plays, seven states, three gates on the chain.
 
 ## The Three Surfaces
 
-An intent is a candidate brief in the intent backlog. It becomes a work item only when the Product Lead pulls it into flight against the pod's visible WIP limit. This boundary absorbs machine-speed supply without allowing it to flood human-speed judgment.
+An intent is a candidate brief in the intent backlog. It becomes a work item only when the Product Lead pulls it into flight against the visible WIP limit for the responsible human across every pod and hat they hold. This boundary absorbs machine-speed supply without allowing it to flood human-speed judgment.
 
 Every role home preserves the same attention order: the decision inbox for what needs judgment now, triggered candidates for what could enter next, and an ambient in-motion pane watched by aging bands. The platform projects these surfaces from the chain; it stores no private status. See STEER Practice Note 3, The Three Surfaces.
 
@@ -38,7 +38,7 @@ Every role home preserves the same attention order: the decision inbox for what 
 
 | Play | Commits | What happens | Measure (leading · lagging) |
 | --- | --- | --- | --- |
-| 01 Sense | draft BRIEF | Signals, tickets, and band breaches become draft briefs; the Product Lead pulls work into flight deliberately (WIP is human framing capacity) | signal-to-brief time · brief survival rate |
+| 01 Sense | draft BRIEF | Signals, tickets, and band breaches become draft briefs; the Product Lead pulls work into flight deliberately (WIP is personal framing capacity across pods and hats) | signal-to-brief time · brief survival rate |
 | 02 Frame · Intent | BRIEF + SPEC, Gate 1 | Intent accepted with a measurable outcome contract and domain tags; design pass with concerns flagged to policy owners | draft-to-accepted time · rework after build starts |
 | 03 Frame · Exam | EXAM, Gate 2 | Test agent drafts the exam; a fresh-context critic attacks it; timing tiers with risk; builders can never edit it | spec-to-exam time · escaped defects per item |
 | 04 Engineer | PLAN, then diff + evidence | Read-only planning pass, then builders implement in isolation; every claim ships with its proof; sessions verify their own work | first-pass rate · rework cycles |

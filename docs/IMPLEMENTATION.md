@@ -68,6 +68,11 @@ readiness scan, greenfield state, handover, isolation, and first-run flow are
 mirrored in `kit/policy/organization.json`, the organization domain, the setup
 agent experience, and the v3.1 Learn corpus.
 
+All six root Word documents and their Learn projections are aligned to
+Framework v3.1. `DOCUMENTATION-MAP.md` records the authority order, the v3.1
+rule-to-implementation trace, and the synchronization procedure for future
+doctrine changes.
+
 ## Current boundary
 
 The supplied item chains are preserved under `intent/0001` through
