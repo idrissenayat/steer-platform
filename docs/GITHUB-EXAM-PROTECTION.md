@@ -33,7 +33,7 @@ to the protected default branch:
    or Builder identities immediately.
 4. Protect `.github/CODEOWNERS`, `.github/workflows/repository-contract.yml`,
    `.github/steer/exam-author-policy.json`,
-   `scripts/check-exam-protection.mjs`, and `tests/exam-protection.test.ts` with
+   `scripts/check-exam-protection.mjs`, and `tests/exam-protection.test.mjs` with
    CODEOWNERS backed by that independent identity/team; require code-owner review
    and dismiss stale approvals on new commits.
 5. Test the live rule with two pull requests: an unlisted Builder actor changing

@@ -77,7 +77,7 @@ const required = [
   "packages/domain/src/read-model.ts",
   ".github/steer/exam-author-policy.json",
   "scripts/check-exam-protection.mjs",
-  "tests/exam-protection.test.ts",
+  "tests/exam-protection.test.mjs",
   ".github/CODEOWNERS",
 ];
 
@@ -164,7 +164,7 @@ for (const protectedPath of [
   "/.github/steer/exam-author-policy.json @idrissenayat",
   "/.github/workflows/repository-contract.yml @idrissenayat",
   "/scripts/check-exam-protection.mjs @idrissenayat",
-  "/tests/exam-protection.test.ts @idrissenayat",
+  "/tests/exam-protection.test.mjs @idrissenayat",
 ]) {
   if (!codeowners.includes(protectedPath)) {
     throw new Error(`CODEOWNERS is missing governed Exam control: ${protectedPath}`);

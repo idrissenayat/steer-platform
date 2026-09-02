@@ -14,13 +14,14 @@
     "build": "pnpm build:prototype && turbo run build --filter='./apps/*' --filter='./packages/*'",
     "build:prototype": "tsc --noEmit && vite build",
     "test": "vitest run",
+    "test:controls": "node --test tests/exam-protection.test.mjs",
     "test:watch": "vitest",
     "test:workspace": "turbo run test --filter='./apps/*' --filter='./packages/*'",
     "typecheck": "pnpm typecheck:prototype && turbo run typecheck --filter='./apps/*' --filter='./packages/*'",
     "typecheck:prototype": "tsc --noEmit",
     "kit:check": "node scripts/validate-kit.mjs",
     "security:check": "node scripts/audit-workflow-scopes.mjs",
-    "check": "pnpm kit:check && pnpm security:check && pnpm typecheck && pnpm test && pnpm test:workspace && pnpm build"
+    "check": "pnpm kit:check && pnpm security:check && pnpm typecheck && pnpm test && pnpm test:controls && pnpm test:workspace && pnpm build"
   },
   "dependencies": {
     "@steer/domain": "workspace:*",
@@ -29,7 +30,6 @@
   },
   "devDependencies": {
     "@testing-library/react": "^16.3.3",
-    "@types/node": "catalog:",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
     "@vitejs/plugin-react": "^6.1.0",

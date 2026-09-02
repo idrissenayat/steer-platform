@@ -14,6 +14,7 @@ for (const required of [
   "STEER_DIFF_BASE:",
   "STEER_DIFF_HEAD:",
   "node scripts/check-exam-protection.mjs",
+  "node --test tests/exam-protection.test.mjs",
 ]) {
   if (!workflow.includes(required)) {
     throw new Error(`Actor-bound Exam workflow control missing: ${required}`);

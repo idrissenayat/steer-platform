@@ -1,14 +1,15 @@
 import { execFileSync, spawnSync } from "node:child_process";
+import assert from "node:assert/strict";
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { afterEach, describe, expect, test } from "vitest";
+import { afterEach, describe, test } from "node:test";
 
 const checker = fileURLToPath(new URL("../scripts/check-exam-protection.mjs", import.meta.url));
-const repositories: string[] = [];
+const repositories = [];
 
-function git(root: string, ...args: string[]) {
+function git(root, ...args) {
   return execFileSync("git", args, { cwd: root, encoding: "utf8" }).trim();
 }
 
@@ -38,20 +39,20 @@ function createRepository() {
   writeFileSync(join(root, "intent/0001/EXAM.md"), "# Initial Exam\n");
   writeFileSync(join(root, "README.md"), "# Test\n");
   writeFileSync(join(root, "scripts/check-exam-protection.mjs"), "// protected copy\n");
-  writeFileSync(join(root, "tests/exam-protection.test.ts"), "// protected copy\n");
+  writeFileSync(join(root, "tests/exam-protection.test.mjs"), "// protected copy\n");
   git(root, "add", ".");
   git(root, "commit", "-m", "initial");
   return { root, base: git(root, "rev-parse", "HEAD") };
 }
 
-function commit(root: string, path: string, contents: string) {
+function commit(root, path, contents) {
   writeFileSync(join(root, path), contents);
   git(root, "add", path);
   git(root, "commit", "-m", `change ${path}`);
   return git(root, "rev-parse", "HEAD");
 }
 
-function check(root: string, base: string, head: string, actor?: string) {
+function check(root, base, head, actor) {
   return spawnSync(process.execPath, [checker], {
     cwd: root,
     encoding: "utf8",
@@ -77,8 +78,8 @@ describe("actor-bound Exam protection", () => {
     const head = commit(root, "intent/0001/EXAM.md", "# Builder edit\n");
     const result = check(root, base, head, "builder-bot");
 
-    expect(result.status).toBe(1);
-    expect(result.stderr).toContain("is not an authorized Exam author");
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /is not an authorized Exam author/);
   });
 
   test("accepts an exact allowlisted Exam-author GitHub actor", () => {
@@ -86,14 +87,14 @@ describe("actor-bound Exam protection", () => {
     const head = commit(root, "intent/0001/EXAM.md", "# Independent Exam\n");
     const result = check(root, base, head, "Exam-Owner");
 
-    expect(result.status).toBe(0);
-    expect(result.stdout).toContain("Actor-bound Exam protection passed");
+    assert.equal(result.status, 0);
+    assert.match(result.stdout, /Actor-bound Exam protection passed/);
   });
 
   test("allows an unlisted actor when no Exam or control file changed", () => {
     const { root, base } = createRepository();
     const head = commit(root, "README.md", "# Ordinary Builder change\n");
-    expect(check(root, base, head, "builder-bot").status).toBe(0);
+    assert.equal(check(root, base, head, "builder-bot").status, 0);
   });
 
   test("rejects an unlisted actor that changes the enforcement controls", () => {
@@ -101,8 +102,8 @@ describe("actor-bound Exam protection", () => {
     const head = commit(root, ".github/workflows/repository-contract.yml", "name: bypass\n");
     const result = check(root, base, head, "builder-bot");
 
-    expect(result.status).toBe(1);
-    expect(result.stderr).toContain("is not an authorized Exam-control maintainer");
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /is not an authorized Exam-control maintainer/);
   });
 
   test("rejects an unlisted actor that changes CODEOWNERS", () => {
@@ -110,8 +111,8 @@ describe("actor-bound Exam protection", () => {
     const head = commit(root, ".github/CODEOWNERS", "* @builder-bot\n");
     const result = check(root, base, head, "builder-bot");
 
-    expect(result.status).toBe(1);
-    expect(result.stderr).toContain("is not an authorized Exam-control maintainer");
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /is not an authorized Exam-control maintainer/);
   });
 
   test("fails closed when CI does not provide an authenticated actor", () => {
@@ -119,7 +120,7 @@ describe("actor-bound Exam protection", () => {
     const head = commit(root, "intent/0001/EXAM.md", "# Anonymous edit\n");
     const result = check(root, base, head);
 
-    expect(result.status).not.toBe(0);
-    expect(result.stderr).toContain("STEER_GITHUB_ACTOR is required");
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /STEER_GITHUB_ACTOR is required/);
   });
 });

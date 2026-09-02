@@ -53,7 +53,7 @@ const controlPaths = new Set([
   ".github/steer/exam-author-policy.json",
   ".github/workflows/repository-contract.yml",
   "scripts/check-exam-protection.mjs",
-  "tests/exam-protection.test.ts",
+  "tests/exam-protection.test.mjs",
 ]);
 const controlChanges = changed.filter((path) => controlPaths.has(path));
 
