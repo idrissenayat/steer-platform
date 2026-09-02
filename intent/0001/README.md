@@ -31,6 +31,12 @@ on a new exact-revision Critic plus human reviews. Actor-bound repository CI is
 implemented; the external GitHub hardening checklist is
 [`docs/GITHUB-EXAM-PROTECTION.md`](../../docs/GITHUB-EXAM-PROTECTION.md).
 
+The control-only rollout is recorded at
+[`evidence/github-exam-protection-rollout.json`](evidence/github-exam-protection-rollout.json).
+The workflow and CODEOWNERS rules are active on protected `main`; the live
+unauthorized-Builder and distinct authorized-Exam-author pull-request tests
+remain pending a separate GitHub identity.
+
 The current Vite/React fixture application is the UX and domain prototype for
 this item. `0001-ARCHITECTURE.md` defines the production Phase 1 foundation and
 the walking-skeleton exam that must pass before that architecture is called

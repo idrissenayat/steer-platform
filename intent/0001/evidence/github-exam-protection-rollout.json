@@ -1,0 +1,43 @@
+{
+  "version": "steer-external-control-evidence/v1",
+  "item": "0001-flight-deck-foundation",
+  "control": "actor-bound-exam-authorship",
+  "repository": "github.com/idrissenayat/steer-platform",
+  "observedAt": "2026-09-02T20:29:33Z",
+  "rollout": {
+    "pullRequest": 1,
+    "url": "https://github.com/idrissenayat/steer-platform/pull/1",
+    "state": "merged",
+    "mergeCommit": "68f7156644e608f75a6f8549f82d7e7b6e70c6c6",
+    "workflowRun": "https://github.com/idrissenayat/steer-platform/actions/runs/33679429511/job/100412138125",
+    "requiredCheck": "repository-contract",
+    "requiredCheckConclusion": "success",
+    "authenticatedActor": "idrissenayat",
+    "actorPolicyResult": "authorized control maintainer accepted"
+  },
+  "defaultBranchProtection": {
+    "branch": "main",
+    "requirePullRequest": true,
+    "requiredStatusCheck": "repository-contract",
+    "strictStatusChecks": true,
+    "enforceForAdministrators": true,
+    "allowForcePushes": false,
+    "allowDeletions": false,
+    "dismissStaleReviews": true,
+    "requireCodeOwnerReview": true,
+    "blanketApprovingReviewCount": 0
+  },
+  "codeOwnersOnProtectedBranch": true,
+  "tests": {
+    "portableControlTests": {
+      "total": 6,
+      "passed": 6
+    },
+    "authorizedControlPullRequest": "passed"
+  },
+  "openEvidence": {
+    "unauthorizedBuilderPullRequest": "pending-separate-github-identity",
+    "authorizedIndependentExamAuthorPullRequest": "pending-separate-github-identity"
+  },
+  "gateEffect": "This is control evidence, not a Gate 2 signature, implementation authorization, release authorization, or spending authorization. The live two-identity tests remain required before the control is called fully operational."
+}

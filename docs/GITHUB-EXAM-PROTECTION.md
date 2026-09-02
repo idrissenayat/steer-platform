@@ -49,3 +49,20 @@ strict `repository-contract` status check, enforced protection for
 administrators, and disallowed force pushes and deletion. Required approving
 reviews were zero, code-owner review was disabled, and no repository ruleset
 was present. Re-verify live state before applying or claiming this checklist.
+
+## Rollout evidence
+
+Control-only pull request
+[`#1`](https://github.com/idrissenayat/steer-platform/pull/1) passed the required
+`repository-contract` check and merged to `main` as
+`68f7156644e608f75a6f8549f82d7e7b6e70c6c6` on 2026-09-02. A post-merge API
+readback confirmed strict required checks, administrator enforcement, blocked
+force pushes and deletion, stale-review dismissal, and required code-owner
+review with zero blanket approvals. The structured receipt is
+`intent/0001/evidence/github-exam-protection-rollout.json`.
+
+The positive authorized-control path and six portable negative/control tests
+are green. A live pull request opened by an unlisted Builder identity and a live
+pull request opened by a distinct authorized Exam-author identity remain
+pending because no separate GitHub identity is currently available. Those two
+observations cannot be replaced by a simulated actor value.

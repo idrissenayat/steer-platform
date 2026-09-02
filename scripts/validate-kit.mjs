@@ -49,6 +49,7 @@ const required = [
   "intent/0001/sources/README.md",
   "intent/0001/signatures/gate-1.json",
   "intent/0001/reviews/gate-2-critic-a43b32a.json",
+  "intent/0001/evidence/github-exam-protection-rollout.json",
   "intent/0005/README.md",
   "intent/0005/BRIEF.md",
   "intent/0005/SPEC.md",
@@ -169,6 +170,23 @@ for (const protectedPath of [
   if (!codeowners.includes(protectedPath)) {
     throw new Error(`CODEOWNERS is missing governed Exam control: ${protectedPath}`);
   }
+}
+const examProtectionRollout = JSON.parse(
+  await readFile("intent/0001/evidence/github-exam-protection-rollout.json", "utf8"),
+);
+if (
+  examProtectionRollout.version !== "steer-external-control-evidence/v1" ||
+  examProtectionRollout.rollout?.state !== "merged" ||
+  examProtectionRollout.rollout?.mergeCommit !== "68f7156644e608f75a6f8549f82d7e7b6e70c6c6" ||
+  examProtectionRollout.rollout?.requiredCheckConclusion !== "success" ||
+  examProtectionRollout.defaultBranchProtection?.requireCodeOwnerReview !== true ||
+  examProtectionRollout.defaultBranchProtection?.enforceForAdministrators !== true ||
+  examProtectionRollout.defaultBranchProtection?.allowForcePushes !== false ||
+  examProtectionRollout.defaultBranchProtection?.allowDeletions !== false ||
+  examProtectionRollout.openEvidence?.unauthorizedBuilderPullRequest !== "pending-separate-github-identity" ||
+  examProtectionRollout.openEvidence?.authorizedIndependentExamAuthorPullRequest !== "pending-separate-github-identity"
+) {
+  throw new Error("The GitHub Exam-protection rollout receipt must preserve both verified controls and pending live two-identity evidence.");
 }
 
 const gateOneRecord = JSON.parse(await readFile("intent/0001/signatures/gate-1.json", "utf8"));
