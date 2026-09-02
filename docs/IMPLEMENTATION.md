@@ -98,16 +98,23 @@ production baselines as pending instead of substituting fixture figures.
 
 The browser preview uses the fixture connector and pilot identities. It proves
 the interaction and domain contracts without requesting credentials or making
-external writes. Production completion requires an approved signature policy,
+external writes. Production completion requires Gate 2 and Gate 3 records,
 OIDC configuration, a live code-host/CI connector, specialist manual
 accessibility evidence, and pilot outcome data. See `INTENT-COMPLETION.md`.
 
-The production foundation still to be built includes the pnpm/Turborepo
-monorepo, Next.js web application, Hono API and typed tool registry, MCP v2
-transport, GitHub App adapter, Postgres/Drizzle/RLS projections, Temporal
-workers, version-pinned Mastra adapter, LiteLLM gateway, OIDC, tenant-scoped
-evidence storage, product analytics, a secret-manager seam, and the thirteen-
-case architecture walking skeleton.
+Gate 1 is recorded at `intent/0001/signatures/gate-1.json` for the exact
+`281c9736816ec22fa1209b060b58fa8164519f7c` artifact snapshot. It approves the
+GitHub App, normalized-Keycloak OIDC, commercial provider-recorded approval,
+regulated signed-log, self-hosted PostHog, and portable-container decisions.
+It does not authorize spending: paid infrastructure requires a separate human
+approval and may not exceed the stated pilot ceiling.
+
+The production foundation still to be built includes the Hono API and typed
+tool registry, MCP v2 transport, GitHub App adapter, Postgres/Drizzle/RLS
+projections, Temporal workers, version-pinned Mastra adapter, LiteLLM gateway,
+OIDC, tenant-scoped evidence storage, product analytics, a secret-manager seam,
+and the thirteen-case architecture walking skeleton. The pnpm/Turborepo
+monorepo, Next.js shell, and provider-free domain package already exist.
 
 ## Local commands
 

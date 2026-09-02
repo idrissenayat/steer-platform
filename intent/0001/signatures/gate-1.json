@@ -1,0 +1,76 @@
+{
+  "version": "steer-gate-signature/v1",
+  "organization": "steer-platform",
+  "productHome": "https://github.com/idrissenayat/steer-platform",
+  "item": "0001-flight-deck-foundation",
+  "gate": 1,
+  "decision": "approved",
+  "artifactRevision": "281c9736816ec22fa1209b060b58fa8164519f7c",
+  "artifacts": [
+    {
+      "path": "intent/0001/BRIEF.md",
+      "revision": "281c9736816ec22fa1209b060b58fa8164519f7c"
+    },
+    {
+      "path": "intent/0001/SPEC.md",
+      "revision": "281c9736816ec22fa1209b060b58fa8164519f7c"
+    },
+    {
+      "path": "intent/0001/ARCHITECTURE.md",
+      "documentRevision": 2,
+      "revision": "281c9736816ec22fa1209b060b58fa8164519f7c"
+    },
+    {
+      "path": "intent/0001/PLAN.md",
+      "revision": "281c9736816ec22fa1209b060b58fa8164519f7c"
+    }
+  ],
+  "operatingContext": {
+    "profile": "commercial",
+    "teamMode": "solo"
+  },
+  "proof": {
+    "type": "provider-recorded",
+    "provider": "openai-codex",
+    "sessionId": "01a049c9-80d5-7710-9607-2a5ae0c23e43",
+    "recordedAt": "2026-09-02T18:57:58Z"
+  },
+  "signatures": [
+    {
+      "identity": "Idriss Enayat",
+      "subject": "github:idrissenayat",
+      "hat": "product-lead",
+      "sequence": 1,
+      "signedAt": "2026-09-02T18:57:58Z"
+    },
+    {
+      "identity": "Idriss Enayat",
+      "subject": "github:idrissenayat",
+      "hat": "product-designer",
+      "sequence": 2,
+      "signedAt": "2026-09-02T18:57:58Z"
+    }
+  ],
+  "architectureDecisions": {
+    "codeHost": "github-app",
+    "identity": "keycloak-via-normalized-oidc-adapter",
+    "commercialApprovalRecord": "provider-recorded",
+    "regulatedApprovalRequirement": "cryptographically-signed-log-before-regulated-pilot",
+    "analytics": {
+      "binding": "self-hosted-posthog",
+      "eventContent": "content-free",
+      "rawEventRetentionDays": 90
+    },
+    "deployment": {
+      "profile": "portable-containers",
+      "spendingAuthorized": false,
+      "separatePaidDeploymentApprovalRequired": true,
+      "pilotInfrastructureCeilingUsdPerMonth": 1000,
+      "modelUsageExcluded": true
+    }
+  },
+  "declaration": [
+    "I, Idriss Enayat (`github:idrissenayat`), confirm commercial solo mode and that I hold the Product Lead and Product Designer hats. I sign Gate 1 for `intent/0001` at commit `281c9736816ec22fa1209b060b58fa8164519f7c`, covering the Brief, Spec, Architecture revision 2, and Phase 1 Plan. I approve GitHub App as the first code-host binding; Keycloak through the normalized OIDC adapter as the first identity binding; provider-recorded approvals for the commercial pilot with a cryptographically signed-log requirement before any regulated pilot; self-hosted PostHog using content-free events with 90-day raw-event retention; and portable container deployment with a pilot infrastructure ceiling of $1,000 per month excluding model usage.",
+    "Phase 1 infrastructure spending is not authorized by this signature. Any paid deployment requires separate approval, with a maximum pilot ceiling of $1,000 per month excluding model usage."
+  ]
+}

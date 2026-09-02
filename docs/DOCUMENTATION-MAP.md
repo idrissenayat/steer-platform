@@ -14,8 +14,8 @@ and which implementation evidence remains outside the repository.
 | Framework | What the structure is: organization topology, artifact chain, plays, gates, measurement, and sizing | `STEER-Framework.docx`; Learn projection `kit/canon/framework.md` |
 | Operating Model | How organizations run STEER | `STEER-Operating-Model.docx`; Learn projection `kit/canon/operating-model.md` |
 | Practice Notes | Detailed operating guidance | the three root `STEER-*.docx` practice notes and `kit/practices/*.md` |
-| Product intent | What this platform must implement and how it is examined | canonical numbered chains under `intent/0001` through `intent/0004` |
-| Production architecture | The Phase 1 foundation, stable seams, phased end state, and architecture exit exam | `intent/0001/ARCHITECTURE.md` and `docs/architecture/STEER-platform-end-state-phased.png` |
+| Product intent | What this platform must implement and how it is examined | canonical numbered chains under `intent/0001` through `intent/0006` |
+| Production architecture | The Phase 1 foundation, stable seams, phased end state, and architecture exit exam | `intent/0001/ARCHITECTURE.md`, its Gate 1 record at `intent/0001/signatures/gate-1.json`, and `docs/architecture/STEER-platform-end-state-phased.png` |
 | Execution plan | The Gate-bound implementation sequence, evidence route, stop conditions, and pilot closure | `intent/0001/PLAN.md` |
 | Machine policy | Rules enforced by the kit and platform | `kit/policy`, `kit/guardrails`, `kit/bands`, `kit/metrics`, `kit/stack-packs`, and `kit/readiness` |
 | Implementation record | What exists locally and what evidence is still missing | `docs/IMPLEMENTATION.md` and `docs/INTENT-COMPLETION.md` |
@@ -58,10 +58,11 @@ projections of these files and must not become a private source of truth.
 ## Completion boundary
 
 The repository contains the complete v3.1 framework document set and the
-requested fixture-backed UX/domain prototype. The production architecture is a
-Gate 1 draft and is not yet implemented. Production completion requires its
-walking-skeleton exam plus the human and external evidence listed in
-`docs/INTENT-COMPLETION.md`: policy rulings and signatures, live
-identity/code-host configuration, manual accessibility evidence, and an
-approved production measurement window. Fixture data is never promoted as
-production evidence.
+requested fixture-backed UX/domain prototype. The production architecture
+snapshot at commit `281c9736816ec22fa1209b060b58fa8164519f7c` was accepted at
+Gate 1 by the Product Lead and Product Designer hats; its detached signature
+record preserves that snapshot unchanged. The architecture is not yet
+implemented. Production completion still requires Gate 2, the walking-skeleton
+exam, Gate 3 and specialist evidence, live identity/code-host configuration,
+and an approved production measurement window. Fixture data is never promoted
+as production evidence.

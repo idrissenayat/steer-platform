@@ -12,9 +12,11 @@ interview-first brief authoring, scope checks, aging-band huddle signals, and
 the v3.1 agent-first organization setup flow. The Phase 0 kit is independently
 adoptable.
 
-This is not yet a production completion claim. The production Phase 1
+This is not yet a production completion claim. Gate 1 is accepted for the exact
+`281c9736816ec22fa1209b060b58fa8164519f7c` snapshot, with its provider-recorded
+signature in `intent/0001/signatures/gate-1.json`. The production Phase 1
 walking skeleton in `intent/0001/ARCHITECTURE.md` is not implemented. The intent
-also requires human policy rulings, live identity/code-host configuration,
+also requires Gate 2, live identity/code-host configuration, Gate 3 and
 specialist manual evidence, and a 90-day pilot window. None can be replaced by
 fixture data.
 
@@ -22,7 +24,7 @@ fixture data.
 
 | Item | Artifact chain | Implemented now | Completion boundary |
 |---|---|---|---|
-| 0001 · Flight Deck foundation | supplied README and EXAM retained; revised supplied BRIEF and SPEC replace the prior revisions exactly in `intent/0001`; corrected architecture and read-only implementation plan added as drafts | Phase 0 kit, derived workspace, decisions, evidence, role home, authoring, controls, v3.1 organization setup, and local gauntlet | UX/domain prototype green; nine production slices, Phase 1 walking skeleton, live connector, specialist evidence, human signatures, and pilot outcomes remain |
+| 0001 · Flight Deck foundation | supplied README and EXAM retained; revised supplied BRIEF and SPEC replace the prior revisions exactly in `intent/0001`; architecture revision 2 and plan accepted at Gate 1 through a detached record | Phase 0 kit, derived workspace, decisions, evidence, role home, authoring, controls, v3.1 organization setup, local gauntlet, and first two production slices | UX/domain prototype green and Gate 1 recorded; remaining production slices, Gate 2, Phase 1 walking skeleton, live connectors, Gate 3 and specialist evidence, and pilot outcomes remain |
 | 0002 · Backlog instrumentation and baselines | supplied README and BRIEF preserved verbatim in `intent/0002` | typed v1 contract, kit JSON Schema, transient platform adapters, privacy rejection, source-exit distinction, two baseline computations, sample gate, and dry-run | production figures remain pending until a representative window is approved and observed; fixture figures are never promoted |
 | 0003 · Full brief detail view | supplied README, BRIEF, SPEC, and EXAM preserved verbatim in `intent/0003` | complete rendered panel, deep links, provenance variants, cluster/back navigation, revision history, WIP/stale controls, all four actions, external-exit telemetry, and automated accessibility | outcome comparison awaits the 0002 production baseline; manual accessibility record remains |
 | 0004 · Learn STEER hub | supplied README and BRIEF match the existing chain; SPEC and EXAM already canonical in `intent/0004` | repository-source reader, search, section links, glossary peeks, governed correction flow, stateless role paths, agent slices, coarse telemetry, and version guard | onboarding comparison awaits the 0002 production baseline; manual accessibility record and optional Whitepaper URL remain |
@@ -31,10 +33,10 @@ The implementation therefore contains every locally buildable capability in
 0001-0004. It does not mislabel unavailable production observations or human
 signatures as complete.
 
-Phase 1 production delivery has begun with item 0005. Its pnpm/Turborepo
+Phase 1 production delivery began with item 0005. Its pnpm/Turborepo
 workspace and Next.js shell are implemented and verified, while formal Gate
-records and the remaining API/worker/tool/service foundations remain open. It is
-not evidence that the Phase 1 walking skeleton exists.
+2 and Gate 3 records and the remaining API/worker/tool/service foundations
+remain open. It is not evidence that the Phase 1 walking skeleton exists.
 
 Item 0006 also completes the provider-free domain extraction: the original
 modules were moved atomically into `packages/domain`, all consumers use the
@@ -138,14 +140,15 @@ path. Numbered intent sources remain unchanged.
 
 ## Human-owned completion gates
 
-1. Decide whether regulated pilots require cryptographically signed events in
-   Phase 1 or may use provider-recorded approvals until Phase 2.
-2. Confirm GitHub as the first host binding and approve publication of the seam
-   contract in `kit/seams/contracts.md`.
+1. **Decided at Gate 1:** commercial pilots use provider-recorded approvals;
+   any regulated pilot requires a cryptographically signed-log record before it
+   begins.
+2. **Decided at Gate 1:** GitHub App is the first code-host binding.
 3. Approve the notification rule: ambient by default; push only at SLA risk.
 4. Approve assistant data handling: session-only originator text, committed
    artifact as the only retained copy.
-5. Provide Gate 1 and Gate 2 signatures for the intent revisions.
+5. **Gate 1 recorded:** provide the Gate 2 signature after a passing
+   fresh-context Critic review with no unresolved findings.
 6. Run the ten-to-twenty-item pilot and retain 90 days of outcome evidence.
 
 “Complete” means every machine row is green and each human-owned row has an

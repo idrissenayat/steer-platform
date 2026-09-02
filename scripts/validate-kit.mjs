@@ -40,6 +40,7 @@ const required = [
   "docs/architecture/STEER-platform-end-state-phased.png",
   "intent/0001/ARCHITECTURE.md",
   "intent/0001/PLAN.md",
+  "intent/0001/signatures/gate-1.json",
   "intent/0005/README.md",
   "intent/0005/BRIEF.md",
   "intent/0005/SPEC.md",
@@ -88,6 +89,65 @@ if (gatePolicy.minimumDistinctSigners?.commercial?.defaultClosed?.secondLook !==
 }
 if (gatePolicy.minimumDistinctSigners?.regulated?.defaultClosed?.humans !== 2 || !gatePolicy.invariants.signatureBinds.includes("hat")) {
   throw new Error("Operating Model v3.1 requires two distinct regulated signers and identity-plus-hat signatures.");
+}
+
+const gateOneRecord = JSON.parse(await readFile("intent/0001/signatures/gate-1.json", "utf8"));
+const gateOneRevision = "281c9736816ec22fa1209b060b58fa8164519f7c";
+if (
+  gateOneRecord.version !== "steer-gate-signature/v1" ||
+  gateOneRecord.organization !== "steer-platform" ||
+  gateOneRecord.item !== "0001-flight-deck-foundation" ||
+  gateOneRecord.gate !== 1 ||
+  gateOneRecord.decision !== "approved" ||
+  gateOneRecord.artifactRevision !== gateOneRevision
+) {
+  throw new Error("The 0001 Gate 1 record must remain bound to its approved organization, item, gate, decision, and revision.");
+}
+const expectedGateOneArtifacts = [
+  "intent/0001/BRIEF.md",
+  "intent/0001/SPEC.md",
+  "intent/0001/ARCHITECTURE.md",
+  "intent/0001/PLAN.md",
+];
+if (
+  gateOneRecord.artifacts?.map((artifact) => artifact.path).join(",") !== expectedGateOneArtifacts.join(",") ||
+  gateOneRecord.artifacts.some((artifact) => artifact.revision !== gateOneRevision) ||
+  gateOneRecord.artifacts.find((artifact) => artifact.path.endsWith("ARCHITECTURE.md"))?.documentRevision !== 2
+) {
+  throw new Error("The 0001 Gate 1 record must cover the approved Brief, Spec, Architecture revision 2, and Plan snapshot.");
+}
+const expectedGateOneHats = ["product-lead", "product-designer"];
+if (
+  gateOneRecord.operatingContext?.profile !== "commercial" ||
+  gateOneRecord.operatingContext?.teamMode !== "solo" ||
+  gateOneRecord.signatures?.map((signature) => signature.hat).join(",") !== expectedGateOneHats.join(",") ||
+  gateOneRecord.signatures.some((signature, index) =>
+    signature.identity !== "Idriss Enayat" ||
+    signature.subject !== "github:idrissenayat" ||
+    signature.sequence !== index + 1 ||
+    !signature.signedAt
+  ) ||
+  gateOneRecord.proof?.type !== "provider-recorded" ||
+  !gateOneRecord.proof?.sessionId
+) {
+  throw new Error("The 0001 Gate 1 record must preserve commercial solo mode and both ordered human-hat signatures.");
+}
+const approvedDeployment = gateOneRecord.architectureDecisions?.deployment;
+if (
+  gateOneRecord.architectureDecisions?.codeHost !== "github-app" ||
+  gateOneRecord.architectureDecisions?.identity !== "keycloak-via-normalized-oidc-adapter" ||
+  gateOneRecord.architectureDecisions?.commercialApprovalRecord !== "provider-recorded" ||
+  gateOneRecord.architectureDecisions?.regulatedApprovalRequirement !== "cryptographically-signed-log-before-regulated-pilot" ||
+  gateOneRecord.architectureDecisions?.analytics?.binding !== "self-hosted-posthog" ||
+  gateOneRecord.architectureDecisions?.analytics?.eventContent !== "content-free" ||
+  gateOneRecord.architectureDecisions?.analytics?.rawEventRetentionDays !== 90 ||
+  approvedDeployment?.profile !== "portable-containers" ||
+  approvedDeployment?.spendingAuthorized !== false ||
+  approvedDeployment?.separatePaidDeploymentApprovalRequired !== true ||
+  approvedDeployment?.pilotInfrastructureCeilingUsdPerMonth !== 1000 ||
+  approvedDeployment?.modelUsageExcluded !== true
+) {
+  throw new Error("The 0001 Gate 1 architecture rulings or no-spend boundary drifted.");
 }
 
 const sizingPolicy = JSON.parse(await readFile("kit/policy/sizing.json", "utf8"));
