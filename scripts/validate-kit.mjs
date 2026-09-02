@@ -41,6 +41,7 @@ const required = [
   "intent/0001/ARCHITECTURE.md",
   "intent/0001/PLAN.md",
   "intent/0001/signatures/gate-1.json",
+  "intent/0001/reviews/gate-2-critic-a43b32a.json",
   "intent/0005/README.md",
   "intent/0005/BRIEF.md",
   "intent/0005/SPEC.md",
@@ -148,6 +149,24 @@ if (
   approvedDeployment?.modelUsageExcluded !== true
 ) {
   throw new Error("The 0001 Gate 1 architecture rulings or no-spend boundary drifted.");
+}
+
+const gateTwoCritic = JSON.parse(await readFile("intent/0001/reviews/gate-2-critic-a43b32a.json", "utf8"));
+if (
+  gateTwoCritic.version !== "steer-critic-review/v1" ||
+  gateTwoCritic.item !== "0001-flight-deck-foundation" ||
+  gateTwoCritic.gate !== 2 ||
+  gateTwoCritic.targetRevision !== "a43b32a6671a3310d99f214079a432485e5de0f9" ||
+  gateTwoCritic.reviewer?.inheritedConversation !== false ||
+  gateTwoCritic.reviewer?.priorStatusTreatedAsEvidence !== false ||
+  gateTwoCritic.disposition !== "hold-send-back" ||
+  gateTwoCritic.pass !== false ||
+  gateTwoCritic.unresolved?.total !== 6 ||
+  gateTwoCritic.unresolved?.blocker !== 3 ||
+  gateTwoCritic.unresolved?.major !== 3 ||
+  gateTwoCritic.findings?.length !== 6
+) {
+  throw new Error("The first 0001 Gate 2 fresh-context Critic record must preserve its exact-revision HOLD disposition and six findings.");
 }
 
 const sizingPolicy = JSON.parse(await readFile("kit/policy/sizing.json", "utf8"));

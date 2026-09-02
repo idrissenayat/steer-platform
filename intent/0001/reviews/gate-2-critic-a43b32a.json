@@ -1,0 +1,107 @@
+{
+  "version": "steer-critic-review/v1",
+  "item": "0001-flight-deck-foundation",
+  "gate": 2,
+  "targetRevision": "a43b32a6671a3310d99f214079a432485e5de0f9",
+  "reviewedAt": "2026-09-02T19:38:15Z",
+  "reviewer": {
+    "type": "fresh-context-critic-agent",
+    "provider": "openai-codex",
+    "task": "/root/gate2_critic",
+    "inheritedConversation": false,
+    "priorStatusTreatedAsEvidence": false,
+    "memoryUse": "verification-checklist-only; every finding reverified against the target revision"
+  },
+  "validation": {
+    "command": "pnpm check",
+    "passed": true,
+    "testFilesPassed": 17,
+    "testsPassed": 87,
+    "workspaceTestsPassed": 2,
+    "scope": "current prototype and foundation only; not the unimplemented production architecture"
+  },
+  "disposition": "hold-send-back",
+  "pass": false,
+  "unresolved": {
+    "total": 6,
+    "blocker": 3,
+    "major": 3,
+    "minor": 0,
+    "nit": 0
+  },
+  "findings": [
+    {
+      "id": "G2C-001",
+      "rank": "blocker",
+      "summary": "The Gate 2 artifact does not contain or bind the accepted production exit exam.",
+      "evidence": [
+        "intent/0001/EXAM.md:3-7 derives only from the Brief and Spec and binds no exact approved revision or Architecture revision 2",
+        "intent/0001/ARCHITECTURE.md:229-255 defines thirteen mandatory Phase 1 exit cases",
+        "intent/0001/PLAN.md:15-22 requires the original Exam and all thirteen architecture cases",
+        "kit/policy/gates.json:19-22 makes EXAM the governed Gate 2 artifact"
+      ],
+      "requiredResolution": "Issue a revision-bound Gate 2 Exam that incorporates the complete accepted production exit exam."
+    },
+    {
+      "id": "G2C-002",
+      "rank": "blocker",
+      "summary": "Required tenancy and signature safety invariants are missing from the Exam.",
+      "evidence": [
+        "intent/0001/ARCHITECTURE.md:173-182 requires the complete signature envelope",
+        "intent/0001/ARCHITECTURE.md:257-263 requires negative isolation tests at every named boundary",
+        "intent/0001/EXAM.md:25-28 checks only identity, sequence, and revision",
+        "intent/0001/EXAM.md:74-83 omits the cross-tenant, agent-never-signs, distinct-signer, and separate-session matrices"
+      ],
+      "requiredResolution": "Add complete signature-envelope and cross-tenant negative matrices, including agent refusal and signer-policy cases."
+    },
+    {
+      "id": "G2C-003",
+      "rank": "blocker",
+      "summary": "Builder write-protection is asserted but not enforced by required CI.",
+      "evidence": [
+        "intent/0001/EXAM.md:5-7 claims the hook enforces protection",
+        "kit/policy/gates.json:60-63 makes Builder EXAM immutability an invariant",
+        "scripts/check-exam-protection.mjs:1-13 exists but is not called by package.json",
+        ".github/workflows/repository-contract.yml:57-61 runs pnpm check without an actor-bound EXAM protection check"
+      ],
+      "requiredResolution": "Make EXAM protection a required actor-bound CI control rather than an opt-in local hook."
+    },
+    {
+      "id": "G2C-004",
+      "rank": "major",
+      "summary": "The pass condition omits the accepted outcome contract.",
+      "evidence": [
+        "intent/0001/BRIEF.md:24-32 defines the 90-day outcome and guardrail",
+        "intent/0001/PLAN.md:15-22 distinguishes technical release from outcome completion",
+        "intent/0001/EXAM.md:102-106 can pass without proving the accepted product outcome"
+      ],
+      "requiredResolution": "Define separate technical-release and outcome-complete verdicts, including ten real items and the 90-day measures."
+    },
+    {
+      "id": "G2C-005",
+      "rank": "major",
+      "summary": "Several cases are not independently reproducible.",
+      "evidence": [
+        "intent/0001/EXAM.md:11-18 does not freeze combinations, serialization, or storage-crawl boundaries",
+        "intent/0001/EXAM.md:47-51 does not freeze the prompt corpus or regression baseline",
+        "intent/0001/EXAM.md:95-100 does not define environment, repetitions, percentile calculation, clocks, or evidence outputs",
+        "tests/performance.test.ts:5-14 uses one in-process timing sample and models no repositories",
+        "tests/reconciliation-chaos.test.ts:7-17 times a local function rather than event-to-board latency or ten-minute wall-clock recovery"
+      ],
+      "requiredResolution": "Specify versioned fixtures, deterministic seeds, canonical serialization, environments, clocks, repetitions, percentile method, and retained evidence for every quantitative case."
+    },
+    {
+      "id": "G2C-006",
+      "rank": "major",
+      "summary": "Default-closed domain activation and specialist evidence are under-specified.",
+      "evidence": [
+        "intent/0001/EXAM.md:3-7 declares only security, privacy, and accessibility",
+        "kit/policy/gates.json:4-12 also defaults reliability and irreversible operations closed",
+        "intent/0001/EXAM.md:102-106 does not identify activated domains, signer hats, evidence, or revision binding",
+        "kit/templates/EXAM.md:35-38 requires a current signature for every activated default-closed domain"
+      ],
+      "requiredResolution": "Resolve applicability explicitly and bind each activated domain's specialist evidence to the current Exam revision; rerun Gate 1 if signed Brief domain tags change."
+    }
+  ],
+  "recommendedGate2Disposition": "HOLD / SEND BACK; do not sign Gate 2 at a43b32a6671a3310d99f214079a432485e5de0f9. Have an independent Tech Lead or Test Agent issue the corrected revision-bound Exam, implement actor-bound CI protection, resolve every finding, and run a new exact-revision fresh-context Critic review."
+}
