@@ -15,6 +15,7 @@ and which implementation evidence remains outside the repository.
 | Operating Model | How organizations run STEER | `STEER-Operating-Model.docx`; Learn projection `kit/canon/operating-model.md` |
 | Practice Notes | Detailed operating guidance | the three root `STEER-*.docx` practice notes and `kit/practices/*.md` |
 | Product intent | What this platform must implement and how it is examined | canonical numbered chains under `intent/0001` through `intent/0004` |
+| Production architecture | The Phase 1 foundation, stable seams, phased end state, and architecture exit exam | `intent/0001/ARCHITECTURE.md` and `docs/architecture/STEER-platform-end-state-phased.png` |
 | Machine policy | Rules enforced by the kit and platform | `kit/policy`, `kit/guardrails`, `kit/bands`, `kit/metrics`, `kit/stack-packs`, and `kit/readiness` |
 | Implementation record | What exists locally and what evidence is still missing | `docs/IMPLEMENTATION.md` and `docs/INTENT-COMPLETION.md` |
 
@@ -45,14 +46,21 @@ not rewritten merely to restate a later implementation decision.
 4. Update `docs/INTENT-COMPLETION.md` with the implementation boundary.
 5. Run `pnpm check`, render every changed Word document, and inspect every page.
 
+An architecture change must also update the 0001 architecture record, its
+diagram, the relevant seam contract, Stack Pack, and implementation boundary in
+the same commit. The current fixture-backed prototype cannot satisfy the
+production walking-skeleton exam merely by reproducing the intended screens.
+
 Git is the sole system of record. The browser and platform are rebuildable
 projections of these files and must not become a private source of truth.
 
 ## Completion boundary
 
-The repository contains the complete locally buildable v3.1 documentation and
-implementation. Production completion still requires the human and external
-evidence listed in `docs/INTENT-COMPLETION.md`: policy rulings and signatures,
-live identity/code-host configuration, manual accessibility evidence, and an
+The repository contains the complete v3.1 framework document set and the
+requested fixture-backed UX/domain prototype. The production architecture is a
+Gate 1 draft and is not yet implemented. Production completion requires its
+walking-skeleton exam plus the human and external evidence listed in
+`docs/INTENT-COMPLETION.md`: policy rulings and signatures, live
+identity/code-host configuration, manual accessibility evidence, and an
 approved production measurement window. Fixture data is never promoted as
 production evidence.

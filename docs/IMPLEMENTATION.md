@@ -1,7 +1,9 @@
 # STEER platform implementation
 
-This branch implements the Phase 0 kit and a Phase 1 local pilot against a
-rebuildable fixture connector.
+This branch implements the Phase 0 kit and a validated UX/domain prototype
+toward Phase 1 against a rebuildable fixture connector. The production Phase 1
+foundation is defined in `intent/0001/ARCHITECTURE.md`; it is not yet
+implemented.
 
 ## Implemented
 
@@ -86,6 +88,13 @@ the interaction and domain contracts without requesting credentials or making
 external writes. Production completion requires an approved signature policy,
 OIDC configuration, a live code-host/CI connector, specialist manual
 accessibility evidence, and pilot outcome data. See `INTENT-COMPLETION.md`.
+
+The production foundation still to be built includes the pnpm/Turborepo
+monorepo, Next.js web application, Hono API and typed tool registry, MCP v2
+transport, GitHub App adapter, Postgres/Drizzle/RLS projections, Temporal
+workers, version-pinned Mastra adapter, LiteLLM gateway, OIDC, tenant-scoped
+evidence storage, product analytics, a secret-manager seam, and the thirteen-
+case architecture walking skeleton.
 
 ## Local commands
 

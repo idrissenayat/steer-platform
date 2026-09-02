@@ -5,22 +5,24 @@ Last implementation audit: 2026-09-02.
 
 ## Outcome status
 
-The local pilot now demonstrates the complete human journey against a fixture
+The local prototype now demonstrates the complete human journey against a fixture
 repository: computed workspace, role-specific decisions, Gate-specific review,
 revision-safe sign/send-back, evidence assembly, continuous work-item threads,
 interview-first brief authoring, scope checks, aging-band huddle signals, and
 the v3.1 agent-first organization setup flow. The Phase 0 kit is independently
 adoptable.
 
-This is not yet a production completion claim. The intent itself requires
-human policy rulings, live identity/code-host configuration, specialist manual
-evidence, and a 90-day pilot window. Those cannot be replaced by fixture data.
+This is not yet a production completion claim. The production Phase 1
+walking skeleton in `intent/0001/ARCHITECTURE.md` is not implemented. The intent
+also requires human policy rulings, live identity/code-host configuration,
+specialist manual evidence, and a 90-day pilot window. None can be replaced by
+fixture data.
 
 ## Numbered item audit
 
 | Item | Artifact chain | Implemented now | Completion boundary |
 |---|---|---|---|
-| 0001 · Flight Deck foundation | supplied README and EXAM retained; revised supplied BRIEF and SPEC replace the prior revisions exactly in `intent/0001` | Phase 0 kit, derived workspace, decisions, evidence, role home, authoring, controls, v3.1 organization setup, and local gauntlet | local/automated scope green; live connector, specialist evidence, human signatures, and pilot outcomes remain |
+| 0001 · Flight Deck foundation | supplied README and EXAM retained; revised supplied BRIEF and SPEC replace the prior revisions exactly in `intent/0001`; corrected architecture added as a Gate 1 draft | Phase 0 kit, derived workspace, decisions, evidence, role home, authoring, controls, v3.1 organization setup, and local gauntlet | UX/domain prototype green; production Phase 1 walking skeleton, live connector, specialist evidence, human signatures, and pilot outcomes remain |
 | 0002 · Backlog instrumentation and baselines | supplied README and BRIEF preserved verbatim in `intent/0002` | typed v1 contract, kit JSON Schema, transient platform adapters, privacy rejection, source-exit distinction, two baseline computations, sample gate, and dry-run | production figures remain pending until a representative window is approved and observed; fixture figures are never promoted |
 | 0003 · Full brief detail view | supplied README, BRIEF, SPEC, and EXAM preserved verbatim in `intent/0003` | complete rendered panel, deep links, provenance variants, cluster/back navigation, revision history, WIP/stale controls, all four actions, external-exit telemetry, and automated accessibility | outcome comparison awaits the 0002 production baseline; manual accessibility record remains |
 | 0004 · Learn STEER hub | supplied README and BRIEF match the existing chain; SPEC and EXAM already canonical in `intent/0004` | repository-source reader, search, section links, glossary peeks, governed correction flow, stateless role paths, agent slices, coarse telemetry, and version guard | onboarding comparison awaits the 0002 production baseline; manual accessibility record and optional Whitepaper URL remain |
@@ -28,6 +30,11 @@ evidence, and a 90-day pilot window. Those cannot be replaced by fixture data.
 The implementation therefore contains every locally buildable capability in
 0001-0004. It does not mislabel unavailable production observations or human
 signatures as complete.
+
+That statement covers the requested feature artifacts in the present
+prototype, not the newly adopted production architecture. The thirteen-case
+walking-skeleton exam must pass before the Phase 1 foundation can be marked
+implemented.
 
 ## Exam reconciliation
 

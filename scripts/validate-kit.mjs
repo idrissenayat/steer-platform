@@ -23,6 +23,7 @@ const required = [
   "kit/metrics/events.schema.json",
   "kit/metrics/baselines.json",
   "kit/stack-packs/typescript-react-web.json",
+  "kit/stack-packs/steer-platform-typescript.json",
   "kit/readiness/checks.json",
   "kit/CULTURE.md",
   "kit/seams/contracts.md",
@@ -35,6 +36,9 @@ const required = [
   "kit/canon/glossary.md",
   "kit/canon/guidebook.md",
   "docs/DOCUMENTATION-MAP.md",
+  "docs/architecture/README.md",
+  "docs/architecture/STEER-platform-end-state-phased.png",
+  "intent/0001/ARCHITECTURE.md",
 ];
 
 for (const path of required) {
@@ -127,12 +131,36 @@ if (learnManifest.agentSlices.builder.includes("operating-model") || !learnManif
 
 const organizationPolicy = JSON.parse(await readFile("kit/policy/organization.json", "utf8"));
 const stackPack = JSON.parse(await readFile("kit/stack-packs/typescript-react-web.json", "utf8"));
+const platformStackPack = JSON.parse(await readFile("kit/stack-packs/steer-platform-typescript.json", "utf8"));
 const readiness = JSON.parse(await readFile("kit/readiness/checks.json", "utf8"));
 if (organizationPolicy.frameworkVersion !== kitVersion.frameworkVersion || organizationPolicy.inheritance.mayWeakenDefaultClosed !== false) {
   throw new Error("Organization policy must align to the kit and forbid weaker lower-level default-closed policy.");
 }
 if (stackPack.frameworkVersion !== kitVersion.frameworkVersion || readiness.findingDestination !== "auto-drafted-on-ramp-brief") {
   throw new Error("The current Stack Pack and readiness scan must align to Operating Model v3.1.");
+}
+if (platformStackPack.frameworkVersion !== kitVersion.frameworkVersion || platformStackPack.status !== "gate-1-draft") {
+  throw new Error("The STEER production Stack Pack must remain a Gate 1 draft aligned to Framework v3.1.");
+}
+if (!platformStackPack.phase1Required.includes("product-analytics-adapter") || !platformStackPack.phase1Required.includes("secret-manager-seam")) {
+  throw new Error("The production Stack Pack must keep analytics and secret management in Phase 1.");
+}
+
+const architecture = await readFile("intent/0001/ARCHITECTURE.md", "utf8");
+for (const invariant of [
+  "The current Vite/React fixture application is a validated UX and domain",
+  "The walking skeleton is the **Phase 1 exit exam**",
+  "Product analytics enters in Phase 1",
+  "Design system as code enters in Phase 1",
+  "Git/code-host records are authoritative",
+  "official MCP TypeScript SDK v2",
+]) {
+  if (!architecture.includes(invariant)) {
+    throw new Error(`Production architecture invariant missing: ${invariant}`);
+  }
+}
+if (architecture.includes("Before Phase 1 begins") || architecture.includes("Product-analytics adapter (PostHog or existing) | 2")) {
+  throw new Error("The production architecture has reintroduced a corrected phase contradiction.");
 }
 
 const eventSchema = JSON.parse(await readFile("kit/metrics/events.schema.json", "utf8"));

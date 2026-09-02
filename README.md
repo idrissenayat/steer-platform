@@ -9,7 +9,7 @@ item one, are the framework's pilot evidence.
 
 | Item | Canonical artifacts | Platform implementation | Remaining evidence |
 |---|---|---|---|
-| 0001 · Flight Deck foundation | `intent/0001/README.md`, revised `BRIEF.md` and `SPEC.md`, and existing `EXAM.md` | Phase 0 kit, Phase 1 fixture-backed workspace, and the v3.1 organization/onboarding model are implemented | live connector, human accessibility record, pilot window, human signatures |
+| 0001 · Flight Deck foundation | `intent/0001/README.md`, revised `BRIEF.md` and `SPEC.md`, existing `EXAM.md`, and Gate 1 `ARCHITECTURE.md` | Phase 0 kit and the fixture-backed UX/domain prototype, including the v3.1 organization/onboarding model, are implemented | production Phase 1 walking skeleton, live connector, human accessibility record, pilot window, human signatures |
 | 0002 · Instrumentation and baselines | `intent/0002/README.md`, `BRIEF.md` | versioned content-free event schema, adapters, privacy validation, and both baseline computations are implemented | Product Lead-approved production window and representative figures |
 | 0003 · Full brief detail view | `intent/0003/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md` | rendered, deep-linkable, revision-safe detail panel and all four actions are implemented | 0002 production baseline and manual accessibility record |
 | 0004 · Learn STEER hub | `intent/0004/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md` | source-faithful reader, search, glossary, role orientation, agent slices, and corpus build guard are implemented | 0002 production baseline and manual accessibility record |
@@ -78,6 +78,10 @@ comparison remains dependent on the 0002 first-login baseline.
   no-invention path from natural language to committed artifacts.
 - `STEER-The-Three-Surfaces.docx` — Practice Note 3, defining the intent
   backlog, pull boundary, role home, and protected attention hierarchy.
+- `intent/0001/ARCHITECTURE.md` — the Gate 1 production foundation, stable
+  seams, phase boundaries, and walking-skeleton acceptance exam.
+- `docs/architecture/STEER-platform-end-state-phased.png` — the visual
+  projection of that phased architecture.
 - `kit/learn-manifest.json` — the v3.1 human and agent corpus map used by the
   Learn hub, role slices, orientation paths, and build-time version guard.
 

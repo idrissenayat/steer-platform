@@ -1,0 +1,63 @@
+{
+  "id": "steer-platform-typescript",
+  "frameworkVersion": "3.1",
+  "status": "gate-1-draft",
+  "runtime": {
+    "node": "24-lts",
+    "language": "typescript-strict",
+    "workspace": "pnpm-turborepo"
+  },
+  "applications": {
+    "web": "next-app-router-react",
+    "api": "hono-node",
+    "worker": "temporal-typescript"
+  },
+  "contracts": {
+    "schema": "zod",
+    "http": "openapi",
+    "mcp": "typescript-sdk-v2-streamable-http"
+  },
+  "data": {
+    "database": "postgres-16",
+    "orm": "drizzle",
+    "tenancy": "organization-row-level-security",
+    "search": [
+      "postgres-full-text",
+      "pgvector"
+    ],
+    "evidence": "s3-compatible-content-addressed"
+  },
+  "agents": {
+    "platformRuntime": "mastra-pinned-adapter",
+    "orchestration": "temporal",
+    "modelGateway": "litellm-openai-compatible",
+    "builders": "external-runtime-adapter"
+  },
+  "phase1Required": [
+    "github-app",
+    "oidc",
+    "secret-manager-seam",
+    "product-analytics-adapter",
+    "readiness-sandbox",
+    "baseline-evals",
+    "opentelemetry",
+    "design-tokens",
+    "storybook"
+  ],
+  "guardrails": [
+    "domain-no-vendor-sdk",
+    "git-only-authority",
+    "organization-rls-from-first-migration",
+    "agent-never-signs",
+    "no-fixture-production-baselines",
+    "experimental-runtime-behind-adapter"
+  ],
+  "examTemplates": [
+    "vitest-domain",
+    "playwright-flows",
+    "axe-accessibility",
+    "next-production-build",
+    "adapter-contracts",
+    "architecture-walking-skeleton"
+  ]
+}
