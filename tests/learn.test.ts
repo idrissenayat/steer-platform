@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { kitVersion, learnManifest, learnSources } from "../src/data/learn-corpus";
-import { buildLearnCorpus, firstLoginToActionMedian, resolveAgentSlice, resolveLearnLocation, searchLearnCorpus, validateLearnVersion, type HubEvent } from "../src/domain/learn";
+import { buildLearnCorpus, firstLoginToActionMedian, resolveAgentSlice, resolveLearnLocation, searchLearnCorpus, validateLearnVersion, type HubEvent } from "@steer/domain/learn";
 
 const corpus = buildLearnCorpus(learnManifest, learnSources);
 

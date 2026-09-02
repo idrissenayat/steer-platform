@@ -1,5 +1,5 @@
-import type { GateActionResult } from "../domain/actions";
-import type { GateAction, IdentityContext, ProjectionEvent, WorkItemChain } from "../domain/types";
+import type { GateActionResult } from "@steer/domain/actions";
+import type { GateAction, IdentityContext, ProjectionEvent, WorkItemChain } from "@steer/domain/types";
 
 export interface ReconciliationResult {
   events: ProjectionEvent[];

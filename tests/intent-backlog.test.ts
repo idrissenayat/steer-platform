@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { demoAsOf } from "../src/data/demo-chain";
 import { demoIntents, pilotMetrics } from "../src/data/demo-intents";
-import { declineIntent, homeNotifications, projectIntentBacklog, pullDisposition, surfacePriority } from "../src/domain/intent-backlog";
+import { declineIntent, homeNotifications, projectIntentBacklog, pullDisposition, surfacePriority } from "@steer/domain/intent-backlog";
 
 describe("intent backlog and three-surface home", () => {
   it("refuses pull at the visible WIP limit", () => {

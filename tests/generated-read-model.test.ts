@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { buildReadModel, gateReady, isGateComplete, requiredRoles } from "../src/domain/read-model";
-import type { ArtifactKind, Gate, WorkItemChain } from "../src/domain/types";
+import { buildReadModel, gateReady, isGateComplete, requiredRoles } from "@steer/domain/read-model";
+import type { ArtifactKind, Gate, WorkItemChain } from "@steer/domain/types";
 
 const artifactOrder: ArtifactKind[] = ["brief", "spec", "exam", "plan", "diff", "review", "release", "band", "learning"];
 const gates = [1, 2, 3] as const;

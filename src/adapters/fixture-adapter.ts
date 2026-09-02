@@ -1,6 +1,6 @@
-import { applyGateAction } from "../domain/actions";
-import { reconcileProjection, replayEvents } from "../domain/replay";
-import type { GateAction, IdentityContext, ProjectionEvent, WorkItemChain } from "../domain/types";
+import { applyGateAction } from "@steer/domain/actions";
+import { reconcileProjection, replayEvents } from "@steer/domain/replay";
+import type { GateAction, IdentityContext, ProjectionEvent, WorkItemChain } from "@steer/domain/types";
 import type { ChainAdapter, ReconciliationResult } from "./types";
 
 export class FixtureChainAdapter implements ChainAdapter {

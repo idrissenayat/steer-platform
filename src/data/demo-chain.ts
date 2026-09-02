@@ -1,4 +1,4 @@
-import type { WorkItemChain } from "../domain/types";
+import type { WorkItemChain } from "@steer/domain/types";
 
 const signedAt = "2026-08-28T14:00:00Z";
 

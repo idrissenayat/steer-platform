@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { kitVersion, learnManifest, learnSources } from "../data/learn-corpus";
-import { buildLearnCorpus, resolveLearnLocation, searchLearnCorpus, slugifyLearn, type HubEvent, type LearnBlock, type LearnPage } from "../domain/learn";
-import type { Role } from "../domain/types";
+import { buildLearnCorpus, resolveLearnLocation, searchLearnCorpus, slugifyLearn, type HubEvent, type LearnBlock, type LearnPage } from "@steer/domain/learn";
+import type { Role } from "@steer/domain/types";
 import { CloseIcon } from "./Icons";
 
 const glossaryTerms = ["greenfield indicator", "outcome contract", "organization", "stack pack", "work item", "default-closed", "default-open", "intent", "pull", "exam", "gate", "band", "hat"];

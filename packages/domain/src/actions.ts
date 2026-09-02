@@ -43,7 +43,7 @@ export function applyGateAction(
     return {
       ok: false,
       code: "stale-revision",
-      currentRevision,
+      ...(currentRevision ? { currentRevision } : {}),
       message: "The artifact changed after this decision was rendered. Review the current revision.",
     };
   }
@@ -64,7 +64,7 @@ export function applyGateAction(
       role: decision.role,
       revision: decision.revision,
       sequence: decision.sequencePosition,
-      sessionId: action.sessionId,
+      ...(action.sessionId ? { sessionId: action.sessionId } : {}),
       signedAt: action.at,
       signer: actor.displayName,
       subject: actor.subject,

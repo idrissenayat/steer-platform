@@ -8,7 +8,7 @@ import glossary from "../../kit/canon/glossary.md?raw";
 import guidebook from "../../kit/canon/guidebook.md?raw";
 import manifest from "../../kit/learn-manifest.json";
 import version from "../../kit/version.json";
-import type { LearnManifest } from "../domain/learn";
+import type { LearnManifest } from "@steer/domain/learn";
 
 export const learnSources: Record<string, string> = {
   methodology,

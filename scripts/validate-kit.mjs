@@ -1,4 +1,4 @@
-import { readFile, stat } from "node:fs/promises";
+import { readFile, readdir, stat } from "node:fs/promises";
 
 const required = [
   "kit/templates/BRIEF.md",
@@ -57,6 +57,15 @@ const required = [
   "apps/web/app/page.tsx",
   "apps/web/app/styles.css",
   "apps/web/test/design-tokens.test.mjs",
+  "intent/0006/README.md",
+  "intent/0006/BRIEF.md",
+  "intent/0006/SPEC.md",
+  "intent/0006/EXAM.md",
+  "intent/0006/PLAN.md",
+  "packages/domain/package.json",
+  "packages/domain/tsconfig.json",
+  "packages/domain/src/types.ts",
+  "packages/domain/src/read-model.ts",
 ];
 
 for (const path of required) {
@@ -212,6 +221,24 @@ if (webPackage.dependencies.next !== "16.3.4" || webPackage.name !== "@steer/web
 }
 if (!webPackage.scripts.typecheck.startsWith("next typegen")) {
   throw new Error("The Next.js workspace must generate route types before standalone typechecking.");
+}
+
+const domainPackage = JSON.parse(await readFile("packages/domain/package.json", "utf8"));
+if (domainPackage.name !== "@steer/domain" || workspacePackage.dependencies?.["@steer/domain"] !== "workspace:*") {
+  throw new Error("The prototype and production workspace must share the owned domain package.");
+}
+if (domainPackage.dependencies && Object.keys(domainPackage.dependencies).length) {
+  throw new Error("The provider-free domain package may not carry runtime dependencies.");
+}
+const legacyConsumers = [
+  ...(await readdir("src", { recursive: true })).map((path) => `src/${path}`),
+  ...(await readdir("tests", { recursive: true })).map((path) => `tests/${path}`),
+].filter((path) => /\.(?:ts|tsx)$/.test(path));
+for (const path of legacyConsumers) {
+  const source = await readFile(path, "utf8");
+  if (/from\s+["'](?:\.\.?\/)*domain\/|src\/domain\//.test(source)) {
+    throw new Error(`Legacy domain import remains after package extraction: ${path}`);
+  }
 }
 
 const eventSchema = JSON.parse(await readFile("kit/metrics/events.schema.json", "utf8"));

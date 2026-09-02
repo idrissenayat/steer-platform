@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { demoChain } from "../src/data/demo-chain";
-import { buildReadModel } from "../src/domain/read-model";
+import { buildReadModel } from "@steer/domain/read-model";
 
 describe("performance contract", () => {
   it("projects 50 pending decisions across 10 repositories inside the two-second budget", () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { draftBrief, draftRevision } from "../src/domain/brief-author";
+import { draftBrief, draftRevision } from "@steer/domain/brief-author";
 
 describe("guided brief authoring", () => {
   it("produces every required brief section using only supplied system names", () => {

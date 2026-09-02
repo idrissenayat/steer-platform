@@ -33,8 +33,14 @@ signatures as complete.
 
 Phase 1 production delivery has begun with item 0005. Its pnpm/Turborepo
 workspace and Next.js shell are implemented and verified, while formal Gate
-records and the remaining P1-01 packages/service composition remain open. It is
+records and the remaining API/worker/tool/service foundations remain open. It is
 not evidence that the Phase 1 walking skeleton exists.
+
+Item 0006 also completes the provider-free domain extraction: the original
+modules were moved atomically into `packages/domain`, all consumers use the
+workspace package, and stricter optional/index checks were resolved without
+weakening the shared compiler baseline. API, worker, data, and provider
+foundations remain open.
 
 That statement covers the requested feature artifacts in the present
 prototype, not the newly adopted production architecture. The thirteen-case

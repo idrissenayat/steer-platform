@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { draftBrief } from "../src/domain/brief-author";
+import { draftBrief } from "@steer/domain/brief-author";
 
 const prompts = [
   ["Slow policy review", "Policy reviewers manually assemble change evidence", "Review evidence is available beside the decision", "Policy reviewers", "Policy repository"],

@@ -4,17 +4,17 @@ import { GlossaryPeek, LearnHub } from "./components/LearnHub";
 import { OnboardingPanel } from "./components/OnboardingPanel";
 import { demoAsOf, demoChain } from "./data/demo-chain";
 import { demoIntents, pilotMetrics, pilotWipLimit } from "./data/demo-intents";
-import { applyGateAction } from "./domain/actions";
-import { draftBrief, draftRevision } from "./domain/brief-author";
-import { assembleEvidence } from "./domain/evidence";
-import { performDetailAction, previewMergedIntent, type DetailAction, type DetailActionResult } from "./domain/intent-detail";
-import { appendInstrumentationEvent, detailEventToInstrumentation, firstLoginEvent, hubEventToInstrumentation, type InstrumentationEvent } from "./domain/instrumentation";
-import type { HubEvent, LearnPage } from "./domain/learn";
-import { personalCapacityDisposition, proposeOrganizationSetup, type OrganizationProposal } from "./domain/organization";
-import { blankIntentAnswers, buildInterviewDraft, intentInterviewQuestions, pilotSystemContext, type IntentAnswers } from "./domain/intent-interview";
-import { declineIntent, projectIntentBacklog, pullDisposition, type IntentCandidate, type ProjectedIntent } from "./domain/intent-backlog";
-import { buildReadModel, decisionsForRole } from "./domain/read-model";
-import { assessScope } from "./domain/sizing";
+import { applyGateAction } from "@steer/domain/actions";
+import { draftBrief, draftRevision } from "@steer/domain/brief-author";
+import { assembleEvidence } from "@steer/domain/evidence";
+import { performDetailAction, previewMergedIntent, type DetailAction, type DetailActionResult } from "@steer/domain/intent-detail";
+import { appendInstrumentationEvent, detailEventToInstrumentation, firstLoginEvent, hubEventToInstrumentation, type InstrumentationEvent } from "@steer/domain/instrumentation";
+import type { HubEvent, LearnPage } from "@steer/domain/learn";
+import { personalCapacityDisposition, proposeOrganizationSetup, type OrganizationProposal } from "@steer/domain/organization";
+import { blankIntentAnswers, buildInterviewDraft, intentInterviewQuestions, pilotSystemContext, type IntentAnswers } from "@steer/domain/intent-interview";
+import { declineIntent, projectIntentBacklog, pullDisposition, type IntentCandidate, type ProjectedIntent } from "@steer/domain/intent-backlog";
+import { buildReadModel, decisionsForRole } from "@steer/domain/read-model";
+import { assessScope } from "@steer/domain/sizing";
 import type {
   DecisionCard,
   FlightStage,
@@ -23,7 +23,7 @@ import type {
   ProjectedWorkItem,
   Role,
   WorkItemChain,
-} from "./domain/types";
+} from "@steer/domain/types";
 
 const roleLabels: Record<Role, string> = {
   "org-admin": "Org Admin",

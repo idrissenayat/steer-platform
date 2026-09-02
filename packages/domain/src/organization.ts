@@ -100,7 +100,7 @@ export function readinessScan(mode: RepositoryMode): ReadinessFinding[] {
 export function proposeOrganizationSetup(answers: OnboardingAnswers): OrganizationProposal {
   const description = answers.description.trim();
   if (!description) throw new Error("Tell the platform agent what you are building first.");
-  const product = slug(description.split(/[.!?]/)[0]);
+  const product = slug(description.split(/[.!?]/)[0] ?? description);
   const organization = slug(answers.organizationName ?? `${answers.humanName} organization`);
   const humanHats = answers.teamMode === "solo"
     ? organizationHats

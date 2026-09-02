@@ -13,7 +13,8 @@ item one, are the framework's pilot evidence.
 | 0002 · Instrumentation and baselines | `intent/0002/README.md`, `BRIEF.md` | versioned content-free event schema, adapters, privacy validation, and both baseline computations are implemented | Product Lead-approved production window and representative figures |
 | 0003 · Full brief detail view | `intent/0003/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md` | rendered, deep-linkable, revision-safe detail panel and all four actions are implemented | 0002 production baseline and manual accessibility record |
 | 0004 · Learn STEER hub | `intent/0004/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md` | source-faithful reader, search, glossary, role orientation, agent slices, and corpus build guard are implemented | 0002 production baseline and manual accessibility record |
-| 0005 · Production workspace and web shell | `intent/0005/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md`, `PLAN.md` | pnpm/Turborepo boundary and visually verified Next.js production shell are implemented without changing the prototype | formal gate records; remaining P1-01 repository packages and service composition |
+| 0005 · Production workspace and web shell | `intent/0005/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md`, `PLAN.md` | pnpm/Turborepo boundary and visually verified Next.js production shell are implemented without changing the prototype | formal gate records; API, worker, tool registry, and service composition |
+| 0006 · Provider-free domain extraction | `intent/0006/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md`, `PLAN.md` | the existing domain is moved—not copied—into `@steer/domain`; stricter optional/index checks and all consumers are migrated | formal gate records; API, worker, data, and provider packages remain |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier

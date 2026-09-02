@@ -59,7 +59,7 @@ export function nearestRankPercentile(samples: number[], percentile = sizingPoli
   if (!samples.length) throw new Error("At least one cycle-time sample is required.");
   if (percentile <= 0 || percentile > 1) throw new Error("Percentile must be greater than 0 and at most 1.");
   const ordered = [...samples].sort((left, right) => left - right);
-  return ordered[Math.ceil(percentile * ordered.length) - 1];
+  return ordered[Math.ceil(percentile * ordered.length) - 1]!;
 }
 
 export function agingBandStatus(ageHours: number, expectedMaxHours: number): "within-band" | "huddle" {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { agingBandStatus, assessScope, forecastInitiativeHours, nearestRankPercentile } from "../src/domain/sizing";
+import { agingBandStatus, assessScope, forecastInitiativeHours, nearestRankPercentile } from "@steer/domain/sizing";
 
 describe("STEER sizing and scoping", () => {
   it("accepts one outcome, one writable exam, and one coherent shape", () => {

@@ -59,9 +59,9 @@ export function performDetailAction(input: DetailActionInput): DetailActionResul
       at: input.at,
       durationMs: input.durationMs,
       intentId: input.intent.id,
-      members: input.members,
-      question: input.question?.trim(),
-      reason: input.reason?.trim(),
+      ...(input.members ? { members: input.members } : {}),
+      ...(input.question?.trim() ? { question: input.question.trim() } : {}),
+      ...(input.reason?.trim() ? { reason: input.reason.trim() } : {}),
       revision: input.currentRevision,
       sessionId: input.sessionId,
       surface: "detail_view",
@@ -103,7 +103,7 @@ export function summarizeDetailOutcome(events: DetailActionEvent[]) {
   const detailActions = actions.filter((event) => event.surface === "detail_view");
   const allResolved = detailActions.map((event) => event.durationMs).sort((a, b) => a - b);
   const midpoint = Math.floor(allResolved.length / 2);
-  const medianDurationMs = allResolved.length === 0 ? 0 : allResolved.length % 2 ? allResolved[midpoint] : (allResolved[midpoint - 1] + allResolved[midpoint]) / 2;
+  const medianDurationMs = allResolved.length === 0 ? 0 : allResolved.length % 2 ? allResolved[midpoint]! : (allResolved[midpoint - 1]! + allResolved[midpoint]!) / 2;
   return {
     detailViewShare: actions.length ? detailActions.length / actions.length : 0,
     medianDurationMs,

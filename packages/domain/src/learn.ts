@@ -82,7 +82,7 @@ export function parseLearnPage(meta: LearnDocumentMeta, raw: string): LearnPage 
   }
 
   for (let index = 0; index < lines.length; index += 1) {
-    const line = lines[index].trim();
+    const line = lines[index]!.trim();
     if (line.startsWith("# ")) continue;
     if (line.startsWith("## ")) {
       flushSection();
@@ -96,8 +96,8 @@ export function parseLearnPage(meta: LearnDocumentMeta, raw: string): LearnPage 
       const headers = line.slice(1, -1).split("|").map((cell) => stripInlineMarkdown(cell.trim()));
       index += 2;
       const rows: string[][] = [];
-      while (index < lines.length && lines[index].trim().startsWith("| ")) {
-        rows.push(lines[index].trim().slice(1, -1).split("|").map((cell) => stripInlineMarkdown(cell.trim())));
+      while (index < lines.length && lines[index]!.trim().startsWith("| ")) {
+        rows.push(lines[index]!.trim().slice(1, -1).split("|").map((cell) => stripInlineMarkdown(cell.trim())));
         index += 1;
       }
       index -= 1;
@@ -107,8 +107,8 @@ export function parseLearnPage(meta: LearnDocumentMeta, raw: string): LearnPage 
     if (line.startsWith("- ")) {
       flushParagraph();
       const items: string[] = [];
-      while (index < lines.length && lines[index].trim().startsWith("- ")) {
-        items.push(stripInlineMarkdown(lines[index].trim().slice(2)));
+      while (index < lines.length && lines[index]!.trim().startsWith("- ")) {
+        items.push(stripInlineMarkdown(lines[index]!.trim().slice(2)));
         index += 1;
       }
       index -= 1;
@@ -118,8 +118,8 @@ export function parseLearnPage(meta: LearnDocumentMeta, raw: string): LearnPage 
     if (/^\d+\.\s/.test(line)) {
       flushParagraph();
       const items: string[] = [];
-      while (index < lines.length && /^\d+\.\s/.test(lines[index].trim())) {
-        items.push(stripInlineMarkdown(lines[index].trim().replace(/^\d+\.\s/, "")));
+      while (index < lines.length && /^\d+\.\s/.test(lines[index]!.trim())) {
+        items.push(stripInlineMarkdown(lines[index]!.trim().replace(/^\d+\.\s/, "")));
         index += 1;
       }
       index -= 1;
@@ -133,7 +133,10 @@ export function parseLearnPage(meta: LearnDocumentMeta, raw: string): LearnPage 
 }
 
 export function buildLearnCorpus(manifest: LearnManifest, sources: Record<string, string>): LearnPage[] {
-  return manifest.documents.flatMap((meta) => sources[meta.id] ? [parseLearnPage(meta, sources[meta.id])] : []);
+  return manifest.documents.flatMap((meta) => {
+    const source = sources[meta.id];
+    return source ? [parseLearnPage(meta, source)] : [];
+  });
 }
 
 export function validateLearnVersion(manifest: LearnManifest, version: { frameworkVersion: string; tag: string }): { ok: boolean; message: string } {
@@ -174,8 +177,8 @@ export function resolveLearnLocation(corpus: LearnPage[], pageId: string, sectio
 }
 
 export function firstLoginToActionMedian(firstLogins: Record<string, string>, events: Array<HubEvent & { subject: string }>): number {
-  const durations = events.filter((event) => event.type === "first-action" && firstLogins[event.subject]).map((event) => new Date(event.at).getTime() - new Date(firstLogins[event.subject]).getTime()).filter((duration) => duration >= 0).sort((a, b) => a - b);
+  const durations = events.filter((event) => event.type === "first-action" && firstLogins[event.subject]).map((event) => new Date(event.at).getTime() - new Date(firstLogins[event.subject]!).getTime()).filter((duration) => duration >= 0).sort((a, b) => a - b);
   if (!durations.length) return 0;
   const midpoint = Math.floor(durations.length / 2);
-  return durations.length % 2 ? durations[midpoint] : (durations[midpoint - 1] + durations[midpoint]) / 2;
+  return durations.length % 2 ? durations[midpoint]! : (durations[midpoint - 1]! + durations[midpoint]!) / 2;
 }

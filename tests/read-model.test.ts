@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { demoAsOf, demoChain } from "../src/data/demo-chain";
-import { buildReadModel, decisionsForRole, requiredRoles } from "../src/domain/read-model";
+import { buildReadModel, decisionsForRole, requiredRoles } from "@steer/domain/read-model";
 
 describe("artifact-chain read model", () => {
   it("rebuilds deterministically from the same artifact chain", () => {

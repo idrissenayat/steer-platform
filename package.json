@@ -11,17 +11,19 @@
     "dev": "vite",
     "dev:prototype": "vite",
     "dev:web": "pnpm --filter @steer/web dev",
-    "build": "pnpm build:prototype && turbo run build --filter=@steer/web",
+    "build": "pnpm build:prototype && turbo run build --filter='./apps/*' --filter='./packages/*'",
     "build:prototype": "tsc --noEmit && vite build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "pnpm typecheck:prototype && turbo run typecheck --filter=@steer/web",
+    "test:workspace": "turbo run test --filter='./apps/*' --filter='./packages/*'",
+    "typecheck": "pnpm typecheck:prototype && turbo run typecheck --filter='./apps/*' --filter='./packages/*'",
     "typecheck:prototype": "tsc --noEmit",
     "kit:check": "node scripts/validate-kit.mjs",
     "security:check": "node scripts/audit-workflow-scopes.mjs",
-    "check": "pnpm kit:check && pnpm security:check && pnpm typecheck && pnpm test && pnpm build"
+    "check": "pnpm kit:check && pnpm security:check && pnpm typecheck && pnpm test && pnpm test:workspace && pnpm build"
   },
   "dependencies": {
+    "@steer/domain": "workspace:*",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },

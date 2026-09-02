@@ -88,7 +88,7 @@ function median(values: number[]): number {
   if (!values.length) return 0;
   const ordered = [...values].sort((left, right) => left - right);
   const middle = Math.floor(ordered.length / 2);
-  return ordered.length % 2 ? ordered[middle] : (ordered[middle - 1] + ordered[middle]) / 2;
+  return ordered.length % 2 ? ordered[middle]! : (ordered[middle - 1]! + ordered[middle]!) / 2;
 }
 
 function inWindow(at: string, window: BaselineWindow): boolean {

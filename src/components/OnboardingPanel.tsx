@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { proposeOrganizationSetup, type OperatingProfile, type OrganizationProposal, type RepositoryMode, type TeamMode } from "../domain/organization";
+import { proposeOrganizationSetup, type OperatingProfile, type OrganizationProposal, type RepositoryMode, type TeamMode } from "@steer/domain/organization";
 import { CloseIcon } from "./Icons";
 
 export function OnboardingPanel({ humanName, onClose, onComplete }: { humanName: string; onClose: () => void; onComplete: (proposal: OrganizationProposal) => void }) {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { blankIntentAnswers, buildInterviewDraft, correctionDisposition, pilotSystemContext } from "../src/domain/intent-interview";
+import { blankIntentAnswers, buildInterviewDraft, correctionDisposition, pilotSystemContext } from "@steer/domain/intent-interview";
 
 describe("providing intent", () => {
   it("resolves real system names and moves unknown names to Open Questions", () => {

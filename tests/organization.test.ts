@@ -8,7 +8,7 @@ import {
   readinessScan,
   tenantScopeAllows,
   transferAccountability,
-} from "../src/domain/organization";
+} from "@steer/domain/organization";
 
 describe("Operating Model v3.1 organization contracts", () => {
   it("proposes a complete solo topology with explicit hats and one tenant-scoped agent", () => {

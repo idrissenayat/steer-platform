@@ -46,7 +46,7 @@ export function assembleEvidence(item: WorkItemChain): AssembledEvidence {
 
   const all = [...cases, ...findings, plan];
   return {
-    revision: diff?.revision,
+    ...(diff?.revision ? { revision: diff.revision } : {}),
     current,
     gateThreeReady:
       current &&

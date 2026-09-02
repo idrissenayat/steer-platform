@@ -8,7 +8,7 @@ import {
   instrumentationSchemaVersion,
   validateInstrumentationEvent,
   type InstrumentationEvent,
-} from "../src/domain/instrumentation";
+} from "@steer/domain/instrumentation";
 
 const window = { start: "2026-08-01T00:00:00.000Z", end: "2026-08-14T23:59:59.999Z" };
 

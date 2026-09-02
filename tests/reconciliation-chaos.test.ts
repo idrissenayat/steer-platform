@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { demoChain } from "../src/data/demo-chain";
-import { reconcileProjection, replayEvents } from "../src/domain/replay";
-import type { ProjectionEvent } from "../src/domain/types";
+import { reconcileProjection, replayEvents } from "@steer/domain/replay";
+import type { ProjectionEvent } from "@steer/domain/types";
 
 describe("reconciliation chaos", () => {
   it("heals a deterministic five-percent event drop inside the ten-minute budget", () => {

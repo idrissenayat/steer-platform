@@ -13,6 +13,11 @@ both it and the unchanged Vite prototype. This is repository-foundation
 evidence only; no provider, database, workflow, or production feature has been
 claimed.
 
+Item `intent/0006` moves the existing domain modules into `@steer/domain` and
+migrates every prototype/test consumer to package imports. The package has no
+runtime dependency or vendor SDK, typechecks independently under the stricter
+shared baseline, and remains covered by the original characterization suite.
+
 ## Implemented
 
 - deterministic artifact-chain projection and dropped-event reconciliation;

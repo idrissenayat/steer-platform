@@ -14,7 +14,7 @@ function median(values: number[]): number {
   if (!values.length) return 0;
   const ordered = [...values].sort((a, b) => a - b);
   const middle = Math.floor(ordered.length / 2);
-  return ordered.length % 2 ? ordered[middle] : (ordered[middle - 1] + ordered[middle]) / 2;
+  return ordered.length % 2 ? ordered[middle]! : (ordered[middle - 1]! + ordered[middle]!) / 2;
 }
 
 export function summarizePilot(events: PilotTelemetryEvent[]): PilotMetrics {

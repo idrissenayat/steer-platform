@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { FixtureChainAdapter } from "../src/adapters/fixture-adapter";
 import { demoAsOf, demoChain } from "../src/data/demo-chain";
-import { applyGateAction } from "../src/domain/actions";
-import { assembleEvidence } from "../src/domain/evidence";
-import { buildReadModel } from "../src/domain/read-model";
-import { reconcileProjection, replayEvents } from "../src/domain/replay";
-import { summarizePilot } from "../src/domain/telemetry";
-import type { IdentityContext, ProjectionEvent } from "../src/domain/types";
+import { applyGateAction } from "@steer/domain/actions";
+import { assembleEvidence } from "@steer/domain/evidence";
+import { buildReadModel } from "@steer/domain/read-model";
+import { reconcileProjection, replayEvents } from "@steer/domain/replay";
+import { summarizePilot } from "@steer/domain/telemetry";
+import type { IdentityContext, ProjectionEvent } from "@steer/domain/types";
 
 const techLead: IdentityContext = {
   subject: "oidc|morgan",

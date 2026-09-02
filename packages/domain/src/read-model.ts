@@ -165,8 +165,8 @@ function median(values: number[]): number {
   if (values.length === 0) return 0;
   const ordered = [...values].sort((left, right) => left - right);
   const middle = Math.floor(ordered.length / 2);
-  if (ordered.length % 2 === 1) return ordered[middle];
-  return (ordered[middle - 1] + ordered[middle]) / 2;
+  if (ordered.length % 2 === 1) return ordered[middle]!;
+  return (ordered[middle - 1]! + ordered[middle]!) / 2;
 }
 
 export function buildReadModel(items: WorkItemChain[], asOf: string): ReadModel {

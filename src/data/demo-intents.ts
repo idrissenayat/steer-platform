@@ -1,4 +1,4 @@
-import type { IntentCandidate } from "../domain/intent-backlog";
+import type { IntentCandidate } from "@steer/domain/intent-backlog";
 
 export const pilotWipLimit = 5;
 export const pilotMetrics = ["gate_wait_hours", "decision_acceptance_rate", "legacy_escape_rate"] as const;

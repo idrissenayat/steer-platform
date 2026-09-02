@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { demoAsOf } from "../src/data/demo-chain";
 import { demoIntents, pilotMetrics } from "../src/data/demo-intents";
-import { performDetailAction, orderedDetailSections, previewMergedIntent, recordExternalExit, summarizeDetailOutcome, type DetailActionEvent } from "../src/domain/intent-detail";
-import { declineIntent, projectIntentBacklog } from "../src/domain/intent-backlog";
+import { performDetailAction, orderedDetailSections, previewMergedIntent, recordExternalExit, summarizeDetailOutcome, type DetailActionEvent } from "@steer/domain/intent-detail";
+import { declineIntent, projectIntentBacklog } from "@steer/domain/intent-backlog";
 
 const projected = projectIntentBacklog(demoIntents, demoAsOf, pilotMetrics);
 const fullIntent = projected.find((intent) => intent.id === "IN-014")!;

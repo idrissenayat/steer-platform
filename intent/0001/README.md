@@ -16,4 +16,6 @@ the walking-skeleton exam that must pass before that architecture is called
 implemented.
 
 Implementation has started through child item `../0005`: the production
-workspace and Next.js web shell. The remaining slices stay unclaimed.
+workspace and Next.js web shell. Child item `../0006` extracts the existing
+provider-free domain into its owned package. The remaining slices stay
+unclaimed.

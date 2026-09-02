@@ -3,6 +3,10 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "@steer/web#build": {
+      "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
     "typecheck": {
@@ -11,7 +15,7 @@
     },
     "test": {
       "dependsOn": ["^build"],
-      "outputs": ["coverage/**"]
+      "outputs": []
     },
     "check": {
       "dependsOn": ["typecheck", "test", "build"],
