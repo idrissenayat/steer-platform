@@ -2,7 +2,7 @@
   "version": "steer-exam-author-policy/v1",
   "denyByDefault": true,
   "authorizedExamAuthors": [
-    "idrissenayat"
+    "steer-test-agent[bot]"
   ],
   "authorizedControlMaintainers": [
     "idrissenayat"
@@ -10,6 +10,7 @@
   "notes": [
     "This roster grants GitHub diff-authorship eligibility only; it is not a gate signature or implementation authorization.",
     "Every unlisted GitHub actor, including a Builder or automation identity, fails closed on EXAM.md changes.",
-    "An authorized actor must still be independently assigned as Tech Lead or Test Agent for the item and must not act as Builder for an Exam change."
+    "The steer-test-agent[bot] identity may author an Exam diff only while independently assigned as Test Agent for the item; it is not a gate signer or Builder.",
+    "The idrissenayat identity remains the human control maintainer and CODEOWNER but is not authorized to author Exam diffs."
   ]
 }
