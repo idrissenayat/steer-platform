@@ -118,8 +118,9 @@ actor-bound GitHub workflow, deny-by-default author policy, CODEOWNERS map, and
 regression tests are operational on protected `main`. Live pull requests
 against the exact numbered Exam verified that the human Builder is rejected,
 the Test Agent App is accepted by CI, and one human CODEOWNER approval is still
-required. This control evidence is not a Gate 2 signature; seven human domain
-reviews and a new exact-revision Critic remain outstanding.
+required. This control evidence is not a Gate 2 signature. Seven revision-bound
+domain packets are prepared under `intent/0001/reviews/domain`; their eligible
+human dispositions and a new exact-revision Critic remain outstanding.
 
 The production foundation still to be built includes the Hono API and typed
 tool registry, MCP v2 transport, GitHub App adapter, Postgres/Drizzle/RLS

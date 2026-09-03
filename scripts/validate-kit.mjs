@@ -6,6 +6,7 @@ const required = [
   "kit/templates/SPEC.md",
   "kit/templates/EXAM.md",
   "kit/templates/PLAN.md",
+  "kit/templates/DOMAIN-REVIEW.md",
   "kit/templates/ORG.md",
   "kit/templates/PORTFOLIO.md",
   "kit/templates/PRODUCT.md",
@@ -50,6 +51,15 @@ const required = [
   "intent/0001/signatures/gate-1.json",
   "intent/0001/reviews/gate-2-critic-a43b32a.json",
   "intent/0001/reviews/gate-2-critic-ab1d036.json",
+  "intent/0001/reviews/domain/README.md",
+  "intent/0001/reviews/domain/review-target.json",
+  "intent/0001/reviews/domain/security.md",
+  "intent/0001/reviews/domain/privacy.md",
+  "intent/0001/reviews/domain/accessibility.md",
+  "intent/0001/reviews/domain/money.md",
+  "intent/0001/reviews/domain/legal.md",
+  "intent/0001/reviews/domain/reliability.md",
+  "intent/0001/reviews/domain/irreversible-operations.md",
   "intent/0001/evidence/github-exam-protection-rollout.json",
   "intent/0005/README.md",
   "intent/0005/BRIEF.md",
@@ -296,6 +306,47 @@ if (
   gateTwoCriticR2.newFindings?.length !== 0
 ) {
   throw new Error("The second 0001 Gate 2 fresh-context Critic record must preserve its exact-revision HOLD disposition and two unresolved findings.");
+}
+
+const domainReviewTarget = JSON.parse(
+  await readFile("intent/0001/reviews/domain/review-target.json", "utf8"),
+);
+const expectedReviewDomains = gatePolicy.defaultClosedDomains;
+if (
+  domainReviewTarget.version !== "steer-domain-review-target/v1" ||
+  domainReviewTarget.item !== "0001-flight-deck-foundation" ||
+  domainReviewTarget.reviewType !== "gate-2-exam" ||
+  domainReviewTarget.status !== "awaiting-human-reviews" ||
+  domainReviewTarget.targetRevision !== "c61ae86e9ca63a249e75e629935cba2fcc504fd6" ||
+  domainReviewTarget.exam?.path !== "intent/0001/EXAM.md" ||
+  domainReviewTarget.exam?.sha256 !== sha256(await readFile("intent/0001/EXAM.md")) ||
+  domainReviewTarget.requiredDomains?.join(",") !== expectedReviewDomains.join(",") ||
+  domainReviewTarget.gateBoundary?.doesNotProveTechnicalRelease !== true ||
+  domainReviewTarget.gateBoundary?.doesNotAuthorizeGateTwo !== true ||
+  domainReviewTarget.gateBoundary?.doesNotAuthorizeBuildOrRelease !== true ||
+  domainReviewTarget.gateBoundary?.doesNotAuthorizeProductionOrSpend !== true
+) {
+  throw new Error("The 0001 domain-review packet must stay exact-revision-bound, complete, unsigned, and non-authorizing.");
+}
+for (const artifact of [
+  ...domainReviewTarget.acceptedGateOneArtifacts,
+  ...domainReviewTarget.sharedEvidence,
+]) {
+  if (artifact.sha256 !== sha256(await readFile(artifact.path))) {
+    throw new Error(`Domain-review evidence hash drifted: ${artifact.path}`);
+  }
+}
+for (const domain of expectedReviewDomains) {
+  const packet = await readFile(`intent/0001/reviews/domain/${domain}.md`, "utf8");
+  if (
+    !packet.includes("awaiting eligible human") ||
+    !packet.includes(domain) ||
+    !packet.includes(domainReviewTarget.targetRevision) ||
+    !packet.includes(domainReviewTarget.exam.sha256) ||
+    !packet.includes("approved`, `send-back`, or `declined")
+  ) {
+    throw new Error(`Gate 2 domain-review packet is incomplete or falsely signed: ${domain}`);
+  }
 }
 
 const sizingPolicy = JSON.parse(await readFile("kit/policy/sizing.json", "utf8"));
