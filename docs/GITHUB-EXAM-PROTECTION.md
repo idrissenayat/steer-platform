@@ -7,6 +7,12 @@ push to `main` it evaluates the pushed revision range and binds to the pushing
 GitHub actor. The allowlist in `.github/steer/exam-author-policy.json` is exact
 and deny-by-default.
 
+Authorization is evaluated from the policy at the protected base revision, not
+from the pull request's proposed policy. A previously unlisted actor therefore
+cannot authorize itself by adding its login in the same change. The candidate
+policy is also validated, and CODEOWNER approval remains independently
+required for every enforcement-control change.
+
 This control is authorization to author an Exam diff only. It is not a Gate 2
 signature, Critic pass, Builder dispatch, merge approval, or release approval.
 An allowlisted identity must still act under an independent Tech Lead or Test

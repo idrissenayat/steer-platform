@@ -145,6 +145,40 @@ describe("actor-bound Exam protection", () => {
     assert.match(result.stderr, /is not an authorized Exam-control maintainer/);
   });
 
+  test("rejects an actor that adds itself to the candidate policy", () => {
+    const { root, base } = createRepository();
+    const head = commit(
+      root,
+      ".github/steer/exam-author-policy.json",
+      JSON.stringify({
+        version: "steer-exam-author-policy/v1",
+        denyByDefault: true,
+        authorizedExamAuthors: ["exam-owner", "builder-bot"],
+        authorizedControlMaintainers: ["control-owner", "builder-bot"],
+      }),
+    );
+    const result = check(root, base, head, "builder-bot");
+
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /is not an authorized Exam-control maintainer/);
+  });
+
+  test("accepts a policy change from a maintainer authorized on the protected base", () => {
+    const { root, base } = createRepository();
+    const head = commit(
+      root,
+      ".github/steer/exam-author-policy.json",
+      JSON.stringify({
+        version: "steer-exam-author-policy/v1",
+        denyByDefault: true,
+        authorizedExamAuthors: ["exam-owner", "next-exam-owner"],
+        authorizedControlMaintainers: ["control-owner"],
+      }),
+    );
+
+    assert.equal(check(root, base, head, "control-owner").status, 0);
+  });
+
   test("fails closed when CI does not provide an authenticated actor", () => {
     const { root, base } = createRepository();
     const head = commit(root, "intent/0001/EXAM.md", "# Anonymous edit\n");
