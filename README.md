@@ -9,7 +9,7 @@ item one, are the framework's pilot evidence.
 
 | Item | Canonical artifacts | Platform implementation | Remaining evidence |
 |---|---|---|---|
-| 0001 · Flight Deck foundation | `intent/0001/README.md`, revised `BRIEF.md` and `SPEC.md`, existing `EXAM.md`, Gate 1 `ARCHITECTURE.md`, and read-only `PLAN.md` | Phase 0 kit and the fixture-backed UX/domain prototype, including the v3.2 agent-first domain-assurance model, are implemented | nine authorized production slices, Phase 1 walking skeleton, live connector, triggered human evidence, pilot window, human gate signatures |
+| 0001 · Flight Deck foundation | `intent/0001/README.md`, revised `BRIEF.md` and `SPEC.md`, App-authored v3.2 `EXAM.md`, Gate 1 `ARCHITECTURE.md`, and read-only `PLAN.md` | Phase 0 kit and the fixture-backed UX/domain prototype, including the v3.2 agent-first domain-assurance model, are implemented | seven agent reviews, exception brief, new Critic, Gate 2, nine authorized production slices, Phase 1 walking skeleton, live connector, triggered human evidence, pilot window, and Gate 3 |
 | 0002 · Instrumentation and baselines | `intent/0002/README.md`, `BRIEF.md` | versioned content-free event schema, adapters, privacy validation, and both baseline computations are implemented | Product Lead-approved production window and representative figures |
 | 0003 · Full brief detail view | `intent/0003/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md` | rendered, deep-linkable, revision-safe detail panel and all four actions are implemented | 0002 production baseline and manual accessibility record |
 | 0004 · Learn STEER hub | `intent/0004/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md` | source-faithful reader, search, glossary, role orientation, agent slices, and corpus build guard are implemented | 0002 production baseline and manual accessibility record |
@@ -18,8 +18,10 @@ item one, are the framework's pilot evidence.
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier
-revisions. The numbered 0001 Brief and Spec match the revised supplied sources;
-the existing Exam remains unchanged because no revised Exam was supplied.
+revisions. The numbered 0001 Brief and Spec match the revised supplied sources.
+The numbered Exam preserves its supplied predecessor under `sources/` and is now
+the protected agent-first candidate authored by `steer-test-agent[bot]` at
+`118302e080598a147294e32d40cf5296763c8cc4`.
 
 ## Item: 0003 · Full brief detail view
 

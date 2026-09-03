@@ -1,12 +1,12 @@
 # Gate 2 domain-assurance packet
 
-Status: **policy revised; awaiting authorized Exam revision and seven agent reviews**
+Status: **authorized Exam revision published; awaiting seven agent reviews**
 
 This packet routes one independent, fresh-context agent review for each of the
 seven default-closed domains activated by `intent/0001/EXAM.md`. The
-machine-readable binding and evidence hashes will be refreshed in
-[`review-target.json`](review-target.json) when the authorized Test Agent App
-publishes the revised Exam candidate.
+machine-readable binding and evidence hashes in
+[`review-target.json`](review-target.json) reference the authorized Test Agent
+App revision exactly.
 
 ## Review order and ownership
 

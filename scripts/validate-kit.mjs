@@ -165,6 +165,11 @@ for (const required of [
   "Cross-tenant negative matrix",
   "Technical-release verdict",
   "Pilot and 90-day outcome verdict",
+  "current green independent agent reviews",
+  "consolidated exception brief",
+  "cannot suppress it",
+  "routine Gate 2 domain seat",
+  "ceiling is never authorization",
   "security | activated",
   "privacy | activated",
   "accessibility | activated",
@@ -332,8 +337,8 @@ if (
   domainReviewTarget.version !== "steer-domain-review-target/v1" ||
   domainReviewTarget.item !== "0001-flight-deck-foundation" ||
   domainReviewTarget.reviewType !== "gate-2-exam" ||
-  domainReviewTarget.status !== "awaiting-authorized-exam-revision" ||
-  domainReviewTarget.targetRevision !== "c61ae86e9ca63a249e75e629935cba2fcc504fd6" ||
+  domainReviewTarget.status !== "awaiting-agent-reviews" ||
+  domainReviewTarget.targetRevision !== "118302e080598a147294e32d40cf5296763c8cc4" ||
   domainReviewTarget.exam?.path !== "intent/0001/EXAM.md" ||
   domainReviewTarget.exam?.sha256 !== sha256(await readFile("intent/0001/EXAM.md")) ||
   domainReviewTarget.requiredDomains?.join(",") !== expectedReviewDomains.join(",") ||

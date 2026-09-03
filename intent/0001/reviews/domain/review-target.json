@@ -3,11 +3,11 @@
   "organization": "steer-platform",
   "item": "0001-flight-deck-foundation",
   "reviewType": "gate-2-exam",
-  "status": "awaiting-authorized-exam-revision",
-  "targetRevision": "c61ae86e9ca63a249e75e629935cba2fcc504fd6",
+  "status": "awaiting-agent-reviews",
+  "targetRevision": "118302e080598a147294e32d40cf5296763c8cc4",
   "exam": {
     "path": "intent/0001/EXAM.md",
-    "sha256": "6b56cbe41c6bb220780655e8253aa5e0539e47b9f18ff033ead10e2b0a02b16b"
+    "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
   },
   "acceptedGateOneArtifacts": [
     {

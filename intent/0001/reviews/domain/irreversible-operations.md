@@ -2,9 +2,9 @@
 
 Status: **awaiting independent fresh-context irreversible-operations-review agent**
 
-Bound target: `c61ae86e9ca63a249e75e629935cba2fcc504fd6`  
+Bound target: `118302e080598a147294e32d40cf5296763c8cc4`
 Exam: `intent/0001/EXAM.md`  
-Exam SHA-256: `6b56cbe41c6bb220780655e8253aa5e0539e47b9f18ff033ead10e2b0a02b16b`
+Exam SHA-256: `e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53`
 
 ## Required review scope
 

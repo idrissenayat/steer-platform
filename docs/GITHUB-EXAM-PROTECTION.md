@@ -123,7 +123,8 @@ the separate human CODEOWNER approval, after which it merged as
 
 This makes the external authorship and review control operational. It is not a
 Gate 2 signature, implementation authorization, release authorization, or
-spending authorization. Under Framework v3.2, the revised Exam must receive one
+spending authorization. The v3.2 Exam was published by the authorized App at
+`118302e080598a147294e32d40cf5296763c8cc4`. It must receive one
 independent fresh-context agent review per activated domain, a complete exception
 brief, resolution of any deterministic human escalations, and a new
 exact-revision Critic before a Gate 2 decision.

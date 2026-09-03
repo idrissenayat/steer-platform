@@ -109,8 +109,9 @@ regulated signed-log, self-hosted PostHog, and portable-container decisions.
 It does not authorize spending: paid infrastructure requires a separate human
 approval and may not exceed the stated pilot ceiling.
 
-The first fresh-context Gate 2 Critic returned HOLD / SEND BACK. An independent
-Test Agent has prepared a replacement canonical Exam that binds the accepted
+The first fresh-context Gate 2 Critic returned HOLD / SEND BACK. The authorized
+Test Agent GitHub App has published a replacement canonical Exam at
+`118302e080598a147294e32d40cf5296763c8cc4` that binds the accepted
 Gate 1 snapshot, preserves the supplied Exam as historical source, incorporates
 all original and walking-skeleton cases, freezes reproducibility requirements,
 and adds complete tenancy, signature, outcome, and specialist matrices. The
@@ -119,7 +120,7 @@ regression tests are operational on protected `main`. Live pull requests
 against the exact numbered Exam verified that the human Builder is rejected,
 the Test Agent App is accepted by CI, and one human CODEOWNER approval is still
 required. This control evidence is not a Gate 2 signature. Seven domain-agent
-review packets are prepared under `intent/0001/reviews/domain`; their independent
+review packets are bound under `intent/0001/reviews/domain`; their independent
 reviews, consolidated exception brief, any triggered human escalations, and a
 new exact-revision Critic remain outstanding.
 

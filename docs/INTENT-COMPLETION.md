@@ -16,14 +16,16 @@ This is not yet a production completion claim. Gate 1 is accepted for the exact
 `281c9736816ec22fa1209b060b58fa8164519f7c` snapshot, with its provider-recorded
 signature in `intent/0001/signatures/gate-1.json`. The first fresh-context
 Gate 2 Critic review at `a43b32a` returned HOLD / SEND BACK with three blockers
-and three majors. An independent Test Agent has prepared a revised canonical
-Exam and actor-bound CI candidate while preserving the supplied Exam. The
+and three majors. The authorized Test Agent GitHub App has published the revised
+canonical Exam at `118302e080598a147294e32d40cf5296763c8cc4` while preserving
+the supplied Exam. The
 second exact-revision Critic closed four findings and returned HOLD / SEND BACK
 on one blocker and one major. GitHub code-owner enforcement is active on
 protected `main`; live unauthorized-Builder and distinct authorized-Exam-author
 pull-request tests passed. Framework v3.2 replaces seven routine human domain
 queues with seven independent agent reviews, one exception brief, and
-deterministic human escalation.
+deterministic human escalation. The seven revision-bound agent reviews, their
+exception brief, and a new exact-revision Critic remain outstanding.
 The production Phase 1
 walking skeleton in `intent/0001/ARCHITECTURE.md` is not implemented. The intent
 also requires Gate 2, live identity/code-host configuration, Gate 3 and
