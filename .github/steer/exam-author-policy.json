@@ -5,6 +5,7 @@
     "steer-test-agent[bot]"
   ],
   "authorizedControlMaintainers": [
+    "idrissenayat",
     "steer-test-agent[bot]"
   ],
   "notes": [
@@ -12,6 +13,6 @@
     "Every unlisted GitHub actor, including a Builder or automation identity, fails closed on EXAM.md changes.",
     "The steer-test-agent[bot] identity may author an Exam diff only while independently assigned as Test Agent for the item; it is not a gate signer or Builder.",
     "The steer-test-agent[bot] identity may author enforcement-control diffs only for an assigned control task; human CODEOWNER approval is still required before merge.",
-    "The idrissenayat identity remains the human CODEOWNER and gate reviewer but is not authorized to author governed Exam or enforcement-control diffs."
+    "The idrissenayat identity remains the human control maintainer, CODEOWNER, and gate reviewer but is not authorized to author Exam diffs; an author cannot satisfy the required approval on their own pull request."
   ]
 }

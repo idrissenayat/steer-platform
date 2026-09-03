@@ -82,7 +82,10 @@ describe("actor-bound Exam protection", () => {
   test("binds production Exam authorship only to the dedicated Test Agent App", () => {
     const policy = JSON.parse(readFileSync(productionPolicyPath, "utf8"));
     assert.deepEqual(policy.authorizedExamAuthors, ["steer-test-agent[bot]"]);
-    assert.deepEqual(policy.authorizedControlMaintainers, ["steer-test-agent[bot]"]);
+    assert.deepEqual(policy.authorizedControlMaintainers, [
+      "idrissenayat",
+      "steer-test-agent[bot]",
+    ]);
   });
 
   test("CODEOWNERS explicitly covers root and numbered Exam artifacts", () => {

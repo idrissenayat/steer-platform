@@ -20,12 +20,13 @@ are present on the protected base branch and GitHub is set to require code-owner
 review.
 
 The dedicated GitHub App login `steer-test-agent[bot]` is the only authorized
-author for governed Exam and enforcement-control diffs. The App is a technical
-Test Agent principal, not a human reviewer or gate signer. `@idrissenayat`
-remains the human CODEOWNER and gate reviewer, and is deliberately excluded
-from governed diff authorship. GitHub CODEOWNERS accepts repository users and
-teams with write access, so the App identity is bound in the actor policy while
-human review remains separate.
+Exam diff author. Both the App and `idrissenayat` may author enforcement-control
+diffs, but neither may author and approve the same pull request. The App is a
+technical Test Agent principal, not a human reviewer or gate signer.
+`@idrissenayat` remains the human CODEOWNER and gate reviewer, and is
+deliberately excluded from Exam authorship. GitHub CODEOWNERS accepts repository
+users and teams with write access, so the App identity is bound in the actor
+policy while human review remains separate.
 
 ## Required repository settings
 
@@ -37,9 +38,9 @@ to the protected default branch:
    with the branch before merge.
 2. Enforce the protection for administrators; disallow force pushes, deletion,
    and direct-push bypass.
-3. Keep the dedicated Test Agent App as the only governed-diff author, retain a
-   separate human CODEOWNER/gate reviewer, and remove stale or Builder
-   identities immediately.
+3. Keep the dedicated Test Agent App as the only Exam author, retain a separate
+   human CODEOWNER/gate reviewer, and remove stale or Builder identities
+   immediately.
 4. Protect `.github/CODEOWNERS`, `.github/workflows/repository-contract.yml`,
    `.github/steer/exam-author-policy.json`,
    `scripts/check-exam-protection.mjs`, and `tests/exam-protection.test.mjs` with
