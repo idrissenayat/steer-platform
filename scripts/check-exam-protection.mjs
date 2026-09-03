@@ -5,27 +5,16 @@ import { resolve } from "node:path";
 const root = process.env.STEER_REPOSITORY_ROOT
   ? resolve(process.env.STEER_REPOSITORY_ROOT)
   : process.cwd();
+const policyRelativePath =
+  process.env.STEER_EXAM_AUTHOR_POLICY ?? ".github/steer/exam-author-policy.json";
 const policyPath = resolve(
   root,
-  process.env.STEER_EXAM_AUTHOR_POLICY ?? ".github/steer/exam-author-policy.json",
+  policyRelativePath,
 );
-const policy = JSON.parse(readFileSync(policyPath, "utf8"));
-
-if (policy.version !== "steer-exam-author-policy/v1" || policy.denyByDefault !== true) {
-  throw new Error("Exam author policy must be v1 and deny by default.");
-}
 
 const normalizeActor = (value) => value.trim().toLowerCase();
 const actor = normalizeActor(process.env.STEER_GITHUB_ACTOR ?? "");
-const examAuthors = new Set(policy.authorizedExamAuthors?.map(normalizeActor) ?? []);
-const controlMaintainers = new Set(
-  policy.authorizedControlMaintainers?.map(normalizeActor) ?? [],
-);
-
 if (!actor) throw new Error("STEER_GITHUB_ACTOR is required; anonymous Exam authors fail closed.");
-if ([...examAuthors, ...controlMaintainers].some((login) => !/^[a-z0-9](?:[a-z0-9-]{0,38}|[a-z0-9-]{0,33}\[bot\])$/.test(login))) {
-  throw new Error("Exam author policy contains an invalid GitHub login.");
-}
 
 const base = process.env.STEER_DIFF_BASE;
 const head = process.env.STEER_DIFF_HEAD;
@@ -43,6 +32,38 @@ if (base && head) {
 } else {
   throw new Error("CI requires both STEER_DIFF_BASE and STEER_DIFF_HEAD.");
 }
+
+function validatePolicy(policy, label) {
+  if (policy.version !== "steer-exam-author-policy/v1" || policy.denyByDefault !== true) {
+    throw new Error(`${label} Exam author policy must be v1 and deny by default.`);
+  }
+  const logins = [
+    ...(policy.authorizedExamAuthors ?? []),
+    ...(policy.authorizedControlMaintainers ?? []),
+  ].map(normalizeActor);
+  if (logins.some((login) => !/^[a-z0-9](?:[a-z0-9-]{0,38}|[a-z0-9-]{0,33}\[bot\])$/.test(login))) {
+    throw new Error(`${label} Exam author policy contains an invalid GitHub login.`);
+  }
+  return policy;
+}
+
+validatePolicy(JSON.parse(readFileSync(policyPath, "utf8")), "Candidate");
+const authorizationRef = base && head ? base : "HEAD";
+const authorizationPolicy = validatePolicy(
+  JSON.parse(
+    execFileSync("git", ["show", `${authorizationRef}:${policyRelativePath}`], {
+      cwd: root,
+      encoding: "utf8",
+    }),
+  ),
+  "Protected-base",
+);
+const examAuthors = new Set(
+  authorizationPolicy.authorizedExamAuthors?.map(normalizeActor) ?? [],
+);
+const controlMaintainers = new Set(
+  authorizationPolicy.authorizedControlMaintainers?.map(normalizeActor) ?? [],
+);
 
 const changed = execFileSync("git", args, { cwd: root, encoding: "utf8" })
   .split("\0")
