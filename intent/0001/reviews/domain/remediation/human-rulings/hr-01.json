@@ -1,0 +1,40 @@
+{
+  "version": "steer-human-ruling/v1",
+  "rulingId": "HR-01",
+  "organization": "steer-platform",
+  "item": "0001-flight-deck-foundation",
+  "decision": "accepted",
+  "signer": {
+    "name": "Idriss Enayat",
+    "githubLogin": "idrissenayat",
+    "activeAuthority": "privacy-legal-records-owner",
+    "qualificationAndAuthorizationAttested": true
+  },
+  "boundState": {
+    "commit": "4c30d4f560fa772af9e2ea111a0ef8a0b63e6790",
+    "examRevision": "118302e080598a147294e32d40cf5296763c8cc4",
+    "examSha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53",
+    "artifactPath": "intent/0001/reviews/domain/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+    "artifactSha256": "271d4fa1ee2682f06e504e615cc9e8588ea34ff3ff7d5e2c27f245f80509c96c"
+  },
+  "statement": "I, Idriss Enayat (`github:idrissenayat`), confirm that I am qualified and authorized to act as STEER’s privacy/legal records owner. I accept HR-01 and the exact retention and records policy at commit `4c30d4f560fa772af9e2ea111a0ef8a0b63e6790`, SHA-256 `271d4fa1ee2682f06e504e615cc9e8588ea34ff3ff7d5e2c27f245f80509c96c`. This approval does not sign Gate 2 or authorize production, deployment, or spending.",
+  "signedAt": "2026-09-03T21:14:12Z",
+  "providerProof": {
+    "type": "codex-thread-user-message",
+    "provider": "OpenAI Codex",
+    "threadId": "01a049c9-80d5-7710-9607-2a5ae0c23e43",
+    "sessionId": "01a049c9-80d5-7710-9607-2a5ae0c23e43",
+    "recordLocator": "user message immediately preceding HR-01 processing",
+    "statementSha256": "57ebd71dc6d5351ad597f20b9a1d9211632d469253ec7d78ed55ac154557c388"
+  },
+  "effects": {
+    "currentCommercialGateTwoPrerequisiteSatisfied": true,
+    "gateTwoSigned": false,
+    "builderAuthorized": false,
+    "releaseAuthorized": false,
+    "productionAuthorized": false,
+    "deploymentAuthorized": false,
+    "spendingAuthorized": false,
+    "regulatedHr02Satisfied": false
+  }
+}
