@@ -9,14 +9,22 @@ and deny-by-default.
 
 This control is authorization to author an Exam diff only. It is not a Gate 2
 signature, Critic pass, Builder dispatch, merge approval, or release approval.
-An allowlisted human must still act under an independent Tech Lead or Test Agent
-assignment for the work item. Anyone acting as Builder must not include an
-`EXAM.md` change.
+An allowlisted identity must still act under an independent Tech Lead or Test
+Agent assignment for the work item. Anyone acting as Builder must not include
+an `EXAM.md` change.
 
-The repository candidate includes `.github/CODEOWNERS` entries for every
-governed Exam and enforcement-control path. Those entries have no enforcement
-effect until they are present on the protected base branch and GitHub is set to
-require code-owner review.
+The repository candidate includes explicit `.github/CODEOWNERS` entries for the
+root `intent/EXAM.md`, numbered `intent/*/EXAM.md` artifacts, and every
+enforcement-control path. Those entries have no enforcement effect until they
+are present on the protected base branch and GitHub is set to require code-owner
+review.
+
+The dedicated GitHub App login `steer-test-agent[bot]` is the only authorized
+Exam diff author. The App is a technical Test Agent principal, not a human
+reviewer or gate signer. `@idrissenayat` remains the human CODEOWNER and control
+maintainer, and is deliberately excluded from Exam authorship. GitHub
+CODEOWNERS accepts repository users and teams with write access, so the App
+identity is bound in the actor policy while human review remains separate.
 
 ## Required repository settings
 
@@ -28,9 +36,9 @@ to the protected default branch:
    with the branch before merge.
 2. Enforce the protection for administrators; disallow force pushes, deletion,
    and direct-push bypass.
-3. Provision at least one GitHub identity or team for independent Exam/control
-   ownership, add only those exact logins to the actor policy, and remove stale
-   or Builder identities immediately.
+3. Keep the dedicated Test Agent App as the only Exam author, retain a separate
+   human CODEOWNER/control maintainer, and remove stale or Builder identities
+   immediately.
 4. Protect `.github/CODEOWNERS`, `.github/workflows/repository-contract.yml`,
    `.github/steer/exam-author-policy.json`,
    `scripts/check-exam-protection.mjs`, and `tests/exam-protection.test.mjs` with
