@@ -1,5 +1,6 @@
 import { readFile, readdir, stat } from "node:fs/promises";
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 
 const required = [
   "kit/templates/BRIEF.md",
@@ -62,6 +63,8 @@ const required = [
   "intent/0001/reviews/domain/legal.md",
   "intent/0001/reviews/domain/reliability.md",
   "intent/0001/reviews/domain/irreversible-operations.md",
+  "intent/0001/reviews/domain/round-2/README.md",
+  "intent/0001/reviews/domain/round-2/review-target.json",
   "intent/0001/evidence/github-exam-protection-rollout.json",
   "intent/0005/README.md",
   "intent/0005/BRIEF.md",
@@ -153,11 +156,13 @@ if (sha256(suppliedExam) !== "5823ddb26d0acbc78b7b58d931d76adfe064adeba84b9cf81f
 }
 
 const candidateExam = await readFile("intent/0001/EXAM.md", "utf8");
+const candidateOriginalRequirementIds = new Set(candidateExam.match(/OR-\d{2}/g));
+const candidateWalkingSkeletonIds = new Set(candidateExam.match(/WS-\d{2}/g));
 if (
   !candidateExam.includes("281c9736816ec22fa1209b060b58fa8164519f7c") ||
   !candidateExam.includes("Architecture revision 2") ||
-  [...candidateExam.matchAll(/\*\*OR-\d{2} —/g)].length !== 25 ||
-  [...candidateExam.matchAll(/\*\*WS-\d{2} —/g)].length !== 13
+  candidateOriginalRequirementIds.size !== 25 ||
+  candidateWalkingSkeletonIds.size !== 13
 ) {
   throw new Error("The 0001 Gate 2 candidate must bind Gate 1 and retain all supplied and walking-skeleton cases.");
 }
@@ -343,7 +348,7 @@ if (
   domainReviewTarget.status !== "awaiting-agent-reviews" ||
   domainReviewTarget.targetRevision !== "118302e080598a147294e32d40cf5296763c8cc4" ||
   domainReviewTarget.exam?.path !== "intent/0001/EXAM.md" ||
-  domainReviewTarget.exam?.sha256 !== sha256(await readFile("intent/0001/EXAM.md")) ||
+  domainReviewTarget.exam?.sha256 !== sha256(execFileSync("git", ["show", `${domainReviewTarget.targetRevision}:${domainReviewTarget.exam.path}`])) ||
   domainReviewTarget.requiredDomains?.join(",") !== expectedReviewDomains.join(",") ||
   domainReviewTarget.reviewerPolicy?.default !== "independent-fresh-context-domain-agent" ||
   domainReviewTarget.reviewerPolicy?.builderMayReview !== false ||
@@ -361,7 +366,7 @@ for (const artifact of [
   ...domainReviewTarget.acceptedGateOneArtifacts,
   ...domainReviewTarget.sharedEvidence,
 ]) {
-  if (artifact.sha256 !== sha256(await readFile(artifact.path))) {
+  if (artifact.sha256 !== sha256(execFileSync("git", ["show", `${domainReviewTarget.targetRevision}:${artifact.path}`]))) {
     throw new Error(`Domain-review evidence hash drifted: ${artifact.path}`);
   }
 }
@@ -375,6 +380,33 @@ for (const domain of expectedReviewDomains) {
     !packet.includes("approved`, `send-back`, or `declined")
   ) {
     throw new Error(`Gate 2 domain-agent review packet is incomplete or falsely completed: ${domain}`);
+  }
+}
+
+const domainReviewTargetRoundTwo = JSON.parse(
+  await readFile("intent/0001/reviews/domain/round-2/review-target.json", "utf8"),
+);
+if (
+  domainReviewTargetRoundTwo.version !== "steer-domain-review-target/v1" ||
+  domainReviewTargetRoundTwo.status !== "awaiting-agent-reviews" ||
+  domainReviewTargetRoundTwo.round !== 2 ||
+  domainReviewTargetRoundTwo.targetRevision !== "9c7299dd658615cd234e8e03188d607ef1a99fe1" ||
+  domainReviewTargetRoundTwo.exam?.sha256 !== sha256(await readFile("intent/0001/EXAM.md")) ||
+  domainReviewTargetRoundTwo.requiredDomains?.join(",") !== expectedReviewDomains.join(",") ||
+  domainReviewTargetRoundTwo.recordDirectory !== "intent/0001/reviews/domain/round-2/records" ||
+  domainReviewTargetRoundTwo.gateBoundary?.doesNotAuthorizeGateTwo !== true ||
+  domainReviewTargetRoundTwo.gateBoundary?.doesNotAuthorizeProductionOrSpend !== true
+) {
+  throw new Error("The round-two domain-review target must bind the App-authored remediated Exam and remain non-authorizing.");
+}
+for (const artifact of [
+  domainReviewTargetRoundTwo.exam,
+  ...domainReviewTargetRoundTwo.acceptedGateOneArtifacts,
+  ...domainReviewTargetRoundTwo.sharedEvidence,
+]) {
+  const contents = execFileSync("git", ["show", `${domainReviewTargetRoundTwo.targetRevision}:${artifact.path}`]);
+  if (artifact.sha256 !== sha256(contents)) {
+    throw new Error(`Round-two domain-review evidence hash drifted: ${artifact.path}`);
   }
 }
 

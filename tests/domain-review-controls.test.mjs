@@ -10,6 +10,7 @@ import {
 
 const repositoryRoot = resolve(import.meta.dirname, "..");
 const target = JSON.parse(await readFile(resolve(repositoryRoot, "intent/0001/reviews/domain/review-target.json"), "utf8"));
+const roundTwoTarget = JSON.parse(await readFile(resolve(repositoryRoot, "intent/0001/reviews/domain/round-2/review-target.json"), "utf8"));
 const policy = JSON.parse(await readFile(resolve(repositoryRoot, "kit/policy/gates.json"), "utf8"));
 const digest = "a".repeat(64);
 
@@ -53,6 +54,7 @@ function record(domain, overrides = {}) {
 describe("domain review assurance", () => {
   test("verifies every target artifact at the exact Git revision", async () => {
     await verifyTargetArtifacts(target, repositoryRoot);
+    await verifyTargetArtifacts(roundTwoTarget, repositoryRoot);
   });
 
   test("accepts a complete independent revision-bound record", () => {

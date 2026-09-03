@@ -190,11 +190,19 @@ export function renderExceptionBrief(brief) {
 }
 
 async function runCli() {
-  const args = new Set(process.argv.slice(2));
-  const targetPath = resolve(scriptRoot, "intent/0001/reviews/domain/review-target.json");
-  const policyPath = resolve(scriptRoot, "kit/policy/gates.json");
+  const argv = process.argv.slice(2);
+  const args = new Set(argv);
+  const targetIndex = argv.indexOf("--target");
+  const targetRelativePath = targetIndex === -1
+    ? "intent/0001/reviews/domain/review-target.json"
+    : argv[targetIndex + 1];
+  assert(isNonEmptyString(targetRelativePath), "--target requires a repository-relative path.");
+  const targetPath = resolve(scriptRoot, targetRelativePath);
   const target = JSON.parse(await readFile(targetPath, "utf8"));
-  const policy = JSON.parse(await readFile(policyPath, "utf8"));
+  const policy = JSON.parse(execFileSync("git", ["show", `${target.targetRevision}:kit/policy/gates.json`], {
+    cwd: scriptRoot,
+    encoding: "utf8",
+  }));
   await verifyTargetArtifacts(target, scriptRoot);
   if (args.has("--target-only")) {
     process.stdout.write(`Domain review target verified at ${target.targetRevision}.\n`);
@@ -217,8 +225,9 @@ async function runCli() {
   }
   assert(missingDomains.length === 0, `Missing domain reviews: ${missingDomains.join(", ")}`);
   const brief = consolidateDomainReviews(records, target, policy);
-  const jsonPath = resolve(scriptRoot, "intent/0001/reviews/domain/exception-brief.json");
-  const markdownPath = resolve(scriptRoot, "intent/0001/reviews/domain/exception-brief.md");
+  const outputDirectory = dirname(targetPath);
+  const jsonPath = resolve(outputDirectory, "exception-brief.json");
+  const markdownPath = resolve(outputDirectory, "exception-brief.md");
   await mkdir(dirname(jsonPath), { recursive: true });
   await writeFile(jsonPath, `${JSON.stringify(brief, null, 2)}\n`);
   await writeFile(markdownPath, renderExceptionBrief(brief));
