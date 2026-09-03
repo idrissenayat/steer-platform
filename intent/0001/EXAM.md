@@ -24,7 +24,7 @@ acceptance requirements. Cases `WS-01` through `WS-13` incorporate all thirteen
 Architecture revision 2 walking-skeleton cases.
 
 The **Exam revision** is the full 40-character Git commit containing this file.
-A Critic review, specialist record, test run, evidence manifest, or signature is
+A Critic review, domain-agent review, human-exception record, test run, evidence manifest, or signature is
 current only when its `artifactRevision` equals that exact commit. A branch,
 short hash, working-tree hash, later commit, or Gate 1 revision is not a valid
 substitute. Any change to this file creates a new Exam revision and invalidates
@@ -45,12 +45,15 @@ path, and capable of producing the Brief's real pilot evidence.
 There are three deliberately separate decisions:
 
 1. **Gate 2 Exam accepted** means a passing exact-revision fresh-context Critic,
-   zero unresolved findings, all activated-domain Exam reviews, and the required
-   human Tech Lead signature accept this definition of done. It is not build,
-   release, spending, or production authorization.
+   zero unresolved findings, current green independent agent reviews for every
+   activated domain, one consolidated exception brief, resolution of every
+   triggered human escalation, and the required human Tech Lead signature accept
+   this definition of done. It is not build, release, spending, or production
+   authorization.
 2. **Technical release candidate** means every technical case in this Exam is
    green at one exact implementation revision, its evidence is current, every
-   activated-domain release review is signed, and Gate 3 is otherwise eligible.
+   activated-domain release review is current, every human escalation trigger is
+   resolved, and Gate 3 is otherwise eligible.
    A named human release authorization is still required before production.
 3. **Outcome complete** means the released candidate has processed at least ten
    real pilot items and the complete 90-day outcome contract passes. Fixture,
@@ -186,15 +189,18 @@ the new revision.
 chain location, projects the correct state, leaves the gate unsigned, emits no
 approval mirror, and is idempotent under retry.
 
-**OR-07 — Specialist routing and SLA (supplied 7).** Every activated domain
-routes one current specialist card to the configured human seat; inapplicable
-domains route none. Using virtual time, cross the configured deadline and prove
-visible escalation appears within 60 real-time seconds without creating an
-approval or release authorization.
+**OR-07 — Domain assurance routing and SLA (supplied 7).** Every activated
+domain routes one current fresh-context review to an independent domain agent;
+inapplicable domains route none. A human specialist card appears only when a
+deterministic commercial escalation trigger fires or the regulated profile
+requires it. Using virtual time, cross each configured deadline and prove visible
+escalation appears within 60 real-time seconds without creating an approval or
+release authorization.
 
 **OR-08 — Gate 3 evidence view (supplied 8).** For the displayed implementation
 revision, the card contains every Exam case result, ranked Critic findings with
-the nit cap, plan conformance, domain reviews, evidence hashes, and verdict.
+the nit cap, plan conformance, domain-agent reviews, the consolidated exception
+brief, triggered human dispositions, evidence hashes, and verdict.
 Missing, unavailable, hash-mismatched, wrong-tenant, or older-revision evidence
 renders explicitly non-current and blocks eligibility.
 
@@ -269,11 +275,13 @@ and Storybook state at required desktop and mobile viewports. Critical and
 serious violations equal zero. The route/state/viewport inventory is frozen in
 the input manifest; omissions fail.
 
-**OR-22 — Manual accessibility (supplied 16).** A human accessibility specialist
-completes the full keyboard-only decision flow and screen-reader passes for Gate
-and specialist cards against the versioned 81-checkpoint model. The signed
-record names assistive technology/browser/OS versions, findings, implementation
-revision, and Exam revision. Any unresolved critical or serious issue fails.
+**OR-22 — Manual accessibility (supplied 16).** Before a user-facing technical
+release, a human accessibility specialist completes the full keyboard-only
+decision flow and screen-reader passes for Gate and escalation cards against the
+versioned 81-checkpoint model. This is a release-validation trigger, not a
+routine Gate 2 domain seat. The signed record names assistive
+technology/browser/OS versions, findings, implementation revision, and Exam
+revision. Any unresolved critical or serious issue fails.
 
 **OR-23 — Decision-inbox render (supplied 17).** Load exactly 50 pending
 decisions across 10 repositories using the frozen fixture in the reference
@@ -367,14 +375,15 @@ hashes and the user-visible semantic state must be identical for every tenant.
 
 ## Signature envelope and negative matrix
 
-Every gate and specialist signature record must contain all fields below:
+Every gate and triggered human-specialist signature record must contain all
+fields below:
 
 | Field | Required value and source |
 |---|---|
 | `organization` | normalized organization from the verified session, equal to the item's tenant |
 | `subject` | stable verified human OIDC subject; never a display name or service identity |
 | `activeHat` | one currently assigned human hat used for this decision |
-| `gate` | exact gate or named specialist seat being decided |
+| `gate` | exact gate or triggered named specialist seat being decided |
 | `sequence` | expected positive integer position for that gate/seat |
 | `artifactRevision` | exact 40-character revision displayed and authorized |
 | `sessionId` | authenticated, non-empty session identifier bound server-side to the subject |
@@ -398,15 +407,18 @@ release side effect.
 | SIG-09 | principal is an agent/service identity, including one with a human display name or copied human claims | reject always; agents never sign |
 | SIG-10 | code-host write fails, conflicts, or times out | no local/mirror approval; retry is idempotent |
 | SIG-11 | commercial default-open | require one eligible human and a passing exact-revision fresh-context Critic |
-| SIG-12 | commercial default-closed, including this item | require one eligible human per gate/seat, a passing exact-revision Critic with zero unresolved findings, and Gate 3 only in session(s) distinct from every Gate 2 signature session after the build Critic report |
+| SIG-12 | commercial default-closed, including this item | require one eligible human per gate, current green independent domain-agent reviews, one consolidated exception brief, resolution of every triggered specialist seat, a passing exact-revision Critic with zero unresolved findings, and Gate 3 only in session(s) distinct from every Gate 2 signature session after the build Critic report |
 | SIG-13 | regulated default-open | require one eligible human and a passing exact-revision fresh-context Critic |
 | SIG-14 | regulated default-closed | require two distinct verified human subjects; two hats or sessions held by one subject do not satisfy it; Critic must pass with zero unresolved and onboarding must have disclosed the constraint |
 | SIG-15 | user-facing Gate 3 | require Product Lead and Tech Lead plus Product Designer; each envelope independently passes this matrix |
 
-Gate 2 for this Exam requires a human Tech Lead signature. Domain specialist
-signatures are conditional seats, not substitutes. The current commercial solo
-profile permits one human to hold multiple eligible hats, but each signature
-still names one active hat. No Gate 2 signature is created by this candidate.
+Gate 2 for this Exam requires a human Tech Lead signature over the consolidated
+exception brief. Independent domain-agent reviews are evidence, not signatures.
+Human domain-specialist signatures are conditional exception seats, not routine
+reviews and not substitutes for the gate owner. The current commercial solo
+profile permits one qualified human to hold multiple eligible hats, but each
+signature still names one active hat. No Gate 2 signature is created by this
+candidate.
 
 ## Cross-tenant negative matrix
 
@@ -442,22 +454,27 @@ Architecture, and Gate 1 rulings; this is enforcement of accepted scope, not a
 new feature request. Removing an activated domain or changing the signed Brief
 tags requires a revised Brief and a new Gate 1.
 
-| Domain | Status and accepted-scope trigger | Required current evidence and human seat |
+| Domain | Status and accepted-scope trigger | Required independent review and human trigger |
 |---|---|---|
-| security | activated: identity, authorization, webhooks, tokens, secrets, sandboxes | security specialist review of OR-17/19, WS-02/04/07/08/11 and SIG matrix |
-| privacy | activated: originator text, tenant data, logs, analytics, model context, memory | privacy specialist review of OR-03/10/18/20 and full isolation matrix |
-| accessibility | activated: user-facing decision, specialist, conversation, and board surfaces | accessibility specialist automated OR-21 plus signed manual OR-22 evidence |
-| money | activated: model/pod budgets, external services, and Gate 1 no-spend boundary | money/cost-control specialist proves budget isolation and that no paid deployment or spend occurs without separate named authorization; ceiling is not authorization |
-| legal | activated: authenticated approvals, audit weight, retention, and regulated-signature constraint | legal/compliance specialist reviews signature form, records, retention, and cryptographic-log prerequisite before any regulated pilot |
-| reliability | activated: Temporal waits, reconciliation, rebuild, latency, recovery, and portable deployment | reliability specialist reviews OR-02/23/24/25 and WS-05/13 with raw measurements |
-| irreversible-operations | activated: authoritative commits, signatures, release records, migrations, and evidence retention | irreversible-operations specialist reviews stale/retry/rollback/forward-only behavior and confirms named release/spend authorization boundaries |
+| security | activated: identity, authorization, webhooks, tokens, secrets, sandboxes | independent security agent reviews OR-17/19, WS-02/04/07/08/11 and SIG matrix; human only for an unresolved major/blocker, inconclusive evidence, waiver, binding requirement, or material external effect |
+| privacy | activated: originator text, tenant data, logs, analytics, model context, memory | independent privacy agent reviews OR-03/10/18/20 and the isolation matrix; human only for an unresolved major/blocker, inconclusive evidence, waiver, binding requirement, or material rights impact |
+| accessibility | activated: user-facing decision, escalation, conversation, and board surfaces | independent accessibility agent reviews OR-21 and the OR-22 evidence design; human manual OR-22 validation is required before user-facing technical release |
+| money | activated: model/pod budgets, external services, and Gate 1 no-spend boundary | independent money agent reviews budget isolation and authorization controls; human approval is required for production, paid deployment, or spend, and a ceiling is never authorization |
+| legal | activated: authenticated approvals, audit weight, retention, and regulated-signature constraint | independent legal agent reviews signature form, records, retention, and the signed-log prerequisite; human only when law, regulation, contract, policy, waiver, or material rights require judgment |
+| reliability | activated: Temporal waits, reconciliation, rebuild, latency, recovery, and portable deployment | independent reliability agent reviews OR-02/23/24/25 and WS-05/13 with raw measurements; human only for an unresolved major/blocker, inconclusive evidence, waiver, or binding requirement |
+| irreversible-operations | activated: authoritative commits, signatures, release records, migrations, and evidence retention | independent irreversible-operations agent reviews stale/retry/rollback/forward-only behavior and named authorization boundaries; human approval is required for irreversible external effects and production/spend actions |
 
-For Gate 2, each review record must name the domain, reviewer identity and active
-specialist hat, decision, timestamp, exact Exam revision, reviewed cases, and
-evidence hashes. For technical release, each domain requires a release review
-bound to both the exact Exam and implementation revisions. One qualified human
-may fill more than one commercial specialist seat only when each hat assignment
-is explicit; an agent may prepare the review but never sign it.
+For Gate 2, each domain-agent review record must name the domain, reviewer
+identity and configuration, fresh-context and Builder-independence assertions,
+disposition, confidence, timestamp, exact Exam revision, reviewed cases,
+evidence hashes, findings, and every applicable escalation trigger. The platform
+rejects stale, missing, self-reviewed, or inconclusive records and consolidates
+the current records into one exception brief. A triggered human escalation is a
+separate signed record; the agent cannot suppress it, waive a control, sign for
+the human, or convert missing evidence into a pass. For technical release, each
+domain requires a release review bound to both the exact Exam and implementation
+revisions. One qualified human may fill more than one commercial exception seat
+only when each hat assignment is explicit.
 
 ## Technical-release verdict
 
@@ -469,8 +486,9 @@ is explicit; an agent may prepare the review but never sign it.
    to the exact Exam and implementation revisions.
 3. A fresh-context build Critic reports pass with zero unresolved findings at
    those revisions.
-4. Every activated-domain release review is signed by an eligible human and is
-   current to those revisions.
+4. Every activated-domain agent review is current and green, the consolidated
+   exception brief is complete, and every triggered human-specialist record is
+   signed by an eligible human and current to those revisions.
 5. Gate 3 signer eligibility, including the commercial separate-session second
    look and the Product Designer seat for this user-facing change, is proven.
 6. The release record states that paid deployment and production remain blocked
@@ -520,7 +538,9 @@ This document becomes eligible for a human Gate 2 decision only after:
 
 - a new fresh-context Critic reviews the exact commit containing it and reports
   zero unresolved blocker, major, minor, or nit findings;
-- all seven activated-domain Exam review records are current to that commit;
+- all seven activated-domain independent agent review records are current and
+  green at that commit, the consolidated exception brief is complete, and every
+  deterministic human escalation is resolved;
 - actor-bound required CI passes for the actual GitHub author and exact diff;
 - the historical supplied Exam copy retains its recorded SHA-256; and
 - the Gate 1-signed Brief, Spec, Architecture, and Plan remain byte-identical to
