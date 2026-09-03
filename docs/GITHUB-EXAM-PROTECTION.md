@@ -77,6 +77,11 @@ App ID, selected-repository mode, empty event subscriptions, and the saved
 Contents, Pull requests, and Metadata permissions. No private-key material or
 secret-bearing path is recorded in the repository.
 
+Two unusable key records created during blocked download attempts were revoked
+on 2026-09-03. Exactly one private key remains. Its SHA-256 public-key
+fingerprint matches the securely stored key, and that key successfully
+authenticated a post-cleanup App API readback of installation `158779362`.
+
 The dedicated identity is provisioned but the actor policy/CODEOWNERS binding
 and both live pull-request paths remain pending. Those observations cannot be
 replaced by a simulated actor value.
