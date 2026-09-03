@@ -1,0 +1,453 @@
+{
+  "version": "steer-gate-2-finding-resolution/v1",
+  "generatedAt": "2026-09-03T18:20:29Z",
+  "target": {
+    "revision": "118302e080598a147294e32d40cf5296763c8cc4",
+    "exam": {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+    },
+    "exceptionBrief": "intent/0001/reviews/domain/exception-brief.json"
+  },
+  "reviewer": {
+    "serviceIdentity": "codex-task:/root/gate2_test_agent_r4",
+    "agentType": "independent-fresh-context-gate-2-test-agent",
+    "model": "exact serving model identifier not exposed to this task",
+    "configurationRevision": "task-assignment:/root/gate2_test_agent_r4@2026-09-03;target:118302e080598a147294e32d40cf5296763c8cc4",
+    "freshContext": true,
+    "builderIndependent": true
+  },
+  "amendment": {
+    "path": "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md",
+    "status": "unsigned-candidate",
+    "digestBinding": "intentionally omitted here; remediation-manifest.json excludes the amendment and the amendment binds that manifest to avoid a digest cycle"
+  },
+  "supportArtifacts": [
+    {
+      "path": "intent/0001/reviews/domain/remediation/ACCESSIBILITY-81-CHECKPOINTS.md",
+      "sha256": "43d61f4bd52afbb0f206fece2b4f2d784d4af9a4d57fe9f25d2c22a6cab5e361",
+      "status": "unsigned-remediation-support"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/PERMISSIONS-MANIFEST.candidate.json",
+      "sha256": "46a483533cb1153b0391a9463ca6c3848862ed3bf43b9c7e861077860175bf73",
+      "status": "unsigned-candidate-test-oracle"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+      "sha256": "271d4fa1ee2682f06e504e615cc9e8588ea34ff3ff7d5e2c27f245f80509c96c",
+      "status": "unsigned-candidate-requires-human-ruling"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/SIGNED-LOG-SPEC.candidate.md",
+      "sha256": "ece4df65505ed563137d6e4797cbe8977a6ef3cfd3be05dd6ef62da9a15ecbbe",
+      "status": "unsigned-candidate-requires-qualified-human-legal-determination"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/SIGNED-LOG-VECTORS.candidate.json",
+      "sha256": "1a03cdc28b353036ff612f1d8c93bd3f832e3b1adbc7f77a29a13dbc47a7a168",
+      "status": "unsigned-review-fixtures-only"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/validate-remediation.mjs",
+      "sha256": "15197f339d9eed125885c806f66adff790d67e69247910236b84f9107a0d1044",
+      "status": "bounded-read-only-review-tooling"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/HUMAN-RULINGS.md",
+      "sha256": "7d3a32a78c121f1203d735b9b4db6255183d5e8897fc252163dccd5ef29e5ebf",
+      "status": "open-questions-not-decisions"
+    }
+  ],
+  "findings": [
+    {
+      "id": "SEC-G2-001",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A3",
+        "A6.1"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md"
+      ]
+    },
+    {
+      "id": "SEC-G2-002",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A3",
+        "A6.2"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md"
+      ]
+    },
+    {
+      "id": "SEC-G2-003",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A3",
+        "A6.4",
+        "A14"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md"
+      ]
+    },
+    {
+      "id": "SEC-G2-004",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A4.2",
+        "A7.1"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md",
+        "intent/0001/reviews/domain/remediation/PERMISSIONS-MANIFEST.candidate.json",
+        "intent/0001/reviews/domain/remediation/validate-remediation.mjs"
+      ]
+    },
+    {
+      "id": "SEC-G2-005",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A5",
+        "A6.3"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md"
+      ]
+    },
+    {
+      "id": "SEC-G2-006",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A5",
+        "A7.2",
+        "A13"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md"
+      ]
+    },
+    {
+      "id": "PRIV-001",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A4.2",
+        "A8"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md"
+      ]
+    },
+    {
+      "id": "PRIV-002",
+      "status": "requires-human-ruling",
+      "amendmentSectionIds": [
+        "A1",
+        "A4.2",
+        "A8",
+        "A16"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md",
+        "intent/0001/reviews/domain/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+        "intent/0001/reviews/domain/remediation/HUMAN-RULINGS.md"
+      ],
+      "humanRulingId": "HR-01"
+    },
+    {
+      "id": "PRIV-003",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A4.2",
+        "A8"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md"
+      ]
+    },
+    {
+      "id": "ACC-G2-001",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A4.2",
+        "A9.2",
+        "A15"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md",
+        "intent/0001/reviews/domain/remediation/ACCESSIBILITY-81-CHECKPOINTS.md"
+      ]
+    },
+    {
+      "id": "ACC-G2-002",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A4.2",
+        "A9.1"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md",
+        "intent/0001/reviews/domain/remediation/ACCESSIBILITY-81-CHECKPOINTS.md"
+      ]
+    },
+    {
+      "id": "ACC-G2-003",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A4.2",
+        "A9.2"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md",
+        "intent/0001/reviews/domain/remediation/ACCESSIBILITY-81-CHECKPOINTS.md"
+      ]
+    },
+    {
+      "id": "MONEY-G2-001",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A11.2"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md"
+      ]
+    },
+    {
+      "id": "MONEY-G2-002",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A11.2",
+        "A11.3"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md"
+      ]
+    },
+    {
+      "id": "MONEY-G2-003",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A11.2",
+        "A11.3",
+        "A11.4"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md"
+      ]
+    },
+    {
+      "id": "MONEY-G2-004",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A2",
+        "A11.1"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md"
+      ]
+    },
+    {
+      "id": "MONEY-G2-005",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A11.4"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md"
+      ]
+    },
+    {
+      "id": "LEGAL-G2-001",
+      "status": "requires-human-ruling",
+      "amendmentSectionIds": [
+        "A1",
+        "A10.5",
+        "A16"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md",
+        "intent/0001/reviews/domain/remediation/SIGNED-LOG-SPEC.candidate.md",
+        "intent/0001/reviews/domain/remediation/HUMAN-RULINGS.md",
+        "intent/0001/reviews/domain/remediation/SIGNED-LOG-VECTORS.candidate.json",
+        "intent/0001/reviews/domain/remediation/validate-remediation.mjs"
+      ],
+      "humanRulingId": "HR-02",
+      "applicability": "future-regulated-technical-release-or-pilot-activation-only",
+      "blocksCurrentCommercialGateTwo": false,
+      "humanRulingTriggeredNow": false
+    },
+    {
+      "id": "LEGAL-G2-002",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A3",
+        "A10.1"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md",
+        "intent/0001/reviews/domain/remediation/SIGNED-LOG-SPEC.candidate.md",
+        "intent/0001/reviews/domain/remediation/SIGNED-LOG-VECTORS.candidate.json",
+        "intent/0001/reviews/domain/remediation/validate-remediation.mjs"
+      ]
+    },
+    {
+      "id": "LEGAL-G2-003",
+      "status": "requires-human-ruling",
+      "amendmentSectionIds": [
+        "A1",
+        "A8",
+        "A16"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md",
+        "intent/0001/reviews/domain/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+        "intent/0001/reviews/domain/remediation/HUMAN-RULINGS.md"
+      ],
+      "humanRulingId": "HR-01"
+    },
+    {
+      "id": "LEGAL-G2-004",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A3",
+        "A10.1"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md"
+      ]
+    },
+    {
+      "id": "LEGAL-G2-005",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A10.1",
+        "A10.2"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md"
+      ]
+    },
+    {
+      "id": "REL-001",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A4.1",
+        "A5",
+        "A12"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md"
+      ]
+    },
+    {
+      "id": "REL-002",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A3",
+        "A4.2"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md"
+      ]
+    },
+    {
+      "id": "REL-003",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A5"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md"
+      ]
+    },
+    {
+      "id": "REL-004",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A12"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md"
+      ]
+    },
+    {
+      "id": "REL-005",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A4.2",
+        "A13"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md"
+      ]
+    },
+    {
+      "id": "IRREV-G2-001",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A10.3",
+        "A12"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md"
+      ]
+    },
+    {
+      "id": "IRREV-G2-002",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A3",
+        "A4.1",
+        "A10.1"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md"
+      ]
+    },
+    {
+      "id": "IRREV-G2-003",
+      "status": "proposed-resolved",
+      "amendmentSectionIds": [
+        "A2",
+        "A10.4",
+        "A11.1"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md"
+      ]
+    },
+    {
+      "id": "IRREV-G2-004",
+      "status": "requires-human-ruling",
+      "amendmentSectionIds": [
+        "A1",
+        "A8",
+        "A10.3",
+        "A16"
+      ],
+      "supportingArtifactPaths": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md",
+        "intent/0001/reviews/domain/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+        "intent/0001/reviews/domain/remediation/HUMAN-RULINGS.md"
+      ],
+      "humanRulingId": "HR-01"
+    }
+  ],
+  "summary": {
+    "findingCount": 31,
+    "proposedResolvedCount": 27,
+    "requiresHumanRulingCount": 4,
+    "humanRulingCount": 2,
+    "currentCommercialGateTwoRequiredHumanRulingIds": [
+      "HR-01"
+    ],
+    "futureRegulatedActivationHumanRulingIds": [
+      "HR-02"
+    ],
+    "gateTwoAccepted": false,
+    "buildReleaseProductionSpendAuthorized": false
+  }
+}

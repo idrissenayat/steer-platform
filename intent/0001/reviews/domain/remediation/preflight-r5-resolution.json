@@ -1,0 +1,39 @@
+{
+  "version": "steer-gate-2-remediation-preflight-r5-resolution/v1",
+  "status": "unsigned-candidate-resolution-map",
+  "targetRevision": "118302e080598a147294e32d40cf5296763c8cc4",
+  "criticPath": "intent/0001/reviews/domain/remediation/preflight-critic-r5.json",
+  "reviewer": {
+    "serviceIdentity": "codex-task:/root/gate2_test_agent_r4",
+    "agentType": "independent-fresh-context-gate-2-test-agent",
+    "model": null,
+    "modelMetadataStatus": "exact serving model identifier was not exposed to this task and was not guessed",
+    "configurationRevision": "task-assignment:/root/gate2_test_agent_r4@2026-09-03;target:118302e080598a147294e32d40cf5296763c8cc4"
+  },
+  "findings": [
+    {
+      "id": "R5-001",
+      "status": "proposed-resolved",
+      "resolutionLocations": [
+        "PERMISSIONS-MANIFEST.candidate.json#principals.github-app-installation.providerPermissions[contents].applicationActionsExact",
+        "PERMISSIONS-MANIFEST.candidate.json#grammar.providerActionMapping",
+        "validate-remediation.mjs#validatePermissionManifest",
+        "validate-remediation.mjs#reverseOrphan",
+        "EXAM-AMENDMENT.candidate.md#A7.1"
+      ]
+    }
+  ],
+  "summary": {
+    "findingCount": 1,
+    "proposedResolvedCount": 1,
+    "permissionPositiveAndNegativeCasesExecuted": 334,
+    "forwardOrphanNegativePassed": true,
+    "reverseOrphanNegativePassed": true,
+    "disguisedInternalOrphanNegativePassed": true,
+    "humanRulingsCreated": false,
+    "currentCommercialGateTwoHumanBlocker": "HR-01",
+    "canonicalIncorporationAuthorized": false,
+    "gateTwoSigned": false,
+    "buildReleaseProductionSpendAuthorized": false
+  }
+}

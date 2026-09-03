@@ -1,0 +1,48 @@
+{
+  "version": "steer-gate-2-remediation-preflight-r4-resolution/v2",
+  "status": "unsigned-candidate-resolution-map",
+  "targetRevision": "118302e080598a147294e32d40cf5296763c8cc4",
+  "criticPath": "intent/0001/reviews/domain/remediation/preflight-critic-r4.json",
+  "reviewer": {
+    "serviceIdentity": "codex-task:/root/gate2_test_agent_r4",
+    "agentType": "independent-fresh-context-gate-2-test-agent",
+    "model": null,
+    "modelMetadataStatus": "exact serving model identifier was not exposed to this task and was not guessed",
+    "configurationRevision": "task-assignment:/root/gate2_test_agent_r4@2026-09-03;target:118302e080598a147294e32d40cf5296763c8cc4"
+  },
+  "findings": [
+    {
+      "id": "R4-001",
+      "status": "proposed-resolved",
+      "resolutionLocations": [
+        "SIGNED-LOG-SPEC.candidate.md#Fixed conformance vectors",
+        "SIGNED-LOG-VECTORS.candidate.json#vectors.SLV1-NEG-001",
+        "validate-remediation.mjs#validateSignedLog"
+      ]
+    },
+    {
+      "id": "R4-002",
+      "status": "proposed-resolved",
+      "resolutionLocations": [
+        "PERMISSIONS-MANIFEST.candidate.json#grammar.requiredSelectorCategories",
+        "PERMISSIONS-MANIFEST.candidate.json#principals.applicationAuthorizations.requiredSelectorCategories",
+        "PERMISSIONS-MANIFEST.candidate.json#principals.providerPermissions.applicationActionsExact",
+        "EXAM-AMENDMENT.candidate.md#A7.1",
+        "validate-remediation.mjs#permissionDecision"
+      ]
+    }
+  ],
+  "summary": {
+    "findingCount": 2,
+    "proposedResolvedCount": 2,
+    "signedLogVectorCount": 9,
+    "permissionPositiveAndNegativeCasesExecuted": 334,
+    "humanRulingsCreated": false,
+    "currentCommercialGateTwoHumanBlocker": "HR-01",
+    "canonicalIncorporationAuthorized": false,
+    "gateTwoSigned": false,
+    "buildReleaseProductionSpendAuthorized": false
+  },
+  "followUpCriticPath": "intent/0001/reviews/domain/remediation/preflight-critic-r5.json",
+  "followUpResolutionPath": "intent/0001/reviews/domain/remediation/preflight-r5-resolution.json"
+}

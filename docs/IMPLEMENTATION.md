@@ -120,14 +120,19 @@ regression tests are operational on protected `main`. Live pull requests
 against the exact numbered Exam verified that the human Builder is rejected,
 the Test Agent App is accepted by CI, and one human CODEOWNER approval is still
 required. This control evidence is not a Gate 2 signature. Seven domain-agent
-review packets are bound under `intent/0001/reviews/domain`; their independent
-reviews, consolidated exception brief, any triggered human escalations, and a
-new exact-revision Critic remain outstanding. The repository now includes a
-machine-readable domain-review record schema and a fail-closed consolidation
-command. It verifies every bound artifact from the exact Git revision, rejects
-missing, stale, self-reviewed, low-confidence, or under-escalated records, and
-produces one JSON and Markdown exception brief only after all seven records are
-present.
+review packets are bound under `intent/0001/reviews/domain`. Round one is
+complete: all seven independent agents returned `send-back`, producing one
+consolidated brief with 31 findings. The unsigned remediation package under
+`intent/0001/reviews/domain/remediation` now has a final fresh-context technical
+preflight PASS with zero new findings. Its executable review harness covers the
+full finding chain, signed-log vectors, bidirectional permission mappings,
+retention-state oracle, and manifest integrity. The canonical Exam remains
+unchanged. HR-01 acceptance of the exact retention-and-records policy digest is
+the sole current commercial Gate 2 blocker; after that ruling, the Test Agent
+App must publish the corrected Exam, all seven domains must review that new
+exact revision, and a final fresh-context Critic must pass before a human Tech
+Lead may decide Gate 2. HR-02 remains fail-closed for future regulated release
+or pilot activation and does not block the current commercial Gate 2 path.
 
 The production foundation still to be built includes the Hono API and typed
 tool registry, MCP v2 transport, GitHub App adapter, Postgres/Drizzle/RLS

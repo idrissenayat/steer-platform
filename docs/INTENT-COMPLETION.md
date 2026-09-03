@@ -24,8 +24,15 @@ on one blocker and one major. GitHub code-owner enforcement is active on
 protected `main`; live unauthorized-Builder and distinct authorized-Exam-author
 pull-request tests passed. Framework v3.2 replaces seven routine human domain
 queues with seven independent agent reviews, one exception brief, and
-deterministic human escalation. The seven revision-bound agent reviews, their
-exception brief, and a new exact-revision Critic remain outstanding.
+deterministic human escalation. The first seven revision-bound agent reviews
+and their exception brief are complete and returned 31 findings. An unsigned
+remediation package has passed its sixth fresh-context technical preflight with
+zero new findings, but it is not the canonical Exam and is not a Gate 2 pass.
+HR-01 acceptance of the exact retention-and-records policy digest is the sole
+current commercial human blocker. The corrected Exam still must be published
+by the authorized Test Agent App, re-reviewed by all seven domains at its new
+exact revision, and passed by a final fresh-context Critic before the Tech Lead
+Gate 2 decision.
 The production Phase 1
 walking skeleton in `intent/0001/ARCHITECTURE.md` is not implemented. The intent
 also requires Gate 2, live identity/code-host configuration, Gate 3 and
@@ -161,13 +168,14 @@ path. Numbered intent sources remain unchanged.
 3. Approve the notification rule: ambient by default; push only at SLA risk.
 4. Approve assistant data handling: session-only originator text, committed
    artifact as the only retained copy.
-5. **Gate 1 recorded; second Gate 2 Critic superseded by v3.2 remediation:** the live two-identity GitHub
+5. **Gate 1 recorded; Gate 2 remediation active:** the live two-identity GitHub
    control and required CI over the actual Exam diff are now verified in
-   `docs/GITHUB-EXAM-PROTECTION.md`. Run seven independent fresh-context domain
-   agents, validate and build one exception brief with
-   `pnpm domain-reviews:consolidate`, resolve any deterministic human
-   escalations, then run a new exact-revision Critic before the Tech Lead Gate 2
-   signature request.
+   `docs/GITHUB-EXAM-PROTECTION.md`. Round-one domain reviews, consolidation,
+   Test Agent remediation, and technical preflight are complete. Obtain HR-01
+   over the exact retention-policy digest, publish the corrected Exam through
+   the Test Agent App, run seven new exact-revision domain reviews, consolidate,
+   and run the final fresh-context Critic before requesting the Tech Lead Gate 2
+   signature.
 6. Run the ten-to-twenty-item pilot and retain 90 days of outcome evidence.
 
 “Complete” means every machine row is green and each human-owned row has an

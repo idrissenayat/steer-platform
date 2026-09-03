@@ -1,0 +1,468 @@
+{
+  "version": "steer-gate-2-remediation-preflight-critic/v1",
+  "organization": "steer-platform",
+  "item": "0001-flight-deck-foundation",
+  "gate": 2,
+  "reviewedAt": "2026-09-03T18:34:14Z",
+  "reviewer": {
+    "serviceIdentity": "codex-task:/root/gate2_remediation_critic",
+    "agentType": "independent-fresh-context-preflight-critic",
+    "task": "/root/gate2_remediation_critic",
+    "model": null,
+    "modelMetadataStatus": "exact serving model identifier was not exposed to this task and was not guessed",
+    "configurationRevision": "task-assignment:/root/gate2_remediation_critic@2026-09-03;target:118302e080598a147294e32d40cf5296763c8cc4",
+    "freshContext": true,
+    "builderIndependent": true,
+    "advisoryOnly": true
+  },
+  "target": {
+    "revision": "118302e080598a147294e32d40cf5296763c8cc4",
+    "tree": "b4059f722d8841a5b6c114e3ca38dcc745b1caaa",
+    "exam": {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+    },
+    "status": "historical-base-for-unsigned-amendment"
+  },
+  "reviewedArtifacts": [
+    {
+      "path": "intent/0001/EXAM.md",
+      "source": "git-object-at-target-revision",
+      "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+    },
+    {
+      "path": "intent/0001/reviews/domain/exception-brief.json",
+      "source": "working-tree",
+      "sha256": "95092dd8f3fc56b4d2cff306227f8ab4bc1fa9484cda50a3b79131abac86c805"
+    },
+    {
+      "path": "intent/0001/reviews/domain/records/security.json",
+      "source": "working-tree",
+      "sha256": "bdebb500446b02c69be9df00528e2d911aadf252b4ebf796f6566d9fac3e51de"
+    },
+    {
+      "path": "intent/0001/reviews/domain/records/privacy.json",
+      "source": "working-tree",
+      "sha256": "b6f86482c9e1387cbdf1329c29a4168aa6075b97c0a160756135fdceb50f0abc"
+    },
+    {
+      "path": "intent/0001/reviews/domain/records/accessibility.json",
+      "source": "working-tree",
+      "sha256": "3f87546984cb58ba7a1e14a7dd5dcd44d09d792241e7cb0f0bc2e310c1806785"
+    },
+    {
+      "path": "intent/0001/reviews/domain/records/money.json",
+      "source": "working-tree",
+      "sha256": "a6930967467ec66355b686c01eeb981f20e9c133cf800d947aa2963c50582ec8"
+    },
+    {
+      "path": "intent/0001/reviews/domain/records/legal.json",
+      "source": "working-tree",
+      "sha256": "f0df93c6aabb439fb94c10ae4669ce7272837a21db9939d25cedaf22371b0988"
+    },
+    {
+      "path": "intent/0001/reviews/domain/records/reliability.json",
+      "source": "working-tree",
+      "sha256": "76fefab61ae799e2480e2d5ef5045d9a60ee0451c69341f23a45bc929efcd51e"
+    },
+    {
+      "path": "intent/0001/reviews/domain/records/irreversible-operations.json",
+      "source": "working-tree",
+      "sha256": "2e05ea5f8b4c901c6e0fcefe5b8e24433549b9f24876e74f2538e4a890267c0c"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md",
+      "source": "working-tree-unsigned-candidate",
+      "sha256": "a30c12f3daa328e7b44e6b9f91ee6adeb9c68ea068e26c15298f03c92b35e443"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/finding-resolution.json",
+      "source": "working-tree",
+      "sha256": "83a28b043003ddae57aa7cb16ac80f0565a0823b5f3678ca20df8063902c7604"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/HUMAN-RULINGS.md",
+      "source": "working-tree-open-questions",
+      "sha256": "29b06be736b3317e74887300fd50474635cfeea42960c5aabf8ed9027468759a"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/ACCESSIBILITY-81-CHECKPOINTS.md",
+      "source": "working-tree-unsigned-support",
+      "sha256": "43d61f4bd52afbb0f206fece2b4f2d784d4af9a4d57fe9f25d2c22a6cab5e361"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+      "source": "working-tree-unsigned-candidate",
+      "sha256": "0fb0cbc88ea11e691b3a8ef690d22138c19dd5b97f93fe825de678cfa5607c97"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/SIGNED-LOG-SPEC.candidate.md",
+      "source": "working-tree-unsigned-candidate",
+      "sha256": "297d41ccd7988f1c8e70be76b8c46c96dd49c4bcbbc87a88f55f736fbf89aef5"
+    },
+    {
+      "path": "intent/0001/BRIEF.md",
+      "source": "git-object-at-target-revision",
+      "sha256": "a5af593397de0722666baefae846b31881c6429c9691bec886f4a0771a8bc97f"
+    },
+    {
+      "path": "intent/0001/SPEC.md",
+      "source": "git-object-at-target-revision",
+      "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"
+    },
+    {
+      "path": "intent/0001/ARCHITECTURE.md",
+      "source": "git-object-at-target-revision",
+      "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+    },
+    {
+      "path": "intent/0001/PLAN.md",
+      "source": "git-object-at-target-revision",
+      "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+    },
+    {
+      "path": "intent/0001/signatures/gate-1.json",
+      "source": "git-object-at-target-revision",
+      "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+    },
+    {
+      "path": "intent/0001/sources/EXAM.supplied.md",
+      "source": "git-object-at-target-revision",
+      "sha256": "5823ddb26d0acbc78b7b58d931d76adfe064adeba84b9cf81fad2557d528eb7b"
+    },
+    {
+      "path": "kit/policy/gates.json",
+      "source": "git-object-at-target-revision",
+      "sha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56"
+    }
+  ],
+  "integrityChecks": {
+    "allSevenRoundOneRecordsReviewed": true,
+    "roundOneFindingCount": 31,
+    "exceptionBriefFindingCount": 31,
+    "resolutionMapFindingCount": 31,
+    "findingIdSetsEqual": true,
+    "allRoundOneRecordsBindTargetRevision": true,
+    "allRoundOneRecordsBindTargetExamDigest": true,
+    "declaredBaseAndSupportDigestsMatchReviewedBytes": true,
+    "gateOneArtifactsMatchDeclaredDigestsAtTarget": true,
+    "missingOrIncorrectDeclaredPathOrDigest": false,
+    "unhashedReferencedGovernanceArtifactsExist": true,
+    "unhashedReferencedGovernanceArtifacts": [
+      "finding-resolution.json names exception-brief.json by path without its digest",
+      "finding-resolution.json cites HUMAN-RULINGS.md in individual findings but omits it from supportArtifacts and gives no digest",
+      "EXAM-AMENDMENT.candidate.md does not bind HUMAN-RULINGS.md or finding-resolution.json by path and digest"
+    ]
+  },
+  "findingDispositions": [
+    {
+      "id": "SEC-G2-001",
+      "disposition": "resolved-by-candidate",
+      "basis": "A6.1 freezes accepted identity/session values, positive and negative vectors, temporal boundaries, rotation, substitution, revocation, stable denial, and prohibited effects."
+    },
+    {
+      "id": "SEC-G2-002",
+      "disposition": "not-deterministically-resolved",
+      "basis": "A6.2 supplies the webhook contract and race vectors, but A3 and A6.2 simultaneously require denial and zero credential selection while A6.2 requires selecting the installation HMAC secret to verify invalid signatures; PF-002 must be corrected."
+    },
+    {
+      "id": "SEC-G2-003",
+      "disposition": "resolved-by-candidate",
+      "basis": "A3 expands the credential and side-effect ledgers, A6.4 freezes the timing protocol and failure thresholds, and A14 applies them to each external boundary."
+    },
+    {
+      "id": "SEC-G2-004",
+      "disposition": "partially-resolved",
+      "basis": "A7.1 covers the requested principal classes and exact comparison, but its allowed actions remain abstract rather than a versioned provider-native permission manifest with enumerated resources and actions; PF-003 remains."
+    },
+    {
+      "id": "SEC-G2-005",
+      "disposition": "resolved-by-candidate",
+      "basis": "A6.3 freezes query, write, discovery, invocation, credential, resume/replay, tool, origin, TLS, method, content-type, and request-binding rows with UI/API parity."
+    },
+    {
+      "id": "SEC-G2-006",
+      "disposition": "resolved-by-candidate",
+      "basis": "A7.2 supplies same-tenant and cross-tenant hostile fixtures, quantitative resource limits, secret lifecycle cases, cleanup cases, and explicit no-escape results."
+    },
+    {
+      "id": "PRIV-001",
+      "disposition": "resolved-by-candidate",
+      "basis": "A8 enumerates client, provider, intermediary, queue, backup, recovery, operator, and residue surfaces and requires applicability or testable exclusion plus crawl data."
+    },
+    {
+      "id": "PRIV-002",
+      "disposition": "unresolved-pending-hr-01-and-policy-revision",
+      "basis": "The originator lifecycle is specified and the candidate policy is digest-bound, but HR-01 is unsigned and PF-004 identifies undefined retention triggers and non-exact minimum periods that prevent deterministic acceptance as written."
+    },
+    {
+      "id": "PRIV-003",
+      "disposition": "resolved-by-candidate",
+      "basis": "A8 extends canaries and probes to the complete inventory, including same-tenant persistence, indexes, vectors, provider caches, versions, backups, sandbox, filesystem, and container residue."
+    },
+    {
+      "id": "ACC-G2-001",
+      "disposition": "resolved-by-candidate",
+      "basis": "A4 OR-21/22 and A9 require every applicable WCAG 2.1 A/AA and Revised Section 508 row and fail on every unresolved conformance failure regardless of tool severity."
+    },
+    {
+      "id": "ACC-G2-002",
+      "disposition": "resolved-by-candidate",
+      "basis": "A9.1 enumerates routes, states, shared stories, viewports, zoom, spacing, motion, colors, themes, and registry completeness in both directions."
+    },
+    {
+      "id": "ACC-G2-003",
+      "disposition": "resolved-by-candidate",
+      "basis": "A1 digest-binds the 81-checkpoint model, while A9.2 freezes environments and scenarios and requires raw checkpoint-level results plus a separately signed exact-revision summary."
+    },
+    {
+      "id": "MONEY-G2-001",
+      "disposition": "resolved-by-candidate",
+      "basis": "A11.2 defines prices, limits, mappings, atomic reservation, concurrency, exact-limit, inheritance, fallback, cache, isolation, and failure rows."
+    },
+    {
+      "id": "MONEY-G2-002",
+      "disposition": "resolved-by-candidate",
+      "basis": "A11.2/11.3 bound retries, fallback, tokens, tools, time, sandbox, egress, analytics, storage, replay, reconciliation, and attempted-versus-billed evidence."
+    },
+    {
+      "id": "MONEY-G2-003",
+      "disposition": "resolved-by-candidate",
+      "basis": "A11.3 separates model cost from infrastructure and enumerates attribution, unit, price, provider, budget, reservation, invoice, and reconciliation fields."
+    },
+    {
+      "id": "MONEY-G2-004",
+      "disposition": "resolved-by-candidate",
+      "basis": "A2 and A11.1 define a distinct human spend record and pre-provider denial for every named billable path; the pilot ceiling is expressly not authorization."
+    },
+    {
+      "id": "MONEY-G2-005",
+      "disposition": "resolved-by-candidate",
+      "basis": "A11.4 defines forecast, actual/accrued usage, billing period, currency, rounding, reconciliation tolerance, alert/shutdown timing, restart, and audit lineage."
+    },
+    {
+      "id": "LEGAL-G2-001",
+      "disposition": "commercially-deferred-and-regulated-unresolved",
+      "basis": "A10.5 creates a fail-closed regulated prerequisite, so HR-02 need not block the current commercial Gate 2; however PF-005 makes the signed-log digest definition non-executable and PF-007 shows the candidate advances the Gate 1 trigger beyond future regulated pilot or activation."
+    },
+    {
+      "id": "LEGAL-G2-002",
+      "disposition": "resolved-by-candidate",
+      "basis": "A10.1 defines the requested signature fields, canonical serialization, retained provider proof, and verification after session and identity-binding changes."
+    },
+    {
+      "id": "LEGAL-G2-003",
+      "disposition": "unresolved-pending-hr-01-and-policy-revision",
+      "basis": "A8 and the policy candidate provide broad lifecycle coverage, but HR-01 is unsigned and PF-004 prevents deterministic retention verdicts as written."
+    },
+    {
+      "id": "LEGAL-G2-004",
+      "disposition": "resolved-by-candidate",
+      "basis": "A10.1 defines one attributed mutation-attempt envelope, allowed states, durable resolution of unknown outcomes, failure interleavings, idempotency, and non-approval effects."
+    },
+    {
+      "id": "LEGAL-G2-005",
+      "disposition": "resolved-by-candidate",
+      "basis": "A10.2 freezes transfer and reassignment across every decision state and preserves historical subject, hat, sequence, revision, timestamp, identity evidence, and provider proof."
+    },
+    {
+      "id": "REL-001",
+      "disposition": "resolved-by-candidate",
+      "basis": "A4 OR-02, A5 WS-13, and A12 require destruction of all disposable state and Git-only authoritative reconstruction without a private ingestion archive."
+    },
+    {
+      "id": "REL-002",
+      "disposition": "resolved-by-candidate",
+      "basis": "A4 OR-23/24 name exact emitters, events, semantic predicates, correlation identity, clock domains, synchronization, thresholds, and all-sample retention."
+    },
+    {
+      "id": "REL-003",
+      "disposition": "resolved-by-candidate",
+      "basis": "A5 freezes eight worker failure injection points, repeated replacement, replay and fallback, and requires histories, timers, IDs, attempts, writes, and side effects."
+    },
+    {
+      "id": "REL-004",
+      "disposition": "resolved-by-candidate",
+      "basis": "A12 makes five recovery rehearsals mandatory, provides per-case RPO/RTO, requires raw timelines/manifests/digests, and fails missing, stale, partial, wrong-tenant, wrong-version, or mismatched evidence."
+    },
+    {
+      "id": "REL-005",
+      "disposition": "resolved-by-candidate",
+      "basis": "A13 freezes clean-start inputs, credentials, local endpoints, complete core case coverage, network observation, and a cross-binding portability matrix without domain-code changes."
+    },
+    {
+      "id": "IRREV-G2-001",
+      "disposition": "resolved-by-candidate",
+      "basis": "A10.3 covers supported version triples, expand/backfill/migrate/contract, mixed versions, interruptions, retries, rollback, signed cleanup, hashes, journals, side effects, backup, and truth preservation."
+    },
+    {
+      "id": "IRREV-G2-002",
+      "disposition": "resolved-by-candidate",
+      "basis": "A10.1 supplies a common authoritative mutation envelope and state machine with all requested failure, retry, replay, reconciliation, crash, projection, and uniqueness outcomes."
+    },
+    {
+      "id": "IRREV-G2-003",
+      "disposition": "resolved-by-candidate",
+      "basis": "A10.4 binds release actor, targets, evidence, configuration, policy, time, idempotency, production/spend records, durable outcome, canary abort, partial rollout, recovery, and reconciliation."
+    },
+    {
+      "id": "IRREV-G2-004",
+      "disposition": "unresolved-pending-hr-01-and-policy-revision",
+      "basis": "A8 covers lifecycle cases and policy binding, but HR-01 is unsigned and PF-004 leaves retention periods and triggering events insufficiently exact for the required deterministic disposition oracle."
+    }
+  ],
+  "findingDispositionSummary": {
+    "total": 31,
+    "resolvedByCandidate": 25,
+    "notDeterministicallyResolved": 1,
+    "partiallyResolved": 1,
+    "unresolvedPendingHr01AndPolicyRevision": 3,
+    "commerciallyDeferredAndRegulatedUnresolved": 1
+  },
+  "newFindings": [
+    {
+      "id": "PF-001",
+      "severity": "blocker",
+      "summary": "The append-only precedence clause is not safe because it allows every annex section to override any earlier text judged conflicting or less specific without an exhaustive supersession map or a stricter-rule invariant.",
+      "evidence": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md:15-21"
+      ],
+      "impact": "Two reviewers or implementations can select different governing clauses, and a later broad statement can silently weaken an accepted original requirement despite the stated cumulative intent.",
+      "requiredResolution": "Replace the blanket precedence clause with an exhaustive table of exact original clause identifiers and exact replacement or augmentation text. State that all unlisted text remains unchanged and that, for any residual ambiguity, the stricter measurable requirement controls and blocks acceptance pending correction."
+    },
+    {
+      "id": "PF-002",
+      "severity": "blocker",
+      "summary": "The global negative-case credential rule contradicts the webhook verification contract.",
+      "evidence": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md:112-117 requires every negative denial before credential selection",
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md:364-367 requires selecting the tenant/repository HMAC secret before signature verification",
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md:377-384 treats bad signatures and keys as negative rows with zero credential effect"
+      ],
+      "impact": "A conforming verifier cannot both retrieve or select the verification secret and prove zero credential selection for an invalid signature, so SEC-G2-002 has no satisfiable pass result.",
+      "requiredResolution": "Distinguish non-secret public routing and narrowly authorized verification-key access from downstream operational credential selection. Permit the minimum verification-key access needed for authentication, record it, prohibit protected parsing and all operational credentials until authentication and authorization pass, and define zero prohibited effects per row."
+    },
+    {
+      "id": "PF-003",
+      "severity": "major",
+      "summary": "The least-privilege baseline is still not a versioned provider-native permission manifest.",
+      "evidence": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md:414-435"
+      ],
+      "impact": "Phrases such as registered queries, exact approval writes, adapter calls required by job, and policy-authorized admin commands do not enumerate provider permission names, repository/resource selectors, or exact denial sets, so effective-scope comparison remains interpretation-dependent.",
+      "requiredResolution": "Bind a repository path, schema version, and SHA-256 for a manifest that enumerates provider-native actions/scopes, exact resource selectors, credential issuer/audience/lifetime/delegation, and required denials for every listed principal."
+    },
+    {
+      "id": "PF-004",
+      "severity": "major",
+      "summary": "The retention candidate calls its periods deterministic but uses undefined lifecycle triggers and open-ended minimum periods.",
+      "evidence": [
+        "intent/0001/reviews/domain/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md:5-9",
+        "intent/0001/reviews/domain/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md:36-48"
+      ],
+      "impact": "Item closure, environment retirement, repository history lifetime, longer binding duty, and proposed minimum do not yield one computable expiry instant or expected lifecycle state. HR-01 cannot safely accept the exact digest as a deterministic test oracle without resolving those choices.",
+      "requiredResolution": "Define canonical closure and retirement events, exact default minimum and maximum or disposition rules, how a separately identified stricter signed rule is selected and hashed, and the single expected state for each boundary row. Revise the candidate digest before HR-01."
+    },
+    {
+      "id": "PF-005",
+      "severity": "blocker",
+      "summary": "The signed-log event digest is self-referential and therefore not implementable as written.",
+      "evidence": [
+        "intent/0001/reviews/domain/remediation/SIGNED-LOG-SPEC.candidate.md:12-19"
+      ],
+      "impact": "eventDigest is listed inside the event, while the digest input omits only signature and therefore includes eventDigest itself. No deterministic ordinary SHA-256 construction follows from that definition, so independent verification and HR-02 evidence cannot be produced.",
+      "requiredResolution": "Define separate canonical preimage forms explicitly, for example eventDigest over the event with both eventDigest and signature omitted, followed by signature over a stated canonical form containing eventDigest. Add fixed positive and negative test vectors."
+    },
+    {
+      "id": "PF-006",
+      "severity": "major",
+      "summary": "The remediation resolution chain does not digest-bind all governance inputs it relies on.",
+      "evidence": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md:47-60 binds three support artifacts but not HUMAN-RULINGS.md or finding-resolution.json",
+        "intent/0001/reviews/domain/remediation/finding-resolution.json names exception-brief.json by path only and cites HUMAN-RULINGS.md without listing its digest in supportArtifacts"
+      ],
+      "impact": "Ruling definitions, timing, or the claimed 31-finding mapping can change without invalidating the amendment or resolution record.",
+      "requiredResolution": "Digest-bind the exception brief, all seven round-one records, finding-resolution.json, and HUMAN-RULINGS.md in a single manifest or in the amendment. Require exact path-and-digest equality before any remediation review or ruling is current."
+    },
+    {
+      "id": "PF-007",
+      "severity": "major",
+      "summary": "HR-02 timing is internally inconsistent with the current commercial profile and advances the signed-log requirement beyond the accepted Gate 1 trigger.",
+      "evidence": [
+        "intent/0001/signatures/gate-1.json binds the operating profile as commercial and requires the cryptographically signed log before a regulated pilot",
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md:56-60 and 603-613 require HR-02 and implemented evidence before regulated Gate 2, Gate 3, technical release, and pilot activation",
+        "intent/0001/reviews/domain/remediation/HUMAN-RULINGS.md:45-60 requires implemented evidence and says commercial remediation may be reviewed while HR-02 remains open",
+        "intent/0001/reviews/domain/remediation/finding-resolution.json marks LEGAL-G2-001 requires-human-ruling without a commercial-versus-regulated applicability field"
+      ],
+      "impact": "A consumer can either block commercial Gate 2 incorrectly or require pre-build implementation evidence before a regulated Gate 2 that ordinarily precedes Builder work. The broader timing also changes the signed Gate 1 condition from before regulated pilot to earlier regulated gates.",
+      "requiredResolution": "State mechanically that HR-01 is required for current commercial Gate 2, while HR-02 is not triggered by commercial Gate 2 and remains fail-closed for any future regulated activation. Bind HR-02 at the implementation/release stage where implemented evidence exists, unless an eligible human separately changes the Gate 1 scope and sequencing through the governed process."
+    }
+  ],
+  "humanRulingTimingAssessment": {
+    "currentOperatingProfile": "commercial",
+    "hr01": {
+      "requiredBeforeCommercialGateTwo": true,
+      "reason": "The current commercial product includes originator text and authoritative/audit records. The round-one privacy, legal, and irreversible findings require a signed retention oracle, the commercial escalation policy triggers on unresolved major findings and material rights impact, and the amendment itself makes the exact retention-policy signature a Gate 2 prerequisite.",
+      "currentStatus": "open",
+      "precondition": "Revise PF-004, then obtain a separately signed qualified privacy/legal records-owner ruling over the new exact policy digest and Exam revision."
+    },
+    "hr02": {
+      "requiredBeforeCommercialGateTwo": false,
+      "requiredForFutureRegulatedActivation": true,
+      "reason": "Gate 1 accepted provider-recorded approvals for the commercial pilot and required a cryptographically signed log before regulated pilot use. HUMAN-RULINGS.md also states that commercial remediation may be reviewed while HR-02 is open, and HR-02 requires implemented evidence unavailable at this pre-build Exam stage.",
+      "currentStatus": "open-and-not-triggered-for-commercial-gate-two",
+      "preconditionForRegulatedActivation": "Correct PF-005, implement and verify the signed-log mechanism at one exact implementation revision, ensure HR-01 is current, and obtain the qualified legal/compliance determination for the actual jurisdiction, agency, contracts, and deployment.",
+      "scopeCorrectionNeeded": "Remove regulated Gate 2 and Gate 3 from the current HR-02 prerequisite unless the governed Gate 1 scope is explicitly changed; preserve zero regulated activation, technical release, or pilot effect while HR-02 is absent or stale."
+    }
+  },
+  "scopeAssessment": {
+    "acceptedGateOneScopePreserved": false,
+    "preservedElements": [
+      "All OR-01 through OR-25 and WS-01 through WS-13 identifiers remain present.",
+      "The six declared Gate 1 artifact digests match the target bytes.",
+      "Commercial provider-recorded approval, content-free PostHog with 90-day raw-event retention, the separate infrastructure ceiling, and no-spend-without-authorization boundary remain explicit."
+    ],
+    "scopeOrGovernanceDrift": [
+      "PF-001 permits unenumerated overriding of accepted Exam text.",
+      "PF-007 advances the Gate 1 signed-log condition from before regulated pilot or activation to regulated Gate 2 and Gate 3."
+    ]
+  },
+  "appendOnlyPrecedenceAssessment": {
+    "safeAsWritten": false,
+    "decision": "hold",
+    "reason": "Append-only history is appropriate, but a blanket precedence grant over any conflicting or less-specific text is subjective and can silently weaken earlier acceptance criteria. An exact supersession or augmentation table is required."
+  },
+  "overall": {
+    "disposition": "hold-send-back",
+    "pass": false,
+    "eligibleForCanonicalIncorporation": false,
+    "eligibleForCommercialGateTwoDecision": false,
+    "eligibleForRegulatedActivation": false,
+    "newFindingCount": 7,
+    "newBlockerCount": 3,
+    "newMajorCount": 4,
+    "rationale": "The candidate materially improves all 31 round-one areas and fully addresses 25, but two original findings remain technically incomplete, three remain dependent on a revised and signed HR-01 policy, the regulated signed-log path is not executable, and the package contains unsafe precedence, incomplete hash binding, and ruling-timing ambiguity."
+  },
+  "requiredNextState": [
+    "Correct PF-001 through PF-007 without editing the accepted Gate 1 artifacts or silently broadening their scope.",
+    "Issue new exact digests for every changed remediation artifact and bind the full review and ruling chain.",
+    "Obtain HR-01 over the corrected retention policy before commercial Gate 2.",
+    "Keep HR-02 explicitly non-triggering for commercial Gate 2 and fail closed for future regulated activation until corrected implementation evidence and the qualified legal determination exist.",
+    "Append the corrected amendment only through the governed Exam-author path, producing a new canonical Exam revision.",
+    "Run seven new domain reviews, a consolidated exception brief, actor-bound Exam-author CI, and the final independent exact-revision Gate 2 Critic against that new canonical revision."
+  ],
+  "nonAuthorizationBoundaries": {
+    "doesNotModifyCanonicalExam": true,
+    "doesNotModifyGateSignatures": true,
+    "doesNotModifyPolicy": true,
+    "doesNotModifyImplementation": true,
+    "doesNotAcceptResidualRisk": true,
+    "doesNotSignGateTwo": true,
+    "doesNotAuthorizeBuilderDispatch": true,
+    "doesNotAuthorizeCommitOrPush": true,
+    "doesNotAuthorizeBuildOrRelease": true,
+    "doesNotAuthorizeProductionOrRegulatedUse": true,
+    "doesNotAuthorizeProvisioningPaidServicesOrSpend": true,
+    "advisoryPreflightIsNotFinalExactRevisionCritic": true
+  }
+}

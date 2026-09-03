@@ -1,0 +1,97 @@
+{
+  "version": "steer-gate-2-remediation-preflight-resolution/v5",
+  "status": "unsigned-candidate-resolution-map",
+  "targetRevision": "118302e080598a147294e32d40cf5296763c8cc4",
+  "criticPath": "intent/0001/reviews/domain/remediation/preflight-critic.json",
+  "secondCriticPath": "intent/0001/reviews/domain/remediation/preflight-critic-r2.json",
+  "thirdCriticPath": "intent/0001/reviews/domain/remediation/preflight-critic-r3.json",
+  "thirdResolutionPath": "intent/0001/reviews/domain/remediation/preflight-r3-resolution.json",
+  "reviewer": {
+    "serviceIdentity": "codex-task:/root/gate2_test_agent_r4",
+    "agentType": "independent-fresh-context-gate-2-test-agent",
+    "model": null,
+    "modelMetadataStatus": "exact serving model identifier was not exposed to this task and was not guessed",
+    "configurationRevision": "task-assignment:/root/gate2_test_agent_r4@2026-09-03;target:118302e080598a147294e32d40cf5296763c8cc4"
+  },
+  "findings": [
+    {
+      "id": "PF-001",
+      "status": "proposed-resolved",
+      "resolutionLocations": [
+        "EXAM-AMENDMENT.candidate.md#A1 exhaustive precedence table",
+        "EXAM-AMENDMENT.candidate.md#A1 non-retention strictness and retention-conflict block"
+      ]
+    },
+    {
+      "id": "PF-002",
+      "status": "proposed-resolved",
+      "resolutionLocations": [
+        "EXAM-AMENDMENT.candidate.md#A3 verification-material-access rule",
+        "EXAM-AMENDMENT.candidate.md#A6.1",
+        "EXAM-AMENDMENT.candidate.md#A6.2",
+        "EXAM-AMENDMENT.candidate.md#A6.3"
+      ]
+    },
+    {
+      "id": "PF-003",
+      "status": "proposed-resolved",
+      "resolutionLocations": [
+        "PERMISSIONS-MANIFEST.candidate.json#grammar",
+        "PERMISSIONS-MANIFEST.candidate.json#principals.providerPermissions",
+        "PERMISSIONS-MANIFEST.candidate.json#principals.applicationAuthorizations",
+        "EXAM-AMENDMENT.candidate.md#A7.1"
+      ]
+    },
+    {
+      "id": "PF-004",
+      "status": "proposed-resolved",
+      "resolutionLocations": [
+        "RETENTION-AND-RECORDS-POLICY.candidate.md#Time and canonical trigger events",
+        "RETENTION-AND-RECORDS-POLICY.candidate.md#Retention-rule precedence",
+        "RETENTION-AND-RECORDS-POLICY.candidate.md#Record-class schedule",
+        "RETENTION-AND-RECORDS-POLICY.candidate.md#Boundary cases"
+      ]
+    },
+    {
+      "id": "PF-005",
+      "status": "proposed-resolved",
+      "resolutionLocations": [
+        "SIGNED-LOG-SPEC.candidate.md#Canonical event and non-circular preimages",
+        "SIGNED-LOG-SPEC.candidate.md#ordered validation precedence",
+        "SIGNED-LOG-SPEC.candidate.md#Fixed conformance vectors"
+      ]
+    },
+    {
+      "id": "PF-006",
+      "status": "proposed-resolved",
+      "resolutionLocations": [
+        "remediation-manifest.json#artifacts",
+        "EXAM-AMENDMENT.candidate.md#A1 remediation-manifest binding"
+      ]
+    },
+    {
+      "id": "PF-007",
+      "status": "proposed-resolved",
+      "resolutionLocations": [
+        "EXAM-AMENDMENT.candidate.md#A1 human-ruling timing",
+        "EXAM-AMENDMENT.candidate.md#A10.5",
+        "EXAM-AMENDMENT.candidate.md#A16",
+        "HUMAN-RULINGS.md#HR-01",
+        "HUMAN-RULINGS.md#HR-02",
+        "finding-resolution.json#LEGAL-G2-001"
+      ]
+    }
+  ],
+  "summary": {
+    "findingCount": 7,
+    "proposedResolvedCount": 7,
+    "humanRulingsCreated": false,
+    "canonicalIncorporationAuthorized": false,
+    "gateTwoSigned": false,
+    "buildReleaseProductionSpendAuthorized": false
+  },
+  "fourthCriticPath": "intent/0001/reviews/domain/remediation/preflight-critic-r4.json",
+  "fourthResolutionPath": "intent/0001/reviews/domain/remediation/preflight-r4-resolution.json",
+  "fifthCriticPath": "intent/0001/reviews/domain/remediation/preflight-critic-r5.json",
+  "fifthResolutionPath": "intent/0001/reviews/domain/remediation/preflight-r5-resolution.json"
+}

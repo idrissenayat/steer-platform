@@ -1,0 +1,248 @@
+{
+  "version": "steer-gate-2-remediation-preflight-critic/v5",
+  "organization": "steer-platform",
+  "item": "0001-flight-deck-foundation",
+  "gate": 2,
+  "reviewedAt": "2026-09-03T20:35:20Z",
+  "reviewer": {
+    "serviceIdentity": "codex-task:/root/gate2_remediation_critic_r5",
+    "agentType": "independent-fresh-context-preflight-critic",
+    "model": null,
+    "modelMetadataStatus": "exact serving model identifier was not exposed to this task and was not guessed",
+    "freshContext": true,
+    "builderIndependent": true,
+    "advisoryOnly": true
+  },
+  "target": {
+    "revision": "118302e080598a147294e32d40cf5296763c8cc4",
+    "examPath": "intent/0001/EXAM.md",
+    "examSha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53",
+    "status": "historical-canonical-base-for-unsigned-remediation-annex"
+  },
+  "reviewedArtifactHashes": {
+    "intent/0001/EXAM.md": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53",
+    "intent/0001/sources/EXAM.supplied.md": "5823ddb26d0acbc78b7b58d931d76adfe064adeba84b9cf81fad2557d528eb7b",
+    "intent/0001/reviews/domain/review-target.json": "073cc1d5c7df79d9da2439b9ff8b193dcf7cf051d556adc820dc1a9c4722a211",
+    "intent/0001/reviews/gate-2-critic-a43b32a.json": "472b75359d6fab68156dd56a5e15bd2f0ca5846dd92e5775d1a7c00772efb1b6",
+    "intent/0001/reviews/gate-2-critic-ab1d036.json": "dcfdaff5976e28834e530dd09bf9a6625bb9a27803659d79ca7d46ff90c47114",
+    "intent/0001/reviews/domain/exception-brief.json": "95092dd8f3fc56b4d2cff306227f8ab4bc1fa9484cda50a3b79131abac86c805",
+    "intent/0001/reviews/domain/records/accessibility.json": "3f87546984cb58ba7a1e14a7dd5dcd44d09d792241e7cb0f0bc2e310c1806785",
+    "intent/0001/reviews/domain/records/irreversible-operations.json": "2e05ea5f8b4c901c6e0fcefe5b8e24433549b9f24876e74f2538e4a890267c0c",
+    "intent/0001/reviews/domain/records/legal.json": "f0df93c6aabb439fb94c10ae4669ce7272837a21db9939d25cedaf22371b0988",
+    "intent/0001/reviews/domain/records/money.json": "a6930967467ec66355b686c01eeb981f20e9c133cf800d947aa2963c50582ec8",
+    "intent/0001/reviews/domain/records/privacy.json": "b6f86482c9e1387cbdf1329c29a4168aa6075b97c0a160756135fdceb50f0abc",
+    "intent/0001/reviews/domain/records/reliability.json": "76fefab61ae799e2480e2d5ef5045d9a60ee0451c69341f23a45bc929efcd51e",
+    "intent/0001/reviews/domain/records/security.json": "bdebb500446b02c69be9df00528e2d911aadf252b4ebf796f6566d9fac3e51de",
+    "intent/0001/reviews/domain/remediation/ACCESSIBILITY-81-CHECKPOINTS.md": "43d61f4bd52afbb0f206fece2b4f2d784d4af9a4d57fe9f25d2c22a6cab5e361",
+    "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md": "8741853192ce0ff1e039ed8feb2c15af400e7549896a4c5e2b3dcb21010a2c10",
+    "intent/0001/reviews/domain/remediation/HUMAN-RULINGS.md": "7d3a32a78c121f1203d735b9b4db6255183d5e8897fc252163dccd5ef29e5ebf",
+    "intent/0001/reviews/domain/remediation/PERMISSIONS-MANIFEST.candidate.json": "218d698a175d80203a6be2b0d676d978987fab8dc394c68244ab93897b680f17",
+    "intent/0001/reviews/domain/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md": "271d4fa1ee2682f06e504e615cc9e8588ea34ff3ff7d5e2c27f245f80509c96c",
+    "intent/0001/reviews/domain/remediation/SIGNED-LOG-SPEC.candidate.md": "ece4df65505ed563137d6e4797cbe8977a6ef3cfd3be05dd6ef62da9a15ecbbe",
+    "intent/0001/reviews/domain/remediation/SIGNED-LOG-VECTORS.candidate.json": "1a03cdc28b353036ff612f1d8c93bd3f832e3b1adbc7f77a29a13dbc47a7a168",
+    "intent/0001/reviews/domain/remediation/finding-resolution.json": "195d82ae9d4d898d674d03756fcff242f072d59f54e81b844b5f49bd15d31454",
+    "intent/0001/reviews/domain/remediation/preflight-critic.json": "560541f5a7c2608e5cf9dec0cc7a57c31852c4284bfa4e567b1e91da622ed995",
+    "intent/0001/reviews/domain/remediation/preflight-resolution.json": "50cc731575a9406c3601ff62207fb3030d8093cc5d692e4efd1a7bbda3ce1d48",
+    "intent/0001/reviews/domain/remediation/preflight-critic-r2.json": "183e211464c5ffac29dd365ac49a7dc85e49583d6c2a63cfae24aaa908749fd8",
+    "intent/0001/reviews/domain/remediation/preflight-r2-resolution.json": "12d7cdd1a5acfad323d9d89b8ea834db46ae33ca46446849384990f80069cc5f",
+    "intent/0001/reviews/domain/remediation/preflight-critic-r3.json": "e7f2787bf0172a724df2e0a6370205d8059d374162be2bbb98ba4502bec8d0cf",
+    "intent/0001/reviews/domain/remediation/preflight-r3-resolution.json": "93321f34278aa31b5187eef78a6647a07b3c93d2ee258f775fb8f86187d9b0df",
+    "intent/0001/reviews/domain/remediation/preflight-critic-r4.json": "378bba1a301316fc5d97f013191b82bfb3c4d677b49003126e0a8eb99b02f299",
+    "intent/0001/reviews/domain/remediation/preflight-r4-resolution.json": "9682b48a6aaaba9de69c0ab89723d16ada765523875d121bc58d406243e6670a",
+    "intent/0001/reviews/domain/remediation/remediation-manifest.json": "469ca9c31ac299507e54d92fe4bc5e0008ecf8296342fd8f1e50fa6554af0a72",
+    "intent/0001/reviews/domain/remediation/validate-remediation.mjs": "3525addb13aa0df0e1279bf16eca81e087cdb18ca82ad4bf88ce1f0ff1662888"
+  },
+  "integrityChecks": {
+    "canonicalExamRevisionAndDigestMatch": true,
+    "allSevenRoundOneRecordsReviewed": true,
+    "roundOneFindingCount": 31,
+    "exceptionBriefFindingCount": 31,
+    "findingResolutionCount": 31,
+    "roundOneRecordBriefAndResolutionIdSetsEqual": true,
+    "priorPreflightFindingCounts": {
+      "PF": 7,
+      "R2": 4,
+      "R3": 2,
+      "R4": 2,
+      "totalPriorIds": 46
+    },
+    "allPriorIdSetsCompleteAndUnique": true,
+    "allManifestListedPathsExist": true,
+    "allManifestListedSha256Match": true,
+    "manifestArtifactCount": 24,
+    "manifestPathsUnique": true,
+    "manifestSha256": "469ca9c31ac299507e54d92fe4bc5e0008ecf8296342fd8f1e50fa6554af0a72",
+    "amendmentBindsManifestPathAndDigest": true,
+    "manifestExcludesAmendmentAndItself": true,
+    "digestCyclePresent": false,
+    "gateOneAndSharedEvidenceDigestsMatch": true,
+    "suppliedExamDigestMatches": true,
+    "harnessExitCode": 0
+  },
+  "signedLogAssessment": {
+    "positiveDigestReproduced": "de865407d15346dfbfdc2a6dfc7025d2f261481ba006ff24618d3222d4b64839",
+    "positivePublicKeyReproduced": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+    "positiveSignatureReproduced": "QU06HlnIKsWxyEk2N1YsuSWgHYKocaxMqmCpXZTZOHRdhSQVLTvUxXjYHOmOuOn_lQG_Wx1hEEqAHli-KjSuBw",
+    "vectorCount": 9,
+    "allNineExpectedCodesReproduced": true,
+    "changedAndUnchangedPathsExhaustive": true,
+    "mutationPartitionsDeterministic": true,
+    "firstErrorPrecedenceDeterministic": true,
+    "r4SignedLogFindingResolved": true,
+    "decision": "pass"
+  },
+  "permissionManifestAssessment": {
+    "schemaVersion": "steer-permissions-manifest/v2",
+    "principalCount": 11,
+    "allRequiredPrincipalClassesPresent": true,
+    "exactAndPrefixGrammarSeparated": true,
+    "requiredSelectorCategoriesClosedAndComplete": true,
+    "missingDuplicateUnknownMalformedWildcardAndWrongSelectorsDeny": true,
+    "permissionCasesExecuted": 334,
+    "everyProviderPermissionHasANonemptyKnownActionMapping": true,
+    "everyApplicationAuthorizationHasAProviderPermissionMapping": false,
+    "unmappedApplicationAuthorizationActions": [
+      "github:create-approval-record"
+    ],
+    "harnessDetectsReverseOrphanMapping": false,
+    "decision": "hold",
+    "basis": "R5-001"
+  },
+  "retentionAssessment": {
+    "triggerEventTypeCount": 18,
+    "recordClassCount": 11,
+    "timestampAuthoritiesDurationArithmeticAndEventOrderingDefined": true,
+    "holdConflictOrdinaryExpiryAndReferencedEvidenceStatesSingular": true,
+    "referencedEvidenceTrueFalseMissingAmbiguousMismatchLateAuthorizationAndHoldReleaseRowsDefined": true,
+    "r3RetentionFindingResolved": true,
+    "decision": "pass"
+  },
+  "precedenceAndSupersessionAssessment": {
+    "exhaustiveReplaceAugmentTablePresent": true,
+    "unlistedCanonicalTextUnchanged": true,
+    "replaceAndAugmentSemanticsDefined": true,
+    "genericStrictnessExcludesRetention": true,
+    "gateOneP90dImmutableByResidualInference": true,
+    "unenumeratedRetentionConflictBlocks": true,
+    "decision": "pass"
+  },
+  "humanRulingTimingAssessment": {
+    "currentOperatingProfile": "commercial",
+    "soleCurrentlyTriggeredHumanDecision": "HR-01",
+    "hr01Status": "open-and-required-before-current-commercial-gate-two",
+    "hr01Owner": "qualified privacy/legal records owner",
+    "hr01CandidatePath": "intent/0001/reviews/domain/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+    "hr01CandidateSha256": "271d4fa1ee2682f06e504e615cc9e8588ea34ff3ff7d5e2c27f245f80509c96c",
+    "hr02Status": "open-and-not-triggered-for-current-commercial-gate-two",
+    "hr02RequiredOnlyAfterExactImplementationEvidenceAndBeforeFutureRegulatedReleaseOrPilot": true,
+    "timingMatchesAcceptedGateOne": true,
+    "decision": "pass"
+  },
+  "priorFindingDispositions": {
+    "roundOne": [
+      { "id": "SEC-G2-001", "disposition": "resolved-by-current-candidate" },
+      { "id": "SEC-G2-002", "disposition": "resolved-by-current-candidate" },
+      { "id": "SEC-G2-003", "disposition": "resolved-by-current-candidate" },
+      { "id": "SEC-G2-004", "disposition": "not-deterministically-resolved", "basis": "R5-001" },
+      { "id": "SEC-G2-005", "disposition": "resolved-by-current-candidate" },
+      { "id": "SEC-G2-006", "disposition": "resolved-by-current-candidate" },
+      { "id": "PRIV-001", "disposition": "resolved-by-current-candidate" },
+      { "id": "PRIV-002", "disposition": "technical-oracle-resolved-pending-HR-01" },
+      { "id": "PRIV-003", "disposition": "resolved-by-current-candidate" },
+      { "id": "ACC-G2-001", "disposition": "resolved-by-current-candidate" },
+      { "id": "ACC-G2-002", "disposition": "resolved-by-current-candidate" },
+      { "id": "ACC-G2-003", "disposition": "resolved-by-current-candidate" },
+      { "id": "MONEY-G2-001", "disposition": "resolved-by-current-candidate" },
+      { "id": "MONEY-G2-002", "disposition": "resolved-by-current-candidate" },
+      { "id": "MONEY-G2-003", "disposition": "resolved-by-current-candidate" },
+      { "id": "MONEY-G2-004", "disposition": "resolved-by-current-candidate" },
+      { "id": "MONEY-G2-005", "disposition": "resolved-by-current-candidate" },
+      { "id": "LEGAL-G2-001", "disposition": "technical-mechanism-resolved-future-HR-02-not-triggered-now" },
+      { "id": "LEGAL-G2-002", "disposition": "resolved-by-current-candidate" },
+      { "id": "LEGAL-G2-003", "disposition": "technical-oracle-resolved-pending-HR-01" },
+      { "id": "LEGAL-G2-004", "disposition": "resolved-by-current-candidate" },
+      { "id": "LEGAL-G2-005", "disposition": "resolved-by-current-candidate" },
+      { "id": "REL-001", "disposition": "resolved-by-current-candidate" },
+      { "id": "REL-002", "disposition": "resolved-by-current-candidate" },
+      { "id": "REL-003", "disposition": "resolved-by-current-candidate" },
+      { "id": "REL-004", "disposition": "resolved-by-current-candidate" },
+      { "id": "REL-005", "disposition": "resolved-by-current-candidate" },
+      { "id": "IRREV-G2-001", "disposition": "resolved-by-current-candidate" },
+      { "id": "IRREV-G2-002", "disposition": "resolved-by-current-candidate" },
+      { "id": "IRREV-G2-003", "disposition": "resolved-by-current-candidate" },
+      { "id": "IRREV-G2-004", "disposition": "technical-oracle-resolved-pending-HR-01" }
+    ],
+    "PF": [
+      { "id": "PF-001", "disposition": "resolved" },
+      { "id": "PF-002", "disposition": "resolved" },
+      { "id": "PF-003", "disposition": "not-deterministically-resolved", "basis": "R5-001" },
+      { "id": "PF-004", "disposition": "resolved" },
+      { "id": "PF-005", "disposition": "resolved" },
+      { "id": "PF-006", "disposition": "resolved" },
+      { "id": "PF-007", "disposition": "resolved" }
+    ],
+    "R2": [
+      { "id": "R2-001", "disposition": "resolved" },
+      { "id": "R2-002", "disposition": "not-deterministically-resolved", "basis": "R5-001" },
+      { "id": "R2-003", "disposition": "resolved" },
+      { "id": "R2-004", "disposition": "resolved" }
+    ],
+    "R3": [
+      { "id": "R3-001", "disposition": "resolved" },
+      { "id": "R3-002", "disposition": "resolved" }
+    ],
+    "R4": [
+      { "id": "R4-001", "disposition": "resolved" },
+      { "id": "R4-002", "disposition": "resolved-as-written; reverse-orphan defect is R5-001" }
+    ]
+  },
+  "newFindings": [
+    {
+      "id": "R5-001",
+      "severity": "major",
+      "affects": [
+        "SEC-G2-004",
+        "PF-003",
+        "R2-002"
+      ],
+      "summary": "The permission purpose map has an orphan approval-record action, and the harness checks only the opposite direction.",
+      "evidence": [
+        "intent/0001/reviews/domain/remediation/PERMISSIONS-MANIFEST.candidate.json#principals.github-app-installation.applicationAuthorizations[github:create-approval-record]",
+        "intent/0001/reviews/domain/remediation/PERMISSIONS-MANIFEST.candidate.json#principals.github-app-installation.providerPermissions",
+        "intent/0001/reviews/domain/remediation/validate-remediation.mjs:111-116",
+        "intent/0001/reviews/domain/remediation/validate-remediation.mjs:171-174"
+      ],
+      "impact": "github:create-approval-record is a declared application authorization but is absent from every provider permission applicationActionsExact list. The harness still reports the mapping check green because it proves only that each provider permission has some known action. The oracle therefore cannot determine whether approval-record writes are unsupported or whether GitHub contents:write may be used outside its declared exact purposes.",
+      "requiredResolution": "Map github:create-approval-record to the exact GitHub provider permission used for that write, or remove and explicitly deny the action if it is intentionally unsupported. Define applicationActionsExact as the exhaustive permitted-purpose mapping, reject every application authorization that requires provider access but has no mapped provider permission, add the reverse-orphan negative test, and refresh every affected digest and binding."
+    }
+  ],
+  "overall": {
+    "disposition": "hold-send-back",
+    "technicalPreflightPass": false,
+    "currentCommercialGateTwoDisposition": "hold",
+    "eligibleForCanonicalIncorporation": false,
+    "eligibleForCommercialGateTwoDecision": false,
+    "eligibleForRegulatedActivation": false,
+    "newFindingCount": 1,
+    "newBlockerCount": 0,
+    "newMajorCount": 1,
+    "exactRemainingHumanBlocker": "HR-01: a qualified privacy/legal records owner must accept, revise, or decline RETENTION-AND-RECORDS-POLICY.candidate.md at SHA-256 271d4fa1ee2682f06e504e615cc9e8588ea34ff3ff7d5e2c27f245f80509c96c for Exam revision 118302e080598a147294e32d40cf5296763c8cc4; obtain it only after R5-001 is corrected and a zero-finding technical preflight is current.",
+    "rationale": "All reviewed hashes match, the 24-entry manifest is unique and non-circular, all 46 prior IDs are covered, all nine signed-log vectors reproduce with singular mutation partitions and error precedence, required selectors fail closed, retention and precedence are deterministic, and HR timing is correct. Technical preflight remains on hold solely because the provider/application purpose map and harness permit one reverse-orphan approval action."
+  },
+  "requiredNextState": [
+    "Correct R5-001 in the unsigned permissions candidate and validator without editing the canonical Exam, accepted Gate 1 artifacts, signatures, accepted policy, or implementation.",
+    "Refresh all affected support digests, amendment binding, finding and preflight resolution records, and remediation manifest entries.",
+    "Run a fresh independent preflight proving both provider-to-action and action-to-provider mapping completeness with the orphan negative test.",
+    "After zero technical findings, obtain HR-01 over the exact then-current retention candidate digest; HR-02 remains open but is not triggered for current commercial Gate 2.",
+    "Only after zero-finding preflight and current HR-01 may an authorized Exam author consider append-only canonical incorporation; this record grants no authorization."
+  ],
+  "nonAuthorizationBoundaries": {
+    "canonicalExamEdited": false,
+    "signatureOrHumanRulingCreated": false,
+    "acceptedPolicyEdited": false,
+    "implementationEdited": false,
+    "commitCreated": false,
+    "pushPerformed": false,
+    "buildReleaseProductionSpendAuthorized": false
+  }
+}

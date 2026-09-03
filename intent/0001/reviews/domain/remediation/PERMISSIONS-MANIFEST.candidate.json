@@ -1,0 +1,879 @@
+{
+  "version": "steer-permissions-manifest/v2",
+  "status": "unsigned-candidate-test-oracle",
+  "targetRevision": "118302e080598a147294e32d40cf5296763c8cc4",
+  "grammar": {
+    "exact": "UTF-8 string equality after NFC normalization; the characters *, ?, [, and ] are forbidden",
+    "prefix": "UTF-8 byte-prefix comparison after NFC normalization; prefix values contain no wildcard metacharacters and match only values beginning with the complete literal prefix",
+    "providerPermission": "provider, permissionKey, and level are exact values; resourcesExact uses exact grammar and optional resourcesPrefix uses prefix grammar",
+    "applicationAuthorization": "An authorization row is an AND of all selectorsExact and all required prefix categories; rows for the same action are OR alternatives and exactly one row must match. A category is the nonempty text before the first colon. Every category is required exactly once; multiple declared prefixes within a category are OR alternatives, not optional selectors. Exact and prefix categories may not overlap.",
+    "comparison": "Effective provider permissions equal providerPermissions. Selectors are a closed set: the supplied category set must exactly equal requiredSelectorCategories, with one value per category. Every selectorsExact value must be present and equal after NFC normalization. Each prefix category must have exactly one supplied value matching one listed literal prefix. Missing, duplicate (including same category with different values), malformed, wildcard, unknown, extra or wrong selectors deny. Zero or multiple matching authorization rows deny. Every provider permission maps via applicationActionsExact to existing named application actions; absent, empty or unrecognized mappings fail. Extra permission, action, audience, lifetime or delegation fails.",
+    "selectorAuthority": "Request selectors are materialized from independently verified authentication, tenant/repository context and current authorization-policy evaluation, not caller assertions. organization must match the authenticated organization. active-hat:required is emitted only when the verified subject currently has the action-required eligible hat for this exact item; absence, ineligibility, or caller-only assertion denies. authorization-state selectors require current named authorization records.",
+    "requiredSelectorCategories": "For each row this exact set equals the union of categories in selectorsExact and selectorsPrefix. All are required, none optional. Every row includes organization. selectorsExact categories are unique; prefix alternatives may share a category, but may not overlap an exact category.",
+    "providerActionMapping": "applicationActionsExact is the exhaustive permitted-purpose mapping in both directions. Every provider permission maps to one or more existing exact provider-backed application actions. Every application action with providerAccess=required is named by at least one declared provider permission. An action may avoid that reverse requirement only when providerAccess=internal-only, its action begins internal:, it has a nonempty internalOnlyReasonExact, and no provider permission maps to it. Missing, extra, orphan, unknown, contradictory or reclassified mappings fail."
+  },
+  "principals": [
+    {
+      "id": "verified-human-session",
+      "credential": {
+        "issuer": "https://idp.test.steer.invalid/realms/steer",
+        "audiencesExact": [
+          "steer-web"
+        ],
+        "maximumLifetimeSeconds": 28800,
+        "maximumIdleSeconds": 1800,
+        "delegationExact": [
+          "oidc-subject-to-steer-bff-session"
+        ]
+      },
+      "providerPermissions": [
+        {
+          "provider": "keycloak",
+          "permissionKey": "scope",
+          "level": "openid profile",
+          "resourcesExact": [
+            "keycloak:realm:steer"
+          ],
+          "applicationActionsExact": [
+            "steer:item.query",
+            "steer:gate.decide-if-eligible",
+            "steer:item.send-back-if-eligible"
+          ]
+        }
+      ],
+      "applicationAuthorizations": [
+        {
+          "action": "steer:item.query",
+          "selectorsExact": [
+            "organization:steer-platform"
+          ],
+          "requiredSelectorCategories": [
+            "organization"
+          ],
+          "providerAccess": "required"
+        },
+        {
+          "action": "steer:gate.decide-if-eligible",
+          "selectorsExact": [
+            "organization:steer-platform",
+            "active-hat:required"
+          ],
+          "requiredSelectorCategories": [
+            "active-hat",
+            "organization"
+          ],
+          "providerAccess": "required"
+        },
+        {
+          "action": "steer:item.send-back-if-eligible",
+          "selectorsExact": [
+            "organization:steer-platform",
+            "active-hat:required"
+          ],
+          "requiredSelectorCategories": [
+            "active-hat",
+            "organization"
+          ],
+          "providerAccess": "required"
+        }
+      ],
+      "requiredDenialsExact": [
+        "agent-impersonation",
+        "inactive-hat-decision",
+        "provider-key-read",
+        "cross-tenant-access"
+      ]
+    },
+    {
+      "id": "github-app-installation",
+      "credential": {
+        "issuer": "github-app:steer-test",
+        "audiencesExact": [
+          "github-api"
+        ],
+        "maximumLifetimeSeconds": 3600,
+        "delegationExact": [
+          "github-app-steer-test-to-installation-steer-platform-test"
+        ]
+      },
+      "providerPermissions": [
+        {
+          "provider": "github",
+          "permissionKey": "metadata",
+          "level": "read",
+          "resourcesExact": [
+            "github:repository-id:steer-home-test",
+            "github:repository-id:steer-operating-test"
+          ],
+          "applicationActionsExact": [
+            "github:create-item-commit"
+          ]
+        },
+        {
+          "provider": "github",
+          "permissionKey": "contents",
+          "level": "write",
+          "resourcesExact": [
+            "github:repository-id:steer-home-test",
+            "github:repository-id:steer-operating-test"
+          ],
+          "applicationActionsExact": [
+            "github:create-item-commit",
+            "github:create-approval-record"
+          ]
+        },
+        {
+          "provider": "github",
+          "permissionKey": "checks",
+          "level": "write",
+          "resourcesExact": [
+            "github:repository-id:steer-home-test",
+            "github:repository-id:steer-operating-test"
+          ],
+          "applicationActionsExact": [
+            "github:create-check-or-status"
+          ]
+        },
+        {
+          "provider": "github",
+          "permissionKey": "pull_requests",
+          "level": "write",
+          "resourcesExact": [
+            "github:repository-id:steer-home-test",
+            "github:repository-id:steer-operating-test"
+          ],
+          "applicationActionsExact": [
+            "github:create-pull-request-review"
+          ]
+        },
+        {
+          "provider": "github",
+          "permissionKey": "statuses",
+          "level": "write",
+          "resourcesExact": [
+            "github:repository-id:steer-home-test",
+            "github:repository-id:steer-operating-test"
+          ],
+          "applicationActionsExact": [
+            "github:create-check-or-status"
+          ]
+        }
+      ],
+      "applicationAuthorizations": [
+        {
+          "action": "github:create-item-commit",
+          "selectorsExact": [
+            "organization:steer-platform",
+            "repository-id:steer-home-test",
+            "ref:refs/heads/codex/phase-1-foundation"
+          ],
+          "selectorsPrefix": [
+            "path:intent/0001/"
+          ],
+          "requiredSelectorCategories": [
+            "organization",
+            "path",
+            "ref",
+            "repository-id"
+          ],
+          "providerAccess": "required"
+        },
+        {
+          "action": "github:create-approval-record",
+          "selectorsExact": [
+            "organization:steer-platform",
+            "repository-id:steer-operating-test",
+            "ref:refs/heads/codex/phase-1-foundation"
+          ],
+          "selectorsPrefix": [
+            "path:intent/0001/signatures/"
+          ],
+          "requiredSelectorCategories": [
+            "organization",
+            "path",
+            "ref",
+            "repository-id"
+          ],
+          "providerAccess": "required"
+        },
+        {
+          "action": "github:create-check-or-status",
+          "selectorsExact": [
+            "organization:steer-platform",
+            "repository-id:steer-home-test",
+            "ref:refs/heads/codex/phase-1-foundation"
+          ],
+          "requiredSelectorCategories": [
+            "organization",
+            "ref",
+            "repository-id"
+          ],
+          "providerAccess": "required"
+        },
+        {
+          "action": "github:create-pull-request-review",
+          "selectorsExact": [
+            "organization:steer-platform",
+            "repository-id:steer-home-test",
+            "ref:refs/heads/codex/phase-1-foundation"
+          ],
+          "requiredSelectorCategories": [
+            "organization",
+            "ref",
+            "repository-id"
+          ],
+          "providerAccess": "required"
+        }
+      ],
+      "requiredDenialsExact": [
+        "administration-permission",
+        "actions-secrets-permission",
+        "billing-permission",
+        "members-write",
+        "organization-administration",
+        "repository-delete",
+        "repository-transfer",
+        "unlisted-repository"
+      ]
+    },
+    {
+      "id": "platform-agent",
+      "credential": {
+        "issuer": "https://issuer.test.steer.invalid/workloads",
+        "audiencesExact": [
+          "steer-mcp"
+        ],
+        "maximumLifetimeSeconds": 900,
+        "delegationExact": [
+          "registered-agent-to-steer-mcp"
+        ]
+      },
+      "providerPermissions": [
+        {
+          "provider": "steer-mcp",
+          "permissionKey": "tools",
+          "level": "invoke-granted",
+          "resourcesExact": [
+            "tool:item-query",
+            "tool:brief-draft",
+            "tool:evidence-read"
+          ],
+          "applicationActionsExact": [
+            "mcp:tools.list-granted",
+            "mcp:tools.call"
+          ]
+        }
+      ],
+      "applicationAuthorizations": [
+        {
+          "action": "mcp:tools.list-granted",
+          "selectorsExact": [
+            "organization:steer-platform"
+          ],
+          "requiredSelectorCategories": [
+            "organization"
+          ],
+          "providerAccess": "required"
+        },
+        {
+          "action": "mcp:tools.call",
+          "selectorsExact": [
+            "organization:steer-platform",
+            "assignment:intent-0001"
+          ],
+          "selectorsPrefix": [
+            "tool:item-",
+            "tool:brief-",
+            "tool:evidence-"
+          ],
+          "requiredSelectorCategories": [
+            "assignment",
+            "organization",
+            "tool"
+          ],
+          "providerAccess": "required"
+        }
+      ],
+      "requiredDenialsExact": [
+        "gate-sign",
+        "raw-database",
+        "raw-code-host",
+        "ungranted-tool",
+        "cross-tenant-access"
+      ]
+    },
+    {
+      "id": "revoked-or-disabled-agent",
+      "credential": {
+        "issuer": "none",
+        "audiencesExact": [],
+        "maximumLifetimeSeconds": 0,
+        "delegationExact": []
+      },
+      "providerPermissions": [],
+      "applicationAuthorizations": [],
+      "requiredDenialsExact": [
+        "tool-list",
+        "tool-call",
+        "item-query",
+        "item-write",
+        "credential-issue"
+      ]
+    },
+    {
+      "id": "api-worker-reconciler",
+      "credential": {
+        "issuer": "https://issuer.test.steer.invalid/workloads",
+        "audiencesExact": [
+          "temporal-steer",
+          "postgres-steer",
+          "steer-adapters"
+        ],
+        "maximumLifetimeSeconds": 900,
+        "delegationExact": [
+          "workload-to-intent-0001-queue",
+          "workload-to-steer-platform-projection",
+          "workload-to-bound-adapter-job"
+        ]
+      },
+      "providerPermissions": [
+        {
+          "provider": "temporal",
+          "permissionKey": "workflowservice",
+          "level": "poll-respond-describe",
+          "resourcesExact": [
+            "namespace:steer-test",
+            "task-queue:intent-0001"
+          ],
+          "applicationActionsExact": [
+            "worker:execute-job"
+          ]
+        },
+        {
+          "provider": "postgres",
+          "permissionKey": "tenant_steer_platform.projections",
+          "level": "select-insert-update",
+          "resourcesExact": [
+            "database:steer-test",
+            "schema:tenant_steer_platform"
+          ],
+          "applicationActionsExact": [
+            "worker:execute-job"
+          ]
+        },
+        {
+          "provider": "steer-adapter",
+          "permissionKey": "job",
+          "level": "execute-bound",
+          "resourcesExact": [
+            "job:intent-0001"
+          ],
+          "applicationActionsExact": [
+            "worker:execute-job"
+          ]
+        }
+      ],
+      "applicationAuthorizations": [
+        {
+          "action": "worker:execute-job",
+          "selectorsExact": [
+            "organization:steer-platform",
+            "task-queue:intent-0001",
+            "job:intent-0001"
+          ],
+          "requiredSelectorCategories": [
+            "job",
+            "organization",
+            "task-queue"
+          ],
+          "providerAccess": "required"
+        }
+      ],
+      "requiredDenialsExact": [
+        "human-signature",
+        "unbound-repository",
+        "postgres-bypass-rls",
+        "postgres-set-role",
+        "interactive-admin",
+        "cross-tenant-access"
+      ]
+    },
+    {
+      "id": "ci",
+      "credential": {
+        "issuer": "https://token.actions.githubusercontent.com",
+        "audiencesExact": [
+          "steer-ci"
+        ],
+        "maximumLifetimeSeconds": 900,
+        "delegationExact": [
+          "workflow-check-yml-to-steer-ci"
+        ]
+      },
+      "providerPermissions": [
+        {
+          "provider": "github",
+          "permissionKey": "contents",
+          "level": "read",
+          "resourcesExact": [
+            "github:repository-id:steer-home-test"
+          ],
+          "applicationActionsExact": [
+            "ci:publish-check-evidence"
+          ]
+        },
+        {
+          "provider": "github",
+          "permissionKey": "checks",
+          "level": "write",
+          "resourcesExact": [
+            "github:repository-id:steer-home-test"
+          ],
+          "applicationActionsExact": [
+            "ci:publish-check-evidence"
+          ]
+        },
+        {
+          "provider": "github",
+          "permissionKey": "statuses",
+          "level": "write",
+          "resourcesExact": [
+            "github:repository-id:steer-home-test"
+          ],
+          "applicationActionsExact": [
+            "ci:publish-check-evidence"
+          ]
+        },
+        {
+          "provider": "s3-compatible",
+          "permissionKey": "PutObject",
+          "level": "allow",
+          "resourcesExact": [
+            "bucket:steer-evidence-test"
+          ],
+          "resourcesPrefix": [
+            "key:steer-platform/intent-0001/ci/"
+          ],
+          "applicationActionsExact": [
+            "ci:publish-check-evidence"
+          ]
+        }
+      ],
+      "applicationAuthorizations": [
+        {
+          "action": "ci:publish-check-evidence",
+          "selectorsExact": [
+            "organization:steer-platform",
+            "repository-id:steer-home-test"
+          ],
+          "selectorsPrefix": [
+            "evidence-key:steer-platform/intent-0001/ci/"
+          ],
+          "requiredSelectorCategories": [
+            "evidence-key",
+            "organization",
+            "repository-id"
+          ],
+          "providerAccess": "required"
+        }
+      ],
+      "requiredDenialsExact": [
+        "contents-write",
+        "deployments-write",
+        "actions-secrets-read",
+        "gate-sign",
+        "production-access"
+      ]
+    },
+    {
+      "id": "sandbox-workload",
+      "credential": {
+        "issuer": "https://issuer.test.steer.invalid/sandbox-broker",
+        "audiencesExact": [
+          "readiness-fixture",
+          "artifact-sink-fixture"
+        ],
+        "maximumLifetimeSeconds": 60,
+        "delegationExact": [
+          "sandbox-broker-to-execution-intent-0001"
+        ]
+      },
+      "providerPermissions": [
+        {
+          "provider": "github-fixture",
+          "permissionKey": "contents",
+          "level": "read",
+          "resourcesExact": [
+            "repository-id:steer-home-test"
+          ],
+          "applicationActionsExact": [
+            "sandbox:readiness-scan"
+          ]
+        },
+        {
+          "provider": "artifact-sink",
+          "permissionKey": "PutObject",
+          "level": "allow",
+          "resourcesExact": [
+            "bucket:steer-evidence-test"
+          ],
+          "resourcesPrefix": [
+            "key:steer-platform/intent-0001/execution/"
+          ],
+          "applicationActionsExact": [
+            "sandbox:write-execution-evidence"
+          ]
+        }
+      ],
+      "applicationAuthorizations": [
+        {
+          "action": "sandbox:readiness-scan",
+          "selectorsExact": [
+            "organization:steer-platform",
+            "execution:intent-0001",
+            "repository-id:steer-home-test"
+          ],
+          "requiredSelectorCategories": [
+            "execution",
+            "organization",
+            "repository-id"
+          ],
+          "providerAccess": "required"
+        },
+        {
+          "action": "sandbox:write-execution-evidence",
+          "selectorsExact": [
+            "organization:steer-platform",
+            "execution:intent-0001"
+          ],
+          "selectorsPrefix": [
+            "evidence-key:steer-platform/intent-0001/execution/"
+          ],
+          "requiredSelectorCategories": [
+            "evidence-key",
+            "execution",
+            "organization"
+          ],
+          "providerAccess": "required"
+        }
+      ],
+      "requiredDenialsExact": [
+        "host-filesystem",
+        "control-socket",
+        "capability-add",
+        "undeclared-network",
+        "contents-write",
+        "gate-sign",
+        "cross-tenant-access"
+      ]
+    },
+    {
+      "id": "model-credential",
+      "credential": {
+        "issuer": "https://issuer.test.steer.invalid/model-broker",
+        "audiencesExact": [
+          "litellm-test"
+        ],
+        "maximumLifetimeSeconds": 300,
+        "delegationExact": [
+          "model-broker-to-intent-0001"
+        ]
+      },
+      "providerPermissions": [
+        {
+          "provider": "litellm",
+          "permissionKey": "responses",
+          "level": "create",
+          "resourcesExact": [
+            "configuration:model-a",
+            "configuration:model-b"
+          ],
+          "applicationActionsExact": [
+            "model:create-response"
+          ]
+        }
+      ],
+      "applicationAuthorizations": [
+        {
+          "action": "model:create-response",
+          "selectorsExact": [
+            "organization:steer-platform",
+            "tenant:steer-platform",
+            "pod:platform",
+            "execution:intent-0001",
+            "configuration:model-a"
+          ],
+          "requiredSelectorCategories": [
+            "configuration",
+            "execution",
+            "organization",
+            "pod",
+            "tenant"
+          ],
+          "providerAccess": "required"
+        },
+        {
+          "action": "model:create-response",
+          "selectorsExact": [
+            "organization:steer-platform",
+            "tenant:steer-platform",
+            "pod:platform",
+            "execution:intent-0001",
+            "configuration:model-b"
+          ],
+          "requiredSelectorCategories": [
+            "configuration",
+            "execution",
+            "organization",
+            "pod",
+            "tenant"
+          ],
+          "providerAccess": "required"
+        }
+      ],
+      "requiredDenialsExact": [
+        "direct-provider-call",
+        "unlisted-model",
+        "unlisted-fallback",
+        "cross-tenant-key",
+        "cross-budget"
+      ]
+    },
+    {
+      "id": "evidence-credential",
+      "credential": {
+        "issuer": "minio-sts:steer-test",
+        "audiencesExact": [
+          "s3-evidence-test"
+        ],
+        "maximumLifetimeSeconds": 300,
+        "delegationExact": [
+          "evidence-broker-to-intent-0001-object"
+        ]
+      },
+      "providerPermissions": [
+        {
+          "provider": "s3-compatible",
+          "permissionKey": "GetObject",
+          "level": "allow",
+          "resourcesExact": [
+            "bucket:steer-evidence-test"
+          ],
+          "resourcesPrefix": [
+            "key:steer-platform/intent-0001/"
+          ],
+          "applicationActionsExact": [
+            "evidence:get-bound-object"
+          ]
+        },
+        {
+          "provider": "s3-compatible",
+          "permissionKey": "GetObjectVersion",
+          "level": "allow",
+          "resourcesExact": [
+            "bucket:steer-evidence-test"
+          ],
+          "resourcesPrefix": [
+            "key:steer-platform/intent-0001/"
+          ],
+          "applicationActionsExact": [
+            "evidence:get-bound-object"
+          ]
+        },
+        {
+          "provider": "s3-compatible",
+          "permissionKey": "PutObject",
+          "level": "allow",
+          "resourcesExact": [
+            "bucket:steer-evidence-test"
+          ],
+          "resourcesPrefix": [
+            "key:steer-platform/intent-0001/"
+          ],
+          "applicationActionsExact": [
+            "evidence:put-new-object"
+          ]
+        }
+      ],
+      "applicationAuthorizations": [
+        {
+          "action": "evidence:get-bound-object",
+          "selectorsExact": [
+            "organization:steer-platform",
+            "tenant:steer-platform",
+            "operation:get"
+          ],
+          "requiredSelectorCategories": [
+            "operation",
+            "organization",
+            "tenant"
+          ],
+          "providerAccess": "required"
+        },
+        {
+          "action": "evidence:put-new-object",
+          "selectorsExact": [
+            "organization:steer-platform",
+            "tenant:steer-platform",
+            "operation:put-new"
+          ],
+          "selectorsPrefix": [
+            "key:steer-platform/intent-0001/"
+          ],
+          "requiredSelectorCategories": [
+            "key",
+            "operation",
+            "organization",
+            "tenant"
+          ],
+          "providerAccess": "required"
+        }
+      ],
+      "requiredDenialsExact": [
+        "list-all-buckets",
+        "unbound-prefix",
+        "delete-object",
+        "delete-object-version",
+        "overwrite-referenced-object",
+        "cross-tenant-prefix"
+      ]
+    },
+    {
+      "id": "administrator",
+      "credential": {
+        "issuer": "https://idp.test.steer.invalid/realms/steer",
+        "audiencesExact": [
+          "steer-admin"
+        ],
+        "maximumLifetimeSeconds": 1800,
+        "delegationExact": [
+          "eligible-admin-subject-to-steer-admin-api"
+        ]
+      },
+      "providerPermissions": [
+        {
+          "provider": "steer-admin",
+          "permissionKey": "policy",
+          "level": "read",
+          "resourcesExact": [
+            "organization:steer-platform"
+          ],
+          "applicationActionsExact": [
+            "admin:read-policy"
+          ]
+        },
+        {
+          "provider": "steer-admin",
+          "permissionKey": "assignment",
+          "level": "read-update-with-policy",
+          "resourcesExact": [
+            "organization:steer-platform"
+          ],
+          "applicationActionsExact": [
+            "admin:update-assignment-with-policy"
+          ]
+        }
+      ],
+      "applicationAuthorizations": [
+        {
+          "action": "admin:read-policy",
+          "selectorsExact": [
+            "organization:steer-platform"
+          ],
+          "requiredSelectorCategories": [
+            "organization"
+          ],
+          "providerAccess": "required"
+        },
+        {
+          "action": "admin:update-assignment-with-policy",
+          "selectorsExact": [
+            "organization:steer-platform"
+          ],
+          "requiredSelectorCategories": [
+            "organization"
+          ],
+          "providerAccess": "required"
+        }
+      ],
+      "requiredDenialsExact": [
+        "impersonate",
+        "bypass-rls",
+        "bypass-gate",
+        "provider-key-read",
+        "sign-as-other-subject",
+        "cross-tenant-access"
+      ]
+    },
+    {
+      "id": "release-rails",
+      "credential": {
+        "issuer": "https://issuer.test.steer.invalid/release-broker",
+        "audiencesExact": [
+          "release-rails-test"
+        ],
+        "maximumLifetimeSeconds": 300,
+        "delegationExact": [
+          "release-broker-to-intent-0001-release-plan"
+        ]
+      },
+      "providerPermissions": [
+        {
+          "provider": "release-rails",
+          "permissionKey": "release",
+          "level": "observe-execute-when-authorized",
+          "resourcesExact": [
+            "organization:steer-platform",
+            "environment:pilot-test",
+            "release:intent-0001"
+          ],
+          "applicationActionsExact": [
+            "release:observe",
+            "release:execute"
+          ]
+        }
+      ],
+      "applicationAuthorizations": [
+        {
+          "action": "release:observe",
+          "selectorsExact": [
+            "organization:steer-platform",
+            "environment:pilot-test",
+            "release:intent-0001"
+          ],
+          "requiredSelectorCategories": [
+            "environment",
+            "organization",
+            "release"
+          ],
+          "providerAccess": "required"
+        },
+        {
+          "action": "release:execute",
+          "selectorsExact": [
+            "organization:steer-platform",
+            "environment:pilot-test",
+            "release:intent-0001",
+            "production-authorization:current",
+            "spend-authorization:current"
+          ],
+          "requiredSelectorCategories": [
+            "environment",
+            "organization",
+            "production-authorization",
+            "release",
+            "spend-authorization"
+          ],
+          "providerAccess": "required"
+        }
+      ],
+      "requiredDenialsExact": [
+        "provision-without-spend-authorization",
+        "execute-without-production-authorization",
+        "execute-with-stale-evidence",
+        "execute-cross-tenant",
+        "credential-reuse"
+      ]
+    }
+  ]
+}

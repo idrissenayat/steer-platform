@@ -1,0 +1,45 @@
+{
+  "version": "steer-gate-2-remediation-preflight-r3-resolution/v3",
+  "status": "unsigned-candidate-resolution-map",
+  "targetRevision": "118302e080598a147294e32d40cf5296763c8cc4",
+  "criticPath": "intent/0001/reviews/domain/remediation/preflight-critic-r3.json",
+  "reviewer": {
+    "serviceIdentity": "codex-task:/root/gate2_test_agent_r4",
+    "agentType": "independent-fresh-context-gate-2-test-agent",
+    "model": null,
+    "modelMetadataStatus": "exact serving model identifier was not exposed to this task and was not guessed",
+    "configurationRevision": "task-assignment:/root/gate2_test_agent_r4@2026-09-03;target:118302e080598a147294e32d40cf5296763c8cc4"
+  },
+  "findings": [
+    {
+      "id": "R3-001",
+      "status": "proposed-resolved",
+      "resolutionLocations": [
+        "EXAM-AMENDMENT.candidate.md#A7.1 schema steer-permissions-manifest/v2",
+        "PERMISSIONS-MANIFEST.candidate.json#version"
+      ]
+    },
+    {
+      "id": "R3-002",
+      "status": "proposed-resolved",
+      "resolutionLocations": [
+        "RETENTION-AND-RECORDS-POLICY.candidate.md#reference-revocation-authorized",
+        "RETENTION-AND-RECORDS-POLICY.candidate.md#retained-pending-safe-disposition",
+        "RETENTION-AND-RECORDS-POLICY.candidate.md#Boundary cases",
+        "EXAM-AMENDMENT.candidate.md#A8 referenced-evidence lifecycle oracle"
+      ]
+    }
+  ],
+  "summary": {
+    "findingCount": 2,
+    "proposedResolvedCount": 2,
+    "humanRulingsCreated": false,
+    "canonicalIncorporationAuthorized": false,
+    "gateTwoSigned": false,
+    "buildReleaseProductionSpendAuthorized": false
+  },
+  "followUpCriticPath": "intent/0001/reviews/domain/remediation/preflight-critic-r4.json",
+  "followUpResolutionPath": "intent/0001/reviews/domain/remediation/preflight-r4-resolution.json",
+  "latestFollowUpCriticPath": "intent/0001/reviews/domain/remediation/preflight-critic-r5.json",
+  "latestFollowUpResolutionPath": "intent/0001/reviews/domain/remediation/preflight-r5-resolution.json"
+}

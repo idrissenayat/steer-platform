@@ -1,0 +1,65 @@
+{
+  "version": "steer-gate-2-remediation-preflight-r2-resolution/v4",
+  "status": "unsigned-candidate-resolution-map",
+  "targetRevision": "118302e080598a147294e32d40cf5296763c8cc4",
+  "criticPath": "intent/0001/reviews/domain/remediation/preflight-critic-r2.json",
+  "followUpCriticPath": "intent/0001/reviews/domain/remediation/preflight-critic-r3.json",
+  "followUpResolutionPath": "intent/0001/reviews/domain/remediation/preflight-r3-resolution.json",
+  "reviewer": {
+    "serviceIdentity": "codex-task:/root/gate2_test_agent_r4",
+    "agentType": "independent-fresh-context-gate-2-test-agent",
+    "model": null,
+    "modelMetadataStatus": "exact serving model identifier was not exposed to this task and was not guessed",
+    "configurationRevision": "task-assignment:/root/gate2_test_agent_r4@2026-09-03;target:118302e080598a147294e32d40cf5296763c8cc4"
+  },
+  "findings": [
+    {
+      "id": "R2-001",
+      "status": "proposed-resolved",
+      "resolutionLocations": [
+        "SIGNED-LOG-SPEC.candidate.md#ordered validation precedence",
+        "SIGNED-LOG-SPEC.candidate.md#SLV1-NEG-003",
+        "SIGNED-LOG-SPEC.candidate.md#SLV1-NEG-006",
+        "SIGNED-LOG-SPEC.candidate.md#SLV1-NEG-008"
+      ]
+    },
+    {
+      "id": "R2-002",
+      "status": "proposed-resolved",
+      "resolutionLocations": [
+        "PERMISSIONS-MANIFEST.candidate.json#grammar",
+        "PERMISSIONS-MANIFEST.candidate.json#principals.providerPermissions",
+        "PERMISSIONS-MANIFEST.candidate.json#principals.applicationAuthorizations",
+        "EXAM-AMENDMENT.candidate.md#A7.1"
+      ]
+    },
+    {
+      "id": "R2-003",
+      "status": "proposed-resolved",
+      "resolutionLocations": [
+        "RETENTION-AND-RECORDS-POLICY.candidate.md#Time and canonical trigger events",
+        "RETENTION-AND-RECORDS-POLICY.candidate.md#Record-class schedule",
+        "RETENTION-AND-RECORDS-POLICY.candidate.md#ordered external state table",
+        "RETENTION-AND-RECORDS-POLICY.candidate.md#Boundary cases"
+      ]
+    },
+    {
+      "id": "R2-004",
+      "status": "proposed-resolved",
+      "resolutionLocations": [
+        "EXAM-AMENDMENT.candidate.md#A1 non-retention strictness and retention-conflict block",
+        "RETENTION-AND-RECORDS-POLICY.candidate.md#Retention-rule precedence"
+      ]
+    }
+  ],
+  "summary": {
+    "findingCount": 4,
+    "proposedResolvedCount": 4,
+    "humanRulingsCreated": false,
+    "canonicalIncorporationAuthorized": false,
+    "gateTwoSigned": false,
+    "buildReleaseProductionSpendAuthorized": false
+  },
+  "latestFollowUpCriticPath": "intent/0001/reviews/domain/remediation/preflight-critic-r5.json",
+  "latestFollowUpResolutionPath": "intent/0001/reviews/domain/remediation/preflight-r5-resolution.json"
+}

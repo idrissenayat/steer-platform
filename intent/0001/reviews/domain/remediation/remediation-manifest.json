@@ -1,0 +1,145 @@
+{
+  "version": "steer-gate-2-remediation-manifest/v5",
+  "status": "unsigned-candidate-integrity-manifest",
+  "generatedAt": "2026-09-03T20:44:11.073Z",
+  "targetRevision": "118302e080598a147294e32d40cf5296763c8cc4",
+  "targetExamSha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53",
+  "digestAlgorithm": "sha256",
+  "artifacts": [
+    {
+      "role": "exception-brief",
+      "path": "intent/0001/reviews/domain/exception-brief.json",
+      "sha256": "95092dd8f3fc56b4d2cff306227f8ab4bc1fa9484cda50a3b79131abac86c805"
+    },
+    {
+      "role": "round-one-domain-record",
+      "path": "intent/0001/reviews/domain/records/security.json",
+      "sha256": "bdebb500446b02c69be9df00528e2d911aadf252b4ebf796f6566d9fac3e51de"
+    },
+    {
+      "role": "round-one-domain-record",
+      "path": "intent/0001/reviews/domain/records/privacy.json",
+      "sha256": "b6f86482c9e1387cbdf1329c29a4168aa6075b97c0a160756135fdceb50f0abc"
+    },
+    {
+      "role": "round-one-domain-record",
+      "path": "intent/0001/reviews/domain/records/accessibility.json",
+      "sha256": "3f87546984cb58ba7a1e14a7dd5dcd44d09d792241e7cb0f0bc2e310c1806785"
+    },
+    {
+      "role": "round-one-domain-record",
+      "path": "intent/0001/reviews/domain/records/money.json",
+      "sha256": "a6930967467ec66355b686c01eeb981f20e9c133cf800d947aa2963c50582ec8"
+    },
+    {
+      "role": "round-one-domain-record",
+      "path": "intent/0001/reviews/domain/records/legal.json",
+      "sha256": "f0df93c6aabb439fb94c10ae4669ce7272837a21db9939d25cedaf22371b0988"
+    },
+    {
+      "role": "round-one-domain-record",
+      "path": "intent/0001/reviews/domain/records/reliability.json",
+      "sha256": "76fefab61ae799e2480e2d5ef5045d9a60ee0451c69341f23a45bc929efcd51e"
+    },
+    {
+      "role": "round-one-domain-record",
+      "path": "intent/0001/reviews/domain/records/irreversible-operations.json",
+      "sha256": "2e05ea5f8b4c901c6e0fcefe5b8e24433549b9f24876e74f2538e4a890267c0c"
+    },
+    {
+      "role": "round-one-finding-resolution",
+      "path": "intent/0001/reviews/domain/remediation/finding-resolution.json",
+      "sha256": "93407d71c08e4d81a5f53fa9469bd2dd9986dcab6eb9ddfbd3d8b07c2066336b"
+    },
+    {
+      "role": "human-ruling-questions",
+      "path": "intent/0001/reviews/domain/remediation/HUMAN-RULINGS.md",
+      "sha256": "7d3a32a78c121f1203d735b9b4db6255183d5e8897fc252163dccd5ef29e5ebf"
+    },
+    {
+      "role": "support",
+      "path": "intent/0001/reviews/domain/remediation/ACCESSIBILITY-81-CHECKPOINTS.md",
+      "sha256": "43d61f4bd52afbb0f206fece2b4f2d784d4af9a4d57fe9f25d2c22a6cab5e361"
+    },
+    {
+      "role": "support",
+      "path": "intent/0001/reviews/domain/remediation/PERMISSIONS-MANIFEST.candidate.json",
+      "sha256": "46a483533cb1153b0391a9463ca6c3848862ed3bf43b9c7e861077860175bf73"
+    },
+    {
+      "role": "support",
+      "path": "intent/0001/reviews/domain/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+      "sha256": "271d4fa1ee2682f06e504e615cc9e8588ea34ff3ff7d5e2c27f245f80509c96c"
+    },
+    {
+      "role": "support",
+      "path": "intent/0001/reviews/domain/remediation/SIGNED-LOG-SPEC.candidate.md",
+      "sha256": "ece4df65505ed563137d6e4797cbe8977a6ef3cfd3be05dd6ef62da9a15ecbbe"
+    },
+    {
+      "role": "preflight-input",
+      "path": "intent/0001/reviews/domain/remediation/preflight-critic.json",
+      "sha256": "560541f5a7c2608e5cf9dec0cc7a57c31852c4284bfa4e567b1e91da622ed995"
+    },
+    {
+      "role": "preflight-resolution",
+      "path": "intent/0001/reviews/domain/remediation/preflight-resolution.json",
+      "sha256": "327e74435bd015e3bb28ebc860f9b05a6765ed2dbe9e442daf8b96f123b2bc05"
+    },
+    {
+      "role": "second-preflight-input",
+      "path": "intent/0001/reviews/domain/remediation/preflight-critic-r2.json",
+      "sha256": "183e211464c5ffac29dd365ac49a7dc85e49583d6c2a63cfae24aaa908749fd8"
+    },
+    {
+      "role": "second-preflight-resolution",
+      "path": "intent/0001/reviews/domain/remediation/preflight-r2-resolution.json",
+      "sha256": "f885ea7f50f2897ad48e2b7edc05a364c7aace4d1d26e8878622911130679e9f"
+    },
+    {
+      "role": "third-preflight-input",
+      "path": "intent/0001/reviews/domain/remediation/preflight-critic-r3.json",
+      "sha256": "e7f2787bf0172a724df2e0a6370205d8059d374162be2bbb98ba4502bec8d0cf"
+    },
+    {
+      "role": "third-preflight-resolution",
+      "path": "intent/0001/reviews/domain/remediation/preflight-r3-resolution.json",
+      "sha256": "d054479c4ffa716b14a3a0eef65cea15704b4c9268c3c97108a5d082ff006eb8"
+    },
+    {
+      "role": "support-fixture",
+      "path": "intent/0001/reviews/domain/remediation/SIGNED-LOG-VECTORS.candidate.json",
+      "sha256": "1a03cdc28b353036ff612f1d8c93bd3f832e3b1adbc7f77a29a13dbc47a7a168"
+    },
+    {
+      "role": "review-validation-tool",
+      "path": "intent/0001/reviews/domain/remediation/validate-remediation.mjs",
+      "sha256": "15197f339d9eed125885c806f66adff790d67e69247910236b84f9107a0d1044"
+    },
+    {
+      "role": "fourth-preflight-input",
+      "path": "intent/0001/reviews/domain/remediation/preflight-critic-r4.json",
+      "sha256": "378bba1a301316fc5d97f013191b82bfb3c4d677b49003126e0a8eb99b02f299"
+    },
+    {
+      "role": "fourth-preflight-resolution",
+      "path": "intent/0001/reviews/domain/remediation/preflight-r4-resolution.json",
+      "sha256": "36b152525c2e029c3bb5f02c783e7fbec970dbfecf3e042ff54fbd5cb292e978"
+    },
+    {
+      "role": "fifth-preflight-input",
+      "path": "intent/0001/reviews/domain/remediation/preflight-critic-r5.json",
+      "sha256": "0d10cbebe5fecce485b8a8e57a7d29c938aedda8d5889f7ffc1c10ca54512fee"
+    },
+    {
+      "role": "fifth-preflight-resolution",
+      "path": "intent/0001/reviews/domain/remediation/preflight-r5-resolution.json",
+      "sha256": "8d4ed6926f7e2d1e762c81955128b626c21bc7e2ac45c36729a4e55ffc1762e3"
+    }
+  ],
+  "excludedToPreventDigestCycle": [
+    "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md",
+    "intent/0001/reviews/domain/remediation/remediation-manifest.json"
+  ],
+  "validationRule": "Every listed path must exist and its bytes must match sha256 exactly; any missing, extra-required, stale, or mismatched input blocks remediation review and every ruling. The Exam amendment binds this manifest's path and digest."
+}

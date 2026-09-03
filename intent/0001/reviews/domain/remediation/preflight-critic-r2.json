@@ -1,0 +1,432 @@
+{
+  "version": "steer-gate-2-remediation-preflight-critic-r2/v1",
+  "reviewedAt": "2026-09-03T19:06:37Z",
+  "organization": "steer-platform",
+  "item": "0001-flight-deck-foundation",
+  "gate": 2,
+  "target": {
+    "revision": "118302e080598a147294e32d40cf5296763c8cc4",
+    "tree": "b4059f722d8841a5b6c114e3ca38dcc745b1caaa",
+    "exam": {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+    },
+    "currentHeadAtReview": "3a5c7dbb2a486be06a5e6f76435a02881bf06388",
+    "canonicalExamBytesMatchTarget": true,
+    "status": "historical-base-for-unsigned-remediation-annex"
+  },
+  "reviewer": {
+    "serviceIdentity": "codex-task:/root/gate2_remediation_critic_r2",
+    "agentType": "second-independent-fresh-context-preflight-critic",
+    "task": "/root/gate2_remediation_critic_r2",
+    "model": null,
+    "modelMetadataStatus": "exact serving model identifier was not exposed to this task and was not guessed",
+    "configurationRevision": "task-assignment:/root/gate2_remediation_critic_r2@2026-09-03;target:118302e080598a147294e32d40cf5296763c8cc4",
+    "freshContext": true,
+    "builderIndependent": true,
+    "advisoryOnly": true,
+    "notFinalExactRevisionGateTwoCritic": true
+  },
+  "reviewedArtifacts": [
+    {
+      "path": "intent/0001/EXAM.md",
+      "source": "git-object-at-target-revision-and-byte-identical-working-tree",
+      "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+    },
+    {
+      "path": "intent/0001/reviews/domain/exception-brief.json",
+      "source": "working-tree-round-one",
+      "sha256": "95092dd8f3fc56b4d2cff306227f8ab4bc1fa9484cda50a3b79131abac86c805"
+    },
+    {
+      "path": "intent/0001/reviews/domain/records/security.json",
+      "source": "working-tree-round-one",
+      "sha256": "bdebb500446b02c69be9df00528e2d911aadf252b4ebf796f6566d9fac3e51de"
+    },
+    {
+      "path": "intent/0001/reviews/domain/records/privacy.json",
+      "source": "working-tree-round-one",
+      "sha256": "b6f86482c9e1387cbdf1329c29a4168aa6075b97c0a160756135fdceb50f0abc"
+    },
+    {
+      "path": "intent/0001/reviews/domain/records/accessibility.json",
+      "source": "working-tree-round-one",
+      "sha256": "3f87546984cb58ba7a1e14a7dd5dcd44d09d792241e7cb0f0bc2e310c1806785"
+    },
+    {
+      "path": "intent/0001/reviews/domain/records/money.json",
+      "source": "working-tree-round-one",
+      "sha256": "a6930967467ec66355b686c01eeb981f20e9c133cf800d947aa2963c50582ec8"
+    },
+    {
+      "path": "intent/0001/reviews/domain/records/legal.json",
+      "source": "working-tree-round-one",
+      "sha256": "f0df93c6aabb439fb94c10ae4669ce7272837a21db9939d25cedaf22371b0988"
+    },
+    {
+      "path": "intent/0001/reviews/domain/records/reliability.json",
+      "source": "working-tree-round-one",
+      "sha256": "76fefab61ae799e2480e2d5ef5045d9a60ee0451c69341f23a45bc929efcd51e"
+    },
+    {
+      "path": "intent/0001/reviews/domain/records/irreversible-operations.json",
+      "source": "working-tree-round-one",
+      "sha256": "2e05ea5f8b4c901c6e0fcefe5b8e24433549b9f24876e74f2538e4a890267c0c"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/ACCESSIBILITY-81-CHECKPOINTS.md",
+      "source": "working-tree-unsigned-support",
+      "sha256": "43d61f4bd52afbb0f206fece2b4f2d784d4af9a4d57fe9f25d2c22a6cab5e361"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md",
+      "source": "working-tree-unsigned-candidate",
+      "sha256": "a97fa9cce84d1c1898911e42a0a1826bada72c1d1a8f8ae96622d476ace4037e"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/HUMAN-RULINGS.md",
+      "source": "working-tree-open-questions",
+      "sha256": "6e46653962c6f65bd778de65b87da3248bd3c9b1828c7899f326b3fdad2261a8"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/PERMISSIONS-MANIFEST.candidate.json",
+      "source": "working-tree-unsigned-candidate",
+      "sha256": "f6e8f3af0f97be70076980aab4fc4a0eb1f5684695613c61f3a9a94b99cc5ec5"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+      "source": "working-tree-unsigned-candidate",
+      "sha256": "d034971d350d33487d4c1f571c8aa962a30236e25a560eed680971a75732c1f3"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/SIGNED-LOG-SPEC.candidate.md",
+      "source": "working-tree-unsigned-candidate",
+      "sha256": "9f4a8d2dca77700873deaa1f863ae8ccc9c32abde1082f7d4d048b434d471f9f"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/finding-resolution.json",
+      "source": "working-tree-unsigned-resolution-map",
+      "sha256": "8c7c9bc0b0d070e98a0f3d6bc89ad1d0a6c1669cadbd489ed9c63a551464656a"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/preflight-critic.json",
+      "source": "working-tree-prior-advisory-preflight",
+      "sha256": "560541f5a7c2608e5cf9dec0cc7a57c31852c4284bfa4e567b1e91da622ed995"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/preflight-resolution.json",
+      "source": "working-tree-unsigned-resolution-map",
+      "sha256": "d305c30deb2a895d85b02b1230fc81ef01e297e44aa88a08022f8bebd2e54aa5"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/remediation-manifest.json",
+      "source": "working-tree-unsigned-integrity-manifest",
+      "sha256": "6ca873d870ecbc5ce611d3522fcd5197b7328b3488fbd2a69ed73d5f79000705"
+    },
+    {
+      "path": "intent/0001/BRIEF.md",
+      "source": "git-object-at-target-revision",
+      "sha256": "a5af593397de0722666baefae846b31881c6429c9691bec886f4a0771a8bc97f"
+    },
+    {
+      "path": "intent/0001/SPEC.md",
+      "source": "git-object-at-target-revision",
+      "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"
+    },
+    {
+      "path": "intent/0001/ARCHITECTURE.md",
+      "source": "git-object-at-target-revision",
+      "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+    },
+    {
+      "path": "intent/0001/PLAN.md",
+      "source": "git-object-at-target-revision",
+      "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+    },
+    {
+      "path": "intent/0001/signatures/gate-1.json",
+      "source": "git-object-at-target-revision",
+      "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+    },
+    {
+      "path": "intent/0001/sources/EXAM.supplied.md",
+      "source": "git-object-at-target-revision",
+      "sha256": "5823ddb26d0acbc78b7b58d931d76adfe064adeba84b9cf81fad2557d528eb7b"
+    }
+  ],
+  "integrityChecks": {
+    "allJsonParsed": true,
+    "allSevenRoundOneRecordsReviewed": true,
+    "roundOneFindingCount": 31,
+    "exceptionBriefFindingCount": 31,
+    "resolutionMapFindingCount": 31,
+    "priorPreflightDispositionCount": 31,
+    "findingIdSetsEqual": true,
+    "allRoundOneRecordsBindTargetRevision": true,
+    "allRoundOneRecordsBindTargetExamDigest": true,
+    "allManifestEntriesMatchCurrentBytes": true,
+    "amendmentDeclaredSupportDigestsMatchCurrentBytes": true,
+    "amendmentDeclaredManifestDigestMatchesCurrentBytes": true,
+    "gateOneArtifactsMatchDeclaredDigestsAtTarget": true,
+    "manifestExcludesAmendmentAndItself": true,
+    "amendmentAloneBindsManifest": true,
+    "digestCycleDetected": false,
+    "missingOrIncorrectDeclaredPathOrDigest": false,
+    "priorPreflightInternalHashesAreHistorical": true,
+    "priorPreflightHistoricalHashTreatment": "The prior advisory preflight accurately records the pre-remediation bytes it reviewed. The current manifest binds that prior record as a historical input and separately binds the corrected artifacts; its stale internal reviewed-artifact hashes are not treated as current claims."
+  },
+  "signedLogVectorReproduction": {
+    "positiveVectorDigestMatches": true,
+    "positiveVectorSignatureMatches": true,
+    "positiveEventDigest": "de865407d15346dfbfdc2a6dfc7025d2f261481ba006ff24618d3222d4b64839",
+    "positiveSignature": "QU06HlnIKsWxyEk2N1YsuSWgHYKocaxMqmCpXZTZOHRdhSQVLTvUxXjYHOmOuOn_lQG_Wx1hEEqAHli-KjSuBw",
+    "allFixedNegativeVectorsReproduceNamedStableCodes": false,
+    "failedVectors": [
+      {
+        "id": "SLV1-NEG-003",
+        "declaredExpectedCode": "SIGNATURE_INVALID",
+        "observed": "Changing the final unpadded base64url character from w to x changes only unused pad bits. Python and Node decode both strings to the same 64 signature bytes, and Ed25519 verification succeeds. The specification does not require a canonical re-encode equality check or define its stable failure code."
+      },
+      {
+        "id": "SLV1-NEG-006",
+        "declaredExpectedCode": "SIGNING_KEY_UNKNOWN",
+        "observed": "Changing signingKeyId in the base event while retaining every other byte changes the recomputed event digest to 7bf002d6c8334fde4cc3a8c4559dd764dc3d100893abd68a00b6c00167b1993f, so the stated digest-first verification procedure reaches EVENT_DIGEST_MISMATCH before key verification unless a contradictory validation order is added."
+      }
+    ]
+  },
+  "scopeAssessment": {
+    "acceptedGateOneCommercialScopePreserved": true,
+    "regulatedSignedLogTriggerMatchesGateOne": true,
+    "spendBoundaryPreserved": true,
+    "posthogExactNinetyDayBoundaryPreservedOutsideResidualPrecedenceAmbiguity": true,
+    "acceptedRequirementsRetained": {
+      "orIdentifiers": "OR-01-through-OR-25",
+      "wsIdentifiers": "WS-01-through-WS-13"
+    },
+    "scopeConcern": "The residual precedence fallback labels longer retention as categorically stricter, which can conflict with privacy minimization and the signed exact 90-day PostHog rule. The non-weakening sentence does not mechanically select the governing result when those clauses collide."
+  },
+  "precedenceAndSupersessionAssessment": {
+    "exhaustiveTableAdded": true,
+    "allUnlistedOriginalTextDeclaredUnchanged": true,
+    "replaceAndAugmentOperationsDefined": true,
+    "residualAmbiguityBlocksWhenStrictnessCannotBeOrdered": true,
+    "unambiguousOverall": false,
+    "decision": "hold",
+    "reason": "PF-001 is materially improved, but the residual strictness ordering is not safe for retention: longer retention is not always stricter for privacy and can oppose the accepted exact 90-day content-free analytics rule."
+  },
+  "permissionManifestAssessment": {
+    "pathAndDigestBound": true,
+    "principalClassesEnumerated": true,
+    "issuerAudienceLifetimeAndDelegationPresent": true,
+    "providerNativeEnoughForDeterministicComparison": false,
+    "exactSelectorInvariantSatisfied": false,
+    "decision": "hold",
+    "reason": "The manifest declares selectorsAreExact=true and wildcardsAllowed=false but uses wildcard resource selectors and action or denial patterns for humans, agents, workers, CI, sandbox, evidence, and administrators. It also represents the GitHub App with repository-wide pseudo-scope strings such as github:contents:write rather than exact provider permission keys plus the path/ref restrictions needed by the stated item-write oracle."
+  },
+  "retentionDeterminismAssessment": {
+    "canonicalItemClosureDefined": true,
+    "canonicalEnvironmentRetirementDefined": true,
+    "finiteDurationsDefined": true,
+    "stricterRuleSelectionDefined": true,
+    "singleExpectedStateForEveryBoundary": false,
+    "mechanicallyDeterministicOverall": false,
+    "decision": "hold",
+    "reason": "Several schedule triggers are not among the canonical events defined by the policy: durable run terminal event, durable event commit, durable supersession, and authorized rebuild request. At exact expiry the policy also states both an atomic deletion-due state and an immediate request followed by quarantined-deletion-pending until completion, leaving more than one observable state without a transition ordering rule. HR-01 should not bind this digest until those points are corrected."
+  },
+  "humanRulingTimingAssessment": {
+    "currentOperatingProfile": "commercial",
+    "gateOneCommercialApprovalRecord": "provider-recorded",
+    "gateOneRegulatedRequirement": "cryptographically-signed-log-before-regulated-pilot",
+    "hr01": {
+      "requiredBeforeCommercialGateTwo": true,
+      "currentStatus": "open",
+      "timingMatchesCurrentCommercialScope": true,
+      "eligibleForSignatureOverCurrentPolicyDigest": false,
+      "reason": "The commercial product handles originator text and authoritative records, and the triggered privacy, legal, and irreversible findings require the qualified records-owner ruling before Gate 2. The current retention candidate still needs the deterministic corrections in R2-003 before that ruling."
+    },
+    "hr02": {
+      "requiredBeforeCommercialGateTwo": false,
+      "requiredBeforeFutureRegulatedTechnicalReleaseOrPilotActivation": true,
+      "requiredOnlyAfterExactImplementationEvidenceExists": true,
+      "currentStatus": "open-and-not-triggered-for-commercial-gate-two",
+      "timingMatchesSignedGateOneCommercialScope": true,
+      "eligibleForFutureRulingOverCurrentSignedLogDigest": false,
+      "reason": "The Gate 1 record requires the signed log before a regulated pilot, not before the current commercial Gate 2. The remediation timing now preserves that boundary, but the signed-log candidate must first correct R2-001 and later be implemented and verified before HR-02."
+    }
+  },
+  "pfFindingDispositions": [
+    {
+      "id": "PF-001",
+      "severity": "blocker",
+      "disposition": "partially-resolved",
+      "basis": "An exhaustive replace/augment table and unchanged-text rule now exist, but the residual stricter-rule fallback is unsafe and ambiguous for privacy retention. See R2-004."
+    },
+    {
+      "id": "PF-002",
+      "severity": "blocker",
+      "disposition": "resolved-by-candidate",
+      "basis": "A3 and A6 distinguish recorded verification-material access from prohibited downstream operational credential effects and make webhook authentication satisfiable."
+    },
+    {
+      "id": "PF-003",
+      "severity": "major",
+      "disposition": "not-deterministically-resolved",
+      "basis": "The bound permissions file exists but contradicts its own no-wildcard/exact-selector rules and does not provide a provider-native exact GitHub item/path/ref scope. See R2-002."
+    },
+    {
+      "id": "PF-004",
+      "severity": "major",
+      "disposition": "not-deterministically-resolved",
+      "basis": "Canonical closure and retirement events and exact durations were added, but multiple schedule triggers remain undefined and the exact-expiry state is not singular. See R2-003."
+    },
+    {
+      "id": "PF-005",
+      "severity": "blocker",
+      "disposition": "not-deterministically-resolved",
+      "basis": "The digest and signature preimages are now non-circular and the positive vector reproduces, but SLV1-NEG-003 and SLV1-NEG-006 do not reproduce their named stable codes under the stated verifier. See R2-001."
+    },
+    {
+      "id": "PF-006",
+      "severity": "major",
+      "disposition": "resolved-by-candidate",
+      "basis": "The one-way manifest binds the brief, seven records, resolution map, ruling questions, prior preflight input/resolution, and support artifacts; the amendment alone binds the manifest, with no digest cycle. All declared bytes match."
+    },
+    {
+      "id": "PF-007",
+      "severity": "major",
+      "disposition": "resolved-by-candidate",
+      "basis": "HR-01 is a current commercial Gate 2 prerequisite, while HR-02 is explicitly non-triggering for commercial Gate 2 and fail-closed only before a future regulated technical release or pilot after implementation evidence. This matches the signed Gate 1 trigger."
+    }
+  ],
+  "originalFindingDispositions": [
+    {"id":"SEC-G2-001","domain":"security","originalSeverity":"major","disposition":"resolved-by-candidate","basis":"A6.1 freezes the OIDC and session validation matrix."},
+    {"id":"SEC-G2-002","domain":"security","originalSeverity":"major","disposition":"resolved-by-candidate","basis":"A3 and A6.2 freeze raw-body HMAC verification, replay, rotation, concurrency, and verification-material effects."},
+    {"id":"SEC-G2-003","domain":"security","originalSeverity":"major","disposition":"resolved-by-candidate","basis":"A3, A6.4, and A14 define the timing oracle and credential/side-effect evidence."},
+    {"id":"SEC-G2-004","domain":"security","originalSeverity":"major","disposition":"not-deterministically-resolved","basis":"A7.1 binds a manifest, but R2-002 prevents exact provider-native permission comparison."},
+    {"id":"SEC-G2-005","domain":"security","originalSeverity":"major","disposition":"resolved-by-candidate","basis":"A6.3 freezes MCP Streamable HTTP identity, origin, reconnect, discovery, invocation, and parity cases."},
+    {"id":"SEC-G2-006","domain":"security","originalSeverity":"major","disposition":"resolved-by-candidate","basis":"A7.2 freezes hostile sandbox, credential, resource, escape, egress, and cleanup cases."},
+    {"id":"PRIV-001","domain":"privacy","originalSeverity":"major","disposition":"resolved-by-candidate","basis":"A8 enumerates the complete storage and reconstruction inventory."},
+    {"id":"PRIV-002","domain":"privacy","originalSeverity":"major","disposition":"unresolved-pending-policy-correction-and-hr-01","basis":"OR-20 and A8 bind the candidate, but R2-003 must be corrected before HR-01 can resolve this finding."},
+    {"id":"PRIV-003","domain":"privacy","originalSeverity":"major","disposition":"resolved-by-candidate","basis":"A8 applies exact, encoded, indexed, cached, versioned, same-tenant, and cross-tenant canary probes to the full inventory."},
+    {"id":"ACC-G2-001","domain":"accessibility","originalSeverity":"blocker","disposition":"resolved-by-candidate","basis":"OR-21, OR-22, A9, and the bound A01-A81 model require complete WCAG 2.1 AA and Section 508 evaluation without axe-severity waivers."},
+    {"id":"ACC-G2-002","domain":"accessibility","originalSeverity":"blocker","disposition":"resolved-by-candidate","basis":"A9.1 enumerates routes, states, shared stories, and numeric viewports with bidirectional completeness checks."},
+    {"id":"ACC-G2-003","domain":"accessibility","originalSeverity":"major","disposition":"resolved-by-candidate","basis":"The bound 81-checkpoint model, manual environment matrix, scenarios, and raw record fields are explicit."},
+    {"id":"MONEY-G2-001","domain":"money","originalSeverity":"blocker","disposition":"resolved-by-candidate","basis":"A11.2 freezes prices, budgets, scopes, atomic reservations, concurrency, and isolation."},
+    {"id":"MONEY-G2-002","domain":"money","originalSeverity":"blocker","disposition":"resolved-by-candidate","basis":"A11.2-A11.4 bound retries, fallback, compute, egress, analytics, evidence, and billable idempotency."},
+    {"id":"MONEY-G2-003","domain":"money","originalSeverity":"major","disposition":"resolved-by-candidate","basis":"A11.2-A11.3 separate and enumerate model usage, pricing, ledgers, budgets, and reconciliation."},
+    {"id":"MONEY-G2-004","domain":"money","originalSeverity":"blocker","disposition":"resolved-by-candidate","basis":"A2 and A11.1 define the named spend record and deny every paid path before credential or request."},
+    {"id":"MONEY-G2-005","domain":"money","originalSeverity":"major","disposition":"resolved-by-candidate","basis":"A11.4 defines period, rounding, forecast, actual, variance, breach, shutdown, restart, and retained lineage."},
+    {"id":"LEGAL-G2-001","domain":"legal","originalSeverity":"blocker","disposition":"commercially-not-triggered-and-future-regulated-unresolved","basis":"A10.5 and HR-02 now match Gate 1 timing, but R2-001 must be corrected, implemented evidence must exist, and HR-02 must be signed before any future regulated technical release or pilot."},
+    {"id":"LEGAL-G2-002","domain":"legal","originalSeverity":"major","disposition":"resolved-by-candidate","basis":"A10.1 supplies the complete canonical signature and provider-proof envelope and verification cases."},
+    {"id":"LEGAL-G2-003","domain":"legal","originalSeverity":"major","disposition":"unresolved-pending-policy-correction-and-hr-01","basis":"A8 and A16 bind retention, but R2-003 must be corrected before HR-01 can resolve this finding."},
+    {"id":"LEGAL-G2-004","domain":"legal","originalSeverity":"major","disposition":"resolved-by-candidate","basis":"A10.1 defines one complete decision-attempt envelope and state machine for non-approval paths."},
+    {"id":"LEGAL-G2-005","domain":"legal","originalSeverity":"major","disposition":"resolved-by-candidate","basis":"A10.2 freezes transfer timing and preserves immutable historical attribution."},
+    {"id":"REL-001","domain":"reliability","originalSeverity":"blocker","disposition":"resolved-by-candidate","basis":"OR-02, WS-13, and A12 require full projection destruction and Git-only reconstruction without private repair input."},
+    {"id":"REL-002","domain":"reliability","originalSeverity":"major","disposition":"resolved-by-candidate","basis":"OR-23, OR-24, and A3 define exact events, clocks, predicates, samples, and inclusion."},
+    {"id":"REL-003","domain":"reliability","originalSeverity":"major","disposition":"resolved-by-candidate","basis":"WS-05 freezes eight crash/replay/switchover interleavings and retained workflow evidence."},
+    {"id":"REL-004","domain":"reliability","originalSeverity":"major","disposition":"resolved-by-candidate","basis":"A12 supplies deterministic Git, Postgres, evidence, Temporal, and regional recovery rehearsals with RPO/RTO."},
+    {"id":"REL-005","domain":"reliability","originalSeverity":"major","disposition":"resolved-by-candidate","basis":"OR-25 and A13 freeze hermetic startup, endpoints, captured attempts, core cases, and portability bindings."},
+    {"id":"IRREV-G2-001","domain":"irreversible-operations","originalSeverity":"blocker","disposition":"resolved-by-candidate","basis":"A10.3 and A12 define forward-only migration, rollback, mixed-version, backfill, cleanup refusal, and recovery evidence."},
+    {"id":"IRREV-G2-002","domain":"irreversible-operations","originalSeverity":"major","disposition":"resolved-by-candidate","basis":"A10.1 defines the authoritative mutation envelope, state machine, reconciliation, retries, and unique outcome."},
+    {"id":"IRREV-G2-003","domain":"irreversible-operations","originalSeverity":"major","disposition":"resolved-by-candidate","basis":"A2, A10.4, and A11.1 separate release, production, and spend authority and exercise external-outcome recovery."},
+    {"id":"IRREV-G2-004","domain":"irreversible-operations","originalSeverity":"major","disposition":"unresolved-pending-policy-correction-and-hr-01","basis":"A8 and A10.3 bind lifecycle safety, but R2-003 must be corrected before HR-01 can resolve this finding."}
+  ],
+  "originalFindingDispositionSummary": {
+    "total": 31,
+    "resolvedByCandidate": 26,
+    "notDeterministicallyResolved": 1,
+    "unresolvedPendingPolicyCorrectionAndHr01": 3,
+    "commerciallyNotTriggeredAndFutureRegulatedUnresolved": 1,
+    "allOriginalFindingIdsRemainCovered": true
+  },
+  "newFindings": [
+    {
+      "id": "R2-001",
+      "severity": "blocker",
+      "affects": ["PF-005", "LEGAL-G2-001"],
+      "summary": "Two fixed signed-log negative vectors do not reproduce their named stable result under the specification's own encoding and verification procedure.",
+      "evidence": [
+        "intent/0001/reviews/domain/remediation/SIGNED-LOG-SPEC.candidate.md:20-28",
+        "intent/0001/reviews/domain/remediation/SIGNED-LOG-SPEC.candidate.md:93-109"
+      ],
+      "impact": "A conforming verifier can accept SLV1-NEG-003 and can classify SLV1-NEG-006 as an event-digest mismatch rather than an unknown key, so the fixed conformance oracle is not portable or deterministic.",
+      "requiredResolution": "Use a signature mutation that changes decoded signature bytes, or explicitly require canonical base64url re-encode equality with a named failure code. Define validation precedence and change SLV1-NEG-006 or its expected code so the mutated stored event deterministically reaches exactly one code. Recompute and independently reproduce every vector."
+    },
+    {
+      "id": "R2-002",
+      "severity": "major",
+      "affects": ["PF-003", "SEC-G2-004"],
+      "summary": "The permissions candidate contradicts its no-wildcard exact-selector rules and does not express every permission as a provider-native exact scope.",
+      "evidence": [
+        "intent/0001/reviews/domain/remediation/PERMISSIONS-MANIFEST.candidate.json#rules",
+        "intent/0001/reviews/domain/remediation/PERMISSIONS-MANIFEST.candidate.json#principals"
+      ],
+      "impact": "An implementation cannot perform the required set-equality comparison without deciding whether wildcard selectors and pseudo-scope strings are forbidden, literal, or patterns, and repository-wide GitHub contents permission is broader than the stated item/path behavior.",
+      "requiredResolution": "Define separate exact-match and pattern fields with explicit grammar and semantics, or enumerate exact selectors. Represent GitHub App repository permissions in provider-native permission-key and level form, and bind any path/ref/item restrictions in a separately exact application authorization set. Apply the same provider/action separation to every multi-provider principal."
+    },
+    {
+      "id": "R2-003",
+      "severity": "major",
+      "affects": ["PF-004", "PRIV-002", "LEGAL-G2-003", "IRREV-G2-004", "HR-01"],
+      "summary": "The retention candidate still does not yield one mechanical trigger and state for every record class and boundary.",
+      "evidence": [
+        "intent/0001/reviews/domain/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md:11-38",
+        "intent/0001/reviews/domain/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md:67-94",
+        "intent/0001/reviews/domain/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md:127-139"
+      ],
+      "impact": "Undefined schedule events and overlapping exact-expiry states allow different expiry instants or expected states, so HR-01 cannot safely bind the current digest as the required deterministic oracle.",
+      "requiredResolution": "Define canonical schemas and timestamp authorities for every schedule trigger, including run terminal, event commit, supersession, and rebuild request. Define an ordered state transition at expiry and one externally assertable state at each boundary, then update all bound digests before HR-01."
+    },
+    {
+      "id": "R2-004",
+      "severity": "major",
+      "affects": ["PF-001"],
+      "summary": "The residual precedence fallback categorically treats longer retention as stricter even when it weakens privacy minimization or conflicts with an exact signed retention period.",
+      "evidence": [
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md:76-81",
+        "intent/0001/reviews/domain/remediation/EXAM-AMENDMENT.candidate.md:83-93",
+        "intent/0001/reviews/domain/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md:48-52"
+      ],
+      "impact": "A residual conflict involving the signed exact 90-day PostHog rule can select a longer period as allegedly stricter while also violating the no-Gate-1-weakening rule, so precedence is not mechanically singular.",
+      "requiredResolution": "Remove generic retention duration from the strictness ordering. State that exact signed Gate 1 periods cannot be overridden by residual inference, and block every unenumerated retention conflict for an explicit Exam-author and eligible-human correction."
+    }
+  ],
+  "overall": {
+    "disposition": "hold-send-back",
+    "pass": false,
+    "eligibleForCanonicalIncorporation": false,
+    "eligibleForCommercialGateTwoDecision": false,
+    "eligibleForRegulatedActivation": false,
+    "pfFindingCount": 7,
+    "pfResolvedCount": 3,
+    "pfPartiallyResolvedCount": 1,
+    "pfNotDeterministicallyResolvedCount": 3,
+    "newFindingCount": 4,
+    "newBlockerCount": 1,
+    "newMajorCount": 3,
+    "rationale": "The remediation packet is digest-consistent, non-circular, and preserves all 31 original finding IDs. PF-002, PF-006, and PF-007 are resolved. The packet must remain on hold because precedence, provider-native permission comparison, retention lifecycle computation, and signed-log negative vectors are not yet deterministic, and HR-01 remains open over a policy digest that should be revised first."
+  },
+  "requiredNextState": [
+    "Correct R2-001 through R2-004 without editing accepted Gate 1 artifacts, the canonical Exam, signatures, policy, or implementation in this advisory review.",
+    "Refresh finding-resolution, preflight-resolution, the remediation manifest, the amendment bindings, and every affected digest after corrections.",
+    "Run an independent reproduction of every signed-log positive and negative vector and exact permission and retention oracles.",
+    "Obtain HR-01 only over the corrected exact retention-policy digest; keep HR-02 non-triggering for commercial Gate 2 and fail closed for future regulated technical release or pilot until corrected implementation evidence and the qualified legal determination exist.",
+    "Only after a clean advisory preflight may an authorized Exam author incorporate the annex into a new canonical Exam revision.",
+    "Run seven new domain reviews, a consolidated exception brief, actor-bound Exam-author CI, and the final independent exact-revision Gate 2 Critic against that new canonical revision."
+  ],
+  "nonAuthorizationBoundaries": {
+    "doesNotModifyCanonicalExam": true,
+    "doesNotModifyGateSignatures": true,
+    "doesNotModifyPolicy": true,
+    "doesNotModifyImplementation": true,
+    "doesNotAcceptResidualRisk": true,
+    "doesNotCreateHumanRulings": true,
+    "doesNotSignGateTwo": true,
+    "doesNotAuthorizeBuilderDispatch": true,
+    "doesNotAuthorizeCommitOrPush": true,
+    "doesNotAuthorizeBuildOrRelease": true,
+    "doesNotAuthorizeProductionOrRegulatedUse": true,
+    "doesNotAuthorizeProvisioningPaidServicesOrSpend": true,
+    "advisoryPreflightIsNotFinalExactRevisionCritic": true
+  }
+}
