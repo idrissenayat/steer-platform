@@ -1,0 +1,192 @@
+{
+  "version": "steer-domain-review-record/v1",
+  "domain": "privacy",
+  "reviewType": "gate-2-exam",
+  "target": {
+    "organization": "steer-platform",
+    "item": "0001-flight-deck-foundation",
+    "revision": "118302e080598a147294e32d40cf5296763c8cc4",
+    "exam": {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+    }
+  },
+  "reviewer": {
+    "serviceIdentity": "openai-codex:/root/privacy_domain_r1",
+    "agentType": "independent-fresh-context-privacy-review-agent",
+    "model": "GPT-5",
+    "configurationRevision": "codex-task-config:/root/privacy_domain_r1@2026-09-03",
+    "freshContext": true,
+    "freshContextEvidence": "Fresh delegated task /root/privacy_domain_r1 reviewed only target revision 118302e080598a147294e32d40cf5296763c8cc4 and the bound privacy packet; no Builder context or Builder-authored review was used.",
+    "builderIndependent": true
+  },
+  "decision": "send-back",
+  "confidence": "high",
+  "reviewedAt": "2026-09-03T17:20:35Z",
+  "reviewedCases": [
+    "OR-03",
+    "OR-10",
+    "OR-18",
+    "OR-20",
+    "Cross-tenant negative matrix: API and UI/BFF",
+    "Cross-tenant negative matrix: Postgres direct and pooled",
+    "Cross-tenant negative matrix: Full-text search",
+    "Cross-tenant negative matrix: pgvector and memory",
+    "Cross-tenant negative matrix: Evidence/object storage",
+    "Cross-tenant negative matrix: Model gateway and keys",
+    "Cross-tenant negative matrix: Temporal workflows",
+    "Cross-tenant negative matrix: Cache and sessions",
+    "Cross-tenant negative matrix: Sandbox and readiness",
+    "Cross-tenant negative matrix: Logs, traces, metrics, analytics",
+    "Cross-tenant negative matrix: Notifications",
+    "Cross-tenant negative matrix: Git/code-host adapter",
+    "Gate 1 analytics decision: self-hosted PostHog, content-free events, 90-day raw-event retention",
+    "Production-versus-fixture outcome-data separation"
+  ],
+  "evidence": [
+    {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+    },
+    {
+      "path": "intent/0001/BRIEF.md",
+      "sha256": "a5af593397de0722666baefae846b31881c6429c9691bec886f4a0771a8bc97f"
+    },
+    {
+      "path": "intent/0001/SPEC.md",
+      "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"
+    },
+    {
+      "path": "intent/0001/ARCHITECTURE.md",
+      "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+    },
+    {
+      "path": "intent/0001/PLAN.md",
+      "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+    },
+    {
+      "path": "intent/0001/signatures/gate-1.json",
+      "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+    },
+    {
+      "path": "intent/0001/sources/EXAM.supplied.md",
+      "sha256": "5823ddb26d0acbc78b7b58d931d76adfe064adeba84b9cf81fad2557d528eb7b"
+    },
+    {
+      "path": "kit/policy/gates.json",
+      "sha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56"
+    },
+    {
+      "path": "intent/0001/evidence/github-exam-protection-rollout.json",
+      "sha256": "b61c40a640ae0348aeadd191091c14225003d1e733c618e841e4da5804513e0d"
+    },
+    {
+      "path": "intent/0001/reviews/domain/privacy.md",
+      "sha256": "f9cec7af0f703e0fe61b6bcadba6632058e09b6f8979cd7b375a4508ab7c8046"
+    },
+    {
+      "path": "intent/0001/reviews/domain/review-target.json",
+      "sha256": "073cc1d5c7df79d9da2439b9ff8b193dcf7cf051d556adc820dc1a9c4722a211"
+    }
+  ],
+  "findings": [
+    {
+      "id": "PRIV-001",
+      "severity": "major",
+      "status": "open",
+      "summary": "OR-03 does not freeze a complete privacy storage and reconstruction inventory. It names the application stores but omits browser/client persistence, provider-side model request or response retention, identity and edge intermediaries, and database or object-store backups, snapshots, and recovery logs, even though the accepted architecture permits commercial model, identity, workflow, evidence, observability, and hosting providers.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        },
+        {
+          "path": "intent/0001/PLAN.md",
+          "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+        }
+      ],
+      "requiredResolution": "Expand OR-03 with a manifest-frozen inventory that covers client/browser stores, upstream model-provider retention and caches, identity and network intermediaries, queues, crash artifacts, and backup, snapshot, WAL, version, and disaster-recovery copies for every selected profile binding; require an explicit applicability or exclusion rationale and a reconstruction test for each surface."
+    },
+    {
+      "id": "PRIV-002",
+      "severity": "major",
+      "status": "open",
+      "summary": "OR-20 makes saved and abandoned originator-text outcomes subject to an unidentified signed retention policy. The accepted Gate 1 record signs only the self-hosted PostHog content-free-event rule with 90-day raw-event retention; it does not identify an originator-text policy, an abandonment boundary, an erasure deadline, or permitted exceptions. The pass condition is therefore not revision-bound or deterministic.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/SPEC.md",
+          "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"
+        },
+        {
+          "path": "intent/0001/signatures/gate-1.json",
+          "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+        },
+        {
+          "path": "intent/0001/sources/EXAM.supplied.md",
+          "sha256": "5823ddb26d0acbc78b7b58d931d76adfe064adeba84b9cf81fad2557d528eb7b"
+        }
+      ],
+      "requiredResolution": "Bind OR-20 to a named, hashed, signed originator-retention policy and freeze the session boundary, the exact save and abandonment events, deletion or expiry deadlines, completion evidence, failure handling, and permitted legal holds or exceptions. Explicitly reconcile these rules with the separately signed PostHog content-free 90-day raw-event policy."
+    },
+    {
+      "id": "PRIV-003",
+      "severity": "major",
+      "status": "open",
+      "summary": "OR-18's canary crawl is narrower than OR-03 and can pass without checking full-text or vector indexes, object versions, application and model caches, sandbox volumes, or local filesystems. The cross-tenant matrix tests wrong-tenant isolation at those boundaries but does not test same-tenant unintended persistence of secrets, originator text, artifact content, or model inputs. This leaves required model-cache and reconstructed-content leakage paths outside the content-free verdict.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/reviews/domain/privacy.md",
+          "sha256": "f9cec7af0f703e0fe61b6bcadba6632058e09b6f8979cd7b375a4508ab7c8046"
+        },
+        {
+          "path": "intent/0001/PLAN.md",
+          "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+        }
+      ],
+      "requiredResolution": "Make OR-18 apply its canaries to the complete OR-03 inventory and freeze probes for exact values, prefixes and truncations, supported reversible encodings, exception formatting, analytics attributes and dimensions, workflow histories, search and vector content, model request and response caches, object versions, sandbox residue, and local or container residue. Require negative evidence for same-tenant unintended retention as well as cross-tenant leakage."
+    }
+  ],
+  "escalations": [
+    {
+      "triggerId": "unresolved-blocker-or-major-finding",
+      "reason": "PRIV-001, PRIV-002, and PRIV-003 are unresolved major Exam-adequacy findings.",
+      "findingIds": [
+        "PRIV-001",
+        "PRIV-002",
+        "PRIV-003"
+      ]
+    },
+    {
+      "triggerId": "inconclusive-or-missing-required-evidence",
+      "reason": "OR-20 relies on an unidentified signed originator-retention policy, so the evidence needed to determine its retention and deletion outcome is missing from the bound target.",
+      "findingIds": [
+        "PRIV-002"
+      ]
+    },
+    {
+      "triggerId": "irreversible-external-effect-or-material-rights-impact",
+      "reason": "The unresolved rules govern retention and deletion of originator problem text and therefore can materially affect originator privacy rights.",
+      "findingIds": [
+        "PRIV-002"
+      ]
+    }
+  ],
+  "boundaries": {
+    "doesNotSignGateTwo": true,
+    "doesNotAuthorizeBuildOrRelease": true,
+    "doesNotAuthorizeProductionOrSpend": true,
+    "doesNotAcceptResidualRiskOrWaiveControls": true
+  }
+}

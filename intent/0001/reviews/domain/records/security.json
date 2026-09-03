@@ -1,0 +1,224 @@
+{
+  "version": "steer-domain-review-record/v1",
+  "domain": "security",
+  "reviewType": "gate-2-exam",
+  "target": {
+    "organization": "steer-platform",
+    "item": "0001-flight-deck-foundation",
+    "revision": "118302e080598a147294e32d40cf5296763c8cc4",
+    "exam": {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+    }
+  },
+  "reviewer": {
+    "serviceIdentity": "codex-task:/root/security_domain_r1",
+    "agentType": "independent-fresh-context-security-review-agent",
+    "model": "OpenAI Codex (GPT-5 family)",
+    "configurationRevision": "task-config:/root/security_domain_r1:2026-09-03",
+    "freshContext": true,
+    "freshContextEvidence": "Fresh task /root/security_domain_r1 was assigned only the Security-domain review of revision 118302e080598a147294e32d40cf5296763c8cc4 and did not inherit or perform Builder work.",
+    "builderIndependent": true
+  },
+  "decision": "send-back",
+  "confidence": "high",
+  "reviewedAt": "2026-09-03T17:19:51Z",
+  "reviewedCases": [
+    "OR-17",
+    "OR-19",
+    "WS-02",
+    "WS-04",
+    "WS-07",
+    "WS-08",
+    "WS-11",
+    "SIG-01",
+    "SIG-02",
+    "SIG-03",
+    "SIG-04",
+    "SIG-05",
+    "SIG-06",
+    "SIG-07",
+    "SIG-08",
+    "SIG-09",
+    "SIG-10",
+    "SIG-11",
+    "SIG-12",
+    "SIG-13",
+    "SIG-14",
+    "SIG-15",
+    "Cross-tenant matrix: API and UI/BFF",
+    "Cross-tenant matrix: Postgres direct and pooled",
+    "Cross-tenant matrix: full-text search",
+    "Cross-tenant matrix: pgvector and memory",
+    "Cross-tenant matrix: evidence/object storage",
+    "Cross-tenant matrix: model gateway and keys",
+    "Cross-tenant matrix: Temporal workflows",
+    "Cross-tenant matrix: cache and sessions",
+    "Cross-tenant matrix: sandbox and readiness",
+    "Cross-tenant matrix: logs, traces, metrics, analytics",
+    "Cross-tenant matrix: notifications",
+    "Cross-tenant matrix: Git/code-host adapter"
+  ],
+  "evidence": [
+    {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+    },
+    {
+      "path": "intent/0001/BRIEF.md",
+      "sha256": "a5af593397de0722666baefae846b31881c6429c9691bec886f4a0771a8bc97f"
+    },
+    {
+      "path": "intent/0001/SPEC.md",
+      "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"
+    },
+    {
+      "path": "intent/0001/ARCHITECTURE.md",
+      "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+    },
+    {
+      "path": "intent/0001/PLAN.md",
+      "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+    },
+    {
+      "path": "kit/policy/gates.json",
+      "sha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56"
+    },
+    {
+      "path": "intent/0001/evidence/github-exam-protection-rollout.json",
+      "sha256": "b61c40a640ae0348aeadd191091c14225003d1e733c618e841e4da5804513e0d"
+    }
+  ],
+  "findings": [
+    {
+      "id": "SEC-G2-001",
+      "severity": "major",
+      "status": "open",
+      "summary": "The OIDC and session boundary is not fully testable. EXAM.md SIG-03, SIG-04, SIG-07, and WS-04 test normalized identity state but do not define positive and negative validation cases for issuer, audience, signature algorithm and key selection, token type, expiry/not-before/skew, key rotation, or token/session substitution. ARCHITECTURE.md ADR-09 makes OIDC the human identity boundary, so omitted token-validation behavior can admit a forged or confused-deputy identity before the signature matrix is reached.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        }
+      ],
+      "requiredResolution": "Add a frozen OIDC/session validation matrix covering accepted issuer/audience/algorithm/key/token type, temporal boundaries and skew, key rotation and unknown-key failure, malformed or duplicated claims, token substitution, revoked/disabled/transferred subjects, changed hats, and session binding. Require stable fail-closed decisions and zero downstream credential, tool, write, or signature effects for every negative row."
+    },
+    {
+      "id": "SEC-G2-002",
+      "severity": "major",
+      "status": "open",
+      "summary": "OR-19 states that forged, altered, expired, cross-tenant, and replayed webhooks are rejected, but it does not freeze the provider signature contract, raw-body verification rules, replay key and lifetime, secret-rotation behavior, or simultaneous duplicate-delivery race. A sequential replay vector can pass while concurrent duplicate requests both project or write.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/PLAN.md",
+          "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+        }
+      ],
+      "requiredResolution": "Define the GitHub webhook verification contract and frozen vectors, including missing/malformed/duplicated signature headers, raw-body byte changes, wrong algorithm/key, current and retired secret behavior, delivery-ID/body binding, exact freshness/replay window, boundary instants, persistence across restart, and concurrent identical and same-ID/different-body deliveries. Require exactly one accepted projection and zero prohibited side effects for all other attempts."
+    },
+    {
+      "id": "SEC-G2-003",
+      "severity": "major",
+      "status": "open",
+      "summary": "The cross-tenant matrix requires no timing oracle but supplies no sample size, paired workload, normalization, statistical test, effect-size threshold, or pass/fail rule. The general negative-case ledger also omits ordinary secret-manager reads, GitHub installation-token exchange, and downstream tool dispatch, so it cannot prove the packet's required deny-before-credentials-or-tools property at every boundary.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        }
+      ],
+      "requiredResolution": "Specify a deterministic, frozen timing-oracle protocol for each externally observable boundary, including matched existing/non-existing targets, repetitions, clock/environment controls, statistical test, effect-size limit, and failure rule. Extend required evidence to record attempted and completed secret access, installation-token exchange, credential selection, and tool/downstream dispatch, and require authorization denial before any such event for every applicable negative matrix row."
+    },
+    {
+      "id": "SEC-G2-004",
+      "severity": "major",
+      "status": "open",
+      "summary": "OR-17 refers to contract-declared capabilities and frozen broader-scope mutations but the Exam identifies neither the authoritative permission contract nor a per-principal, per-resource expected scope baseline. Humans, the GitHub App, platform agents, revoked agents, workers/reconcilers, CI, sandbox workloads, and administrators therefore lack an objective least-privilege oracle.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        },
+        {
+          "path": "intent/0001/PLAN.md",
+          "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+        }
+      ],
+      "requiredResolution": "Bind OR-17 to a versioned permission manifest that enumerates every principal and credential, provider-native scopes/actions, tenant/repository/resource constraints, lifetime, delegation path, and required denial set. Include disabled/revoked principals, workers/reconcilers, administrators, CI, GitHub App installations, model/evidence credentials, and sandbox workloads, and fail on any extra effective permission."
+    },
+    {
+      "id": "SEC-G2-005",
+      "severity": "major",
+      "status": "open",
+      "summary": "WS-07 proves UI/MCP parity for only one query and one write by selected human and agent principals. It does not exercise the Streamable HTTP authentication boundary for missing, malformed, expired, revoked, substituted, or cross-session credentials; reconnect/resume and replay; unauthorized tool discovery/invocation; or transport-origin and request-binding failures.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        }
+      ],
+      "requiredResolution": "Expand WS-07 into a frozen MCP Streamable HTTP authentication and authorization matrix covering query/write/tool discovery, human and service credentials, absent/malformed/expired/revoked/substituted tokens, organization/session/request binding, reconnect/resume/replay, unknown or disallowed tools, and transport-origin policy. Require canonical parity with the UI/API and zero credential, tool, or write side effects after denial."
+    },
+    {
+      "id": "SEC-G2-006",
+      "severity": "major",
+      "status": "open",
+      "summary": "WS-08 and the sandbox cross-tenant row test freshness, scoped credentials, retry, tenant separation, and cleanup, while OR-18 checks log canaries. They do not define same-tenant hostile-repository cases for filesystem or symlink escape, host/socket access, undeclared network egress, process/resource limits, credential exfiltration, failure cleanup, or secret rotation/revocation. These omissions leave the readiness sandbox and secret-manager boundary materially under-specified.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        },
+        {
+          "path": "intent/0001/PLAN.md",
+          "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+        }
+      ],
+      "requiredResolution": "Add frozen malicious readiness fixtures and explicit pass criteria for path/symlink/mount escape, host and control-socket access, default-deny egress, resource exhaustion, subprocess escape, secret enumeration/exfiltration, credential expiry/rotation/revocation, and cleanup after success, failure, timeout, and worker termination. Require no host or undeclared network access and no reusable credential or persistent sandbox state."
+    }
+  ],
+  "escalations": [
+    {
+      "triggerId": "unresolved-blocker-or-major-finding",
+      "reason": "The Security review found six unresolved major gaps that leave identity validation, replay resistance, least privilege, cross-tenant oracle resistance, MCP authentication, and sandbox/secret isolation without deterministic acceptance criteria. A human Security specialist escalation is required by the commercial default-closed policy unless the Exam is revised and all findings are resolved through a new exact-revision review.",
+      "findingIds": [
+        "SEC-G2-001",
+        "SEC-G2-002",
+        "SEC-G2-003",
+        "SEC-G2-004",
+        "SEC-G2-005",
+        "SEC-G2-006"
+      ]
+    }
+  ],
+  "boundaries": {
+    "doesNotSignGateTwo": true,
+    "doesNotAuthorizeBuildOrRelease": true,
+    "doesNotAuthorizeProductionOrSpend": true,
+    "doesNotAcceptResidualRiskOrWaiveControls": true
+  }
+}

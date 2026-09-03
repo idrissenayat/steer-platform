@@ -1,0 +1,179 @@
+{
+  "version": "steer-domain-review-record/v1",
+  "domain": "accessibility",
+  "reviewType": "gate-2-exam",
+  "target": {
+    "organization": "steer-platform",
+    "item": "0001-flight-deck-foundation",
+    "revision": "118302e080598a147294e32d40cf5296763c8cc4",
+    "exam": {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+    }
+  },
+  "reviewer": {
+    "serviceIdentity": "codex:/root/accessibility_domain_r1",
+    "agentType": "independent-fresh-context-accessibility-domain-review-agent",
+    "model": "GPT-5-family Codex model (exact serving snapshot not exposed to this task)",
+    "configurationRevision": "accessibility-domain-review-task-r1@2026-09-03;packet-sha256:f2a4318b6ba7adc489b0a014f95c3740449d0eec996c994b1c092270332087b9",
+    "freshContext": true,
+    "freshContextEvidence": "Fresh delegated task /root/accessibility_domain_r1 was created solely to review the accessibility domain at revision 118302e080598a147294e32d40cf5296763c8cc4; it did not act as or inherit the Builder role.",
+    "builderIndependent": true
+  },
+  "decision": "send-back",
+  "confidence": "high",
+  "reviewedAt": "2026-09-03T17:21:30Z",
+  "reviewedCases": [
+    "OR-21",
+    "OR-22"
+  ],
+  "evidence": [
+    {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+    },
+    {
+      "path": "intent/0001/BRIEF.md",
+      "sha256": "a5af593397de0722666baefae846b31881c6429c9691bec886f4a0771a8bc97f"
+    },
+    {
+      "path": "intent/0001/SPEC.md",
+      "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"
+    },
+    {
+      "path": "intent/0001/ARCHITECTURE.md",
+      "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+    },
+    {
+      "path": "intent/0001/PLAN.md",
+      "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+    },
+    {
+      "path": "intent/0001/sources/EXAM.supplied.md",
+      "sha256": "5823ddb26d0acbc78b7b58d931d76adfe064adeba84b9cf81fad2557d528eb7b"
+    },
+    {
+      "path": "kit/policy/gates.json",
+      "sha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56"
+    },
+    {
+      "path": "intent/0001/evidence/github-exam-protection-rollout.json",
+      "sha256": "b61c40a640ae0348aeadd191091c14225003d1e733c618e841e4da5804513e0d"
+    },
+    {
+      "path": "intent/0001/reviews/domain/accessibility.md",
+      "sha256": "f2a4318b6ba7adc489b0a014f95c3740449d0eec996c994b1c092270332087b9"
+    },
+    {
+      "path": "intent/0001/reviews/domain/review-target.json",
+      "sha256": "073cc1d5c7df79d9da2439b9ff8b193dcf7cf051d556adc820dc1a9c4722a211"
+    },
+    {
+      "path": "kit/schemas/domain-review-record.schema.json",
+      "sha256": "50cc75af34849a08dd2ef966a2bf944b711c861b5bd955d1cb9e33c0820857ea"
+    }
+  ],
+  "findings": [
+    {
+      "id": "ACC-G2-001",
+      "severity": "blocker",
+      "status": "open",
+      "summary": "The accepted Brief and Spec require Section 508 and WCAG 2.1 AA on every screen, but EXAM.md lines 273-284 define OR-21 as zero critical or serious axe-core violations and constrain OR-22 to a decision flow and two card types. Axe impact labels are not a WCAG conformance oracle, and an applicable AA failure outside those impact levels or manual surfaces can still pass the stated cases.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/BRIEF.md",
+          "sha256": "a5af593397de0722666baefae846b31881c6429c9691bec886f4a0771a8bc97f"
+        },
+        {
+          "path": "intent/0001/SPEC.md",
+          "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"
+        }
+      ],
+      "requiredResolution": "Revise OR-21 and OR-22 so the release verdict explicitly evaluates every applicable WCAG 2.1 AA and Section 508 requirement for every in-scope screen and interaction, identifies which requirements are automated versus manually evaluated, and fails on any unresolved conformance failure regardless of an axe impact label."
+    },
+    {
+      "id": "ACC-G2-002",
+      "severity": "blocker",
+      "status": "open",
+      "summary": "OR-21 at EXAM.md lines 273-276 says a future input manifest freezes every route, Storybook state, and required desktop/mobile viewport, but the Exam neither enumerates nor content-hash binds the authoritative inventory or numeric viewports. A manifest can therefore omit a route, decision or specialist card state, correction path, or signed/unsigned state and still satisfy its own frozen list, allowing the false pass the packet explicitly forbids.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/reviews/domain/accessibility.md",
+          "sha256": "f2a4318b6ba7adc489b0a014f95c3740449d0eec996c994b1c092270332087b9"
+        },
+        {
+          "path": "intent/0001/PLAN.md",
+          "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+        }
+      ],
+      "requiredResolution": "Enumerate in the Exam, or bind by path and SHA-256 at the Exam revision, the complete route, Storybook-state, interaction-state, and numeric desktop/mobile viewport inventory. Include decision cards, specialist/escalation cards, correction and error paths, loading/empty/permission/stale/breached states, and signed and unsigned states, with a completeness check against the shipped route and story registries."
+    },
+    {
+      "id": "ACC-G2-003",
+      "severity": "major",
+      "status": "open",
+      "summary": "OR-22 at EXAM.md lines 278-284 calls the 81-checkpoint model versioned but gives no version, repository path, or digest, and it does not require checkpoint-level raw results. Its scenario text does not expressly test focus management, semantic name/role/state, announcements, error recovery, streamed conversation content, dialogs, correction paths, or signature confirmation, so the manual result cannot be reproduced or shown complete from the required evidence record.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/reviews/domain/accessibility.md",
+          "sha256": "f2a4318b6ba7adc489b0a014f95c3740449d0eec996c994b1c092270332087b9"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        }
+      ],
+      "requiredResolution": "Bind the exact 81-checkpoint model by versioned path and SHA-256; define the complete manual scenario matrix for keyboard and supported screen-reader/browser/OS combinations; explicitly cover focus, semantics, announcements, recovery, streaming, dialogs, correction, and signature confirmation; and require raw checkpoint-by-checkpoint results plus the signed summary at the exact Exam and implementation revisions."
+    }
+  ],
+  "escalations": [
+    {
+      "triggerId": "unresolved-blocker-or-major-finding",
+      "reason": "The accessibility Exam review found two unresolved blockers and one unresolved major finding that can permit incomplete or non-reproducible release evidence.",
+      "findingIds": [
+        "ACC-G2-001",
+        "ACC-G2-002",
+        "ACC-G2-003"
+      ]
+    },
+    {
+      "triggerId": "inconclusive-or-missing-required-evidence",
+      "reason": "The authoritative route/state/viewport inventory and the exact versioned 81-checkpoint model are absent from the bound Exam evidence, so completeness cannot be established.",
+      "findingIds": [
+        "ACC-G2-002",
+        "ACC-G2-003"
+      ]
+    },
+    {
+      "triggerId": "law-regulation-contract-or-policy-requires-human-specialist",
+      "reason": "The accepted Brief invokes Section 508 and the accepted Spec requires the platform pod's DHS Trusted Tester review at Gate 3 for new UI; an agent review cannot replace that required human specialist judgment.",
+      "findingIds": [
+        "ACC-G2-001",
+        "ACC-G2-003"
+      ]
+    },
+    {
+      "triggerId": "user-facing-accessibility-manual-release-validation",
+      "reason": "This item contains user-facing decision, escalation, conversation, and board surfaces. The mandatory human keyboard and screen-reader validation remains a technical-release/Gate 3 obligation and is not evidence that the Gate 2 Exam or any future implementation has passed.",
+      "findingIds": []
+    }
+  ],
+  "boundaries": {
+    "doesNotSignGateTwo": true,
+    "doesNotAuthorizeBuildOrRelease": true,
+    "doesNotAuthorizeProductionOrSpend": true,
+    "doesNotAcceptResidualRiskOrWaiveControls": true
+  }
+}

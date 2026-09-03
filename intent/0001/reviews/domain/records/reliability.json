@@ -1,0 +1,198 @@
+{
+  "version": "steer-domain-review-record/v1",
+  "domain": "reliability",
+  "reviewType": "gate-2-exam",
+  "target": {
+    "organization": "steer-platform",
+    "item": "0001-flight-deck-foundation",
+    "revision": "118302e080598a147294e32d40cf5296763c8cc4",
+    "exam": {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+    }
+  },
+  "reviewer": {
+    "serviceIdentity": "codex:/root/reliability_domain_r1",
+    "agentType": "independent-fresh-context-reliability-review-agent",
+    "model": "inherited-parent-model (exact identifier unavailable to task)",
+    "configurationRevision": "task-/root/reliability_domain_r1-dispatch-v1@118302e080598a147294e32d40cf5296763c8cc4",
+    "freshContext": true,
+    "freshContextEvidence": "Fresh collaboration task /root/reliability_domain_r1 was independently dispatched only to assess Reliability-domain Gate 2 Exam adequacy at revision 118302e080598a147294e32d40cf5296763c8cc4; it was not the Builder and had no implementation or gate-signing authority.",
+    "builderIndependent": true
+  },
+  "decision": "send-back",
+  "confidence": "high",
+  "reviewedAt": "2026-09-03T17:30:40Z",
+  "reviewedCases": [
+    "OR-02",
+    "OR-23",
+    "OR-24",
+    "OR-25",
+    "WS-05",
+    "WS-13"
+  ],
+  "evidence": [
+    {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+    },
+    {
+      "path": "intent/0001/BRIEF.md",
+      "sha256": "a5af593397de0722666baefae846b31881c6429c9691bec886f4a0771a8bc97f"
+    },
+    {
+      "path": "intent/0001/SPEC.md",
+      "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"
+    },
+    {
+      "path": "intent/0001/ARCHITECTURE.md",
+      "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+    },
+    {
+      "path": "intent/0001/PLAN.md",
+      "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+    },
+    {
+      "path": "kit/policy/gates.json",
+      "sha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56"
+    },
+    {
+      "path": "intent/0001/evidence/github-exam-protection-rollout.json",
+      "sha256": "b61c40a640ae0348aeadd191091c14225003d1e733c618e841e4da5804513e0d"
+    },
+    {
+      "path": "intent/0001/reviews/domain/reliability.md",
+      "sha256": "29b2f7d51306c756b15c84c99c19ed6575ff9f924b641395e64a807104f94c71"
+    },
+    {
+      "path": "intent/0001/reviews/domain/review-target.json",
+      "sha256": "073cc1d5c7df79d9da2439b9ff8b193dcf7cf051d556adc820dc1a9c4722a211"
+    },
+    {
+      "path": "intent/0001/reviews/domain/README.md",
+      "sha256": "1358838921bd7889b7f5dd2bb8a798995818ea7ebee3679dcc83f50e781ebcbf"
+    },
+    {
+      "path": "kit/schemas/domain-review-record.schema.json",
+      "sha256": "50cc75af34849a08dd2ef966a2bf944b711c861b5bd955d1cb9e33c0820857ea"
+    }
+  ],
+  "findings": [
+    {
+      "id": "REL-001",
+      "severity": "blocker",
+      "status": "open",
+      "summary": "OR-02 and WS-13 do not close the sole-authority rebuild invariant. They destroy Postgres projections but permit replay from an undefined append-only ingestion source, while the accepted Architecture places the append-only ingestion log in Postgres and the accepted Plan requires wiping Postgres and replaying Git. The Exam can therefore pass while retaining a private database input that masks inability to reconstruct from Git/code-host authority alone.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        },
+        {
+          "path": "intent/0001/PLAN.md",
+          "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+        }
+      ],
+      "requiredResolution": "Revise OR-02 and WS-13 to wipe the complete Postgres state, including ingestion events and cursors, and reconstruct authoritative business state solely from enumerated Git/code-host records. Define whether any external event archive is merely an integrity-checked transport input, run a Git-only reconstruction without it, destroy every disposable database/index/cache/workflow projection, and retain pre/post canonical bytes and hashes for every tenant and projection type."
+    },
+    {
+      "id": "REL-002",
+      "severity": "major",
+      "status": "open",
+      "summary": "The latency thresholds are not bound to unambiguous semantic events. OR-23 uses the alternative start phrase navigation/request start and an undefined semantic ready state. OR-24 does not identify the exact event-to-board start and completion records, and it combines a source-host monotonic timestamp with a wall-clock restoration requirement without defining a comparable clock domain. The general clock-offset rule does not remove these case-level ambiguities.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/reviews/domain/reliability.md",
+          "sha256": "29b2f7d51306c756b15c84c99c19ed6575ff9f924b641395e64a807104f94c71"
+        }
+      ],
+      "requiredResolution": "For OR-23 and OR-24, name one exact start event and one exact terminal semantic event, their emitting component and host, the trace/correlation identity, the clock used for each subtraction, how cross-host time is made comparable, and the raw-sample inclusion rule. Define semantic ready and restored board state as machine-observable predicates, remove navigation/request ambiguity, and retain all per-observation event identities and timestamps."
+    },
+    {
+      "id": "REL-003",
+      "severity": "major",
+      "status": "open",
+      "summary": "WS-05 asserts survival of one worker replacement but does not freeze the failure injection point or exercise the crash interleavings that threaten durable workflow correctness. A single favorable termination can pass without proving behavior when the worker dies before or after an external Git write, before activity acknowledgement, while a timer expires, or during replay; retry, upgrade, and replay behavior required by the accepted Architecture remains under-specified.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        }
+      ],
+      "requiredResolution": "Add a manifest-frozen WS-05 failure matrix covering worker death before and after activity dispatch, external authoritative commit, acknowledgement, and timer deadline; include repeated replacement, deterministic replay, and the pinned direct-Temporal fallback or upgrade path. For every row retain workflow ID/run identity, complete history, timer deadline/firing evidence, idempotency key, authoritative writes, attempts, and a side-effect-ledger proof of no duplicate workflow or write."
+    },
+    {
+      "id": "REL-004",
+      "severity": "major",
+      "status": "open",
+      "summary": "The Exam has projection reconstruction but no deterministic rehearsal for the rest of the accepted recovery strategy: Git replication, Postgres point-in-time recovery, versioned object-storage recovery, recovery runbook execution, or declared recovery objectives. Required evidence outputs mention artifacts when applicable but no case makes these recovery proofs mandatory or defines failure on absent restore evidence.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        },
+        {
+          "path": "intent/0001/PLAN.md",
+          "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+        }
+      ],
+      "requiredResolution": "Add deterministic recovery cases that execute the versioned runbook against frozen failure points and prove Git/code-host replication restoration, Postgres point-in-time restoration without elevating it to authority, versioned evidence-object restore with content-hash verification, and workflow repair/recreation from Git. Declare per-case RPO/RTO thresholds, raw timelines and manifests, and make missing, stale, partial, or hash-mismatched restore evidence fail."
+    },
+    {
+      "id": "REL-005",
+      "severity": "major",
+      "status": "open",
+      "summary": "OR-25 denies outbound networking but does not define a hermetic startup oracle that detects undeclared SaaS, credential, DNS, socket, or remote control-plane attempts. It also leaves the core-touching subset of OR-01 through OR-24 unenumerated and tests only one regulated-profile environment, so skipped paths, pre-populated caches, baked credentials, or unexercised adapter seams can satisfy the text without proving clean-checkout startup or portable deployment.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/SPEC.md",
+          "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        }
+      ],
+      "requiredResolution": "Define a cold, clean-checkout regulated-core run with exact preloaded artifacts, empty application caches, no undeclared environment credentials or secret mounts, explicit local endpoint allowlist, and captured DNS, socket, HTTP, credential-provider, and control-plane attempts. Enumerate every core-touching case that must execute and fail on omission. Add a pinned adapter/deployment portability matrix that proves the same domain/workflow contracts and recovery behavior across the required self-hosted bindings without domain-code changes."
+    }
+  ],
+  "escalations": [
+    {
+      "triggerId": "unresolved-blocker-or-major-finding",
+      "reason": "The Reliability review has one unresolved blocker and four unresolved major findings affecting the sole-authority rebuild invariant, measurement reproducibility, durable workflow recovery, disaster recovery, and self-hosted portability. Commercial policy requires a separate human Reliability exception disposition; the agent cannot waive these findings.",
+      "findingIds": [
+        "REL-001",
+        "REL-002",
+        "REL-003",
+        "REL-004",
+        "REL-005"
+      ]
+    }
+  ],
+  "boundaries": {
+    "doesNotSignGateTwo": true,
+    "doesNotAuthorizeBuildOrRelease": true,
+    "doesNotAuthorizeProductionOrSpend": true,
+    "doesNotAcceptResidualRiskOrWaiveControls": true
+  }
+}

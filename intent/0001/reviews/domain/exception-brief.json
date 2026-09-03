@@ -1,0 +1,952 @@
+{
+  "version": "steer-domain-exception-brief/v1",
+  "organization": "steer-platform",
+  "item": "0001-flight-deck-foundation",
+  "reviewType": "gate-2-exam",
+  "generatedAt": "2026-09-03T17:54:25.241Z",
+  "targetRevision": "118302e080598a147294e32d40cf5296763c8cc4",
+  "exam": {
+    "path": "intent/0001/EXAM.md",
+    "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+  },
+  "domainSummaries": [
+    {
+      "domain": "security",
+      "reviewerServiceIdentity": "codex-task:/root/security_domain_r1",
+      "reviewerConfigurationRevision": "task-config:/root/security_domain_r1:2026-09-03",
+      "decision": "send-back",
+      "confidence": "high",
+      "reviewedAt": "2026-09-03T17:19:51Z",
+      "openFindingCount": 6,
+      "escalationCount": 1,
+      "recordPath": "intent/0001/reviews/domain/records/security.json"
+    },
+    {
+      "domain": "privacy",
+      "reviewerServiceIdentity": "openai-codex:/root/privacy_domain_r1",
+      "reviewerConfigurationRevision": "codex-task-config:/root/privacy_domain_r1@2026-09-03",
+      "decision": "send-back",
+      "confidence": "high",
+      "reviewedAt": "2026-09-03T17:20:35Z",
+      "openFindingCount": 3,
+      "escalationCount": 3,
+      "recordPath": "intent/0001/reviews/domain/records/privacy.json"
+    },
+    {
+      "domain": "accessibility",
+      "reviewerServiceIdentity": "codex:/root/accessibility_domain_r1",
+      "reviewerConfigurationRevision": "accessibility-domain-review-task-r1@2026-09-03;packet-sha256:f2a4318b6ba7adc489b0a014f95c3740449d0eec996c994b1c092270332087b9",
+      "decision": "send-back",
+      "confidence": "high",
+      "reviewedAt": "2026-09-03T17:21:30Z",
+      "openFindingCount": 3,
+      "escalationCount": 4,
+      "recordPath": "intent/0001/reviews/domain/records/accessibility.json"
+    },
+    {
+      "domain": "money",
+      "reviewerServiceIdentity": "codex-task:/root/money_domain_r1",
+      "reviewerConfigurationRevision": "task-config:/root/money_domain_r1@2026-09-03;packet-sha256:dab443caab30051fba785ff1e3dcf529db5f5ebafc056e9d641c02de9f0c1b06",
+      "decision": "send-back",
+      "confidence": "high",
+      "reviewedAt": "2026-09-03T17:28:05Z",
+      "openFindingCount": 5,
+      "escalationCount": 1,
+      "recordPath": "intent/0001/reviews/domain/records/money.json"
+    },
+    {
+      "domain": "legal",
+      "reviewerServiceIdentity": "codex:/root/legal_domain_r1",
+      "reviewerConfigurationRevision": "legal-domain-review-task-r1@2026-09-03;packet-sha256:94d7097969dc65a8abe31986419dbb3bd015960678d86ad69f92212959ceb841",
+      "decision": "send-back",
+      "confidence": "high",
+      "reviewedAt": "2026-09-03T17:27:53Z",
+      "openFindingCount": 5,
+      "escalationCount": 4,
+      "recordPath": "intent/0001/reviews/domain/records/legal.json"
+    },
+    {
+      "domain": "reliability",
+      "reviewerServiceIdentity": "codex:/root/reliability_domain_r1",
+      "reviewerConfigurationRevision": "task-/root/reliability_domain_r1-dispatch-v1@118302e080598a147294e32d40cf5296763c8cc4",
+      "decision": "send-back",
+      "confidence": "high",
+      "reviewedAt": "2026-09-03T17:30:40Z",
+      "openFindingCount": 5,
+      "escalationCount": 1,
+      "recordPath": "intent/0001/reviews/domain/records/reliability.json"
+    },
+    {
+      "domain": "irreversible-operations",
+      "reviewerServiceIdentity": "openai-codex:/root/irreversible_domain_r2",
+      "reviewerConfigurationRevision": "task-assignment:/root/irreversible_domain_r2@2026-09-03;target:118302e080598a147294e32d40cf5296763c8cc4",
+      "decision": "send-back",
+      "confidence": "high",
+      "reviewedAt": "2026-09-03T17:47:13Z",
+      "openFindingCount": 4,
+      "escalationCount": 4,
+      "recordPath": "intent/0001/reviews/domain/records/irreversible-operations.json"
+    }
+  ],
+  "findings": [
+    {
+      "domain": "security",
+      "id": "SEC-G2-001",
+      "severity": "major",
+      "status": "open",
+      "summary": "The OIDC and session boundary is not fully testable. EXAM.md SIG-03, SIG-04, SIG-07, and WS-04 test normalized identity state but do not define positive and negative validation cases for issuer, audience, signature algorithm and key selection, token type, expiry/not-before/skew, key rotation, or token/session substitution. ARCHITECTURE.md ADR-09 makes OIDC the human identity boundary, so omitted token-validation behavior can admit a forged or confused-deputy identity before the signature matrix is reached.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        }
+      ],
+      "requiredResolution": "Add a frozen OIDC/session validation matrix covering accepted issuer/audience/algorithm/key/token type, temporal boundaries and skew, key rotation and unknown-key failure, malformed or duplicated claims, token substitution, revoked/disabled/transferred subjects, changed hats, and session binding. Require stable fail-closed decisions and zero downstream credential, tool, write, or signature effects for every negative row."
+    },
+    {
+      "domain": "security",
+      "id": "SEC-G2-002",
+      "severity": "major",
+      "status": "open",
+      "summary": "OR-19 states that forged, altered, expired, cross-tenant, and replayed webhooks are rejected, but it does not freeze the provider signature contract, raw-body verification rules, replay key and lifetime, secret-rotation behavior, or simultaneous duplicate-delivery race. A sequential replay vector can pass while concurrent duplicate requests both project or write.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/PLAN.md",
+          "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+        }
+      ],
+      "requiredResolution": "Define the GitHub webhook verification contract and frozen vectors, including missing/malformed/duplicated signature headers, raw-body byte changes, wrong algorithm/key, current and retired secret behavior, delivery-ID/body binding, exact freshness/replay window, boundary instants, persistence across restart, and concurrent identical and same-ID/different-body deliveries. Require exactly one accepted projection and zero prohibited side effects for all other attempts."
+    },
+    {
+      "domain": "security",
+      "id": "SEC-G2-003",
+      "severity": "major",
+      "status": "open",
+      "summary": "The cross-tenant matrix requires no timing oracle but supplies no sample size, paired workload, normalization, statistical test, effect-size threshold, or pass/fail rule. The general negative-case ledger also omits ordinary secret-manager reads, GitHub installation-token exchange, and downstream tool dispatch, so it cannot prove the packet's required deny-before-credentials-or-tools property at every boundary.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        }
+      ],
+      "requiredResolution": "Specify a deterministic, frozen timing-oracle protocol for each externally observable boundary, including matched existing/non-existing targets, repetitions, clock/environment controls, statistical test, effect-size limit, and failure rule. Extend required evidence to record attempted and completed secret access, installation-token exchange, credential selection, and tool/downstream dispatch, and require authorization denial before any such event for every applicable negative matrix row."
+    },
+    {
+      "domain": "security",
+      "id": "SEC-G2-004",
+      "severity": "major",
+      "status": "open",
+      "summary": "OR-17 refers to contract-declared capabilities and frozen broader-scope mutations but the Exam identifies neither the authoritative permission contract nor a per-principal, per-resource expected scope baseline. Humans, the GitHub App, platform agents, revoked agents, workers/reconcilers, CI, sandbox workloads, and administrators therefore lack an objective least-privilege oracle.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        },
+        {
+          "path": "intent/0001/PLAN.md",
+          "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+        }
+      ],
+      "requiredResolution": "Bind OR-17 to a versioned permission manifest that enumerates every principal and credential, provider-native scopes/actions, tenant/repository/resource constraints, lifetime, delegation path, and required denial set. Include disabled/revoked principals, workers/reconcilers, administrators, CI, GitHub App installations, model/evidence credentials, and sandbox workloads, and fail on any extra effective permission."
+    },
+    {
+      "domain": "security",
+      "id": "SEC-G2-005",
+      "severity": "major",
+      "status": "open",
+      "summary": "WS-07 proves UI/MCP parity for only one query and one write by selected human and agent principals. It does not exercise the Streamable HTTP authentication boundary for missing, malformed, expired, revoked, substituted, or cross-session credentials; reconnect/resume and replay; unauthorized tool discovery/invocation; or transport-origin and request-binding failures.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        }
+      ],
+      "requiredResolution": "Expand WS-07 into a frozen MCP Streamable HTTP authentication and authorization matrix covering query/write/tool discovery, human and service credentials, absent/malformed/expired/revoked/substituted tokens, organization/session/request binding, reconnect/resume/replay, unknown or disallowed tools, and transport-origin policy. Require canonical parity with the UI/API and zero credential, tool, or write side effects after denial."
+    },
+    {
+      "domain": "security",
+      "id": "SEC-G2-006",
+      "severity": "major",
+      "status": "open",
+      "summary": "WS-08 and the sandbox cross-tenant row test freshness, scoped credentials, retry, tenant separation, and cleanup, while OR-18 checks log canaries. They do not define same-tenant hostile-repository cases for filesystem or symlink escape, host/socket access, undeclared network egress, process/resource limits, credential exfiltration, failure cleanup, or secret rotation/revocation. These omissions leave the readiness sandbox and secret-manager boundary materially under-specified.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        },
+        {
+          "path": "intent/0001/PLAN.md",
+          "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+        }
+      ],
+      "requiredResolution": "Add frozen malicious readiness fixtures and explicit pass criteria for path/symlink/mount escape, host and control-socket access, default-deny egress, resource exhaustion, subprocess escape, secret enumeration/exfiltration, credential expiry/rotation/revocation, and cleanup after success, failure, timeout, and worker termination. Require no host or undeclared network access and no reusable credential or persistent sandbox state."
+    },
+    {
+      "domain": "privacy",
+      "id": "PRIV-001",
+      "severity": "major",
+      "status": "open",
+      "summary": "OR-03 does not freeze a complete privacy storage and reconstruction inventory. It names the application stores but omits browser/client persistence, provider-side model request or response retention, identity and edge intermediaries, and database or object-store backups, snapshots, and recovery logs, even though the accepted architecture permits commercial model, identity, workflow, evidence, observability, and hosting providers.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        },
+        {
+          "path": "intent/0001/PLAN.md",
+          "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+        }
+      ],
+      "requiredResolution": "Expand OR-03 with a manifest-frozen inventory that covers client/browser stores, upstream model-provider retention and caches, identity and network intermediaries, queues, crash artifacts, and backup, snapshot, WAL, version, and disaster-recovery copies for every selected profile binding; require an explicit applicability or exclusion rationale and a reconstruction test for each surface."
+    },
+    {
+      "domain": "privacy",
+      "id": "PRIV-002",
+      "severity": "major",
+      "status": "open",
+      "summary": "OR-20 makes saved and abandoned originator-text outcomes subject to an unidentified signed retention policy. The accepted Gate 1 record signs only the self-hosted PostHog content-free-event rule with 90-day raw-event retention; it does not identify an originator-text policy, an abandonment boundary, an erasure deadline, or permitted exceptions. The pass condition is therefore not revision-bound or deterministic.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/SPEC.md",
+          "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"
+        },
+        {
+          "path": "intent/0001/signatures/gate-1.json",
+          "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+        },
+        {
+          "path": "intent/0001/sources/EXAM.supplied.md",
+          "sha256": "5823ddb26d0acbc78b7b58d931d76adfe064adeba84b9cf81fad2557d528eb7b"
+        }
+      ],
+      "requiredResolution": "Bind OR-20 to a named, hashed, signed originator-retention policy and freeze the session boundary, the exact save and abandonment events, deletion or expiry deadlines, completion evidence, failure handling, and permitted legal holds or exceptions. Explicitly reconcile these rules with the separately signed PostHog content-free 90-day raw-event policy."
+    },
+    {
+      "domain": "privacy",
+      "id": "PRIV-003",
+      "severity": "major",
+      "status": "open",
+      "summary": "OR-18's canary crawl is narrower than OR-03 and can pass without checking full-text or vector indexes, object versions, application and model caches, sandbox volumes, or local filesystems. The cross-tenant matrix tests wrong-tenant isolation at those boundaries but does not test same-tenant unintended persistence of secrets, originator text, artifact content, or model inputs. This leaves required model-cache and reconstructed-content leakage paths outside the content-free verdict.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/reviews/domain/privacy.md",
+          "sha256": "f9cec7af0f703e0fe61b6bcadba6632058e09b6f8979cd7b375a4508ab7c8046"
+        },
+        {
+          "path": "intent/0001/PLAN.md",
+          "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+        }
+      ],
+      "requiredResolution": "Make OR-18 apply its canaries to the complete OR-03 inventory and freeze probes for exact values, prefixes and truncations, supported reversible encodings, exception formatting, analytics attributes and dimensions, workflow histories, search and vector content, model request and response caches, object versions, sandbox residue, and local or container residue. Require negative evidence for same-tenant unintended retention as well as cross-tenant leakage."
+    },
+    {
+      "domain": "accessibility",
+      "id": "ACC-G2-001",
+      "severity": "blocker",
+      "status": "open",
+      "summary": "The accepted Brief and Spec require Section 508 and WCAG 2.1 AA on every screen, but EXAM.md lines 273-284 define OR-21 as zero critical or serious axe-core violations and constrain OR-22 to a decision flow and two card types. Axe impact labels are not a WCAG conformance oracle, and an applicable AA failure outside those impact levels or manual surfaces can still pass the stated cases.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/BRIEF.md",
+          "sha256": "a5af593397de0722666baefae846b31881c6429c9691bec886f4a0771a8bc97f"
+        },
+        {
+          "path": "intent/0001/SPEC.md",
+          "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"
+        }
+      ],
+      "requiredResolution": "Revise OR-21 and OR-22 so the release verdict explicitly evaluates every applicable WCAG 2.1 AA and Section 508 requirement for every in-scope screen and interaction, identifies which requirements are automated versus manually evaluated, and fails on any unresolved conformance failure regardless of an axe impact label."
+    },
+    {
+      "domain": "accessibility",
+      "id": "ACC-G2-002",
+      "severity": "blocker",
+      "status": "open",
+      "summary": "OR-21 at EXAM.md lines 273-276 says a future input manifest freezes every route, Storybook state, and required desktop/mobile viewport, but the Exam neither enumerates nor content-hash binds the authoritative inventory or numeric viewports. A manifest can therefore omit a route, decision or specialist card state, correction path, or signed/unsigned state and still satisfy its own frozen list, allowing the false pass the packet explicitly forbids.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/reviews/domain/accessibility.md",
+          "sha256": "f2a4318b6ba7adc489b0a014f95c3740449d0eec996c994b1c092270332087b9"
+        },
+        {
+          "path": "intent/0001/PLAN.md",
+          "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+        }
+      ],
+      "requiredResolution": "Enumerate in the Exam, or bind by path and SHA-256 at the Exam revision, the complete route, Storybook-state, interaction-state, and numeric desktop/mobile viewport inventory. Include decision cards, specialist/escalation cards, correction and error paths, loading/empty/permission/stale/breached states, and signed and unsigned states, with a completeness check against the shipped route and story registries."
+    },
+    {
+      "domain": "accessibility",
+      "id": "ACC-G2-003",
+      "severity": "major",
+      "status": "open",
+      "summary": "OR-22 at EXAM.md lines 278-284 calls the 81-checkpoint model versioned but gives no version, repository path, or digest, and it does not require checkpoint-level raw results. Its scenario text does not expressly test focus management, semantic name/role/state, announcements, error recovery, streamed conversation content, dialogs, correction paths, or signature confirmation, so the manual result cannot be reproduced or shown complete from the required evidence record.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/reviews/domain/accessibility.md",
+          "sha256": "f2a4318b6ba7adc489b0a014f95c3740449d0eec996c994b1c092270332087b9"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        }
+      ],
+      "requiredResolution": "Bind the exact 81-checkpoint model by versioned path and SHA-256; define the complete manual scenario matrix for keyboard and supported screen-reader/browser/OS combinations; explicitly cover focus, semantics, announcements, recovery, streaming, dialogs, correction, and signature confirmation; and require raw checkpoint-by-checkpoint results plus the signed summary at the exact Exam and implementation revisions."
+    },
+    {
+      "domain": "money",
+      "id": "MONEY-G2-001",
+      "severity": "blocker",
+      "status": "open",
+      "summary": "The Exam does not define a deterministic budget-enforcement case across organization, product, pod, tenant, and execution scopes. WS-06 says budget and tenant routing pass, and the cross-tenant matrix denies use of tenant B's budget, but neither freezes budget and quota values nor proves allocation, atomic reservation, concurrent exhaustion, inherited limits, fallback selection, cache charging, or fail-closed behavior at every required scope.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        },
+        {
+          "path": "intent/0001/signatures/gate-1.json",
+          "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+        }
+      ],
+      "requiredResolution": "Add a named, end-to-end cost-control case with frozen organization, product, pod, tenant, execution, key, cache, quota, and fallback mappings; deterministic unit prices and limits; atomic pre-use reservation; concurrent near-limit and exhausted-limit probes; tenant-isolated charging; fail-closed results; and canonical budget decision, usage, and reconciliation evidence."
+    },
+    {
+      "domain": "money",
+      "id": "MONEY-G2-002",
+      "severity": "blocker",
+      "status": "open",
+      "summary": "Retry, replay, worker recovery, reconciliation, model fallback, sandbox execution, and immutable evidence retention are tested for state or isolation but not bounded for spend amplification. The Exam sets no maximum billable attempts, fallback depth, execution duration, compute or network quota, storage growth or lifecycle, evidence-volume bound, or proof that replay and recovery reuse a prior billable result rather than charging again.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        }
+      ],
+      "requiredResolution": "Specify and test deterministic cost bounds for retries, replays, worker replacement, reconciliation, provider fallback, sandbox CPU and wall time, network egress, analytics, and evidence storage and retention. Require idempotency keys that prevent duplicate billable work, frozen attempt and timeout limits, breach behavior, and a usage ledger proving both attempted and charged units."
+    },
+    {
+      "domain": "money",
+      "id": "MONEY-G2-003",
+      "severity": "major",
+      "status": "open",
+      "summary": "The Gate 1 record excludes model usage from the $1,000 monthly infrastructure ceiling, but the Exam does not require model usage to be measured, attributed, reconciled, and controlled as a separate cost class. Maximum tokens and generic budget routing do not establish actual input, output, cached, tool, fallback, and failed-call usage or provider-price-version accounting.",
+      "evidence": [
+        {
+          "path": "intent/0001/signatures/gate-1.json",
+          "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+        },
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        }
+      ],
+      "requiredResolution": "Add a separate model-usage contract and cases that record tenant, product, pod, execution, model and configuration revision, provider, price revision, currency, input, output and cached units, tool and fallback calls, attempted versus billed usage, budgets, actuals, and invoice or provider-usage reconciliation without counting model usage inside the infrastructure ceiling."
+    },
+    {
+      "domain": "money",
+      "id": "MONEY-G2-004",
+      "severity": "blocker",
+      "status": "open",
+      "summary": "The Exam states that paid deployment and production need separate named authorization, yet it has no pre-spend negative matrix or authorization-record contract proving that setup, integration tests, model calls, sandbox runs, storage, analytics, observability, orchestration, deployment, or release cannot incur paid usage before that record exists. Recording an external spend request in the side-effect ledger is not an authorization check and does not prove zero charge.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/signatures/gate-1.json",
+          "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+        },
+        {
+          "path": "kit/policy/gates.json",
+          "sha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56"
+        }
+      ],
+      "requiredResolution": "Define the named spending-authorization record and add fail-closed negative cases for every potentially billable setup, test, model, sandbox, storage, analytics, observability, orchestration, deployment, and release path. Before a current valid record exists, require zero provisioning, zero paid request, zero charge, a stable denial, and canonical authorization and provider-side evidence. Keep the $1,000/month infrastructure value solely as a maximum ceiling, never as authorization."
+    },
+    {
+      "domain": "money",
+      "id": "MONEY-G2-005",
+      "severity": "major",
+      "status": "open",
+      "summary": "The required forecast, budget, actual, breach, and shutdown evidence is not specified. The generic run outputs, metrics file, side-effect ledger, and release-record statement lack cost schemas, acceptance thresholds, billing periods and time zones, attribution rules, provider reconciliation, variance tolerances, breach detection latency, notification evidence, or a deterministic shutdown and recovery result.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/signatures/gate-1.json",
+          "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+        }
+      ],
+      "requiredResolution": "Add canonical cost-evidence schemas and deterministic cases for forecast, authorized budget, actual and accrued usage, variance, provider reconciliation, ceiling and sub-limit breach, alert latency, automatic or human-controlled shutdown, zero post-shutdown charge, restart authorization, and retained audit lineage. State exact thresholds, billing period and time zone, currency and rounding, missing-data behavior, and the infrastructure-versus-model split."
+    },
+    {
+      "domain": "legal",
+      "id": "LEGAL-G2-001",
+      "severity": "blocker",
+      "status": "open",
+      "summary": "The Exam does not make the Gate 1 regulated-use constraint executable. SIG-13 and SIG-14 specify signer counts and Critic prerequisites, while OR-25 can exercise the regulated-profile core, but no case or verdict predicate denies regulated onboarding, pilot activation, Gate 2, Gate 3, or technical release until a separate qualified-human legal decision exists and a cryptographically signed log is implemented and verified. The descriptive legal-domain row cannot prevent a regulated false pass.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/signatures/gate-1.json",
+          "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+        },
+        {
+          "path": "intent/0001/PLAN.md",
+          "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+        }
+      ],
+      "requiredResolution": "Add a regulated-use prerequisite case and explicit Gate 2, Gate 3, technical-release, and pilot-activation predicates that fail closed unless a separately signed qualified-human legal determination and a versioned cryptographically signed-log implementation are current. Bind the log specification and tests by path and SHA-256, including key custody and identity, approved algorithms, event-to-authoritative-record binding, ordering, timestamp source, verification, rotation/revocation, tamper/truncation/replay detection, retention, export, and negative evidence."
+    },
+    {
+      "domain": "legal",
+      "id": "LEGAL-G2-002",
+      "severity": "major",
+      "status": "open",
+      "summary": "The nine-field signature envelope cannot independently establish the full legal/audit context requested by the packet. It omits the item and repository or code-host identity, the signed artifact path and content digest, the identity issuer and retained verification evidence, the authorization-policy revision, and the provider record type and durable record identifier. A subject, session ID, and Git revision alone do not preserve a verifiable decision trail after session or provider metadata expires or after bindings change.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/BRIEF.md",
+          "sha256": "a5af593397de0722666baefae846b31881c6429c9691bec886f4a0771a8bc97f"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        },
+        {
+          "path": "intent/0001/reviews/domain/legal.md",
+          "sha256": "94d7097969dc65a8abe31986419dbb3bd015960678d86ad69f92212959ceb841"
+        }
+      ],
+      "requiredResolution": "Extend and test the retained signature record so it binds the organization, item, repository or code-host binding, artifact path, canonical content digest, full revision, gate or seat and sequence, decision, server timestamp, verified subject and active hat, identity issuer and verification-evidence reference, session, authorization-policy revision, and provider proof type plus durable provider record identifier. Define canonical serialization and require retrieval and independent verification after session expiry and binding changes."
+    },
+    {
+      "domain": "legal",
+      "id": "LEGAL-G2-003",
+      "severity": "major",
+      "status": "open",
+      "summary": "Retention and disposition are not revision-bound or testable. OR-20 refers to an unidentified signed retention policy, while other sections merely say approval, denial, audit, trace, signature, and evidence records are retained or immutable. The Gate 1 record fixes only 90-day retention for content-free PostHog raw events; it does not define retention for signatures, send-backs, failed attempts, legal records, provider records, evidence objects and versions, backups, legal holds, expiry, deletion, or export.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/SPEC.md",
+          "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"
+        },
+        {
+          "path": "intent/0001/signatures/gate-1.json",
+          "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+        },
+        {
+          "path": "intent/0001/reviews/domain/legal.md",
+          "sha256": "94d7097969dc65a8abe31986419dbb3bd015960678d86ad69f92212959ceb841"
+        }
+      ],
+      "requiredResolution": "Bind the Exam to a named, versioned, hashed, signed retention and records policy. Freeze per-record-class retention triggers and periods, immutable versus deletable fields, provider and backup copies, access and disclosure controls, export requirements, legal-hold behavior, expiry and deletion evidence, failure handling, and precedence rules; then add deterministic boundary, expiry, hold, release, and destruction cases for every approval and audit record class."
+    },
+    {
+      "domain": "legal",
+      "id": "LEGAL-G2-004",
+      "severity": "major",
+      "status": "open",
+      "summary": "The Exam does not define a complete, attributed decision-attempt record for send-back, rejected, stale, failed, conflicted, timed-out, and retried actions. OR-06 requires a send-back note but does not bind its actor, active hat, item, artifact revision, session, server timestamp, reason, or idempotency key. The SIG rejection rule requires only a stable denial reason and an unspecified audit event, and SIG-10 leaves the durable location and evidence for code-host failures undefined. These paths can satisfy the text without leaving the complete non-approval record required by the legal packet.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/reviews/domain/legal.md",
+          "sha256": "94d7097969dc65a8abe31986419dbb3bd015960678d86ad69f92212959ceb841"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        }
+      ],
+      "requiredResolution": "Define and bind a canonical decision-attempt record schema for send-back, denial, stale, failure, conflict, timeout, and retry outcomes. Require actor and verified authority context, organization/item/repository, artifact path and revision, attempted decision, server timestamp, stable reason, idempotency and correlation identifiers, provider response reference, authoritative or audit location, and explicit non-approval status; test retries and partial failures for one logical record, zero signature or approval mirrors, and zero workflow advance."
+    },
+    {
+      "domain": "legal",
+      "id": "LEGAL-G2-005",
+      "severity": "major",
+      "status": "open",
+      "summary": "Historical attribution after accountability or hat changes is asserted by accepted scope but not directly tested. OR-04 evaluates current active hats and prior signatures, and SIG-03 and SIG-04 reject transferred or inactive authority, but no case proves that a transfer re-renders open decisions to the successor while preserving the predecessor's immutable subject-and-hat attribution, provider evidence, sequence, and timestamp on completed decisions.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/BRIEF.md",
+          "sha256": "a5af593397de0722666baefae846b31881c6429c9691bec886f4a0771a8bc97f"
+        },
+        {
+          "path": "intent/0001/SPEC.md",
+          "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"
+        }
+      ],
+      "requiredResolution": "Add a deterministic accountability-transfer matrix covering transfer before and after each decision state, reassignment, revocation, disabled identities, concurrent stale cards, and retry. Require open decisions to route only to the eligible successor; completed records must retain the original verified subject, active hat at decision time, sequence, revision, timestamp, and provider evidence without reinterpretation or reassignment."
+    },
+    {
+      "domain": "reliability",
+      "id": "REL-001",
+      "severity": "blocker",
+      "status": "open",
+      "summary": "OR-02 and WS-13 do not close the sole-authority rebuild invariant. They destroy Postgres projections but permit replay from an undefined append-only ingestion source, while the accepted Architecture places the append-only ingestion log in Postgres and the accepted Plan requires wiping Postgres and replaying Git. The Exam can therefore pass while retaining a private database input that masks inability to reconstruct from Git/code-host authority alone.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        },
+        {
+          "path": "intent/0001/PLAN.md",
+          "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+        }
+      ],
+      "requiredResolution": "Revise OR-02 and WS-13 to wipe the complete Postgres state, including ingestion events and cursors, and reconstruct authoritative business state solely from enumerated Git/code-host records. Define whether any external event archive is merely an integrity-checked transport input, run a Git-only reconstruction without it, destroy every disposable database/index/cache/workflow projection, and retain pre/post canonical bytes and hashes for every tenant and projection type."
+    },
+    {
+      "domain": "reliability",
+      "id": "REL-002",
+      "severity": "major",
+      "status": "open",
+      "summary": "The latency thresholds are not bound to unambiguous semantic events. OR-23 uses the alternative start phrase navigation/request start and an undefined semantic ready state. OR-24 does not identify the exact event-to-board start and completion records, and it combines a source-host monotonic timestamp with a wall-clock restoration requirement without defining a comparable clock domain. The general clock-offset rule does not remove these case-level ambiguities.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/reviews/domain/reliability.md",
+          "sha256": "29b2f7d51306c756b15c84c99c19ed6575ff9f924b641395e64a807104f94c71"
+        }
+      ],
+      "requiredResolution": "For OR-23 and OR-24, name one exact start event and one exact terminal semantic event, their emitting component and host, the trace/correlation identity, the clock used for each subtraction, how cross-host time is made comparable, and the raw-sample inclusion rule. Define semantic ready and restored board state as machine-observable predicates, remove navigation/request ambiguity, and retain all per-observation event identities and timestamps."
+    },
+    {
+      "domain": "reliability",
+      "id": "REL-003",
+      "severity": "major",
+      "status": "open",
+      "summary": "WS-05 asserts survival of one worker replacement but does not freeze the failure injection point or exercise the crash interleavings that threaten durable workflow correctness. A single favorable termination can pass without proving behavior when the worker dies before or after an external Git write, before activity acknowledgement, while a timer expires, or during replay; retry, upgrade, and replay behavior required by the accepted Architecture remains under-specified.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        }
+      ],
+      "requiredResolution": "Add a manifest-frozen WS-05 failure matrix covering worker death before and after activity dispatch, external authoritative commit, acknowledgement, and timer deadline; include repeated replacement, deterministic replay, and the pinned direct-Temporal fallback or upgrade path. For every row retain workflow ID/run identity, complete history, timer deadline/firing evidence, idempotency key, authoritative writes, attempts, and a side-effect-ledger proof of no duplicate workflow or write."
+    },
+    {
+      "domain": "reliability",
+      "id": "REL-004",
+      "severity": "major",
+      "status": "open",
+      "summary": "The Exam has projection reconstruction but no deterministic rehearsal for the rest of the accepted recovery strategy: Git replication, Postgres point-in-time recovery, versioned object-storage recovery, recovery runbook execution, or declared recovery objectives. Required evidence outputs mention artifacts when applicable but no case makes these recovery proofs mandatory or defines failure on absent restore evidence.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        },
+        {
+          "path": "intent/0001/PLAN.md",
+          "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+        }
+      ],
+      "requiredResolution": "Add deterministic recovery cases that execute the versioned runbook against frozen failure points and prove Git/code-host replication restoration, Postgres point-in-time restoration without elevating it to authority, versioned evidence-object restore with content-hash verification, and workflow repair/recreation from Git. Declare per-case RPO/RTO thresholds, raw timelines and manifests, and make missing, stale, partial, or hash-mismatched restore evidence fail."
+    },
+    {
+      "domain": "reliability",
+      "id": "REL-005",
+      "severity": "major",
+      "status": "open",
+      "summary": "OR-25 denies outbound networking but does not define a hermetic startup oracle that detects undeclared SaaS, credential, DNS, socket, or remote control-plane attempts. It also leaves the core-touching subset of OR-01 through OR-24 unenumerated and tests only one regulated-profile environment, so skipped paths, pre-populated caches, baked credentials, or unexercised adapter seams can satisfy the text without proving clean-checkout startup or portable deployment.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/SPEC.md",
+          "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        }
+      ],
+      "requiredResolution": "Define a cold, clean-checkout regulated-core run with exact preloaded artifacts, empty application caches, no undeclared environment credentials or secret mounts, explicit local endpoint allowlist, and captured DNS, socket, HTTP, credential-provider, and control-plane attempts. Enumerate every core-touching case that must execute and fail on omission. Add a pinned adapter/deployment portability matrix that proves the same domain/workflow contracts and recovery behavior across the required self-hosted bindings without domain-code changes."
+    },
+    {
+      "domain": "irreversible-operations",
+      "id": "IRREV-G2-001",
+      "severity": "blocker",
+      "status": "open",
+      "summary": "The Exam does not define an executable forward-only database-migration or application-rollback case. It merely names migrations, rollback, and forward-only behavior in the irreversible-operations routing row. The accepted Plan requires disposable up/down rehearsal, production forward-only migrations, expand/migrate/contract sequencing, additive compatibility during application rollback, and destructive cleanup only through a later signed item. OR-02 and WS-13 destroy and rebuild projections, not schemas. The Exam can therefore pass without proving interrupted backfills, mixed application/schema versions, retry, rollback compatibility, tenant isolation, or preservation of authoritative and signature truth across a destructive schema change.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/PLAN.md",
+          "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        }
+      ],
+      "requiredResolution": "Add a revision-bound migration and rollback matrix covering every supported starting schema and application version; expand, resumable tenant-scoped backfill, contract, and application rollback; concurrent writes; interruption at every phase; idempotent retry; old/new reader and writer compatibility; forward-only production enforcement; refusal of unsanctioned destructive cleanup; and a later separately signed cleanup item. Require pre/post canonical hashes, migration journals, side-effect ledgers, backup or point-in-time recovery evidence, and proof that item, signature, audit, and evidence truth survives each failure and recovery path."
+    },
+    {
+      "domain": "irreversible-operations",
+      "id": "IRREV-G2-002",
+      "severity": "major",
+      "status": "open",
+      "summary": "The Exam lacks one complete mutation-attempt contract across authoritative commits, signatures, and send-backs. OR-05 tests only stale signature rendering, OR-06 does not bind the send-back actor, authority, target, revision, or idempotency key, WS-02 names originator identity and retry idempotency but not conflict, timeout, or partial provider success, and SIG-10 covers only a signature write failure. The generic side-effect ledger does not by itself require a durable logical outcome that distinguishes refused, unknown, committed-but-unacknowledged, projected, and safely retryable states. Duplicate or ambiguous authoritative outcomes can therefore satisfy the individual case text.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        },
+        {
+          "path": "intent/0001/PLAN.md",
+          "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+        }
+      ],
+      "requiredResolution": "Define a canonical mutation-attempt envelope and state machine for create, sign, decline, merge, send-back, and other authoritative writes. Bind verified actor and active authority, organization, repository, item, artifact path and full revision or content digest, policy revision, decision, server time, idempotency and correlation keys, provider request and durable result, projection cursor, and stable refusal or unknown-outcome reason. Test stale, revoked, concurrent, conflict, timeout-before-effect, timeout-after-effect, retry, replay, projection failure, reconciliation, and process crash at each boundary, proving one authoritative result or an explicit safe-to-retry non-result and no duplicate mirror or workflow advance."
+    },
+    {
+      "domain": "irreversible-operations",
+      "id": "IRREV-G2-003",
+      "severity": "major",
+      "status": "open",
+      "summary": "Release plans and release records are asserted but not exercised as irreversible authorization records. The technical-release verdict only requires a release record to state that production and paid deployment remain blocked, while the pilot verdict only refers to a signed release record. No case proves the release actor, eligible hat, exact implementation and Exam targets, signed plan, current evidence set, authorization policy, idempotency, separate production or paid-deployment authorization, stale/conflict/timeout/retry behavior, durable provider outcome, canary abort, or partial rollout recovery. A prose-compliant record could therefore permit an unauthorized or ambiguous external release effect.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        },
+        {
+          "path": "intent/0001/signatures/gate-1.json",
+          "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+        },
+        {
+          "path": "kit/policy/gates.json",
+          "sha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56"
+        }
+      ],
+      "requiredResolution": "Add a release-plan and release-record matrix that binds the verified eligible human, active hat, repository and item, exact Exam and implementation revisions, current evidence manifest and hashes, release configuration, authorization-policy revision, server timestamp, idempotency key, and durable release-rails result. Test stale evidence, revoked authority, same-session second look, conflicts, timeout before and after external effect, retries, partial canary rollout, abort, recovery, and reconciliation. Prove Gate 2, Gate 3, a technical result, or the pilot ceiling never authorizes production, paid deployment, or spending; each requires its separately named current human authorization."
+    },
+    {
+      "domain": "irreversible-operations",
+      "id": "IRREV-G2-004",
+      "severity": "major",
+      "status": "open",
+      "summary": "Evidence and record retention is not complete enough to prove that authorized lifecycle operations cannot erase audit or signature truth. WS-09 proves that a referenced evidence object refuses mutation and the cross-tenant matrix denies a wrong tenant's delete/version request, but no case defines same-tenant authorized expiry or deletion, retention periods, object-version and backup behavior, tombstones, reference revocation, legal or operational hold, missing-object recovery, or deletion evidence. OR-14 concerns intent expiry and OR-20 concerns originator text; neither protects signatures, release records, decision attempts, migration journals, audit records, or technical evidence from in-tenant lifecycle loss.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        },
+        {
+          "path": "intent/0001/PLAN.md",
+          "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+        },
+        {
+          "path": "kit/guardrails/guardrails.json",
+          "sha256": "fff4bb3d3f7e920c01a684957bd5090663948763f0d111e98ea0a003fba7536f"
+        }
+      ],
+      "requiredResolution": "Bind a versioned retention and disposition policy and add deterministic lifecycle cases for every authoritative, signature, release, decision-attempt, migration, audit, and evidence record class. Freeze retention trigger and duration, immutable versus disposable fields, object versions and backups, holds, exact-tenant and exact-object authorization, expiry, deletion or tombstone result, broken-reference handling, export, restore, and deletion evidence. Prove projections remain rebuildable while authoritative and required audit or signature truth cannot be erased or silently become unverifiable."
+    }
+  ],
+  "escalations": [
+    {
+      "domain": "security",
+      "triggerId": "unresolved-blocker-or-major-finding",
+      "reason": "The Security review found six unresolved major gaps that leave identity validation, replay resistance, least privilege, cross-tenant oracle resistance, MCP authentication, and sandbox/secret isolation without deterministic acceptance criteria. A human Security specialist escalation is required by the commercial default-closed policy unless the Exam is revised and all findings are resolved through a new exact-revision review.",
+      "findingIds": [
+        "SEC-G2-001",
+        "SEC-G2-002",
+        "SEC-G2-003",
+        "SEC-G2-004",
+        "SEC-G2-005",
+        "SEC-G2-006"
+      ]
+    },
+    {
+      "domain": "privacy",
+      "triggerId": "unresolved-blocker-or-major-finding",
+      "reason": "PRIV-001, PRIV-002, and PRIV-003 are unresolved major Exam-adequacy findings.",
+      "findingIds": [
+        "PRIV-001",
+        "PRIV-002",
+        "PRIV-003"
+      ]
+    },
+    {
+      "domain": "privacy",
+      "triggerId": "inconclusive-or-missing-required-evidence",
+      "reason": "OR-20 relies on an unidentified signed originator-retention policy, so the evidence needed to determine its retention and deletion outcome is missing from the bound target.",
+      "findingIds": [
+        "PRIV-002"
+      ]
+    },
+    {
+      "domain": "privacy",
+      "triggerId": "irreversible-external-effect-or-material-rights-impact",
+      "reason": "The unresolved rules govern retention and deletion of originator problem text and therefore can materially affect originator privacy rights.",
+      "findingIds": [
+        "PRIV-002"
+      ]
+    },
+    {
+      "domain": "accessibility",
+      "triggerId": "unresolved-blocker-or-major-finding",
+      "reason": "The accessibility Exam review found two unresolved blockers and one unresolved major finding that can permit incomplete or non-reproducible release evidence.",
+      "findingIds": [
+        "ACC-G2-001",
+        "ACC-G2-002",
+        "ACC-G2-003"
+      ]
+    },
+    {
+      "domain": "accessibility",
+      "triggerId": "inconclusive-or-missing-required-evidence",
+      "reason": "The authoritative route/state/viewport inventory and the exact versioned 81-checkpoint model are absent from the bound Exam evidence, so completeness cannot be established.",
+      "findingIds": [
+        "ACC-G2-002",
+        "ACC-G2-003"
+      ]
+    },
+    {
+      "domain": "accessibility",
+      "triggerId": "law-regulation-contract-or-policy-requires-human-specialist",
+      "reason": "The accepted Brief invokes Section 508 and the accepted Spec requires the platform pod's DHS Trusted Tester review at Gate 3 for new UI; an agent review cannot replace that required human specialist judgment.",
+      "findingIds": [
+        "ACC-G2-001",
+        "ACC-G2-003"
+      ]
+    },
+    {
+      "domain": "accessibility",
+      "triggerId": "user-facing-accessibility-manual-release-validation",
+      "reason": "This item contains user-facing decision, escalation, conversation, and board surfaces. The mandatory human keyboard and screen-reader validation remains a technical-release/Gate 3 obligation and is not evidence that the Gate 2 Exam or any future implementation has passed.",
+      "findingIds": []
+    },
+    {
+      "domain": "money",
+      "triggerId": "unresolved-blocker-or-major-finding",
+      "reason": "All five MONEY/COST-CONTROL findings are unresolved blocker or major findings, so the commercial human escalation defined by the target policy is mandatory; the agent cannot waive or accept these gaps.",
+      "findingIds": [
+        "MONEY-G2-001",
+        "MONEY-G2-002",
+        "MONEY-G2-003",
+        "MONEY-G2-004",
+        "MONEY-G2-005"
+      ]
+    },
+    {
+      "domain": "legal",
+      "triggerId": "unresolved-blocker-or-major-finding",
+      "reason": "The legal/compliance review found one unresolved blocker and four unresolved major Exam-adequacy findings covering the regulated-use block, signature proof, retention, non-approval records, and historical attribution.",
+      "findingIds": [
+        "LEGAL-G2-001",
+        "LEGAL-G2-002",
+        "LEGAL-G2-003",
+        "LEGAL-G2-004",
+        "LEGAL-G2-005"
+      ]
+    },
+    {
+      "domain": "legal",
+      "triggerId": "inconclusive-or-missing-required-evidence",
+      "reason": "The bound materials do not include the signed records-retention policy, a regulated signed-log specification and verification contract, or durable identity/provider-proof requirements needed to determine the legal record's sufficiency.",
+      "findingIds": [
+        "LEGAL-G2-001",
+        "LEGAL-G2-002",
+        "LEGAL-G2-003"
+      ]
+    },
+    {
+      "domain": "legal",
+      "triggerId": "law-regulation-contract-or-policy-requires-human-specialist",
+      "reason": "The Gate 1 decision expressly requires a separate legal determination and a cryptographically signed log before any regulated pilot, and the legal packet states that applicable legal, regulatory, contractual, or policy obligations require qualified-human review. This agent review is not that determination.",
+      "findingIds": [
+        "LEGAL-G2-001",
+        "LEGAL-G2-002",
+        "LEGAL-G2-003"
+      ]
+    },
+    {
+      "domain": "legal",
+      "triggerId": "irreversible-external-effect-or-material-rights-impact",
+      "reason": "Authenticated approvals create authoritative external records, while retention, disclosure, and deletion rules for human identity, decision, and originator records may materially affect human rights and obligations. Those questions require a qualified-human disposition before the Exam can be accepted.",
+      "findingIds": [
+        "LEGAL-G2-002",
+        "LEGAL-G2-003",
+        "LEGAL-G2-004",
+        "LEGAL-G2-005"
+      ]
+    },
+    {
+      "domain": "reliability",
+      "triggerId": "unresolved-blocker-or-major-finding",
+      "reason": "The Reliability review has one unresolved blocker and four unresolved major findings affecting the sole-authority rebuild invariant, measurement reproducibility, durable workflow recovery, disaster recovery, and self-hosted portability. Commercial policy requires a separate human Reliability exception disposition; the agent cannot waive these findings.",
+      "findingIds": [
+        "REL-001",
+        "REL-002",
+        "REL-003",
+        "REL-004",
+        "REL-005"
+      ]
+    },
+    {
+      "domain": "irreversible-operations",
+      "triggerId": "unresolved-blocker-or-major-finding",
+      "reason": "The irreversible-operations review found one unresolved blocker and three unresolved major Exam-adequacy findings covering forward-only migration and rollback, authoritative mutation outcomes, release authorization records, and retention or deletion safety.",
+      "findingIds": [
+        "IRREV-G2-001",
+        "IRREV-G2-002",
+        "IRREV-G2-003",
+        "IRREV-G2-004"
+      ]
+    },
+    {
+      "domain": "irreversible-operations",
+      "triggerId": "inconclusive-or-missing-required-evidence",
+      "reason": "The bound Exam omits executable migration, release-record, mutation partial-failure, and same-tenant retention or deletion cases required to establish the domain definition of done.",
+      "findingIds": [
+        "IRREV-G2-001",
+        "IRREV-G2-002",
+        "IRREV-G2-003",
+        "IRREV-G2-004"
+      ]
+    },
+    {
+      "domain": "irreversible-operations",
+      "triggerId": "irreversible-external-effect-or-material-rights-impact",
+      "reason": "Any future destructive schema contract, evidence or record disposition, or externally effective release action is an irreversible external effect and requires a separate eligible human decision; this agent record cannot authorize it.",
+      "findingIds": [
+        "IRREV-G2-001",
+        "IRREV-G2-003",
+        "IRREV-G2-004"
+      ]
+    },
+    {
+      "domain": "irreversible-operations",
+      "triggerId": "production-release-paid-deployment-or-spend-authorization",
+      "reason": "The Exam targets a production foundation and technical-release path, while the accepted Gate 1 record expressly withholds spending authority. Any actual production release, paid deployment, or spend must route to a separately named eligible human authorization and is not authorized by this review, any test result, or the pilot ceiling.",
+      "findingIds": [
+        "IRREV-G2-003"
+      ]
+    }
+  ],
+  "status": "hold-send-back",
+  "eligibleForGateTwoCritic": false,
+  "boundaries": {
+    "doesNotSignGateTwo": true,
+    "doesNotAuthorizeBuildOrRelease": true,
+    "doesNotAuthorizeProductionOrSpend": true
+  }
+}

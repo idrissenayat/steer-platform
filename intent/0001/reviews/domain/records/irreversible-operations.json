@@ -1,0 +1,155 @@
+{
+  "version": "steer-domain-review-record/v1",
+  "domain": "irreversible-operations",
+  "reviewType": "gate-2-exam",
+  "target": {
+    "organization": "steer-platform",
+    "item": "0001-flight-deck-foundation",
+    "revision": "118302e080598a147294e32d40cf5296763c8cc4",
+    "exam": {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+    }
+  },
+  "reviewer": {
+    "serviceIdentity": "openai-codex:/root/irreversible_domain_r2",
+    "agentType": "independent-fresh-context-irreversible-operations-review-agent",
+    "model": "inherited-parent-model (exact identifier unavailable to task)",
+    "configurationRevision": "task-assignment:/root/irreversible_domain_r2@2026-09-03;target:118302e080598a147294e32d40cf5296763c8cc4",
+    "freshContext": true,
+    "freshContextEvidence": "Fresh replacement task /root/irreversible_domain_r2 was assigned solely to review the irreversible-operations domain at revision 118302e080598a147294e32d40cf5296763c8cc4; it performed no Builder work and based this disposition on the bound Exam, packet, accepted Gate 1 artifacts, policy, signature, and external-control receipt.",
+    "builderIndependent": true
+  },
+  "decision": "send-back",
+  "confidence": "high",
+  "reviewedAt": "2026-09-03T17:47:13Z",
+  "reviewedCases": [
+    "OR-02",
+    "OR-05",
+    "OR-06",
+    "OR-14",
+    "OR-20",
+    "WS-02",
+    "WS-04",
+    "WS-05",
+    "WS-09",
+    "WS-12",
+    "WS-13",
+    "SIG-05",
+    "SIG-06",
+    "SIG-08",
+    "SIG-10",
+    "SIG-12",
+    "SIG-14",
+    "Cross-tenant negative matrix: API and UI/BFF mutation variants",
+    "Cross-tenant negative matrix: Postgres direct and pooled mutation variants",
+    "Cross-tenant negative matrix: Full-text search mutation variants",
+    "Cross-tenant negative matrix: pgvector and memory mutation variants",
+    "Cross-tenant negative matrix: Evidence and object-storage mutation variants",
+    "Cross-tenant negative matrix: Model gateway and keys mutation variants",
+    "Cross-tenant negative matrix: Temporal workflow mutation variants",
+    "Cross-tenant negative matrix: Cache and session mutation variants",
+    "Cross-tenant negative matrix: Sandbox and readiness mutation variants",
+    "Cross-tenant negative matrix: Logs, traces, metrics, and analytics mutation variants",
+    "Cross-tenant negative matrix: Notification mutation variants",
+    "Cross-tenant negative matrix: Git and code-host adapter mutation variants",
+    "Forward-only migration and rollback behavior",
+    "Technical-release verdict item 6",
+    "Pilot and 90-day outcome signed release-record requirement",
+    "Irreversible-operations default-closed routing and authorization boundaries"
+  ],
+  "evidence": [
+    { "path": "intent/0001/EXAM.md", "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53" },
+    { "path": "intent/0001/BRIEF.md", "sha256": "a5af593397de0722666baefae846b31881c6429c9691bec886f4a0771a8bc97f" },
+    { "path": "intent/0001/SPEC.md", "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff" },
+    { "path": "intent/0001/ARCHITECTURE.md", "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65" },
+    { "path": "intent/0001/PLAN.md", "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f" },
+    { "path": "intent/0001/signatures/gate-1.json", "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709" },
+    { "path": "intent/0001/sources/EXAM.supplied.md", "sha256": "5823ddb26d0acbc78b7b58d931d76adfe064adeba84b9cf81fad2557d528eb7b" },
+    { "path": "kit/policy/gates.json", "sha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56" },
+    { "path": "kit/guardrails/guardrails.json", "sha256": "fff4bb3d3f7e920c01a684957bd5090663948763f0d111e98ea0a003fba7536f" },
+    { "path": "intent/0001/evidence/github-exam-protection-rollout.json", "sha256": "b61c40a640ae0348aeadd191091c14225003d1e733c618e841e4da5804513e0d" },
+    { "path": "intent/0001/reviews/domain/irreversible-operations.md", "sha256": "1b6b78ce9d2fbca354a329011571cc8a9078f1d575ae534a4fd2fa0f4e206ea0" },
+    { "path": "intent/0001/reviews/domain/review-target.json", "sha256": "073cc1d5c7df79d9da2439b9ff8b193dcf7cf051d556adc820dc1a9c4722a211" }
+  ],
+  "findings": [
+    {
+      "id": "IRREV-G2-001",
+      "severity": "blocker",
+      "status": "open",
+      "summary": "The Exam does not define an executable forward-only database-migration or application-rollback case. It merely names migrations, rollback, and forward-only behavior in the irreversible-operations routing row. The accepted Plan requires disposable up/down rehearsal, production forward-only migrations, expand/migrate/contract sequencing, additive compatibility during application rollback, and destructive cleanup only through a later signed item. OR-02 and WS-13 destroy and rebuild projections, not schemas. The Exam can therefore pass without proving interrupted backfills, mixed application/schema versions, retry, rollback compatibility, tenant isolation, or preservation of authoritative and signature truth across a destructive schema change.",
+      "evidence": [
+        { "path": "intent/0001/EXAM.md", "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53" },
+        { "path": "intent/0001/PLAN.md", "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f" },
+        { "path": "intent/0001/ARCHITECTURE.md", "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65" }
+      ],
+      "requiredResolution": "Add a revision-bound migration and rollback matrix covering every supported starting schema and application version; expand, resumable tenant-scoped backfill, contract, and application rollback; concurrent writes; interruption at every phase; idempotent retry; old/new reader and writer compatibility; forward-only production enforcement; refusal of unsanctioned destructive cleanup; and a later separately signed cleanup item. Require pre/post canonical hashes, migration journals, side-effect ledgers, backup or point-in-time recovery evidence, and proof that item, signature, audit, and evidence truth survives each failure and recovery path."
+    },
+    {
+      "id": "IRREV-G2-002",
+      "severity": "major",
+      "status": "open",
+      "summary": "The Exam lacks one complete mutation-attempt contract across authoritative commits, signatures, and send-backs. OR-05 tests only stale signature rendering, OR-06 does not bind the send-back actor, authority, target, revision, or idempotency key, WS-02 names originator identity and retry idempotency but not conflict, timeout, or partial provider success, and SIG-10 covers only a signature write failure. The generic side-effect ledger does not by itself require a durable logical outcome that distinguishes refused, unknown, committed-but-unacknowledged, projected, and safely retryable states. Duplicate or ambiguous authoritative outcomes can therefore satisfy the individual case text.",
+      "evidence": [
+        { "path": "intent/0001/EXAM.md", "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53" },
+        { "path": "intent/0001/ARCHITECTURE.md", "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65" },
+        { "path": "intent/0001/PLAN.md", "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f" }
+      ],
+      "requiredResolution": "Define a canonical mutation-attempt envelope and state machine for create, sign, decline, merge, send-back, and other authoritative writes. Bind verified actor and active authority, organization, repository, item, artifact path and full revision or content digest, policy revision, decision, server time, idempotency and correlation keys, provider request and durable result, projection cursor, and stable refusal or unknown-outcome reason. Test stale, revoked, concurrent, conflict, timeout-before-effect, timeout-after-effect, retry, replay, projection failure, reconciliation, and process crash at each boundary, proving one authoritative result or an explicit safe-to-retry non-result and no duplicate mirror or workflow advance."
+    },
+    {
+      "id": "IRREV-G2-003",
+      "severity": "major",
+      "status": "open",
+      "summary": "Release plans and release records are asserted but not exercised as irreversible authorization records. The technical-release verdict only requires a release record to state that production and paid deployment remain blocked, while the pilot verdict only refers to a signed release record. No case proves the release actor, eligible hat, exact implementation and Exam targets, signed plan, current evidence set, authorization policy, idempotency, separate production or paid-deployment authorization, stale/conflict/timeout/retry behavior, durable provider outcome, canary abort, or partial rollout recovery. A prose-compliant record could therefore permit an unauthorized or ambiguous external release effect.",
+      "evidence": [
+        { "path": "intent/0001/EXAM.md", "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53" },
+        { "path": "intent/0001/ARCHITECTURE.md", "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65" },
+        { "path": "intent/0001/signatures/gate-1.json", "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709" },
+        { "path": "kit/policy/gates.json", "sha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56" }
+      ],
+      "requiredResolution": "Add a release-plan and release-record matrix that binds the verified eligible human, active hat, repository and item, exact Exam and implementation revisions, current evidence manifest and hashes, release configuration, authorization-policy revision, server timestamp, idempotency key, and durable release-rails result. Test stale evidence, revoked authority, same-session second look, conflicts, timeout before and after external effect, retries, partial canary rollout, abort, recovery, and reconciliation. Prove Gate 2, Gate 3, a technical result, or the pilot ceiling never authorizes production, paid deployment, or spending; each requires its separately named current human authorization."
+    },
+    {
+      "id": "IRREV-G2-004",
+      "severity": "major",
+      "status": "open",
+      "summary": "Evidence and record retention is not complete enough to prove that authorized lifecycle operations cannot erase audit or signature truth. WS-09 proves that a referenced evidence object refuses mutation and the cross-tenant matrix denies a wrong tenant's delete/version request, but no case defines same-tenant authorized expiry or deletion, retention periods, object-version and backup behavior, tombstones, reference revocation, legal or operational hold, missing-object recovery, or deletion evidence. OR-14 concerns intent expiry and OR-20 concerns originator text; neither protects signatures, release records, decision attempts, migration journals, audit records, or technical evidence from in-tenant lifecycle loss.",
+      "evidence": [
+        { "path": "intent/0001/EXAM.md", "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53" },
+        { "path": "intent/0001/ARCHITECTURE.md", "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65" },
+        { "path": "intent/0001/PLAN.md", "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f" },
+        { "path": "kit/guardrails/guardrails.json", "sha256": "fff4bb3d3f7e920c01a684957bd5090663948763f0d111e98ea0a003fba7536f" }
+      ],
+      "requiredResolution": "Bind a versioned retention and disposition policy and add deterministic lifecycle cases for every authoritative, signature, release, decision-attempt, migration, audit, and evidence record class. Freeze retention trigger and duration, immutable versus disposable fields, object versions and backups, holds, exact-tenant and exact-object authorization, expiry, deletion or tombstone result, broken-reference handling, export, restore, and deletion evidence. Prove projections remain rebuildable while authoritative and required audit or signature truth cannot be erased or silently become unverifiable."
+    }
+  ],
+  "escalations": [
+    {
+      "triggerId": "unresolved-blocker-or-major-finding",
+      "reason": "The irreversible-operations review found one unresolved blocker and three unresolved major Exam-adequacy findings covering forward-only migration and rollback, authoritative mutation outcomes, release authorization records, and retention or deletion safety.",
+      "findingIds": ["IRREV-G2-001", "IRREV-G2-002", "IRREV-G2-003", "IRREV-G2-004"]
+    },
+    {
+      "triggerId": "inconclusive-or-missing-required-evidence",
+      "reason": "The bound Exam omits executable migration, release-record, mutation partial-failure, and same-tenant retention or deletion cases required to establish the domain definition of done.",
+      "findingIds": ["IRREV-G2-001", "IRREV-G2-002", "IRREV-G2-003", "IRREV-G2-004"]
+    },
+    {
+      "triggerId": "irreversible-external-effect-or-material-rights-impact",
+      "reason": "Any future destructive schema contract, evidence or record disposition, or externally effective release action is an irreversible external effect and requires a separate eligible human decision; this agent record cannot authorize it.",
+      "findingIds": ["IRREV-G2-001", "IRREV-G2-003", "IRREV-G2-004"]
+    },
+    {
+      "triggerId": "production-release-paid-deployment-or-spend-authorization",
+      "reason": "The Exam targets a production foundation and technical-release path, while the accepted Gate 1 record expressly withholds spending authority. Any actual production release, paid deployment, or spend must route to a separately named eligible human authorization and is not authorized by this review, any test result, or the pilot ceiling.",
+      "findingIds": ["IRREV-G2-003"]
+    }
+  ],
+  "boundaries": {
+    "doesNotSignGateTwo": true,
+    "doesNotAuthorizeBuildOrRelease": true,
+    "doesNotAuthorizeProductionOrSpend": true,
+    "doesNotAcceptResidualRiskOrWaiveControls": true
+  }
+}

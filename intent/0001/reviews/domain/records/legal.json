@@ -1,0 +1,267 @@
+{
+  "version": "steer-domain-review-record/v1",
+  "domain": "legal",
+  "reviewType": "gate-2-exam",
+  "target": {
+    "organization": "steer-platform",
+    "item": "0001-flight-deck-foundation",
+    "revision": "118302e080598a147294e32d40cf5296763c8cc4",
+    "exam": {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+    }
+  },
+  "reviewer": {
+    "serviceIdentity": "codex:/root/legal_domain_r1",
+    "agentType": "independent-fresh-context-legal-compliance-review-agent",
+    "model": "GPT-5-family Codex model (exact serving snapshot not exposed to this task)",
+    "configurationRevision": "legal-domain-review-task-r1@2026-09-03;packet-sha256:94d7097969dc65a8abe31986419dbb3bd015960678d86ad69f92212959ceb841",
+    "freshContext": true,
+    "freshContextEvidence": "Fresh delegated task /root/legal_domain_r1 was created solely to review the legal/compliance domain of Gate 2 target 118302e080598a147294e32d40cf5296763c8cc4; it did not perform or inherit Builder work.",
+    "builderIndependent": true
+  },
+  "decision": "send-back",
+  "confidence": "high",
+  "reviewedAt": "2026-09-03T17:27:53Z",
+  "reviewedCases": [
+    "OR-02",
+    "OR-03",
+    "OR-04",
+    "OR-05",
+    "OR-06",
+    "OR-07",
+    "OR-08",
+    "OR-19",
+    "OR-20",
+    "OR-25",
+    "WS-04",
+    "WS-09",
+    "SIG-01",
+    "SIG-02",
+    "SIG-03",
+    "SIG-04",
+    "SIG-05",
+    "SIG-06",
+    "SIG-07",
+    "SIG-08",
+    "SIG-09",
+    "SIG-10",
+    "SIG-11",
+    "SIG-12",
+    "SIG-13",
+    "SIG-14",
+    "SIG-15"
+  ],
+  "evidence": [
+    {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+    },
+    {
+      "path": "intent/0001/BRIEF.md",
+      "sha256": "a5af593397de0722666baefae846b31881c6429c9691bec886f4a0771a8bc97f"
+    },
+    {
+      "path": "intent/0001/SPEC.md",
+      "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"
+    },
+    {
+      "path": "intent/0001/ARCHITECTURE.md",
+      "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+    },
+    {
+      "path": "intent/0001/PLAN.md",
+      "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+    },
+    {
+      "path": "intent/0001/signatures/gate-1.json",
+      "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+    },
+    {
+      "path": "intent/0001/sources/EXAM.supplied.md",
+      "sha256": "5823ddb26d0acbc78b7b58d931d76adfe064adeba84b9cf81fad2557d528eb7b"
+    },
+    {
+      "path": "kit/policy/gates.json",
+      "sha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56"
+    },
+    {
+      "path": "intent/0001/evidence/github-exam-protection-rollout.json",
+      "sha256": "b61c40a640ae0348aeadd191091c14225003d1e733c618e841e4da5804513e0d"
+    },
+    {
+      "path": "intent/0001/reviews/domain/legal.md",
+      "sha256": "94d7097969dc65a8abe31986419dbb3bd015960678d86ad69f92212959ceb841"
+    },
+    {
+      "path": "intent/0001/reviews/domain/review-target.json",
+      "sha256": "073cc1d5c7df79d9da2439b9ff8b193dcf7cf051d556adc820dc1a9c4722a211"
+    },
+    {
+      "path": "kit/schemas/domain-review-record.schema.json",
+      "sha256": "50cc75af34849a08dd2ef966a2bf944b711c861b5bd955d1cb9e33c0820857ea"
+    }
+  ],
+  "findings": [
+    {
+      "id": "LEGAL-G2-001",
+      "severity": "blocker",
+      "status": "open",
+      "summary": "The Exam does not make the Gate 1 regulated-use constraint executable. SIG-13 and SIG-14 specify signer counts and Critic prerequisites, while OR-25 can exercise the regulated-profile core, but no case or verdict predicate denies regulated onboarding, pilot activation, Gate 2, Gate 3, or technical release until a separate qualified-human legal decision exists and a cryptographically signed log is implemented and verified. The descriptive legal-domain row cannot prevent a regulated false pass.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/signatures/gate-1.json",
+          "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+        },
+        {
+          "path": "intent/0001/PLAN.md",
+          "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+        }
+      ],
+      "requiredResolution": "Add a regulated-use prerequisite case and explicit Gate 2, Gate 3, technical-release, and pilot-activation predicates that fail closed unless a separately signed qualified-human legal determination and a versioned cryptographically signed-log implementation are current. Bind the log specification and tests by path and SHA-256, including key custody and identity, approved algorithms, event-to-authoritative-record binding, ordering, timestamp source, verification, rotation/revocation, tamper/truncation/replay detection, retention, export, and negative evidence."
+    },
+    {
+      "id": "LEGAL-G2-002",
+      "severity": "major",
+      "status": "open",
+      "summary": "The nine-field signature envelope cannot independently establish the full legal/audit context requested by the packet. It omits the item and repository or code-host identity, the signed artifact path and content digest, the identity issuer and retained verification evidence, the authorization-policy revision, and the provider record type and durable record identifier. A subject, session ID, and Git revision alone do not preserve a verifiable decision trail after session or provider metadata expires or after bindings change.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/BRIEF.md",
+          "sha256": "a5af593397de0722666baefae846b31881c6429c9691bec886f4a0771a8bc97f"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        },
+        {
+          "path": "intent/0001/reviews/domain/legal.md",
+          "sha256": "94d7097969dc65a8abe31986419dbb3bd015960678d86ad69f92212959ceb841"
+        }
+      ],
+      "requiredResolution": "Extend and test the retained signature record so it binds the organization, item, repository or code-host binding, artifact path, canonical content digest, full revision, gate or seat and sequence, decision, server timestamp, verified subject and active hat, identity issuer and verification-evidence reference, session, authorization-policy revision, and provider proof type plus durable provider record identifier. Define canonical serialization and require retrieval and independent verification after session expiry and binding changes."
+    },
+    {
+      "id": "LEGAL-G2-003",
+      "severity": "major",
+      "status": "open",
+      "summary": "Retention and disposition are not revision-bound or testable. OR-20 refers to an unidentified signed retention policy, while other sections merely say approval, denial, audit, trace, signature, and evidence records are retained or immutable. The Gate 1 record fixes only 90-day retention for content-free PostHog raw events; it does not define retention for signatures, send-backs, failed attempts, legal records, provider records, evidence objects and versions, backups, legal holds, expiry, deletion, or export.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/SPEC.md",
+          "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"
+        },
+        {
+          "path": "intent/0001/signatures/gate-1.json",
+          "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+        },
+        {
+          "path": "intent/0001/reviews/domain/legal.md",
+          "sha256": "94d7097969dc65a8abe31986419dbb3bd015960678d86ad69f92212959ceb841"
+        }
+      ],
+      "requiredResolution": "Bind the Exam to a named, versioned, hashed, signed retention and records policy. Freeze per-record-class retention triggers and periods, immutable versus deletable fields, provider and backup copies, access and disclosure controls, export requirements, legal-hold behavior, expiry and deletion evidence, failure handling, and precedence rules; then add deterministic boundary, expiry, hold, release, and destruction cases for every approval and audit record class."
+    },
+    {
+      "id": "LEGAL-G2-004",
+      "severity": "major",
+      "status": "open",
+      "summary": "The Exam does not define a complete, attributed decision-attempt record for send-back, rejected, stale, failed, conflicted, timed-out, and retried actions. OR-06 requires a send-back note but does not bind its actor, active hat, item, artifact revision, session, server timestamp, reason, or idempotency key. The SIG rejection rule requires only a stable denial reason and an unspecified audit event, and SIG-10 leaves the durable location and evidence for code-host failures undefined. These paths can satisfy the text without leaving the complete non-approval record required by the legal packet.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/reviews/domain/legal.md",
+          "sha256": "94d7097969dc65a8abe31986419dbb3bd015960678d86ad69f92212959ceb841"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        }
+      ],
+      "requiredResolution": "Define and bind a canonical decision-attempt record schema for send-back, denial, stale, failure, conflict, timeout, and retry outcomes. Require actor and verified authority context, organization/item/repository, artifact path and revision, attempted decision, server timestamp, stable reason, idempotency and correlation identifiers, provider response reference, authoritative or audit location, and explicit non-approval status; test retries and partial failures for one logical record, zero signature or approval mirrors, and zero workflow advance."
+    },
+    {
+      "id": "LEGAL-G2-005",
+      "severity": "major",
+      "status": "open",
+      "summary": "Historical attribution after accountability or hat changes is asserted by accepted scope but not directly tested. OR-04 evaluates current active hats and prior signatures, and SIG-03 and SIG-04 reject transferred or inactive authority, but no case proves that a transfer re-renders open decisions to the successor while preserving the predecessor's immutable subject-and-hat attribution, provider evidence, sequence, and timestamp on completed decisions.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "e38d6a95145ddafef4b12fb1c795aaa76fdcf009da8cc141ed2430cd69ffcc53"
+        },
+        {
+          "path": "intent/0001/BRIEF.md",
+          "sha256": "a5af593397de0722666baefae846b31881c6429c9691bec886f4a0771a8bc97f"
+        },
+        {
+          "path": "intent/0001/SPEC.md",
+          "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"
+        }
+      ],
+      "requiredResolution": "Add a deterministic accountability-transfer matrix covering transfer before and after each decision state, reassignment, revocation, disabled identities, concurrent stale cards, and retry. Require open decisions to route only to the eligible successor; completed records must retain the original verified subject, active hat at decision time, sequence, revision, timestamp, and provider evidence without reinterpretation or reassignment."
+    }
+  ],
+  "escalations": [
+    {
+      "triggerId": "unresolved-blocker-or-major-finding",
+      "reason": "The legal/compliance review found one unresolved blocker and four unresolved major Exam-adequacy findings covering the regulated-use block, signature proof, retention, non-approval records, and historical attribution.",
+      "findingIds": [
+        "LEGAL-G2-001",
+        "LEGAL-G2-002",
+        "LEGAL-G2-003",
+        "LEGAL-G2-004",
+        "LEGAL-G2-005"
+      ]
+    },
+    {
+      "triggerId": "inconclusive-or-missing-required-evidence",
+      "reason": "The bound materials do not include the signed records-retention policy, a regulated signed-log specification and verification contract, or durable identity/provider-proof requirements needed to determine the legal record's sufficiency.",
+      "findingIds": [
+        "LEGAL-G2-001",
+        "LEGAL-G2-002",
+        "LEGAL-G2-003"
+      ]
+    },
+    {
+      "triggerId": "law-regulation-contract-or-policy-requires-human-specialist",
+      "reason": "The Gate 1 decision expressly requires a separate legal determination and a cryptographically signed log before any regulated pilot, and the legal packet states that applicable legal, regulatory, contractual, or policy obligations require qualified-human review. This agent review is not that determination.",
+      "findingIds": [
+        "LEGAL-G2-001",
+        "LEGAL-G2-002",
+        "LEGAL-G2-003"
+      ]
+    },
+    {
+      "triggerId": "irreversible-external-effect-or-material-rights-impact",
+      "reason": "Authenticated approvals create authoritative external records, while retention, disclosure, and deletion rules for human identity, decision, and originator records may materially affect human rights and obligations. Those questions require a qualified-human disposition before the Exam can be accepted.",
+      "findingIds": [
+        "LEGAL-G2-002",
+        "LEGAL-G2-003",
+        "LEGAL-G2-004",
+        "LEGAL-G2-005"
+      ]
+    }
+  ],
+  "boundaries": {
+    "doesNotSignGateTwo": true,
+    "doesNotAuthorizeBuildOrRelease": true,
+    "doesNotAuthorizeProductionOrSpend": true,
+    "doesNotAcceptResidualRiskOrWaiveControls": true
+  }
+}
