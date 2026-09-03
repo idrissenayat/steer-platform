@@ -164,7 +164,8 @@ path. Numbered intent sources remain unchanged.
 5. **Gate 1 recorded; second Gate 2 Critic superseded by v3.2 remediation:** the live two-identity GitHub
    control and required CI over the actual Exam diff are now verified in
    `docs/GITHUB-EXAM-PROTECTION.md`. Run seven independent fresh-context domain
-   agents, build one exception brief, resolve any deterministic human
+   agents, validate and build one exception brief with
+   `pnpm domain-reviews:consolidate`, resolve any deterministic human
    escalations, then run a new exact-revision Critic before the Tech Lead Gate 2
    signature request.
 6. Run the ten-to-twenty-item pilot and retain 90 days of outcome evidence.

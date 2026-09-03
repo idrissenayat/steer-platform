@@ -122,7 +122,12 @@ the Test Agent App is accepted by CI, and one human CODEOWNER approval is still
 required. This control evidence is not a Gate 2 signature. Seven domain-agent
 review packets are bound under `intent/0001/reviews/domain`; their independent
 reviews, consolidated exception brief, any triggered human escalations, and a
-new exact-revision Critic remain outstanding.
+new exact-revision Critic remain outstanding. The repository now includes a
+machine-readable domain-review record schema and a fail-closed consolidation
+command. It verifies every bound artifact from the exact Git revision, rejects
+missing, stale, self-reviewed, low-confidence, or under-escalated records, and
+produces one JSON and Markdown exception brief only after all seven records are
+present.
 
 The production foundation still to be built includes the Hono API and typed
 tool registry, MCP v2 transport, GitHub App adapter, Postgres/Drizzle/RLS
@@ -136,8 +141,13 @@ monorepo, Next.js shell, and provider-free domain package already exist.
 ```sh
 pnpm install
 pnpm check
+pnpm domain-reviews:verify-target
+pnpm domain-reviews:consolidate
 pnpm dev --port 4175
 ```
 
 `pnpm check` validates the adoption kit and CI scopes, typechecks, runs the
-gauntlet, and produces the production build.
+gauntlet, and produces the production build. Domain review consolidation is a
+separate gate command because it must fail until all seven independent review
+records exist; an incomplete review set must not break ordinary development
+checks or silently become an approval.

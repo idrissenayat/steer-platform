@@ -42,6 +42,15 @@ regulated mode every activated domain keeps a human specialist seat.
    digest, reviewed case IDs, evidence paths and hashes, findings, and every
    triggered human escalation.
 
+Records must conform to
+[`kit/schemas/domain-review-record.schema.json`](../../../../kit/schemas/domain-review-record.schema.json).
+Before dispatch, `pnpm domain-reviews:verify-target` confirms that every bound
+artifact still matches its digest at the exact target revision. After all seven
+records exist, `pnpm domain-reviews:consolidate` validates them, rejects missing,
+stale, self-reviewed, or under-escalated records, and writes the machine-readable
+and human-readable consolidated exception brief. It fails closed without a
+complete seven-domain set.
+
 After all seven records exist and validate, the platform creates one complete
 exception brief and a new fresh-context Critic reviews the exact target. Only
 green domain records, resolved escalations, and a passing zero-unresolved Critic

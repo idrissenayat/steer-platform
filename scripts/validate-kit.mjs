@@ -7,6 +7,7 @@ const required = [
   "kit/templates/EXAM.md",
   "kit/templates/PLAN.md",
   "kit/templates/DOMAIN-REVIEW.md",
+  "kit/schemas/domain-review-record.schema.json",
   "kit/templates/ORG.md",
   "kit/templates/PORTFOLIO.md",
   "kit/templates/PRODUCT.md",
@@ -90,7 +91,9 @@ const required = [
   "packages/domain/src/read-model.ts",
   ".github/steer/exam-author-policy.json",
   "scripts/check-exam-protection.mjs",
+  "scripts/domain-review-assurance.mjs",
   "tests/exam-protection.test.mjs",
+  "tests/domain-review-controls.test.mjs",
   ".github/CODEOWNERS",
 ];
 

@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://steer.local/schemas/domain-review-record.schema.json",
+  "title": "STEER independent domain review record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "domain",
+    "reviewType",
+    "target",
+    "reviewer",
+    "decision",
+    "confidence",
+    "reviewedAt",
+    "reviewedCases",
+    "evidence",
+    "findings",
+    "escalations",
+    "boundaries"
+  ],
+  "properties": {
+    "version": { "const": "steer-domain-review-record/v1" },
+    "domain": {
+      "enum": [
+        "security",
+        "privacy",
+        "accessibility",
+        "money",
+        "legal",
+        "reliability",
+        "irreversible-operations"
+      ]
+    },
+    "reviewType": { "const": "gate-2-exam" },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["organization", "item", "revision", "exam"],
+      "properties": {
+        "organization": { "type": "string", "minLength": 1 },
+        "item": { "type": "string", "minLength": 1 },
+        "revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "exam": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": { "type": "string", "minLength": 1 },
+            "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+          }
+        }
+      }
+    },
+    "reviewer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "serviceIdentity",
+        "agentType",
+        "model",
+        "configurationRevision",
+        "freshContext",
+        "freshContextEvidence",
+        "builderIndependent"
+      ],
+      "properties": {
+        "serviceIdentity": { "type": "string", "minLength": 1 },
+        "agentType": { "type": "string", "minLength": 1 },
+        "model": { "type": "string", "minLength": 1 },
+        "configurationRevision": { "type": "string", "minLength": 1 },
+        "freshContext": { "const": true },
+        "freshContextEvidence": { "type": "string", "minLength": 1 },
+        "builderIndependent": { "const": true }
+      }
+    },
+    "decision": { "enum": ["approved", "send-back", "declined"] },
+    "confidence": { "enum": ["high", "medium", "low"] },
+    "reviewedAt": { "type": "string", "format": "date-time" },
+    "reviewedCases": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/evidenceReference" }
+    },
+    "findings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/finding" }
+    },
+    "escalations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/escalation" }
+    },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "doesNotSignGateTwo",
+        "doesNotAuthorizeBuildOrRelease",
+        "doesNotAuthorizeProductionOrSpend",
+        "doesNotAcceptResidualRiskOrWaiveControls"
+      ],
+      "properties": {
+        "doesNotSignGateTwo": { "const": true },
+        "doesNotAuthorizeBuildOrRelease": { "const": true },
+        "doesNotAuthorizeProductionOrSpend": { "const": true },
+        "doesNotAcceptResidualRiskOrWaiveControls": { "const": true }
+      }
+    }
+  },
+  "$defs": {
+    "evidenceReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "severity", "status", "summary", "evidence", "requiredResolution"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Z0-9][A-Z0-9-]+$" },
+        "severity": { "enum": ["blocker", "major", "minor", "nit"] },
+        "status": { "enum": ["open", "resolved"] },
+        "summary": { "type": "string", "minLength": 1 },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/evidenceReference" }
+        },
+        "requiredResolution": { "type": "string", "minLength": 1 }
+      }
+    },
+    "escalation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["triggerId", "reason", "findingIds"],
+      "properties": {
+        "triggerId": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string", "minLength": 1 },
+        "findingIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}
