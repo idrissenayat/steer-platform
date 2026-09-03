@@ -1,0 +1,188 @@
+{
+  "version": "steer-domain-review-record/v1",
+  "domain": "security",
+  "reviewType": "gate-2-exam",
+  "target": {
+    "organization": "steer-platform",
+    "item": "0001-flight-deck-foundation",
+    "revision": "9c7299dd658615cd234e8e03188d607ef1a99fe1",
+    "exam": {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10"
+    }
+  },
+  "reviewer": {
+    "serviceIdentity": "codex-task:/root/security_domain_r2",
+    "agentType": "independent-fresh-context-security-review-agent",
+    "model": "exact serving model identifier not exposed to this task",
+    "configurationRevision": "task-assignment:/root/security_domain_r2@2026-09-03;target:9c7299dd658615cd234e8e03188d607ef1a99fe1",
+    "freshContext": true,
+    "freshContextEvidence": "Fresh task /root/security_domain_r2 was assigned only the independent Security-domain round-two review of revision 9c7299dd658615cd234e8e03188d607ef1a99fe1, inherited no Builder work, and inspected the entire canonical Exam from that Git object.",
+    "builderIndependent": true
+  },
+  "decision": "send-back",
+  "confidence": "high",
+  "reviewedAt": "2026-09-03T21:38:05Z",
+  "reviewedCases": [
+    "OR-17",
+    "OR-19",
+    "WS-02",
+    "WS-04",
+    "WS-07",
+    "WS-08",
+    "WS-11",
+    "SIG-01",
+    "SIG-02",
+    "SIG-03",
+    "SIG-04",
+    "SIG-05",
+    "SIG-06",
+    "SIG-07",
+    "SIG-08",
+    "SIG-09",
+    "SIG-10",
+    "SIG-11",
+    "SIG-12",
+    "SIG-13",
+    "SIG-14",
+    "SIG-15",
+    "A3 credential and side-effect ledgers",
+    "A6.1 OIDC and session matrix",
+    "A6.2 GitHub webhook contract",
+    "A6.3 MCP Streamable HTTP matrix",
+    "A6.4 timing-oracle protocol",
+    "A7.1 effective permission baseline",
+    "A7.2 malicious readiness fixtures",
+    "A10.1 signature and decision-attempt records",
+    "Cross-tenant matrix: API, UI, BFF, and MCP",
+    "Cross-tenant matrix: Postgres direct and pooled",
+    "Cross-tenant matrix: full-text, vector, and memory",
+    "Cross-tenant matrix: evidence and object storage",
+    "Cross-tenant matrix: model gateway, key, cache, and budget",
+    "Cross-tenant matrix: Temporal workflows",
+    "Cross-tenant matrix: cache and sessions",
+    "Cross-tenant matrix: sandbox and readiness",
+    "Cross-tenant matrix: logs, traces, metrics, and analytics",
+    "Cross-tenant matrix: notifications",
+    "Cross-tenant matrix: Git and code-host adapter",
+    "Cross-tenant matrix: release, provisioning, and cost",
+    "Prior finding reassessment: SEC-G2-001",
+    "Prior finding reassessment: SEC-G2-002",
+    "Prior finding reassessment: SEC-G2-003",
+    "Prior finding reassessment: SEC-G2-004",
+    "Prior finding reassessment: SEC-G2-005",
+    "Prior finding reassessment: SEC-G2-006"
+  ],
+  "evidence": [
+    {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10"
+    },
+    {
+      "path": "intent/0001/BRIEF.md",
+      "sha256": "a5af593397de0722666baefae846b31881c6429c9691bec886f4a0771a8bc97f"
+    },
+    {
+      "path": "intent/0001/SPEC.md",
+      "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"
+    },
+    {
+      "path": "intent/0001/ARCHITECTURE.md",
+      "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+    },
+    {
+      "path": "intent/0001/PLAN.md",
+      "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+    },
+    {
+      "path": "intent/0001/signatures/gate-1.json",
+      "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+    },
+    {
+      "path": "kit/policy/gates.json",
+      "sha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56"
+    },
+    {
+      "path": "intent/0001/evidence/github-exam-protection-rollout.json",
+      "sha256": "b61c40a640ae0348aeadd191091c14225003d1e733c618e841e4da5804513e0d"
+    },
+    {
+      "path": "intent/0001/reviews/domain/security.md",
+      "sha256": "d1f944e90639ff3c5c54426417c5a2f34ae5011ae5e550c0b20d33a36dbaa851"
+    },
+    {
+      "path": "intent/0001/reviews/domain/records/security.json",
+      "sha256": "bdebb500446b02c69be9df00528e2d911aadf252b4ebf796f6566d9fac3e51de"
+    },
+    {
+      "path": "intent/0001/reviews/domain/exception-brief.json",
+      "sha256": "95092dd8f3fc56b4d2cff306227f8ab4bc1fa9484cda50a3b79131abac86c805"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/remediation-manifest.json",
+      "sha256": "d03fbf07bf9bb3b2616682a278ef9fdce5c0ad278f4aefec3b034cc1cd252369"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/finding-resolution.json",
+      "sha256": "93407d71c08e4d81a5f53fa9469bd2dd9986dcab6eb9ddfbd3d8b07c2066336b"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/preflight-critic-r6.json",
+      "sha256": "a1a519d5c237603c775736a50403d143726e4a22e65e8da847d85799b4ea3830"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/PERMISSIONS-MANIFEST.candidate.json",
+      "sha256": "46a483533cb1153b0391a9463ca6c3848862ed3bf43b9c7e861077860175bf73"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/validate-remediation.mjs",
+      "sha256": "15197f339d9eed125885c806f66adff790d67e69247910236b84f9107a0d1044"
+    }
+  ],
+  "findings": [
+    {
+      "id": "SEC-G2-R2-001",
+      "severity": "major",
+      "status": "open",
+      "summary": "The least-privilege remediation does not fully close SEC-G2-004. The bound permissions manifest authorizes github:create-item-commit for any path with the literal prefix intent/0001/, so its declared oracle allows the same action for intent/0001/BRIEF.md, intent/0001/EXAM.md, and intent/0001/signatures/gate-2.json. The manifest has no separate Exam-author assignment selector and no required denial for protected Exam, signature, review, or policy paths. Because the bound rollout identifies this GitHub App actor as the allowlisted Test Agent, actor-bound Exam CI cannot distinguish an independently assigned Exam-author operation from an ordinary application-originated commit made with that App. The validator tests selector syntax and mapping completeness but contains no protected-path negative fixture. The target therefore does not deterministically prove that a Builder, originator flow, platform process, or compromised caller cannot use the App action to author protected work or bypass the intended separation before a code-host write.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10"
+        },
+        {
+          "path": "intent/0001/reviews/domain/remediation/PERMISSIONS-MANIFEST.candidate.json",
+          "sha256": "46a483533cb1153b0391a9463ca6c3848862ed3bf43b9c7e861077860175bf73"
+        },
+        {
+          "path": "intent/0001/reviews/domain/remediation/validate-remediation.mjs",
+          "sha256": "15197f339d9eed125885c806f66adff790d67e69247910236b84f9107a0d1044"
+        },
+        {
+          "path": "intent/0001/evidence/github-exam-protection-rollout.json",
+          "sha256": "b61c40a640ae0348aeadd191091c14225003d1e733c618e841e4da5804513e0d"
+        },
+        {
+          "path": "kit/policy/gates.json",
+          "sha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56"
+        }
+      ],
+      "requiredResolution": "Replace the catch-all item path prefix with action-specific exact paths or closed path classes and explicit protected-path denials. A normal item-create action must deny EXAM, signature, review, policy, and other governance paths before installation-token exchange or code-host write. If App-authored Exam candidates remain supported, define a distinct Exam-author action that requires independently verified current Test Agent assignment, exact Exam path and target, and the actor-bound review path. The approval-record action must likewise require the exact signature path plus a current verified-human decision envelope and eligibility context. Add validator fixtures showing ordinary item, retry, fallback, originator, Builder, platform-agent, worker, and compromised-caller requests cannot target protected paths, and that CI actor allowlisting alone cannot convert such a request into authorized Exam authorship. Refresh every affected digest and obtain a new exact-revision review."
+    }
+  ],
+  "escalations": [
+    {
+      "triggerId": "unresolved-blocker-or-major-finding",
+      "reason": "SEC-G2-R2-001 leaves a major least-privilege and protected-authorship gap in the Exam oracle. The commercial default-closed policy requires human Security specialist escalation unless the Exam and bound permission oracle are revised and a new exact-revision review confirms closure; this agent cannot waive or accept the gap.",
+      "findingIds": [
+        "SEC-G2-R2-001"
+      ]
+    }
+  ],
+  "boundaries": {
+    "doesNotSignGateTwo": true,
+    "doesNotAuthorizeBuildOrRelease": true,
+    "doesNotAuthorizeProductionOrSpend": true,
+    "doesNotAcceptResidualRiskOrWaiveControls": true
+  }
+}

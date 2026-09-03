@@ -1,0 +1,245 @@
+{
+  "version": "steer-domain-review-record/v1",
+  "domain": "reliability",
+  "reviewType": "gate-2-exam",
+  "target": {
+    "organization": "steer-platform",
+    "item": "0001-flight-deck-foundation",
+    "revision": "9c7299dd658615cd234e8e03188d607ef1a99fe1",
+    "exam": {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10"
+    }
+  },
+  "reviewer": {
+    "serviceIdentity": "codex:/root/reliability_domain_r2",
+    "agentType": "independent-fresh-context-reliability-review-agent",
+    "model": "exact serving model identifier not exposed to this task",
+    "configurationRevision": "task-assignment:/root/reliability_domain_r2@2026-09-03;target:9c7299dd658615cd234e8e03188d607ef1a99fe1",
+    "freshContext": true,
+    "freshContextEvidence": "Fresh delegated task /root/reliability_domain_r2 independently reviewed the complete canonical Exam and bound Reliability evidence at revision 9c7299dd658615cd234e8e03188d607ef1a99fe1. This reviewer did not author the Exam or implementation, was not the Builder, and treated prior records and preflight conclusions as evidence rather than authority.",
+    "builderIndependent": true
+  },
+  "decision": "send-back",
+  "confidence": "high",
+  "reviewedAt": "2026-09-03T21:48:38Z",
+  "reviewedCases": [
+    "OR-02",
+    "OR-23",
+    "OR-24",
+    "OR-25",
+    "WS-05",
+    "WS-13",
+    "A3 reproducibility and evidence contract",
+    "A5 workflow failure interleavings",
+    "A10.1 signature and decision-attempt records",
+    "A12 recovery and disaster-recovery rehearsals",
+    "A13 hermetic bindings and portability",
+    "Prior finding REL-001 resolution",
+    "Prior finding REL-002 resolution",
+    "Prior finding REL-003 resolution",
+    "Prior finding REL-004 resolution",
+    "Prior finding REL-005 resolution"
+  ],
+  "evidence": [
+    {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10"
+    },
+    {
+      "path": "intent/0001/BRIEF.md",
+      "sha256": "a5af593397de0722666baefae846b31881c6429c9691bec886f4a0771a8bc97f"
+    },
+    {
+      "path": "intent/0001/SPEC.md",
+      "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"
+    },
+    {
+      "path": "intent/0001/ARCHITECTURE.md",
+      "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+    },
+    {
+      "path": "intent/0001/PLAN.md",
+      "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+    },
+    {
+      "path": "intent/0001/signatures/gate-1.json",
+      "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+    },
+    {
+      "path": "intent/0001/reviews/domain/reliability.md",
+      "sha256": "29b2f7d51306c756b15c84c99c19ed6575ff9f924b641395e64a807104f94c71"
+    },
+    {
+      "path": "intent/0001/reviews/domain/records/reliability.json",
+      "sha256": "76fefab61ae799e2480e2d5ef5045d9a60ee0451c69341f23a45bc929efcd51e"
+    },
+    {
+      "path": "intent/0001/reviews/domain/exception-brief.json",
+      "sha256": "95092dd8f3fc56b4d2cff306227f8ab4bc1fa9484cda50a3b79131abac86c805"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/finding-resolution.json",
+      "sha256": "93407d71c08e4d81a5f53fa9469bd2dd9986dcab6eb9ddfbd3d8b07c2066336b"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/remediation-manifest.json",
+      "sha256": "d03fbf07bf9bb3b2616682a278ef9fdce5c0ad278f4aefec3b034cc1cd252369"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/preflight-critic-r6.json",
+      "sha256": "a1a519d5c237603c775736a50403d143726e4a22e65e8da847d85799b4ea3830"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/human-rulings/hr-01.json",
+      "sha256": "ab24437ac426e1da759d6163afab0e1467bc9e19809a57e83566cc89cbd73074"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+      "sha256": "271d4fa1ee2682f06e504e615cc9e8588ea34ff3ff7d5e2c27f245f80509c96c"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/README.md",
+      "sha256": "b064d28971ec422a5c446762950a6e0f917abb036d159dd65e2ed58e501cad26"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/review-target.json",
+      "sha256": "ff75216bfd77b8528c52068f17988f292f30dbd2604c63408596f8e1c30a922a"
+    },
+    {
+      "path": "kit/schemas/domain-review-record.schema.json",
+      "sha256": "50cc75af34849a08dd2ef966a2bf944b711c861b5bd955d1cb9e33c0820857ea"
+    }
+  ],
+  "findings": [
+    {
+      "id": "REL-001",
+      "severity": "blocker",
+      "status": "resolved",
+      "summary": "Resolved at the target revision. Replacement OR-02 and WS-13 destroy all Postgres schemas including ingestion events and cursors, every index, cache, workflow projection, and analytics projection; disconnect event archives; rebuild solely from enumerated Git/code-host authority; and require canonical pre/post bytes and hashes for every tenant and projection type.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10"
+        },
+        {
+          "path": "intent/0001/reviews/domain/records/reliability.json",
+          "sha256": "76fefab61ae799e2480e2d5ef5045d9a60ee0451c69341f23a45bc929efcd51e"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for prior finding REL-001 at this exact Exam revision."
+    },
+    {
+      "id": "REL-002",
+      "severity": "major",
+      "status": "resolved",
+      "summary": "Resolved at the target revision. OR-23 defines one client monotonic request-start event and one client monotonic semantic-ready event on the same Performance clock, with a frozen readiness predicate, trace/correlation binding, complete raw pairs, and per-run p95. OR-24 defines trusted-ingress and semantic-commit UTC events, event/correlation binding, a 50 ms offset ceiling, dropped-event start and terminal events, complete samples, and explicit latency limits.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10"
+        },
+        {
+          "path": "intent/0001/reviews/domain/records/reliability.json",
+          "sha256": "76fefab61ae799e2480e2d5ef5045d9a60ee0451c69341f23a45bc929efcd51e"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for prior finding REL-002 at this exact Exam revision."
+    },
+    {
+      "id": "REL-003",
+      "severity": "major",
+      "status": "resolved",
+      "summary": "Resolved at the target revision. WS-05 now freezes eight worker-failure injection points around dispatch, Git request/commit/response, acknowledgement, timer firing, history replay, and adapter fallback; runs one and three replacements against both the pinned Mastra adapter and direct Temporal fallback; and retains identities, histories, timers, attempts, writes, idempotency, and side effects while requiring exactly one workflow and authoritative result.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10"
+        },
+        {
+          "path": "intent/0001/reviews/domain/records/reliability.json",
+          "sha256": "76fefab61ae799e2480e2d5ef5045d9a60ee0451c69341f23a45bc929efcd51e"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for prior finding REL-003 at this exact Exam revision."
+    },
+    {
+      "id": "REL-004",
+      "severity": "major",
+      "status": "resolved",
+      "summary": "Resolved as to the recovery categories identified in round one. A12 requires versioned-runbook rehearsals for Git/code-host, Postgres PITR plus Git rebuild, versioned evidence storage, Temporal recreation, and complete regional loss, with numeric RPO/RTO targets, raw timelines, manifests, commands, digests, attempts, operator identity, and fail-closed stale, partial, wrong-version, wrong-tenant, and hash-mismatch results. A separate round-two finding below identifies an uncovered provider-native authority detail.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        },
+        {
+          "path": "intent/0001/reviews/domain/records/reliability.json",
+          "sha256": "76fefab61ae799e2480e2d5ef5045d9a60ee0451c69341f23a45bc929efcd51e"
+        }
+      ],
+      "requiredResolution": "The broad recovery-category omission in REL-004 is resolved; preserve A12. Resolve REL-G2-R2-001 before this Exam can be approved."
+    },
+    {
+      "id": "REL-005",
+      "severity": "major",
+      "status": "resolved",
+      "summary": "Resolved at the target revision. OR-25 and A13 define a cold clean checkout, exact preloads, empty application caches, no undeclared credentials or secret mounts, default-deny networking with a closed local endpoint list, capture of DNS/socket/HTTP/credential/control-plane attempts, an omission failure, and a cross-binding portability matrix that preserves domain and tool-registry hashes while exercising all OR and WS cases.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10"
+        },
+        {
+          "path": "intent/0001/reviews/domain/records/reliability.json",
+          "sha256": "76fefab61ae799e2480e2d5ef5045d9a60ee0451c69341f23a45bc929efcd51e"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for prior finding REL-005 at this exact Exam revision."
+    },
+    {
+      "id": "REL-G2-R2-001",
+      "severity": "major",
+      "status": "open",
+      "summary": "The disaster-recovery oracle does not deterministically preserve authoritative provider-native code-host decisions. The accepted Architecture permits a gate decision to be authoritative as an equivalently durable code-host review record instead of a signature record committed to Git, and Gate 1 selects provider-recorded commercial approvals. A12 nevertheless defines the Git/code-host-loss RPO only as zero accepted commits and requires restoration of replicated authoritative refs/objects without enumerating provider-native reviews, statuses, approval records, their durable IDs, identity proof, or server timestamps. A10.1 requires ordinary retrieval after session or hat changes and projection destruction, and A8 governs inventory and lifecycle, but neither requires loss of the primary code-host/control plane followed by restoration and independent verification of every provider-only authoritative record. The Exam can therefore pass disaster recovery with all Git commits restored while an authoritative approval or its provider proof remains lost or unverifiable.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10"
+        },
+        {
+          "path": "intent/0001/ARCHITECTURE.md",
+          "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+        },
+        {
+          "path": "intent/0001/signatures/gate-1.json",
+          "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+        },
+        {
+          "path": "intent/0001/reviews/domain/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+          "sha256": "271d4fa1ee2682f06e504e615cc9e8588ea34ff3ff7d5e2c27f245f80509c96c"
+        }
+      ],
+      "requiredResolution": "Amend A12 and the associated A8/A10 evidence contract to enumerate every authoritative code-host record class for each selected binding, including provider-native review, status, and approval records that are not Git commits. Freeze an independent replication or export mechanism and recovery cut; define zero-loss RPO in authoritative decisions and proofs, numeric RTO, stable-ID preservation or a canonical old-to-new mapping, and preservation of subject, active hat, sequence, artifact digest/revision, provider timestamp, and identity/provider proof. Exercise complete primary code-host/control-plane loss plus missing, stale, partial, corrupt, unavailable, and wrong-tenant recovery copies; retain canonical pre/post inventories and hashes and independently verify each restored decision after recovery. Alternatively, require every authoritative decision to have a canonical Git signature record so provider records are evidence rather than sole authority. Any lost or unverifiable authoritative decision must fail."
+    }
+  ],
+  "escalations": [
+    {
+      "triggerId": "unresolved-blocker-or-major-finding",
+      "reason": "REL-G2-R2-001 is an unresolved major Reliability Exam-adequacy finding: the recovery oracle can restore accepted Git commits while losing a provider-native authoritative gate decision or proof. Commercial policy requires a separate human Reliability exception disposition unless a revised exact Exam closes the finding; this agent cannot waive it.",
+      "findingIds": [
+        "REL-G2-R2-001"
+      ]
+    }
+  ],
+  "boundaries": {
+    "doesNotSignGateTwo": true,
+    "doesNotAuthorizeBuildOrRelease": true,
+    "doesNotAuthorizeProductionOrSpend": true,
+    "doesNotAcceptResidualRiskOrWaiveControls": true
+  }
+}

@@ -1,0 +1,251 @@
+{
+  "version": "steer-domain-review-record/v1",
+  "domain": "money",
+  "reviewType": "gate-2-exam",
+  "target": {
+    "organization": "steer-platform",
+    "item": "0001-flight-deck-foundation",
+    "revision": "9c7299dd658615cd234e8e03188d607ef1a99fe1",
+    "exam": {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10"
+    }
+  },
+  "reviewer": {
+    "serviceIdentity": "codex-task:/root/money_domain_r2",
+    "agentType": "independent-fresh-context-cost-control-review-agent",
+    "model": "exact serving model identifier not exposed to this task",
+    "configurationRevision": "task-assignment:/root/money_domain_r2@2026-09-03;target:9c7299dd658615cd234e8e03188d607ef1a99fe1",
+    "freshContext": true,
+    "freshContextEvidence": "Fresh delegated task /root/money_domain_r2 was assigned only the independent Money/Economics round-two review of revision 9c7299dd658615cd234e8e03188d607ef1a99fe1. It did not author the Exam or implementation, inspected the complete target Exam via git show, and treated prior records and preflight dispositions as evidence rather than authority.",
+    "builderIndependent": true
+  },
+  "decision": "send-back",
+  "confidence": "high",
+  "reviewedAt": "2026-09-03T21:46:51Z",
+  "reviewedCases": [
+    "Gate 1 deployment ruling: spendingAuthorized=false, separatePaidDeploymentApprovalRequired=true, pilotInfrastructureCeilingUsdPerMonth=1000, modelUsageExcluded=true",
+    "Reproducibility contract and A3 cost, credential, and side-effect ledgers",
+    "OR-03",
+    "OR-07",
+    "OR-08",
+    "OR-10",
+    "OR-11",
+    "OR-17",
+    "OR-18",
+    "OR-19",
+    "OR-20",
+    "OR-24",
+    "OR-25",
+    "WS-02",
+    "WS-05",
+    "WS-06",
+    "WS-08",
+    "WS-09",
+    "WS-10",
+    "WS-11",
+    "A7.1 effective permission baseline",
+    "A10.1 signature and decision-attempt records",
+    "A10.4 release plan and record",
+    "A11.1 named authorization record and pre-spend denial",
+    "A11.2 frozen cost-control case",
+    "A11.3 spend-amplification bounds and model ledger",
+    "A11.4 forecast, actual, breach, shutdown, and reconciliation",
+    "A14 model gateway, key, cache, and budget isolation row",
+    "A14 release, provisioning, and cost isolation row",
+    "A15 technical-release and outcome contract",
+    "A16 Gate 2 pass condition",
+    "Prior finding reassessment: MONEY-G2-001",
+    "Prior finding reassessment: MONEY-G2-002",
+    "Prior finding reassessment: MONEY-G2-003",
+    "Prior finding reassessment: MONEY-G2-004",
+    "Prior finding reassessment: MONEY-G2-005"
+  ],
+  "evidence": [
+    {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10"
+    },
+    {
+      "path": "intent/0001/BRIEF.md",
+      "sha256": "a5af593397de0722666baefae846b31881c6429c9691bec886f4a0771a8bc97f"
+    },
+    {
+      "path": "intent/0001/SPEC.md",
+      "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"
+    },
+    {
+      "path": "intent/0001/ARCHITECTURE.md",
+      "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+    },
+    {
+      "path": "intent/0001/PLAN.md",
+      "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+    },
+    {
+      "path": "intent/0001/signatures/gate-1.json",
+      "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+    },
+    {
+      "path": "kit/policy/gates.json",
+      "sha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56"
+    },
+    {
+      "path": "kit/schemas/domain-review-record.schema.json",
+      "sha256": "50cc75af34849a08dd2ef966a2bf944b711c861b5bd955d1cb9e33c0820857ea"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/review-target.json",
+      "sha256": "ff75216bfd77b8528c52068f17988f292f30dbd2604c63408596f8e1c30a922a"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/README.md",
+      "sha256": "b064d28971ec422a5c446762950a6e0f917abb036d159dd65e2ed58e501cad26"
+    },
+    {
+      "path": "intent/0001/reviews/domain/money.md",
+      "sha256": "dab443caab30051fba785ff1e3dcf529db5f5ebafc056e9d641c02de9f0c1b06"
+    },
+    {
+      "path": "intent/0001/reviews/domain/records/money.json",
+      "sha256": "a6930967467ec66355b686c01eeb981f20e9c133cf800d947aa2963c50582ec8"
+    },
+    {
+      "path": "intent/0001/reviews/domain/exception-brief.json",
+      "sha256": "95092dd8f3fc56b4d2cff306227f8ab4bc1fa9484cda50a3b79131abac86c805"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/finding-resolution.json",
+      "sha256": "93407d71c08e4d81a5f53fa9469bd2dd9986dcab6eb9ddfbd3d8b07c2066336b"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/remediation-manifest.json",
+      "sha256": "d03fbf07bf9bb3b2616682a278ef9fdce5c0ad278f4aefec3b034cc1cd252369"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/preflight-critic-r6.json",
+      "sha256": "a1a519d5c237603c775736a50403d143726e4a22e65e8da847d85799b4ea3830"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/PERMISSIONS-MANIFEST.candidate.json",
+      "sha256": "46a483533cb1153b0391a9463ca6c3848862ed3bf43b9c7e861077860175bf73"
+    }
+  ],
+  "findings": [
+    {
+      "id": "MONEY-G2-001",
+      "severity": "blocker",
+      "status": "resolved",
+      "summary": "Resolved at the target revision. A11.2 now defines infrastructure and separately excluded model limits at organization/tenant, product, pod, and execution scopes; requires frozen key, cache, quota, and fallback mappings; reserves maximum estimated cost atomically before credentials or use; exercises exact-limit, below/above-limit, concurrent, inheritance, cache, fallback, and tenant probes; and fails closed on missing or stale cost inputs.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for prior finding MONEY-G2-001 at this exact Exam revision; the distinct monetary-arithmetic defect is recorded as MONEY-G2-R2-001."
+    },
+    {
+      "id": "MONEY-G2-002",
+      "severity": "blocker",
+      "status": "resolved",
+      "summary": "Resolved at the target revision. A11.2 and A11.3 bound primary and fallback model attempts, tokens, tool calls, elapsed time, workflow attempts, sandbox resources, egress, analytics, and evidence volume; require one billable idempotency key; prohibit new billable work on reconciliation, replay, or worker replacement; and retain attempted-versus-billed usage and cost.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for prior finding MONEY-G2-002 at this exact Exam revision."
+    },
+    {
+      "id": "MONEY-G2-003",
+      "severity": "major",
+      "status": "resolved",
+      "summary": "Resolved at the target revision. A11.2 gives model cost a separate limit tree, and A11.3 requires organization, tenant, product, pod, execution, idempotency, model/configuration, provider, price revision, currency, input, output, cached, tool, fallback, attempted, billed, budget, reservation, actual, invoice-usage, and reconciliation fields while expressly excluding model rows from the $1,000 infrastructure ceiling.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10"
+        },
+        {
+          "path": "intent/0001/signatures/gate-1.json",
+          "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for prior finding MONEY-G2-003 at this exact Exam revision; model usage remains separately controlled and is not infrastructure-ceiling authorization."
+    },
+    {
+      "id": "MONEY-G2-004",
+      "severity": "blocker",
+      "status": "open",
+      "summary": "A11.1 closes the no-record operational-path portion of the prior finding, but does not make the spend grant itself deterministic. It names SPEND-AUTHORIZATION.json and says an eligible human signs it, yet does not bind an exact repository path or schema, define which human hat or policy makes the signer eligible, require an exact authorization revision/digest and provider proof, or provide malformed, wrong-tenant, excessive-maximum, stale, expired, revoked, conflicting, concurrent, and replacement-record cases. A10.1 is written for gate or specialist-seat signatures, and the bound permission manifest contains no human action for creating or signing a spend authorization. Consequently, setup/model/storage/deployment paths can satisfy a check for a syntactically current file without the Exam proving that the grant was validly authorized; the $1,000 ceiling remains a ceiling and is not such authorization.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10"
+        },
+        {
+          "path": "intent/0001/signatures/gate-1.json",
+          "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+        },
+        {
+          "path": "intent/0001/reviews/domain/remediation/PERMISSIONS-MANIFEST.candidate.json",
+          "sha256": "46a483533cb1153b0391a9463ca6c3848862ed3bf43b9c7e861077860175bf73"
+        },
+        {
+          "path": "kit/policy/gates.json",
+          "sha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56"
+        }
+      ],
+      "requiredResolution": "Bind SPEND-AUTHORIZATION.json to an exact path and canonical schema; define the eligible human hat and authorization policy; require record revision/digest, provider proof, signature and cumulative authorization lineage; and map a narrowly scoped human create/sign action in the permission oracle. Add deterministic negative and race cases for missing, malformed, wrong-tenant, over-ceiling, stale, expired, revoked, conflicting, concurrent, superseded, and replayed records, requiring denial before every provider credential/request and zero charge. Preserve $1,000 per month excluding model usage solely as the maximum pilot infrastructure ceiling, never as authority."
+    },
+    {
+      "id": "MONEY-G2-005",
+      "severity": "major",
+      "status": "open",
+      "summary": "A11.4 supplies periods, currency, reconciliation tolerance, alert and shutdown timing, and retained evidence names, but the prior evidence finding is not fully closed. No path-and-digest-bound cost-evidence schemas define forecast, authorization, reservation, usage, invoice, variance, alert, shutdown, revocation, and restart records, and no pass rule requires a forecast's high case to fit both the signed authorization and the Gate 1 infrastructure ceiling. The technical-release verdict can therefore be green with structurally incomparable cost evidence or with a forecast that already exceeds the approved envelope, provided per-request reservations later stop work.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10"
+        },
+        {
+          "path": "intent/0001/signatures/gate-1.json",
+          "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+        }
+      ],
+      "requiredResolution": "Bind canonical schemas by path and SHA-256 for every cost-evidence record and add completeness and cross-record reconciliation checks. Define a deterministic forecast acceptance rule against each authorized scope and the separate Gate 1 infrastructure ceiling, including missing assumptions, high-case exceedance, period rollover, price revision, and stale forecast behavior; a forecast or authorization may never convert the ceiling into spending authority."
+    },
+    {
+      "id": "MONEY-G2-R2-001",
+      "severity": "blocker",
+      "status": "open",
+      "summary": "The synthetic cost oracle loses spend before enforcing the budget. A11.2 prices analytics at $0.001 per 1,000 events, model input at $0.002 per 1,000 tokens, cached input at $0.001 per 1,000, output at $0.006 per 1,000, and a tool call at $0.001, while A11.4 requires banker rounding to cents at each ledger line and again at aggregate close. Valid sub-cent lines therefore round to $0.00 before aggregation, and repeated executions can consume billable units without reducing the locally enforced reservation or budget. The Exam does not define a fixed-point precision, conservative reservation rounding, accumulation rule, or provider-compatible rounding oracle that prevents this undercount.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10"
+        }
+      ],
+      "requiredResolution": "Define one exact fixed-point unit and arithmetic/overflow contract for price, reservation, accrual, and aggregation. Preserve sub-cent amounts until an explicitly invoice-compatible aggregation boundary, conservatively round reservations so nonzero possible spend cannot reserve zero, and round exactly once for presentation or provider reconciliation. Add repeated sub-cent, mixed-cost-class, concurrency, month-boundary, and halfway-even vectors proving cumulative spend is charged to every scope and cannot exceed an authorized maximum or the separate infrastructure ceiling."
+    }
+  ],
+  "escalations": [
+    {
+      "triggerId": "unresolved-blocker-or-major-finding",
+      "reason": "MONEY-G2-004, MONEY-G2-005, and MONEY-G2-R2-001 leave unresolved material cost-control and spending-authorization gaps. The commercial default-closed policy requires human Money/Economics specialist escalation unless the Exam and bound support artifacts are revised and a new exact-revision independent review confirms closure; this agent cannot waive or accept them.",
+      "findingIds": [
+        "MONEY-G2-004",
+        "MONEY-G2-005",
+        "MONEY-G2-R2-001"
+      ]
+    }
+  ],
+  "boundaries": {
+    "doesNotSignGateTwo": true,
+    "doesNotAuthorizeBuildOrRelease": true,
+    "doesNotAuthorizeProductionOrSpend": true,
+    "doesNotAcceptResidualRiskOrWaiveControls": true
+  }
+}
