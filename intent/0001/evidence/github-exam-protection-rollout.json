@@ -3,7 +3,7 @@
   "item": "0001-flight-deck-foundation",
   "control": "actor-bound-exam-authorship",
   "repository": "github.com/idrissenayat/steer-platform",
-  "observedAt": "2026-09-03T14:29:40Z",
+  "observedAt": "2026-09-03T14:37:44Z",
   "rollout": {
     "pullRequest": 1,
     "url": "https://github.com/idrissenayat/steer-platform/pull/1",
@@ -28,6 +28,22 @@
     "state": "merged",
     "mergeCommit": "b6b78ed125bc88ad5f3b16499ccf62a41fb3f403",
     "requiredCheckConclusion": "success"
+  },
+  "basePolicyHardeningRollout": {
+    "pullRequest": 9,
+    "url": "https://github.com/idrissenayat/steer-platform/pull/9",
+    "state": "merged",
+    "mergeCommit": "f9da38837299f35797a9f16f90ed1494887bf84e",
+    "actor": "steer-test-agent[bot]",
+    "requiredCheckConclusion": "success",
+    "workflowRun": "https://github.com/idrissenayat/steer-platform/actions/runs/33767895487/job/100690333942",
+    "mergeStateBeforeReview": "BLOCKED",
+    "reviewDecisionBeforeReview": "REVIEW_REQUIRED",
+    "codeOwnerReview": {
+      "actor": "idrissenayat",
+      "state": "APPROVED",
+      "submittedAt": "2026-09-03T14:37:41Z"
+    }
   },
   "defaultBranchProtection": {
     "branch": "main",
@@ -72,8 +88,8 @@
   },
   "tests": {
     "portableControlTests": {
-      "total": 9,
-      "passed": 9
+      "total": 11,
+      "passed": 11
     },
     "authorizedControlPullRequest": "passed"
   },
@@ -117,5 +133,5 @@
     }
   },
   "openEvidence": [],
-  "gateEffect": "The external authorship and CODEOWNER-review control is operational. This receipt is not a Gate 2 signature, implementation authorization, release authorization, or spending authorization; human domain reviews and a new exact-revision Critic remain required before a Gate 2 decision."
+  "gateEffect": "The external authorship, protected-base authorization, and CODEOWNER-review controls are operational. This receipt is not a Gate 2 signature, implementation authorization, release authorization, or spending authorization; human domain reviews and a new exact-revision Critic remain required before a Gate 2 decision."
 }

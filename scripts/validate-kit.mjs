@@ -186,6 +186,12 @@ if (
   examProtectionRollout.defaultBranchProtection?.allowForcePushes !== false ||
   examProtectionRollout.defaultBranchProtection?.allowDeletions !== false ||
   examProtectionRollout.defaultBranchProtection?.requiredApprovingReviewCount !== 1 ||
+  examProtectionRollout.basePolicyHardeningRollout?.pullRequest !== 9 ||
+  examProtectionRollout.basePolicyHardeningRollout?.requiredCheckConclusion !== "success" ||
+  examProtectionRollout.basePolicyHardeningRollout?.reviewDecisionBeforeReview !== "REVIEW_REQUIRED" ||
+  examProtectionRollout.basePolicyHardeningRollout?.codeOwnerReview?.state !== "APPROVED" ||
+  examProtectionRollout.tests?.portableControlTests?.total !== 11 ||
+  examProtectionRollout.tests?.portableControlTests?.passed !== 11 ||
   examProtectionRollout.liveTwoIdentityEvidence?.unauthorizedBuilder?.status !== "verified-rejected" ||
   examProtectionRollout.liveTwoIdentityEvidence?.unauthorizedBuilder?.pullRequest !== 7 ||
   examProtectionRollout.liveTwoIdentityEvidence?.unauthorizedBuilder?.requiredCheckConclusion !== "failure" ||

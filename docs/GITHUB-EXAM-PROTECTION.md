@@ -80,7 +80,7 @@ separate human approval. Branch protection was then raised to one required
 approving CODEOWNER review. The structured receipt is
 `intent/0001/evidence/github-exam-protection-rollout.json`.
 
-The positive authorized-control path and nine portable negative/control tests
+The positive authorized-control path and eleven portable negative/control tests
 are green. On 2026-09-03, the account-restricted GitHub App
 [`steer-test-agent`](https://github.com/apps/steer-test-agent) was registered as
 the dedicated technical Test Agent identity (App ID `4817901`). Its saved
@@ -112,6 +112,14 @@ artifact; actor-bound CI and all nine control tests passed, while GitHub kept
 the PR blocked until `idrissenayat` supplied the required CODEOWNER approval.
 It then became clean. Both evidence PRs were closed without merge and their
 branches were deleted.
+
+App-authored hardening pull request
+[`#9`](https://github.com/idrissenayat/steer-platform/pull/9) changed the checker
+to authorize governed diffs from the protected base revision rather than the
+candidate branch's proposed policy. Its eleven-test suite includes an explicit
+self-authorization rejection. GitHub kept the passing control PR blocked until
+the separate human CODEOWNER approval, after which it merged as
+`f9da38837299f35797a9f16f90ed1494887bf84e`.
 
 This makes the external authorship and review control operational. It is not a
 Gate 2 signature, implementation authorization, release authorization, or
