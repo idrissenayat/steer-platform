@@ -1,6 +1,6 @@
 {
-  "frameworkVersion": "3.1",
-  "tag": "v3.1",
+  "frameworkVersion": "3.2",
+  "tag": "v3.2",
   "documents": [
     { "id": "methodology", "title": "Methodology", "kind": "why", "summary": "The constraint shift, Agile values, five moves, and governing principles.", "path": "kit/canon/methodology.md", "sourcePath": "STEER-Methodology.docx" },
     { "id": "framework", "title": "Framework", "kind": "what", "summary": "The artifact chain, surfaces, plays, gates, measurement, and sizing.", "path": "kit/canon/framework.md", "sourcePath": "STEER-Framework.docx" },

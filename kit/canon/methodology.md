@@ -2,7 +2,7 @@
 
 Why a new way of working: the constraint, the values, and the principles
 
-_Idriss Enayat · Framework v3.1 · September 2026_
+_Idriss Enayat · Framework v3.2 · September 2026_
 
 This document states the reasoning behind STEER: the constraint shift that makes a new way of working necessary, the values it keeps from Agile, and the principles that govern every decision inside it. The Framework document defines the structure; the Operating Model document defines how organizations run it.
 
@@ -47,6 +47,8 @@ The five moves. Repeat closes every turn.
 - Artifacts over meetings: the process ships as version-controlled files, and written artifacts, not meetings, are the interface between people, agents, and stages.
 
 - Minimum sufficient judgment: human hours per shipped item trends down while outcomes and guardrails hold. Automation that raises human toil is a defect.
+
+- Agents review by default; humans own exceptions: independent domain agents perform routine assurance and produce one consolidated exception brief. Human specialists enter only when evidence is missing or inconclusive, a material finding remains, policy or law requires them, or a consequential external action needs accountable authorization.
 
 - Coexistence over conquest: Waterfall persists where phase gates are mandated; Scrum and Kanban remain right for human-built work. STEER competes only for agent-buildable work, and says honestly where it does not fit.
 

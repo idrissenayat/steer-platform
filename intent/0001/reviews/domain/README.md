@@ -1,31 +1,29 @@
-# Gate 2 domain-review packet
+# Gate 2 domain-assurance packet
 
-Status: **prepared; seven eligible human dispositions required**
+Status: **policy revised; awaiting authorized Exam revision and seven agent reviews**
 
-This packet routes the seven default-closed domain reviews required by the
-current `intent/0001/EXAM.md`. Every review is bound to implementation revision
-`c61ae86e9ca63a249e75e629935cba2fcc504fd6` and Exam SHA-256
-`6b56cbe41c6bb220780655e8253aa5e0539e47b9f18ff033ead10e2b0a02b16b`.
-The machine-readable binding and evidence hashes are in
-[`review-target.json`](review-target.json).
+This packet routes one independent, fresh-context agent review for each of the
+seven default-closed domains activated by `intent/0001/EXAM.md`. The
+machine-readable binding and evidence hashes will be refreshed in
+[`review-target.json`](review-target.json) when the authorized Test Agent App
+publishes the revised Exam candidate.
 
 ## Review order and ownership
 
-| Domain | Required active human hat | Packet | Record status |
+| Domain | Default reviewer | Packet | Record status |
 |---|---|---|---|
-| security | security specialist | [`security.md`](security.md) | missing |
-| privacy | privacy specialist | [`privacy.md`](privacy.md) | missing |
-| accessibility | accessibility specialist | [`accessibility.md`](accessibility.md) | missing |
-| money | money/cost-control specialist | [`money.md`](money.md) | missing |
-| legal | legal/compliance specialist | [`legal.md`](legal.md) | missing |
-| reliability | reliability specialist | [`reliability.md`](reliability.md) | missing |
-| irreversible-operations | irreversible-operations specialist | [`irreversible-operations.md`](irreversible-operations.md) | missing |
+| security | independent security-review agent | [`security.md`](security.md) | missing |
+| privacy | independent privacy-review agent | [`privacy.md`](privacy.md) | missing |
+| accessibility | independent accessibility-review agent | [`accessibility.md`](accessibility.md) | missing |
+| money | independent cost-control-review agent | [`money.md`](money.md) | missing |
+| legal | independent legal/compliance-review agent | [`legal.md`](legal.md) | missing |
+| reliability | independent reliability-review agent | [`reliability.md`](reliability.md) | missing |
+| irreversible-operations | independent irreversible-operations-review agent | [`irreversible-operations.md`](irreversible-operations.md) | missing |
 
-The commercial solo profile permits one qualified human to hold several hats,
-but each assignment and each review record must be explicit. Product Lead or
-Product Designer status alone does not establish any specialist qualification.
-Agents may assemble evidence and draft findings; they may not provide a human
-disposition or signature.
+The Builder may not perform these reviews. The platform combines all seven
+records into one exception brief for the Tech Lead. In commercial mode, a human
+specialist is routed only when a deterministic escalation trigger fires; in
+regulated mode every activated domain keeps a human specialist seat.
 
 ## What each reviewer must do
 
@@ -38,19 +36,22 @@ disposition or signature.
    technical-release tests passed.
 4. Record any finding with a stable ID, severity, exact evidence location, and
    required resolution. No unresolved finding may be hidden by an approval.
-5. Create `records/<domain>.json` through the authenticated approval path. The
-   record must include domain, human identity, verified subject, active hat,
-   decision, sequence, server timestamp, session ID, exact target revision,
-   Exam path and digest, reviewed case IDs, evidence paths and hashes, findings,
-   and provider-recorded proof.
+5. Create `records/<domain>.json`. The record must include domain, agent service
+   identity and pinned configuration, fresh-context and Builder-independence
+   proof, decision, confidence, timestamp, exact target revision, Exam path and
+   digest, reviewed case IDs, evidence paths and hashes, findings, and every
+   triggered human escalation.
 
-After all seven records exist and validate, a new fresh-context Critic must
-review this exact target. Only a passing zero-unresolved Critic makes the Exam
-eligible for a separate human Tech Lead Gate 2 decision.
+After all seven records exist and validate, the platform creates one complete
+exception brief and a new fresh-context Critic reviews the exact target. Only
+green domain records, resolved escalations, and a passing zero-unresolved Critic
+make the Exam eligible for a separate human Tech Lead Gate 2 decision.
 
 ## Hard boundaries
 
-- These reviews do not sign Gate 2 and do not authorize a Builder.
+- Agent reviews do not sign Gate 2 and do not authorize a Builder.
+- Agents cannot waive controls, accept residual risk, suppress escalation, or
+  authorize consequential external effects.
 - They do not prove technical release; each domain needs a later release review
   against executed test evidence and the exact implementation revision.
 - They do not authorize production, a paid service, deployment, or spending.

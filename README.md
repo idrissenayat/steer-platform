@@ -9,7 +9,7 @@ item one, are the framework's pilot evidence.
 
 | Item | Canonical artifacts | Platform implementation | Remaining evidence |
 |---|---|---|---|
-| 0001 · Flight Deck foundation | `intent/0001/README.md`, revised `BRIEF.md` and `SPEC.md`, existing `EXAM.md`, Gate 1 `ARCHITECTURE.md`, and read-only `PLAN.md` | Phase 0 kit and the fixture-backed UX/domain prototype, including the v3.1 organization/onboarding model, are implemented | nine authorized production slices, Phase 1 walking skeleton, live connector, human accessibility record, pilot window, human signatures |
+| 0001 · Flight Deck foundation | `intent/0001/README.md`, revised `BRIEF.md` and `SPEC.md`, existing `EXAM.md`, Gate 1 `ARCHITECTURE.md`, and read-only `PLAN.md` | Phase 0 kit and the fixture-backed UX/domain prototype, including the v3.2 agent-first domain-assurance model, are implemented | nine authorized production slices, Phase 1 walking skeleton, live connector, triggered human evidence, pilot window, human gate signatures |
 | 0002 · Instrumentation and baselines | `intent/0002/README.md`, `BRIEF.md` | versioned content-free event schema, adapters, privacy validation, and both baseline computations are implemented | Product Lead-approved production window and representative figures |
 | 0003 · Full brief detail view | `intent/0003/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md` | rendered, deep-linkable, revision-safe detail panel and all four actions are implemented | 0002 production baseline and manual accessibility record |
 | 0004 · Learn STEER hub | `intent/0004/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md` | source-faithful reader, search, glossary, role orientation, agent slices, and corpus build guard are implemented | 0002 production baseline and manual accessibility record |
@@ -62,6 +62,8 @@ comparison remains dependent on the 0002 first-login baseline.
 - WIP protects each human across every pod and hat they hold.
 - The exam is write-protected from Builders (hook enforced).
 - Accessibility, security, and privacy are default-closed domains.
+- Default-closed domains receive independent agent review by default; commercial
+  human specialists are routed only on deterministic escalation triggers.
 - Changes to these operating files are eval-gated like any fleet config.
 - Work is sized by exam-writability and brief shape, never by story points.
 - Scope freezes at Gate 1; aging bands and P85 cycle time replace rollover and
@@ -72,8 +74,8 @@ comparison remains dependent on the 0002 first-login baseline.
 - `STEER-Methodology.docx` — why the system exists.
 - `STEER-Framework.docx` — structure, lifecycle, gates, measurement, and the
   sizing/scoping rules that connect Frame to forecasting.
-- `STEER-Operating-Model.docx` — the integrated v3.1 accountabilities,
-  organization topology, signer policy, and agent-first first-run model.
+- `STEER-Operating-Model.docx` — the integrated v3.2 accountabilities,
+  organization topology, agent-first assurance, signer policy, and first-run model.
 - `STEER-Sizing-and-Scoping.docx` — Practice Note 1, with the complete guidance
   for exam-writability, splitting, aging bands, and percentile forecasting.
 - `STEER-Providing-Intent.docx` — Practice Note 2, defining the interview-first,
@@ -84,13 +86,13 @@ comparison remains dependent on the 0002 first-login baseline.
   seams, phase boundaries, and walking-skeleton acceptance exam.
 - `docs/architecture/STEER-platform-end-state-phased.png` — the visual
   projection of that phased architecture.
-- `kit/learn-manifest.json` — the v3.1 human and agent corpus map used by the
+- `kit/learn-manifest.json` — the v3.2 human and agent corpus map used by the
   Learn hub, role slices, orientation paths, and build-time version guard.
 
 ## Implementation evidence
 
 The active implementation and its intent-by-intent ledger are documented in
 `docs/IMPLEMENTATION.md` and `docs/INTENT-COMPLETION.md`. The authority,
-projection, and v3.1 synchronization rules for the full document set are in
+projection, and v3.2 synchronization rules for the full document set are in
 `docs/DOCUMENTATION-MAP.md`. Run `pnpm check` to validate the Phase 0 kit,
 scope policy, TypeScript, automated exam cases, and production build.

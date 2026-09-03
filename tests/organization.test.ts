@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   evaluateSignerPolicy,
+  assuranceDomains,
   inheritPolicy,
   organizationHats,
   personalCapacityDisposition,
@@ -10,7 +11,7 @@ import {
   transferAccountability,
 } from "@steer/domain/organization";
 
-describe("Operating Model v3.1 organization contracts", () => {
+describe("Operating Model v3.2 organization contracts", () => {
   it("proposes a complete solo topology with explicit hats and one tenant-scoped agent", () => {
     const proposal = proposeOrganizationSetup({
       description: "A governed agent delivery platform.",
@@ -20,9 +21,12 @@ describe("Operating Model v3.1 organization contracts", () => {
       teamMode: "solo",
     });
     expect(proposal.artifactPaths).toEqual(["ORG.md", "portfolios/default.md", "products/a-governed-agent-delivery-platform/PRODUCT.md", "pods/primary.md"]);
-    expect(proposal.assignments.map((assignment) => assignment.hat)).toEqual(organizationHats);
+    expect(proposal.assignments.map((assignment) => assignment.hat)).toEqual(organizationHats.filter((hat) => hat !== "specialist"));
     expect(new Set(proposal.assignments.map((assignment) => assignment.identity))).toEqual(new Set(["Idriss Enayat"]));
     expect(proposal.agentIdentity).toMatchObject({ status: "registered", scope: proposal.ids.organization });
+    expect(proposal.domainReviewAgents.map((agent) => agent.domain)).toEqual(assuranceDomains);
+    expect(proposal.domainReviewAgents.every((agent) => agent.independentOfBuilder)).toBe(true);
+    expect(proposal.signerConstraint).toContain("Human specialists appear only on deterministic escalation");
     expect(proposal.status).toBe("awaiting-human-signature");
   });
 

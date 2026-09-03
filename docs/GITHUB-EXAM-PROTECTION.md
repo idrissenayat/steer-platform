@@ -123,5 +123,7 @@ the separate human CODEOWNER approval, after which it merged as
 
 This makes the external authorship and review control operational. It is not a
 Gate 2 signature, implementation authorization, release authorization, or
-spending authorization. The current Exam still requires the remaining human
-domain-review records and a new exact-revision Critic before a Gate 2 decision.
+spending authorization. Under Framework v3.2, the revised Exam must receive one
+independent fresh-context agent review per activated domain, a complete exception
+brief, resolution of any deterministic human escalations, and a new
+exact-revision Critic before a Gate 2 decision.

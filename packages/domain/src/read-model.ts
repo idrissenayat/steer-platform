@@ -47,15 +47,23 @@ export function requiresSpecialist(item: WorkItemChain): boolean {
   return item.riskDomains.some((domain) => defaultClosedDomains.has(domain));
 }
 
+export function requiresHumanSpecialist(item: WorkItemChain): boolean {
+  if (!requiresSpecialist(item)) return false;
+  return (
+    item.signerPolicy?.profile === "regulated" ||
+    item.signerPolicy?.humanSpecialistEscalation === true
+  );
+}
+
 export function requiredRoles(item: WorkItemChain, gate: Gate): Role[] {
   if (gate === 1) return ["product-lead", "product-designer"];
   if (gate === 2) {
-    return requiresSpecialist(item) ? ["tech-lead", "specialist"] : ["tech-lead"];
+    return requiresHumanSpecialist(item) ? ["tech-lead", "specialist"] : ["tech-lead"];
   }
 
   const gateThreeRoles: Role[] = ["product-lead", "tech-lead"];
   if (item.userFacing) gateThreeRoles.push("product-designer");
-  if (requiresSpecialist(item)) gateThreeRoles.push("specialist");
+  if (requiresHumanSpecialist(item)) gateThreeRoles.push("specialist");
   return gateThreeRoles;
 }
 

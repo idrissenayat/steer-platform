@@ -1,6 +1,6 @@
 # Gate 2 domain review: irreversible operations
 
-Status: **awaiting eligible human irreversible-operations specialist**
+Status: **awaiting independent fresh-context irreversible-operations-review agent**
 
 Bound target: `c61ae86e9ca63a249e75e629935cba2fcc504fd6`  
 Exam: `intent/0001/EXAM.md`  
@@ -30,6 +30,7 @@ Exam SHA-256: `6b56cbe41c6bb220780655e8253aa5e0539e47b9f18ff033ead10e2b0a02b16b`
 5. Are production, release, regulated-use, deployment, and spending boundaries
    separately named and default-closed?
 
-The reviewer must record `approved`, `send-back`, or `declined` through the
-human review procedure in [`README.md`](README.md). No disposition in this
-packet authorizes an irreversible production action.
+The agent must record `approved`, `send-back`, or `declined` through the domain
+assurance procedure in [`README.md`](README.md), including confidence, findings,
+and every human-escalation trigger. No disposition in this packet authorizes an
+irreversible production action; that trigger always routes to a human.

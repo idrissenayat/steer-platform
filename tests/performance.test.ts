@@ -9,7 +9,7 @@ describe("performance contract", () => {
     const started = performance.now();
     const model = buildReadModel(items, "2026-08-28T19:00:00Z");
     const elapsed = performance.now() - started;
-    expect(model.decisions).toHaveLength(100);
+    expect(model.decisions).toHaveLength(50);
     expect(elapsed).toBeLessThan(2000);
   });
 });

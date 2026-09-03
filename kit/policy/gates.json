@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 2,
+  "version": 3,
   "defaultClosedDomains": [
     "security",
     "privacy",
@@ -30,6 +30,31 @@
   },
   "specialistSeat": {
     "activatesFor": "default-closed-domain-tag",
+    "mode": "agent-first-human-on-exception",
+    "agentReview": {
+      "required": true,
+      "independentOfBuilder": true,
+      "freshContext": true,
+      "oneRecordPerActivatedDomain": true,
+      "consolidation": "single-exception-brief"
+    },
+    "commercialHumanEscalation": {
+      "default": "not-required-per-domain",
+      "accountableGateOwner": "tech-lead",
+      "triggers": [
+        "unresolved-blocker-or-major-finding",
+        "inconclusive-or-missing-required-evidence",
+        "law-regulation-contract-or-policy-requires-human-specialist",
+        "waiver-or-policy-override-requested",
+        "irreversible-external-effect-or-material-rights-impact",
+        "user-facing-accessibility-manual-release-validation",
+        "production-release-paid-deployment-or-spend-authorization"
+      ]
+    },
+    "regulatedHumanEscalation": {
+      "default": "required-for-every-activated-domain",
+      "minimumDistinctHumans": 2
+    },
     "slaHours": 24,
     "escalation": "visible"
   },

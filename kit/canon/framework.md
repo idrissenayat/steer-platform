@@ -2,7 +2,7 @@
 
 What the structure is: the artifact chain, the plays, the gates, and the metrics
 
-_Idriss Enayat · Framework v3.1 · September 2026_
+_Idriss Enayat · Framework v3.2 · September 2026_
 
 This document defines STEER's structure: the organization topology, the layers, the artifact chain that forms the lifecycle's backbone, the eight plays, the three gates, and the measurement system. The Methodology document states why; the Operating Model document defines who decides and how organizations run it.
 
@@ -14,9 +14,9 @@ Three layers: the framework changes rarely; the platform swaps like a feature.
 
 ## Organization Structure
 
-STEER projects a versioned organization → portfolio → product → pod topology, with an organization-level specialist pool. The operating repository declares governance and inheritance; each product names one home repository for item chains. Org Admins manage tenant identities, agents, keys, budgets, and defaults; Portfolio Leads sign mission briefs; Product Stewards exist when multiple pods share a product; the four pod accountabilities run the loop.
+STEER projects a versioned organization → portfolio → product → pod topology, with an organization-level domain-assurance pool of independent agents and human exception owners. The operating repository declares governance and inheritance; each product names one home repository for item chains. Org Admins manage tenant identities, agents, keys, budgets, and defaults; Portfolio Leads sign mission briefs; Product Stewards exist when multiple pods share a product; the four pod accountabilities run the loop.
 
-People and agents are identities assigned to explicit hats. One person may hold every hat. Capacity rolls up per human across pods and hats, while tenant boundaries isolate memory, keys, sandboxes, and evidence. Stack Packs make product stack choices operational, and readiness scans turn brownfield gaps into on-ramp briefs.
+People and agents are identities assigned to explicit hats. One person may hold every core accountable hat; a human specialist hat appears only for a triggered exception and only when the person is qualified. Capacity rolls up per human across pods and hats, while tenant boundaries isolate memory, keys, sandboxes, and evidence. Stack Packs make product stack choices operational, and readiness scans turn brownfield gaps into on-ramp briefs.
 
 ## The Artifact Chain
 
@@ -40,7 +40,7 @@ Every role home preserves the same attention order: the decision inbox for what 
 | --- | --- | --- | --- |
 | 01 Sense | draft BRIEF | Signals, tickets, and band breaches become draft briefs; the Product Lead pulls work into flight deliberately (WIP is personal framing capacity across pods and hats) | signal-to-brief time · brief survival rate |
 | 02 Frame · Intent | BRIEF + SPEC, Gate 1 | Intent accepted with a measurable outcome contract and domain tags; design pass with concerns flagged to policy owners | draft-to-accepted time · rework after build starts |
-| 03 Frame · Exam | EXAM, Gate 2 | Test agent drafts the exam; a fresh-context critic attacks it; timing tiers with risk; builders can never edit it | spec-to-exam time · escaped defects per item |
+| 03 Frame · Exam | EXAM, Gate 2 | Test agent drafts the exam; independent domain agents review activated risks; a fresh-context critic attacks the whole; the Tech Lead receives one exception brief; builders can never edit it | spec-to-exam time · escaped defects per item |
 | 04 Engineer | PLAN, then diff + evidence | Read-only planning pass, then builders implement in isolation; every claim ships with its proof; sessions verify their own work | first-pass rate · rework cycles |
 | 05 Evaluate | PR + findings, Gate 3 | The gauntlet runs the full exam; a fresh-context critic reviews in ranked passes; humans judge intent, quality, consequence | time to first review · caught vs escaped |
 | 06 Release | release record | Flag, canary slice, thresholds, rollback armed; autonomy tiers by environment; production requires a named authorization | gate wait time · change failure rate |
@@ -49,7 +49,11 @@ Every role home preserves the same attention order: the decision inbox for what 
 
 ## The Three Gates
 
-Flow stops for a human signature at exactly three points; everything between them moves at machine speed. Gate 1: what are we building, and why. Gate 2: what does provably done look like. Gate 3: does the evidence support release. Each signature is an authenticated approval binding identity, active hat, sequence position, and artifact revision. Gates tier by risk domain and operating profile. Commercial default-closed work requires a passing fresh-context Critic, zero unresolved findings, and a separate-session Gate 3 second look. Regulated default-closed work requires two distinct humans. One invariant never tiers: the agents that build can never edit the exam.
+Flow stops for a human signature at exactly three points; everything between them moves at machine speed. Gate 1: what are we building, and why. Gate 2: what does provably done look like. Gate 3: does the evidence support release. Each signature is an authenticated approval binding identity, active hat, sequence position, and artifact revision.
+
+Default-closed means independent assurance is mandatory, not that every domain creates a routine human queue. For each activated domain, a fresh-context domain agent that did not build the work produces a revision-bound review. Those reviews become one exception brief for the accountable gate owner. In commercial mode, a human specialist joins only for an unresolved blocker or major finding, missing or inconclusive evidence, a waiver, an explicit legal/contractual/policy requirement, material rights or irreversible external effects, manual accessibility release validation, or production/spend authorization. Regulated default-closed work retains a human specialist for every activated domain and two distinct human signers. One invariant never tiers: the agents that build can never edit or approve the exam they implement.
+
+Commercial default-closed work therefore requires current green domain-agent reviews, a passing fresh-context Critic with zero unresolved findings, one Tech Lead Gate 2 signature over the consolidated brief, and a separate-session Gate 3 second look. The system escalates exceptions visibly; it never silently converts a missing review into a pass.
 
 ## Measurement
 

@@ -76,15 +76,15 @@ pull boundary and protected attention hierarchy. Its candidate controls,
 measurable-today rule, decay record, WIP refusal, and notification boundaries
 are mirrored in `kit/policy/surfaces.json` and the intent-backlog domain.
 
-`STEER-Operating-Model.docx` now integrates the v3.1 amendments. Its
+`STEER-Operating-Model.docx` now integrates the v3.2 agent-first assurance model. Its
 organization topology, solo and agent-first commitments, repository model,
 policy inheritance, person-level capacity, signer rules, Stack Packs,
 readiness scan, greenfield state, handover, isolation, and first-run flow are
 mirrored in `kit/policy/organization.json`, the organization domain, the setup
-agent experience, and the v3.1 Learn corpus.
+agent experience, domain-agent review routing, and the v3.2 Learn corpus.
 
 All six root Word documents and their Learn projections are aligned to
-Framework v3.1. `DOCUMENTATION-MAP.md` records the authority order, the v3.1
+Framework v3.2. `DOCUMENTATION-MAP.md` records the authority order, the v3.2
 rule-to-implementation trace, and the synchronization procedure for future
 doctrine changes.
 
@@ -99,7 +99,7 @@ production baselines as pending instead of substituting fixture figures.
 The browser preview uses the fixture connector and pilot identities. It proves
 the interaction and domain contracts without requesting credentials or making
 external writes. Production completion requires Gate 2 and Gate 3 records,
-OIDC configuration, a live code-host/CI connector, specialist manual
+OIDC configuration, a live code-host/CI connector, triggered specialist manual
 accessibility evidence, and pilot outcome data. See `INTENT-COMPLETION.md`.
 
 Gate 1 is recorded at `intent/0001/signatures/gate-1.json` for the exact
@@ -118,9 +118,10 @@ actor-bound GitHub workflow, deny-by-default author policy, CODEOWNERS map, and
 regression tests are operational on protected `main`. Live pull requests
 against the exact numbered Exam verified that the human Builder is rejected,
 the Test Agent App is accepted by CI, and one human CODEOWNER approval is still
-required. This control evidence is not a Gate 2 signature. Seven revision-bound
-domain packets are prepared under `intent/0001/reviews/domain`; their eligible
-human dispositions and a new exact-revision Critic remain outstanding.
+required. This control evidence is not a Gate 2 signature. Seven domain-agent
+review packets are prepared under `intent/0001/reviews/domain`; their independent
+reviews, consolidated exception brief, any triggered human escalations, and a
+new exact-revision Critic remain outstanding.
 
 The production foundation still to be built includes the Hono API and typed
 tool registry, MCP v2 transport, GitHub App adapter, Postgres/Drizzle/RLS

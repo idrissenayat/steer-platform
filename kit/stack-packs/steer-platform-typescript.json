@@ -1,6 +1,6 @@
 {
   "id": "steer-platform-typescript",
-  "frameworkVersion": "3.1",
+  "frameworkVersion": "3.2",
   "status": "gate-1-draft",
   "runtime": {
     "node": "24-lts",

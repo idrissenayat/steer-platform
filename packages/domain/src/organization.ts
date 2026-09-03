@@ -15,6 +15,16 @@ export const organizationHats = [
   "specialist",
 ] as const satisfies readonly Role[];
 
+export const assuranceDomains = [
+  "security",
+  "privacy",
+  "accessibility",
+  "money",
+  "legal",
+  "reliability",
+  "irreversible-operations",
+] as const satisfies readonly RiskDomain[];
+
 export interface OnboardingAnswers {
   description: string;
   humanName: string;
@@ -32,6 +42,13 @@ export interface ReadinessFinding {
 
 export interface OrganizationProposal {
   agentIdentity: { id: string; scope: string; status: "registered" };
+  domainReviewAgents: Array<{
+    domain: (typeof assuranceDomains)[number];
+    id: string;
+    independentOfBuilder: true;
+    scope: string;
+    status: "registered";
+  }>;
   artifactPaths: string[];
   assignments: Array<{ hat: Role; identity: string }>;
   description: string;
@@ -103,14 +120,21 @@ export function proposeOrganizationSetup(answers: OnboardingAnswers): Organizati
   const product = slug(description.split(/[.!?]/)[0] ?? description);
   const organization = slug(answers.organizationName ?? `${answers.humanName} organization`);
   const humanHats = answers.teamMode === "solo"
-    ? organizationHats
+    ? organizationHats.filter((hat) => hat !== "specialist")
     : organizationHats.filter((hat) => hat !== "product-steward" && hat !== "specialist");
   const readiness = readinessScan(answers.repositoryMode);
   const signerConstraint = answers.profile === "regulated"
     ? "Default-closed work requires two distinct humans. A solo operator must add a second signer before release."
-    : "Default-closed work requires a fresh-context Critic with zero unresolved findings and a Gate 3 second look in a separate session.";
+    : "Default-closed work uses independent domain agents and one exception brief. Human specialists appear only on deterministic escalation; Gate 3 remains a separate-session second look.";
   return {
     agentIdentity: { id: `agent:${organization}:platform`, scope: organization, status: "registered" },
+    domainReviewAgents: assuranceDomains.map((domain) => ({
+      domain,
+      id: `agent:${organization}:review:${domain}`,
+      independentOfBuilder: true,
+      scope: organization,
+      status: "registered",
+    })),
     artifactPaths: ["ORG.md", "portfolios/default.md", `products/${product}/PRODUCT.md`, "pods/primary.md"],
     assignments: humanHats.map((hat) => ({ hat, identity: answers.humanName })),
     description,
@@ -120,7 +144,7 @@ export function proposeOrganizationSetup(answers: OnboardingAnswers): Organizati
     signerConstraint,
     stackPack: "typescript-react-web",
     status: "awaiting-human-signature",
-    summary: `Create ${organization} with one portfolio, product ${product}, and a primary pod; register the platform agent; apply the ${answers.profile} trust profile; and draft ${readiness.filter((finding) => finding.onRampBrief).length} on-ramp briefs.`,
+    summary: `Create ${organization} with one portfolio, product ${product}, and a primary pod; register the platform and independent domain-review agents; apply the ${answers.profile} trust profile; and draft ${readiness.filter((finding) => finding.onRampBrief).length} on-ramp briefs.`,
   };
 }
 

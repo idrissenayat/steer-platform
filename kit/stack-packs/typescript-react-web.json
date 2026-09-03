@@ -1,6 +1,6 @@
 {
   "id": "typescript-react-web",
-  "frameworkVersion": "3.1",
+  "frameworkVersion": "3.2",
   "builderRuntime": "node-typescript",
   "languageGuardrails": ["typescript-strict", "no-secret-client-bundles", "dependency-audit"],
   "examTemplates": ["vitest-domain", "testing-library-accessibility", "vite-production-build"],

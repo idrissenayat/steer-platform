@@ -34,5 +34,9 @@ Status: draft, write-protected from Builders
 
 ## Pass condition
 
-All machine cases are green and every activated default-closed domain has a
-current specialist signature bound to this exam revision.
+All machine cases are green; every activated default-closed domain has a
+current, independent, fresh-context agent review bound to this Exam revision;
+the consolidated exception brief is complete; and every triggered human
+specialist escalation is resolved. Commercial mode does not create routine
+per-domain human signatures. Regulated mode requires a human specialist review
+for every activated domain.

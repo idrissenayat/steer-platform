@@ -1,7 +1,7 @@
 # Initial intent completion ledger
 
 Source of truth: `intent/BRIEF.md`, `intent/SPEC.md`, and `intent/EXAM.md`.
-Last implementation audit: 2026-09-02.
+Last implementation audit: 2026-09-03.
 
 ## Outcome status
 
@@ -9,7 +9,7 @@ The local prototype now demonstrates the complete human journey against a fixtur
 repository: computed workspace, role-specific decisions, Gate-specific review,
 revision-safe sign/send-back, evidence assembly, continuous work-item threads,
 interview-first brief authoring, scope checks, aging-band huddle signals, and
-the v3.1 agent-first organization setup flow. The Phase 0 kit is independently
+the v3.2 agent-first organization and domain-assurance flow. The Phase 0 kit is independently
 adoptable.
 
 This is not yet a production completion claim. Gate 1 is accepted for the exact
@@ -21,8 +21,9 @@ Exam and actor-bound CI candidate while preserving the supplied Exam. The
 second exact-revision Critic closed four findings and returned HOLD / SEND BACK
 on one blocker and one major. GitHub code-owner enforcement is active on
 protected `main`; live unauthorized-Builder and distinct authorized-Exam-author
-pull-request tests remain pending a separate identity, as do all seven human
-domain-review records.
+pull-request tests passed. Framework v3.2 replaces seven routine human domain
+queues with seven independent agent reviews, one exception brief, and
+deterministic human escalation.
 The production Phase 1
 walking skeleton in `intent/0001/ARCHITECTURE.md` is not implemented. The intent
 also requires Gate 2, live identity/code-host configuration, Gate 3 and
@@ -33,7 +34,7 @@ fixture data.
 
 | Item | Artifact chain | Implemented now | Completion boundary |
 |---|---|---|---|
-| 0001 · Flight Deck foundation | supplied README and EXAM retained; revised supplied BRIEF and SPEC replace the prior revisions exactly in `intent/0001`; architecture revision 2 and plan accepted at Gate 1 through a detached record | Phase 0 kit, derived workspace, decisions, evidence, role home, authoring, controls, v3.1 organization setup, local gauntlet, and first two production slices | UX/domain prototype green and Gate 1 recorded; remaining production slices, Gate 2, Phase 1 walking skeleton, live connectors, Gate 3 and specialist evidence, and pilot outcomes remain |
+| 0001 · Flight Deck foundation | supplied README and EXAM retained; revised supplied BRIEF and SPEC replace the prior revisions exactly in `intent/0001`; architecture revision 2 and plan accepted at Gate 1 through a detached record | Phase 0 kit, derived workspace, decisions, evidence, role home, authoring, controls, v3.2 agent-first assurance, local gauntlet, and first two production slices | UX/domain prototype green and Gate 1 recorded; remaining production slices, Gate 2, Phase 1 walking skeleton, live connectors, Gate 3 and triggered specialist evidence, and pilot outcomes remain |
 | 0002 · Backlog instrumentation and baselines | supplied README and BRIEF preserved verbatim in `intent/0002` | typed v1 contract, kit JSON Schema, transient platform adapters, privacy rejection, source-exit distinction, two baseline computations, sample gate, and dry-run | production figures remain pending until a representative window is approved and observed; fixture figures are never promoted |
 | 0003 · Full brief detail view | supplied README, BRIEF, SPEC, and EXAM preserved verbatim in `intent/0003` | complete rendered panel, deep links, provenance variants, cluster/back navigation, revision history, WIP/stale controls, all four actions, external-exit telemetry, and automated accessibility | outcome comparison awaits the 0002 production baseline; manual accessibility record remains |
 | 0004 · Learn STEER hub | supplied README and BRIEF match the existing chain; SPEC and EXAM already canonical in `intent/0004` | repository-source reader, search, section links, glossary peeks, governed correction flow, stateless role paths, agent slices, coarse telemetry, and version guard | onboarding comparison awaits the 0002 production baseline; manual accessibility record and optional Whitepaper URL remain |
@@ -68,7 +69,7 @@ implemented.
 | B4 | Decision iff ready, assigned, unsigned | generated gate/readiness/role combinations | green locally |
 | B5 | Identity, sequence, revision; stale click voided | `domain-contracts.test.ts` and live Gate flow | green locally |
 | B6 | Send-back note, correct route, unsigned gate | `domain-contracts.test.ts` and live flow | green locally |
-| B7 | Tagged specialist seat and visible SLA breach | default-closed role derivation and decision urgency | green locally |
+| B7 | Agent domain review and triggered human specialist seat with visible SLA breach | default-closed assurance and escalation projection | green locally |
 | C8 | Current exam cases, ranked findings, conformance | `assembleEvidence`; stale element test; Gate 3 UI | green locally |
 | D9 | Guided session creates valid attributed BRIEF without tool terminology | deterministic authoring, validation, revision, live form | partial: live connector attribution pending |
 | D10 | 20-prompt assistant eval and regression gate | 20-scenario originator eval; exact system-name containment | green for deterministic adapter; live model revalidation pending |
@@ -140,7 +141,9 @@ conversation-first setup flow all have machine-readable policy and automated
 domain coverage. The revised 0001 Brief and Spec are exact source copies; the
 existing Exam was not rewritten without a supplied replacement.
 
-The complete human-readable document set is now version-aligned at v3.1. The
+The v3.1 amendment remains preserved as history. Framework v3.2 adds agent-first
+domain assurance through `docs/decisions/0001-agent-first-domain-assurance.md`.
+The complete human-readable document set is now version-aligned at v3.2. The
 Framework includes the organization layer and current signer/greenfield rules;
 the three practice notes carry person-level WIP, greenfield measurement, and
 pre-mission unscored behavior where applicable. Their Markdown Learn
@@ -156,11 +159,11 @@ path. Numbered intent sources remain unchanged.
 3. Approve the notification rule: ambient by default; push only at SLA risk.
 4. Approve assistant data handling: session-only originator text, committed
    artifact as the only retained copy.
-5. **Gate 1 recorded; second Gate 2 Critic HOLD:** the live two-identity GitHub
+5. **Gate 1 recorded; second Gate 2 Critic superseded by v3.2 remediation:** the live two-identity GitHub
    control and required CI over the actual Exam diff are now verified in
-   `docs/GITHUB-EXAM-PROTECTION.md`. All seven exact-target review packets are
-   prepared under `intent/0001/reviews/domain`; obtain eligible human
-   dispositions, then run a new exact-revision Critic before any Tech Lead
+   `docs/GITHUB-EXAM-PROTECTION.md`. Run seven independent fresh-context domain
+   agents, build one exception brief, resolve any deterministic human
+   escalations, then run a new exact-revision Critic before the Tech Lead Gate 2
    signature request.
 6. Run the ten-to-twenty-item pilot and retain 90 days of outcome evidence.
 

@@ -1,6 +1,6 @@
 {
   "version": "steer-organization/v1",
-  "frameworkVersion": "3.1",
+  "frameworkVersion": "3.2",
   "topology": ["organization", "portfolio", "product", "pod"],
   "specialistPool": "organization",
   "sourceOfTruth": "versioned-operating-repository",

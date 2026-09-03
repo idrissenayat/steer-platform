@@ -13,7 +13,7 @@ describe("Learn STEER canon", () => {
   });
 
   it("fails a seeded framework-version mismatch and passes the aligned kit", () => {
-    expect(validateLearnVersion(learnManifest, kitVersion)).toEqual({ ok: true, message: "Learn corpus and kit are aligned at v3.1." });
+    expect(validateLearnVersion(learnManifest, kitVersion)).toEqual({ ok: true, message: "Learn corpus and kit are aligned at v3.2." });
     expect(validateLearnVersion({ ...learnManifest, tag: "v2.9" }, kitVersion)).toMatchObject({ ok: false });
   });
 

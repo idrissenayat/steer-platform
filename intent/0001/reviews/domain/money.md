@@ -1,6 +1,6 @@
 # Gate 2 domain review: money
 
-Status: **awaiting eligible human money/cost-control specialist**
+Status: **awaiting independent fresh-context cost-control-review agent**
 
 Bound target: `c61ae86e9ca63a249e75e629935cba2fcc504fd6`  
 Exam: `intent/0001/EXAM.md`  
@@ -29,6 +29,7 @@ Exam SHA-256: `6b56cbe41c6bb220780655e8253aa5e0539e47b9f18ff033ead10e2b0a02b16b`
 5. Are forecast, budget, actual, breach, and shutdown evidence specific enough
    for a later technical-release decision?
 
-The reviewer must record `approved`, `send-back`, or `declined` through the
-human review procedure in [`README.md`](README.md). No disposition in this
-packet authorizes purchasing, deployment, or spending.
+The agent must record `approved`, `send-back`, or `declined` through the domain
+assurance procedure in [`README.md`](README.md), including confidence, findings,
+and every human-escalation trigger. No disposition in this packet authorizes
+purchasing, deployment, or spending; any such action routes to a human.

@@ -1,6 +1,6 @@
 # Gate 2 domain review: accessibility
 
-Status: **awaiting eligible human accessibility specialist**
+Status: **awaiting independent fresh-context accessibility-review agent**
 
 Bound target: `c61ae86e9ca63a249e75e629935cba2fcc504fd6`  
 Exam: `intent/0001/EXAM.md`  
@@ -28,7 +28,9 @@ Exam SHA-256: `6b56cbe41c6bb220780655e8253aa5e0539e47b9f18ff033ead10e2b0a02b16b`
 5. Does the evidence record make the test environment and exact revisions fully
    reproducible?
 
-The reviewer must record `approved`, `send-back`, or `declined` through the
-human review procedure in [`README.md`](README.md). At Gate 2, approval confirms
-that OR-21/22 define sufficient future release evidence; it does not claim that
-the unbuilt production surfaces have passed either case.
+The agent must record `approved`, `send-back`, or `declined` through the domain
+assurance procedure in [`README.md`](README.md), including confidence, findings,
+and every human-escalation trigger. At Gate 2, approval confirms that OR-21/22
+define sufficient future release evidence; it does not claim that the unbuilt
+production surfaces have passed either case. The commercial user-facing release
+still triggers human manual accessibility validation at Gate 3.

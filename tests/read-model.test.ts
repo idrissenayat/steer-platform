@@ -18,10 +18,24 @@ describe("artifact-chain read model", () => {
     expect(foundationDecisions[0]).toMatchObject({ gate: 1, role: "product-designer" });
   });
 
-  it("adds a specialist seat for default-closed domains", () => {
+  it("uses agent assurance without a routine human specialist seat in commercial mode", () => {
     const item = demoChain.find((candidate) => candidate.id === "FD-002");
     expect(item).toBeDefined();
-    expect(requiredRoles(item!, 2)).toEqual(["tech-lead", "specialist"]);
+    expect(requiredRoles(item!, 2)).toEqual(["tech-lead"]);
+  });
+
+  it("adds a human specialist seat for regulated work or a commercial exception", () => {
+    const regulated = structuredClone(demoChain.find((candidate) => candidate.id === "FD-002")!);
+    regulated.signerPolicy = { criticFreshContext: true, profile: "regulated" };
+    expect(requiredRoles(regulated, 2)).toEqual(["tech-lead", "specialist"]);
+
+    const escalated = structuredClone(regulated);
+    escalated.signerPolicy = {
+      criticFreshContext: true,
+      humanSpecialistEscalation: true,
+      profile: "commercial",
+    };
+    expect(requiredRoles(escalated, 2)).toEqual(["tech-lead", "specialist"]);
   });
 
   it("does not surface Gate 3 when evidence is bound to a stale revision", () => {

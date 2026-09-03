@@ -1,6 +1,6 @@
 # Gate 2 domain review: legal
 
-Status: **awaiting eligible human legal/compliance specialist**
+Status: **awaiting independent fresh-context legal/compliance-review agent**
 
 Bound target: `c61ae86e9ca63a249e75e629935cba2fcc504fd6`  
 Exam: `intent/0001/EXAM.md`  
@@ -31,6 +31,8 @@ Exam SHA-256: `6b56cbe41c6bb220780655e8253aa5e0539e47b9f18ff033ead10e2b0a02b16b`
 5. Is regulated use unmistakably blocked until a separate legal decision and
    cryptographically signed-log implementation exist?
 
-The reviewer must record `approved`, `send-back`, or `declined` through the
-human review procedure in [`README.md`](README.md). This packet is operational
-design review material, not legal advice or a regulated-use authorization.
+The agent must record `approved`, `send-back`, or `declined` through the domain
+assurance procedure in [`README.md`](README.md), including confidence, findings,
+and every human-escalation trigger. This packet is operational design review
+material, not legal advice or a regulated-use authorization. Legal, regulatory,
+or contractual obligations trigger a qualified human review.

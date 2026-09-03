@@ -3,7 +3,7 @@
   "organization": "steer-platform",
   "item": "0001-flight-deck-foundation",
   "reviewType": "gate-2-exam",
-  "status": "awaiting-human-reviews",
+  "status": "awaiting-authorized-exam-revision",
   "targetRevision": "c61ae86e9ca63a249e75e629935cba2fcc504fd6",
   "exam": {
     "path": "intent/0001/EXAM.md",
@@ -30,7 +30,7 @@
   "sharedEvidence": [
     {
       "path": "kit/policy/gates.json",
-      "sha256": "08d6e8e0587d4b596d4ac38169ebb6b7d2b6c82362a9630f9ed852b9c5ff8182"
+      "sha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56"
     },
     {
       "path": "intent/0001/evidence/github-exam-protection-rollout.json",
@@ -46,6 +46,13 @@
     "reliability",
     "irreversible-operations"
   ],
+  "reviewerPolicy": {
+    "default": "independent-fresh-context-domain-agent",
+    "builderMayReview": false,
+    "commercialHumanSpecialist": "only-on-deterministic-escalation",
+    "regulatedHumanSpecialist": "required-for-every-activated-domain",
+    "consolidation": "single-exception-brief"
+  },
   "recordDirectory": "intent/0001/reviews/domain/records",
   "gateBoundary": {
     "reviewPurpose": "Decide whether the exact Gate 2 Exam is complete, testable, and appropriately strict for the named domain.",

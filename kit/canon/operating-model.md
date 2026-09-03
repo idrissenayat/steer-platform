@@ -2,7 +2,7 @@
 
 How organizations run it: accountabilities, decision rights, trust, culture, and scale
 
-_Idriss Enayat · Framework v3.1 · September 2026_
+_Idriss Enayat · Framework v3.2 · September 2026_
 
 This document defines how an organization runs STEER: who holds which decision, how autonomy is metered, what protects the human channel, how one pod scales to a portfolio, and how a new organization starts. The Methodology document states why; the Framework document defines the structure this model operates.
 
@@ -17,7 +17,7 @@ Agents do the labor; four humans own the decisions. On small teams people wear s
 | Tech Lead | Correctness and the exam; judges what machines cannot | Gates 2 and 3 |
 | Platform Engineer | The agent fleet, its guardrails, its cost; keeps machine speed safe | Fleet and hook changes (eval-gated) |
 
-Specialists (security, accessibility, privacy, legal, reliability) plug in through three sockets rather than standing meetings: guardrails in the exam, a tuned domain agent, and a conditional gate seat that activates only for tagged domains, with written reviews under an SLA that escalates visibly rather than blocking silently.
+Domain assurance plugs in through three sockets rather than standing meetings: guardrails in the exam, an independent domain-review agent, and a human exception owner. Activated domains always receive a current agent review. A human specialist seat appears only when an explicit escalation trigger fires or the regulated profile requires it.
 
 ## Two Governing Commitments
 
@@ -33,9 +33,9 @@ Specialists (security, accessibility, privacy, legal, reliability) plug in throu
 | Portfolio | mission briefs and pod membership | Portfolio Lead | mission briefs |
 | Product | product brief, stack profile, interface contracts, shared libraries, repositories | Product Steward when multiple pods share the product; otherwise the Product Lead | product brief and contracts |
 | Pod | accountabilities, fleet, Flight Board, gates, metrics | four pod accountabilities | Gates 1, 2, 3 |
-| Specialist pool | shared domain reviewers and SLAs | each specialist for their domain | conditional gate seats |
+| Domain-assurance pool | independent domain-review agents, human exception owners, and SLAs | Tech Lead for consolidation; each human specialist for escalated exceptions | agent review for every activated domain; conditional human seat |
 
-Each level is declared in versioned files and projected. Agents are registered identities issued and revoked by the Org Admin, scoped to the organization, and assigned like humans. In solo mode one person may hold every hat; onboarding proposes the assignments and the human confirms once.
+Each level is declared in versioned files and projected. Agents are registered identities issued and revoked by the Org Admin, scoped to the organization, and assigned like humans. In solo mode one person may hold every core accountable hat. A specialist hat appears only for a triggered exception, and only when the person is qualified for that domain; onboarding proposes the assignments and the human confirms once.
 
 ## Repository Topology
 
@@ -45,11 +45,19 @@ An organization has one operating repository holding `ORG.md`, portfolio, produc
 
 Fleet configuration, guardrails, gate policy, bands, and culture inherit organization → product → pod. Overrides are versioned and eval-gated; a lower level cannot weaken a default-closed domain established above it.
 
-WIP protects a human rather than a pod. Limits roll up per person across every pod and hat, and the platform refuses pulls that exceed the personal attention budget. Specialist SLAs span pods.
+WIP protects a human rather than a pod. Limits roll up per person across every pod and hat, and the platform refuses pulls that exceed the personal attention budget. Domain-agent and human-escalation SLAs span pods.
+
+## Agent-First Domain Assurance
+
+Every activated default-closed domain receives a fresh-context review from a domain agent that is independent of the Builder. Each record names the domain, reviewer identity and configuration, exact artifact and implementation revisions, reviewed cases, evidence hashes, disposition, confidence, and findings. The platform rejects stale, missing, self-reviewed, or inconclusive records. It then combines the current records into one exception brief rather than asking a human to repeat seven machine reviews.
+
+In commercial mode the Tech Lead owns the Gate 2 decision over that consolidated brief. A human domain specialist is routed only when at least one deterministic trigger is present: an unresolved blocker or major finding; missing or inconclusive required evidence; a requested waiver or policy override; a law, regulation, contract, or organizational policy that requires specialist review; a material rights impact or irreversible external effect; manual accessibility validation for a user-facing release; or production, paid-deployment, or spend authorization. An agent may recommend escalation but cannot suppress a trigger, waive a control, or sign for the human.
+
+Regulated default-closed work keeps a human specialist for every activated domain and at least two distinct human signers. Configuration may strengthen these rules but may not weaken them. All modes preserve the same accountability floor: agents investigate, test, challenge, and summarize; humans decide intent, accept consequential residual risk, and authorize external effects.
 
 ## Signatures When People Are Few
 
-Commercial default-open work requires one human and a passing fresh-context Critic. Commercial default-closed work requires one human, a fresh-context Critic with zero unresolved findings, and a Gate 3 second look in a session separate from Gate 2 after the build Critic report. Regulated default-closed work requires two distinct humans. A solo regulated operator therefore needs a second human before release, and onboarding states that constraint before the first gate.
+Commercial default-open work requires one human and a passing fresh-context Critic. Commercial default-closed work requires current green independent domain-agent reviews, one consolidated exception brief, one accountable human at the gate, a fresh-context Critic with zero unresolved findings, and a Gate 3 second look in a session separate from Gate 2 after the build Critic report. Human specialists join only on the defined escalation triggers. Regulated default-closed work requires human specialist review for every activated domain and two distinct human signers. A solo regulated operator therefore needs a second human before release, and onboarding states that constraint before the first gate.
 
 ## Products, Stack Packs, and Readiness
 
@@ -67,7 +75,7 @@ An accountability transfer is a recorded event: open gates re-render to the new 
 
 ## Agent-First First Run
 
-A new user tells the platform agent what they are building. The agent asks whether the operation is solo or team-based, existing or greenfield, and commercial or regulated. It then proposes the organization, portfolio, product, pod, hats, specialist pool, Stack Pack, repositories, readiness briefs, product brief, mission brief, and first intents. The human reads one summary, corrects it, and signs once. From then on the loop is talk, correct, sign.
+A new user tells the platform agent what they are building. The agent asks whether the operation is solo or team-based, existing or greenfield, and commercial or regulated. It then proposes the organization, portfolio, product, pod, core hats, domain-review agents, human exception owners, Stack Pack, repositories, readiness briefs, product brief, mission brief, and first intents. The human reads one summary, corrects it, and signs once. From then on the loop is talk, correct, sign.
 
 ## Trust-Metered Autonomy
 

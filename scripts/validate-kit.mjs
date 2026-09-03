@@ -39,6 +39,7 @@ const required = [
   "kit/canon/guidebook.md",
   "docs/DOCUMENTATION-MAP.md",
   "docs/GITHUB-EXAM-PROTECTION.md",
+  "docs/decisions/0001-agent-first-domain-assurance.md",
   "docs/architecture/README.md",
   "docs/architecture/STEER-platform-end-state-phased.png",
   "intent/0001/ARCHITECTURE.md",
@@ -112,7 +113,22 @@ if (gatePolicy.minimumDistinctSigners?.commercial?.defaultClosed?.secondLook !==
   throw new Error("Commercial default-closed work must retain the Gate 3 second-look rule.");
 }
 if (gatePolicy.minimumDistinctSigners?.regulated?.defaultClosed?.humans !== 2 || !gatePolicy.invariants.signatureBinds.includes("hat")) {
-  throw new Error("Operating Model v3.1 requires two distinct regulated signers and identity-plus-hat signatures.");
+  throw new Error("Operating Model v3.2 requires two distinct regulated signers and identity-plus-hat signatures.");
+}
+if (
+  gatePolicy.specialistSeat?.mode !== "agent-first-human-on-exception" ||
+  gatePolicy.specialistSeat?.agentReview?.required !== true ||
+  gatePolicy.specialistSeat?.agentReview?.independentOfBuilder !== true ||
+  gatePolicy.specialistSeat?.agentReview?.freshContext !== true ||
+  gatePolicy.specialistSeat?.agentReview?.oneRecordPerActivatedDomain !== true ||
+  gatePolicy.specialistSeat?.agentReview?.consolidation !== "single-exception-brief" ||
+  gatePolicy.specialistSeat?.commercialHumanEscalation?.default !== "not-required-per-domain" ||
+  gatePolicy.specialistSeat?.commercialHumanEscalation?.accountableGateOwner !== "tech-lead" ||
+  gatePolicy.specialistSeat?.commercialHumanEscalation?.triggers?.length !== 7 ||
+  gatePolicy.specialistSeat?.regulatedHumanEscalation?.default !== "required-for-every-activated-domain" ||
+  gatePolicy.specialistSeat?.regulatedHumanEscalation?.minimumDistinctHumans !== 2
+) {
+  throw new Error("Operating Model v3.2 agent-first domain assurance or deterministic human escalation drifted.");
 }
 
 const sha256 = (value) => createHash("sha256").update(value).digest("hex");
@@ -316,11 +332,16 @@ if (
   domainReviewTarget.version !== "steer-domain-review-target/v1" ||
   domainReviewTarget.item !== "0001-flight-deck-foundation" ||
   domainReviewTarget.reviewType !== "gate-2-exam" ||
-  domainReviewTarget.status !== "awaiting-human-reviews" ||
+  domainReviewTarget.status !== "awaiting-authorized-exam-revision" ||
   domainReviewTarget.targetRevision !== "c61ae86e9ca63a249e75e629935cba2fcc504fd6" ||
   domainReviewTarget.exam?.path !== "intent/0001/EXAM.md" ||
   domainReviewTarget.exam?.sha256 !== sha256(await readFile("intent/0001/EXAM.md")) ||
   domainReviewTarget.requiredDomains?.join(",") !== expectedReviewDomains.join(",") ||
+  domainReviewTarget.reviewerPolicy?.default !== "independent-fresh-context-domain-agent" ||
+  domainReviewTarget.reviewerPolicy?.builderMayReview !== false ||
+  domainReviewTarget.reviewerPolicy?.commercialHumanSpecialist !== "only-on-deterministic-escalation" ||
+  domainReviewTarget.reviewerPolicy?.regulatedHumanSpecialist !== "required-for-every-activated-domain" ||
+  domainReviewTarget.reviewerPolicy?.consolidation !== "single-exception-brief" ||
   domainReviewTarget.gateBoundary?.doesNotProveTechnicalRelease !== true ||
   domainReviewTarget.gateBoundary?.doesNotAuthorizeGateTwo !== true ||
   domainReviewTarget.gateBoundary?.doesNotAuthorizeBuildOrRelease !== true ||
@@ -339,13 +360,13 @@ for (const artifact of [
 for (const domain of expectedReviewDomains) {
   const packet = await readFile(`intent/0001/reviews/domain/${domain}.md`, "utf8");
   if (
-    !packet.includes("awaiting eligible human") ||
+    !packet.includes("awaiting independent fresh-context") ||
     !packet.includes(domain) ||
     !packet.includes(domainReviewTarget.targetRevision) ||
     !packet.includes(domainReviewTarget.exam.sha256) ||
     !packet.includes("approved`, `send-back`, or `declined")
   ) {
-    throw new Error(`Gate 2 domain-review packet is incomplete or falsely signed: ${domain}`);
+    throw new Error(`Gate 2 domain-agent review packet is incomplete or falsely completed: ${domain}`);
   }
 }
 
@@ -369,7 +390,7 @@ if (surfacesPolicy.attentionOrder.join(",") !== "decision-inbox,triggered-candid
   throw new Error("The three surfaces must preserve the protected attention order.");
 }
 if (surfacesPolicy.intentBacklog.wipScope !== "person-across-pods-and-hats" || !surfacesPolicy.intentBacklog.measurementStates.includes("greenfield")) {
-  throw new Error("Operating Model v3.1 requires personal capacity and a greenfield measurement state.");
+  throw new Error("Operating Model v3.2 requires personal capacity and a greenfield measurement state.");
 }
 if (sizingPolicy.forecast.percentile !== 0.85 || sizingPolicy.scopeFreeze !== "gate-1") {
   throw new Error("Sizing policy must use P85 forecasting and freeze scope at Gate 1.");
@@ -390,14 +411,17 @@ const frameworkCanon = await readFile("kit/canon/framework.md", "utf8");
 const sizingPractice = await readFile("kit/practices/sizing-and-scoping.md", "utf8");
 const intentPractice = await readFile("kit/practices/providing-intent.md", "utf8");
 const surfacesPractice = await readFile("kit/practices/three-surfaces.md", "utf8");
-if (methodologyCanon.includes("Framework v3.0") || !methodologyCanon.includes("Framework v3.1")) {
-  throw new Error("Methodology projection must identify the current Framework v3.1 canon.");
+if (methodologyCanon.includes("Framework v3.1") || !methodologyCanon.includes("Framework v3.2")) {
+  throw new Error("Methodology projection must identify the current Framework v3.2 canon.");
 }
-if (!frameworkCanon.includes("structure: the organization topology") || !frameworkCanon.includes("## Organization Structure") || !frameworkCanon.includes("Regulated default-closed work requires two distinct humans")) {
-  throw new Error("Framework projection is missing Operating Model v3.1 organization or signer rules.");
+if (!frameworkCanon.includes("structure: the organization topology") || !frameworkCanon.includes("## Organization Structure") || !frameworkCanon.includes("Regulated default-closed work retains a human specialist for every activated domain and two distinct human signers")) {
+  throw new Error("Framework projection is missing Operating Model v3.2 organization or signer rules.");
 }
 if (!frameworkCanon.includes("Greenfield products may use explicit leading indicators")) {
-  throw new Error("Framework projection must preserve the v3.1 greenfield measurement state.");
+  throw new Error("Framework projection must preserve the v3.2 greenfield measurement state.");
+}
+if (!frameworkCanon.includes("Default-closed means independent assurance is mandatory") || !methodologyCanon.includes("Agents review by default; humans own exceptions")) {
+  throw new Error("Framework v3.2 must preserve agent-first assurance and human exception ownership.");
 }
 if (!sizingPractice.includes("per human across every pod and accountability hat")) {
   throw new Error("Sizing guidance must count capacity per person across pods and hats.");
@@ -423,10 +447,10 @@ if (organizationPolicy.frameworkVersion !== kitVersion.frameworkVersion || organ
   throw new Error("Organization policy must align to the kit and forbid weaker lower-level default-closed policy.");
 }
 if (stackPack.frameworkVersion !== kitVersion.frameworkVersion || readiness.findingDestination !== "auto-drafted-on-ramp-brief") {
-  throw new Error("The current Stack Pack and readiness scan must align to Operating Model v3.1.");
+  throw new Error("The current Stack Pack and readiness scan must align to Operating Model v3.2.");
 }
 if (platformStackPack.frameworkVersion !== kitVersion.frameworkVersion || platformStackPack.status !== "gate-1-draft") {
-  throw new Error("The STEER production Stack Pack must remain a Gate 1 draft aligned to Framework v3.1.");
+  throw new Error("The STEER production Stack Pack must remain a Gate 1 draft aligned to Framework v3.2.");
 }
 if (!platformStackPack.phase1Required.includes("product-analytics-adapter") || !platformStackPack.phase1Required.includes("secret-manager-seam")) {
   throw new Error("The production Stack Pack must keep analytics and secret management in Phase 1.");

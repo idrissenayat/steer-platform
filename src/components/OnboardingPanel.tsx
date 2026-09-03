@@ -39,7 +39,7 @@ export function OnboardingPanel({ humanName, onClose, onComplete }: { humanName:
   return <div aria-label="Agent-first organization onboarding" aria-modal="true" className="review-backdrop" onKeyDown={handleKeyDown} role="dialog">
     <section className="review-panel review-panel--wide onboarding-panel" ref={panelRef}>
       <button aria-label="Close onboarding" className="drawer-close icon-button" onClick={onClose} ref={closeRef} type="button"><CloseIcon /></button>
-      <header className="review-panel__header"><div><p className="eyebrow">Operating Model v3.1 · talk, correct, sign</p><h2>Set up STEER with the platform agent</h2><p>The agent does the administration. You provide truth and make the final commitment.</p></div></header>
+      <header className="review-panel__header"><div><p className="eyebrow">Operating Model v3.2 · talk, correct, sign</p><h2>Set up STEER with the platform agent</h2><p>The agent does the administration. You provide truth and make the final commitment.</p></div></header>
 
       {phase === "intent" ? <div className="onboarding-conversation">
         <div className="agent-message"><span>Platform agent</span><p>What are you building? One plain-language description is enough to start.</p></div>
@@ -51,7 +51,7 @@ export function OnboardingPanel({ humanName, onClose, onComplete }: { humanName:
       {phase === "questions" ? <div className="onboarding-conversation">
         <div className="human-message"><span>You</span><p>{description}</p></div>
         <div className="agent-message"><span>Platform agent</span><p>Three decisions shape the operating setup. Choose the answer that fits now; each remains versioned and changeable later.</p></div>
-        <fieldset><legend>Are you operating solo or with a team?</legend><div className="choice-row"><button aria-pressed={teamMode === "solo"} onClick={() => setTeamMode("solo")} type="button">Solo · I hold every hat</button><button aria-pressed={teamMode === "team"} onClick={() => setTeamMode("team")} type="button">Team · propose assignments</button></div></fieldset>
+        <fieldset><legend>Are you operating solo or with a team?</legend><div className="choice-row"><button aria-pressed={teamMode === "solo"} onClick={() => setTeamMode("solo")} type="button">Solo · I hold the core hats</button><button aria-pressed={teamMode === "team"} onClick={() => setTeamMode("team")} type="button">Team · propose assignments</button></div></fieldset>
         <fieldset><legend>Is there an existing code repository?</legend><div className="choice-row"><button aria-pressed={repositoryMode === "existing"} onClick={() => setRepositoryMode("existing")} type="button">Existing · run readiness scan</button><button aria-pressed={repositoryMode === "greenfield"} onClick={() => setRepositoryMode("greenfield")} type="button">New · scaffold it</button></div></fieldset>
         <fieldset><legend>Which operating profile applies?</legend><div className="choice-row"><button aria-pressed={profile === "commercial"} onClick={() => setProfile("commercial")} type="button">Commercial</button><button aria-pressed={profile === "regulated"} onClick={() => setProfile("regulated")} type="button">Regulated</button></div></fieldset>
         <div className="onboarding-actions"><button className="secondary-action" onClick={() => setPhase("intent")} type="button">Back</button><button className="primary-action" onClick={() => setPhase("review")} type="button">Build the operating summary</button></div>
@@ -62,6 +62,7 @@ export function OnboardingPanel({ humanName, onClose, onComplete }: { humanName:
         <div className="onboarding-summary-grid">
           <section><span>Organization topology</span><strong>Organization → Portfolio → Product → Pod</strong><small>{proposal.artifactPaths.join(" · ")}</small></section>
           <section><span>Your hats</span><strong>{proposal.assignments.length} explicit accountabilities</strong><small>{proposal.assignments.map((assignment) => assignment.hat.replaceAll("-", " ")).join(" · ")}</small></section>
+          <section><span>Domain assurance</span><strong>{proposal.domainReviewAgents.length} independent agents</strong><small>One exception brief · humans only on deterministic escalation</small></section>
           <section><span>Stack Pack</span><strong>{proposal.stackPack}</strong><small>Builder binding, guardrails, exam templates, release rails, and starter context</small></section>
           <section><span>Readiness</span><strong>{proposal.readiness.filter((finding) => finding.onRampBrief).length} on-ramp briefs drafted</strong><small>{proposal.readiness.map((finding) => `${finding.check}: ${finding.state}`).join(" · ")}</small></section>
         </div>

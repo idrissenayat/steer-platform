@@ -1,7 +1,7 @@
 # STEER documentation map
 
-Current framework version: **3.1**  
-Last alignment audit: **2026-09-02**
+Current framework version: **3.2**
+Last alignment audit: **2026-09-03**
 
 This map explains which documents govern STEER, which files the platform reads,
 and which implementation evidence remains outside the repository.
@@ -38,6 +38,17 @@ not rewritten merely to restate a later implementation decision.
 | Greenfield leading indicators and unscored pre-mission fit | Framework; Providing Intent Note; Three Surfaces Note; Operating Model | surfaces policy, templates, organization and intent-backlog domains |
 | Agent-first first run | Operating Model | setup agent experience and organization domain |
 
+## v3.2 agent-first assurance trace
+
+| v3.2 rule | Human-readable canon | Machine-readable or platform location |
+|---|---|---|
+| One independent agent review per activated domain | Framework; Operating Model; ADR 0001 | `kit/policy/gates.json`, domain review template and packets |
+| Builder and reviewer independence | Framework; Operating Model; ADR 0001 | gate policy, GitHub Exam controls, kit validation |
+| One consolidated exception brief | Framework; Operating Model; Glossary; ADR 0001 | gate policy and Gate 2 review packet |
+| Commercial human specialists only on deterministic triggers | Operating Model; Glossary; ADR 0001 | `kit/policy/gates.json` and required-role projection |
+| Regulated human review remains mandatory | Framework; Operating Model; ADR 0001 | gate policy and signer-policy tests |
+| Agents cannot waive, sign, suppress escalation, or authorize external effects | Methodology; Operating Model; ADR 0001 | gate policy, signature boundary and review template |
+
 ## Publication and synchronization rule
 
 1. Update the relevant root Word document when doctrine changes.
@@ -57,12 +68,12 @@ projections of these files and must not become a private source of truth.
 
 ## Completion boundary
 
-The repository contains the complete v3.1 framework document set and the
+The repository contains the complete v3.2 framework document set and the
 requested fixture-backed UX/domain prototype. The production architecture
 snapshot at commit `281c9736816ec22fa1209b060b58fa8164519f7c` was accepted at
 Gate 1 by the Product Lead and Product Designer hats; its detached signature
 record preserves that snapshot unchanged. The architecture is not yet
 implemented. Production completion still requires Gate 2, the walking-skeleton
-exam, Gate 3 and specialist evidence, live identity/code-host configuration,
+exam, Gate 3 and triggered specialist evidence, live identity/code-host configuration,
 and an approved production measurement window. Fixture data is never promoted
 as production evidence.

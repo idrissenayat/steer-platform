@@ -1,7 +1,7 @@
 # Domain review: `<domain>`
 
-Review type: Gate 2 Exam review  
-Status: awaiting eligible human review
+Review type: independent domain-agent review
+Status: awaiting fresh-context agent review
 
 ## Bound target
 
@@ -11,36 +11,38 @@ Status: awaiting eligible human review
 - Exam SHA-256: `<sha256>`
 - Implementation revision: `<40-character Git revision>`
 
-This Gate 2 review decides whether the Exam is a complete, testable, and
-appropriately strict definition of done for this domain. It does not assert that
-the implementation or technical-release evidence has passed.
+This review decides whether the Exam is a complete, testable, and appropriately
+strict definition of done for this domain. It does not assert that the
+implementation or technical-release evidence has passed.
 
 ## Reviewer scope
 
-- Active specialist hat: `<hat>`
+- Reviewer agent identity and version: `<identity and pinned configuration>`
+- Fresh-context proof: `<reference>`
+- Independent of Builder: `true | false`
 - Required cases: `<case IDs and matrix rows>`
 - Evidence reviewed: `<paths and SHA-256 hashes>`
 - Questions and domain-specific acceptance criteria: `<questions>`
 
-## Human disposition
+## Agent disposition
 
 Choose exactly one: `approved`, `send-back`, or `declined`.
 
 - Decision: `<decision>`
 - Findings: `<none, or stable finding IDs with severity and required resolution>`
-- Reviewer identity: `<human name>`
-- Verified subject: `<stable OIDC subject>`
-- Active specialist hat: `<hat>`
-- Session ID: `<authenticated session ID>`
-- Sequence: `<positive integer>`
-- Server timestamp: `<UTC RFC 3339>`
-- Provider-recorded proof reference: `<reference>`
+- Confidence: `<high | medium | low>`
+- Escalation triggers: `<none, or exact policy trigger IDs>`
+- Reviewer agent: `<service identity>`
+- Agent configuration revision: `<pinned revision>`
+- Reviewed at: `<server-issued UTC RFC 3339>`
+- Evidence hashes: `<paths and SHA-256 values>`
 
-An agent may prepare this review but may not sign it. A qualified human may hold
-more than one specialist hat in commercial solo mode only when every assignment
-and every signed record is explicit.
+The agent cannot sign a gate, accept residual risk, waive a control, suppress an
+escalation trigger, or authorize an external effect. A triggered human review is
+recorded separately with verified identity, active hat, exact revision, decision,
+timestamp, and provider proof.
 
 ## Boundary
 
-Approval of this Gate 2 review is not a Gate 2 Tech Lead signature, build or
+Approval by a domain agent is not a Gate 2 Tech Lead signature, build or
 release approval, production authorization, or spending authorization.

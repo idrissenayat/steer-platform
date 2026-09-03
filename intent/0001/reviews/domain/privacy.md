@@ -1,6 +1,6 @@
 # Gate 2 domain review: privacy
 
-Status: **awaiting eligible human privacy specialist**
+Status: **awaiting independent fresh-context privacy-review agent**
 
 Bound target: `c61ae86e9ca63a249e75e629935cba2fcc504fd6`  
 Exam: `intent/0001/EXAM.md`  
@@ -29,6 +29,7 @@ Exam SHA-256: `6b56cbe41c6bb220780655e8253aa5e0539e47b9f18ff033ead10e2b0a02b16b`
 5. Are production and fixture data separated strongly enough that synthetic
    data cannot enter a pilot baseline or outcome calculation?
 
-The reviewer must record `approved`, `send-back`, or `declined` through the
-human review procedure in [`README.md`](README.md). Approval assesses the Exam,
-not whether these implementation tests have already passed.
+The agent must record `approved`, `send-back`, or `declined` through the domain
+assurance procedure in [`README.md`](README.md), including confidence, findings,
+and every human-escalation trigger. Approval assesses the Exam, not whether
+these implementation tests have already passed.

@@ -108,6 +108,7 @@ export interface WorkItemChain {
   signatures: GateSignature[];
   signerPolicy?: {
     criticFreshContext: boolean;
+    humanSpecialistEscalation?: boolean;
     profile: "commercial" | "regulated";
   };
   decisionEvents?: GateDecisionEvent[];

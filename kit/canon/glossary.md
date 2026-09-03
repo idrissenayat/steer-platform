@@ -1,6 +1,6 @@
 # STEER Glossary
 
-_Framework v3.1 · operational language_
+_Framework v3.2 · operational language_
 
 ## Organization
 
@@ -52,4 +52,12 @@ A default-open domain may proceed when its machine checks are green and the ordi
 
 ## Default-closed
 
-A default-closed domain blocks until its conditional specialist seat has signed. Accessibility, security, privacy, money, legal, and irreversible operations may activate this route.
+A default-closed domain blocks until an independent, fresh-context domain-agent review is current and green. In commercial mode a human specialist seat activates only on a deterministic escalation trigger; in regulated mode every activated domain requires a human specialist. Accessibility, security, privacy, money, legal, reliability, and irreversible operations may activate this route.
+
+## Exception brief
+
+The single revision-bound summary of all activated-domain agent reviews. It shows unresolved findings, missing or inconclusive evidence, confidence, and every human-escalation trigger. It is the Tech Lead's Gate 2 decision input and cannot hide a domain record.
+
+## Human escalation trigger
+
+A policy-defined condition that routes a domain decision to a qualified human specialist: material findings, missing or inconclusive evidence, waivers, explicit legal or policy obligations, material rights or irreversible external effects, manual accessibility release validation, or production and spending authorization.

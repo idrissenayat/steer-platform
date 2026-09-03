@@ -49,7 +49,9 @@ describe("automated accessibility gauntlet", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: /^regulated$/i }));
     fireEvent.click(within(dialog).getByRole("button", { name: /build the operating summary/i }));
     expect(dialog.textContent).toContain("two distinct humans");
-    expect(dialog.textContent).toContain("8 explicit accountabilities");
+    expect(dialog.textContent).toContain("7 explicit accountabilities");
+    expect(dialog.textContent).toContain("7 independent agents");
+    expect(dialog.textContent).toContain("humans only on deterministic escalation");
     expect(await seriousViolations(dialog)).toEqual([]);
     fireEvent.click(within(dialog).getByRole("button", { name: /sign once and start the loop/i }));
     expect(screen.getByRole("status").textContent).toContain("one signed operating summary");

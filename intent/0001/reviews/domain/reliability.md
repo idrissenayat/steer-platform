@@ -1,6 +1,6 @@
 # Gate 2 domain review: reliability
 
-Status: **awaiting eligible human reliability specialist**
+Status: **awaiting independent fresh-context reliability-review agent**
 
 Bound target: `c61ae86e9ca63a249e75e629935cba2fcc504fd6`  
 Exam: `intent/0001/EXAM.md`  
@@ -30,6 +30,7 @@ Exam SHA-256: `6b56cbe41c6bb220780655e8253aa5e0539e47b9f18ff033ead10e2b0a02b16b`
 5. Does the clean-checkout core test detect undeclared SaaS, credentials, and
    control-plane calls while still exercising the real integrated path?
 
-The reviewer must record `approved`, `send-back`, or `declined` through the
-human review procedure in [`README.md`](README.md). Approval assesses the Exam,
-not whether these implementation tests have already passed.
+The agent must record `approved`, `send-back`, or `declined` through the domain
+assurance procedure in [`README.md`](README.md), including confidence, findings,
+and every human-escalation trigger. Approval assesses the Exam, not whether
+these implementation tests have already passed.
