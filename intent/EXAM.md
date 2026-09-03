@@ -83,3 +83,5 @@ edit this file; the exam-protection hook enforces it.
 All cases green in the gauntlet; sections E and F additionally require
 their human specialist signatures per the gate policy. First-pass rate
 and escapes from this exam seed the platform pod's own trust ledger.
+
+<!-- Gate 2 live negative test: an unlisted App actor must be rejected. -->
