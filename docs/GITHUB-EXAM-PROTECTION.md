@@ -62,7 +62,15 @@ review with zero blanket approvals. The structured receipt is
 `intent/0001/evidence/github-exam-protection-rollout.json`.
 
 The positive authorized-control path and six portable negative/control tests
-are green. A live pull request opened by an unlisted Builder identity and a live
-pull request opened by a distinct authorized Exam-author identity remain
-pending because no separate GitHub identity is currently available. Those two
-observations cannot be replaced by a simulated actor value.
+are green. On 2026-09-03, the account-restricted GitHub App
+[`steer-test-agent`](https://github.com/apps/steer-test-agent) was registered as
+the dedicated technical Test Agent identity (App ID `4817901`). Its saved
+repository permissions are Contents read/write, Pull requests read/write, and
+mandatory Metadata read-only; Administration, Workflows, webhooks,
+organization, account, and enterprise permissions are disabled.
+
+Registration alone does not make the identity operational. No private key has
+been generated and the app has not been installed on `steer-platform`. Key
+generation, secure secret placement, repository-scoped installation, actor
+policy/CODEOWNERS binding, and both live pull-request paths remain pending.
+Those observations cannot be replaced by a simulated actor value.

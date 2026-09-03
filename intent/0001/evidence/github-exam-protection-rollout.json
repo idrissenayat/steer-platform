@@ -28,6 +28,27 @@
     "blanketApprovingReviewCount": 0
   },
   "codeOwnersOnProtectedBranch": true,
+  "testAgentApp": {
+    "observedAt": "2026-09-03T13:37:27Z",
+    "slug": "steer-test-agent",
+    "url": "https://github.com/apps/steer-test-agent",
+    "appId": 4817901,
+    "owner": "idrissenayat",
+    "installationScope": "only-this-account",
+    "permissions": {
+      "contents": "read-write",
+      "pullRequests": "read-write",
+      "metadata": "read-only-mandatory",
+      "administration": "none",
+      "workflows": "none",
+      "organization": "none",
+      "account": "none",
+      "enterprise": "none"
+    },
+    "webhookActive": false,
+    "privateKey": "not-generated",
+    "installation": "not-installed"
+  },
   "tests": {
     "portableControlTests": {
       "total": 6,
