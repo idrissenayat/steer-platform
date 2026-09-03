@@ -1,12 +1,18 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, test } from "node:test";
 
 const checker = fileURLToPath(new URL("../scripts/check-exam-protection.mjs", import.meta.url));
+const productionPolicyPath = fileURLToPath(
+  new URL("../.github/steer/exam-author-policy.json", import.meta.url),
+);
+const productionCodeownersPath = fileURLToPath(
+  new URL("../.github/CODEOWNERS", import.meta.url),
+);
 const repositories = [];
 
 function git(root, ...args) {
@@ -30,7 +36,7 @@ function createRepository() {
     JSON.stringify({
       version: "steer-exam-author-policy/v1",
       denyByDefault: true,
-      authorizedExamAuthors: ["exam-owner"],
+      authorizedExamAuthors: ["exam-owner", "steer-test-agent[bot]"],
       authorizedControlMaintainers: ["control-owner"],
     }),
   );
@@ -73,6 +79,20 @@ afterEach(() => {
 });
 
 describe("actor-bound Exam protection", () => {
+  test("binds production Exam authorship only to the dedicated Test Agent App", () => {
+    const policy = JSON.parse(readFileSync(productionPolicyPath, "utf8"));
+    assert.deepEqual(policy.authorizedExamAuthors, ["steer-test-agent[bot]"]);
+    assert.deepEqual(policy.authorizedControlMaintainers, [
+      "idrissenayat",
+      "steer-test-agent[bot]",
+    ]);
+  });
+
+  test("CODEOWNERS explicitly covers root and numbered Exam artifacts", () => {
+    const codeowners = readFileSync(productionCodeownersPath, "utf8");
+    assert.match(codeowners, /^\/intent\/EXAM\.md @idrissenayat$/m);
+    assert.match(codeowners, /^\/intent\/\*\*\/EXAM\.md @idrissenayat$/m);
+  });
   test("rejects a deny-by-default Builder actor that changes an Exam", () => {
     const { root, base } = createRepository();
     const head = commit(root, "intent/0001/EXAM.md", "# Builder edit\n");
@@ -91,6 +111,14 @@ describe("actor-bound Exam protection", () => {
     assert.match(result.stdout, /Actor-bound Exam protection passed/);
   });
 
+  test("accepts an exact allowlisted GitHub App bot login", () => {
+    const { root, base } = createRepository();
+    const head = commit(root, "intent/0001/EXAM.md", "# App-authored Exam\n");
+    const result = check(root, base, head, "steer-test-agent[bot]");
+
+    assert.equal(result.status, 0);
+    assert.match(result.stdout, /Actor-bound Exam protection passed/);
+  });
   test("allows an unlisted actor when no Exam or control file changed", () => {
     const { root, base } = createRepository();
     const head = commit(root, "README.md", "# Ordinary Builder change\n");

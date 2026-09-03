@@ -156,11 +156,10 @@ path. Numbered intent sources remain unchanged.
 3. Approve the notification rule: ambient by default; push only at SLA risk.
 4. Approve assistant data handling: session-only originator text, committed
    artifact as the only retained copy.
-5. **Gate 1 recorded; second Gate 2 Critic HOLD:** four findings are resolved.
-   Complete the two-identity live tests in
-   `docs/GITHUB-EXAM-PROTECTION.md`, run required CI over the actual Exam diff,
-   and obtain all seven human domain reviews before another Critic or Tech Lead
-   signature request.
+5. **Gate 1 recorded; second Gate 2 Critic HOLD:** the live two-identity GitHub
+   control and required CI over the actual Exam diff are now verified in
+   `docs/GITHUB-EXAM-PROTECTION.md`. Obtain all seven human domain reviews, then
+   run a new exact-revision Critic before any Tech Lead signature request.
 6. Run the ten-to-twenty-item pilot and retain 90 days of outcome evidence.
 
 “Complete” means every machine row is green and each human-owned row has an

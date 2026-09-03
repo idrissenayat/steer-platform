@@ -3,7 +3,7 @@
   "item": "0001-flight-deck-foundation",
   "control": "actor-bound-exam-authorship",
   "repository": "github.com/idrissenayat/steer-platform",
-  "observedAt": "2026-09-02T20:29:33Z",
+  "observedAt": "2026-09-03T14:29:40Z",
   "rollout": {
     "pullRequest": 1,
     "url": "https://github.com/idrissenayat/steer-platform/pull/1",
@@ -15,6 +15,20 @@
     "authenticatedActor": "idrissenayat",
     "actorPolicyResult": "authorized control maintainer accepted"
   },
+  "bindingRollout": {
+    "pullRequest": 3,
+    "url": "https://github.com/idrissenayat/steer-platform/pull/3",
+    "state": "merged",
+    "mergeCommit": "effbd6b8489a2742b136d9adfb07f8839e2ebc2e",
+    "requiredCheckConclusion": "success"
+  },
+  "reviewSeparationRollout": {
+    "pullRequest": 6,
+    "url": "https://github.com/idrissenayat/steer-platform/pull/6",
+    "state": "merged",
+    "mergeCommit": "b6b78ed125bc88ad5f3b16499ccf62a41fb3f403",
+    "requiredCheckConclusion": "success"
+  },
   "defaultBranchProtection": {
     "branch": "main",
     "requirePullRequest": true,
@@ -25,7 +39,7 @@
     "allowDeletions": false,
     "dismissStaleReviews": true,
     "requireCodeOwnerReview": true,
-    "blanketApprovingReviewCount": 0
+    "requiredApprovingReviewCount": 1
   },
   "codeOwnersOnProtectedBranch": true,
   "testAgentApp": {
@@ -58,14 +72,50 @@
   },
   "tests": {
     "portableControlTests": {
-      "total": 6,
-      "passed": 6
+      "total": 9,
+      "passed": 9
     },
     "authorizedControlPullRequest": "passed"
   },
-  "openEvidence": {
-    "unauthorizedBuilderPullRequest": "pending-separate-github-identity",
-    "authorizedIndependentExamAuthorPullRequest": "pending-separate-github-identity"
+  "liveTwoIdentityEvidence": {
+    "unauthorizedBuilder": {
+      "status": "verified-rejected",
+      "pullRequest": 7,
+      "url": "https://github.com/idrissenayat/steer-platform/pull/7",
+      "state": "closed-unmerged",
+      "actor": "idrissenayat",
+      "activeRole": "Builder",
+      "artifact": "intent/0001/EXAM.md",
+      "headSha": "5ad960a125b1532a10bb726e429ce052262115bb",
+      "requiredCheckConclusion": "failure",
+      "workflowRun": "https://github.com/idrissenayat/steer-platform/actions/runs/33766940843/job/100687122958",
+      "actorPolicyResult": "not-authorized-exam-author",
+      "mergeStateBeforeClose": "BLOCKED"
+    },
+    "authorizedExamAuthor": {
+      "status": "verified-ci-and-codeowner-path",
+      "pullRequest": 8,
+      "url": "https://github.com/idrissenayat/steer-platform/pull/8",
+      "state": "closed-unmerged",
+      "actor": "steer-test-agent[bot]",
+      "activeRole": "Test Agent",
+      "artifact": "intent/0001/EXAM.md",
+      "headSha": "588272264ec18835749671de25d8a88109a7b3e6",
+      "requiredCheckConclusion": "success",
+      "workflowRun": "https://github.com/idrissenayat/steer-platform/actions/runs/33767077096/job/100687588573",
+      "actorPolicyResult": "authorized-exam-author",
+      "mergeStateBeforeReview": "BLOCKED",
+      "reviewDecisionBeforeReview": "REVIEW_REQUIRED",
+      "codeOwnerReview": {
+        "actor": "idrissenayat",
+        "state": "APPROVED",
+        "submittedAt": "2026-09-03T14:29:29Z",
+        "gateSignature": false,
+        "mergeAuthorization": false
+      },
+      "mergeStateAfterReview": "CLEAN"
+    }
   },
-  "gateEffect": "This is control evidence, not a Gate 2 signature, implementation authorization, release authorization, or spending authorization. The live two-identity tests remain required before the control is called fully operational."
+  "openEvidence": [],
+  "gateEffect": "The external authorship and CODEOWNER-review control is operational. This receipt is not a Gate 2 signature, implementation authorization, release authorization, or spending authorization; human domain reviews and a new exact-revision Critic remain required before a Gate 2 decision."
 }

@@ -161,6 +161,7 @@ if (
 }
 const codeowners = await readFile(".github/CODEOWNERS", "utf8");
 for (const protectedPath of [
+  "/intent/EXAM.md @idrissenayat",
   "/intent/**/EXAM.md @idrissenayat",
   "/.github/CODEOWNERS @idrissenayat",
   "/.github/steer/exam-author-policy.json @idrissenayat",
@@ -184,10 +185,18 @@ if (
   examProtectionRollout.defaultBranchProtection?.enforceForAdministrators !== true ||
   examProtectionRollout.defaultBranchProtection?.allowForcePushes !== false ||
   examProtectionRollout.defaultBranchProtection?.allowDeletions !== false ||
-  examProtectionRollout.openEvidence?.unauthorizedBuilderPullRequest !== "pending-separate-github-identity" ||
-  examProtectionRollout.openEvidence?.authorizedIndependentExamAuthorPullRequest !== "pending-separate-github-identity"
+  examProtectionRollout.defaultBranchProtection?.requiredApprovingReviewCount !== 1 ||
+  examProtectionRollout.liveTwoIdentityEvidence?.unauthorizedBuilder?.status !== "verified-rejected" ||
+  examProtectionRollout.liveTwoIdentityEvidence?.unauthorizedBuilder?.pullRequest !== 7 ||
+  examProtectionRollout.liveTwoIdentityEvidence?.unauthorizedBuilder?.requiredCheckConclusion !== "failure" ||
+  examProtectionRollout.liveTwoIdentityEvidence?.authorizedExamAuthor?.status !== "verified-ci-and-codeowner-path" ||
+  examProtectionRollout.liveTwoIdentityEvidence?.authorizedExamAuthor?.pullRequest !== 8 ||
+  examProtectionRollout.liveTwoIdentityEvidence?.authorizedExamAuthor?.requiredCheckConclusion !== "success" ||
+  examProtectionRollout.liveTwoIdentityEvidence?.authorizedExamAuthor?.reviewDecisionBeforeReview !== "REVIEW_REQUIRED" ||
+  examProtectionRollout.liveTwoIdentityEvidence?.authorizedExamAuthor?.codeOwnerReview?.state !== "APPROVED" ||
+  examProtectionRollout.openEvidence?.length !== 0
 ) {
-  throw new Error("The GitHub Exam-protection rollout receipt must preserve both verified controls and pending live two-identity evidence.");
+  throw new Error("The GitHub Exam-protection rollout receipt must preserve the protected branch and verified live two-identity evidence.");
 }
 
 const gateOneRecord = JSON.parse(await readFile("intent/0001/signatures/gate-1.json", "utf8"));

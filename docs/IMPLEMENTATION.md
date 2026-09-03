@@ -115,9 +115,11 @@ Gate 1 snapshot, preserves the supplied Exam as historical source, incorporates
 all original and walking-skeleton cases, freezes reproducibility requirements,
 and adds complete tenancy, signature, outcome, and specialist matrices. The
 actor-bound GitHub workflow, deny-by-default author policy, CODEOWNERS map, and
-regression tests are repository candidates only until the protected base branch
-requires code-owner review and a live unauthorized-Builder pull request is
-observed failing.
+regression tests are operational on protected `main`. Live pull requests
+against the exact numbered Exam verified that the human Builder is rejected,
+the Test Agent App is accepted by CI, and one human CODEOWNER approval is still
+required. This control evidence is not a Gate 2 signature; seven human domain
+reviews and a new exact-revision Critic remain outstanding.
 
 The production foundation still to be built includes the Hono API and typed
 tool registry, MCP v2 transport, GitHub App adapter, Postgres/Drizzle/RLS
