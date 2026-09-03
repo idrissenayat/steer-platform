@@ -69,8 +69,14 @@ repository permissions are Contents read/write, Pull requests read/write, and
 mandatory Metadata read-only; Administration, Workflows, webhooks,
 organization, account, and enterprise permissions are disabled.
 
-Registration alone does not make the identity operational. No private key has
-been generated and the app has not been installed on `steer-platform`. Key
-generation, secure secret placement, repository-scoped installation, actor
-policy/CODEOWNERS binding, and both live pull-request paths remain pending.
-Those observations cannot be replaced by a simulated actor value.
+On 2026-09-03, a private key was generated and stored outside the repository
+with owner-only filesystem permissions. The app was then installed as
+installation `158779362` with selected-repository access limited to
+`idrissenayat/steer-platform`. A signed App API readback confirmed the account,
+App ID, selected-repository mode, empty event subscriptions, and the saved
+Contents, Pull requests, and Metadata permissions. No private-key material or
+secret-bearing path is recorded in the repository.
+
+The dedicated identity is provisioned but the actor policy/CODEOWNERS binding
+and both live pull-request paths remain pending. Those observations cannot be
+replaced by a simulated actor value.

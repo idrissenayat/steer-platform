@@ -29,7 +29,7 @@
   },
   "codeOwnersOnProtectedBranch": true,
   "testAgentApp": {
-    "observedAt": "2026-09-03T13:37:27Z",
+    "observedAt": "2026-09-03T13:52:35Z",
     "slug": "steer-test-agent",
     "url": "https://github.com/apps/steer-test-agent",
     "appId": 4817901,
@@ -46,8 +46,11 @@
       "enterprise": "none"
     },
     "webhookActive": false,
-    "privateKey": "not-generated",
-    "installation": "not-installed"
+    "privateKey": "generated-stored-outside-repository-owner-only",
+    "installation": "installed-steer-platform-only",
+    "installationId": 158779362,
+    "repositorySelection": "selected",
+    "installedRepository": "idrissenayat/steer-platform"
   },
   "tests": {
     "portableControlTests": {
