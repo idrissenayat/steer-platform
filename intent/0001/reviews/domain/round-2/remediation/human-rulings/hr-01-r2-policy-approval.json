@@ -1,0 +1,50 @@
+{
+  "version": "steer-human-ruling/v1",
+  "rulingId": "HR-01-R2-POLICY-APPROVAL",
+  "organization": "steer-platform",
+  "item": "0001-flight-deck-foundation",
+  "decision": "accepted-policy",
+  "signer": {
+    "name": "Idriss Enayat",
+    "githubLogin": "idrissenayat",
+    "activeAuthority": "privacy-legal-records-owner",
+    "qualificationAndAuthorizationAttested": true
+  },
+  "boundState": {
+    "commit": "bebbd7537c632d7c2426fdf2271d2f56a800d666",
+    "examRevisionAtApproval": "9c7299dd658615cd234e8e03188d607ef1a99fe1",
+    "examSha256AtApproval": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10",
+    "artifactPath": "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+    "artifactSha256": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32"
+  },
+  "statement": "I, Idriss Enayat (`github:idrissenayat`), confirm that I am qualified and authorized to act as STEER’s privacy/legal records owner. I accept HR-01-R2 and the exact retention and records policy at commit `bebbd7537c632d7c2426fdf2271d2f56a800d666`, SHA-256 `f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32`. This approval supersedes my prior HR-01 ruling for Gate 2 review purposes. It does not sign Gate 2 or authorize deletion, production, deployment, release, provider access, or spending.",
+  "signedAt": "2026-09-04T13:02:51Z",
+  "providerProof": {
+    "type": "codex-thread-user-message",
+    "provider": "OpenAI Codex",
+    "threadId": "01a049c9-80d5-7710-9607-2a5ae0c23e43",
+    "sessionId": "01a049c9-80d5-7710-9607-2a5ae0c23e43",
+    "recordLocator": "user message immediately preceding HR-01-R2 policy-approval processing",
+    "statementSha256": "931d17d45401b94ccf1a31bc48a7a209d22636cac509a292658b76cb8db25122"
+  },
+  "supersedes": {
+    "rulingId": "HR-01",
+    "path": "intent/0001/reviews/domain/remediation/human-rulings/hr-01.json",
+    "scope": "Gate 2 retention-and-records policy approval"
+  },
+  "effects": {
+    "retentionPolicyV2Accepted": true,
+    "newCanonicalExamRevisionBound": false,
+    "currentCommercialGateTwoPrerequisiteSatisfied": false,
+    "gateTwoSigned": false,
+    "builderAuthorized": false,
+    "releaseAuthorized": false,
+    "productionAuthorized": false,
+    "deploymentAuthorized": false,
+    "providerAccessAuthorized": false,
+    "deletionAuthorized": false,
+    "spendingAuthorized": false,
+    "regulatedHr02Satisfied": false
+  },
+  "nextRequiredState": "After protected canonical Exam incorporation, the records owner must bind or ratify this accepted policy against the exact new Exam revision before Gate 2 eligibility."
+}
