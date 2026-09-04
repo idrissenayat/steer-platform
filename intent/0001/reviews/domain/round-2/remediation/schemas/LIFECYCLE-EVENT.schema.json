@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "steer://schemas/lifecycle-event/v1",
+  "type": "object", "additionalProperties": false,
+  "required": ["version","eventId","recordClass","targetDigest","terminalAt","boundaryAt","policyDigest","triggerHistoryDigest","copyInventoryDigest","providerKeyRegistryDigest","holdState","referenceState","casHead","recordDigest","signature"],
+  "properties": {
+    "version":{"const":"steer-lifecycle-event/v1"}, "eventId":{"$ref":"#/$defs/uuid"}, "recordClass":{"type":"string","minLength":1},
+    "targetDigest":{"$ref":"#/$defs/sha"}, "terminalAt":{"$ref":"#/$defs/time"}, "boundaryAt":{"anyOf":[{"$ref":"#/$defs/time"},{"type":"null"}]}, "triggerHistoryDigest":{"$ref":"#/$defs/sha"},
+    "policyDigest":{"$ref":"#/$defs/sha"}, "copyInventoryDigest":{"$ref":"#/$defs/sha"}, "providerKeyRegistryDigest":{"$ref":"#/$defs/sha"},
+    "holdState":{"enum":["none","active","unknown"]}, "referenceState":{"enum":["none","active","unknown"]}, "casHead":{"$ref":"#/$defs/sha"}, "recordDigest":{"$ref":"#/$defs/sha"}, "signature":{"$ref":"#/$defs/signature"}
+  },
+  "$defs":{"sha":{"type":"string","pattern":"^[0-9a-f]{64}$"},"uuid":{"type":"string","format":"uuid"},"time":{"type":"string","format":"date-time"},"signature":{"type":"object","additionalProperties":false,"required":["algorithm","keyId","publicKeyHex","signedDigest","valueBase64"],"properties":{"algorithm":{"const":"Ed25519"},"keyId":{"type":"string","minLength":1},"publicKeyHex":{"type":"string","pattern":"^[0-9a-f]{64}$"},"signedDigest":{"$ref":"#/$defs/sha"},"valueBase64":{"type":"string","minLength":1}}}},
+  "x-steer-r3-semantic-checks":["policyDigest equals the RFC8785 SHA-256 of the immutable exhaustive class table","triggerHistoryDigest binds signed authoritative trigger events and closed derived inventory","providerKeyRegistryDigest byte-matches the immutable manifest trust anchor and every downstream lifecycle proof","boundaryAt equals the class trigger plus exact duration or null only for indefinite retention","fresh inventory, post-boundary receipt, post-receipt tombstone, and protected-action atomic CAS/idempotency are mandatory"]
+}

@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "steer://schemas/protected-action-request/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "body", "immutableRequestDigest"],
+  "properties": {
+    "version": { "const": "steer-protected-action-request/v1" },
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action", "principal", "actorRole", "requestedAt", "selectors"],
+      "properties": {
+        "action": { "type": "string", "minLength": 1 },
+        "principal": { "type": "string", "minLength": 1 },
+        "actorRole": { "type": "string", "minLength": 1 },
+        "requestedAt": { "type": "string", "format": "date-time" },
+        "selectors": {
+          "type": "object",
+          "minProperties": 1,
+          "patternProperties": { "^[A-Za-z][A-Za-z0-9]*$": { "type": "string", "minLength": 1 } },
+          "additionalProperties": false
+        }
+      }
+    },
+    "immutableRequestDigest": { "$ref": "#/$defs/sha" }
+  },
+  "$defs": { "sha": { "type": "string", "pattern": "^[0-9a-f]{64}$" } },
+  "x-steer-semantic-checks": [
+    "immutableRequestDigest equals SHA-256 of the exact UTF-8 RFC8785-JCS body bytes",
+    "selector names equal the manifest action requiredSelectors after adding derived immutableRequestDigest",
+    "all selector values compare as UTF-8 bytes to signed retrieved envelopes"
+  ]
+}

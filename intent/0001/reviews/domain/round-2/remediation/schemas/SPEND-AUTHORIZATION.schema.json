@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "steer://schemas/spend-authorization/v2",
+  "title": "STEER spend authorization",
+  "$comment": "Non-circular integrity: targetRevision names the artifact/implementation being authorized and predecessorRevision names the prior committed authorization head. recordDigest is SHA-256 of RFC 8785 JCS after omitting top-level recordDigest, signature, and providerProof. signature.signedDigest equals recordDigest and Ed25519 verifies the lowercase digest UTF-8 bytes. providerProof is attached only after the signed decision is durably acknowledged.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version", "authorizationId", "organization", "product", "pod", "tenant",
+    "environment", "purpose", "period", "currency", "costClassLimits",
+    "providers", "priceRevision", "policy", "lineage", "signer", "signature",
+    "providerProof", "effectiveAt", "expiresAt", "serverTimestamp", "status",
+    "revocationTerms", "restartTerms", "targetRevision", "predecessorRevision",
+    "digestAlgorithm", "canonicalization", "recordDigest"
+  ],
+  "properties": {
+    "version": { "const": "steer-spend-authorization/v2" },
+    "authorizationId": { "type": "string", "format": "uuid" },
+    "organization": { "const": "steer-platform" },
+    "product": { "const": "flight-deck" },
+    "pod": { "const": "platform" },
+    "tenant": { "const": "steer-platform" },
+    "environment": { "enum": ["pilot-test", "pilot-production"] },
+    "purpose": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "period": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "start", "end"],
+      "properties": {
+        "kind": { "const": "calendar-month-utc" },
+        "start": { "type": "string", "format": "date-time" },
+        "end": { "type": "string", "format": "date-time" }
+      }
+    },
+    "currency": { "const": "USD" },
+    "costClassLimits": {
+      "type": "object", "additionalProperties": false,
+      "required": ["infrastructure", "model"],
+      "properties": {
+        "infrastructure": { "$ref": "#/$defs/limitTree" },
+        "model": { "$ref": "#/$defs/limitTree" }
+      }
+    },
+    "providers": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["provider", "skus", "costClasses"],
+        "properties": {
+          "provider": { "type": "string", "minLength": 1 },
+          "skus": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+          "costClasses": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["infrastructure", "model"] } }
+        }
+      }
+    },
+    "priceRevision": { "type": "string", "pattern": "^[A-Za-z0-9._/-]+@[0-9a-f]{64}$" },
+    "policy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "revision", "sha256", "eligibleHat"],
+      "properties": {
+        "path": { "const": "kit/policy/gates.json" },
+        "revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "eligibleHat": { "const": "org-budget-owner" }
+      }
+    },
+    "lineage": {
+      "type": "object", "additionalProperties": false,
+      "required": ["predecessorAuthorizationId", "predecessorRecordDigest", "cumulativeInfrastructureAuthorizedNanoUsd", "cumulativeModelAuthorizedNanoUsd"],
+      "properties": {
+        "predecessorAuthorizationId": { "type": ["string", "null"], "format": "uuid" },
+        "predecessorRecordDigest": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" },
+        "cumulativeInfrastructureAuthorizedNanoUsd": { "$ref": "#/$defs/nanoUsd" },
+        "cumulativeModelAuthorizedNanoUsd": { "$ref": "#/$defs/nanoUsd" }
+      }
+    },
+    "signer": {
+      "type": "object", "additionalProperties": false,
+      "required": ["verifiedSubject", "activeHat", "identityIssuer", "identityEvidenceRef", "sessionId"],
+      "properties": {
+        "verifiedSubject": { "type": "string", "minLength": 1 },
+        "activeHat": { "const": "org-budget-owner" },
+        "identityIssuer": { "type": "string", "format": "uri" },
+        "identityEvidenceRef": { "type": "string", "minLength": 1 },
+        "sessionId": { "type": "string", "minLength": 1 }
+      }
+    },
+    "signature": {
+      "type": "object", "additionalProperties": false,
+      "required": ["algorithm", "keyId", "publicKeyHex", "signedDigest", "valueBase64"],
+      "properties": {
+        "algorithm": { "const": "Ed25519" },
+        "keyId": { "type": "string", "minLength": 1 },
+        "publicKeyHex": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "signedDigest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "valueBase64": { "type": "string", "minLength": 1 }
+      }
+    },
+    "providerProof": {
+      "type": "object", "additionalProperties": false,
+      "required": ["provider", "proofType", "recordId", "authorizationId", "authorizationDigest", "signedDigest", "recordedAt", "proofDigest", "signature"],
+      "properties": {
+        "provider": { "type": "string", "minLength": 1 },
+        "proofType": { "type": "string", "minLength": 1 },
+        "recordId": { "type": "string", "minLength": 1 },
+        "authorizationId": { "type": "string", "format": "uuid" },
+        "authorizationDigest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "signedDigest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "recordedAt": { "type": "string", "format": "date-time" },
+        "proofDigest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "signature": { "$ref": "#/$defs/signature" }
+      }
+    },
+    "effectiveAt": { "type": "string", "format": "date-time" },
+    "expiresAt": { "type": "string", "format": "date-time" },
+    "serverTimestamp": { "type": "string", "format": "date-time" },
+    "status": { "enum": ["active", "revoked", "superseded"] },
+    "revocation": {
+      "type": ["object", "null"],
+      "properties": {
+        "revokedAt": { "type": "string", "format": "date-time" },
+        "revokedByDecisionId": { "type": "string", "format": "uuid" },
+        "reason": { "type": "string", "minLength": 1 }
+      },
+      "required": ["revokedAt", "revokedByDecisionId", "reason"],
+      "additionalProperties": false
+    },
+    "supersession": {
+      "type": ["object", "null"],
+      "properties": {
+        "successorAuthorizationId": { "type": "string", "format": "uuid" },
+        "successorRecordDigest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "supersededAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["successorAuthorizationId", "successorRecordDigest", "supersededAt"],
+      "additionalProperties": false
+    },
+    "revocationTerms": { "type": "string", "minLength": 1 },
+    "restartTerms": { "type": "string", "minLength": 1 },
+    "targetRevision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "predecessorRevision": { "type": ["string", "null"], "pattern": "^[0-9a-f]{40}$" },
+    "digestAlgorithm": { "const": "sha-256" },
+    "canonicalization": { "const": "RFC8785-JCS" },
+    "recordDigest": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "active" } }, "required": ["status"] },
+      "then": { "properties": { "revocation": { "const": null }, "supersession": { "const": null } }, "required": ["revocation", "supersession"] }
+    },
+    {
+      "if": { "properties": { "status": { "const": "revoked" } }, "required": ["status"] },
+      "then": { "properties": { "revocation": { "type": "object" }, "supersession": { "const": null } }, "required": ["revocation", "supersession"] }
+    },
+    {
+      "if": { "properties": { "status": { "const": "superseded" } }, "required": ["status"] },
+      "then": { "properties": { "supersession": { "type": "object" } }, "required": ["revocation", "supersession"] }
+    }
+  ],
+  "x-steer-canonical-integrity": {
+    "preimage": "RFC8785-JCS record with recordDigest, signature, and providerProof omitted",
+    "digest": "lowercase-hex SHA-256 of UTF-8 preimage",
+    "signature": "Ed25519 over the 64 lowercase ASCII hex bytes of recordDigest",
+    "providerProofBinding": "providerProof.recordDigest equals SHA-256(RFC8785-JCS({authorizationId,recordDigest,signedDigest,providerRecordId,recordedAt}))"
+  },
+  "$defs": {
+    "signature": {
+      "type": "object", "additionalProperties": false,
+      "required": ["algorithm", "keyId", "publicKeyHex", "signedDigest", "valueBase64"],
+      "properties": {
+        "algorithm": { "const": "Ed25519" }, "keyId": { "type": "string", "minLength": 1 },
+        "publicKeyHex": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "signedDigest": { "type": "string", "pattern": "^[0-9a-f]{64}$" }, "valueBase64": { "type": "string", "minLength": 1 }
+      }
+    },
+    "nanoUsd": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+    "limitTree": {
+      "type": "object", "additionalProperties": false,
+      "required": ["organization", "tenant", "product", "pod", "execution"],
+      "properties": {
+        "organization": { "$ref": "#/$defs/nanoUsd" },
+        "tenant": { "$ref": "#/$defs/nanoUsd" },
+        "product": { "$ref": "#/$defs/nanoUsd" },
+        "pod": { "$ref": "#/$defs/nanoUsd" },
+        "execution": { "$ref": "#/$defs/nanoUsd" }
+      }
+    }
+  },
+  "x-steer-r3-semantic-checks": ["authorization provider proof is cryptographically verified", "provider proof recordedAt is at or after authorization serverTimestamp and before authorization expiry", "every cost consumer revalidates these complete signed authorization bytes rather than trusting a caller validity flag"]
+}

@@ -1,0 +1,139 @@
+{
+  "version": "steer-round-2-finding-resolution/v6",
+  "status": "candidate-resolution-not-review-disposition",
+  "targetRevision": "9c7299dd658615cd234e8e03188d607ef1a99fe1",
+  "targetExamSha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10",
+  "sourceExceptionBrief": "intent/0001/reviews/domain/round-2/exception-brief.json",
+  "findings": [
+    {
+      "id": "SEC-G2-R2-001",
+      "candidateDisposition": "resolved-by-candidate-pending-exact-revision-review",
+      "artifacts": ["PERMISSIONS-MANIFEST.candidate.json", "CONTROL-ORACLE-FIXTURES.candidate.json", "EXAM-AMENDMENT.candidate.md"],
+      "oracle": "Normal commits use closed path classes and protected-path override; Exam authoring, decision records, and spend records have distinct verified upstream actions. CI allowlisting alone never authorizes authorship."
+    },
+    {
+      "id": "PRIV-G2-R2-001",
+      "candidateDisposition": "resolved-by-candidate-pending-policy-ruling-and-exact-revision-review",
+      "artifacts": ["RETENTION-AND-RECORDS-POLICY.candidate.md", "CONTROL-ORACLE-FIXTURES.candidate.json", "EXAM-AMENDMENT.candidate.md"],
+      "oracle": "Revision-bound provenance, purpose/use authorization, direct/quasi-identifier checks, deterministic linkage and free-text tests, independent inspection, raw-copy receipt, segregated encrypted fixture, and derived-copy lifecycle."
+    },
+    {
+      "id": "ACC-G2-R2-001",
+      "candidateDisposition": "resolved-by-candidate-pending-exact-revision-review",
+      "artifacts": ["schemas/TRUSTED-TESTER-EVIDENCE.schema.json", "CONTROL-ORACLE-FIXTURES.candidate.json", "EXAM-AMENDMENT.candidate.md"],
+      "oracle": "New UI Gate 3 record requires a currently verified DHS Trusted Tester who is assigned to the platform pod, with exact qualification, raw-checkpoint, Exam, and implementation evidence."
+    },
+    {
+      "id": "MONEY-G2-004",
+      "candidateDisposition": "resolved-by-candidate-pending-exact-revision-review",
+      "artifacts": ["schemas/SPEND-AUTHORIZATION.schema.json", "PERMISSIONS-MANIFEST.candidate.json", "CONTROL-ORACLE-FIXTURES.candidate.json", "EXAM-AMENDMENT.candidate.md"],
+      "oracle": "Exact record path/schema, org-budget-owner signer, policy/revision/digest/provider proof, cumulative lineage, compare-and-swap creation, and fail-before-credential negative matrix."
+    },
+    {
+      "id": "MONEY-G2-005",
+      "candidateDisposition": "resolved-by-candidate-pending-exact-revision-review",
+      "artifacts": ["schemas/COST-EVIDENCE.schema.json", "schemas/SPEND-AUTHORIZATION.schema.json", "COST-ORACLE-VECTORS.candidate.json", "EXAM-AMENDMENT.candidate.md"],
+      "oracle": "Path/schema-bound forecast, reservation, usage, invoice, variance, alert, shutdown, revocation, and restart evidence with bidirectional lineage and a high-case pass rule against every authorization scope and the separate Gate 1 ceiling."
+    },
+    {
+      "id": "MONEY-G2-R2-001",
+      "candidateDisposition": "resolved-by-candidate-pending-exact-revision-review",
+      "artifacts": ["COST-ORACLE-VECTORS.candidate.json", "schemas/COST-EVIDENCE.schema.json", "schemas/SPEND-AUTHORIZATION.schema.json", "EXAM-AMENDMENT.candidate.md"],
+      "oracle": "Checked integer nanoUSD throughout authorization/reservation/accrual/aggregation; no IEEE-754 or line rounding; one half-even conversion after provider invoice grouping for display/reconciliation only."
+    },
+    {
+      "id": "LEGAL-G2-R2-001",
+      "candidateDisposition": "resolved-by-candidate-pending-new-qualified-human-policy-ruling-and-exact-revision-review",
+      "artifacts": ["RETENTION-AND-RECORDS-POLICY.candidate.md", "EXAM-AMENDMENT.candidate.md"],
+      "oracle": "Exhaustive fixed classes cover raw working copies, provenance/use authorization, sanitized corpus, baselines, derived text, Git/provider/history/backups, and exports with exact triggers, durations, holds, access, and disposition."
+    },
+    {
+      "id": "REL-G2-R2-001",
+      "candidateDisposition": "resolved-by-candidate-pending-exact-revision-review",
+      "artifacts": ["PROVIDER-APPROVAL-RECOVERY.candidate.md", "CONTROL-ORACLE-FIXTURES.candidate.json", "EXAM-AMENDMENT.candidate.md"],
+      "oracle": "Gate 1 provider-recorded authority is preserved through independent WORM export, gapless cut, zero-decision/proof RPO, 60-minute RTO, stable IDs or one-to-one mapping, complete loss rehearsal, and independent post-recovery verification."
+    },
+    {
+      "id": "IRREV-G2-R2-001",
+      "candidateDisposition": "resolved-by-candidate-pending-exact-revision-review",
+      "artifacts": ["PERMISSIONS-MANIFEST.candidate.json", "RETENTION-AND-RECORDS-POLICY.candidate.md", "CONTROL-ORACLE-FIXTURES.candidate.json", "EXAM-AMENDMENT.candidate.md"],
+      "oracle": "Exhaustive lifecycle delete/crypto-erase/tombstone and expand/backfill/contract permissions bind exact policy, inventory, authorization, version, journal, tenant, backup, retry, and race selectors."
+    }
+  ],
+  "criticFindings": [
+    {"id":"R2R-PF-001","candidateDisposition":"resolved-by-candidate-pending-exact-revision-review","artifacts":["schemas/COST-EVIDENCE.schema.json","CONTROL-ORACLE-FIXTURES.candidate.json","schema-validator.candidate.mjs","validate-remediation.mjs"],"oracle":"Nine closed discriminator-const branches validate one positive and one negative instance each under the package's strict Draft 2020-12 evaluator."},
+    {"id":"R2R-PF-002","candidateDisposition":"resolved-by-candidate-pending-exact-revision-review","artifacts":["schemas/COST-EVIDENCE.schema.json","schemas/SPEND-AUTHORIZATION.schema.json","CONTROL-ORACLE-FIXTURES.candidate.json","EXAM-AMENDMENT.candidate.md","validate-remediation.mjs"],"oracle":"Non-circular target/predecessor revisions plus exact RFC 8785 JCS omission preimages, SHA-256, Ed25519 verification, duplicate-key rejection, canonicalization and tamper fixtures."},
+    {"id":"R2R-PF-003","candidateDisposition":"resolved-by-candidate-pending-exact-revision-review","artifacts":["CONTROL-ORACLE-FIXTURES.candidate.json","COST-ORACLE-VECTORS.candidate.json","schema-validator.candidate.mjs","validate-remediation.mjs"],"oracle":"Structured inputs execute schemas and shared decision/state/race functions; each row asserts exact first error and denied rows assert zero effects; every cost kind is unique and exercised."},
+    {"id":"R2R-PF-004","candidateDisposition":"resolved-by-candidate-pending-exact-revision-review","artifacts":["PERMISSIONS-MANIFEST.candidate.json","CONTROL-ORACLE-FIXTURES.candidate.json","validate-remediation.mjs","EXAM-AMENDMENT.candidate.md"],"oracle":"Protected App, spend, lifecycle and migration actions bind actor, credential, delegation, assignment/decision, target, request, policy, expiry, idempotency and CAS through one decision function with substitution, compromised, retry and race negatives."},
+    {"id":"R2R-PF-005","candidateDisposition":"resolved-by-candidate-pending-new-qualified-human-policy-ruling-and-exact-revision-review","artifacts":["RETENTION-AND-RECORDS-POLICY.candidate.md","PERMISSIONS-MANIFEST.candidate.json","CONTROL-ORACLE-FIXTURES.candidate.json","EXAM-AMENDMENT.candidate.md","validate-remediation.mjs"],"oracle":"A qualified-owner policy grant pre-authorizes deterministic RC-CORPUS-RAW-WORKING erasure only; terminal, 59/60/61-second and missing/stale/inventory-change states are executable."},
+    {"id":"R2R-PF-006","candidateDisposition":"resolved-by-candidate-pending-live-binding-capability-and-exact-revision-review","artifacts":["PROVIDER-APPROVAL-RECOVERY.candidate.md","CONTROL-ORACLE-FIXTURES.candidate.json","EXAM-AMENDMENT.candidate.md","validate-remediation.mjs"],"oracle":"Provider acknowledgment remains authority; export lag blocks gate/release projection; webhook/fetch/provider journal/spool/WORM/cursor reconciliation and every failure cut prohibit acknowledged loss."},
+    {"id":"R2R-PF-007","candidateDisposition":"resolved-by-candidate-pending-future-human-evidence-and-exact-revision-review","artifacts":["schemas/TRUSTED-TESTER-EVIDENCE.schema.json","CONTROL-ORACLE-FIXTURES.candidate.json","schema-validator.candidate.mjs","validate-remediation.mjs","EXAM-AMENDMENT.candidate.md"],"oracle":"Exact ordered five versioned environment families and IDs, exact A01-A81 inventory/results, raw bundle digest, verified qualification and assignment validity/provider proof have executable positive and negative cases."}
+  ],
+  "r2r2Findings": [
+    {"id":"R2R2-PF-001","candidateDisposition":"resolved-by-candidate-pending-fresh-context-review","artifacts":["schemas/PROTECTED-ACTION-REQUEST.schema.json","PERMISSIONS-MANIFEST.candidate.json","semantic-oracles.candidate.mjs","validate-remediation.mjs"],"oracle":"One exported decision consumes strict immutable request bytes plus retrieved signed credential, delegation, and upstream envelopes; exact manifest selector, action, role, currentness, timestamp, retry, fallback, and CAS mutations deny with typed zero effects."},
+    {"id":"R2R2-PF-002","candidateDisposition":"resolved-by-candidate-pending-fresh-context-review","artifacts":["schemas/SPEND-AUTHORIZATION.schema.json","schemas/COST-EVIDENCE.schema.json","semantic-oracles.candidate.mjs","validate-remediation.mjs"],"oracle":"Actual parsed spend and all nine cost record types pass one semantic validator path that recomputes RFC8785 preimages, digests, Ed25519 signatures and provider proof and validates temporal, revision, lineage, price, scope, scenario and cross-record semantics."},
+    {"id":"R2R2-PF-003","candidateDisposition":"resolved-by-candidate-pending-future-human-evidence-and-fresh-context-review","artifacts":["schemas/TRUSTED-TESTER-EVIDENCE.schema.json","semantic-oracles.candidate.mjs","validate-remediation.mjs"],"oracle":"Provider-bound human Ed25519 summary signs the exact Exam, implementation, checkpoint model, qualification, assignment and times; pass iff every applicable checkpoint passes and all 81 raw bundle lines hash and bind."},
+    {"id":"R2R2-PF-004","candidateDisposition":"resolved-by-candidate-pending-new-qualified-human-policy-ruling-and-fresh-context-review","artifacts":["schemas/LIFECYCLE-EVENT.schema.json","schemas/RAW-POLICY-GRANT.schema.json","schemas/DISPOSITION-AUTHORIZATION.schema.json","schemas/COPY-INVENTORY.schema.json","schemas/DISPOSITION-RECEIPT.schema.json","schemas/TOMBSTONE.schema.json","semantic-oracles.candidate.mjs","validate-remediation.mjs"],"oracle":"All sixteen record classes execute at before, exact, and after boundaries under all precedence states using signed grants, exact inventories, receipts and tombstones, plus exact-60, partial, unknown, restored-copy and read-race failures."},
+    {"id":"R2R2-PF-005","candidateDisposition":"resolved-by-candidate-pending-live-binding-capability-and-fresh-context-review","artifacts":["PROVIDER-APPROVAL-RECOVERY.candidate.md","CONTROL-ORACLE-FIXTURES.candidate.json","semantic-oracles.candidate.mjs","validate-remediation.mjs"],"oracle":"All eight cuts and nineteen corruption or retry cases use structured provider journal, webhook, fetch, spool, WORM, cursor, Git, mapping and restored bytes with inventory equality, no gaps, one-to-one mapping, numeric RTO and zero failure effects."}
+  ],
+  "r3Findings": [
+    {"id":"R3-PF-001","candidateDisposition":"resolved-by-candidate-pending-fresh-context-preflight","artifacts":["PERMISSIONS-MANIFEST.candidate.json","semantic-oracles.candidate.mjs","validate-remediation.mjs"],"oracle":"Authoritative signed current CAS-head and replay-ledger snapshots plus one signed atomic reservation determine winner, loser, replay and different-bytes outcomes; coherent caller envelopes alone cannot allow."},
+    {"id":"R3-PF-002","candidateDisposition":"resolved-by-candidate-pending-fresh-context-preflight","artifacts":["schemas/SPEND-AUTHORIZATION.schema.json","schemas/COST-EVIDENCE.schema.json","semantic-oracles.candidate.mjs","validate-remediation.mjs"],"oracle":"Record time is inside fully revalidated authorization; provider proof follows the record and remains in period; every reference is fully signed/validated with exact scope, period, price and transition; BigInt aggregation is bounds checked."},
+    {"id":"R3-PF-003","candidateDisposition":"resolved-by-candidate-pending-future-human-evidence-and-fresh-context-preflight","artifacts":["schemas/TRUSTED-TESTER-EVIDENCE.schema.json","semantic-oracles.candidate.mjs","validate-remediation.mjs"],"oracle":"Each exact raw JSONL line matches checkpoint, environment, applicability and outcome; pass is derived from raw rows; provider proof is cryptographically verified and fully bound."},
+    {"id":"R3-PF-004","candidateDisposition":"resolved-by-candidate-pending-new-qualified-human-policy-ruling-and-fresh-context-preflight","artifacts":["RETENTION-AND-RECORDS-POLICY.candidate.md","schemas/LIFECYCLE-EVENT.schema.json","semantic-oracles.candidate.mjs","validate-remediation.mjs"],"oracle":"Signed trigger history and hash-bound 16-class policy derive exact boundaries; inventory freshness, receipt/tombstone order and protected-action CAS/idempotency are executed."},
+    {"id":"R3-PF-005","candidateDisposition":"resolved-by-candidate-pending-live-binding-and-fresh-context-preflight","artifacts":["PROVIDER-APPROVAL-RECOVERY.candidate.md","semantic-oracles.candidate.mjs","validate-remediation.mjs"],"oracle":"Every cut has distinct reachable source state; recovery uses only available sources and derives inventories from canonical/restored bytes with cursor, exact bytes, mapping, RTO and zero-effect failure proofs."},
+    {"id":"R3-PF-006","candidateDisposition":"deferred-authorized-publication-step-not-a-preflight-defect","artifacts":["EXAM-AMENDMENT.candidate.md"],"oracle":"Next preflight evaluates candidate technical safety/completeness for incorporation. Only afterward may an authorized independent Exam author use the GitHub App protected path to incorporate and freeze a new canonical revision; this correction pass does not edit canonical artifacts."}
+  ],
+  "r4Findings": [
+    {"id":"R4-PF-001","candidateDisposition":"resolved-by-candidate-pending-fresh-context-preflight","artifacts":["PERMISSIONS-MANIFEST.candidate.json","semantic-oracles.candidate.mjs","CONTROL-ORACLE-FIXTURES.candidate.json","validate-remediation.mjs","EXAM-AMENDMENT.candidate.md"],"oracle":"The decision selects the protected and required upstream actions from one exhaustive manifest, rejects absent or duplicated actions, enforces manifest exactPath and exactly one anchored path-class match, and verifies signed downstream credential, upstream credential, independent authority record, delegation, role, selector and provider-permission chains. Coherent wrong-path and missing, unlisted, or wrong-role migration authorization cases deny with typed zero effects."},
+    {"id":"R4-PF-002","candidateDisposition":"resolved-by-candidate-pending-fresh-context-preflight","artifacts":["CONTROL-ORACLE-FIXTURES.candidate.json","COST-ORACLE-VECTORS.candidate.json","semantic-oracles.candidate.mjs","validate-remediation.mjs","EXAM-AMENDMENT.candidate.md"],"oracle":"Every declared case/vector ID and every declared coverage kind is recorded as executed and compared by exact state, first error, and typed effects; final set equality fails on any unexecuted or duplicate ID/kind. Executed coverage includes authorization bytes/paths, spend, sanitized-real controls, 240 lifecycle states and specials, all recovery cuts/cases/corruptions, and every cost/forecast vector."}
+  ],
+  "r5Findings": [
+    {"id":"R5-PF-001","candidateDisposition":"resolved-by-candidate-pending-fresh-context-preflight","artifacts":["PERMISSIONS-MANIFEST.candidate.json","semantic-oracles.candidate.mjs","CONTROL-ORACLE-FIXTURES.candidate.json","validate-remediation.mjs","EXAM-AMENDMENT.candidate.md"],"oracle":"The shared protected-action boundary now requires exactly one immutable match for every selected downstream and upstream provider resource, denies unknown/extra/wildcard/zero/multiple resource policy, enforces strict principal/subject identity, max credential lifetime, idle/one-use policy and mayDelegateTo edges, and byte-binds the complete upstream selector union without absent-field skips. Coherent attacker-repository, 24-hour credential, forbidden-edge, item, Exam-revision, product, pod, active-hat and resource-policy negatives all deny with typed zero effects."}
+  ],
+  "r6Findings": [
+    {"id":"R6-PF-001","candidateDisposition":"resolved-by-candidate-pending-fresh-context-preflight","artifacts":["PERMISSIONS-MANIFEST.candidate.json","schemas/COPY-INVENTORY.schema.json","schemas/DISPOSITION-AUTHORIZATION.schema.json","schemas/DISPOSITION-RECEIPT.schema.json","schemas/TOMBSTONE.schema.json","semantic-oracles.candidate.mjs","CONTROL-ORACLE-FIXTURES.candidate.json","validate-remediation.mjs","EXAM-AMENDMENT.candidate.md"],"oracle":"A lifecycle.delete-copy request now carries tenant/class/target/policy/inventory/provider/copyId/copyProvider/copyKind/objectKey/versionId/keyId. Exactly one current signed inventory row, the signed per-copy disposition authorization, an independently signed provider-resource snapshot, and the provider CAS snapshot must all byte-match before any effect. Receipts and tombstones preserve a one-to-one full tuple, request digest, idempotency key, unique provider receipt digest, and effect mapping. Sixteen coherent substitution, zero/multiple/stale/restored/CAS/retry negatives, including objects/attacker, deny with typed zero effects."}
+  ],
+  "r7Findings": [
+    {"id":"R7-PF-001","candidateDisposition":"resolved-by-candidate-pending-fresh-context-preflight","artifacts":["PERMISSIONS-MANIFEST.candidate.json","schemas/COPY-INVENTORY.schema.json","schemas/DISPOSITION-AUTHORIZATION.schema.json","schemas/RAW-POLICY-GRANT.schema.json","schemas/DISPOSITION-RECEIPT.schema.json","schemas/TOMBSTONE.schema.json","semantic-oracles.candidate.mjs","CONTROL-ORACLE-FIXTURES.candidate.json","validate-remediation.mjs","EXAM-AMENDMENT.candidate.md"],"oracle":"Every canonical ordered present inventory tuple carries one unique authority ID. Exactly one current signed per-copy disposition authorization, or one exact raw per-key policy grant where policy permits, and exactly one unique protected provider request must byte-match the tuple, tenant, class, target, policy, inventory digest, provider resource, CAS scope, authority ID/digest, object/version/kind/key, receipt row and tombstone row. Tuple, authority-ID and immutable-request-digest arrays are ordered and aggregate-hash bound. Two-copy and raw-multikey positives pass; missing, duplicate, reused, extra, mismatch, key-substitution, retry and restored-race cases deny with typed zero effects."}
+  ],
+  "r8Findings": [
+    {"id":"R8-PF-001","candidateDisposition":"resolved-by-candidate-pending-fresh-context-preflight","artifacts":["schemas/PROVIDER-DISPOSITION-RECEIPT.schema.json","schemas/DISPOSITION-RECEIPT.schema.json","schemas/TOMBSTONE.schema.json","semantic-oracles.candidate.mjs","CONTROL-ORACLE-FIXTURES.candidate.json","validate-remediation.mjs","EXAM-AMENDMENT.candidate.md"],"oracle":"Lifecycle completion consumes exactly one immutable provider-signed receipt byte object per canonical present tuple. Each strict record proves stable provider receipt/request/transaction IDs, provider identity and proof, terminal effect, exact tenant/class/policy/target/inventory/authority/copy/object/version/key/request/idempotency binding, and request-before-provider-before-aggregate timing. The oracle derives every provider receipt digest and aggregate row from verified bytes and rejects missing, duplicate, arbitrary, stale, failed, unknown, partial, wrong-proof, wrong-resource, wrong-tenant, wrong-effect, mismatched, or extra evidence with typed zero effects."},
+    {"id":"R8-PF-002","candidateDisposition":"resolved-by-candidate-pending-fresh-context-preflight","artifacts":["PERMISSIONS-MANIFEST.candidate.json","schemas/PROVIDER-DISPOSITION-RECEIPT.schema.json","semantic-oracles.candidate.mjs","CONTROL-ORACLE-FIXTURES.candidate.json","validate-remediation.mjs","EXAM-AMENDMENT.candidate.md"],"oracle":"Lifecycle-specific exact same-key and same-request-byte REPLAY_NOOP reconciles only after the signed authoritative committed ledger, independently verified provider receipts, aggregate receipt, tombstone, and final commit evidence all match. Full replay converges to deleted-tombstoned with zero new lifecycle effect; mixed fresh/replay crash cuts converge without duplicating prior effects. Different bytes, incomplete evidence, conflicting tombstone, in-progress timeout, and lost reservation/race deny deterministically with typed zero effects."}
+  ],
+  "r9Findings": [
+    {"id":"R9-PF-001","candidateDisposition":"resolved-by-candidate-pending-fresh-context-preflight","artifacts":["PROVIDER-KEY-REGISTRY.candidate.json","schemas/PROVIDER-KEY-REGISTRY.schema.json","schemas/PROVIDER-DISPOSITION-RECEIPT.schema.json","PERMISSIONS-MANIFEST.candidate.json","schemas/LIFECYCLE-EVENT.schema.json","schemas/COPY-INVENTORY.schema.json","schemas/DISPOSITION-RECEIPT.schema.json","schemas/TOMBSTONE.schema.json","semantic-oracles.candidate.mjs","CONTROL-ORACLE-FIXTURES.candidate.json","validate-remediation.mjs","EXAM-AMENDMENT.candidate.md"],"oracle":"The immutable manifest hash-binds a provider public-key registry and independently selected provider binding for each provider. Lifecycle context and signed receipt bytes bind the registry digest, binding, provider, account, tenant, proof type, issuer, algorithm and key ID. Verification selects the sole valid non-revoked registry key from the trusted binding and provider timestamp, never from receipt claims, and provider-only fixture private keys are distinct from the local record signer. Distinct-provider and exact rotation-boundary positives pass; local-signer forgery, relabel, cross-provider, unknown, revoked, expired, not-yet-valid, wrong-algorithm/issuer/account/tenant, registry mismatch, proof/preimage tamper and duplicate-transaction cases block with typed zero effects."}
+  ],
+  "humanDependencies": [
+    {
+      "id": "HR-01-R2",
+      "owner": "qualified privacy/legal records owner",
+      "reason": "Retention policy v2 changes the exact policy previously accepted by HR-01; a new ruling over the final digest is required.",
+      "status": "required-after-package-hashes-stabilize",
+      "doesNotAuthorizeDeletionUntilSigned": true
+    },
+    {
+      "id": "HR-02",
+      "owner": "qualified DHS Trusted Tester assigned to the platform pod",
+      "reason": "Future Gate 3 evidence for a regulated technical release; not triggered by this commercial Gate 2 candidate.",
+      "status": "future-not-triggered"
+    },
+    {
+      "id": "LIVE-RECOVERY-BINDING",
+      "owner": "reliability owner",
+      "reason": "A selected provider binding must prove its provider journal/export capability and every-cut rehearsal before release; fixtures do not fabricate that evidence.",
+      "status": "required-before-release-not-gate-two-human-ruling"
+    }
+  ],
+  "boundaries": {
+    "canonicalExamEdited": false,
+    "signatureEdited": false,
+    "gateOneArtifactEdited": false,
+    "implementationEdited": false,
+    "roundTwoEvidenceEdited": false,
+    "commitCreated": false,
+    "pushPerformed": false,
+    "gateTwoSigned": false,
+    "buildReleaseProductionDeletionMigrationSpendAuthorized": false
+  }
+}

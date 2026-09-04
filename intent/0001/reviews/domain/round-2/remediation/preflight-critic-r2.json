@@ -1,0 +1,270 @@
+{
+  "version": "steer-gate-2-round-2-remediation-preflight-critic/v2",
+  "organization": "steer-platform",
+  "item": "0001-flight-deck-foundation",
+  "gate": 2,
+  "reviewer": {
+    "serviceIdentity": "codex-task:/root/gate2_r2_remediation_critic_r2",
+    "agentType": "independent-fresh-context-preflight-critic",
+    "freshContext": true,
+    "builderIndependent": true,
+    "didNotTrustTestAgentSummary": true,
+    "advisoryOnly": true
+  },
+  "reviewedAt": "2026-09-03T23:49:02Z",
+  "target": {
+    "canonicalExamRevision": "9c7299dd658615cd234e8e03188d607ef1a99fe1",
+    "canonicalExamPath": "intent/0001/EXAM.md",
+    "canonicalExamSha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10",
+    "frozenRoundTwoEvidenceCommit": "61b6d8577712d1290639e4c7b33acef9342e1c51",
+    "candidateManifestSha256": "144488a39f069b46c83af2d4126aa28c4f9074b5609fe80c60d0f77700ef49ab",
+    "preservedPreflightCriticR1Sha256": "47a30b436a0bfb9177f1f1877c9b81e2f63a113ae048500fb1c48ad4d73a8014"
+  },
+  "integrityChecks": {
+    "canonicalExamReadFromExactGitObject": true,
+    "canonicalExamWorktreeBytesMatchTargetSha256": true,
+    "gateOneArtifactsMatchAcceptedHashes": true,
+    "roundTwoExceptionBriefAndAllSevenRecordsReviewed": true,
+    "preservedPreflightCriticR1HashMatchesManifest": true,
+    "manifestPathsUnique": true,
+    "manifestExcludesOnlyItself": true,
+    "manifestDigestCyclePresent": false,
+    "allManifestEntriesExistAndMatch": true,
+    "manifestArtifactCount": 34,
+    "fullValidatorExitCode": 0,
+    "fixturesOnlyValidatorExitCode": 0,
+    "validatorReported": "PASS deterministic candidate oracles only; no gate, policy ruling, provider, migration, deletion, release, or spend effect",
+    "validatorPassIsSubstantivelyReliable": false,
+    "adversarialExecutionPerformed": true,
+    "criticRecordExcludedFromManifestSelfHash": true
+  },
+  "decision": {
+    "verdict": "SEND_BACK",
+    "confidence": "high",
+    "originalFindingsResolved": 1,
+    "originalFindingsUnresolved": 8,
+    "r1FindingsResolved": 1,
+    "r1FindingsUnresolved": 6,
+    "newBlockers": 2,
+    "newMajors": 3,
+    "rationale": "The package is hash-consistent and both bundled validator modes exit zero, but adversarial execution disproves the claimed closure. The shared authorization function allows protected provider requests after actor, credential, delegation, assignment, decision, expiry, and upstream-action substitutions because it materializes trusted envelopes and checks only selected booleans. The schemas and generic integrity examples do not validate the canonical digest/signature or temporal and cross-record semantics of supplied monetary records. Trusted Tester evidence can report pass with a failed or incoherent checkpoint and has no summary signature. Lifecycle/privacy and recovery fixtures cover only small boolean subsets of their normative matrices and accept unbound or untested states. Zero blocker/major is therefore not met."
+  },
+  "perFindingDispositions": [
+    {
+      "id": "SEC-G2-R2-001",
+      "domain": "security",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "Adversarial calls to the package's authorizationDecision returned ALLOW with a substituted request actorSubject, substituted credential ID or digest, substituted delegation ID, assignmentCurrent=false, an invalid expiry string, and upstream.action=item.query. The function checks only a sentinel wrong-upstream value and never compares several selectors that the manifest and amendment declare byte-bound."
+    },
+    {
+      "id": "PRIV-G2-R2-001",
+      "domain": "privacy",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "The policy prose is materially expanded, but privacyDecision consumes summary booleans and internally generated passing prompt rows rather than schema-bound provenance, detector output, per-prompt and derivative lineage, use-authorization validity, destination identity, or raw-disposition receipts. The lifecycle harness does not execute most raw-grant validity and copy states named by the policy."
+    },
+    {
+      "id": "ACC-G2-R2-001",
+      "domain": "accessibility",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "The five fixed environments and A01-A81 keys are now present, but the evidence schema has no signature member and does not bind summaryDecision to checkpoint outcomes. An adversarial record with A01 outcome=fail and summaryDecision=pass validates and passes ttSemantic; so does applicability=applicable with outcome=not-applicable."
+    },
+    {
+      "id": "MONEY-G2-004",
+      "domain": "money",
+      "originalSeverity": "blocker",
+      "disposition": "unresolved",
+      "basis": "The schema accepts a spend record whose signature.signedDigest differs from recordDigest and one whose expiresAt precedes effectiveAt. spendDecision does not consume or verify the schema record, signature, provider-proof preimage, policy revision, current/revoked status, predecessor CAS object, or cumulative limit trees. The downstream authorization function also allows missing decision digest and explicitly stale decision state."
+    },
+    {
+      "id": "MONEY-G2-005",
+      "domain": "money",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "The nine Draft 2020-12 oneOf branches are now discriminator-exclusive, but record validity remains disconnected from the claimed semantic oracle. A forecast with low greater than expected and expected greater than high validates, and a cost record with a substituted signedDigest validates. Forecast checks operate on independent booleans rather than the schema record and signed authorization."
+    },
+    {
+      "id": "MONEY-G2-R2-001",
+      "domain": "money",
+      "originalSeverity": "blocker",
+      "disposition": "resolved-by-candidate",
+      "basis": "The amendment defines checked integer nanoUSD, prohibits line rounding, preserves exact accumulation, rounds once half-even at the invoice/presentation boundary, and the validator executes all 19 unique arithmetic, overflow, month, scope, lineage, and separation vector kinds without skipping a kind."
+    },
+    {
+      "id": "LEGAL-G2-R2-001",
+      "domain": "legal",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "Policy v2 enumerates the missing corpus classes and events, but the executable lifecycle suite covers only nine cases and one ordinary record class rather than the required class-by-boundary, hold, reference, copy, restored-backup, read-race, and derived-record matrix. The required qualified privacy/legal records-owner ruling over the final v2 digest is also still absent by design."
+    },
+    {
+      "id": "REL-G2-R2-001",
+      "domain": "reliability",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "The prose preserves provider acknowledgement as authority, but recoveryDecision accepts abstract durability booleans without validating exported records, gapless cursors, inventory, timestamps, tenant, keys, identity, artifacts, policy, mapping, RTO, or retry identity. The fixtures omit named cuts including after-webhook-before-fetch and after-projection and exercise only three corruption/completeness classes from the required matrix."
+    },
+    {
+      "id": "IRREV-G2-R2-001",
+      "domain": "irreversible-operations",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "Actions and provider permissions are enumerated, but authorizationDecision allows lifecycle.delete-copy with no disposition or raw-policy-grant ID/digest and allows migration.expand with no current authorization or verified migration plan. It does not validate exact object/version/key, hold/reference result, copy inventory, migration versions/journal, or provider-unknown state through the manifest-declared bindings."
+    },
+    {
+      "id": "R2R-PF-001",
+      "originalSeverity": "blocker",
+      "disposition": "resolved-by-candidate",
+      "basis": "Each of the nine cost record types has a closed discriminator-const branch and one positive plus one negative schema case; the prior overlapping oneOf defect is removed."
+    },
+    {
+      "id": "R2R-PF-002",
+      "originalSeverity": "blocker",
+      "disposition": "unresolved",
+      "basis": "The prose now gives non-circular target/predecessor semantics and exact RFC 8785 omission preimages, but executable integrity is not applied to incoming spend or cost records. The schemas and validator accept signedDigest/recordDigest mismatch, and the three integrity fixtures sign a generic object rather than tampering each normative record preimage, omitted member, provider-proof binding, or actual stored byte sequence."
+    },
+    {
+      "id": "R2R-PF-003",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "Case rows are structured, but most are still summary booleans materialized into internally trusted state instead of mutations of signed schema records and manifest envelopes. First-error and zero-effect assertions therefore certify the harness's synthetic objects, not the malformed, stale, substituted, retry, race, and provider states claimed by the Exam."
+    },
+    {
+      "id": "R2R-PF-004",
+      "originalSeverity": "blocker",
+      "disposition": "unresolved",
+      "basis": "Direct adversarial execution produced ALLOW and one provider-request effect for substituted actorSubject, credential ID/digest, delegation ID, stale assignment, stale decision, invalid expiry, wrong non-sentinel upstream action, missing decision digest, lifecycle without grant/disposition binding, and migration expand without authorization."
+    },
+    {
+      "id": "R2R-PF-005",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "A pre-authorized raw-working policy grant is now specified, fixing the just-in-time human concept in prose. The executable state machine reduces the grant to rawGrantCurrent and inventoryMatch, omits not-yet-valid, revoked, wrong-class, wrong-policy, wrong-target, hold, reference, credential, signature, and CAS bindings, and lacks a receipt-missing case exactly at the 60-second deadline."
+    },
+    {
+      "id": "R2R-PF-006",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "Provider acknowledgement is correctly retained as authority in the text, but the executable suite does not prove every cut or zero loss. It treats asserted providerJournalDurable=true as RECOVERY_VERIFIED after total provider unavailability without validating that the acknowledged record and proof exist and are canonical, and the required cut and corruption matrix is incomplete."
+    },
+    {
+      "id": "R2R-PF-007",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "Exact ordered environment families and A01-A81 presence are encoded, but qualification and assignment checks remain partial and the claimed signed summary is unsigned. Outcome/applicability and pass-summary coherence are absent, and rawResultsSha256 is checked against the checkpoint reference map rather than a retrieved complete raw-result bundle."
+    }
+  ],
+  "newFindings": [
+    {
+      "id": "R2R2-PF-001",
+      "severity": "blocker",
+      "title": "Protected-action oracle accepts substituted and absent authorization bindings",
+      "affects": ["SEC-G2-R2-001", "MONEY-G2-004", "IRREV-G2-R2-001", "R2R-PF-003", "R2R-PF-004"],
+      "evidence": [
+        "intent/0001/reviews/domain/round-2/remediation/PERMISSIONS-MANIFEST.candidate.json",
+        "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json",
+        "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs"
+      ],
+      "impact": "The same function that is claimed to gate token exchange and provider writes returns ALLOW with invalid actor, credential, delegation, assignment, decision, expiry, upstream action, lifecycle grant, and migration authorization state. Protected authorship, approval, spend, deletion, and migration cannot be treated as fail-closed.",
+      "requiredResolution": "Make the decision function consume a schema-validated immutable request plus retrieved signed upstream envelope and manifest action. Compare every declared selector byte-for-byte, verify credential/delegation/assignment/decision signatures and currentness, require exact action-specific upstream action and role, reject malformed timestamps, and bind lifecycle/migration-specific IDs and evidence. Drive positive, substitution, stale, retry, fallback, and CAS races by mutating those serialized envelopes; assert zero effects before credential or provider access."
+    },
+    {
+      "id": "R2R2-PF-002",
+      "severity": "blocker",
+      "title": "Monetary schemas can validate forged or temporally impossible evidence",
+      "affects": ["MONEY-G2-004", "MONEY-G2-005", "R2R-PF-002", "R2R-PF-003"],
+      "evidence": [
+        "intent/0001/reviews/domain/round-2/remediation/schemas/SPEND-AUTHORIZATION.schema.json",
+        "intent/0001/reviews/domain/round-2/remediation/schemas/COST-EVIDENCE.schema.json",
+        "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs"
+      ],
+      "impact": "Schema validation and the reported integrity pass do not verify actual record preimages or signatures. A mismatched signedDigest validates for both spend and cost records; spend expiry can precede effectiveness; and reversed forecast scenarios validate. The later boolean decisions do not consume these records, so the oracle can authorize or report against invalid evidence.",
+      "requiredResolution": "Add one semantic validator for actual parsed records that recomputes the exact RFC 8785 preimage, recordDigest, Ed25519 signature, provider-proof preimage, revision semantics, temporal ordering, status transition, lineage, scenario ordering, period, price, scope, and cross-record references. Add positive and tamper fixtures for every record type and each omitted/preimage member, and feed only validated records into spend/forecast/authorization decisions."
+    },
+    {
+      "id": "R2R2-PF-003",
+      "severity": "major",
+      "title": "Trusted Tester record can claim a signed pass while containing failing or incoherent checkpoints",
+      "affects": ["ACC-G2-R2-001", "R2R-PF-007"],
+      "evidence": [
+        "intent/0001/reviews/domain/round-2/remediation/schemas/TRUSTED-TESTER-EVIDENCE.schema.json",
+        "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs"
+      ],
+      "impact": "A pass summary with A01=fail validates, applicable plus not-applicable validates, and the purported signed summary contains no signature. Presence of five environments and 81 keys therefore does not prove the required qualified human disposition or complete passing evidence.",
+      "requiredResolution": "Require and verify the human signature and provider binding; enforce applicability/outcome coherence and summaryDecision=pass only when every applicable required checkpoint passes; retrieve and hash the complete raw bundle rather than only its reference map; bind the checkpoint-model digest, exact Exam/implementation, qualification, assignment, review and signing times; add fail, not-applicable, missing raw bytes, digest, signer, expiry, and subject substitutions."
+    },
+    {
+      "id": "R2R2-PF-004",
+      "severity": "major",
+      "title": "Raw-grant and lifecycle tests do not execute the policy's normative state space",
+      "affects": ["PRIV-G2-R2-001", "LEGAL-G2-R2-001", "IRREV-G2-R2-001", "R2R-PF-003", "R2R-PF-005"],
+      "evidence": [
+        "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+        "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json",
+        "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs"
+      ],
+      "impact": "Nine boolean cases cannot establish the exhaustive class, boundary, hold, reference, copy, restored-backup, read-race, and raw-grant contract. The harness does not verify the grant record or exact copy inventory and can issue a lifecycle effect without the manifest-declared authorization bindings.",
+      "requiredResolution": "Define schemas for lifecycle events, raw policy grants, disposition authorizations, inventories, receipts, and tombstones; execute every record class at each required boundary and precedence state; mutate signed grant validity, class, policy, target, inventory, hold/reference, credentials, idempotency and CAS values; include exact 60-second missing-receipt, partial/unknown provider effect, restored-copy, and read-race cases with typed zero-effect ledgers. Obtain HR-01-R2 only after the policy and executable contract stabilize."
+    },
+    {
+      "id": "R2R2-PF-005",
+      "severity": "major",
+      "title": "Recovery fixtures do not prove gapless every-cut zero-loss restoration",
+      "affects": ["REL-G2-R2-001", "R2R-PF-006"],
+      "evidence": [
+        "intent/0001/reviews/domain/round-2/remediation/PROVIDER-APPROVAL-RECOVERY.candidate.md",
+        "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json",
+        "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs"
+      ],
+      "impact": "The validator ignores cut labels and accepts booleans without any decision inventory or bytes. Named cuts and most corrupt/stale/wrong-tenant/key/order/cursor/timestamp/identity/artifact/policy/retry cases are absent, and RTO is not measured. Provider-ack authority is stated correctly but zero-loss is not demonstrated.",
+      "requiredResolution": "Use structured provider journal, webhook, fetch, spool, WORM, cursor, Git-object, mapping and restored-record fixtures. Execute all eight named loss cuts and every required corruption/retry case, compare canonical pre/post inventories and bytes, prove no cursor gap, enforce one-to-one mapping and RTO, and require every provider-acknowledged decision and proof to restore or fail the rehearsal with zero gate/release/destructive effects."
+    }
+  ],
+  "humanDependencies": [
+    {
+      "id": "HR-01-R2",
+      "status": "blocked-on-technical-correction",
+      "owner": "qualified privacy/legal records owner",
+      "disposition": "Do not request a ruling until R2R2-PF-001, R2R2-PF-002, and R2R2-PF-004 are corrected and the final policy path and digest are stable."
+    },
+    {
+      "id": "HR-02",
+      "status": "future-not-triggered",
+      "owner": "qualified DHS Trusted Tester assigned to the platform pod",
+      "disposition": "Still required before a future regulated technical release or pilot activation; this review does not perform or fabricate it."
+    },
+    {
+      "id": "LIVE-RECOVERY-BINDING",
+      "status": "required-before-release",
+      "owner": "reliability owner",
+      "disposition": "Fixtures cannot substitute for a selected provider binding's independent journal/export capability and every-cut rehearsal."
+    }
+  ],
+  "requiredNextState": [
+    "Correct R2R2-PF-001 through R2R2-PF-005 and refresh every affected candidate digest and manifest entry.",
+    "Run the same schema-validated signed envelopes and records through authorization, spend, privacy, lifecycle, accessibility, and recovery decisions; do not materialize trusted state inside the test oracle.",
+    "Preserve the no-spend, no-deletion, no-migration, no-release, no-production, no-Builder, and no-Gate-2-signature boundaries.",
+    "After an authorized Exam author incorporates a corrected stable package into a new canonical Exam revision, obtain HR-01-R2, repeat all seven domain reviews and exception-brief consolidation, run actor-bound Exam CI on the actual author and diff, then obtain a new independent fresh-context Critic review before any human Tech Lead Gate 2 decision."
+  ],
+  "boundaries": {
+    "canonicalExamEdited": false,
+    "candidateArtifactsEdited": false,
+    "priorCriticEdited": false,
+    "gateOneArtifactsEdited": false,
+    "policyEdited": false,
+    "signaturesEdited": false,
+    "implementationEdited": false,
+    "roundTwoReviewRecordsEdited": false,
+    "commitCreated": false,
+    "pushPerformed": false,
+    "gateTwoSigned": false,
+    "builderAuthorized": false,
+    "releaseAuthorized": false,
+    "productionAuthorized": false,
+    "deletionOrMigrationAuthorized": false,
+    "spendingAuthorized": false,
+    "thisRecordOnlyAdvisesOnCandidateAdequacy": true
+  }
+}

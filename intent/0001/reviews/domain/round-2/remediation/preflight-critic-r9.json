@@ -1,0 +1,194 @@
+{
+  "version": "steer-gate-2-round-2-remediation-preflight-critic/v9",
+  "organization": "steer-platform",
+  "item": "0001-flight-deck-foundation",
+  "gate": 2,
+  "reviewedAt": "2026-09-04T04:26:06Z",
+  "reviewer": {
+    "role": "independent-fresh-context-pre-incorporation-critic",
+    "agent": "gate2_r2_remediation_critic_r9",
+    "freshContext": true,
+    "builderIndependent": true,
+    "didNotTrustPriorPassOrTestAgentSummary": true,
+    "didNotTrustBundledValidator": true,
+    "humanSignature": false,
+    "advisoryOnly": true
+  },
+  "reviewScope": "Independent technical pre-incorporation review of the unsigned R8-corrected round-two remediation candidate against the exact canonical target, accepted Gate 1 record, frozen round-two evidence, and preserved Critic records R1 through R8. The review independently verified all 50 manifest hashes and exact canonical Exam bytes, ran full and fixtures-only validators, reproduced every declared R8 provider-receipt and replay case, independently probed one-to-one provider receipt cardinality, order, tuple, provider, version, key, request, idempotency, proof and temporal binding, confirmed exact committed same-byte replay and crash-cut convergence, confirmed the R3 through R7 closures and full matrix execution, and treated authorized App incorporation as a governed next state rather than a pre-incorporation defect.",
+  "target": {
+    "canonicalExamRevision": "9c7299dd658615cd234e8e03188d607ef1a99fe1",
+    "canonicalExamPath": "intent/0001/EXAM.md",
+    "canonicalExamSha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10",
+    "frozenRoundTwoEvidenceCommit": "61b6d8577712d1290639e4c7b33acef9342e1c51",
+    "candidateManifestSha256": "77627bed69ff22a743ebfd1fbe21b77deeb665a1c391e7de1b036f4bbec6e30e",
+    "candidatePermissionsSha256": "c9e060378227b1e9a07bc2cfcd0ab6a2d004293f2e83d5afc31e9a5d935c670f",
+    "candidateSemanticOraclesSha256": "ee4568fc5ecd68b08de58b1ca2c94f0da75861a60a74f0cb002cc70e1579d2c5",
+    "candidateFixturesSha256": "d40458956e4756b815513516d10787b1ea8472654d39d9a113b651b9dddc2951",
+    "candidateAmendmentSha256": "10138a6eac0aad48cb8e2b9b0d6bc3878a9973b6545f9d6955b574bf3f01e23c",
+    "candidateProviderReceiptSchemaSha256": "5b462c256b04e298ccc4b424225ed3d9cbdb5092c17a7a8f726e15d04defb166",
+    "preservedR8CriticSha256": "5008fcbb508a3a69e35e86ec966c0b8bae1ac0fdbb1d08360bc9dae149739d1f"
+  },
+  "integrityChecks": {
+    "canonicalExamExactGitObjectSha256Matches": true,
+    "canonicalExamWorktreeBytesMatchTargetSha256": true,
+    "gateOneArtifactsMatchAcceptedHashes": true,
+    "gateOneProviderRecordedCommercialAuthorityPreserved": true,
+    "gateOneSpendingAuthorized": false,
+    "gateOneInfrastructureCeilingUsdPerMonth": 1000,
+    "modelUsageExcludedFromInfrastructureCeiling": true,
+    "roundTwoTargetBriefAndSevenDomainRecordsInspected": true,
+    "preservedR1ThroughR8CriticRecordsInspectedAndHashMatched": true,
+    "manifestArtifactCount": 50,
+    "manifestPathsUnique": true,
+    "allManifestEntriesExistAndMatch": true,
+    "manifestExcludesItselfToAvoidDigestCycle": true,
+    "fullValidatorExitCode": 0,
+    "fixturesOnlyValidatorExitCode": 0,
+    "validatorReported": "PASS R8 corrected candidate oracles only; next state is fresh-context preflight, not canonicalization",
+    "candidateNormativelyIncorporatedIntoCanonicalExam": false,
+    "nonCanonicalStatusTreatedAsPreflightBlocker": false
+  },
+  "decision": {
+    "verdict": "SEND_BACK",
+    "confidence": "high",
+    "technicalBlockers": 1,
+    "technicalMajors": 0,
+    "r8DeclaredPositiveAndNegativeCasesReproduced": true,
+    "r8ReplayFindingResolvedForDeclaredCases": true,
+    "r8ProviderReceiptFindingFullyResolved": false,
+    "r7FindingResolvedForDeclaredCardinalityAndBindingCases": true,
+    "r6FindingResolved": true,
+    "r5FindingResolved": true,
+    "r4FindingsClosed": true,
+    "r3TechnicalCounterexamplesClosed": true,
+    "rationale": "The 50-file package is hash-consistent, both validator modes pass, every declared matrix row and coverage kind executes, exact committed same-byte replay converges deleted-tombstoned with lifecycle effect zero, crash-cut recovery converges as declared, and provider receipt cardinality, proof corruption, status, time, order, tuple, request, resource, key and aggregate mismatches fail with typed zero effects. One blocker remains: the provider receipt verifier does not establish an independent provider trust domain. Provider receipts are signed with the same embedded private key used by the ordinary local candidate signer, and the provider-specific key ID is rewritten after signing and derived from the receipt's self-asserted provider. An ordinary local signer can therefore mint novel receipts that verify as provider-authentic and drive deleted-tombstoned. Zero technical blocker or major is not met, so the candidate is not ready for authorized incorporation."
+  },
+  "newFindings": [
+    {
+      "id": "R9-PF-001",
+      "severity": "blocker",
+      "title": "Provider receipt signatures are not anchored to an independent provider trust domain",
+      "affects": [
+        "R8-PF-001",
+        "R7-PF-001",
+        "IRREV-G2-R2-001",
+        "PRIV-G2-R2-001",
+        "LEGAL-G2-R2-001"
+      ],
+      "evidence": [
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+          "sha256": "ee4568fc5ecd68b08de58b1ca2c94f0da75861a60a74f0cb002cc70e1579d2c5",
+          "lines": "33-38,40-47,64-78,811,833-845"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/schemas/PROVIDER-DISPOSITION-RECEIPT.schema.json",
+          "sha256": "5b462c256b04e298ccc4b424225ed3d9cbdb5092c17a7a8f726e15d04defb166",
+          "lines": "43-57,60-64"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/EXAM-AMENDMENT.candidate.md",
+          "sha256": "10138a6eac0aad48cb8e2b9b0d6bc3878a9973b6545f9d6955b574bf3f01e23c",
+          "lines": "516-531"
+        }
+      ],
+      "observedCase": {
+        "id": "R9-LIFECYCLE-LOCAL-SIGNER-FORGES-PROVIDER-RECEIPTS",
+        "construction": "Start from the valid two-copy RC-FAILED-RUN fixture. For each provider receipt, replace providerReceiptId, providerRequestId and providerTransactionId with novel values, remove recordDigest and signature, sign the resulting receipt preimage with the exported ordinary local sealRecord signer, and then rewrite only the excluded signature.keyId metadata to provider:<self-asserted-provider>:fixture-ed25519-rfc8032-1. Coherently refresh the aggregate receipt, tombstone and final immutable commit request. No independent provider key or trust-store evidence is used.",
+        "expected": "Block with typed zero effects because a locally generated signature must not be accepted as independent provider proof of a destructive effect.",
+        "observed": "lifecycleDecision returned deleted-tombstoned with firstError null and effects.lifecycle=1 for two novel locally minted provider receipts. The ordinary local signer and provider receipt signer share the same seed, private key and public key; changing the unsigned keyId metadata was sufficient to enter the provider verification path."
+      },
+      "impact": "A lifecycle worker, compromised local evidence signer, or any component holding the candidate-local signing capability can fabricate provider receipt, request and transaction identities and obtain a durable deletion or crypto-erasure tombstone without an independently authenticated provider effect. The R8 fix therefore still cannot distinguish provider evidence from locally manufactured evidence.",
+      "requiredResolution": "Create explicit signer-domain separation. Define a hash-bound provider trust store or independently archived provider-key evidence keyed by exact provider identity and validity interval. Verify each provider receipt against the trusted public key selected from that external binding, not against a publicKeyHex or keyId supplied by or derived only from the receipt. Use provider-specific fixture private keys distinct from every local record signer, keep private keys out of the verifier, and bind provider identity, trust-store entry/version, key ID, proof authority and receipt preimage under the signature. Add executable negatives in which the ordinary local signer, another provider's valid signer, a self-asserted provider/key ID, an untrusted rotated key, and an out-of-validity key sign otherwise coherent receipts; each must block with typed zero effects. Add a positive provider-key rotation case and preserve all current provider receipt, one-to-one and replay cases. Refresh all affected hashes and repeat fresh independent pre-incorporation review."
+    }
+  ],
+  "priorFindingDispositions": {
+    "r3Technical": "closed for the preserved R3 counterexamples; canonical incorporation remains a governed next-state dependency, not a candidate defect",
+    "r4": "closed for exact path, enumerated upstream action, and full declared matrix execution",
+    "r5": "closed for complete resource, credential lifetime, delegation, and upstream authority scope counterexamples",
+    "r6": "closed for exact inventory, authority, provider resource, CAS, receipt, tombstone, stale inventory, restored race, and retry-drift counterexamples",
+    "r7": "closed for declared per-copy and per-key one-to-one cardinality, ordering and binding cases",
+    "r8": [
+      {
+        "id": "R8-PF-001",
+        "disposition": "partially resolved: receipt bytes, exact tuple binding and aggregate derivation are enforced, but provider authenticity remains open as R9-PF-001 because the provider and local signer domains share one key"
+      },
+      {
+        "id": "R8-PF-002",
+        "disposition": "resolved for exact same-key same-bytes replay, crash cuts, different bytes, incomplete evidence, conflicting tombstone and mixed race cases"
+      }
+    ]
+  },
+  "executedReviewEvidence": {
+    "r8DeclaredReproductions": [
+      "Two-copy and raw-multikey provider receipt positives returned deleted-tombstoned with lifecycle effect 1.",
+      "Exact committed same-byte replay and post-tombstone replay returned deleted-tombstoned with lifecycle effect 0.",
+      "Provider-copy and aggregate-receipt crash cuts converged with one remaining lifecycle effect; post-tombstone commit converged with zero lifecycle effect.",
+      "Arbitrary aggregate digest without matching receipt bytes; missing or duplicate receipt; duplicate transaction; invalid proof; extra schema field; stale, failed, unknown or in-progress status; wrong tenant, resource, effect or request; different-byte replay; incomplete evidence; conflicting tombstone; and mixed replay race all blocked with exact typed errors and zero effects."
+    ],
+    "independentOneToOneAndProofResults": [
+      "Swapped provider receipt order, copy tuple substitution, provider substitution, version substitution, key substitution and idempotency substitution all blocked with PROVIDER_RECEIPT_BINDING_MISMATCH and zero effects.",
+      "A provider timestamp after aggregate completion blocked with PROVIDER_RECEIPT_TEMPORAL_INVALID and zero effects; a key ID relabel without a matching proof blocked with PROVIDER_RECEIPT_PROOF_INVALID and zero effects.",
+      "A valid ordinary local sealRecord signature over novel provider receipt, request and transaction IDs was accepted after its excluded keyId metadata was relabeled and downstream evidence coherently refreshed, proving missing signer-domain separation."
+    ],
+    "r3ThroughR7ClosureConfirmation": "Authoritative CAS and replay snapshots, monetary authorization and provider-proof timing, raw Trusted Tester reconciliation, policy-derived lifecycle boundaries, cut-specific recovery inventory and mapping, exact protected paths and declared upstream actions, complete manifest resource and credential-lifetime checks, exact-copy targeting, and per-copy and per-key bijection remain enforced for their stated counterexamples.",
+    "fullMatrixExecution": [
+      "33 schema IDs and 3 integrity IDs executed.",
+      "65 authorization IDs executed.",
+      "7 spend IDs and 9 signed cost-record branches executed.",
+      "15 sanitized-real IDs executed.",
+      "240 lifecycle class-by-boundary-by-precedence states, declared lifecycle cases and specials, 16 R6 negatives, 12 R7 cases, and 25 R8 cases executed.",
+      "8 recovery cuts, 11 recovery cases, and 19 corruption cases executed.",
+      "19 monetary vector kinds and 10 forecast IDs executed.",
+      "The validator compared complete declared ID and coverage-kind sets to executed sets."
+    ]
+  },
+  "requiredNextState": [
+    "Correct R9-PF-001 with an independently anchored provider trust store and signer-domain-separated provider receipt keys, plus local-signer, cross-provider, self-asserted-key, rotation-validity and trust-version executable cases.",
+    "Refresh every affected candidate digest and the remediation manifest, rerun full and fixtures-only validators, and obtain a fresh independent adversarial pre-incorporation review. PASS requires zero technical blocker and major findings.",
+    "Only after a zero-finding pre-incorporation PASS may the authorized independent Exam author incorporate the stable package through the protected GitHub App path and freeze a new canonical Exam revision.",
+    "Then obtain HR-01-R2, seven new exact-revision domain reviews, a zero-open-blocker or major exception brief, actor-bound Exam protection evidence for the actual author and diff, and a final fresh-context Critic review before the human Tech Lead Gate 2 decision.",
+    "Preserve Gate 1: the USD 1000 monthly infrastructure ceiling excludes model usage and is not spending authority. This review authorizes no Builder work, credential exchange, paid resource, deletion, migration, build, release, production, Gate transition, commit, or push."
+  ],
+  "dependenciesNotCandidateDefects": [
+    {
+      "id": "HR-01-R2",
+      "status": "required-after-final-policy-path-digest-and-canonical-revision-stabilize",
+      "owner": "qualified privacy/legal records owner"
+    },
+    {
+      "id": "AUTHORIZED-GITHUB-APP-INCORPORATION",
+      "status": "required-after-zero-technical-blocker-major-preflight",
+      "owner": "authorized independent Exam author"
+    },
+    {
+      "id": "SEVEN-DOMAIN-EXACT-REVISION-REVIEWS",
+      "status": "required-after-canonical-incorporation",
+      "owner": "independent domain reviewers"
+    },
+    {
+      "id": "LIVE-PROVIDER-RECOVERY-EVIDENCE",
+      "status": "required-before-release",
+      "owner": "reliability owner"
+    },
+    {
+      "id": "FUTURE-GATE-3-TRUSTED-TESTER-EVIDENCE",
+      "status": "required-before-applicable-technical-release-or-pilot-activation",
+      "owner": "qualified DHS Trusted Tester assigned to the platform pod"
+    },
+    {
+      "id": "HUMAN-GATE-2-DECISION",
+      "status": "required-after-all-technical-review-and-protection-prerequisites",
+      "owner": "eligible human Tech Lead"
+    }
+  ],
+  "boundaries": {
+    "onlyRepositoryWrite": "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r9.json",
+    "candidateIsUnsignedAndNonCanonical": true,
+    "reviewIsNotGateDecisionOrSignature": true,
+    "canonicalCandidatePriorReviewPolicySignatureOrImplementationFilesEdited": false,
+    "commitOrPushPerformed": false,
+    "credentialProviderSpendDeletionMigrationBuildReleaseOrProductionEffectPerformed": false,
+    "humanApprovalCreatedOrInferred": false
+  }
+}

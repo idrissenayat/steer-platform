@@ -1,0 +1,913 @@
+{
+  "version": "steer-cost-oracle-v1",
+  "status": "deterministic-review-fixtures-only",
+  "arithmetic": {
+    "currency": "USD",
+    "fixedPointUnit": "nanoUSD",
+    "nanoUsdPerUsd": 1000000000,
+    "maximumInteger": 9007199254740991,
+    "implementationRequirement": "checked integer or arbitrary-precision integer only; IEEE-754 arithmetic is prohibited",
+    "operations": "nonnegative checked integer addition and multiplication; reject overflow before reservation or accrual",
+    "reservation": "exact maximum estimated nanoUSD; any nonzero possible cost reserves at least 1 nanoUSD",
+    "accrual": "sum exact nanoUSD by billable idempotency key and every scope before decimal rounding",
+    "invoiceBoundary": "provider invoice line grouping after the UTC calendar month closes",
+    "presentationRounding": "round aggregate nanoUSD to cents exactly once using half-to-even; never feed rounded cents back into authorization, reservation, accrual, aggregation, or budget enforcement"
+  },
+  "prices": {
+    "computeVcpuHourNanoUsd": 100000000,
+    "memoryGibHourNanoUsd": 10000000,
+    "storageGibMonthNanoUsd": 20000000,
+    "egressGibNanoUsd": 50000000,
+    "analyticsPerEventNanoUsd": 1000,
+    "modelInputPerTokenNanoUsd": 2000,
+    "modelCachedInputPerTokenNanoUsd": 1000,
+    "modelOutputPerTokenNanoUsd": 6000,
+    "toolCallNanoUsd": 1000000
+  },
+  "vectors": [
+    {
+      "id": "COST-001",
+      "kind": "repeated-sub-cent",
+      "linesNanoUsd": [
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000,
+        1000
+      ],
+      "expectedAggregateNanoUsd": 10000,
+      "expectedDisplayCents": 0,
+      "expectedOracle": {
+        "state": "PASS",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        },
+        "values": {
+          "aggregateNanoUsd": 10000,
+          "displayCents": 0
+        }
+      }
+    },
+    {
+      "id": "COST-002",
+      "kind": "half-even-down",
+      "linesNanoUsd": [
+        5000000
+      ],
+      "expectedAggregateNanoUsd": 5000000,
+      "expectedDisplayCents": 0,
+      "expectedOracle": {
+        "state": "PASS",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        },
+        "values": {
+          "aggregateNanoUsd": 5000000,
+          "displayCents": 0
+        }
+      }
+    },
+    {
+      "id": "COST-003",
+      "kind": "half-even-up",
+      "linesNanoUsd": [
+        15000000
+      ],
+      "expectedAggregateNanoUsd": 15000000,
+      "expectedDisplayCents": 2,
+      "expectedOracle": {
+        "state": "PASS",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        },
+        "values": {
+          "aggregateNanoUsd": 15000000,
+          "displayCents": 2
+        }
+      }
+    },
+    {
+      "id": "COST-004",
+      "kind": "mixed-class",
+      "linesNanoUsd": [
+        100000000,
+        10000000,
+        20000000,
+        50000000,
+        1000,
+        2000,
+        1000,
+        6000,
+        1000000
+      ],
+      "expectedAggregateNanoUsd": 181010000,
+      "expectedDisplayCents": 18,
+      "expectedOracle": {
+        "state": "PASS",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        },
+        "values": {
+          "aggregateNanoUsd": 181010000,
+          "displayCents": 18
+        }
+      }
+    },
+    {
+      "id": "COST-005",
+      "kind": "nonzero-reservation",
+      "maximumEstimatedNanoUsd": 1,
+      "expectedReservationNanoUsd": 1,
+      "expectedOracle": {
+        "state": "PASS",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        },
+        "values": {
+          "reservationNanoUsd": 1
+        }
+      }
+    },
+    {
+      "id": "COST-006",
+      "kind": "atomic-concurrency",
+      "scopeLimitNanoUsd": 1000000000,
+      "existingNanoUsd": 900000000,
+      "requestsNanoUsd": [
+        60000000,
+        60000000
+      ],
+      "expectedAccepted": 1,
+      "expectedFinalNanoUsd": 960000000,
+      "expectedOracle": {
+        "state": "PASS",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        },
+        "values": {
+          "accepted": 1,
+          "finalNanoUsd": 960000000
+        }
+      }
+    },
+    {
+      "id": "COST-007",
+      "kind": "exact-limit",
+      "scopeLimitNanoUsd": 1000000000,
+      "existingNanoUsd": 999999999,
+      "requestsNanoUsd": [
+        1
+      ],
+      "expectedAccepted": 1,
+      "expectedFinalNanoUsd": 1000000000,
+      "expectedOracle": {
+        "state": "PASS",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        },
+        "values": {
+          "accepted": 1,
+          "finalNanoUsd": 1000000000
+        }
+      }
+    },
+    {
+      "id": "COST-008",
+      "kind": "over-limit",
+      "scopeLimitNanoUsd": 1000000000,
+      "existingNanoUsd": 999999999,
+      "requestsNanoUsd": [
+        2
+      ],
+      "expectedAccepted": 0,
+      "expectedFinalNanoUsd": 999999999,
+      "expectedOracle": {
+        "state": "PASS",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        },
+        "values": {
+          "accepted": 0,
+          "finalNanoUsd": 999999999
+        }
+      }
+    },
+    {
+      "id": "COST-009",
+      "kind": "month-boundary",
+      "periods": [
+        {
+          "month": "2026-08",
+          "amountNanoUsd": 999999999
+        },
+        {
+          "month": "2026-09",
+          "amountNanoUsd": 2
+        }
+      ],
+      "expectedByMonth": {
+        "2026-08": 999999999,
+        "2026-09": 2
+      },
+      "expectedOracle": {
+        "state": "PASS",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        },
+        "values": {
+          "byMonth": {
+            "2026-08": 999999999,
+            "2026-09": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "COST-010",
+      "kind": "infrastructure-ceiling",
+      "ceilingNanoUsd": 1000000000000,
+      "highForecastNanoUsd": 1000000000001,
+      "expected": "FORECAST_EXCEEDS_GATE1_CEILING",
+      "expectedOracle": {
+        "state": "DENY",
+        "firstError": "FORECAST_EXCEEDS_GATE1_CEILING",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        },
+        "values": {}
+      }
+    },
+    {
+      "id": "COST-011",
+      "kind": "authorization-limit",
+      "authorizedNanoUsd": 800000000000,
+      "highForecastNanoUsd": 800000000001,
+      "expected": "FORECAST_EXCEEDS_AUTHORIZATION",
+      "expectedOracle": {
+        "state": "DENY",
+        "firstError": "FORECAST_EXCEEDS_AUTHORIZATION",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        },
+        "values": {}
+      }
+    },
+    {
+      "id": "COST-012",
+      "kind": "model-excluded-from-infrastructure",
+      "infrastructureNanoUsd": 999000000000,
+      "modelNanoUsd": 500000000000,
+      "ceilingNanoUsd": 1000000000000,
+      "expectedInfrastructureDecision": "ALLOW",
+      "expectedModelDecision": "CHECK_SEPARATE_MODEL_LIMIT",
+      "expectedOracle": {
+        "state": "PASS",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        },
+        "values": {
+          "infrastructureDecision": "ALLOW",
+          "modelDecision": "CHECK_SEPARATE_MODEL_LIMIT"
+        }
+      }
+    },
+    {
+      "id": "COST-013",
+      "kind": "checked-overflow",
+      "existingNanoUsd": 9007199254740990,
+      "requestsNanoUsd": [
+        2
+      ],
+      "expected": "COST_ARITHMETIC_OVERFLOW",
+      "expectedOracle": {
+        "state": "DENY",
+        "firstError": "COST_ARITHMETIC_OVERFLOW",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        },
+        "values": {}
+      }
+    },
+    {
+      "id": "COST-014",
+      "kind": "checked-multiplication",
+      "unitPriceNanoUsd": 6000,
+      "units": 17,
+      "expectedAmountNanoUsd": 102000,
+      "expectedOracle": {
+        "state": "PASS",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        },
+        "values": {
+          "amountNanoUsd": 102000
+        }
+      }
+    },
+    {
+      "id": "COST-015",
+      "kind": "checked-multiplication-overflow",
+      "unitPriceNanoUsd": 9007199254740991,
+      "units": 2,
+      "expected": "COST_ARITHMETIC_OVERFLOW",
+      "expectedOracle": {
+        "state": "DENY",
+        "firstError": "COST_ARITHMETIC_OVERFLOW",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        },
+        "values": {}
+      }
+    },
+    {
+      "id": "COST-016",
+      "kind": "all-scope-atomic",
+      "limitsNanoUsd": {
+        "organization": 1000,
+        "tenant": 900,
+        "product": 800,
+        "pod": 700,
+        "execution": 700
+      },
+      "existingNanoUsd": {
+        "organization": 500,
+        "tenant": 500,
+        "product": 500,
+        "pod": 500,
+        "execution": 500
+      },
+      "requestNanoUsd": 150,
+      "expected": "ALLOW",
+      "expectedFinalNanoUsd": {
+        "organization": 650,
+        "tenant": 650,
+        "product": 650,
+        "pod": 650,
+        "execution": 650
+      },
+      "expectedOracle": {
+        "state": "PASS",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        },
+        "values": {
+          "finalNanoUsd": {
+            "organization": 650,
+            "tenant": 650,
+            "product": 650,
+            "pod": 650,
+            "execution": 650
+          }
+        }
+      }
+    },
+    {
+      "id": "COST-017",
+      "kind": "all-scope-atomic-deny",
+      "limitsNanoUsd": {
+        "organization": 1000,
+        "tenant": 900,
+        "product": 800,
+        "pod": 600,
+        "execution": 700
+      },
+      "existingNanoUsd": {
+        "organization": 500,
+        "tenant": 500,
+        "product": 500,
+        "pod": 500,
+        "execution": 500
+      },
+      "requestNanoUsd": 150,
+      "expected": "SCOPE_LIMIT_EXCEEDED:pod",
+      "expectedFinalNanoUsd": {
+        "organization": 500,
+        "tenant": 500,
+        "product": 500,
+        "pod": 500,
+        "execution": 500
+      },
+      "expectedOracle": {
+        "state": "DENY",
+        "firstError": "SCOPE_LIMIT_EXCEEDED:pod",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        },
+        "values": {
+          "finalNanoUsd": {
+            "organization": 500,
+            "tenant": 500,
+            "product": 500,
+            "pod": 500,
+            "execution": 500
+          }
+        }
+      }
+    },
+    {
+      "id": "COST-018",
+      "kind": "lineage-bijection",
+      "ledgerLineIds": [
+        "line-1",
+        "line-2"
+      ],
+      "providerLineIds": [
+        "line-1",
+        "line-2"
+      ],
+      "expected": "RECONCILED",
+      "expectedOracle": {
+        "state": "PASS",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        },
+        "values": {
+          "reconciliation": "RECONCILED"
+        }
+      }
+    },
+    {
+      "id": "COST-019",
+      "kind": "lineage-bijection-missing",
+      "ledgerLineIds": [
+        "line-1",
+        "line-2"
+      ],
+      "providerLineIds": [
+        "line-1"
+      ],
+      "ageHours": 25,
+      "expected": "RECONCILIATION_BLOCKED_AFTER_24H",
+      "expectedOracle": {
+        "state": "DENY",
+        "firstError": "RECONCILIATION_BLOCKED_AFTER_24H",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        },
+        "values": {}
+      }
+    }
+  ],
+  "forecastNegativeCases": [
+    {
+      "id": "FC-001",
+      "input": {
+        "assumptionsComplete": false,
+        "scenarioOrdered": true,
+        "periodMatch": true,
+        "priceCurrent": true,
+        "authorizationCurrent": true,
+        "scopeFit": true,
+        "infrastructureHighNanoUsd": 1,
+        "modelSeparated": true,
+        "treatedAsAuthority": false
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "FORECAST_ASSUMPTION_MISSING",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "FC-002",
+      "input": {
+        "assumptionsComplete": true,
+        "scenarioOrdered": false,
+        "periodMatch": true,
+        "priceCurrent": true,
+        "authorizationCurrent": true,
+        "scopeFit": true,
+        "infrastructureHighNanoUsd": 1,
+        "modelSeparated": true,
+        "treatedAsAuthority": false
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "FORECAST_SCENARIO_ORDER",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "FC-003",
+      "input": {
+        "assumptionsComplete": true,
+        "scenarioOrdered": true,
+        "periodMatch": false,
+        "priceCurrent": true,
+        "authorizationCurrent": true,
+        "scopeFit": true,
+        "infrastructureHighNanoUsd": 1,
+        "modelSeparated": true,
+        "treatedAsAuthority": false
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "FORECAST_PERIOD_MISMATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "FC-004",
+      "input": {
+        "assumptionsComplete": true,
+        "scenarioOrdered": true,
+        "periodMatch": true,
+        "priceCurrent": false,
+        "authorizationCurrent": true,
+        "scopeFit": true,
+        "infrastructureHighNanoUsd": 1,
+        "modelSeparated": true,
+        "treatedAsAuthority": false
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "FORECAST_PRICE_STALE",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "FC-005",
+      "input": {
+        "assumptionsComplete": true,
+        "scenarioOrdered": true,
+        "periodMatch": true,
+        "priceCurrent": true,
+        "authorizationCurrent": false,
+        "scopeFit": true,
+        "infrastructureHighNanoUsd": 1,
+        "modelSeparated": true,
+        "treatedAsAuthority": false
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "FORECAST_AUTHORIZATION_STALE",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "FC-006",
+      "input": {
+        "assumptionsComplete": true,
+        "scenarioOrdered": true,
+        "periodMatch": true,
+        "priceCurrent": true,
+        "authorizationCurrent": true,
+        "scopeFit": false,
+        "infrastructureHighNanoUsd": 1,
+        "modelSeparated": true,
+        "treatedAsAuthority": false
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "FORECAST_SCOPE_EXCEEDED",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "FC-007",
+      "input": {
+        "assumptionsComplete": true,
+        "scenarioOrdered": true,
+        "periodMatch": true,
+        "priceCurrent": true,
+        "authorizationCurrent": true,
+        "scopeFit": true,
+        "infrastructureHighNanoUsd": 1000000000001,
+        "modelSeparated": true,
+        "treatedAsAuthority": false
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "FORECAST_EXCEEDS_GATE1_CEILING",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "FC-008",
+      "input": {
+        "assumptionsComplete": true,
+        "scenarioOrdered": true,
+        "periodMatch": true,
+        "priceCurrent": true,
+        "authorizationCurrent": true,
+        "scopeFit": true,
+        "infrastructureHighNanoUsd": 1,
+        "modelSeparated": false,
+        "treatedAsAuthority": false
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "FORECAST_MODEL_NOT_SEPARATE",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "FC-009",
+      "input": {
+        "assumptionsComplete": true,
+        "scenarioOrdered": true,
+        "periodMatch": true,
+        "priceCurrent": true,
+        "authorizationCurrent": true,
+        "scopeFit": true,
+        "infrastructureHighNanoUsd": 1,
+        "modelSeparated": true,
+        "treatedAsAuthority": true
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "FORECAST_IS_NOT_AUTHORITY",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "FC-010",
+      "input": {
+        "assumptionsComplete": true,
+        "scenarioOrdered": true,
+        "periodMatch": true,
+        "priceCurrent": true,
+        "authorizationCurrent": true,
+        "scopeFit": true,
+        "infrastructureHighNanoUsd": 1,
+        "modelSeparated": true,
+        "treatedAsAuthority": false
+      },
+      "expected": {
+        "decision": "ALLOW",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    }
+  ]
+}

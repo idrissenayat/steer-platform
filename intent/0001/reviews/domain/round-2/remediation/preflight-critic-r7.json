@@ -1,0 +1,242 @@
+{
+  "version": "steer-gate-2-round-2-remediation-preflight-critic/v7",
+  "organization": "steer-platform",
+  "item": "0001-flight-deck-foundation",
+  "gate": 2,
+  "reviewedAt": "2026-09-04T03:13:45Z",
+  "reviewer": {
+    "role": "independent-fresh-context-pre-incorporation-critic",
+    "agent": "gate2_r2_remediation_critic_r7",
+    "freshContext": true,
+    "builderIndependent": true,
+    "didNotTrustPriorPassOrTestAgentSummary": true,
+    "humanSignature": false,
+    "advisoryOnly": true
+  },
+  "reviewScope": "Independent technical pre-incorporation review of the unsigned R6-corrected round-two remediation candidate against the exact canonical target, accepted Gate 1 record, frozen round-two evidence, and preserved Critic records R1 through R6. The review independently verified all 47 manifest hashes, ran both validator modes, reproduced the R6 lifecycle.delete-copy exact-copy negative matrix, confirmed the R5 resource, credential-lifetime, delegation and upstream-scope closures, confirmed full R4 matrix execution, checked that the R3 technical counterexamples remain closed, and tested one-to-one lifecycle bindings across immutable request, signed authority, provider resource, inventory, receipt and tombstone. The candidate was not required to be canonical at this pre-incorporation stage.",
+  "target": {
+    "canonicalExamRevision": "9c7299dd658615cd234e8e03188d607ef1a99fe1",
+    "canonicalExamPath": "intent/0001/EXAM.md",
+    "canonicalExamSha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10",
+    "frozenRoundTwoEvidenceCommit": "61b6d8577712d1290639e4c7b33acef9342e1c51",
+    "candidateManifestSha256": "60c2f71d10295dae1558843b7e06ee9799a43990031a40780f191bd7e3b30f71",
+    "candidatePermissionsSha256": "d84e1139906488d552a7872f0f5a7d6c8cbdd3ac70b178eadf67068e11c09aba",
+    "candidateSemanticOraclesSha256": "99a428fc1a13ee5db1ecea53260c0e1638c0bab07480c28253ca2b86a96b7437",
+    "candidateFixturesSha256": "95ac122d049215ac8ab8b7f716d3cee7a7aabdd3d4562be8462dd99c6bdc27da",
+    "candidateAmendmentSha256": "5677c719e6731323f384a85678b95c38ce2f7d211bd44e358b7a024cdef3f4f3",
+    "preservedCriticHashes": {
+      "r1": "47a30b436a0bfb9177f1f1877c9b81e2f63a113ae048500fb1c48ad4d73a8014",
+      "r2": "f5d75d7b6fb0b576e6707aa2d09745aeecf08af4d6e17eb8f03fe8e6420c492b",
+      "r3": "51c8b8006886e9bf1ba681f50ae4c064c052f0d3d5d618677a03b75578dd66f1",
+      "r4": "84aaf346d2e9ef9768b935ce1ea4657eb69c10a1ef072c0ce18649610708fde0",
+      "r5": "be664f33048162479fed470006f5fd85eb17b38e852e18a9e7744d8bcf097593",
+      "r6": "a63d41c46f5dbb3873bf56ec80bbfc2cb0c589599a3efc2b6a25af3aa593b91d"
+    }
+  },
+  "integrityChecks": {
+    "canonicalExamExactGitObjectSha256Matches": true,
+    "canonicalExamWorktreeBytesMatchTargetSha256": true,
+    "gateOneArtifactsMatchAcceptedHashes": true,
+    "gateOneProviderRecordedCommercialAuthorityPreserved": true,
+    "gateOneSpendingAuthorized": false,
+    "gateOneInfrastructureCeilingUsdPerMonth": 1000,
+    "modelUsageExcludedFromInfrastructureCeiling": true,
+    "roundTwoTargetBriefAndSevenDomainRecordsInspected": true,
+    "preservedR1ThroughR6CriticRecordsInspectedAndHashMatched": true,
+    "manifestArtifactCount": 47,
+    "manifestPathsUnique": true,
+    "allManifestEntriesExistAndMatch": true,
+    "manifestExcludesItselfToAvoidDigestCycle": true,
+    "fullValidatorExitCode": 0,
+    "fixturesOnlyValidatorExitCode": 0,
+    "validatorReported": "PASS R6 corrected candidate oracles only; next state is fresh-context preflight, not canonicalization",
+    "candidateNormativelyIncorporatedIntoCanonicalExam": false,
+    "nonCanonicalStatusTreatedAsPreflightBlocker": false
+  },
+  "decision": {
+    "verdict": "SEND_BACK",
+    "confidence": "high",
+    "technicalBlockers": 1,
+    "technicalMajors": 0,
+    "r6ExactCopyFindingResolvedForDeclaredDeleteCopyCases": true,
+    "r5FindingResolved": true,
+    "r4FindingsClosed": true,
+    "r3TechnicalCounterexamplesClosed": true,
+    "rationale": "The 47-file package is hash-consistent, both validator modes pass, all declared R6 lifecycle.delete-copy negative cases deny with typed zero effects, the R5 resource/lifetime/delegation/upstream-scope cases remain closed, the R4 matrices execute fully, and the R3 technical counterexamples remain closed. One lifecycle data-integrity blocker remains. A multi-copy disposition can reach deleted-tombstoned after one exact provider request when receipt and tombstone rows reuse that request digest for two inventory entries. Separately, raw crypto-erasure can reach deleted-tombstoned when the immutable provider request names a key identifier different from the signed inventory and policy-grant key while the receipt and tombstone claim disposition of the inventoried key. The required one-to-one binding across signed authority, exact provider request, inventory, receipt and tombstone is therefore incomplete. Zero technical blocker/major is not met, so the candidate is not ready for authorized incorporation."
+  },
+  "newFindings": [
+    {
+      "id": "R7-PF-001",
+      "severity": "blocker",
+      "title": "Lifecycle disposition is not one-to-one across every present copy and raw erasure key",
+      "affects": [
+        "IRREV-G2-R2-001",
+        "PRIV-G2-R2-001",
+        "LEGAL-G2-R2-001",
+        "R2R-PF-004",
+        "R2R2-PF-001",
+        "R6-PF-001"
+      ],
+      "evidence": [
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+          "sha256": "99a428fc1a13ee5db1ecea53260c0e1638c0bab07480c28253ca2b86a96b7437",
+          "lines": "662-749"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/PERMISSIONS-MANIFEST.candidate.json",
+          "sha256": "d84e1139906488d552a7872f0f5a7d6c8cbdd3ac70b178eadf67068e11c09aba"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json",
+          "sha256": "95ac122d049215ac8ab8b7f716d3cee7a7aabdd3d4562be8462dd99c6bdc27da"
+        }
+      ],
+      "observedCases": [
+        {
+          "id": "R7-LIFECYCLE-MULTI-COPY-ONE-REQUEST",
+          "construction": "Use a current signed RC-FAILED-RUN inventory containing two distinct present copy entries. Retain the signed exact-copy authorization and one lifecycle.delete-copy request for the first copy. Supply schema-valid signed receipt and tombstone rows for both copies, with both rows referring to the first request digest and idempotency key, and preserve current provider-resource, CAS and retry records.",
+          "expected": "Block with typed zero effects because each present inventory copy must have its own independently authorized exact provider request and unique one-to-one request binding.",
+          "observed": "lifecycleDecision returned deleted-tombstoned with firstError null and effects.lifecycle=1 although the inventory contained two present copies and only one lifecycle.delete-copy request was evaluated."
+        },
+        {
+          "id": "R7-LIFECYCLE-RAW-KEY-MISMATCH",
+          "construction": "Use the current signed RC-CORPUS-RAW-WORKING inventory and policy grant for key-1. Build the immutable lifecycle.crypto-erase request, signed upstream mirror, provider-resource snapshot and CAS snapshot for a different key identifier. Supply schema-valid signed receipt and tombstone records that claim key-1 was erased and reference the request digest.",
+          "expected": "Block with typed zero effects because the exact requested key identifier must byte-match the signed inventory and qualified policy-grant scope before any lifecycle effect.",
+          "observed": "lifecycleDecision returned deleted-tombstoned with firstError null and effects.lifecycle=1 while the request key identifier differed from the signed inventory key."
+        }
+      ],
+      "impact": "Receipt and tombstone assertions can stand in for missing or differently scoped destructive provider requests. The oracle therefore does not prove that every present copy or raw erasure key was independently authorized and acted upon exactly once before lifecycle completion.",
+      "requiredResolution": "Require one signed authorization and one exact provider request per present copy or erasure key. Each request must byte-bind tenant, class, target, policy, current inventory or policy grant, copyId, provider, copy kind, object key, version and key identifier as applicable. Require a bijection between present inventory entries, signed per-copy or per-key authorities, provider-resource and CAS snapshots, immutable request digests, provider receipts and tombstone dispositions: no request digest or idempotency key may satisfy two distinct inventory entries, and no receipt or tombstone row may identify a resource different from its request. For raw crypto-erasure, bind the exact key identifier in the qualified signed policy grant or a separately signed per-key authority and compare it to the inventory and request before effect. Replace the fixed two-action lifecycle assumption with a cardinality check that executes exactly one authorized provider action for every present entry plus the final tombstone action. Add positive two-copy and multi-key cases and coherent zero-effect negatives for missing, duplicate, substituted, stale, restored and retry/race bindings. Refresh all affected hashes and repeat fresh independent pre-incorporation review."
+    }
+  ],
+  "priorFindingDispositions": {
+    "r3Technical": [
+      {
+        "id": "R3-PF-001",
+        "disposition": "resolved-for-stated-CAS-and-replay-counterexample"
+      },
+      {
+        "id": "R3-PF-002",
+        "disposition": "resolved-for-stated-monetary-temporal-counterexample"
+      },
+      {
+        "id": "R3-PF-003",
+        "disposition": "resolved-for-stated-trusted-tester-contradiction"
+      },
+      {
+        "id": "R3-PF-004",
+        "disposition": "resolved-for-stated-policy-boundary-counterexample"
+      },
+      {
+        "id": "R3-PF-005",
+        "disposition": "resolved-for-stated-recovery-inventory-counterexample"
+      },
+      {
+        "id": "R3-PF-006",
+        "disposition": "not-a-pre-incorporation-defect; canonical incorporation remains a governed next-state dependency"
+      }
+    ],
+    "r4": [
+      {
+        "id": "R4-PF-001",
+        "disposition": "resolved-for-exact-path-and-listed-upstream-action-counterexamples"
+      },
+      {
+        "id": "R4-PF-002",
+        "disposition": "resolved-for-full-declared-row-and-coverage-kind execution"
+      }
+    ],
+    "r5": [
+      {
+        "id": "R5-PF-001",
+        "disposition": "resolved-for-stated-resource-lifetime-delegation-and-upstream-scope-counterexamples"
+      }
+    ],
+    "r6": [
+      {
+        "id": "R6-PF-001",
+        "disposition": "resolved for the declared single-copy lifecycle.delete-copy substitutions, zero/multiple exact match, stale inventory, receipt/tombstone mismatch, restored-copy and retry/CAS cases; broader one-to-one multi-copy and raw-key binding remains open as R7-PF-001"
+      }
+    ]
+  },
+  "executedReviewEvidence": {
+    "r6DeleteCopyReproductions": [
+      "Coherently resealed uninventoried object and wrong version/provider/copy-kind requests denied LIFECYCLE_COPY_ZERO_MATCH with typed zero effects.",
+      "Cross-tenant, wrong class, target, policy and inventory bindings denied LIFECYCLE_COPY_REQUEST_BINDING_MISMATCH with typed zero effects.",
+      "Provider-resource and CAS substitutions denied PROVIDER_RESOURCE_SNAPSHOT_MISMATCH and AUTHORITATIVE_CAS_SCOPE_MISMATCH with typed zero effects.",
+      "Stale and multiple-match inventories denied LIFECYCLE_INVENTORY_NOT_CURRENT and LIFECYCLE_COPY_MULTIPLE_MATCH with typed zero effects.",
+      "The declared restored-copy race and retry drift denied RECEIPT_BINDING_MISMATCH and IDEMPOTENCY_KEY_REUSED_DIFFERENT_BYTES with typed zero effects.",
+      "Wrong receipt and tombstone tuples are covered by exact inventory-to-receipt and receipt-to-tombstone comparisons, but the new cases show that a coherently matching receipt/tombstone set can still outnumber or differ in scope from executed provider requests."
+    ],
+    "r5ScopeConfirmation": {
+      "providerResource": "Attacker repository, wildcard, zero-match, multiple-match and unknown provider-resource cases deny with the typed resource error and zero effects.",
+      "credentialLifetime": "Over-limit and stale credential cases traverse the same strict currentness, maximum-lifetime, idle and one-use checks and deny with zero effects.",
+      "delegation": "Issuer/recipient subjects, principals, credential IDs/digests, containment window and mayDelegateTo edge are checked; forbidden or substituted delegation cases deny with zero effects.",
+      "upstreamAuthorityScope": "Item, Exam revision, product, pod and active-hat substitutions deny AUTHORITY_SELECTOR_MISMATCH with zero effects."
+    },
+    "r4FullMatrixExecution": [
+      "33 schema IDs and 3 integrity IDs executed.",
+      "65 authorization IDs executed, including exact path/class, listed upstream action, byte mutations and R5 scope cases.",
+      "7 spend IDs and 9 signed cost-record branches executed.",
+      "15 sanitized-real IDs executed.",
+      "240 lifecycle class-by-boundary-by-precedence states, declared lifecycle cases and specials, and 16 R6 exact-copy negatives executed.",
+      "8 recovery cuts, 11 recovery cases and 19 corruption cases executed.",
+      "19 monetary vector kinds and 10 forecast IDs executed.",
+      "The validator compares the complete declared ID and coverage-kind sets to the executed sets."
+    ],
+    "r3ClosureConfirmation": "Authoritative CAS/replay snapshots, monetary authorization and provider-proof timing, raw Trusted Tester reconciliation, policy-derived lifecycle boundaries and cut-specific recovery inventory/mapping checks remain enforced by the shared validators. The original R3 technical counterexamples did not reopen.",
+    "newOneToOneResults": [
+      "A schema-valid two-copy inventory plus one delete request and two receipt/tombstone rows returned deleted-tombstoned with lifecycle=1.",
+      "A raw crypto-erasure request naming a different key than the signed inventory and policy grant returned deleted-tombstoned with lifecycle=1."
+    ]
+  },
+  "requiredNextState": [
+    "Correct R7-PF-001 with exact one-authorization/one-provider-request/one-receipt/one-tombstone-disposition binding for every present inventory copy or erasure key; refresh every affected candidate digest and the remediation manifest.",
+    "Rerun full and fixtures-only validators and a fresh independent adversarial pre-incorporation review. PASS requires zero technical blocker and major findings.",
+    "Only after a zero-finding pre-incorporation PASS may the authorized independent Exam author incorporate the stable package through the protected GitHub App path and freeze a new canonical Exam revision.",
+    "Then obtain HR-01-R2, seven new exact-revision domain reviews, a zero-open-blocker/major exception brief, actor-bound Exam protection evidence for the actual author and diff, and a final fresh-context Critic review before the human Tech Lead Gate 2 decision.",
+    "Preserve Gate 1: the USD 1000 monthly infrastructure ceiling excludes model usage and is not spending authority. This review authorizes no Builder work, credential exchange, paid resource, deletion, migration, build, release, production, Gate transition, commit or push."
+  ],
+  "dependenciesNotCandidateDefects": [
+    {
+      "id": "HR-01-R2",
+      "status": "required-after-final-policy-path-digest-and-canonical-revision-stabilize",
+      "owner": "qualified privacy/legal records owner"
+    },
+    {
+      "id": "AUTHORIZED-GITHUB-APP-INCORPORATION",
+      "status": "required-after-zero-technical-blocker-major-preflight",
+      "owner": "authorized independent Exam author"
+    },
+    {
+      "id": "SEVEN-DOMAIN-EXACT-REVISION-REVIEWS",
+      "status": "required-after-canonical-incorporation",
+      "owner": "independent domain reviewers"
+    },
+    {
+      "id": "LIVE-PROVIDER-RECOVERY-EVIDENCE",
+      "status": "required-before-release",
+      "owner": "reliability owner"
+    },
+    {
+      "id": "FUTURE-GATE-3-TRUSTED-TESTER-EVIDENCE",
+      "status": "required-before-applicable-technical-release-or-pilot-activation",
+      "owner": "qualified DHS Trusted Tester assigned to the platform pod"
+    },
+    {
+      "id": "HUMAN-GATE-2-DECISION",
+      "status": "required-after-all-technical-review-and-protection-prerequisites",
+      "owner": "eligible human Tech Lead"
+    }
+  ],
+  "boundaries": {
+    "onlyRepositoryWrite": "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r7.json",
+    "candidateIsUnsignedAndNonCanonical": true,
+    "reviewIsNotGateDecisionOrSignature": true,
+    "canonicalCandidatePriorReviewPolicySignatureOrImplementationFilesEdited": false,
+    "commitOrPushPerformed": false,
+    "credentialProviderSpendDeletionMigrationBuildReleaseOrProductionEffectPerformed": false,
+    "humanApprovalCreatedOrInferred": false
+  }
+}

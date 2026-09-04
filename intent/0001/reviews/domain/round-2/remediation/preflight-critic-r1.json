@@ -1,0 +1,254 @@
+{
+  "version": "steer-gate-2-round-2-remediation-preflight-critic/v1",
+  "organization": "steer-platform",
+  "item": "0001-flight-deck-foundation",
+  "gate": 2,
+  "reviewedAt": "2026-09-03T23:17:00Z",
+  "reviewer": {
+    "serviceIdentity": "codex-task:/root/gate2_r2_remediation_critic_r1",
+    "agentType": "independent-fresh-context-preflight-critic",
+    "freshContext": true,
+    "builderIndependent": true,
+    "didNotTrustTestAgentSummary": true,
+    "advisoryOnly": true
+  },
+  "target": {
+    "canonicalExamRevision": "9c7299dd658615cd234e8e03188d607ef1a99fe1",
+    "canonicalExamPath": "intent/0001/EXAM.md",
+    "canonicalExamSha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10",
+    "frozenRoundTwoEvidenceCommit": "61b6d8577712d1290639e4c7b33acef9342e1c51",
+    "candidateManifestSha256": "54e2037bebd6da3cb551811f67491bdfe169e58ffc66b3ed7683e175d492e778"
+  },
+  "reviewedArtifactHashes": [
+    {"path":"intent/0001/EXAM.md","sha256":"91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10"},
+    {"path":"intent/0001/BRIEF.md","sha256":"a5af593397de0722666baefae846b31881c6429c9691bec886f4a0771a8bc97f"},
+    {"path":"intent/0001/SPEC.md","sha256":"7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"},
+    {"path":"intent/0001/ARCHITECTURE.md","sha256":"9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"},
+    {"path":"intent/0001/PLAN.md","sha256":"92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"},
+    {"path":"intent/0001/signatures/gate-1.json","sha256":"63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"},
+    {"path":"intent/0001/sources/EXAM.supplied.md","sha256":"5823ddb26d0acbc78b7b58d931d76adfe064adeba84b9cf81fad2557d528eb7b"},
+    {"path":"kit/policy/gates.json","sha256":"68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56"},
+    {"path":"intent/0001/reviews/domain/remediation/human-rulings/hr-01.json","sha256":"ab24437ac426e1da759d6163afab0e1467bc9e19809a57e83566cc89cbd73074"},
+    {"path":"intent/0001/reviews/domain/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md","sha256":"271d4fa1ee2682f06e504e615cc9e8588ea34ff3ff7d5e2c27f245f80509c96c"},
+    {"path":"intent/0001/reviews/domain/remediation/PERMISSIONS-MANIFEST.candidate.json","sha256":"46a483533cb1153b0391a9463ca6c3848862ed3bf43b9c7e861077860175bf73"},
+    {"path":"intent/0001/reviews/domain/remediation/SIGNED-LOG-SPEC.candidate.md","sha256":"ece4df65505ed563137d6e4797cbe8977a6ef3cfd3be05dd6ef62da9a15ecbbe"},
+    {"path":"intent/0001/reviews/domain/remediation/SIGNED-LOG-VECTORS.candidate.json","sha256":"1a03cdc28b353036ff612f1d8c93bd3f832e3b1adbc7f77a29a13dbc47a7a168"},
+    {"path":"intent/0001/reviews/domain/remediation/preflight-critic-r6.json","sha256":"a1a519d5c237603c775736a50403d143726e4a22e65e8da847d85799b4ea3830"},
+    {"path":"intent/0001/reviews/domain/round-2/README.md","sha256":"b064d28971ec422a5c446762950a6e0f917abb036d159dd65e2ed58e501cad26"},
+    {"path":"intent/0001/reviews/domain/round-2/review-target.json","sha256":"ff75216bfd77b8528c52068f17988f292f30dbd2604c63408596f8e1c30a922a"},
+    {"path":"intent/0001/reviews/domain/round-2/exception-brief.json","sha256":"7e6753e00e799a0d64820eeb43cdb0f79951e5072c242b62ef7694617e414adc"},
+    {"path":"intent/0001/reviews/domain/round-2/exception-brief.md","sha256":"ff7f6ab6cbe49ac809b34c92685a365ed44a77b177435cfa931b847595a65565"},
+    {"path":"intent/0001/reviews/domain/round-2/records/accessibility.json","sha256":"2563b85093061087f25f9ff9da6cce87cc0e9b4faa4b7c761a5bc4f930e26265"},
+    {"path":"intent/0001/reviews/domain/round-2/records/irreversible-operations.json","sha256":"1d4ef82ee7091274534178999b65dbc15cdb4e984f9dd3bc25dd2eb988ad2c27"},
+    {"path":"intent/0001/reviews/domain/round-2/records/legal.json","sha256":"413810d772289a83fe97847eebcf99020a1e70c83b7f15c42985f4c070886704"},
+    {"path":"intent/0001/reviews/domain/round-2/records/money.json","sha256":"8f08168f27b6bc532643b6af553b97aee8e704b04456f7627e53ab1fedec4eef"},
+    {"path":"intent/0001/reviews/domain/round-2/records/privacy.json","sha256":"7d58bf715ab7cc8aef4cffd81912471522402d746f2aaa0f498377cee9f2c8f5"},
+    {"path":"intent/0001/reviews/domain/round-2/records/reliability.json","sha256":"15306e36e10cb17142b45a8618ac0763904d8770e82c0271db815d4258b004d9"},
+    {"path":"intent/0001/reviews/domain/round-2/records/security.json","sha256":"b8ac0f7be99d9e85bb471b43ea96e376a8367a4fea5b450faf237effbe4b0b07"},
+    {"path":"intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json","sha256":"121e40b6b62cd0e04d1cd94593ca559a889655a4f0c6ae409d9954d3e8b29125"},
+    {"path":"intent/0001/reviews/domain/round-2/remediation/COST-ORACLE-VECTORS.candidate.json","sha256":"ae61f5765ca06af4cca5f0d3b14620c145f7374699df9c3b01f4a3cbaffcb15b"},
+    {"path":"intent/0001/reviews/domain/round-2/remediation/EXAM-AMENDMENT.candidate.md","sha256":"47a024842b1b527e4bb8b2c7e30ebca4d20b4f2a47850da1d0bb6f632bca8ddd"},
+    {"path":"intent/0001/reviews/domain/round-2/remediation/PERMISSIONS-MANIFEST.candidate.json","sha256":"5c0bba751a14404452b89a94f85a4a912715b0f2acab61001ebbdc5500895859"},
+    {"path":"intent/0001/reviews/domain/round-2/remediation/PROVIDER-APPROVAL-RECOVERY.candidate.md","sha256":"046e547cc4b26311bb09328dd1b0af575fe88b04e7afc41f611117d7d2d654fc"},
+    {"path":"intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md","sha256":"6abeaf803eb1e8511a43a0aba9e575b773b1c68ea327a77f9bcb098b0cb41fa6"},
+    {"path":"intent/0001/reviews/domain/round-2/remediation/finding-resolution.json","sha256":"aa6dcced07a51884e8b4ca17cdb50456afb112e205ab4c08969363b4ad46ae61"},
+    {"path":"intent/0001/reviews/domain/round-2/remediation/remediation-manifest.json","sha256":"54e2037bebd6da3cb551811f67491bdfe169e58ffc66b3ed7683e175d492e778"},
+    {"path":"intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs","sha256":"3a8bc274a6eb82f0b3532e10fb858e03972b75929fbf08d3c9bf591f43b7932d"},
+    {"path":"intent/0001/reviews/domain/round-2/remediation/schemas/COST-EVIDENCE.schema.json","sha256":"b123eadca577b51f0b33fc3692da6341d7ec7a6c0dc63c0660a8d04be77d2ad2"},
+    {"path":"intent/0001/reviews/domain/round-2/remediation/schemas/SPEND-AUTHORIZATION.schema.json","sha256":"6e79afadca9613d7f420663a6b1c7601a74ab2de2aeb60f31121808838c75aa8"},
+    {"path":"intent/0001/reviews/domain/round-2/remediation/schemas/TRUSTED-TESTER-EVIDENCE.schema.json","sha256":"5ad319bba7ba78e38a8b06c293116d1e6b87ab7df138ec08997927fbc3474cda"}
+  ],
+  "integrityChecks": {
+    "canonicalExamReadFromExactGitObject": true,
+    "canonicalExamWorktreeBytesMatchTargetSha256": true,
+    "gateOneArtifactsMatchAcceptedHashes": true,
+    "suppliedExamHashMatches": true,
+    "roundTwoExceptionBriefAndAllSevenRecordsReviewed": true,
+    "everyPreexistingFileUnderRoundTwoRemediationReviewed": true,
+    "manifestPathsUnique": true,
+    "manifestExcludesItself": true,
+    "manifestDigestCyclePresent": false,
+    "allManifestEntriesExistAndMatch": true,
+    "candidateValidatorExitCode": 0,
+    "candidateValidatorReported": "PASS candidate review tooling only",
+    "candidateValidatorPassIsSubstantivelyReliable": false,
+    "criticRecordExcludedFromSelfHash": true
+  },
+  "perFindingDispositions": [
+    {
+      "id": "SEC-G2-R2-001",
+      "domain": "security",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "Closed normal-item path classes improve the prior manifest, but github.exam.candidate.commit is still executed by the shared GitHub App principal and does not require actorSubject, examRevision, assignment validity, or the actor-bound review path. Its upstreamAction string is not bound to the independent-test-agent credential or delegation. The validator supplies an ad hoc assignmentVerified boolean that is absent from the action schema and never tests missing, stale, wrong-target, Builder-originated, retry, fallback, or compromised-caller assignment envelopes."
+    },
+    {
+      "id": "PRIV-G2-R2-001",
+      "domain": "privacy",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "The candidate adds privacy prose and record classes, but no schema or executable oracle freezes the source pool, provenance/use record, detector outputs, per-prompt lineage, independent-inspector identity, allowed named entities, or linkage computation. CONTROL-ORACLE-FIXTURES contains labels only and the validator merely counts them. The lifecycle permission contract also makes erasure of a raw working copy depend on a new qualified-human disposition authorization within the same 60-second deletion window, so the required privacy outcome is not operationally satisfiable."
+    },
+    {
+      "id": "ACC-G2-R2-001",
+      "domain": "accessibility",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "The named DHS Trusted Tester and platform-pod requirements are present, but the schema accepts any five unconstrained environment objects, does not require the exact five environment families, does not enumerate or require A01-A81 results, and treats current-verified as an asserted constant without verification instant or expiry. The validator checks only constants and the presence of the label gate-two-substitution."
+    },
+    {
+      "id": "MONEY-G2-004",
+      "domain": "money",
+      "originalSeverity": "blocker",
+      "disposition": "unresolved",
+      "basis": "The spend path and org-budget-owner role are named, but the record contract is non-canonical: recordRevision requires a revision of the record that contains that value, and recordDigest/signedDigest have no exclusion or preimage rule. Status-dependent revocation/supersession fields, calendar-month boundaries, temporal ordering, limit-tree ordering, cumulative-lineage equations, and CAS proof are unenforced. The spend cases are strings that the validator only counts. The shared App commit action does not bind signer, period, policy, predecessor, or CAS evidence from the human action."
+    },
+    {
+      "id": "MONEY-G2-005",
+      "domain": "money",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "COST-EVIDENCE.schema.json is not usable for eight record types: reservation, usage, invoice, and variance all resolve to the identical amountRecord branch, while alert, shutdown, credential-revocation, and restart all resolve to the identical stateRecord branch. A conforming instance therefore matches four oneOf branches and must fail. The schema also does not enforce scenario ordering, per-scope high-case authorization, staleness, reconciliation completeness, lineage bijection, or recordDigest computation."
+    },
+    {
+      "id": "MONEY-G2-R2-001",
+      "domain": "money",
+      "originalSeverity": "blocker",
+      "disposition": "unresolved",
+      "basis": "The prose corrects line rounding and the basic nanoUSD examples reproduce, but the candidate validator silently skips COST-009 through COST-012 except for checking the ceiling literal. It does not test month partitioning, forecast-over-ceiling, authorization exceedance, model separation, checked multiplication, per-scope aggregation, or all-scope atomic concurrency. Thus the required deterministic vectors are not an enforced oracle."
+    },
+    {
+      "id": "LEGAL-G2-R2-001",
+      "domain": "legal",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "New corpus classes exist, but key relationships are not deterministic: parent-corpus linkage and parent expiry are absent from the lifecycle event contract; final derived-record deletion is undefined; use-authorization revocation has no canonical event; and provenance expiry depends on an unenumerated set of final derived records. The required new qualified-human ruling over policy v2 does not exist, and historical HR-01 explicitly cannot accept the new digest."
+    },
+    {
+      "id": "REL-G2-R2-001",
+      "domain": "reliability",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "The recovery inventory is broader, but the oracle changes accepted authority by declaring a provider-native decision non-authoritative until a second WORM-store acknowledgment, contradicting Architecture ADR-02 and Gate 1 provider-recorded approval. Its RPO is limited tautologically to an export cut that never crosses a gap, and its matrix permits RECOVERY_INCOMPLETE when an authoritative decision is lost. No schema, export-segment format, mapping schema, or executable fixture proves total one-to-one restoration."
+    },
+    {
+      "id": "IRREV-G2-R2-001",
+      "domain": "irreversible-operations",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "Actions are now listed, but authorization is not actually bound. lifecycle actions require only a dispositionAuthorizationId selector, not verified current authorization, expiry/hold/reference result, or qualification; the validator injects a boolean not present in the manifest and does not test crypto-erase or tombstone denial. The deletion provider set covers only S3 objects, one corpus-key prefix, and one Git tombstone path despite the policy requiring every primary, replica, history/fork, cache, backup, provider, export, and DR copy. Migration expand/backfill/contract share one provider-level DDL grant and most retry/race cases are label-only."
+    }
+  ],
+  "newFindings": [
+    {
+      "id": "R2R-PF-001",
+      "severity": "blocker",
+      "title": "Cost evidence oneOf makes eight required record types invalid",
+      "affects": ["MONEY-G2-005"],
+      "evidence": ["intent/0001/reviews/domain/round-2/remediation/schemas/COST-EVIDENCE.schema.json"],
+      "impact": "Reservation, usage, invoice, and variance instances each match four identical amountRecord alternatives; alert, shutdown, credential-revocation, and restart each match four identical stateRecord alternatives. JSON Schema oneOf requires exactly one match, so the required evidence cannot validate.",
+      "requiredResolution": "Give every branch a recordType const and a complete non-overlapping schema, add additionalProperties false where intended, and validate positive and negative instances for all nine record types with a Draft 2020-12 validator."
+    },
+    {
+      "id": "R2R-PF-002",
+      "severity": "blocker",
+      "title": "Self-referential revision and digest fields have no executable canonical preimage",
+      "affects": ["MONEY-G2-004", "MONEY-G2-005"],
+      "evidence": ["intent/0001/reviews/domain/round-2/remediation/schemas/SPEND-AUTHORIZATION.schema.json", "intent/0001/reviews/domain/round-2/remediation/schemas/COST-EVIDENCE.schema.json", "intent/0001/reviews/domain/round-2/remediation/EXAM-AMENDMENT.candidate.md"],
+      "impact": "A file cannot practically embed the Git commit hash of the commit containing itself, and recordDigest/signedDigest cannot be reproduced when the inclusion or exclusion of digest and signature fields is unspecified. Valid authorization and cost evidence therefore cannot be deterministically created or checked.",
+      "requiredResolution": "Define a non-circular targetRevision or predecessor revision, the exact RFC 8785 preimage with digest/signature fields omitted or nulled, the signature envelope and verification algorithm, and positive/negative canonicalization fixtures."
+    },
+    {
+      "id": "R2R-PF-003",
+      "severity": "major",
+      "title": "Candidate validator certifies labels rather than the claimed oracles",
+      "affects": ["SEC-G2-R2-001", "PRIV-G2-R2-001", "ACC-G2-R2-001", "MONEY-G2-004", "MONEY-G2-005", "MONEY-G2-R2-001", "LEGAL-G2-R2-001", "REL-G2-R2-001", "IRREV-G2-R2-001"],
+      "evidence": ["intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs", "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json", "intent/0001/reviews/domain/round-2/remediation/COST-ORACLE-VECTORS.candidate.json"],
+      "impact": "The validator reports PASS after counting or locating strings for spend, privacy, accessibility, recovery, and lifecycle cases. It does not validate any supplied JSON Schema, execute the named state machines, or exercise most required negative/race cases. It also skips four normative cost vector kinds. The green output is stale-quality evidence, not proof of deterministic closure.",
+      "requiredResolution": "Replace case-name arrays with structured inputs and exact expected outputs; execute every row, validate representative artifacts against the schemas, assert first-error precedence and zero side effects, and fail on any unexercised case kind."
+    },
+    {
+      "id": "R2R-PF-004",
+      "severity": "blocker",
+      "title": "Protected authorship and irreversible permissions are not credential-bound",
+      "affects": ["SEC-G2-R2-001", "MONEY-G2-004", "IRREV-G2-R2-001"],
+      "evidence": ["intent/0001/reviews/domain/round-2/remediation/PERMISSIONS-MANIFEST.candidate.json", "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs"],
+      "impact": "The shared GitHub App action can be evaluated without the independent Test Agent subject or its live credential, and lifecycle/spend commit actions carry IDs/digests without proving the originating qualified-human decision. Validator-only booleans are not manifest selectors and cannot be enforced by the implementation oracle.",
+      "requiredResolution": "Bind downstream App actions to the exact upstream actor subject, credential/delegation, assignment/decision record, target, immutable request digest, policy, expiry and idempotency/CAS state; add stale, substituted, Builder, compromised, retry and race fixtures that run against the same decision function."
+    },
+    {
+      "id": "R2R-PF-005",
+      "severity": "major",
+      "title": "Raw-corpus deletion requires an impossible just-in-time human authorization",
+      "affects": ["PRIV-G2-R2-001", "LEGAL-G2-R2-001", "IRREV-G2-R2-001"],
+      "evidence": ["intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md", "intent/0001/reviews/domain/round-2/remediation/EXAM-AMENDMENT.candidate.md", "intent/0001/reviews/domain/round-2/remediation/PERMISSIONS-MANIFEST.candidate.json"],
+      "impact": "RC-CORPUS-RAW-WORKING requires erasure within 60 seconds of terminal sanitization, while amendment section 9 permits deletion/crypto-erase credentials only after a qualified human authorizes the exact expiry/hold/reference result and copy inventory. A human cannot reliably issue a new exact-object disposition inside every 60-second window, and the policy defines no consistent state when authorization is missing at expiry.",
+      "requiredResolution": "Define a qualified-human policy grant that can pre-authorize deterministic automated raw-working-copy destruction, bind it to exact class and safeguards, and separately require per-object human disposition only where truly necessary. Add missing-authorization boundary states and timing fixtures."
+    },
+    {
+      "id": "R2R-PF-006",
+      "severity": "major",
+      "title": "Provider recovery weakens accepted authority and does not prove zero-loss",
+      "affects": ["REL-G2-R2-001"],
+      "evidence": ["intent/0001/ARCHITECTURE.md", "intent/0001/signatures/gate-1.json", "intent/0001/reviews/domain/round-2/remediation/PROVIDER-APPROVAL-RECOVERY.candidate.md"],
+      "impact": "ADR-02 makes an equivalently durable provider review authoritative and Gate 1 selects provider-recorded commercial approval. The candidate instead requires WORM acknowledgment before authority and calls the provider-acknowledged interval unknown. Its zero-loss statement is only through the completed export cut and RECOVERY_INCOMPLETE is listed as a valid matrix outcome even when authority is lost.",
+      "requiredResolution": "Preserve provider acknowledgment as the authority point; make export lag a fail-closed projection/release condition rather than a second authority; define an implementable capture/recovery protocol and structured fixtures that prove no acknowledged decision or proof is lost across every failure cut."
+    },
+    {
+      "id": "R2R-PF-007",
+      "severity": "major",
+      "title": "Trusted Tester schema does not encode the claimed evidence minimum",
+      "affects": ["ACC-G2-R2-001"],
+      "evidence": ["intent/0001/reviews/domain/round-2/remediation/schemas/TRUSTED-TESTER-EVIDENCE.schema.json", "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json"],
+      "impact": "Five empty objects satisfy environments, no unique exact environment IDs are required, no A01-A81 inventory is present, and current qualification can be asserted without a verification timestamp or validity interval. The proposed signed summary can pass while omitting the accepted Spec's substantive future review evidence.",
+      "requiredResolution": "Enumerate the exact five environment families with unique IDs and versions, require all applicable A01-A81 result references and completeness checks, and bind qualification verification time, validity/expiry, assignment currentness, provider proof, and raw-result digest in executable positive and negative schema fixtures."
+    }
+  ],
+  "humanDependencies": [
+    {
+      "id": "HR-01-R2",
+      "status": "open",
+      "owner": "qualified privacy/legal records owner",
+      "disposition": "must not be requested over the current policy-v2 digest until R2R-PF-003 and R2R-PF-005 plus the lifecycle ambiguities in LEGAL-G2-R2-001 are corrected",
+      "historicalHr01StillValidForV1Only": true
+    },
+    {
+      "id": "HR-02",
+      "status": "not-triggered-for-current-commercial-gate-two",
+      "futureBoundary": "required before any future regulated technical release or pilot activation after implemented signed-log evidence exists"
+    }
+  ],
+  "decision": {
+    "verdict": "SEND_BACK",
+    "confidence": "high",
+    "originalFindingsResolved": 0,
+    "originalFindingsUnresolved": 9,
+    "newBlockers": 3,
+    "newMajors": 4,
+    "rationale": "All artifact hashes match and the candidate validator exits zero, but the packet is not a deterministic Exam oracle. Required cost records are schema-invalid, critical digest/revision contracts are circular or undefined, most negative fixtures are labels, protected and irreversible actions are not bound to enforceable upstream credentials, the raw-corpus deletion flow depends on an impractical per-object human action, Trusted Tester evidence is underconstrained, and provider recovery changes accepted authority while allowing incomplete restoration."
+  },
+  "requiredNextState": [
+    "Correct R2R-PF-001 through R2R-PF-007 and refresh every affected candidate digest and manifest entry.",
+    "Replace label-only case arrays with executable positive, negative, boundary, race, and side-effect fixtures and make the validator fail on any untested case kind.",
+    "Do not obtain HR-01-R2 until the exact retention-policy digest is technically deterministic and stable.",
+    "After an authorized Exam author incorporates corrected text into a new canonical Exam revision, repeat all seven domain reviews, exception-brief consolidation, actor-bound Exam CI, and a fresh-context Critic review before a human Tech Lead Gate 2 decision."
+  ],
+  "boundaries": {
+    "canonicalExamEdited": false,
+    "candidateArtifactsEdited": false,
+    "gateOneArtifactsEdited": false,
+    "policyEdited": false,
+    "signaturesEdited": false,
+    "implementationEdited": false,
+    "roundTwoReviewRecordsEdited": false,
+    "commitCreated": false,
+    "pushPerformed": false,
+    "gateTwoSigned": false,
+    "builderAuthorized": false,
+    "releaseAuthorized": false,
+    "productionAuthorized": false,
+    "deletionOrMigrationAuthorized": false,
+    "spendingAuthorized": false,
+    "thisRecordOnlyAdvisesOnCandidateAdequacy": true
+  }
+}

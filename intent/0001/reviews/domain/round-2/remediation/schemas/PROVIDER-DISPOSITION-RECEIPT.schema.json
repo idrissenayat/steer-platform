@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "steer://schemas/provider-disposition-receipt/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version", "providerReceiptId", "provider", "providerRequestId",
+    "providerTransactionId", "providerBindingId", "providerAccountId",
+    "providerProofType", "providerProofIssuer", "providerKeyRegistryDigest",
+    "providerProofAuthority", "status", "effect",
+    "tenant", "recordClass", "targetDigest", "policyDigest", "inventoryDigest",
+    "presentTupleDigest", "authorityId", "authorityDigest", "copyId", "kind",
+    "objectKey", "versionId", "keyId", "requestDigest", "idempotencyKey",
+    "requestedAt", "providerTimestamp", "recordDigest", "signature"
+  ],
+  "properties": {
+    "version": { "const": "steer-provider-disposition-receipt/v1" },
+    "providerReceiptId": { "$ref": "#/$defs/uuid" },
+    "provider": { "type": "string", "minLength": 1 },
+    "providerRequestId": { "type": "string", "minLength": 1 },
+    "providerTransactionId": { "type": "string", "minLength": 1 },
+    "providerBindingId": { "type": "string", "pattern": "^provider-binding:[a-z0-9-]+$" },
+    "providerAccountId": { "type": "string", "minLength": 1 },
+    "providerProofType": { "const": "detached-jcs-digest-signature" },
+    "providerProofIssuer": { "type": "string", "format": "uri" },
+    "providerKeyRegistryDigest": { "$ref": "#/$defs/sha" },
+    "providerProofAuthority": { "const": "provider-control-plane" },
+    "status": { "enum": ["completed", "failed", "partial", "unknown", "in-progress"] },
+    "effect": { "enum": ["deleted", "crypto-erased", "not-found", "unknown"] },
+    "tenant": { "type": "string", "minLength": 1 },
+    "recordClass": { "type": "string", "minLength": 1 },
+    "targetDigest": { "$ref": "#/$defs/sha" },
+    "policyDigest": { "$ref": "#/$defs/sha" },
+    "inventoryDigest": { "$ref": "#/$defs/sha" },
+    "presentTupleDigest": { "$ref": "#/$defs/sha" },
+    "authorityId": { "$ref": "#/$defs/uuid" },
+    "authorityDigest": { "$ref": "#/$defs/sha" },
+    "copyId": { "type": "string", "minLength": 1 },
+    "kind": { "type": "string", "minLength": 1 },
+    "objectKey": { "type": "string", "minLength": 1 },
+    "versionId": { "type": "string", "minLength": 1 },
+    "keyId": { "type": "string", "minLength": 1 },
+    "requestDigest": { "$ref": "#/$defs/sha" },
+    "idempotencyKey": { "type": "string", "minLength": 1 },
+    "requestedAt": { "$ref": "#/$defs/time" },
+    "providerTimestamp": { "$ref": "#/$defs/time" },
+    "recordDigest": { "$ref": "#/$defs/sha" },
+    "signature": { "$ref": "#/$defs/signature" }
+  },
+  "$defs": {
+    "sha": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "uuid": { "type": "string", "format": "uuid" },
+    "time": { "type": "string", "format": "date-time" },
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "keyId", "signedDigest", "valueBase64"],
+      "properties": {
+        "algorithm": { "enum": ["Ed25519", "Ed448"] },
+        "keyId": { "type": "string", "minLength": 1 },
+        "signedDigest": { "$ref": "#/$defs/sha" },
+        "valueBase64": { "type": "string", "minLength": 1 }
+      }
+    }
+  },
+  "x-steer-semantic-checks": [
+    "provider proof verifies over exact canonical bytes using only the public key and algorithm selected by the independently chosen providerBindingId in the hash-bound immutable provider key registry; receipt self-claims never select trust",
+    "the signed receipt binds provider binding, account, tenant, proof type, proof issuer, key ID and registry digest; key validity and revocation are evaluated at providerTimestamp",
+    "requestedAt equals the immutable protected request timestamp and providerTimestamp is strictly later and strictly before aggregate completion",
+    "tenant, class, policy, target, inventory, authority, copy, object, version, key, request digest, idempotency key, effect and provider all byte-match one ordered present tuple"
+  ]
+}

@@ -1,0 +1,194 @@
+{
+  "version": "steer-gate-2-round-2-remediation-preflight-critic/v5",
+  "organization": "steer-platform",
+  "item": "0001-flight-deck-foundation",
+  "gate": 2,
+  "reviewedAt": "2026-09-03",
+  "reviewer": {
+    "role": "independent-fresh-context-pre-incorporation-critic",
+    "agent": "gate2_r2_remediation_critic_r5",
+    "humanSignature": false
+  },
+  "reviewScope": "Independent technical pre-incorporation review of the unsigned R4-corrected round-two remediation candidate. The review reproduced the bundled full and fixtures-only validators, independently checked all manifest hashes and exact canonical Git bytes, tested coherent authorization counterexamples, and perturbed validator expectations and declared-ID coverage in an isolated temporary copy. A confirmed authorization blocker is sufficient for SEND_BACK; this record does not claim that every possible new adversarial case has been exhausted.",
+  "target": {
+    "canonicalExamRevision": "9c7299dd658615cd234e8e03188d607ef1a99fe1",
+    "canonicalExamPath": "intent/0001/EXAM.md",
+    "canonicalExamSha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10",
+    "frozenRoundTwoEvidenceCommit": "61b6d8577712d1290639e4c7b33acef9342e1c51",
+    "candidateManifestSha256": "c107af3daac7d47c950d8f3dd8fe4b6125009215e32ca0b4b00a2b3fd04e911d",
+    "preservedPreflightCriticR1Sha256": "47a30b436a0bfb9177f1f1877c9b81e2f63a113ae048500fb1c48ad4d73a8014",
+    "preservedPreflightCriticR2Sha256": "f5d75d7b6fb0b576e6707aa2d09745aeecf08af4d6e17eb8f03fe8e6420c492b",
+    "preservedPreflightCriticR3Sha256": "51c8b8006886e9bf1ba681f50ae4c064c052f0d3d5d618677a03b75578dd66f1",
+    "preservedPreflightCriticR4Sha256": "84aaf346d2e9ef9768b935ce1ea4657eb69c10a1ef072c0ce18649610708fde0"
+  },
+  "integrityChecks": {
+    "canonicalExamExactGitObjectSha256Matches": true,
+    "canonicalExamWorktreeBytesMatchTargetSha256": true,
+    "gateOneArtifactsMatchAcceptedHashes": true,
+    "gateOneProviderRecordedCommercialAuthorityPreserved": true,
+    "gateOneSpendingAuthorized": false,
+    "gateOneInfrastructureCeilingUsdPerMonth": 1000,
+    "modelUsageExcludedFromInfrastructureCeiling": true,
+    "roundTwoTargetBriefAndSevenDomainRecordsInspected": true,
+    "preservedR1ThroughR4CriticRecordsInspected": true,
+    "manifestArtifactCount": 45,
+    "manifestPathsUnique": true,
+    "allManifestEntriesExistAndMatch": true,
+    "manifestExcludesItselfToAvoidDigestCycle": true,
+    "fullValidatorExitCode": 0,
+    "fixturesOnlyValidatorExitCode": 0,
+    "validatorReported": "PASS R4 corrected candidate oracles only; next state is fresh-context preflight, not canonicalization",
+    "validatorPassProvesTechnicalCompleteness": false,
+    "candidateNormativelyIncorporatedIntoCanonicalExam": false,
+    "nonCanonicalStatusTreatedAsPreflightBlocker": false
+  },
+  "decision": {
+    "verdict": "SEND_BACK",
+    "confidence": "high",
+    "technicalBlockers": 1,
+    "technicalMajors": 0,
+    "originalFindingsResolvedOrConditionallyResolved": 6,
+    "originalFindingsUnresolved": 3,
+    "rationale": "All 45 manifest entries match and both validator modes pass. The R4 exact-path and missing/unlisted migration-action counterexamples are corrected, and the former declared-row execution gap is materially corrected. However, the shared protected-action decision still accepts coherently signed requests that violate the same manifest's provider resource, principal delegation, credential-lifetime, and upstream authority-scope constraints. A request for an unlisted repository returns ALLOW with installation-token and provider-request effects; the positive fixtures use 86400-second credentials despite 300/900/1800-second manifest limits; disallowed delegation edges are accepted; and authority item, Exam revision, product, and pod substitutions are silently ignored when absent downstream. Zero technical blocker/major is not met."
+  },
+  "newFindings": [
+    {
+      "id": "R5-PF-001",
+      "severity": "blocker",
+      "title": "Protected-action oracle still ignores enumerated resource, credential, delegation, and upstream authority scope",
+      "affects": ["SEC-G2-R2-001", "MONEY-G2-004", "IRREV-G2-R2-001", "R2R-PF-004", "R2R2-PF-001", "R4-PF-001"],
+      "evidence": [
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/PERMISSIONS-MANIFEST.candidate.json",
+          "sha256": "adbec7fc38051d8c8306b99219964a7001e8805267aea2e850d44a9cc957af9b",
+          "lines": "31-73, 85-109"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+          "sha256": "f318ad00d9106e47cf089e1b1a8c296940d59dc1c903f5296b1727d5045c495d",
+          "lines": "130-170, 223-270"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/EXAM-AMENDMENT.candidate.md",
+          "sha256": "964a47e5a40a23b8b1c5f8cb5e8cfa1208235739d7c8757669afbadd4ae0caa3",
+          "lines": "67-111, 408-423"
+        }
+      ],
+      "counterexamples": [
+        {
+          "id": "R5-AUTH-UNLISTED-REPOSITORY",
+          "construction": "Against the unchanged manifest, call makeAuthorizationFixture(manifest, 'github.exam.candidate.commit', {repositoryId:'attacker-repo'}) and pass its serialized request plus signed credential, delegation, authority, upstream, current CAS, ledger, and reservation envelopes through protectedActionDecision with the compiled PROTECTED-ACTION-REQUEST schema.",
+          "expected": "DENY before credentials or provider effects: PP-GH-META and PP-GH-CONTENTS enumerate only steer-home-test and steer-operating-test.",
+          "observed": "ALLOW; firstError=null; credentialAccess=1, installationToken=1, providerRequest=1. The decision checks permission ID/action/principal mapping but never permission.resources against repositoryId."
+        },
+        {
+          "id": "R5-AUTH-LIFETIME",
+          "construction": "Inspect and execute the unchanged positive fixtures for github.exam.candidate.commit, github.decision.record.commit, github.spend-authorization.commit, and migration.expand.",
+          "expected": "DENY over-lifetime credentials according to each principal's exhaustive maxLifetimeSeconds.",
+          "observed": "All return ALLOW. Both credential envelopes span 86400 seconds. Exam downstream/upstream limits are 900/900 seconds; decision limits 900/28800; spend limits 900/1800; migration limits 300/1800. readEnvelope checks only issuedAt <= now < expiresAt and never enforces the declared maximum or idle policy."
+        },
+        {
+          "id": "R5-AUTH-DELEGATION-EDGE",
+          "construction": "Execute the unchanged positive decision, spend, and migration fixtures. Their signed delegation issuers are verified-human, org-budget-owner, and migration-authorizer, respectively, with recipients github-app-installation or schema-migration-runner.",
+          "expected": "DENY an edge absent from the issuer principal's mayDelegateTo list, or revise the manifest to enumerate the intended narrowly scoped carrier delegation explicitly.",
+          "observed": "All return ALLOW although each issuer's mayDelegateTo is an empty array. The decision verifies envelope coherence but never the manifest delegation edge."
+        },
+        {
+          "id": "R5-AUTH-UNBOUND-UPSTREAM-SCOPE",
+          "construction": "Start from valid fixtures, mutate and reseal authorityRecordBytes, then reseal upstreamBytes with the new authority record digest. For Exam set authority selectors item='attacker-item' and examRevision='attacker-revision'; for decision set item='attacker-item'; for spend set product='attacker-product' and pod='attacker-pod'. Leave the downstream request and every current authoritative CAS/replay/reservation snapshot unchanged.",
+          "expected": "DENY incoherent item, Exam revision, product, or pod authority before any operational effect.",
+          "observed": "All three requests return ALLOW with credentialAccess=1, installationToken=1, providerRequest=1. The comparison at line 267 explicitly skips any upstream selector whose downstream expected value is undefined. These required upstream scope fields are absent from the downstream selector set, so independent authority can concern a different scope."
+        }
+      ],
+      "impact": "The candidate claims an exhaustive deny-before-effect authorization oracle, yet cryptographic coherence alone can authorize an unlisted provider resource, overlong credential, forbidden delegation edge, or independently authorized record for another scope. This is not a publication-state dependency or a missing live implementation test: the candidate's own deterministic decision function returns an unsafe ALLOW for supplied bytes.",
+      "requiredResolution": "Enforce the selected action and upstream action's complete manifest contract, including resource selector mappings, principal lifetime/idle/one-use constraints and allowed delegation edges. Make every security-relevant upstream authority selector either present and byte-bound in the immutable downstream request or explicitly derived from a separately authenticated current authority context; never skip equality because a field is absent. Add schema and semantic checks for authority-record selector types and exact item/revision/product/pod linkage. Correct positive fixtures to satisfy the declared limits and delegation policy. Add coherent negative rows for wrong repository/resource, overlong/idle credentials, forbidden delegation edges, and each missing or substituted upstream scope field, requiring typed zero effects. Refresh all hashes and repeat a fresh independent pre-incorporation review."
+    }
+  ],
+  "executedReviewEvidence": {
+    "bundledSuite": [
+      "33 declared schema IDs and 3 integrity IDs pass.",
+      "54 authorization IDs pass, including exact-path, zero/multiple path-class, coherent Exam-to-signature wrong path, and missing/unlisted/wrong-role migration plan and cleanup cases.",
+      "7 spend IDs and 9 signed cost-record branches pass.",
+      "15 sanitized-real IDs execute through detectors, k-anonymity, linkage/Wilson, provenance/use, independent inspection, derivative/baseline/shrink, raw receipt, and destination checks.",
+      "240 lifecycle cross-product states plus declared lifecycle cases and specials pass.",
+      "8 recovery cuts, 11 recovery cases, and 19 corruption cases pass.",
+      "19 monetary vector kinds and 10 forecast IDs pass."
+    ],
+    "validatorSensitivityProbes": [
+      {
+        "probe": "In an isolated temporary copy, change AUTH-EXAM-POS expected.decision from ALLOW to DENY without changing its input.",
+        "exitCode": 1,
+        "observed": "AssertionError: AUTH-EXAM-POS"
+      },
+      {
+        "probe": "In an isolated temporary copy, add an otherwise unconsumed object with id R5-UNEXECUTED-ID to the controls document.",
+        "exitCode": 1,
+        "observed": "AssertionError: every declared case/vector ID executes exactly once"
+      }
+    ],
+    "scopeCaveat": "The bundled execution and these sensitivity probes establish that the declared rows are consumed, not that the declared set exhausts the manifest contract. R5-PF-001 demonstrates omitted semantic requirements despite the green suite. The monetary, sanitized-real, lifecycle, and recovery matrices were rerun and inspected at their shared decision/dispatch boundaries; this send-back does not replace the required future independent adversarial rerun after correction."
+  },
+  "originalFindingDispositions": [
+    {"id":"SEC-G2-R2-001","disposition":"unresolved","basis":"Exact path classes are corrected, but R5-PF-001 proves unsafe resource, lifetime, delegation, and authority-scope acceptance in the same protected-action chain."},
+    {"id":"PRIV-G2-R2-001","disposition":"resolved-by-candidate-pending-policy-ruling-and-fresh-exact-revision-review","basis":"Sanitized-real controls now have materialized inputs and executed outcomes, including derivatives and raw disposition; no additional privacy-specific blocker was confirmed in this pass."},
+    {"id":"ACC-G2-R2-001","disposition":"resolved-by-candidate-pending-future-human-evidence","basis":"The candidate retains the exact DHS Trusted Tester/platform-pod qualification, raw/summary, revision, and provider-proof contract and its executed contradiction checks."},
+    {"id":"MONEY-G2-004","disposition":"unresolved","basis":"Spend record/schema semantics are improved, but R5-PF-001 accepts spend authority with substituted product/pod, forbidden delegation, and overlong credentials."},
+    {"id":"MONEY-G2-005","disposition":"resolved-for-stated-evidence-and-forecast-defect","basis":"All nine signed evidence branches and the declared monetary/forecast rows execute; the distinct authorization-chain failure is tracked by MONEY-G2-004 and R5-PF-001."},
+    {"id":"MONEY-G2-R2-001","disposition":"resolved-by-candidate","basis":"Checked integer nanoUSD aggregation/multiplication, overflow rejection, sub-cent accumulation, half-even grouping, and the declared arithmetic vectors execute."},
+    {"id":"LEGAL-G2-R2-001","disposition":"resolved-by-candidate-pending-HR-01-R2","basis":"The fixed class table, signed trigger history, class-specific boundaries, derived inventories and disposition states remain defined and executed; the new qualified human policy ruling is still required."},
+    {"id":"REL-G2-R2-001","disposition":"resolved-by-candidate-pending-live-provider-evidence","basis":"Provider acknowledgement remains authoritative; distinct cut sources, canonical/restored inventory equality, mapping, cursor and corruption cases execute. Live provider capability and loss rehearsal remain release dependencies."},
+    {"id":"IRREV-G2-R2-001","disposition":"unresolved","basis":"Migration plan and cleanup actions are enumerated and absent/unlisted/wrong-role cases deny, but their operational credentials and delegation edges still violate declared principal constraints under R5-PF-001."}
+  ],
+  "r1FindingDispositions": [
+    {"id":"R2R-PF-001","disposition":"resolved-for-stated-defect","basis":"Closed cost schema branches and representative schema positives/negatives execute."},
+    {"id":"R2R-PF-002","disposition":"resolved-for-stated-defect","basis":"Non-circular JCS preimages, digest/signature integrity and duplicate-key rejection remain executable."},
+    {"id":"R2R-PF-003","disposition":"resolved-for-declared-row-execution-defect","basis":"Declared matrices now dispatch through shared decisions and expectation/undeclared-ID perturbations fail; semantic completeness is separately disproved by R5-PF-001."},
+    {"id":"R2R-PF-004","disposition":"unresolved","basis":"R5-PF-001 shows that cryptographically coherent protected-action inputs still bypass enumerated authorization constraints."},
+    {"id":"R2R-PF-005","disposition":"resolved-by-candidate-pending-HR-01-R2","basis":"Class-limited raw-policy grant and derived 60-second deadline replace per-object just-in-time human approval; no new ruling was inferred."},
+    {"id":"R2R-PF-006","disposition":"resolved-by-candidate-pending-live-provider-evidence","basis":"Provider acknowledgement authority, cut-state recovery and inventory/proof verification remain defined and executed."},
+    {"id":"R2R-PF-007","disposition":"resolved-by-candidate-pending-future-human-evidence","basis":"The qualification, platform-pod role, exact raw evidence and signed summary minimum is retained."}
+  ],
+  "r2FindingDispositions": [
+    {"id":"R2R2-PF-001","disposition":"unresolved","basis":"Current CAS/replay binding is improved, but manifest resource/principal/upstream-scope checks remain incomplete under R5-PF-001."},
+    {"id":"R2R2-PF-002","disposition":"resolved-for-stated-defect","basis":"Signed spend/cost records and proof/window/reference semantics remain implemented with executed evidence branches."},
+    {"id":"R2R2-PF-003","disposition":"resolved-by-candidate-pending-future-human-evidence","basis":"Raw/summary reconciliation and signed provider proof remain required and exercised."},
+    {"id":"R2R2-PF-004","disposition":"resolved-for-stated-matrix-execution-defect","basis":"Declared lifecycle boundary-by-precedence and special cases now execute; broader protected-action lifetime/delegation defects are tracked separately."},
+    {"id":"R2R2-PF-005","disposition":"resolved-for-stated-matrix-execution-defect","basis":"All declared recovery cuts and corruption cases dispatch through recoveryDecision with exact outcomes."}
+  ],
+  "r3FindingDispositions": [
+    {"id":"R3-PF-001","disposition":"resolved-for-stated-CAS-replay-counterexample","basis":"Signed current CAS/replay snapshots and atomic reservation are consumed; this does not close the newly confirmed manifest-scope gaps."},
+    {"id":"R3-PF-002","disposition":"resolved-for-stated-temporal-reference-overflow-counterexamples","basis":"The candidate retains authorization-window, provider-proof timing, recursive reference and checked-arithmetic validations."},
+    {"id":"R3-PF-003","disposition":"resolved-for-stated-raw-summary-counterexample","basis":"Raw checkpoint outcomes and signed summary are reconciled and provider proof verified."},
+    {"id":"R3-PF-004","disposition":"resolved-for-stated-forged-boundary-counterexample","basis":"Expiry derives from signed trigger history and the fixed retention table rather than caller boundary values."},
+    {"id":"R3-PF-005","disposition":"resolved-for-stated-inventory-cut-counterexample","basis":"Inventories derive from canonical/restored records and source reachability is cut-specific."},
+    {"id":"R3-PF-006","disposition":"governed-next-step-not-preflight-defect","basis":"Authorized App incorporation follows technical preflight; unsigned non-canonical status was not counted as a defect."}
+  ],
+  "r4FindingDispositions": [
+    {"id":"R4-PF-001","disposition":"partially-resolved-still-open-via-R5-PF-001","basis":"The exact Exam-to-signature wrong-path and absent/unlisted/wrong-role migration-action cases now deny with zero effects. The required exhaustive credential/delegation/authority contract remains incomplete in the distinct counterexamples recorded here."},
+    {"id":"R4-PF-002","disposition":"resolved-for-stated-declared-fixture-execution-defect","basis":"Declared IDs are consumed and outcomes checked; expectation and unexecuted-ID perturbations fail. The declared set still omits the authorization semantics confirmed by R5-PF-001."}
+  ],
+  "dependenciesNotCandidateDefects": [
+    {"id":"HR-01-R2","status":"required-after-final-policy-path-digest-and-canonical-revision-stabilize","owner":"qualified privacy/legal records owner","condition":"Bind the final policy path/digest and new canonical Exam revision in a fresh human ruling before Gate 2 eligibility."},
+    {"id":"AUTHORIZED-GITHUB-APP-INCORPORATION","status":"required-after-zero-technical-blocker-major-preflight","owner":"authorized independent Exam author","condition":"Incorporate the stable corrected package through the protected GitHub App path and freeze a new exact canonical Exam revision. Non-incorporation before preflight is not a defect."},
+    {"id":"SEVEN-DOMAIN-EXACT-REVISION-REVIEWS","status":"required-after-canonical-incorporation","owner":"independent domain reviewers","condition":"Repeat security, privacy, accessibility, money, legal, reliability and irreversible-operations reviews at the new exact revision and consolidate a zero-open-blocker/major exception brief."},
+    {"id":"LIVE-PROVIDER-RECOVERY-EVIDENCE","status":"required-before-release","owner":"reliability owner","condition":"Verify selected-provider independent journal/export capability and every-cut zero-loss recovery through live evidence; fixtures are not a live rehearsal."},
+    {"id":"FUTURE-GATE-3-TRUSTED-TESTER-EVIDENCE","status":"required-before-applicable-technical-release-or-pilot-activation","owner":"qualified DHS Trusted Tester assigned to platform pod","condition":"Supply real human review evidence for the exact Exam and implementation when Gate 3 is triggered."},
+    {"id":"HUMAN-GATE-2-DECISION","status":"required-after-all-technical-review-and-protection-prerequisites","owner":"eligible human Tech Lead","condition":"Only the human may decide and sign Gate 2 after the actual author/diff protection and exact-revision prerequisites are verified."}
+  ],
+  "requiredNextState": [
+    "Correct R5-PF-001, including positive-fixture policy consistency and coherent negative coverage; refresh every affected candidate digest and manifest entry.",
+    "Run both validator modes and a fresh independent adversarial pre-incorporation review. PASS requires zero technical blocker and major findings.",
+    "Only after that PASS, perform authorized GitHub App incorporation, freeze the new canonical revision, obtain HR-01-R2 and seven exact-revision reviews, verify actor-bound protection for the actual author/diff, and obtain a final fresh-context Critic review before the human Gate 2 decision.",
+    "Preserve Gate 1: the USD 1000 monthly infrastructure ceiling excludes model usage and is not spending authority. This review authorizes no Builder work, credential exchange, paid resource, deletion, migration, build, release, production, Gate transition, commit or push."
+  ],
+  "boundaries": {
+    "onlyRepositoryWrite": "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r5.json",
+    "canonicalExamEdited": false,
+    "candidateOrPriorCriticEdited": false,
+    "domainReviewPolicyOrSignatureEdited": false,
+    "implementationEdited": false,
+    "commitOrPushPerformed": false,
+    "externalProviderActionPerformed": false,
+    "humanApprovalCreatedOrInferred": false
+  }
+}

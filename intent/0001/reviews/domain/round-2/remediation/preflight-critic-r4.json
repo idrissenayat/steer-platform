@@ -1,0 +1,266 @@
+{
+  "version": "steer-gate-2-round-2-remediation-preflight-critic/v4",
+  "organization": "steer-platform",
+  "item": "0001-flight-deck-foundation",
+  "gate": 2,
+  "reviewer": {
+    "serviceIdentity": "codex-task:/root/gate2_r2_remediation_critic_r4",
+    "agentType": "independent-fresh-context-pre-incorporation-critic",
+    "freshContext": true,
+    "builderIndependent": true,
+    "didNotTrustTestAgentSummary": true,
+    "didNotTrustBundledValidator": true,
+    "advisoryOnly": true
+  },
+  "reviewedAt": "2026-09-04T01:12:21Z",
+  "reviewScope": "Technical safety, completeness, and determinism of the unsigned corrected candidate before any authorized GitHub App incorporation. Non-canonical candidate status is a required next state and was not treated as a preflight defect.",
+  "target": {
+    "canonicalExamRevision": "9c7299dd658615cd234e8e03188d607ef1a99fe1",
+    "canonicalExamPath": "intent/0001/EXAM.md",
+    "canonicalExamSha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10",
+    "frozenRoundTwoEvidenceCommit": "61b6d8577712d1290639e4c7b33acef9342e1c51",
+    "candidateManifestSha256": "65829d810f9fd1a33f02920a9bc6d9208fc528654076e1e6abdda435f913c131",
+    "preservedPreflightCriticR1Sha256": "47a30b436a0bfb9177f1f1877c9b81e2f63a113ae048500fb1c48ad4d73a8014",
+    "preservedPreflightCriticR2Sha256": "f5d75d7b6fb0b576e6707aa2d09745aeecf08af4d6e17eb8f03fe8e6420c492b",
+    "preservedPreflightCriticR3Sha256": "51c8b8006886e9bf1ba681f50ae4c064c052f0d3d5d618677a03b75578dd66f1"
+  },
+  "integrityChecks": {
+    "canonicalExamReadFromExactGitObject": true,
+    "canonicalExamExactGitObjectSha256Matches": true,
+    "canonicalExamWorktreeBytesMatchTargetSha256": true,
+    "gateOneArtifactsMatchAcceptedHashes": true,
+    "roundTwoExceptionBriefAndAllSevenRecordsReviewed": true,
+    "preservedPreflightCriticHashesMatchManifest": true,
+    "manifestPathsUnique": true,
+    "manifestExcludesItselfToAvoidDigestCycle": true,
+    "allManifestEntriesExistAndMatch": true,
+    "manifestArtifactCount": 44,
+    "fullValidatorExitCode": 0,
+    "fixturesOnlyValidatorExitCode": 0,
+    "validatorReported": "PASS R3 corrected candidate oracles only; next state is authorized incorporation, not canonicalization by this correction pass",
+    "validatorPassIsSubstantivelyReliable": false,
+    "adversarialExecutionPerformed": true,
+    "candidateNormativelyIncorporatedIntoCanonicalExam": false,
+    "nonCanonicalStatusTreatedAsPreflightBlocker": false,
+    "criticRecordExcludedFromManifestSelfHash": true
+  },
+  "r3CounterexampleReproduction": [
+    {
+      "id": "R3-PF-001",
+      "result": "closed-for-stated-counterexample",
+      "observed": "A coherent request and upstream mutation of casHead and idempotencyKey against unchanged signed authoritative snapshots returned DENY with AUTHORITATIVE_CAS_HEAD_MISMATCH and an all-zero effect ledger. Same-key/same-bytes replay returned REPLAY_NOOP; different bytes and atomic loser denied with zero effects."
+    },
+    {
+      "id": "R3-PF-002",
+      "result": "closed-for-stated-counterexamples",
+      "observed": "A cost record after authorization expiry returned COST_OUTSIDE_AUTHORIZATION_WINDOW; proof before the sealed record returned COST_PROVIDER_PROOF_TIME_INVALID; a minimally typed unsigned reference stub returned COST_RESERVATION_REFERENCE_INVALID; checkedNanoSum rejected Number.MAX_SAFE_INTEGER plus one with NANOUSD_OVERFLOW."
+    },
+    {
+      "id": "R3-PF-003",
+      "result": "closed-for-stated-counterexamples",
+      "observed": "A resealed summary with raw A01 observed=fail and summary A01/pass returned TT_RAW_SUMMARY_MISMATCH. A provider-proof signature tamper returned TT_PROVIDER_PROOF_SIGNATURE_INVALID."
+    },
+    {
+      "id": "R3-PF-004",
+      "result": "closed-for-stated-counterexample",
+      "observed": "A resealed RC-LEGAL-SIGNED-LOG event with boundaryAt forged to terminalAt plus 60 seconds returned LIFECYCLE_DERIVED_BOUNDARY_MISMATCH with an all-zero effect ledger."
+    },
+    {
+      "id": "R3-PF-005",
+      "result": "closed-for-stated-counterexamples",
+      "observed": "Empty or mutually equal unrelated pre/post inventories returned RECOVERY_INVENTORY_MISMATCH. Adding a source before its cut or deleting a required cut source returned RECOVERY_CUT_SOURCE_UNREACHABLE, all with zero effects."
+    },
+    {
+      "id": "R3-PF-006",
+      "result": "required-next-state-not-a-preflight-defect",
+      "observed": "The candidate remains deliberately unsigned and non-canonical. This review did not require prior canonicalization and makes no finding merely from that state."
+    }
+  ],
+  "decision": {
+    "verdict": "SEND_BACK",
+    "confidence": "high",
+    "technicalBlockers": 1,
+    "technicalMajors": 1,
+    "originalFindingsResolved": 4,
+    "originalFindingsUnresolved": 5,
+    "r1FindingsResolved": 5,
+    "r1FindingsUnresolved": 2,
+    "r2FindingsResolved": 2,
+    "r2FindingsUnresolved": 3,
+    "r3TechnicalFindingsResolved": 5,
+    "r3PublicationDependencyDeferred": 1,
+    "rationale": "All 44 manifest entries match and the five R3 technical counterexamples now fail closed, but independent execution found a protected-action authorization bypass: the shared decision function ignores the manifest's exactPath and allowedPathClasses controls and does not require requiredUpstreamAction to name an enumerated authorized action. A coherently signed github.exam.candidate.commit targeting the Gate 2 signature path returned ALLOW, and migration.expand/backfill return ALLOW with migration.plan.authorize even though that upstream action is absent from the exhaustive manifest. The bundled validator also continues to leave declared negative matrices and sanitized-real controls as unexecuted labels. Zero blocker/major is not met, so the candidate is not technically ready for authorized incorporation."
+  },
+  "originalFindingDispositions": [
+    {
+      "id": "SEC-G2-R2-001",
+      "disposition": "unresolved",
+      "basis": "R4-PF-001 demonstrates that the Exam-author commit action can target intent/0001/signatures/gate-2.json because exactPath is not enforced."
+    },
+    {
+      "id": "PRIV-G2-R2-001",
+      "disposition": "unresolved",
+      "basis": "The policy text and class-bound lifecycle path are substantially strengthened, but the declared sanitized-real provenance, identifier, linkage, inspection, use-authorization, derivative, and raw-receipt cases remain label-only and are not executed by the candidate validator."
+    },
+    {
+      "id": "ACC-G2-R2-001",
+      "disposition": "resolved-by-candidate-pending-future-human-evidence",
+      "basis": "The signed Trusted Tester record now binds exact environments, A01-A81 raw lines, summary derivation, qualification/assignment times, revisions, and cryptographically verified provider proof; contradiction and tamper counterexamples deny."
+    },
+    {
+      "id": "MONEY-G2-004",
+      "disposition": "unresolved",
+      "basis": "The spend schema and record semantics are materially improved, but the protected commit path that carries a spend authorization does not enforce its declared exact path class, leaving the authorization-oracle chain incomplete under R4-PF-001."
+    },
+    {
+      "id": "MONEY-G2-005",
+      "disposition": "unresolved",
+      "basis": "The record schemas and direct R3 temporal/reference checks are corrected, but the normative cost vector suite and several declared negative classes are not consumed or exhaustively executed by validate-remediation.mjs under R4-PF-002."
+    },
+    {
+      "id": "MONEY-G2-R2-001",
+      "disposition": "resolved-by-candidate",
+      "basis": "The candidate uses checked nonnegative integer nanoUSD and BigInt aggregation with explicit overflow rejection; the required R3 overflow counterexample fails."
+    },
+    {
+      "id": "LEGAL-G2-R2-001",
+      "disposition": "resolved-by-candidate-pending-HR-01-R2",
+      "basis": "The fixed 16-class table, signed trigger history, class-specific durations, derived inventories, parent caps, and forged-boundary rejection make the technical policy contract determinate. The qualified human policy ruling remains a dependency."
+    },
+    {
+      "id": "REL-G2-R2-001",
+      "disposition": "resolved-by-candidate-pending-live-provider-evidence",
+      "basis": "The corrected recovery decision derives canonical and restored inventories, binds record cursors and exact bytes, rejects unavailable cut state and unrelated inventories, and preserves provider acknowledgement as authority. Live provider capability and rehearsal remain release dependencies."
+    },
+    {
+      "id": "IRREV-G2-R2-001",
+      "disposition": "unresolved",
+      "basis": "R4-PF-001 shows migration.expand and migration.backfill accept migration.plan.authorize although that action is absent from the manifest's exhaustive action set; the irreversible authorization chain is not closed."
+    }
+  ],
+  "r1FindingDispositions": [
+    {"id":"R2R-PF-001","disposition":"resolved","basis":"All nine cost branches are closed discriminator-const schemas and representative positive/negative schema execution passes."},
+    {"id":"R2R-PF-002","disposition":"resolved","basis":"Non-circular revisions and explicit JCS omission preimages, SHA-256 digests, Ed25519 signatures, and duplicate-key rejection are executable."},
+    {"id":"R2R-PF-003","disposition":"unresolved","basis":"R4-PF-002 confirms that multiple required matrices and the sanitized-real controls remain declared labels rather than executed rows."},
+    {"id":"R2R-PF-004","disposition":"unresolved","basis":"R4-PF-001 demonstrates a protected-path ALLOW and acceptance of an upstream action outside the exhaustive manifest."},
+    {"id":"R2R-PF-005","disposition":"resolved-by-candidate-pending-HR-01-R2","basis":"A class-limited signed raw policy grant and deterministic 60-second derived boundary replace impossible just-in-time per-object human approval."},
+    {"id":"R2R-PF-006","disposition":"resolved-by-candidate-pending-live-provider-evidence","basis":"Provider acknowledgement remains authority; cut topology, canonical bytes, inventory, cursor, mapping, RTO, and failed effects are explicit and executable for the R3 counterexamples."},
+    {"id":"R2R-PF-007","disposition":"resolved-by-candidate-pending-future-human-evidence","basis":"The Trusted Tester schema and semantic validator encode and verify the required evidence minimum."}
+  ],
+  "r2FindingDispositions": [
+    {"id":"R2R2-PF-001","disposition":"unresolved","basis":"Authoritative CAS/replay substitution is fixed, but R4-PF-001 proves that the same decision path still ignores declared manifest authorization constraints."},
+    {"id":"R2R2-PF-002","disposition":"resolved","basis":"Spend and cost validators now recompute signed records and provider proofs and reject the required temporal, reference-stub, and overflow counterexamples."},
+    {"id":"R2R2-PF-003","disposition":"resolved-by-candidate-pending-future-human-evidence","basis":"Raw and summary outcomes are reconciled, the overall disposition is derived, and provider proof is signed and checked."},
+    {"id":"R2R2-PF-004","disposition":"unresolved","basis":"The corrected class-boundary logic closes R3-PF-004, but the validator does not execute the declared boundary-by-precedence matrix, raw-grant mutation matrix, restored-copy, or read-race cases."},
+    {"id":"R2R2-PF-005","disposition":"unresolved","basis":"The corrected recovery logic closes R3-PF-005, but the validator does not execute the declared nineteen recovery corruption/retry cases, so every-cut adversarial completeness remains unproved."}
+  ],
+  "newFindings": [
+    {
+      "id": "R4-PF-001",
+      "severity": "blocker",
+      "title": "Protected-action decision ignores manifest path and upstream-action authorization",
+      "affects": [
+        "SEC-G2-R2-001",
+        "MONEY-G2-004",
+        "IRREV-G2-R2-001",
+        "R2R-PF-004",
+        "R2R2-PF-001"
+      ],
+      "evidence": [
+        "intent/0001/reviews/domain/round-2/remediation/PERMISSIONS-MANIFEST.candidate.json",
+        "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+        "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs"
+      ],
+      "counterexamples": [
+        "Starting from github.exam.candidate.commit, R4 changed request.body.selectors.path to intent/0001/signatures/gate-2.json, recomputed immutableRequestDigest, resealed the upstream envelope with identical selectors, resealed the signed current CAS snapshot for that path, and resealed the atomic reservation for the new request digest. The request schema returned no errors and protectedActionDecision returned ALLOW with credentialAccess=1, installationToken=1, and providerRequest=1, despite the manifest's exactPath being intent/0001/EXAM.md.",
+        "The exhaustive manifest contains no migration.plan.authorize action. Nevertheless, AUTH_PROFILES requires that upstream action for migration.expand and migration.backfill, makeAuthorizationFixture creates it, and protectedActionDecision returns ALLOW because it compares only the hard-coded profile string and never requires the upstream action to exist in the manifest."
+      ],
+      "impact": "A validly signed and current caller-controlled envelope can move a protected Exam-author operation onto a signature or other path and can invoke migration from an authorization action that policy declares nonexistent. Exact-path separation, exhaustive deny-by-default policy, and independently authorized migration are therefore bypassed before provider effects.",
+      "requiredResolution": "Make the decision function enforce exactPath and every allowedPathClasses expression from the selected manifest action against the immutable request; deny zero or multiple path-class matches. Select requiredUpstreamAction and requiredActorRole from the manifest rather than a parallel hard-coded profile, require the upstream action to exist in the same exhaustive manifest, and validate its principal, role, credential, decision/assignment record and delegation chain. Add coherent wrong-path cases for Exam, decision, spend, lifecycle tombstone, and normal item commits, plus missing/unlisted/wrong-role migration-plan and cleanup authorization cases, all with zero effects."
+    },
+    {
+      "id": "R4-PF-002",
+      "severity": "major",
+      "title": "Declared adversarial matrices and sanitized-real controls are still not executed",
+      "affects": [
+        "PRIV-G2-R2-001",
+        "MONEY-G2-005",
+        "R2R-PF-003",
+        "R2R2-PF-004",
+        "R2R2-PF-005"
+      ],
+      "evidence": [
+        "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json",
+        "intent/0001/reviews/domain/round-2/remediation/COST-ORACLE-VECTORS.candidate.json",
+        "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs"
+      ],
+      "impact": "The package can print PASS without consuming the structured authorizationCases, lifecycleCases, recoveryCases, spendRecordCases, sanitizedRealCases, or normative COST-ORACLE-VECTORS rows. It also does not execute the declared authorizationByteMutations, lifecycle boundary-by-precedence and raw-grant matrices, lifecycle special cases, or nineteen recovery corruptions. The green result therefore does not prove the package's claimed exhaustive negative, race, privacy, cost, lifecycle, or recovery contract.",
+      "requiredResolution": "Drive every normative fixture and vector through the applicable schema and shared semantic decision function, compare the exact expected state and first error, assert typed zero effects for every denial/failure, and fail validation if any declared case ID or coverage kind is unexecuted. Implement executable sanitized-real provenance, identifier, named-entity, four-token uniqueness, k-anonymity, linkage/Wilson, use-authorization, independent-inspection, derivative, raw-receipt, and destination-segregation inputs rather than label rows."
+    }
+  ],
+  "dependenciesNotCandidateDefects": [
+    {
+      "id": "HR-01-R2",
+      "status": "required-after-final-policy-path-digest-and-canonical-revision-stabilize",
+      "owner": "qualified privacy/legal records owner",
+      "condition": "A new human ruling must bind the final retention policy v2 path/digest and new canonical Exam revision before Gate 2 eligibility; this preflight does not create or infer it."
+    },
+    {
+      "id": "AUTHORIZED-GITHUB-APP-INCORPORATION",
+      "status": "required-after-technical-blocker-and-major-close",
+      "owner": "authorized independent Exam author",
+      "condition": "Use the protected GitHub App path to incorporate the stable package into a new canonical Exam revision and freeze exact candidate and Exam hashes together. Non-incorporation before this preflight is not a defect."
+    },
+    {
+      "id": "SEVEN-DOMAIN-EXACT-REVISION-REVIEWS",
+      "status": "required-after-canonical-incorporation",
+      "owner": "independent security, privacy, accessibility, money, legal, reliability, and irreversible-operations reviewers",
+      "condition": "Repeat all seven reviews against the new exact canonical revision and consolidate a new exception brief with zero blocker or major findings."
+    },
+    {
+      "id": "LIVE-PROVIDER-RECOVERY-EVIDENCE",
+      "status": "required-before-release",
+      "owner": "reliability owner",
+      "condition": "Prove the selected provider's independent journal/export capability and every-cut zero-loss recovery rehearsal; deterministic fixtures cannot substitute for live provider evidence."
+    },
+    {
+      "id": "FUTURE-GATE-3-TRUSTED-TESTER-EVIDENCE",
+      "status": "future-required-before-regulated-technical-release-or-pilot-activation",
+      "owner": "qualified DHS Trusted Tester assigned to the platform pod",
+      "condition": "Supply current human evidence for the exact Exam and implementation revision when Gate 3 is triggered; this commercial Gate 2 preflight does not fabricate it."
+    },
+    {
+      "id": "HUMAN-GATE-2-SIGNATURE",
+      "status": "required-after-all-technical-and-review-prerequisites-pass",
+      "owner": "human Tech Lead",
+      "condition": "Only the eligible human may decide and sign Gate 2 after actor-bound protection and all exact-revision prerequisites are verified."
+    }
+  ],
+  "requiredNextState": [
+    "Correct R4-PF-001 and R4-PF-002 and refresh every affected candidate digest and remediation-manifest entry.",
+    "Rerun both validator modes and an independent fresh-context adversarial preflight; PASS requires zero technical blocker and major findings.",
+    "After a zero-finding pre-incorporation preflight, have the authorized independent Exam author incorporate the stable package through the GitHub App protected path and freeze a new exact canonical revision.",
+    "Then obtain HR-01-R2, all seven new exact-revision domain reviews and zero-open exception brief, actor-bound Exam protection evidence on the actual author/diff, and a fresh-context final Critic review before the human Tech Lead Gate 2 decision.",
+    "Preserve Gate 1: the USD 1,000 monthly infrastructure ceiling is not spending authority. No correction or review authorizes credentials, paid resources, deletion, migration, build, release, production, Builder work, Gate transition, commit, or push."
+  ],
+  "boundaries": {
+    "canonicalExamEdited": false,
+    "candidateArtifactsEdited": false,
+    "priorCriticEdited": false,
+    "gateOneArtifactsEdited": false,
+    "policyEdited": false,
+    "signaturesEdited": false,
+    "implementationEdited": false,
+    "roundTwoReviewRecordsEdited": false,
+    "onlyThisCriticRecordWritten": true,
+    "commitCreated": false,
+    "pushPerformed": false,
+    "gateTwoSigned": false,
+    "builderAuthorized": false,
+    "releaseAuthorized": false,
+    "productionAuthorized": false,
+    "deletionOrMigrationAuthorized": false,
+    "spendingAuthorized": false,
+    "thisRecordOnlyAdvisesOnPreIncorporationCandidateAdequacy": true
+  }
+}

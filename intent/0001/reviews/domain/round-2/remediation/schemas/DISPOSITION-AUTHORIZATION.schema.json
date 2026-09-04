@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "steer://schemas/disposition-authorization/v3",
+  "type": "object", "additionalProperties": false,
+  "required": ["version", "authorizationId", "tenant", "recordClass", "eventId", "targetDigest", "policyDigest", "copyInventoryDigest", "presentTupleDigest", "authorizedCopy", "notBefore", "expiresAt", "status", "signerRole", "recordDigest", "signature"],
+  "properties": {
+    "version": { "const": "steer-disposition-authorization/v3" }, "authorizationId": { "$ref": "#/$defs/uuid" },
+    "tenant": { "type": "string", "minLength": 1 }, "recordClass": { "type": "string", "minLength": 1 },
+    "eventId": { "$ref": "#/$defs/uuid" }, "targetDigest": { "$ref": "#/$defs/sha" },
+    "policyDigest": { "$ref": "#/$defs/sha" }, "copyInventoryDigest": { "$ref": "#/$defs/sha" },
+    "presentTupleDigest": { "$ref": "#/$defs/sha" }, "authorizedCopy": { "$ref": "#/$defs/copy" },
+    "notBefore": { "$ref": "#/$defs/time" }, "expiresAt": { "$ref": "#/$defs/time" },
+    "status": { "enum": ["current", "revoked"] }, "signerRole": { "const": "privacy-legal-records-owner" },
+    "recordDigest": { "$ref": "#/$defs/sha" }, "signature": { "$ref": "#/$defs/signature" }
+  },
+  "$defs": {
+    "copy": { "type": "object", "additionalProperties": false, "required": ["authorityId", "copyId", "kind", "provider", "providerBindingId", "objectKey", "versionId", "keyId"], "properties": { "authorityId": { "$ref": "#/$defs/uuid" }, "copyId": { "type": "string", "minLength": 1 }, "kind": { "type": "string", "minLength": 1 }, "provider": { "type": "string", "minLength": 1 }, "providerBindingId": { "type": "string", "pattern": "^provider-binding:[a-z0-9-]+$" }, "objectKey": { "type": "string", "minLength": 1 }, "versionId": { "type": "string", "minLength": 1 }, "keyId": { "type": "string", "minLength": 1 } } },
+    "sha": { "type": "string", "pattern": "^[0-9a-f]{64}$" }, "uuid": { "type": "string", "format": "uuid" }, "time": { "type": "string", "format": "date-time" },
+    "signature": { "type": "object", "additionalProperties": false, "required": ["algorithm", "keyId", "publicKeyHex", "signedDigest", "valueBase64"], "properties": { "algorithm": { "const": "Ed25519" }, "keyId": { "type": "string", "minLength": 1 }, "publicKeyHex": { "type": "string", "pattern": "^[0-9a-f]{64}$" }, "signedDigest": { "$ref": "#/$defs/sha" }, "valueBase64": { "type": "string", "minLength": 1 } } }
+  },
+  "x-steer-semantic-checks": ["authorizationId equals authorizedCopy.authorityId", "exactly one current signed authorization exists for each present inventory tuple"]
+}

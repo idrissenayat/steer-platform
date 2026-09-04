@@ -1,0 +1,188 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "steer://schemas/cost-evidence/v2",
+  "title": "STEER cost evidence records",
+  "$comment": "Every branch is discriminator-const and closed. Integrity is SHA-256(RFC 8785 JCS(record with recordDigest, signature, and post-ack providerProof omitted)); signature.signedDigest must equal recordDigest and Ed25519 verifies the lowercase digest UTF-8 bytes.",
+  "oneOf": [
+    { "$ref": "#/$defs/forecast" }, { "$ref": "#/$defs/reservation" },
+    { "$ref": "#/$defs/usage" }, { "$ref": "#/$defs/invoice" },
+    { "$ref": "#/$defs/variance" }, { "$ref": "#/$defs/alert" },
+    { "$ref": "#/$defs/shutdown" }, { "$ref": "#/$defs/credentialRevocation" },
+    { "$ref": "#/$defs/restart" }
+  ],
+  "$defs": {
+    "nanoUsd": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+    "sha": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "uuid": { "type": "string", "format": "uuid" },
+    "time": { "type": "string", "format": "date-time" },
+    "signature": {
+      "type": "object", "additionalProperties": false,
+      "required": ["algorithm", "keyId", "publicKeyHex", "signedDigest", "valueBase64"],
+      "properties": {
+        "algorithm": { "const": "Ed25519" }, "keyId": { "type": "string", "minLength": 1 },
+        "publicKeyHex": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "signedDigest": { "$ref": "#/$defs/sha" }, "valueBase64": { "type": "string", "minLength": 1 }
+      }
+    },
+    "base": {
+      "type": "object",
+      "required": ["version", "recordType", "recordId", "organization", "tenant", "product", "pod", "periodStart", "periodEnd", "currency", "priceRevision", "authorizationId", "authorizationDigest", "examRevision", "implementationRevision", "targetRevision", "predecessorRevision", "serverTimestamp", "digestAlgorithm", "canonicalization", "providerProof", "recordDigest", "signature"],
+      "properties": {
+        "version": { "const": "steer-cost-evidence/v2" },
+        "recordType": { "enum": ["forecast", "reservation", "usage", "invoice", "variance", "alert", "shutdown", "credential-revocation", "restart"] },
+        "recordId": { "$ref": "#/$defs/uuid" }, "organization": { "const": "steer-platform" },
+        "tenant": { "const": "steer-platform" }, "product": { "const": "flight-deck" }, "pod": { "const": "platform" },
+        "periodStart": { "$ref": "#/$defs/time" }, "periodEnd": { "$ref": "#/$defs/time" }, "currency": { "const": "USD" },
+        "priceRevision": { "type": "string", "pattern": "^[A-Za-z0-9._/-]+@[0-9a-f]{64}$" },
+        "authorizationId": { "$ref": "#/$defs/uuid" }, "authorizationDigest": { "$ref": "#/$defs/sha" },
+        "examRevision": { "$ref": "#/$defs/revision" }, "implementationRevision": { "$ref": "#/$defs/revision" },
+        "targetRevision": { "$ref": "#/$defs/revision" },
+        "predecessorRevision": { "type": ["string", "null"], "pattern": "^[0-9a-f]{40}$" },
+        "serverTimestamp": { "$ref": "#/$defs/time" }, "digestAlgorithm": { "const": "sha-256" },
+        "canonicalization": { "const": "RFC8785-JCS" },
+        "providerProof": {
+          "type": "object", "additionalProperties": false,
+          "required": ["provider", "recordId", "evidenceRecordId", "evidenceDigest", "recordedAt", "proofDigest", "signature"],
+          "properties": {
+            "provider": { "type": "string", "minLength": 1 }, "recordId": { "type": "string", "minLength": 1 },
+            "evidenceRecordId": { "$ref": "#/$defs/uuid" }, "evidenceDigest": { "$ref": "#/$defs/sha" },
+            "recordedAt": { "$ref": "#/$defs/time" }, "proofDigest": { "$ref": "#/$defs/sha" }, "signature": { "$ref": "#/$defs/signature" }
+          }
+        },
+        "recordDigest": { "$ref": "#/$defs/sha" },
+        "signature": { "$ref": "#/$defs/signature" }
+      }
+    },
+    "scenario": {
+      "type": "object", "additionalProperties": false,
+      "required": ["lowNanoUsd", "expectedNanoUsd", "highNanoUsd", "scopeLimitsNanoUsd"],
+      "properties": {
+        "lowNanoUsd": { "$ref": "#/$defs/nanoUsd" }, "expectedNanoUsd": { "$ref": "#/$defs/nanoUsd" },
+        "highNanoUsd": { "$ref": "#/$defs/nanoUsd" }, "scopeLimitsNanoUsd": { "$ref": "#/$defs/scopeAmounts" }
+      }
+    },
+    "scopeAmounts": {
+      "type": "object", "additionalProperties": false,
+      "required": ["organization", "tenant", "product", "pod", "execution"],
+      "properties": {
+        "organization": { "$ref": "#/$defs/nanoUsd" }, "tenant": { "$ref": "#/$defs/nanoUsd" },
+        "product": { "$ref": "#/$defs/nanoUsd" }, "pod": { "$ref": "#/$defs/nanoUsd" },
+        "execution": { "$ref": "#/$defs/nanoUsd" }
+      }
+    },
+    "amountCommon": {
+      "type": "object", "required": ["costClass", "amountNanoUsd", "scopeAmountsNanoUsd", "idempotencyKey"],
+      "properties": {
+        "costClass": { "enum": ["infrastructure", "model"] }, "amountNanoUsd": { "$ref": "#/$defs/nanoUsd" },
+        "scopeAmountsNanoUsd": { "$ref": "#/$defs/scopeAmounts" }, "idempotencyKey": { "type": "string", "minLength": 1 }
+      }
+    },
+    "forecast": {
+      "allOf": [{ "$ref": "#/$defs/base" }, {
+        "type": "object", "required": ["assumptions", "infrastructure", "model", "sourceUsageWindowStart", "sourceUsageWindowEnd", "forecastDecision"],
+        "properties": {
+          "recordType": { "const": "forecast" },
+          "assumptions": { "type": "array", "minItems": 1, "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["name", "unit", "low", "expected", "high", "source", "sourceSha256"],
+            "properties": {
+              "name": { "type": "string", "minLength": 1 }, "unit": { "type": "string", "minLength": 1 },
+              "low": { "type": "integer", "minimum": 0 }, "expected": { "type": "integer", "minimum": 0 },
+              "high": { "type": "integer", "minimum": 0 }, "source": { "type": "string", "minLength": 1 },
+              "sourceSha256": { "$ref": "#/$defs/sha" }
+            }
+          } },
+          "infrastructure": { "$ref": "#/$defs/scenario" }, "model": { "$ref": "#/$defs/scenario" },
+          "sourceUsageWindowStart": { "$ref": "#/$defs/time" }, "sourceUsageWindowEnd": { "$ref": "#/$defs/time" },
+          "forecastDecision": { "enum": ["allow", "deny"] }
+        }
+      }], "unevaluatedProperties": false
+    },
+    "reservation": {
+      "allOf": [{ "$ref": "#/$defs/base" }, { "$ref": "#/$defs/amountCommon" }, {
+        "type": "object", "required": ["executionId", "providerRequestId", "maximumEstimateNanoUsd"],
+        "properties": { "recordType": { "const": "reservation" }, "executionId": { "type": "string", "minLength": 1 },
+          "providerRequestId": { "type": "string", "minLength": 1 }, "maximumEstimateNanoUsd": { "$ref": "#/$defs/nanoUsd" } }
+      }], "unevaluatedProperties": false
+    },
+    "usage": {
+      "allOf": [{ "$ref": "#/$defs/base" }, { "$ref": "#/$defs/amountCommon" }, {
+        "type": "object", "required": ["reservationId", "providerUsageId", "billableLineId", "units", "unitName"],
+        "properties": { "recordType": { "const": "usage" }, "reservationId": { "$ref": "#/$defs/uuid" },
+          "providerUsageId": { "type": "string", "minLength": 1 }, "billableLineId": { "type": "string", "minLength": 1 },
+          "units": { "type": "integer", "minimum": 0 }, "unitName": { "type": "string", "minLength": 1 } }
+      }], "unevaluatedProperties": false
+    },
+    "invoice": {
+      "allOf": [{ "$ref": "#/$defs/base" }, { "$ref": "#/$defs/amountCommon" }, {
+        "type": "object", "required": ["providerInvoiceId", "providerLineId", "usageRecordIds", "invoiceGroup", "billedAt"],
+        "properties": { "recordType": { "const": "invoice" }, "providerInvoiceId": { "type": "string", "minLength": 1 },
+          "providerLineId": { "type": "string", "minLength": 1 },
+          "usageRecordIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/uuid" } },
+          "invoiceGroup": { "type": "string", "minLength": 1 }, "billedAt": { "$ref": "#/$defs/time" } }
+      }], "unevaluatedProperties": false
+    },
+    "variance": {
+      "allOf": [{ "$ref": "#/$defs/base" }, {
+        "type": "object", "required": ["ledgerAmountNanoUsd", "invoiceAmountNanoUsd", "absoluteVarianceNanoUsd", "reconciliationStatus", "providerInvoiceId"],
+        "properties": { "recordType": { "const": "variance" }, "ledgerAmountNanoUsd": { "$ref": "#/$defs/nanoUsd" },
+          "invoiceAmountNanoUsd": { "$ref": "#/$defs/nanoUsd" }, "absoluteVarianceNanoUsd": { "$ref": "#/$defs/nanoUsd" },
+          "reconciliationStatus": { "enum": ["matched", "variance-open", "provider-not-yet-available", "blocked-after-24h"] },
+          "providerInvoiceId": { "type": "string", "minLength": 1 } }
+      }], "unevaluatedProperties": false
+    },
+    "alert": {
+      "allOf": [{ "$ref": "#/$defs/base" }, {
+        "type": "object", "required": ["triggerRecordId", "thresholdNanoUsd", "observedNanoUsd", "state", "evidenceRefs"],
+        "properties": { "recordType": { "const": "alert" }, "triggerRecordId": { "$ref": "#/$defs/uuid" },
+          "thresholdNanoUsd": { "$ref": "#/$defs/nanoUsd" }, "observedNanoUsd": { "$ref": "#/$defs/nanoUsd" },
+          "state": { "enum": ["warning", "critical"] },
+          "evidenceRefs": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } } }
+      }], "unevaluatedProperties": false
+    },
+    "shutdown": {
+      "allOf": [{ "$ref": "#/$defs/base" }, {
+        "type": "object", "required": ["triggerRecordId", "reason", "effectiveAt", "providerProofDigest"],
+        "properties": { "recordType": { "const": "shutdown" }, "triggerRecordId": { "$ref": "#/$defs/uuid" },
+          "reason": { "enum": ["limit-reached", "forecast-denied", "authorization-expired", "reconciliation-blocked"] },
+          "effectiveAt": { "$ref": "#/$defs/time" }, "providerProofDigest": { "$ref": "#/$defs/sha" } }
+      }], "unevaluatedProperties": false
+    },
+    "credentialRevocation": {
+      "allOf": [{ "$ref": "#/$defs/base" }, {
+        "type": "object", "required": ["triggerRecordId", "credentialId", "revokedAt", "providerReceiptDigest"],
+        "properties": { "recordType": { "const": "credential-revocation" }, "triggerRecordId": { "$ref": "#/$defs/uuid" },
+          "credentialId": { "type": "string", "minLength": 1 }, "revokedAt": { "$ref": "#/$defs/time" },
+          "providerReceiptDigest": { "$ref": "#/$defs/sha" } }
+      }], "unevaluatedProperties": false
+    },
+    "restart": {
+      "allOf": [{ "$ref": "#/$defs/base" }, {
+        "type": "object", "required": ["triggerRecordId", "newAuthorizationId", "forecastDigest", "reconciliationDigest", "effectiveAt"],
+        "properties": { "recordType": { "const": "restart" }, "triggerRecordId": { "$ref": "#/$defs/uuid" },
+          "newAuthorizationId": { "$ref": "#/$defs/uuid" }, "forecastDigest": { "$ref": "#/$defs/sha" },
+          "reconciliationDigest": { "$ref": "#/$defs/sha" }, "effectiveAt": { "$ref": "#/$defs/time" } }
+      }], "unevaluatedProperties": false
+    }
+  },
+  "x-steer-canonical-integrity": {
+    "preimage": "RFC8785-JCS record with top-level recordDigest, signature, and post-ack providerProof omitted",
+    "digest": "lowercase-hex SHA-256 of UTF-8 preimage",
+    "signature": "Ed25519 over the 64 lowercase ASCII hex bytes of recordDigest; signature.signedDigest equals recordDigest",
+    "targetRevisionSemantics": "immutable implementation or artifact revision evaluated by this record; never the commit containing this record",
+    "predecessorRevisionSemantics": "previous committed evidence head or null for genesis"
+  },
+  "x-steer-record-paths": {
+    "forecast": "evidence/0001/<exam>/<implementation>/<run>/cost/forecast.json",
+    "reservation": "evidence/0001/<exam>/<implementation>/<run>/cost/reservations.jsonl",
+    "usage": "evidence/0001/<exam>/<implementation>/<run>/cost/usage.jsonl",
+    "invoice": "evidence/0001/<exam>/<implementation>/<run>/cost/invoices.jsonl",
+    "variance": "evidence/0001/<exam>/<implementation>/<run>/cost/variance.json",
+    "alert": "evidence/0001/<exam>/<implementation>/<run>/cost/alerts.jsonl",
+    "shutdown": "evidence/0001/<exam>/<implementation>/<run>/cost/shutdown.json",
+    "credential-revocation": "evidence/0001/<exam>/<implementation>/<run>/cost/revocations.jsonl",
+    "restart": "evidence/0001/<exam>/<implementation>/<run>/cost/restart.json"
+  },
+  "x-steer-r3-semantic-checks": ["serverTimestamp is inside the fully revalidated signed authorization effective/expiry interval", "signed providerProof.recordedAt is not before serverTimestamp and is inside both authorization and cost periods", "every referenced record follows the same signature, proof, authorization, scope, period, price and revision validation path", "transitions are reservation-to-usage-to-invoice-to-variance and invoice-to-alert-to-shutdown-to-credential-revocation-to-restart", "all nanoUSD aggregation uses checked BigInt and rejects values or aggregates outside 0..9007199254740991"]
+}

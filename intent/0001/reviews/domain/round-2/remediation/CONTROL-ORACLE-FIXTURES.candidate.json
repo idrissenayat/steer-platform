@@ -1,0 +1,3302 @@
+{
+  "version": "steer-round-2-remediation-fixtures/v2",
+  "targetExamRevision": "9c7299dd658615cd234e8e03188d607ef1a99fe1",
+  "effectKinds": [
+    "credential",
+    "installation-token",
+    "tool",
+    "provider-request",
+    "git-write",
+    "signature",
+    "workflow",
+    "notification",
+    "lifecycle",
+    "migration",
+    "release",
+    "paid-resource"
+  ],
+  "faultInjectionSemantics": "Each compact false or substituted input mutates a concrete complete credential, delegation, assignment/decision, target, request, policy, expiry, idempotency or CAS field before the same production-shaped decision function runs; no boolean is accepted as authorization evidence.",
+  "schemaCases": {
+    "costEvidence": [
+      {
+        "id": "CE-FORECAST-POS",
+        "recordType": "forecast",
+        "mutation": null,
+        "expected": {
+          "valid": true,
+          "firstError": null
+        }
+      },
+      {
+        "id": "CE-RESERVATION-POS",
+        "recordType": "reservation",
+        "mutation": null,
+        "expected": {
+          "valid": true,
+          "firstError": null
+        }
+      },
+      {
+        "id": "CE-USAGE-POS",
+        "recordType": "usage",
+        "mutation": null,
+        "expected": {
+          "valid": true,
+          "firstError": null
+        }
+      },
+      {
+        "id": "CE-INVOICE-POS",
+        "recordType": "invoice",
+        "mutation": null,
+        "expected": {
+          "valid": true,
+          "firstError": null
+        }
+      },
+      {
+        "id": "CE-VARIANCE-POS",
+        "recordType": "variance",
+        "mutation": null,
+        "expected": {
+          "valid": true,
+          "firstError": null
+        }
+      },
+      {
+        "id": "CE-ALERT-POS",
+        "recordType": "alert",
+        "mutation": null,
+        "expected": {
+          "valid": true,
+          "firstError": null
+        }
+      },
+      {
+        "id": "CE-SHUTDOWN-POS",
+        "recordType": "shutdown",
+        "mutation": null,
+        "expected": {
+          "valid": true,
+          "firstError": null
+        }
+      },
+      {
+        "id": "CE-REVOCATION-POS",
+        "recordType": "credential-revocation",
+        "mutation": null,
+        "expected": {
+          "valid": true,
+          "firstError": null
+        }
+      },
+      {
+        "id": "CE-RESTART-POS",
+        "recordType": "restart",
+        "mutation": null,
+        "expected": {
+          "valid": true,
+          "firstError": null
+        }
+      },
+      {
+        "id": "CE-FORECAST-NEG",
+        "recordType": "forecast",
+        "mutation": {
+          "add": {
+            "amountNanoUsd": 1
+          }
+        },
+        "expected": {
+          "valid": false,
+          "firstError": "/unevaluatedProperties"
+        }
+      },
+      {
+        "id": "CE-RESERVATION-NEG",
+        "recordType": "reservation",
+        "mutation": {
+          "set": {
+            "recordType": "usage"
+          }
+        },
+        "expected": {
+          "valid": false,
+          "firstError": "/unevaluatedProperties"
+        }
+      },
+      {
+        "id": "CE-USAGE-NEG",
+        "recordType": "usage",
+        "mutation": {
+          "delete": "providerUsageId"
+        },
+        "expected": {
+          "valid": false,
+          "firstError": "/unevaluatedProperties"
+        }
+      },
+      {
+        "id": "CE-INVOICE-NEG",
+        "recordType": "invoice",
+        "mutation": {
+          "add": {
+            "credentialId": "cross-branch"
+          }
+        },
+        "expected": {
+          "valid": false,
+          "firstError": "/unevaluatedProperties"
+        }
+      },
+      {
+        "id": "CE-VARIANCE-NEG",
+        "recordType": "variance",
+        "mutation": {
+          "delete": "reconciliationStatus"
+        },
+        "expected": {
+          "valid": false,
+          "firstError": "/unevaluatedProperties"
+        }
+      },
+      {
+        "id": "CE-ALERT-NEG",
+        "recordType": "alert",
+        "mutation": {
+          "set": {
+            "state": "shutdown-complete"
+          }
+        },
+        "expected": {
+          "valid": false,
+          "firstError": "/unevaluatedProperties"
+        }
+      },
+      {
+        "id": "CE-SHUTDOWN-NEG",
+        "recordType": "shutdown",
+        "mutation": {
+          "delete": "providerProofDigest"
+        },
+        "expected": {
+          "valid": false,
+          "firstError": "/unevaluatedProperties"
+        }
+      },
+      {
+        "id": "CE-REVOCATION-NEG",
+        "recordType": "credential-revocation",
+        "mutation": {
+          "add": {
+            "effectiveAt": "2026-09-03T00:00:00Z"
+          }
+        },
+        "expected": {
+          "valid": false,
+          "firstError": "/unevaluatedProperties"
+        }
+      },
+      {
+        "id": "CE-RESTART-NEG",
+        "recordType": "restart",
+        "mutation": {
+          "delete": "forecastDigest"
+        },
+        "expected": {
+          "valid": false,
+          "firstError": "/unevaluatedProperties"
+        }
+      }
+    ],
+    "spendAuthorization": [
+      {
+        "id": "SA-ACTIVE-POS",
+        "status": "active",
+        "mutation": null,
+        "expected": {
+          "valid": true,
+          "firstError": null
+        }
+      },
+      {
+        "id": "SA-REVOKED-POS",
+        "status": "revoked",
+        "mutation": null,
+        "expected": {
+          "valid": true,
+          "firstError": null
+        }
+      },
+      {
+        "id": "SA-SUPERSEDED-POS",
+        "status": "superseded",
+        "mutation": null,
+        "expected": {
+          "valid": true,
+          "firstError": null
+        }
+      },
+      {
+        "id": "SA-SELF-REVISION-NEG",
+        "status": "active",
+        "mutation": {
+          "delete": "targetRevision"
+        },
+        "expected": {
+          "valid": false,
+          "firstError": "/required/targetRevision"
+        }
+      },
+      {
+        "id": "SA-STATUS-NEG",
+        "status": "revoked",
+        "mutation": {
+          "set": {
+            "revocation": null
+          }
+        },
+        "expected": {
+          "valid": false,
+          "firstError": "/allOf/1/then"
+        }
+      },
+      {
+        "id": "SA-EXTRA-NEG",
+        "status": "active",
+        "mutation": {
+          "add": {
+            "recordRevision": "self-reference"
+          }
+        },
+        "expected": {
+          "valid": false,
+          "firstError": "/additionalProperties/recordRevision"
+        }
+      }
+    ],
+    "trustedTester": [
+      {
+        "id": "TT-POS",
+        "mutation": null,
+        "expected": {
+          "valid": true,
+          "firstError": null
+        }
+      },
+      {
+        "id": "TT-FAMILY-MISSING",
+        "mutation": {
+          "deleteArray": {
+            "path": "environments",
+            "index": 4
+          }
+        },
+        "expected": {
+          "valid": false,
+          "firstError": "/properties/environments/minItems"
+        }
+      },
+      {
+        "id": "TT-FAMILY-SUBSTITUTED",
+        "mutation": {
+          "setPath": {
+            "path": "environments.4.family",
+            "value": "mobile-safari"
+          }
+        },
+        "expected": {
+          "valid": false,
+          "firstError": "/properties/environments/prefixItems/4"
+        }
+      },
+      {
+        "id": "TT-CHECKPOINT-MISSING",
+        "mutation": {
+          "deletePath": "checkpointResults.A81"
+        },
+        "expected": {
+          "valid": false,
+          "firstError": "/properties/checkpointResults/required/A81"
+        }
+      },
+      {
+        "id": "TT-QUALIFICATION-EXPIRED",
+        "mutation": {
+          "setPath": {
+            "path": "qualification.expiresAt",
+            "value": "2026-09-02T00:00:00Z"
+          }
+        },
+        "expected": {
+          "valid": false,
+          "firstError": "TT_TIME_OR_CURRENTNESS_INVALID"
+        }
+      },
+      {
+        "id": "TT-ASSIGNMENT-STALE",
+        "mutation": {
+          "setPath": {
+            "path": "platformPodAssignment.expiresAt",
+            "value": "2026-09-02T00:00:00Z"
+          }
+        },
+        "expected": {
+          "valid": false,
+          "firstError": "TT_TIME_OR_CURRENTNESS_INVALID"
+        }
+      },
+      {
+        "id": "TT-SUBJECT-MISMATCH",
+        "mutation": {
+          "setPath": {
+            "path": "platformPodAssignment.assignedSubject",
+            "value": "human:other"
+          }
+        },
+        "expected": {
+          "valid": false,
+          "firstError": "TT_ASSIGNMENT_SUBJECT_MISMATCH"
+        }
+      },
+      {
+        "id": "TT-GATE2-SUBSTITUTION",
+        "mutation": {
+          "set": {
+            "gate": 2
+          }
+        },
+        "expected": {
+          "valid": false,
+          "firstError": "/properties/gate/const"
+        }
+      },
+      {
+        "id": "TT-RAW-DIGEST-MISSING",
+        "mutation": {
+          "delete": "rawResultsSha256"
+        },
+        "expected": {
+          "valid": false,
+          "firstError": "/required/rawResultsSha256"
+        }
+      }
+    ]
+  },
+  "integrityCases": [
+    {
+      "id": "JCS-POS",
+      "input": {
+        "z": 1,
+        "a": "é",
+        "nested": {
+          "b": true,
+          "a": null
+        }
+      },
+      "expected": {
+        "canonical": "{\"a\":\"é\",\"nested\":{\"a\":null,\"b\":true},\"z\":1}",
+        "sha256": "8d3427a4781d0d93575fe50fe56942d1d8eadd6bf4f403457f327a47a0b06c77",
+        "signatureValid": true,
+        "firstError": null
+      }
+    },
+    {
+      "id": "JCS-TAMPER",
+      "input": {
+        "z": 1,
+        "a": "é",
+        "nested": {
+          "b": true,
+          "a": null
+        }
+      },
+      "tamperDigest": true,
+      "expected": {
+        "signatureValid": false,
+        "firstError": "SIGNATURE_DIGEST_MISMATCH"
+      }
+    },
+    {
+      "id": "JCS-SUBSTITUTED-SIGNATURE",
+      "input": {
+        "z": 1,
+        "a": "é",
+        "nested": {
+          "b": true,
+          "a": null
+        }
+      },
+      "substituteSignature": true,
+      "expected": {
+        "signatureValid": false,
+        "firstError": "SIGNATURE_INVALID"
+      }
+    }
+  ],
+  "authorizationCases": [
+    {
+      "id": "AUTH-EXAM-POS",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": null
+      },
+      "expected": {
+        "decision": "ALLOW",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 1,
+          "installationToken": 1,
+          "providerRequest": 1,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-EXAM-CREDENTIAL-SUBJECT",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "credential-subject"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "CREDENTIAL_BINDING_MISMATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-EXAM-DELEGATION-SUBSTITUTION",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "delegation-invalid"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "DELEGATION_SIGNATURE_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-EXAM-BUILDER",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "actor-role"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "ACTOR_ROLE_DENIED",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-EXAM-ASSIGNMENT-SUBSTITUTION",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "authority-denied"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "AUTHORITY_RECORD_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-EXAM-TARGET-SUBSTITUTION",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "target"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "AUTHORITY_SELECTOR_MISMATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-EXAM-COMPROMISED",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "actor-role"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "ACTOR_ROLE_DENIED",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-DECISION-POS",
+      "input": {
+        "action": "github.decision.record.commit",
+        "mutation": null
+      },
+      "expected": {
+        "decision": "ALLOW",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 1,
+          "installationToken": 1,
+          "providerRequest": 1,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-DECISION-SUBSTITUTION",
+      "input": {
+        "action": "github.decision.record.commit",
+        "mutation": "authority-denied"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "AUTHORITY_RECORD_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-SPEND-POS",
+      "input": {
+        "action": "github.spend-authorization.commit",
+        "mutation": null
+      },
+      "expected": {
+        "decision": "ALLOW",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 1,
+          "installationToken": 1,
+          "providerRequest": 1,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-SPEND-POLICY-SUBSTITUTION",
+      "input": {
+        "action": "github.spend-authorization.commit",
+        "mutation": "policy"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "AUTHORITY_SELECTOR_MISMATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-SPEND-EXPIRED",
+      "input": {
+        "action": "github.spend-authorization.commit",
+        "mutation": "expired"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "CREDENTIAL_NOT_CURRENT",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-SPEND-RETRY-MISMATCH",
+      "input": {
+        "action": "github.spend-authorization.commit",
+        "mutation": "idempotency"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "AUTHORITATIVE_LEDGER_BINDING_MISMATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-SPEND-RACE-LOSER",
+      "input": {
+        "action": "github.spend-authorization.commit",
+        "mutation": "cas"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "AUTHORITATIVE_CAS_HEAD_MISMATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-LIFECYCLE-DELETE-POS",
+      "input": {
+        "action": "lifecycle.delete-copy",
+        "mutation": null
+      },
+      "expected": {
+        "decision": "ALLOW",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 1,
+          "installationToken": 0,
+          "providerRequest": 1,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-LIFECYCLE-ERASE-NO-AUTH",
+      "input": {
+        "action": "lifecycle.crypto-erase",
+        "mutation": "authority-denied"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "AUTHORITY_RECORD_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-LIFECYCLE-TOMBSTONE-RACE",
+      "input": {
+        "action": "lifecycle.commit-tombstone",
+        "mutation": "cas"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "AUTHORITATIVE_CAS_HEAD_MISMATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-MIGRATION-EXPAND-POS",
+      "input": {
+        "action": "migration.expand",
+        "mutation": null
+      },
+      "expected": {
+        "decision": "ALLOW",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 1,
+          "installationToken": 0,
+          "providerRequest": 1,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-MIGRATION-BACKFILL-RETRY",
+      "input": {
+        "action": "migration.backfill",
+        "mutation": "idempotency"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "AUTHORITATIVE_LEDGER_BINDING_MISMATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-MIGRATION-CONTRACT-NO-DECISION",
+      "input": {
+        "action": "migration.contract",
+        "mutation": "authority-denied"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "AUTHORITY_RECORD_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-MIGRATION-CONTRACT-RACE",
+      "input": {
+        "action": "migration.contract",
+        "mutation": "cas"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "AUTHORITATIVE_CAS_HEAD_MISMATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-ITEM-WRONG-PATH",
+      "input": {
+        "action": "github.item.commit",
+        "selectorOverrides": {
+          "path": "intent/0001/EXAM.md"
+        }
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "PATH_CLASS_ZERO_MATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-EXAM-WRONG-PATH",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "selectorOverrides": {
+          "path": "intent/0001/signatures/gate-2.json"
+        }
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "PATH_DENIED",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-DECISION-WRONG-PATH",
+      "input": {
+        "action": "github.decision.record.commit",
+        "selectorOverrides": {
+          "path": "intent/0001/EXAM.md"
+        }
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "PATH_CLASS_ZERO_MATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-SPEND-WRONG-PATH",
+      "input": {
+        "action": "github.spend-authorization.commit",
+        "selectorOverrides": {
+          "path": "intent/0001/EXAM.md"
+        }
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "PATH_CLASS_ZERO_MATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-TOMBSTONE-WRONG-PATH",
+      "input": {
+        "action": "lifecycle.commit-tombstone",
+        "selectorOverrides": {
+          "path": "intent/0001/EXAM.md"
+        }
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "PATH_CLASS_ZERO_MATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-PATH-MULTIPLE-CLASS",
+      "input": {
+        "action": "github.item.commit",
+        "manifestMutation": "duplicate-path-class"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "PATH_CLASS_MULTIPLE_MATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-MIGRATION-PLAN-MISSING",
+      "input": {
+        "action": "migration.expand",
+        "manifestMutation": "remove-upstream-action"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "UPSTREAM_ACTION_UNLISTED",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-MIGRATION-PLAN-UNLISTED",
+      "input": {
+        "action": "migration.backfill",
+        "manifestMutation": "unlisted-upstream-action"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "UPSTREAM_ACTION_UNLISTED",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-MIGRATION-PLAN-WRONG-ROLE",
+      "input": {
+        "action": "migration.expand",
+        "mutation": "authority-role"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "AUTHORITY_RECORD_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-MIGRATION-CLEANUP-MISSING",
+      "input": {
+        "action": "migration.contract",
+        "manifestMutation": "remove-upstream-action"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "UPSTREAM_ACTION_UNLISTED",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-MIGRATION-CLEANUP-UNLISTED",
+      "input": {
+        "action": "migration.contract",
+        "manifestMutation": "unlisted-upstream-action"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "UPSTREAM_ACTION_UNLISTED",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-MIGRATION-CLEANUP-WRONG-ROLE",
+      "input": {
+        "action": "migration.contract",
+        "mutation": "authority-role"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "AUTHORITY_RECORD_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {"id":"AUTH-R5-RESOURCE-ZERO-MATCH-ATTACKER-REPOSITORY","input":{"action":"github.exam.candidate.commit","selectorOverrides":{"repositoryId":"attacker-repo"}},"expected":{"decision":"DENY","firstError":"PROVIDER_RESOURCE_ZERO_MATCH","effects":{"credentialAccess":0,"installationToken":0,"providerRequest":0,"gitWrite":0,"lifecycle":0,"migration":0,"gate":0,"release":0,"paidResource":0}}},
+    {"id":"AUTH-R5-CREDENTIAL-24H-OVER-LIMIT","input":{"action":"github.exam.candidate.commit","mutation":"credential-over-lifetime"},"expected":{"decision":"DENY","firstError":"CREDENTIAL_LIFETIME_INVALID","effects":{"credentialAccess":0,"installationToken":0,"providerRequest":0,"gitWrite":0,"lifecycle":0,"migration":0,"gate":0,"release":0,"paidResource":0}}},
+    {"id":"AUTH-R5-FORBIDDEN-DELEGATION-EDGE","input":{"action":"github.decision.record.commit","manifestMutation":"forbid-delegation"},"expected":{"decision":"DENY","firstError":"DELEGATION_EDGE_DENIED","effects":{"credentialAccess":0,"installationToken":0,"providerRequest":0,"gitWrite":0,"lifecycle":0,"migration":0,"gate":0,"release":0,"paidResource":0}}},
+    {"id":"AUTH-R5-UPSTREAM-ITEM-SUBSTITUTION","input":{"action":"github.decision.record.commit","mutation":"authority-item"},"expected":{"decision":"DENY","firstError":"AUTHORITY_SELECTOR_MISMATCH","effects":{"credentialAccess":0,"installationToken":0,"providerRequest":0,"gitWrite":0,"lifecycle":0,"migration":0,"gate":0,"release":0,"paidResource":0}}},
+    {"id":"AUTH-R5-UPSTREAM-EXAM-REVISION-SUBSTITUTION","input":{"action":"github.exam.candidate.commit","mutation":"authority-exam-revision"},"expected":{"decision":"DENY","firstError":"AUTHORITY_SELECTOR_MISMATCH","effects":{"credentialAccess":0,"installationToken":0,"providerRequest":0,"gitWrite":0,"lifecycle":0,"migration":0,"gate":0,"release":0,"paidResource":0}}},
+    {"id":"AUTH-R5-UPSTREAM-PRODUCT-SUBSTITUTION","input":{"action":"github.spend-authorization.commit","mutation":"authority-product"},"expected":{"decision":"DENY","firstError":"AUTHORITY_SELECTOR_MISMATCH","effects":{"credentialAccess":0,"installationToken":0,"providerRequest":0,"gitWrite":0,"lifecycle":0,"migration":0,"gate":0,"release":0,"paidResource":0}}},
+    {"id":"AUTH-R5-UPSTREAM-POD-SUBSTITUTION","input":{"action":"github.spend-authorization.commit","mutation":"authority-pod"},"expected":{"decision":"DENY","firstError":"AUTHORITY_SELECTOR_MISMATCH","effects":{"credentialAccess":0,"installationToken":0,"providerRequest":0,"gitWrite":0,"lifecycle":0,"migration":0,"gate":0,"release":0,"paidResource":0}}},
+    {"id":"AUTH-R5-UPSTREAM-ACTIVE-HAT-SUBSTITUTION","input":{"action":"github.decision.record.commit","mutation":"authority-active-hat"},"expected":{"decision":"DENY","firstError":"AUTHORITY_SELECTOR_MISMATCH","effects":{"credentialAccess":0,"installationToken":0,"providerRequest":0,"gitWrite":0,"lifecycle":0,"migration":0,"gate":0,"release":0,"paidResource":0}}},
+    {"id":"AUTH-R5-RESOURCE-WILDCARD","input":{"action":"github.exam.candidate.commit","manifestMutation":"resource-wildcard"},"expected":{"decision":"DENY","firstError":"PROVIDER_RESOURCE_WILDCARD_DENIED","effects":{"credentialAccess":0,"installationToken":0,"providerRequest":0,"gitWrite":0,"lifecycle":0,"migration":0,"gate":0,"release":0,"paidResource":0}}},
+    {"id":"AUTH-R5-RESOURCE-MULTIPLE-MATCH","input":{"action":"github.exam.candidate.commit","manifestMutation":"resource-multiple"},"expected":{"decision":"DENY","firstError":"PROVIDER_RESOURCE_MULTIPLE_MATCH","effects":{"credentialAccess":0,"installationToken":0,"providerRequest":0,"gitWrite":0,"lifecycle":0,"migration":0,"gate":0,"release":0,"paidResource":0}}},
+    {"id":"AUTH-R5-RESOURCE-UNKNOWN-EXTRA","input":{"action":"github.exam.candidate.commit","manifestMutation":"resource-unknown"},"expected":{"decision":"DENY","firstError":"PROVIDER_RESOURCE_TYPE_UNKNOWN","effects":{"credentialAccess":0,"installationToken":0,"providerRequest":0,"gitWrite":0,"lifecycle":0,"migration":0,"gate":0,"release":0,"paidResource":0}}}
+  ],
+  "spendRecordCases": [
+    {
+      "id": "SPEND-POS",
+      "input": {},
+      "expected": {
+        "decision": "ALLOW",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "SPEND-WRONG-HAT",
+      "input": {
+        "hatValid": false
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "SPEND_SCHEMA_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "SPEND-PERIOD",
+      "input": {
+        "periodValid": false
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "SPEND_TIME_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "SPEND-ORDER",
+      "input": {
+        "limitTreeOrdered": false
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "SPEND_SCOPE_ORDER_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "SPEND-OVER-CEILING",
+      "input": {
+        "infrastructureNanoUsd": 1000000000001
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "SPEND_GATE1_CEILING_EXCEEDED",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "SPEND-LINEAGE",
+      "input": {
+        "lineageValid": false
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "SPEND_LINEAGE_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "SPEND-PROOF",
+      "input": {
+        "providerProofValid": false
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "SPEND_PROVIDER_PROOF_SIGNATURE_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    }
+  ],
+  "sanitizedRealCases": [
+    {
+      "id": "PRIV-POS",
+      "input": {},
+      "expected": {
+        "decision": "ACCEPT",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "PRIV-DIRECT-ID",
+      "input": {
+        "directIdentifierHits": 1
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "PRIV_DIRECT_IDENTIFIER",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "PRIV-NAMED-ENTITY",
+      "input": {
+        "unapprovedNamedEntities": 1
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "PRIV_NAMED_ENTITY",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "PRIV-FOUR-TOKEN",
+      "input": {
+        "uniqueFourTokenMatches": 1
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "PRIV_UNIQUE_FOUR_TOKEN",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "PRIV-K4",
+      "input": {
+        "minimumK": 4
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "PRIV_K_ANONYMITY",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "PRIV-LINKAGE-ACCURACY",
+      "input": {
+        "linkageAccuracy": 0.11
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "PRIV_LINKAGE_ACCURACY",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "PRIV-LINKAGE-WILSON",
+      "input": {
+        "wilsonUpper": 0.26
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "PRIV_LINKAGE_WILSON",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "PRIV-PROVENANCE",
+      "input": {
+        "provenanceValid": false
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "PRIV_PROVENANCE_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "PRIV-USE-AUTH",
+      "input": {
+        "useAuthorizationCurrent": false
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "PRIV_USE_AUTHORIZATION_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "PRIV-INSPECTION",
+      "input": {
+        "allDerivativesInspected": false
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "PRIV_INSPECTION_INCOMPLETE",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "PRIV-RAW-RECEIPT",
+      "input": {
+        "rawDispositionReceiptValid": false
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "PRIV_RAW_DISPOSITION_UNVERIFIED",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "PRIV-DESTINATION",
+      "input": {
+        "destinationSegregated": false
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "PRIV_DESTINATION_CROSSOVER",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "PRIV-DERIVATIVE",
+      "input": {
+        "derivativeValid": false
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "PRIV_DERIVATIVE_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "PRIV-BASELINE",
+      "input": {
+        "baselineValid": false
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "PRIV_DERIVATIVE_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "PRIV-SHRINK",
+      "input": {
+        "shrinkValid": false
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "PRIV_DERIVATIVE_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    }
+  ],
+  "lifecycleCases": [
+    {
+      "id": "RAW-TERMINAL-POS",
+      "input": {
+        "recordClass": "RC-CORPUS-RAW-WORKING",
+        "secondsAfterTerminal": 0
+      },
+      "expected": {
+        "state": "quarantined-deletion-pending",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "RAW-59-POS",
+      "input": {
+        "recordClass": "RC-CORPUS-RAW-WORKING",
+        "secondsAfterTerminal": 59,
+        "receiptComplete": true
+      },
+      "expected": {
+        "state": "deleted-tombstoned",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 1,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "RAW-60-MISSING-GRANT",
+      "input": {
+        "recordClass": "RC-CORPUS-RAW-WORKING",
+        "secondsAfterTerminal": 60,
+        "rawGrantCurrent": false
+      },
+      "expected": {
+        "state": "blocked",
+        "firstError": "LIFECYCLE_AUTHORIZATION_NOT_CURRENT",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "RAW-61-LATE",
+      "input": {
+        "recordClass": "RC-CORPUS-RAW-WORKING",
+        "secondsAfterTerminal": 61,
+        "receiptComplete": false
+      },
+      "expected": {
+        "state": "quarantined-raw-erasure-failed",
+        "firstError": "RAW_ERASURE_DEADLINE_MISSED",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "RAW-INVENTORY-CHANGED",
+      "input": {
+        "recordClass": "RC-CORPUS-RAW-WORKING",
+        "secondsAfterTerminal": 1,
+        "inventoryMatch": false
+      },
+      "expected": {
+        "state": "blocked",
+        "firstError": "LIFECYCLE_AUTHORIZATION_BINDING_MISMATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REGULAR-NO-AUTH",
+      "input": {
+        "recordClass": "RC-FAILED-RUN",
+        "atExpiry": true,
+        "dispositionCurrent": false
+      },
+      "expected": {
+        "state": "blocked",
+        "firstError": "LIFECYCLE_AUTHORIZATION_NOT_CURRENT",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REGULAR-HOLD",
+      "input": {
+        "recordClass": "RC-FAILED-RUN",
+        "atExpiry": true,
+        "holdActive": true
+      },
+      "expected": {
+        "state": "retained-on-hold",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REGULAR-POS",
+      "input": {
+        "recordClass": "RC-FAILED-RUN",
+        "atExpiry": true,
+        "receiptComplete": true
+      },
+      "expected": {
+        "state": "deleted-tombstoned",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 1,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REGULAR-RACE-LOSER",
+      "input": {
+        "recordClass": "RC-FAILED-RUN",
+        "atExpiry": true,
+        "casMatch": false
+      },
+      "expected": {
+        "state": "blocked",
+        "firstError": "ATOMIC_RESERVATION_LOST",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    }
+  ],
+  "recoveryCases": [
+    {
+      "id": "REC-BEFORE-EFFECT",
+      "input": {
+        "cut": "before-provider-effect"
+      },
+      "expected": {
+        "outcome": "UNKNOWN_RECONCILE_PROVIDER",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-AFTER-EFFECT-BEFORE-ACK",
+      "input": {
+        "cut": "after-provider-effect-before-acknowledgement"
+      },
+      "expected": {
+        "outcome": "UNKNOWN_RECONCILE_PROVIDER",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-AFTER-ACK-BEFORE-WEBHOOK",
+      "input": {
+        "cut": "after-acknowledgement-before-webhook"
+      },
+      "expected": {
+        "outcome": "RECOVERY_VERIFIED",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-AFTER-FETCH-BEFORE-SPOOL",
+      "input": {
+        "cut": "after-fetch-before-spool-fsync"
+      },
+      "expected": {
+        "outcome": "RECOVERY_VERIFIED",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-AFTER-SPOOL-BEFORE-WORM",
+      "input": {
+        "cut": "after-spool-fsync-before-WORM-acknowledgement"
+      },
+      "expected": {
+        "outcome": "RECOVERY_VERIFIED",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-AFTER-WORM-BEFORE-PROJECTION",
+      "input": {
+        "cut": "after-WORM-before-projection"
+      },
+      "expected": {
+        "outcome": "RECOVERY_VERIFIED",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-EXPORT-LAG",
+      "input": {
+        "cut": "after-projection"
+      },
+      "expected": {
+        "outcome": "RECOVERY_VERIFIED",
+        "firstError": null,
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-CORRUPT",
+      "input": {
+        "cut": "after-projection",
+        "corruption": "artifact-mismatched"
+      },
+      "expected": {
+        "outcome": "RECOVERY_INCOMPLETE",
+        "firstError": "RECOVERY_RESTORED_BYTES_MISMATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-MAPPING-COLLISION",
+      "input": {
+        "cut": "after-projection",
+        "corruption": "mapped-many-to-one"
+      },
+      "expected": {
+        "outcome": "RECOVERY_INCOMPLETE",
+        "firstError": "RECOVERY_MAPPING_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-PROOF-MISSING",
+      "input": {
+        "cut": "after-projection",
+        "corruption": "loss-during-independent-verification"
+      },
+      "expected": {
+        "outcome": "RECOVERY_INCOMPLETE",
+        "firstError": "RECOVERY_INDEPENDENT_VERIFICATION_MISSING",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-ACK-NO-DURABLE-SOURCE",
+      "input": {
+        "cut": "after-acknowledgement-before-webhook",
+        "corruption": "unavailable"
+      },
+      "expected": {
+        "outcome": "RECOVERY_INCOMPLETE",
+        "firstError": "RECOVERY_CUT_SOURCE_UNREACHABLE",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    }
+  ],
+  "lifecycleR6Cases": [
+    { "id": "R6-LIFECYCLE-UNINVENTORIED-OBJECT", "kind": "objects-attacker-coherent", "expectedError": "LIFECYCLE_COPY_ZERO_MATCH" },
+    { "id": "R6-LIFECYCLE-WRONG-VERSION", "kind": "wrong-version-coherent", "expectedError": "LIFECYCLE_COPY_ZERO_MATCH" },
+    { "id": "R6-LIFECYCLE-WRONG-PROVIDER", "kind": "wrong-provider-coherent", "expectedError": "LIFECYCLE_COPY_ZERO_MATCH" },
+    { "id": "R6-LIFECYCLE-CROSS-TENANT", "kind": "cross-tenant-coherent", "expectedError": "LIFECYCLE_COPY_REQUEST_BINDING_MISMATCH" },
+    { "id": "R6-LIFECYCLE-WRONG-CLASS", "kind": "wrong-class-coherent", "expectedError": "LIFECYCLE_COPY_REQUEST_BINDING_MISMATCH" },
+    { "id": "R6-LIFECYCLE-WRONG-TARGET", "kind": "wrong-target-coherent", "expectedError": "LIFECYCLE_COPY_REQUEST_BINDING_MISMATCH" },
+    { "id": "R6-LIFECYCLE-WRONG-POLICY", "kind": "wrong-policy-coherent", "expectedError": "LIFECYCLE_COPY_REQUEST_BINDING_MISMATCH" },
+    { "id": "R6-LIFECYCLE-WRONG-INVENTORY", "kind": "wrong-inventory-digest-coherent", "expectedError": "LIFECYCLE_COPY_REQUEST_BINDING_MISMATCH" },
+    { "id": "R6-LIFECYCLE-WRONG-COPY-KIND", "kind": "wrong-copy-kind-coherent", "expectedError": "LIFECYCLE_COPY_ZERO_MATCH" },
+    { "id": "R6-LIFECYCLE-WILDCARD-RESOURCE", "kind": "wildcard-resource-coherent", "expectedError": "LIFECYCLE_COPY_ZERO_MATCH" },
+    { "id": "R6-LIFECYCLE-PROVIDER-RESOURCE-SUBSTITUTION", "kind": "provider-resource-substitution", "expectedError": "PROVIDER_RESOURCE_SNAPSHOT_MISMATCH" },
+    { "id": "R6-LIFECYCLE-CAS-RESOURCE-SUBSTITUTION", "kind": "cas-resource-substitution", "expectedError": "AUTHORITATIVE_CAS_SCOPE_MISMATCH" },
+    { "id": "R6-LIFECYCLE-STALE-INVENTORY", "kind": "stale-inventory", "expectedError": "LIFECYCLE_INVENTORY_NOT_CURRENT" },
+    { "id": "R6-LIFECYCLE-MULTIPLE-INVENTORY-MATCH", "kind": "multiple-inventory-match", "expectedError": "LIFECYCLE_AUTHORITY_CARDINALITY" },
+    { "id": "R6-LIFECYCLE-RESTORED-COPY-RACE", "kind": "restored-copy-race", "expectedError": "LIFECYCLE_AUTHORITY_CARDINALITY" },
+    { "id": "R6-LIFECYCLE-RETRY-REQUEST-DRIFT", "kind": "retry-request-drift", "expectedError": "IDEMPOTENCY_KEY_REUSED_DIFFERENT_BYTES" }
+  ],
+  "lifecycleR7Cases": [
+    { "id": "R7-LIFECYCLE-TWO-COPY-POSITIVE", "kind": "two-copy-positive", "expectedState": "deleted-tombstoned", "expectedError": null },
+    { "id": "R7-LIFECYCLE-RAW-MULTIKEY-POSITIVE", "kind": "raw-multikey-positive", "expectedState": "deleted-tombstoned", "expectedError": null },
+    { "id": "R7-LIFECYCLE-MISSING-AUTHORITY", "kind": "missing-authority", "expectedState": "blocked", "expectedError": "LIFECYCLE_AUTHORITY_CARDINALITY" },
+    { "id": "R7-LIFECYCLE-DUPLICATE-AUTHORITY", "kind": "duplicate-authority", "expectedState": "blocked", "expectedError": "LIFECYCLE_AUTHORITY_DUPLICATE" },
+    { "id": "R7-LIFECYCLE-MISSING-REQUEST", "kind": "missing-request", "expectedState": "blocked", "expectedError": "LIFECYCLE_REQUEST_CARDINALITY" },
+    { "id": "R7-LIFECYCLE-DUPLICATE-REQUEST", "kind": "duplicate-request", "expectedState": "blocked", "expectedError": "LIFECYCLE_REQUEST_REUSED" },
+    { "id": "R7-LIFECYCLE-REUSED-REQUEST-DIGEST", "kind": "reused-request-digest", "expectedState": "blocked", "expectedError": "RECEIPT_BINDING_MISMATCH" },
+    { "id": "R7-LIFECYCLE-EXTRA-REQUEST", "kind": "extra-request", "expectedState": "blocked", "expectedError": "LIFECYCLE_REQUEST_CARDINALITY" },
+    { "id": "R7-LIFECYCLE-RECEIPT-TUPLE-MISMATCH", "kind": "tuple-mismatch", "expectedState": "blocked", "expectedError": "RECEIPT_EFFECT_INCOMPLETE" },
+    { "id": "R7-LIFECYCLE-RAW-KEY-SUBSTITUTION", "kind": "raw-key-substitution", "expectedState": "blocked", "expectedError": "LIFECYCLE_COPY_ZERO_MATCH" },
+    { "id": "R7-LIFECYCLE-RETRY-DRIFT", "kind": "retry-drift", "expectedState": "blocked", "expectedError": "IDEMPOTENCY_KEY_REUSED_DIFFERENT_BYTES" },
+    { "id": "R7-LIFECYCLE-RESTORED-RACE", "kind": "restored-race", "expectedState": "blocked", "expectedError": "LIFECYCLE_AUTHORITY_CARDINALITY" }
+  ],
+  "lifecycleR8Cases": [
+    { "id": "R8-LIFECYCLE-PROVIDER-RECEIPT-TWO-COPY", "kind": "provider-receipt-two-copy-positive", "expectedState": "deleted-tombstoned", "expectedError": null, "expectedLifecycleEffect": 1 },
+    { "id": "R8-LIFECYCLE-RAW-PROVIDER-RECEIPT-MULTIKEY", "kind": "raw-provider-receipt-multikey-positive", "expectedState": "deleted-tombstoned", "expectedError": null, "expectedLifecycleEffect": 1 },
+    { "id": "R8-LIFECYCLE-EXACT-REPLAY-ALL", "kind": "exact-replay-all", "expectedState": "deleted-tombstoned", "expectedError": null, "expectedLifecycleEffect": 0 },
+    { "id": "R8-LIFECYCLE-CRASH-AFTER-PROVIDER-COPY-1", "kind": "crash-after-provider-copy-1", "expectedState": "deleted-tombstoned", "expectedError": null, "expectedLifecycleEffect": 1 },
+    { "id": "R8-LIFECYCLE-CRASH-AFTER-PROVIDER-COPY-2", "kind": "crash-after-provider-copy-2", "expectedState": "deleted-tombstoned", "expectedError": null, "expectedLifecycleEffect": 1 },
+    { "id": "R8-LIFECYCLE-CRASH-AFTER-AGGREGATE-RECEIPT", "kind": "crash-after-aggregate-receipt", "expectedState": "deleted-tombstoned", "expectedError": null, "expectedLifecycleEffect": 1 },
+    { "id": "R8-LIFECYCLE-CRASH-AFTER-TOMBSTONE-COMMIT", "kind": "crash-after-tombstone-commit", "expectedState": "deleted-tombstoned", "expectedError": null, "expectedLifecycleEffect": 0 },
+    { "id": "R8-LIFECYCLE-ARBITRARY-AGGREGATE-DIGEST", "kind": "arbitrary-aggregate-digest", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_AGGREGATE_MISMATCH", "expectedLifecycleEffect": 0 },
+    { "id": "R8-LIFECYCLE-MISSING-PROVIDER-RECEIPT", "kind": "missing-provider-receipt", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_CARDINALITY", "expectedLifecycleEffect": 0 },
+    { "id": "R8-LIFECYCLE-DUPLICATE-PROVIDER-RECEIPT", "kind": "duplicate-provider-receipt", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_DUPLICATE", "expectedLifecycleEffect": 0 },
+    { "id": "R8-LIFECYCLE-DUPLICATE-PROVIDER-TRANSACTION", "kind": "duplicate-provider-transaction", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_DUPLICATE", "expectedLifecycleEffect": 0 },
+    { "id": "R8-LIFECYCLE-PROVIDER-PROOF-INVALID", "kind": "provider-proof-invalid", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_PROOF_INVALID", "expectedLifecycleEffect": 0 },
+    { "id": "R8-LIFECYCLE-PROVIDER-SCHEMA-EXTRA", "kind": "provider-schema-extra", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_SCHEMA_INVALID", "expectedLifecycleEffect": 0 },
+    { "id": "R8-LIFECYCLE-PROVIDER-STALE", "kind": "provider-stale", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_TEMPORAL_INVALID", "expectedLifecycleEffect": 0 },
+    { "id": "R8-LIFECYCLE-PROVIDER-FAILED", "kind": "provider-failed", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_NOT_TERMINAL", "expectedLifecycleEffect": 0 },
+    { "id": "R8-LIFECYCLE-PROVIDER-UNKNOWN", "kind": "provider-unknown", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_NOT_TERMINAL", "expectedLifecycleEffect": 0 },
+    { "id": "R8-LIFECYCLE-PROVIDER-IN-PROGRESS-TIMEOUT", "kind": "provider-in-progress-timeout", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_NOT_TERMINAL", "expectedLifecycleEffect": 0 },
+    { "id": "R8-LIFECYCLE-PROVIDER-WRONG-TENANT", "kind": "provider-wrong-tenant", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_BINDING_MISMATCH", "expectedLifecycleEffect": 0 },
+    { "id": "R8-LIFECYCLE-PROVIDER-WRONG-RESOURCE", "kind": "provider-wrong-resource", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_BINDING_MISMATCH", "expectedLifecycleEffect": 0 },
+    { "id": "R8-LIFECYCLE-PROVIDER-WRONG-EFFECT", "kind": "provider-wrong-effect", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_EFFECT_INVALID", "expectedLifecycleEffect": 0 },
+    { "id": "R8-LIFECYCLE-PROVIDER-REQUEST-MISMATCH", "kind": "provider-request-mismatch", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_BINDING_MISMATCH", "expectedLifecycleEffect": 0 },
+    { "id": "R8-LIFECYCLE-EXACT-REPLAY-DIFFERENT-BYTES", "kind": "exact-replay-different-bytes", "expectedState": "blocked", "expectedError": "IDEMPOTENCY_KEY_REUSED_DIFFERENT_BYTES", "expectedLifecycleEffect": 0 },
+    { "id": "R8-LIFECYCLE-EXACT-REPLAY-INCOMPLETE-EVIDENCE", "kind": "exact-replay-incomplete-evidence", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_CARDINALITY", "expectedLifecycleEffect": 0 },
+    { "id": "R8-LIFECYCLE-EXACT-REPLAY-CONFLICTING-TOMBSTONE", "kind": "exact-replay-conflicting-tombstone", "expectedState": "blocked", "expectedError": "TOMBSTONE_CAS_OR_BINDING_MISMATCH", "expectedLifecycleEffect": 0 },
+    { "id": "R8-LIFECYCLE-MIXED-REPLAY-RACE", "kind": "mixed-replay-race", "expectedState": "blocked", "expectedError": "ATOMIC_RESERVATION_LOST", "expectedLifecycleEffect": 0 }
+  ],
+  "lifecycleR9Cases": [
+    { "id": "R9-LIFECYCLE-PROVIDER-A-POSITIVE", "kind": "provider-a-positive", "expectedState": "deleted-tombstoned", "expectedError": null, "expectedLifecycleEffect": 1 },
+    { "id": "R9-LIFECYCLE-PROVIDER-B-POSITIVE", "kind": "provider-b-positive", "expectedState": "deleted-tombstoned", "expectedError": null, "expectedLifecycleEffect": 1 },
+    { "id": "R9-LIFECYCLE-KEY-ROTATION-BOUNDARY", "kind": "key-rotation-boundary-positive", "expectedState": "deleted-tombstoned", "expectedError": null, "expectedLifecycleEffect": 1 },
+    { "id": "R9-LIFECYCLE-LOCAL-SIGNER-FORGERY-ZERO-EFFECT", "kind": "local-signer-receipt", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_PROOF_INVALID", "expectedLifecycleEffect": 0 },
+    { "id": "R9-LIFECYCLE-RELABELED-KEYID-PROVIDER", "kind": "relabeled-keyid-provider", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_BINDING_MISMATCH", "expectedLifecycleEffect": 0 },
+    { "id": "R9-LIFECYCLE-PROVIDER-A-KEY-FOR-PROVIDER-B", "kind": "provider-a-key-for-provider-b", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_KEY_NOT_CURRENT", "expectedLifecycleEffect": 0 },
+    { "id": "R9-LIFECYCLE-UNKNOWN-KEY", "kind": "unknown-key", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_KEY_NOT_CURRENT", "expectedLifecycleEffect": 0 },
+    { "id": "R9-LIFECYCLE-REVOKED-KEY", "kind": "revoked-key", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_KEY_NOT_CURRENT", "expectedLifecycleEffect": 0 },
+    { "id": "R9-LIFECYCLE-EXPIRED-KEY", "kind": "expired-key", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_KEY_NOT_CURRENT", "expectedLifecycleEffect": 0 },
+    { "id": "R9-LIFECYCLE-NOT-YET-VALID-KEY", "kind": "not-yet-valid-key", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_KEY_NOT_CURRENT", "expectedLifecycleEffect": 0 },
+    { "id": "R9-LIFECYCLE-WRONG-ALGORITHM", "kind": "wrong-algorithm", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_KEY_NOT_CURRENT", "expectedLifecycleEffect": 0 },
+    { "id": "R9-LIFECYCLE-WRONG-ISSUER", "kind": "wrong-issuer", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_BINDING_MISMATCH", "expectedLifecycleEffect": 0 },
+    { "id": "R9-LIFECYCLE-WRONG-ACCOUNT", "kind": "wrong-account", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_BINDING_MISMATCH", "expectedLifecycleEffect": 0 },
+    { "id": "R9-LIFECYCLE-WRONG-TENANT", "kind": "wrong-tenant", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_BINDING_MISMATCH", "expectedLifecycleEffect": 0 },
+    { "id": "R9-LIFECYCLE-REGISTRY-DIGEST-MISMATCH", "kind": "registry-digest-mismatch", "expectedState": "blocked", "expectedError": "PROVIDER_KEY_REGISTRY_DIGEST_MISMATCH", "expectedLifecycleEffect": 0 },
+    { "id": "R9-LIFECYCLE-TAMPERED-PREIMAGE", "kind": "tampered-preimage", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_DIGEST_MISMATCH", "expectedLifecycleEffect": 0 },
+    { "id": "R9-LIFECYCLE-TAMPERED-PROOF", "kind": "tampered-proof", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_PROOF_INVALID", "expectedLifecycleEffect": 0 },
+    { "id": "R9-LIFECYCLE-DUPLICATE-TRANSACTION", "kind": "duplicate-transaction", "expectedState": "blocked", "expectedError": "PROVIDER_RECEIPT_DUPLICATE", "expectedLifecycleEffect": 0 }
+  ],
+  "r2r2Coverage": {
+    "lifecycleBoundaries": [
+      "before",
+      "exact",
+      "after"
+    ],
+    "lifecyclePrecedence": [
+      "none",
+      "hold-active",
+      "reference-active",
+      "hold-unknown",
+      "reference-unknown"
+    ],
+    "lifecycleSpecial": [
+      "receipt-missing-at-60-seconds",
+      "provider-partial",
+      "provider-unknown",
+      "restored-copy",
+      "read-race"
+    ],
+    "recoveryCuts": [
+      "before-provider-effect",
+      "after-provider-effect-before-acknowledgement",
+      "after-acknowledgement-before-webhook",
+      "after-webhook-before-fetch",
+      "after-fetch-before-spool-fsync",
+      "after-spool-fsync-before-WORM-acknowledgement",
+      "after-WORM-before-projection",
+      "after-projection"
+    ],
+    "recoveryCorruptions": [
+      "missing",
+      "stale",
+      "partial",
+      "corrupt",
+      "unavailable",
+      "wrong-tenant",
+      "wrong-key",
+      "duplicated",
+      "reordered",
+      "provider-timestamp-regressed",
+      "cursor-gapped",
+      "ID-colliding",
+      "mapped-many-to-one",
+      "identity-proof-missing",
+      "artifact-mismatched",
+      "policy-mismatched",
+      "loss-during-mapping",
+      "loss-during-independent-verification",
+      "retry-request-drift"
+    ]
+  },
+  "authorizationByteMutations": [
+    {
+      "id": "AUTH-BYTE-01",
+      "kind": "request-actor",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "request-actor"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "UPSTREAM_CREDENTIAL_BINDING_MISMATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-BYTE-02",
+      "kind": "credential-id",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "credential-id"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "CREDENTIAL_BINDING_MISMATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-BYTE-03",
+      "kind": "credential-digest",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "credential-digest"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "CREDENTIAL_BINDING_MISMATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-BYTE-04",
+      "kind": "credential-subject",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "credential-subject"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "CREDENTIAL_BINDING_MISMATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-BYTE-05",
+      "kind": "credential-stale",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "credential-stale"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "CREDENTIAL_NOT_CURRENT",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-BYTE-06",
+      "kind": "delegation-id",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "delegation-id"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "DELEGATION_BINDING_MISMATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-BYTE-07",
+      "kind": "delegation-digest",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "delegation-digest"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "DELEGATION_BINDING_MISMATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-BYTE-08",
+      "kind": "delegation-stale",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "delegation-stale"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "DELEGATION_NOT_CURRENT",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-BYTE-09",
+      "kind": "assignment",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "assignment"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "AUTHORITY_RECORD_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-BYTE-10",
+      "kind": "decision",
+      "input": {
+        "action": "github.decision.record.commit",
+        "mutation": "decision"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "AUTHORITY_RECORD_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-BYTE-11",
+      "kind": "authorization",
+      "input": {
+        "action": "github.spend-authorization.commit",
+        "mutation": "authorization"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "AUTHORITY_RECORD_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-BYTE-12",
+      "kind": "upstream-action",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "upstream-action"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "UPSTREAM_ACTION_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-BYTE-13",
+      "kind": "upstream-role",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "upstream-role"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "AUTHORITY_RECORD_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-BYTE-14",
+      "kind": "target",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "target"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "AUTHORITY_SELECTOR_MISMATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-BYTE-15",
+      "kind": "policy",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "policy"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "AUTHORITY_SELECTOR_MISMATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-BYTE-16",
+      "kind": "malformed-request-time",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "malformed-request-time"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "REQUEST_SCHEMA_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-BYTE-17",
+      "kind": "malformed-envelope-time",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "malformed-envelope-time"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "UPSTREAM_TIME_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-BYTE-18",
+      "kind": "missing-action-id",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "missing-action-id"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "ACTION_UNKNOWN",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-BYTE-19",
+      "kind": "retry-idempotency",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "retry-idempotency"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "AUTHORITATIVE_LEDGER_BINDING_MISMATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-BYTE-20",
+      "kind": "fallback-principal",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "fallback-principal"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "PRINCIPAL_DENIED",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "AUTH-BYTE-21",
+      "kind": "cas-race",
+      "input": {
+        "action": "github.exam.candidate.commit",
+        "mutation": "cas-race"
+      },
+      "expected": {
+        "decision": "DENY",
+        "firstError": "ATOMIC_RESERVATION_LOST",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    }
+  ],
+  "lifecycleCrossProduct": {
+    "idPrefix": "LIFECYCLE-X",
+    "recordClasses": [
+      "RC-AUTHORITATIVE-ARTIFACT",
+      "RC-CORPUS-BASELINE",
+      "RC-CORPUS-DERIVED-TEXT",
+      "RC-CORPUS-EXPORT",
+      "RC-CORPUS-PROVENANCE",
+      "RC-CORPUS-RAW-WORKING",
+      "RC-CORPUS-SANITIZED",
+      "RC-DECISION-PROOF",
+      "RC-DELETION-EVIDENCE",
+      "RC-FAILED-RUN",
+      "RC-LEGAL-SIGNED-LOG",
+      "RC-POSTHOG-RAW",
+      "RC-REBUILDABLE",
+      "RC-REFERENCED-EVIDENCE",
+      "RC-RELEASE-MIGRATION",
+      "RC-SECURITY-AUDIT"
+    ],
+    "boundaries": [
+      "before",
+      "exact",
+      "after"
+    ],
+    "precedence": [
+      "none",
+      "hold-active",
+      "reference-active",
+      "hold-unknown",
+      "reference-unknown"
+    ]
+  },
+  "lifecycleSpecialCases": [
+    {
+      "id": "LIFECYCLE-SPECIAL-1",
+      "kind": "receipt-missing-at-60-seconds",
+      "input": {
+        "recordClass": "RC-CORPUS-RAW-WORKING",
+        "secondsAfterTerminal": 60,
+        "receiptComplete": false
+      },
+      "expected": {
+        "state": "quarantined-raw-erasure-failed",
+        "firstError": "RAW_ERASURE_DEADLINE_MISSED",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "LIFECYCLE-SPECIAL-2",
+      "kind": "provider-partial",
+      "input": {
+        "recordClass": "RC-FAILED-RUN",
+        "atExpiry": true
+      },
+      "expected": {
+        "state": "blocked",
+        "firstError": "RECEIPT_EFFECT_INCOMPLETE",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "LIFECYCLE-SPECIAL-3",
+      "kind": "provider-unknown",
+      "input": {
+        "recordClass": "RC-FAILED-RUN",
+        "atExpiry": true,
+        "precedence": "reference-unknown"
+      },
+      "expected": {
+        "state": "blocked",
+        "firstError": "LIFECYCLE_PRECEDENCE_UNKNOWN",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "LIFECYCLE-SPECIAL-4",
+      "kind": "restored-copy",
+      "input": {
+        "recordClass": "RC-FAILED-RUN",
+        "atExpiry": true,
+        "special": "restored-copy"
+      },
+      "expected": {
+        "state": "blocked",
+        "firstError": "LIFECYCLE_AUTHORITY_CARDINALITY",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "LIFECYCLE-SPECIAL-5",
+      "kind": "read-race",
+      "input": {
+        "recordClass": "RC-FAILED-RUN",
+        "atExpiry": true,
+        "casMatch": false
+      },
+      "expected": {
+        "state": "blocked",
+        "firstError": "ATOMIC_RESERVATION_LOST",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    }
+  ],
+  "recoveryCorruptionCases": [
+    {
+      "id": "REC-CORRUPTION-01",
+      "kind": "missing",
+      "input": {
+        "cut": "after-projection",
+        "corruption": "missing"
+      },
+      "expected": {
+        "outcome": "RECOVERY_INCOMPLETE",
+        "firstError": "RECOVERY_SOURCE_MISSING",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-CORRUPTION-02",
+      "kind": "stale",
+      "input": {
+        "cut": "after-projection",
+        "corruption": "stale"
+      },
+      "expected": {
+        "outcome": "RECOVERY_INCOMPLETE",
+        "firstError": "RECOVERY_RECORD_BINDING_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-CORRUPTION-03",
+      "kind": "partial",
+      "input": {
+        "cut": "after-projection",
+        "corruption": "partial"
+      },
+      "expected": {
+        "outcome": "RECOVERY_INCOMPLETE",
+        "firstError": "RECOVERY_CANONICAL_BYTES_MISMATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-CORRUPTION-04",
+      "kind": "corrupt",
+      "input": {
+        "cut": "after-projection",
+        "corruption": "corrupt"
+      },
+      "expected": {
+        "outcome": "RECOVERY_INCOMPLETE",
+        "firstError": "RECOVERY_RECORD_BINDING_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-CORRUPTION-05",
+      "kind": "unavailable",
+      "input": {
+        "cut": "after-projection",
+        "corruption": "unavailable"
+      },
+      "expected": {
+        "outcome": "RECOVERY_INCOMPLETE",
+        "firstError": "RECOVERY_CUT_SOURCE_UNREACHABLE",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-CORRUPTION-06",
+      "kind": "wrong-tenant",
+      "input": {
+        "cut": "after-projection",
+        "corruption": "wrong-tenant"
+      },
+      "expected": {
+        "outcome": "RECOVERY_INCOMPLETE",
+        "firstError": "RECOVERY_RECORD_BINDING_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-CORRUPTION-07",
+      "kind": "wrong-key",
+      "input": {
+        "cut": "after-projection",
+        "corruption": "wrong-key"
+      },
+      "expected": {
+        "outcome": "RECOVERY_INCOMPLETE",
+        "firstError": "RECOVERY_RECORD_BINDING_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-CORRUPTION-08",
+      "kind": "duplicated",
+      "input": {
+        "cut": "after-projection",
+        "corruption": "duplicated"
+      },
+      "expected": {
+        "outcome": "RECOVERY_INCOMPLETE",
+        "firstError": "RECOVERY_ORDER_OR_TIMESTAMP_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-CORRUPTION-09",
+      "kind": "reordered",
+      "input": {
+        "cut": "after-projection",
+        "corruption": "reordered"
+      },
+      "expected": {
+        "outcome": "RECOVERY_INCOMPLETE",
+        "firstError": "RECOVERY_ORDER_OR_TIMESTAMP_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-CORRUPTION-10",
+      "kind": "provider-timestamp-regressed",
+      "input": {
+        "cut": "after-projection",
+        "corruption": "provider-timestamp-regressed"
+      },
+      "expected": {
+        "outcome": "RECOVERY_INCOMPLETE",
+        "firstError": "RECOVERY_ORDER_OR_TIMESTAMP_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-CORRUPTION-11",
+      "kind": "cursor-gapped",
+      "input": {
+        "cut": "after-projection",
+        "corruption": "cursor-gapped"
+      },
+      "expected": {
+        "outcome": "RECOVERY_INCOMPLETE",
+        "firstError": "RECOVERY_CURSOR_GAP",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-CORRUPTION-12",
+      "kind": "ID-colliding",
+      "input": {
+        "cut": "after-projection",
+        "corruption": "ID-colliding"
+      },
+      "expected": {
+        "outcome": "RECOVERY_INCOMPLETE",
+        "firstError": "RECOVERY_CANONICAL_BYTES_MISMATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-CORRUPTION-13",
+      "kind": "mapped-many-to-one",
+      "input": {
+        "cut": "after-projection",
+        "corruption": "mapped-many-to-one"
+      },
+      "expected": {
+        "outcome": "RECOVERY_INCOMPLETE",
+        "firstError": "RECOVERY_MAPPING_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-CORRUPTION-14",
+      "kind": "identity-proof-missing",
+      "input": {
+        "cut": "after-projection",
+        "corruption": "identity-proof-missing"
+      },
+      "expected": {
+        "outcome": "RECOVERY_INCOMPLETE",
+        "firstError": "RECOVERY_RECORD_BINDING_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-CORRUPTION-15",
+      "kind": "artifact-mismatched",
+      "input": {
+        "cut": "after-projection",
+        "corruption": "artifact-mismatched"
+      },
+      "expected": {
+        "outcome": "RECOVERY_INCOMPLETE",
+        "firstError": "RECOVERY_RESTORED_BYTES_MISMATCH",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-CORRUPTION-16",
+      "kind": "policy-mismatched",
+      "input": {
+        "cut": "after-projection",
+        "corruption": "policy-mismatched"
+      },
+      "expected": {
+        "outcome": "RECOVERY_INCOMPLETE",
+        "firstError": "RECOVERY_RECORD_BINDING_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-CORRUPTION-17",
+      "kind": "loss-during-mapping",
+      "input": {
+        "cut": "after-projection",
+        "corruption": "loss-during-mapping"
+      },
+      "expected": {
+        "outcome": "RECOVERY_INCOMPLETE",
+        "firstError": "RECOVERY_MAPPING_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-CORRUPTION-18",
+      "kind": "loss-during-independent-verification",
+      "input": {
+        "cut": "after-projection",
+        "corruption": "loss-during-independent-verification"
+      },
+      "expected": {
+        "outcome": "RECOVERY_INCOMPLETE",
+        "firstError": "RECOVERY_INDEPENDENT_VERIFICATION_MISSING",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    },
+    {
+      "id": "REC-CORRUPTION-19",
+      "kind": "retry-request-drift",
+      "input": {
+        "cut": "after-projection",
+        "corruption": "retry-request-drift"
+      },
+      "expected": {
+        "outcome": "RECOVERY_INCOMPLETE",
+        "firstError": "RECOVERY_RETRY_IDENTITY_INVALID",
+        "effects": {
+          "credentialAccess": 0,
+          "installationToken": 0,
+          "providerRequest": 0,
+          "gitWrite": 0,
+          "lifecycle": 0,
+          "migration": 0,
+          "gate": 0,
+          "release": 0,
+          "paidResource": 0
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,1594 @@
+{
+  "version": "steer-permissions-manifest/v9",
+  "status": "unsigned-candidate-test-oracle",
+  "targetExamRevision": "9c7299dd658615cd234e8e03188d607ef1a99fe1",
+  "default": "deny-before-credential-or-provider-request",
+  "providerTrust": {
+    "registryPath": "intent/0001/reviews/domain/round-2/remediation/PROVIDER-KEY-REGISTRY.candidate.json",
+    "registryDigest": "26d101e3c9d33c1fc61e207ea13f03a28f2a648115f535a85a80d0943e1b4ce8",
+    "selectedBindings": {
+      "multi-copy-disposition-adapter": "provider-binding:disposition-primary",
+      "kms": "provider-binding:kms-primary"
+    },
+    "selectionAuthority": "independent-provider-onboarding-record-not-receipt-bytes"
+  },
+  "authoritativeStateContract": {
+    "casHead": "signed provider-control-plane snapshot whose resourceSelectors exactly equal every selected provider-resource selector, including lifecycle copy/provider/object/version/class/target/policy/inventory; observed no more than 300 seconds before decision",
+    "providerResource": "independently signed provider-policy snapshot binds permission, principal, action, provider and the exact request resource-selector set; @request values are resolved only from this authenticated snapshot and zero/multiple/substituted matches deny",
+    "replayLedger": "signed provider idempotency ledger snapshot for exact action/key and unused or committed request digest",
+    "atomicReservation": "signed provider transaction result binds request digest, CAS head, prior generation and exactly one winner; losers deny and same-key/same-bytes committed entries replay as zero-effect no-op",
+    "callerCoherenceIsNotAuthority": true,
+    "lifecycleDisposition": "exactly one current signed per-copy disposition authorization, or one exact per-key raw policy grant where policy permits, and one unique immutable protected provider request must bijectively match every ordered present inventory tuple before one final tombstone request"
+  },
+  "selectorGrammar": {
+    "exact": "NFC UTF-8 exact equality; wildcard characters forbidden",
+    "pathClass": "anchored ECMAScript regular expression over NFC repository-relative path; one and only one class must match",
+    "verifiedOnly": [
+      "organization",
+      "tenant",
+      "provider",
+      "upstreamProvider",
+      "installationId",
+      "repositoryId",
+      "ref",
+      "realm",
+      "item",
+      "product",
+      "pod",
+      "path",
+      "copyId",
+      "copyProvider",
+      "copyKind",
+      "objectKey",
+      "versionId",
+      "keyId",
+      "keyPrefix",
+      "database",
+      "schema",
+      "actorSubject",
+      "credentialId",
+      "credentialDigest",
+      "upstreamCredentialId",
+      "upstreamCredentialDigest",
+      "delegationId",
+      "delegationDigest",
+      "activeHat",
+      "assignmentId",
+      "assignmentDigest",
+      "decisionRecordId",
+      "decisionEnvelopeDigest",
+      "eligibilityEvidenceDigest",
+      "authorizationId",
+      "authorizationDigest",
+      "retentionClass",
+      "retentionEventId",
+      "copyInventoryDigest",
+      "dispositionAuthorizationId",
+      "rawWorkingPolicyGrantId",
+      "rawWorkingPolicyGrantDigest",
+      "schemaFrom",
+      "schemaTo",
+      "migrationJournalDigest",
+      "migrationPlanDigest",
+      "examRevision",
+      "implementationRevision",
+      "targetDigest",
+      "immutableRequestDigest",
+      "policyDigest",
+      "expiresAt",
+      "idempotencyKey",
+      "casHead",
+      "presentTupleDigest",
+      "authorityId",
+      "authorityDigest",
+      "authoritySetDigest",
+      "requestSetDigest"
+    ],
+    "resourceSyntax": "type:value; supported exact types, anchored path-class/path-prefix types, and the literal @request for an exact value supplied only by the independently signed provider-resource snapshot; malformed, unknown, duplicate, wildcard, zero-match, multiple-match, or substituted resources deny",
+    "callerAssertionsProhibited": true,
+    "zeroOrMultipleMatches": "deny"
+  },
+  "protectedPaths": {
+    "exact": [
+      "intent/0001/BRIEF.md",
+      "intent/0001/SPEC.md",
+      "intent/0001/ARCHITECTURE.md",
+      "intent/0001/PLAN.md",
+      "intent/0001/EXAM.md",
+      "intent/0001/signatures/gate-1.json",
+      "kit/policy/gates.json",
+      ".github/CODEOWNERS"
+    ],
+    "prefix": [
+      "intent/0001/signatures/",
+      "intent/0001/reviews/",
+      "intent/0001/authorizations/",
+      "intent/0001/evidence/",
+      "kit/policy/",
+      "kit/schemas/",
+      ".github/workflows/"
+    ],
+    "rule": "normal item, originator, Builder, platform-agent, worker, retry, fallback, and compromised-caller actions always deny these paths before installation-token exchange; a CI actor allowlist is evidence only and cannot authorize an application action"
+  },
+  "principals": [
+    {
+      "id": "verified-human",
+      "credential": "OIDC BFF session",
+      "maxLifetimeSeconds": 28800,
+      "maxIdleSeconds": 1800,
+      "mayDelegateTo": [
+        "github-app-installation"
+      ]
+    },
+    {
+      "id": "org-budget-owner",
+      "credential": "OIDC BFF session with current org-budget-owner assignment",
+      "maxLifetimeSeconds": 1800,
+      "mayDelegateTo": [
+        "github-app-installation"
+      ]
+    },
+    {
+      "id": "privacy-legal-records-owner",
+      "credential": "OIDC BFF session with current qualified records-owner assignment",
+      "maxLifetimeSeconds": 1800,
+      "mayDelegateTo": [
+        "lifecycle-worker"
+      ]
+    },
+    {
+      "id": "independent-test-agent",
+      "credential": "task-scoped service identity",
+      "maxLifetimeSeconds": 900,
+      "mayDelegateTo": [
+        "github-app-installation"
+      ]
+    },
+    {
+      "id": "github-app-installation",
+      "credential": "GitHub App installation token bound to one signed upstream delegation envelope",
+      "maxLifetimeSeconds": 900,
+      "mayDelegateTo": []
+    },
+    {
+      "id": "platform-agent",
+      "credential": "registered task-scoped service identity",
+      "maxLifetimeSeconds": 900,
+      "mayDelegateTo": []
+    },
+    {
+      "id": "revoked-or-disabled-agent",
+      "credential": "none",
+      "maxLifetimeSeconds": 0,
+      "mayDelegateTo": []
+    },
+    {
+      "id": "api-worker-reconciler",
+      "credential": "tenant/job-scoped workload token",
+      "maxLifetimeSeconds": 900,
+      "mayDelegateTo": []
+    },
+    {
+      "id": "ci",
+      "credential": "exact-run OIDC token",
+      "maxLifetimeSeconds": 900,
+      "mayDelegateTo": []
+    },
+    {
+      "id": "sandbox-workload",
+      "credential": "one-use execution token",
+      "maxLifetimeSeconds": 60,
+      "mayDelegateTo": []
+    },
+    {
+      "id": "model-credential",
+      "credential": "one-use model broker token",
+      "maxLifetimeSeconds": 300,
+      "mayDelegateTo": []
+    },
+    {
+      "id": "evidence-credential",
+      "credential": "one-use object token",
+      "maxLifetimeSeconds": 300,
+      "mayDelegateTo": []
+    },
+    {
+      "id": "administrator",
+      "credential": "OIDC admin session",
+      "maxLifetimeSeconds": 1800,
+      "mayDelegateTo": []
+    },
+    {
+      "id": "release-rails",
+      "credential": "one-use release token",
+      "maxLifetimeSeconds": 300,
+      "mayDelegateTo": []
+    },
+    {
+      "id": "lifecycle-worker",
+      "credential": "one-use disposition token",
+      "maxLifetimeSeconds": 300,
+      "mayDelegateTo": []
+    },
+    {
+      "id": "schema-migration-runner",
+      "credential": "one-use migration token bound to signed plan or cleanup decision",
+      "maxLifetimeSeconds": 300,
+      "mayDelegateTo": []
+    },
+    {
+      "id": "migration-authorizer",
+      "credential": "OIDC BFF session with current database-owner assignment",
+      "maxLifetimeSeconds": 1800,
+      "mayDelegateTo": [
+        "schema-migration-runner"
+      ]
+    }
+  ],
+  "providerPermissions": [
+    {
+      "id": "PP-GH-META",
+      "principal": "github-app-installation",
+      "provider": "github",
+      "permission": "metadata:read",
+      "resources": [
+        "provider:github",
+        "installation:installation-steer-test",
+        "organization:steer-platform",
+        "tenant:steer-platform",
+        "repository-id:steer-home-test",
+        "repository-id:steer-operating-test",
+        "ref:refs/heads/codex/candidate",
+        "path-class:^items/[0-9]{4}-[a-z0-9-]+/(BRIEF|SPEC|PLAN)\\.md$",
+        "path-class:^items/[0-9]{4}-[a-z0-9-]+/evidence/[A-Za-z0-9._/-]+$",
+        "path-class:^intent/0001/originator-drafts/[0-9a-f-]{36}/BRIEF\\.md$",
+        "path:intent/0001/EXAM.md",
+        "path-class:^intent/0001/signatures/gate-[23]\\.json$",
+        "path-class:^intent/0001/signatures/specialist/[a-z0-9-]+\\.json$",
+        "path-class:^intent/0001/authorizations/spend/[0-9]{4}-[0-9]{2}/[0-9a-f-]{36}\\.json$"
+      ],
+      "applicationActions": [
+        "github.item.commit",
+        "github.exam.candidate.commit",
+        "github.decision.record.commit",
+        "github.spend-authorization.commit"
+      ]
+    },
+    {
+      "id": "PP-GH-CONTENTS",
+      "principal": "github-app-installation",
+      "provider": "github",
+      "permission": "contents:write",
+      "resources": [
+        "provider:github",
+        "installation:installation-steer-test",
+        "organization:steer-platform",
+        "tenant:steer-platform",
+        "repository-id:steer-home-test",
+        "repository-id:steer-operating-test",
+        "ref:refs/heads/codex/candidate",
+        "path-class:^items/[0-9]{4}-[a-z0-9-]+/(BRIEF|SPEC|PLAN)\\.md$",
+        "path-class:^items/[0-9]{4}-[a-z0-9-]+/evidence/[A-Za-z0-9._/-]+$",
+        "path-class:^intent/0001/originator-drafts/[0-9a-f-]{36}/BRIEF\\.md$",
+        "path:intent/0001/EXAM.md",
+        "path-class:^intent/0001/signatures/gate-[23]\\.json$",
+        "path-class:^intent/0001/signatures/specialist/[a-z0-9-]+\\.json$",
+        "path-class:^intent/0001/authorizations/spend/[0-9]{4}-[0-9]{2}/[0-9a-f-]{36}\\.json$"
+      ],
+      "applicationActions": [
+        "github.item.commit",
+        "github.exam.candidate.commit",
+        "github.decision.record.commit",
+        "github.spend-authorization.commit"
+      ]
+    },
+    {
+      "id": "PP-GH-CHECKS",
+      "principal": "ci",
+      "provider": "github",
+      "permission": "checks:write statuses:write contents:read",
+      "resources": [
+        "repository-id:steer-home-test"
+      ],
+      "applicationActions": [
+        "ci.publish-check-evidence"
+      ]
+    },
+    {
+      "id": "PP-OIDC",
+      "principal": "verified-human",
+      "provider": "keycloak",
+      "permission": "openid profile",
+      "resources": [
+        "provider:keycloak",
+        "organization:steer-platform",
+        "tenant:steer-platform",
+        "realm:steer"
+      ],
+      "applicationActions": [
+        "item.query",
+        "item.commit.authorize",
+        "gate.decide",
+        "item.send-back"
+      ]
+    },
+    {
+      "id": "PP-BUDGET-AUTH",
+      "principal": "org-budget-owner",
+      "provider": "steer-authorization",
+      "permission": "spend-authorization:create-sign",
+      "resources": [
+        "provider:steer-authorization",
+        "organization:steer-platform",
+        "tenant:steer-platform",
+        "product:flight-deck",
+        "pod:platform"
+      ],
+      "applicationActions": [
+        "spend.authorization.create-sign"
+      ]
+    },
+    {
+      "id": "PP-RECORDS-AUTH",
+      "principal": "privacy-legal-records-owner",
+      "provider": "steer-authorization",
+      "permission": "records:hold-export-disposition-policy-grant",
+      "resources": [
+        "provider:steer-authorization",
+        "organization:steer-platform",
+        "tenant:steer-platform",
+        "item:0001-flight-deck-foundation"
+      ],
+      "applicationActions": [
+        "records.hold",
+        "records.export.authorize",
+        "records.disposition.authorize",
+        "records.raw-working-policy-grant.create-sign"
+      ]
+    },
+    {
+      "id": "PP-EXAM-AUTHOR",
+      "principal": "independent-test-agent",
+      "provider": "steer-assignment",
+      "permission": "exam-candidate:author",
+      "resources": [
+        "provider:steer-assignment",
+        "organization:steer-platform",
+        "tenant:steer-platform",
+        "item:0001-flight-deck-foundation",
+        "path:intent/0001/EXAM.md",
+        "ref:refs/heads/codex/candidate"
+      ],
+      "applicationActions": [
+        "exam.candidate.author"
+      ]
+    },
+    {
+      "id": "PP-MCP",
+      "principal": "platform-agent",
+      "provider": "steer-mcp",
+      "permission": "invoke-granted",
+      "resources": [
+        "tool:item-query",
+        "tool:brief-draft",
+        "tool:evidence-read"
+      ],
+      "applicationActions": [
+        "mcp.tools.list",
+        "mcp.tools.call"
+      ]
+    },
+    {
+      "id": "PP-WORKER",
+      "principal": "api-worker-reconciler",
+      "provider": "temporal-postgres-adapter",
+      "permission": "poll-respond-projection-bound-job",
+      "resources": [
+        "namespace:steer-test",
+        "queue:intent-0001",
+        "schema:tenant_steer_platform"
+      ],
+      "applicationActions": [
+        "worker.execute-job"
+      ]
+    },
+    {
+      "id": "PP-CI-EVIDENCE",
+      "principal": "ci",
+      "provider": "s3-compatible",
+      "permission": "PutObject",
+      "resources": [
+        "bucket:steer-evidence-test",
+        "prefix:steer-platform/intent-0001/ci/"
+      ],
+      "applicationActions": [
+        "ci.publish-check-evidence"
+      ]
+    },
+    {
+      "id": "PP-SANDBOX-READ",
+      "principal": "sandbox-workload",
+      "provider": "github-fixture",
+      "permission": "contents:read",
+      "resources": [
+        "repository-id:steer-home-test"
+      ],
+      "applicationActions": [
+        "sandbox.readiness-scan"
+      ]
+    },
+    {
+      "id": "PP-MODEL",
+      "principal": "model-credential",
+      "provider": "litellm",
+      "permission": "responses:create",
+      "resources": [
+        "configuration:model-a",
+        "configuration:model-b"
+      ],
+      "applicationActions": [
+        "model.create-response"
+      ]
+    },
+    {
+      "id": "PP-EVIDENCE-GET",
+      "principal": "evidence-credential",
+      "provider": "s3-compatible",
+      "permission": "GetObject GetObjectVersion",
+      "resources": [
+        "bucket:steer-evidence-test",
+        "prefix:steer-platform/intent-0001/"
+      ],
+      "applicationActions": [
+        "evidence.get"
+      ]
+    },
+    {
+      "id": "PP-EVIDENCE-PUT",
+      "principal": "evidence-credential",
+      "provider": "s3-compatible",
+      "permission": "PutObject",
+      "resources": [
+        "bucket:steer-evidence-test",
+        "prefix:steer-platform/intent-0001/"
+      ],
+      "applicationActions": [
+        "evidence.put-new"
+      ]
+    },
+    {
+      "id": "PP-ADMIN",
+      "principal": "administrator",
+      "provider": "steer-admin",
+      "permission": "policy:read assignment:update-with-policy",
+      "resources": [
+        "organization:steer-platform"
+      ],
+      "applicationActions": [
+        "admin.read-policy",
+        "admin.update-assignment"
+      ]
+    },
+    {
+      "id": "PP-RELEASE",
+      "principal": "release-rails",
+      "provider": "release-rails",
+      "permission": "observe execute-when-authorized",
+      "resources": [
+        "organization:steer-platform",
+        "environment:pilot-test",
+        "release:intent-0001"
+      ],
+      "applicationActions": [
+        "release.observe",
+        "release.execute"
+      ]
+    },
+    {
+      "id": "PP-LIFECYCLE-OBJECT",
+      "principal": "lifecycle-worker",
+      "provider": "multi-copy-disposition-adapter",
+      "permission": "delete-exact-inventory-copy-version-and-verify-absence",
+      "resources": [
+        "provider:@request",
+        "organization:steer-platform",
+        "tenant:@request",
+        "item:0001-flight-deck-foundation",
+        "retention-class:@request",
+        "target-digest:@request",
+        "policy-digest:@request",
+        "inventory-digest:@request",
+        "provider-key-registry-digest:@request",
+        "provider-binding-id:@request",
+        "present-tuple-digest:@request",
+        "authority-id:@request",
+        "authority-digest:@request",
+        "request-digest:@request",
+        "copy-id:@request",
+        "copy-provider:@request",
+        "copy-kind:@request",
+        "object-key:@request",
+        "version-id:@request",
+        "key-id:@request"
+      ],
+      "applicationActions": [
+        "lifecycle.delete-copy"
+      ]
+    },
+    {
+      "id": "PP-LIFECYCLE-KEY",
+      "principal": "lifecycle-worker",
+      "provider": "kms",
+      "permission": "ScheduleKeyDeletion DisableKey",
+      "resources": [
+        "provider:@request",
+        "organization:steer-platform",
+        "tenant:@request",
+        "item:0001-flight-deck-foundation",
+        "retention-class:@request",
+        "target-digest:@request",
+        "policy-digest:@request",
+        "inventory-digest:@request",
+        "provider-key-registry-digest:@request",
+        "provider-binding-id:@request",
+        "present-tuple-digest:@request",
+        "authority-id:@request",
+        "authority-digest:@request",
+        "request-digest:@request",
+        "copy-id:@request",
+        "copy-provider:@request",
+        "copy-kind:@request",
+        "object-key:@request",
+        "version-id:@request",
+        "key-id:@request"
+      ],
+      "applicationActions": [
+        "lifecycle.crypto-erase"
+      ]
+    },
+    {
+      "id": "PP-LIFECYCLE-GH",
+      "principal": "lifecycle-worker",
+      "provider": "github",
+      "permission": "contents:write",
+      "resources": [
+        "provider:github",
+        "organization:steer-platform",
+        "tenant:steer-platform",
+        "repository-id:steer-home-test",
+        "ref:refs/heads/codex/candidate",
+        "path-prefix:intent/0001/evidence/tombstones/",
+        "present-tuple-digest:@request",
+        "authority-set-digest:@request",
+        "request-set-digest:@request"
+      ],
+      "applicationActions": [
+        "lifecycle.commit-tombstone"
+      ]
+    },
+    {
+      "id": "PP-MIGRATION-EXPAND",
+      "principal": "schema-migration-runner",
+      "provider": "postgres",
+      "permission": "create-additive-schema-no-superuser-no-bypassrls",
+      "resources": [
+        "provider:postgres",
+        "organization:steer-platform",
+        "tenant:steer-platform",
+        "database:steer-test",
+        "schema:tenant_steer_platform"
+      ],
+      "applicationActions": [
+        "migration.expand"
+      ]
+    },
+    {
+      "id": "PP-MIGRATION-BACKFILL",
+      "principal": "schema-migration-runner",
+      "provider": "postgres",
+      "permission": "update-reviewed-columns-no-ddl-no-superuser-no-bypassrls",
+      "resources": [
+        "provider:postgres",
+        "organization:steer-platform",
+        "tenant:steer-platform",
+        "database:steer-test",
+        "schema:tenant_steer_platform"
+      ],
+      "applicationActions": [
+        "migration.backfill"
+      ]
+    },
+    {
+      "id": "PP-MIGRATION-CONTRACT",
+      "principal": "schema-migration-runner",
+      "provider": "postgres",
+      "permission": "drop-exact-authorized-columns-no-superuser-no-bypassrls",
+      "resources": [
+        "provider:postgres",
+        "organization:steer-platform",
+        "tenant:steer-platform",
+        "database:steer-test",
+        "schema:tenant_steer_platform"
+      ],
+      "applicationActions": [
+        "migration.contract"
+      ]
+    },
+    {
+      "id": "PP-MIGRATION-AUTH",
+      "principal": "migration-authorizer",
+      "provider": "steer-authorization",
+      "permission": "migration-plan-and-cleanup:create-sign",
+      "resources": [
+        "provider:steer-authorization",
+        "organization:steer-platform",
+        "tenant:steer-platform",
+        "database:steer-test",
+        "schema:tenant_steer_platform"
+      ],
+      "applicationActions": [
+        "migration.plan.authorize",
+        "migration.cleanup.authorize"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "id": "item.query",
+      "principals": [
+        "verified-human"
+      ],
+      "providerPermissionIds": [
+        "PP-OIDC"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "item"
+      ]
+    },
+    {
+      "id": "item.commit.authorize",
+      "principals": [
+        "verified-human"
+      ],
+      "providerPermissionIds": [
+        "PP-OIDC"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "item",
+        "activeHat",
+        "path",
+        "targetDigest",
+        "policyDigest"
+      ],
+      "exactActiveHat": "product-lead"
+    },
+    {
+      "id": "gate.decide",
+      "principals": [
+        "verified-human"
+      ],
+      "providerPermissionIds": [
+        "PP-OIDC"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "item",
+        "activeHat",
+        "decisionEnvelopeDigest",
+        "eligibilityEvidenceDigest"
+      ]
+    },
+    {
+      "id": "item.send-back",
+      "principals": [
+        "verified-human"
+      ],
+      "providerPermissionIds": [
+        "PP-OIDC"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "item",
+        "activeHat",
+        "decisionEnvelopeDigest"
+      ]
+    },
+    {
+      "id": "spend.authorization.create-sign",
+      "principals": [
+        "org-budget-owner"
+      ],
+      "providerPermissionIds": [
+        "PP-BUDGET-AUTH"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "product",
+        "pod",
+        "actorSubject",
+        "credentialId",
+        "credentialDigest",
+        "activeHat",
+        "authorizationId",
+        "authorizationDigest",
+        "targetDigest",
+        "policyDigest",
+        "period",
+        "expiresAt",
+        "immutableRequestDigest",
+        "idempotencyKey",
+        "casHead"
+      ],
+      "exactActiveHat": "org-budget-owner",
+      "raceOracle": "one predecessor head compare-and-swap; one commit wins; losers SPEND_AUTH_CONFLICT"
+    },
+    {
+      "id": "records.hold",
+      "principals": [
+        "privacy-legal-records-owner"
+      ],
+      "providerPermissionIds": [
+        "PP-RECORDS-AUTH"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "item",
+        "activeHat",
+        "retentionClass",
+        "policyDigest",
+        "holdId"
+      ]
+    },
+    {
+      "id": "records.export.authorize",
+      "principals": [
+        "privacy-legal-records-owner"
+      ],
+      "providerPermissionIds": [
+        "PP-RECORDS-AUTH"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "item",
+        "activeHat",
+        "retentionClass",
+        "policyDigest",
+        "copyInventoryDigest",
+        "exportAuthorizationId"
+      ]
+    },
+    {
+      "id": "records.disposition.authorize",
+      "principals": [
+        "privacy-legal-records-owner"
+      ],
+      "providerPermissionIds": [
+        "PP-RECORDS-AUTH"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "item",
+        "activeHat",
+        "retentionClass",
+        "retentionEventId",
+        "policyDigest",
+        "copyInventoryDigest",
+        "providerKeyRegistryDigest",
+        "providerBindingId",
+        "dispositionAuthorizationId",
+        "targetDigest",
+        "copyId",
+        "copyProvider",
+        "copyKind",
+        "objectKey",
+        "versionId",
+        "keyId",
+        "presentTupleDigest",
+        "authorityId",
+        "authorityDigest",
+        "immutableRequestDigest"
+      ]
+    },
+    {
+      "id": "records.raw-working-policy-grant.create-sign",
+      "principals": [
+        "privacy-legal-records-owner"
+      ],
+      "providerPermissionIds": [
+        "PP-RECORDS-AUTH"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "item",
+        "actorSubject",
+        "credentialId",
+        "credentialDigest",
+        "activeHat",
+        "retentionClass",
+        "policyDigest",
+        "rawWorkingPolicyGrantId",
+        "rawWorkingPolicyGrantDigest",
+        "targetDigest",
+        "expiresAt",
+        "immutableRequestDigest",
+        "idempotencyKey",
+        "casHead",
+        "presentTupleDigest",
+        "authorityId",
+        "authorityDigest",
+        "copyId",
+        "copyProvider",
+        "copyKind",
+        "objectKey",
+        "versionId",
+        "keyId",
+        "copyInventoryDigest"
+        ,"providerKeyRegistryDigest"
+        ,"providerBindingId"
+      ],
+      "exactRetentionClass": "RC-CORPUS-RAW-WORKING",
+      "safeguards": [
+        "terminal-sanitization-only",
+        "isolated-sanitizer-copy-only",
+        "delete-within-60-seconds",
+        "all-copies-inventory",
+        "receipt-mandatory",
+        "deny-on-hold-reference-or-inventory-change"
+      ]
+    },
+    {
+      "id": "exam.candidate.author",
+      "principals": [
+        "independent-test-agent"
+      ],
+      "providerPermissionIds": [
+        "PP-EXAM-AUTHOR"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "item",
+        "actorSubject",
+        "credentialId",
+        "credentialDigest",
+        "assignmentId",
+        "assignmentDigest",
+        "examRevision",
+        "targetDigest",
+        "path",
+        "ref",
+        "policyDigest",
+        "expiresAt",
+        "immutableRequestDigest",
+        "idempotencyKey",
+        "casHead"
+      ],
+      "exactPath": "intent/0001/EXAM.md",
+      "assignmentRequirements": [
+        "current",
+        "independently-issued",
+        "role:test-agent",
+        "item-and-target-bound",
+        "not-builder",
+        "not-originator",
+        "not-platform-agent",
+        "actor-bound-review-path-present"
+      ]
+    },
+    {
+      "id": "github.item.commit",
+      "principals": [
+        "github-app-installation"
+      ],
+      "providerPermissionIds": [
+        "PP-GH-META",
+        "PP-GH-CONTENTS"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "repositoryId",
+        "ref",
+        "path",
+        "upstreamAction",
+        "actorSubject",
+        "credentialId",
+        "credentialDigest",
+        "delegationId",
+        "delegationDigest",
+        "targetDigest",
+        "policyDigest",
+        "expiresAt",
+        "immutableRequestDigest",
+        "idempotencyKey",
+        "casHead"
+      ],
+      "allowedPathClasses": [
+        "^items/[0-9]{4}-[a-z0-9-]+/(BRIEF|SPEC|PLAN)\\.md$",
+        "^items/[0-9]{4}-[a-z0-9-]+/evidence/[A-Za-z0-9._/-]+$",
+        "^intent/0001/originator-drafts/[0-9a-f-]{36}/BRIEF\\.md$"
+      ],
+      "requiredUpstreamAction": "item.commit.authorize",
+      "requiredActorRole": "product-lead",
+      "forbiddenUpstreamActors": [
+        "builder-targeting-governance",
+        "platform-agent-targeting-governance",
+        "worker-targeting-governance",
+        "compromised-caller"
+      ]
+    },
+    {
+      "id": "github.exam.candidate.commit",
+      "principals": [
+        "github-app-installation"
+      ],
+      "providerPermissionIds": [
+        "PP-GH-META",
+        "PP-GH-CONTENTS"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "repositoryId",
+        "ref",
+        "path",
+        "upstreamAction",
+        "actorSubject",
+        "credentialId",
+        "credentialDigest",
+        "delegationId",
+        "delegationDigest",
+        "assignmentId",
+        "assignmentDigest",
+        "targetDigest",
+        "policyDigest",
+        "expiresAt",
+        "immutableRequestDigest",
+        "idempotencyKey",
+        "casHead"
+      ],
+      "exactPath": "intent/0001/EXAM.md",
+      "requiredUpstreamAction": "exam.candidate.author",
+      "requiredActorRole": "test-agent",
+      "bindingRule": "all actor, assignment, target, request, policy, expiry, idempotency, and CAS values must be byte-equal to the verified upstream envelope; credential subject must be the delegated GitHub App installation"
+    },
+    {
+      "id": "github.decision.record.commit",
+      "principals": [
+        "github-app-installation"
+      ],
+      "providerPermissionIds": [
+        "PP-GH-META",
+        "PP-GH-CONTENTS"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "repositoryId",
+        "ref",
+        "path",
+        "upstreamAction",
+        "actorSubject",
+        "credentialId",
+        "credentialDigest",
+        "delegationId",
+        "delegationDigest",
+        "decisionRecordId",
+        "decisionEnvelopeDigest",
+        "eligibilityEvidenceDigest",
+        "targetDigest",
+        "policyDigest",
+        "expiresAt",
+        "immutableRequestDigest",
+        "idempotencyKey",
+        "casHead"
+      ],
+      "allowedPathClasses": [
+        "^intent/0001/signatures/gate-[23]\\.json$",
+        "^intent/0001/signatures/specialist/[a-z0-9-]+\\.json$"
+      ],
+      "requiredUpstreamAction": "gate.decide",
+      "requiredActorRole": "tech-lead",
+      "bindingRule": "exact verified-human decision and eligibility envelope; no App-only authority"
+    },
+    {
+      "id": "github.spend-authorization.commit",
+      "principals": [
+        "github-app-installation"
+      ],
+      "providerPermissionIds": [
+        "PP-GH-META",
+        "PP-GH-CONTENTS"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "repositoryId",
+        "ref",
+        "path",
+        "upstreamAction",
+        "actorSubject",
+        "credentialId",
+        "credentialDigest",
+        "delegationId",
+        "delegationDigest",
+        "authorizationId",
+        "authorizationDigest",
+        "targetDigest",
+        "policyDigest",
+        "period",
+        "expiresAt",
+        "immutableRequestDigest",
+        "idempotencyKey",
+        "casHead"
+      ],
+      "allowedPathClasses": [
+        "^intent/0001/authorizations/spend/[0-9]{4}-[0-9]{2}/[0-9a-f-]{36}\\.json$"
+      ],
+      "requiredUpstreamAction": "spend.authorization.create-sign",
+      "requiredActorRole": "org-budget-owner",
+      "bindingRule": "exact org-budget-owner signed decision; App only carries its delegated immutable bytes"
+    },
+    {
+      "id": "ci.publish-check-evidence",
+      "principals": [
+        "ci"
+      ],
+      "providerPermissionIds": [
+        "PP-GH-CHECKS",
+        "PP-CI-EVIDENCE"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "repositoryId",
+        "runId",
+        "evidenceKey"
+      ]
+    },
+    {
+      "id": "mcp.tools.list",
+      "principals": [
+        "platform-agent"
+      ],
+      "providerPermissionIds": [
+        "PP-MCP"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "assignmentId"
+      ]
+    },
+    {
+      "id": "mcp.tools.call",
+      "principals": [
+        "platform-agent"
+      ],
+      "providerPermissionIds": [
+        "PP-MCP"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "assignmentId",
+        "tool"
+      ]
+    },
+    {
+      "id": "worker.execute-job",
+      "principals": [
+        "api-worker-reconciler"
+      ],
+      "providerPermissionIds": [
+        "PP-WORKER"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "taskQueue",
+        "job"
+      ]
+    },
+    {
+      "id": "sandbox.readiness-scan",
+      "principals": [
+        "sandbox-workload"
+      ],
+      "providerPermissionIds": [
+        "PP-SANDBOX-READ"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "execution",
+        "repositoryId"
+      ]
+    },
+    {
+      "id": "model.create-response",
+      "principals": [
+        "model-credential"
+      ],
+      "providerPermissionIds": [
+        "PP-MODEL"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "pod",
+        "execution",
+        "configuration",
+        "spendAuthorizationDigest",
+        "reservationId"
+      ]
+    },
+    {
+      "id": "evidence.get",
+      "principals": [
+        "evidence-credential"
+      ],
+      "providerPermissionIds": [
+        "PP-EVIDENCE-GET"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "objectKey",
+        "versionId"
+      ]
+    },
+    {
+      "id": "evidence.put-new",
+      "principals": [
+        "evidence-credential"
+      ],
+      "providerPermissionIds": [
+        "PP-EVIDENCE-PUT"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "objectKey",
+        "contentDigest",
+        "retentionClass"
+      ]
+    },
+    {
+      "id": "admin.read-policy",
+      "principals": [
+        "administrator"
+      ],
+      "providerPermissionIds": [
+        "PP-ADMIN"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "policyDigest"
+      ]
+    },
+    {
+      "id": "admin.update-assignment",
+      "principals": [
+        "administrator"
+      ],
+      "providerPermissionIds": [
+        "PP-ADMIN"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "assignmentId",
+        "policyDigest"
+      ]
+    },
+    {
+      "id": "release.observe",
+      "principals": [
+        "release-rails"
+      ],
+      "providerPermissionIds": [
+        "PP-RELEASE"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "environment",
+        "release"
+      ]
+    },
+    {
+      "id": "release.execute",
+      "principals": [
+        "release-rails"
+      ],
+      "providerPermissionIds": [
+        "PP-RELEASE"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "environment",
+        "release",
+        "productionAuthorizationDigest",
+        "spendAuthorizationDigest",
+        "forecastDigest",
+        "reservationId"
+      ]
+    },
+    {
+      "id": "lifecycle.delete-copy",
+      "principals": [
+        "lifecycle-worker"
+      ],
+      "providerPermissionIds": [
+        "PP-LIFECYCLE-OBJECT"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "item",
+        "upstreamAction",
+        "actorSubject",
+        "credentialId",
+        "credentialDigest",
+        "delegationId",
+        "delegationDigest",
+        "retentionClass",
+        "retentionEventId",
+        "copyInventoryDigest",
+        "providerKeyRegistryDigest",
+        "providerBindingId",
+        "dispositionAuthorizationId",
+        "policyDigest",
+        "targetDigest",
+        "expiresAt",
+        "immutableRequestDigest",
+        "provider",
+        "copyId",
+        "copyProvider",
+        "copyKind",
+        "objectKey",
+        "versionId",
+        "keyId",
+        "idempotencyKey",
+        "casHead",
+        "presentTupleDigest",
+        "authorityId",
+        "authorityDigest"
+      ],
+      "requiredUpstreamAction": "records.disposition.authorize",
+      "requiredActorRole": "privacy-legal-records-owner",
+      "raceOracle": "for every canonical ordered present tuple: exactly one current signed per-copy authority, one unique immutable provider request, and one provider-signed terminal receipt byte-match tenant/class/target/policy/inventory/tuple/provider/copy/object/version/key/authority/request digest across provider resource, CAS, derived aggregate receipt and tombstone; exact committed replay reconciles evidence without a second effect; then exactly one final tombstone request"
+    },
+    {
+      "id": "lifecycle.crypto-erase",
+      "principals": [
+        "lifecycle-worker"
+      ],
+      "providerPermissionIds": [
+        "PP-LIFECYCLE-KEY"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "item",
+        "upstreamAction",
+        "actorSubject",
+        "credentialId",
+        "credentialDigest",
+        "delegationId",
+        "delegationDigest",
+        "retentionClass",
+        "retentionEventId",
+        "copyInventoryDigest",
+        "providerKeyRegistryDigest",
+        "providerBindingId",
+        "rawWorkingPolicyGrantId",
+        "rawWorkingPolicyGrantDigest",
+        "policyDigest",
+        "targetDigest",
+        "expiresAt",
+        "immutableRequestDigest",
+        "keyId",
+        "idempotencyKey",
+        "casHead",
+        "presentTupleDigest",
+        "authorityId",
+        "authorityDigest",
+        "provider",
+        "copyId",
+        "copyProvider",
+        "copyKind",
+        "objectKey",
+        "versionId"
+      ],
+      "requiredUpstreamAction": "records.raw-working-policy-grant.create-sign",
+      "requiredActorRole": "privacy-legal-records-owner",
+      "raceOracle": "one exact raw policy grant, one unique immutable KMS request, and one provider-signed terminal crypto-erasure receipt per ordered present key tuple; keyId and the full copy tuple byte-match inventory, grant, provider resource, CAS, derived aggregate receipt and tombstone; exact committed replay reconciles without re-erasing"
+    },
+    {
+      "id": "lifecycle.commit-tombstone",
+      "principals": [
+        "lifecycle-worker"
+      ],
+      "providerPermissionIds": [
+        "PP-LIFECYCLE-GH"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "item",
+        "upstreamAction",
+        "actorSubject",
+        "credentialId",
+        "credentialDigest",
+        "delegationId",
+        "delegationDigest",
+        "retentionClass",
+        "retentionEventId",
+        "copyInventoryDigest",
+        "providerKeyRegistryDigest",
+        "providerBindingId",
+        "dispositionAuthorizationId",
+        "policyDigest",
+        "targetDigest",
+        "expiresAt",
+        "immutableRequestDigest",
+        "path",
+        "providerReceiptsDigest",
+        "idempotencyKey",
+        "casHead",
+        "presentTupleDigest",
+        "authorityId",
+        "authorityDigest",
+        "authoritySetDigest",
+        "requestSetDigest",
+        "copyId",
+        "copyProvider",
+        "copyKind",
+        "objectKey",
+        "versionId",
+        "keyId"
+      ],
+      "requiredUpstreamAction": "records.disposition.authorize",
+      "requiredActorRole": "privacy-legal-records-owner",
+      "allowedPathClasses": [
+        "^intent/0001/evidence/tombstones/[0-9a-f-]{36}\\.json$"
+      ],
+      "bindingRule": "one final tombstone request binds the signed aggregate receipt digest derived one-to-one from verified provider receipt bytes plus ordered inventory tuple, authority-ID and immutable-request-digest aggregate digests; exact committed replay requires the same tombstone and returns no second effect"
+    },
+    {
+      "id": "migration.plan.authorize",
+      "principals": [
+        "migration-authorizer"
+      ],
+      "providerPermissionIds": [
+        "PP-MIGRATION-AUTH"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "actorSubject",
+        "credentialId",
+        "credentialDigest",
+        "activeHat",
+        "database",
+        "schema",
+        "schemaFrom",
+        "schemaTo",
+        "targetDigest",
+        "migrationPlanDigest",
+        "implementationRevision",
+        "policyDigest",
+        "expiresAt",
+        "immutableRequestDigest",
+        "idempotencyKey",
+        "casHead"
+      ],
+      "exactActiveHat": "database-owner"
+    },
+    {
+      "id": "migration.cleanup.authorize",
+      "principals": [
+        "migration-authorizer"
+      ],
+      "providerPermissionIds": [
+        "PP-MIGRATION-AUTH"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "actorSubject",
+        "credentialId",
+        "credentialDigest",
+        "activeHat",
+        "database",
+        "schema",
+        "schemaFrom",
+        "schemaTo",
+        "targetDigest",
+        "migrationPlanDigest",
+        "affectedTenantInventoryDigest",
+        "backupEvidenceDigest",
+        "rollbackConsequenceDigest",
+        "policyDigest",
+        "expiresAt",
+        "immutableRequestDigest",
+        "idempotencyKey",
+        "casHead"
+      ],
+      "exactActiveHat": "database-owner"
+    },
+    {
+      "id": "migration.expand",
+      "principals": [
+        "schema-migration-runner"
+      ],
+      "providerPermissionIds": [
+        "PP-MIGRATION-EXPAND"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "upstreamAction",
+        "actorSubject",
+        "credentialId",
+        "credentialDigest",
+        "delegationId",
+        "delegationDigest",
+        "database",
+        "schema",
+        "schemaFrom",
+        "schemaTo",
+        "targetDigest",
+        "migrationPlanDigest",
+        "migrationJournalDigest",
+        "implementationRevision",
+        "policyDigest",
+        "expiresAt",
+        "immutableRequestDigest",
+        "idempotencyKey",
+        "casHead"
+      ],
+      "requiredUpstreamAction": "migration.plan.authorize",
+      "requiredActorRole": "database-owner",
+      "destructive": false
+    },
+    {
+      "id": "migration.backfill",
+      "principals": [
+        "schema-migration-runner"
+      ],
+      "providerPermissionIds": [
+        "PP-MIGRATION-BACKFILL"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "upstreamAction",
+        "actorSubject",
+        "credentialId",
+        "credentialDigest",
+        "delegationId",
+        "delegationDigest",
+        "database",
+        "schema",
+        "schemaFrom",
+        "schemaTo",
+        "batchId",
+        "targetDigest",
+        "migrationPlanDigest",
+        "migrationJournalDigest",
+        "implementationRevision",
+        "policyDigest",
+        "expiresAt",
+        "immutableRequestDigest",
+        "idempotencyKey",
+        "casHead"
+      ],
+      "requiredUpstreamAction": "migration.plan.authorize",
+      "requiredActorRole": "database-owner",
+      "destructive": false
+    },
+    {
+      "id": "migration.contract",
+      "principals": [
+        "schema-migration-runner"
+      ],
+      "providerPermissionIds": [
+        "PP-MIGRATION-CONTRACT"
+      ],
+      "requiredSelectors": [
+        "organization",
+        "tenant",
+        "upstreamAction",
+        "actorSubject",
+        "credentialId",
+        "credentialDigest",
+        "delegationId",
+        "delegationDigest",
+        "database",
+        "schema",
+        "schemaFrom",
+        "schemaTo",
+        "targetDigest",
+        "migrationPlanDigest",
+        "migrationJournalDigest",
+        "implementationRevision",
+        "decisionRecordId",
+        "destructiveCleanupAuthorizationId",
+        "affectedTenantInventoryDigest",
+        "backupEvidenceDigest",
+        "rollbackConsequenceDigest",
+        "policyDigest",
+        "expiresAt",
+        "immutableRequestDigest",
+        "idempotencyKey",
+        "casHead"
+      ],
+      "requiredUpstreamAction": "migration.cleanup.authorize",
+      "requiredActorRole": "database-owner",
+      "destructive": true,
+      "bindingRule": "all cleanup decision values byte-equal the current qualified-human authorization; retry and race use identical immutable request digest and CAS head"
+    }
+  ],
+  "requiredDenials": [
+    "unknown-principal",
+    "revoked-principal",
+    "missing-selector",
+    "extra-selector",
+    "duplicate-selector",
+    "caller-asserted-selector",
+    "wrong-tenant",
+    "wrong-repository",
+    "wildcard",
+    "path-class-zero-match",
+    "path-class-multiple-match",
+    "protected-path-via-normal-item",
+    "builder-protected-path",
+    "originator-protected-path",
+    "platform-agent-protected-path",
+    "worker-protected-path",
+    "retry-or-fallback-protected-path",
+    "ci-allowlist-without-exam-assignment",
+    "exam-assignment-stale-or-wrong-target",
+    "approval-without-human-envelope-or-eligibility",
+    "spend-without-budget-owner",
+    "spend-over-ceiling",
+    "lifecycle-without-current-policy-event-inventory-and-authorization",
+    "migration-without-version-plan-journal",
+    "contract-without-separate-cleanup-authorization-and-backup",
+    "stale-credential",
+    "wrong-credential-subject",
+    "delegation-substitution",
+    "assignment-substitution",
+    "decision-substitution",
+    "target-substitution",
+    "policy-substitution",
+    "expired-envelope",
+    "compromised-caller",
+    "raw-working-policy-grant-missing-or-stale",
+    "lifecycle-copy-zero-or-multiple-match",
+    "lifecycle-copy-resource-substitution",
+    "lifecycle-inventory-stale-or-restored",
+    "race-loser",
+    "idempotency-reuse-with-different-request",
+    "lifecycle-authority-missing-duplicate-or-extra",
+    "lifecycle-request-missing-duplicate-reused-or-extra",
+    "lifecycle-raw-key-substitution",
+    "lifecycle-retry-or-restored-race"
+  ]
+}

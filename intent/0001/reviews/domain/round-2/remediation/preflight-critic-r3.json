@@ -1,0 +1,317 @@
+{
+  "version": "steer-gate-2-round-2-remediation-preflight-critic/v3",
+  "organization": "steer-platform",
+  "item": "0001-flight-deck-foundation",
+  "gate": 2,
+  "reviewer": {
+    "serviceIdentity": "codex-task:/root/gate2_r2_remediation_critic_r3",
+    "agentType": "independent-fresh-context-preflight-critic",
+    "freshContext": true,
+    "builderIndependent": true,
+    "didNotTrustTestAgentSummary": true,
+    "didNotTrustBundledValidator": true,
+    "advisoryOnly": true
+  },
+  "reviewedAt": "2026-09-04T00:37:46Z",
+  "target": {
+    "canonicalExamRevision": "9c7299dd658615cd234e8e03188d607ef1a99fe1",
+    "canonicalExamPath": "intent/0001/EXAM.md",
+    "canonicalExamSha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10",
+    "frozenRoundTwoEvidenceCommit": "61b6d8577712d1290639e4c7b33acef9342e1c51",
+    "candidateManifestSha256": "e7e2e569d34f7adbdd153b585c1e5b3f7b9db4e908a52970f7cb5b1df56127d4",
+    "preservedPreflightCriticR1Sha256": "47a30b436a0bfb9177f1f1877c9b81e2f63a113ae048500fb1c48ad4d73a8014",
+    "preservedPreflightCriticR2Sha256": "f5d75d7b6fb0b576e6707aa2d09745aeecf08af4d6e17eb8f03fe8e6420c492b"
+  },
+  "integrityChecks": {
+    "canonicalExamReadFromExactGitObject": true,
+    "canonicalExamExactGitObjectSha256Matches": true,
+    "canonicalExamWorktreeBytesMatchTargetSha256": true,
+    "gateOneArtifactsMatchAcceptedHashes": true,
+    "roundTwoExceptionBriefAndAllSevenRecordsReviewed": true,
+    "preservedPreflightCriticR1HashMatchesManifest": true,
+    "preservedPreflightCriticR2HashMatchesManifest": true,
+    "manifestPathsUnique": true,
+    "manifestExcludesItselfToAvoidDigestCycle": true,
+    "allManifestEntriesExistAndMatch": true,
+    "manifestArtifactCount": 43,
+    "candidateArtifactsPresentInFrozenEvidenceCommit": false,
+    "candidateNormativelyIncorporatedIntoCanonicalExam": false,
+    "fullValidatorExitCode": 0,
+    "fixturesOnlyValidatorExitCode": 0,
+    "validatorReported": "PASS serialized signed candidate oracles only; no gate, policy ruling, credential/provider access, migration, deletion, release, or spend effect",
+    "validatorPassIsSubstantivelyReliable": false,
+    "adversarialExecutionPerformed": true,
+    "criticRecordExcludedFromManifestSelfHash": true
+  },
+  "decision": {
+    "verdict": "SEND_BACK",
+    "confidence": "high",
+    "originalFindingsResolved": 0,
+    "originalFindingsUnresolved": 9,
+    "r1FindingsResolved": 2,
+    "r1FindingsUnresolved": 5,
+    "r2FindingsResolved": 0,
+    "r2FindingsUnresolved": 5,
+    "newBlockers": 4,
+    "newMajors": 2,
+    "rationale": "All 43 manifest entries match and both bundled validator modes exit zero, but direct counterexamples disprove the claimed closure. Coherently mutated signed authorization envelopes can authorize attacker-selected CAS and retry state because no authoritative current state is consumed. Signed cost evidence after authorization expiry and with provider proof predating the record is accepted. A signed Trusted Tester pass is accepted when its raw A01 result says fail. A seven-year lifecycle class is accepted as deleted after a caller-supplied sixty-second boundary. Recovery verifies with empty inventories unrelated to the restored records and does not execute cut-specific state. Finally, the amendment is explicitly non-canonical and absent from both the named canonical Exam revision and the claimed frozen commit, so none of these candidate contracts normatively amend the Exam. Zero blocker/major is not met."
+  },
+  "perFindingDispositions": [
+    {
+      "id": "SEC-G2-R2-001",
+      "domain": "security",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "R3-PF-001 proves the protected-action function accepts coherently substituted CAS and idempotency state. It compares two caller-supplied signed envelopes but consumes no authoritative current head, retry ledger, or replay state."
+    },
+    {
+      "id": "PRIV-G2-R2-001",
+      "domain": "privacy",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "R3-PF-004 proves the lifecycle function trusts a supplied boundary rather than deriving the class policy and permits disposition without the exhaustive signed, class-specific policy flow."
+    },
+    {
+      "id": "ACC-G2-R2-001",
+      "domain": "accessibility",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "R3-PF-003 proves summaryDecision=pass is accepted when the complete signed raw bundle says A01 observed=fail. Raw outcome is hashed but never compared with the checkpoint disposition."
+    },
+    {
+      "id": "MONEY-G2-004",
+      "domain": "money",
+      "originalSeverity": "blocker",
+      "disposition": "unresolved",
+      "basis": "R3-PF-001 and R3-PF-002 leave spend creation without authoritative CAS/retry evaluation and allow cost use after the signed authorization has expired."
+    },
+    {
+      "id": "MONEY-G2-005",
+      "domain": "money",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "R3-PF-002 proves temporal and cross-record semantics are incomplete: a usage record dated after authorization expiry passes, and its provider proof predates the record it purports to acknowledge."
+    },
+    {
+      "id": "MONEY-G2-R2-001",
+      "domain": "money",
+      "originalSeverity": "blocker",
+      "disposition": "unresolved",
+      "basis": "The schemas constrain each amount to a safe integer, but semantic aggregation still uses JavaScript Number addition, including invoice usage summation, so aggregate overflow is not checked-integer nanoUSD throughout as required."
+    },
+    {
+      "id": "LEGAL-G2-R2-001",
+      "domain": "legal",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "The policy lists sixteen classes, but the executable oracle does not derive triggers or durations from it. The validator gives every class the same terminal+60-second boundary, so the class matrix is a label loop rather than the policy contract."
+    },
+    {
+      "id": "REL-G2-R2-001",
+      "domain": "reliability",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "R3-PF-005 proves recovery inventory equality is self-referential and unrelated to canonical/restored bytes, while the named cut does not control the structured source state. Zero-loss every-cut recovery is not established."
+    },
+    {
+      "id": "IRREV-G2-R2-001",
+      "domain": "irreversible-operations",
+      "originalSeverity": "major",
+      "disposition": "unresolved",
+      "basis": "R3-PF-001 and R3-PF-004 leave irreversible actions without authoritative CAS/idempotency state and allow a P7Y class to reach lifecycle effect after a caller-supplied 60-second boundary."
+    }
+  ],
+  "r1FindingDispositions": [
+    {
+      "id": "R2R-PF-001",
+      "disposition": "resolved",
+      "basis": "All nine cost branches now have closed discriminator const schemas and positive/negative Draft 2020-12 execution."
+    },
+    {
+      "id": "R2R-PF-002",
+      "disposition": "resolved",
+      "basis": "The candidate defines non-circular target/predecessor revisions and executable JCS omission preimages, digests, and Ed25519 verification."
+    },
+    {
+      "id": "R2R-PF-003",
+      "disposition": "unresolved",
+      "basis": "The validator now invokes shared functions, but the lifecycle class matrix and recovery cut matrix still exercise labels over identical supplied state and miss required normative semantics."
+    },
+    {
+      "id": "R2R-PF-004",
+      "disposition": "unresolved",
+      "basis": "Signed envelopes are compared, but the decision function does not consume authoritative current CAS, idempotency, or replay state; coherently substituted values pass."
+    },
+    {
+      "id": "R2R-PF-005",
+      "disposition": "unresolved",
+      "basis": "A raw policy grant schema exists, but the lifecycle oracle does not execute the policy-derived class trigger, duration, complete precedence matrix, or the manifest decision function."
+    },
+    {
+      "id": "R2R-PF-006",
+      "disposition": "unresolved",
+      "basis": "Provider acknowledgement remains the stated authority, but the executable recovery proof accepts unrelated empty inventories and does not model source availability at each cut."
+    },
+    {
+      "id": "R2R-PF-007",
+      "disposition": "unresolved",
+      "basis": "The record is signed and enumerates five environments and A01-A81, but signed raw checkpoint outcomes are not reconciled to summary dispositions and provider proof is not cryptographically verified."
+    }
+  ],
+  "r2FindingDispositions": [
+    {
+      "id": "R2R2-PF-001",
+      "disposition": "unresolved",
+      "basis": "R3-PF-001 is an executable ALLOW counterexample for coherently substituted CAS and idempotency state."
+    },
+    {
+      "id": "R2R2-PF-002",
+      "disposition": "unresolved",
+      "basis": "R3-PF-002 is an executable valid result for a cost record after authorization expiry with provider proof timestamped before the record."
+    },
+    {
+      "id": "R2R2-PF-003",
+      "disposition": "unresolved",
+      "basis": "R3-PF-003 is an executable valid signed pass whose raw A01 observation is fail."
+    },
+    {
+      "id": "R2R2-PF-004",
+      "disposition": "unresolved",
+      "basis": "R3-PF-004 is an executable deleted-tombstoned result for RC-LEGAL-SIGNED-LOG at terminal+60 seconds despite the policy's P7Y duration."
+    },
+    {
+      "id": "R2R2-PF-005",
+      "disposition": "unresolved",
+      "basis": "R3-PF-005 is an executable RECOVERY_VERIFIED result with empty pre/post inventories unrelated to two canonical and restored records."
+    }
+  ],
+  "newFindings": [
+    {
+      "id": "R3-PF-001",
+      "severity": "blocker",
+      "title": "Protected-action ALLOW does not validate authoritative CAS or retry state",
+      "affects": ["SEC-G2-R2-001", "MONEY-G2-004", "IRREV-G2-R2-001", "R2R-PF-004", "R2R2-PF-001"],
+      "evidence": [
+        "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+        "intent/0001/reviews/domain/round-2/remediation/PERMISSIONS-MANIFEST.candidate.json",
+        "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs"
+      ],
+      "counterexample": "For github.exam.candidate.commit, R3 changed request selectors casHead and idempotencyKey, recomputed immutableRequestDigest, changed the signed upstream envelope to the same values, and resealed it. protectedActionDecision returned ALLOW with credentialAccess=1, installationToken=1, and providerRequest=1.",
+      "impact": "Byte equality between two supplied envelopes cannot prove that a predecessor head is current, an idempotency key is unused or maps to identical prior bytes, or a replay/race was won. The purported race and retry controls can authorize protected provider access using attacker-selected state.",
+      "requiredResolution": "Pass immutable authoritative CAS head and idempotency/replay ledger snapshots into the one decision function, verify their signed provenance/currentness, compare them to request and upstream envelopes, atomically reserve the key/head, and execute coherent request-plus-envelope mutations, replay, winner/loser, and same-key/different-bytes cases with zero pre-authorization effects."
+    },
+    {
+      "id": "R3-PF-002",
+      "severity": "blocker",
+      "title": "Monetary validator accepts expired authority and impossible acknowledgement ordering",
+      "affects": ["MONEY-G2-004", "MONEY-G2-005", "MONEY-G2-R2-001", "R2R2-PF-002"],
+      "evidence": [
+        "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+        "intent/0001/reviews/domain/round-2/remediation/schemas/SPEND-AUTHORIZATION.schema.json",
+        "intent/0001/reviews/domain/round-2/remediation/schemas/COST-EVIDENCE.schema.json"
+      ],
+      "counterexample": "R3 created a valid signed authorization expiring 2026-09-04 and a signed usage record timestamped 2026-09-05. Its signed provider proof was timestamped 2026-09-03, before the usage record. validateSpendRecord and validateCostRecord both returned valid.",
+      "impact": "A cost can accrue after authority expires and can carry provider proof that predates the evidence it acknowledges. Cross-record checks also accept minimally typed reference stubs, and Number aggregation is not checked against overflow, so authorization, lineage, transition, and nanoUSD guarantees remain incomplete.",
+      "requiredResolution": "Validate every cost timestamp within the authorization effective/expiry interval; require provider proof at or after the sealed record timestamp and within the applicable period; validate every referenced record through the same signed semantic path with matching organization, tenant, scope, authorization, period, transition and price; use checked BigInt aggregation with explicit bounds and overflow negatives."
+    },
+    {
+      "id": "R3-PF-003",
+      "severity": "major",
+      "title": "Trusted Tester signed pass can contradict the signed raw bundle",
+      "affects": ["ACC-G2-R2-001", "R2R-PF-007", "R2R2-PF-003"],
+      "evidence": [
+        "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+        "intent/0001/reviews/domain/round-2/remediation/schemas/TRUSTED-TESTER-EVIDENCE.schema.json"
+      ],
+      "counterexample": "R3 changed raw A01 observed from pass to fail, updated the raw-line and bundle digests, and resealed the summary while leaving checkpointResults.A01.outcome and summaryDecision as pass. validateTrustedTester returned valid.",
+      "impact": "The signature covers contradictory data but the oracle never compares raw observed outcome to the checkpoint result. A failing human observation can therefore produce a valid passing Gate 3 predicate. providerProof is also an unsigned omitted field checked only for a few equalities.",
+      "requiredResolution": "Define and schema-validate each raw line, require exact raw applicability/outcome/environment identity to equal its summary checkpoint result, derive the overall decision from those raw records, and cryptographically verify provider proof including provider identity, record ID, review ID, digest, and recorded time."
+    },
+    {
+      "id": "R3-PF-004",
+      "severity": "blocker",
+      "title": "Lifecycle oracle trusts caller-supplied boundaries instead of the retention policy",
+      "affects": ["PRIV-G2-R2-001", "LEGAL-G2-R2-001", "IRREV-G2-R2-001", "R2R-PF-003", "R2R-PF-005", "R2R2-PF-004"],
+      "evidence": [
+        "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+        "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+        "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs"
+      ],
+      "counterexample": "makeLifecycleFixture assigns terminalAt 00:00 and boundaryAt 00:01 to every class. At 00:01, lifecycleDecision returned deleted-tombstoned with lifecycle=1 for RC-LEGAL-SIGNED-LOG even though the policy requires the later trigger plus P7Y.",
+      "impact": "The 16 x 3 x 5 count repeats one arbitrary one-minute event rather than executing class-specific triggers, durations, holds, references, precedence, inventory refresh and disposition rules. A forged early boundary can authorize irreversible deletion.",
+      "requiredResolution": "Make the oracle derive boundaryAt from a hash-bound policy table and signed trigger history for each class; reject supplied boundary disagreement; execute every policy class with its actual duration and trigger prerequisites; verify inventory freshness, receipt/tombstone temporal order, idempotency and CAS through the protected-action path."
+    },
+    {
+      "id": "R3-PF-005",
+      "severity": "major",
+      "title": "Recovery verifies unrelated inventories and does not execute cut-specific state",
+      "affects": ["REL-G2-R2-001", "R2R-PF-006", "R2R2-PF-005"],
+      "evidence": [
+        "intent/0001/reviews/domain/round-2/remediation/PROVIDER-APPROVAL-RECOVERY.candidate.md",
+        "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+        "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs"
+      ],
+      "counterexample": "For cut after-acknowledgement-before-webhook, R3 replaced both preInventory and postInventory with empty arrays while leaving two provider, WORM, Git, mapping, and restored records. recoveryDecision returned RECOVERY_VERIFIED. The fixture also materializes complete webhook/fetch/spool/WORM state for that cut, and recoveryDecision uses cut only for membership and acknowledgement classification.",
+      "impact": "Equality of two caller-supplied inventories does not prove equality to canonical or restored records, and identical complete state across cuts does not rehearse loss at each cut. Cursor values are likewise not bound to record cursors. The claimed zero-loss every-cut proof is false.",
+      "requiredResolution": "Derive pre/post inventories and digests from canonical and restored bytes, require exact ID/digest equality, bind cursor range to record cursors, and construct distinct reachable source state for every named cut. For each cut, remove the unavailable downstream state, recover only from sources that should exist, and prove exact bytes, inventory, mapping, RTO and zero failed-rehearsal effects."
+    },
+    {
+      "id": "R3-PF-006",
+      "severity": "blocker",
+      "title": "Round-two candidate has no normative binding to the canonical Exam",
+      "affects": ["SEC-G2-R2-001", "PRIV-G2-R2-001", "ACC-G2-R2-001", "MONEY-G2-004", "MONEY-G2-005", "MONEY-G2-R2-001", "LEGAL-G2-R2-001", "REL-G2-R2-001", "IRREV-G2-R2-001"],
+      "evidence": [
+        "intent/0001/EXAM.md",
+        "intent/0001/reviews/domain/round-2/remediation/EXAM-AMENDMENT.candidate.md",
+        "intent/0001/reviews/domain/round-2/remediation/remediation-manifest.json"
+      ],
+      "impact": "The amendment declares itself unsigned, non-canonical, and effective only if an authorized Exam author incorporates it. The exact canonical Exam blob at 9c7299dd does not reference this package, and the candidate files are not present in the manifest's claimed frozenEvidenceCommit. Therefore the schemas, policies and oracles cannot replace or augment canonical acceptance criteria for Gate 2.",
+      "requiredResolution": "After correcting R3-PF-001 through R3-PF-005, have an authorized independent Exam author incorporate the stable contracts and exact artifact digests into a new canonical Exam revision through the protected authoring path. Freeze that revision and package in Git, regenerate target and manifest hashes, and rerun all reviews against that exact revision."
+    }
+  ],
+  "humanDependencies": [
+    {
+      "id": "HR-01-R2",
+      "status": "blocked-on-technical-correction-and-canonicalization",
+      "owner": "qualified privacy/legal records owner",
+      "disposition": "Do not request a ruling until lifecycle semantics are corrected, the policy is normatively incorporated, and its final path and digest are stable."
+    },
+    {
+      "id": "HR-02",
+      "status": "future-not-triggered",
+      "owner": "qualified DHS Trusted Tester assigned to the platform pod",
+      "disposition": "Still required before a future regulated technical release or pilot activation; this review does not perform or fabricate it."
+    },
+    {
+      "id": "LIVE-RECOVERY-BINDING",
+      "status": "required-before-release",
+      "owner": "reliability owner",
+      "disposition": "Fixtures cannot substitute for a selected provider binding's independent journal/export capability and every-cut rehearsal."
+    }
+  ],
+  "requiredNextState": [
+    "Correct R3-PF-001 through R3-PF-005 and refresh every affected candidate digest and manifest entry.",
+    "Preserve the exact Gate 1 statement that the USD 1,000 monthly ceiling is not spending authority; no credential exchange, paid resource, deletion, migration, Gate, release, production, or Builder effect may occur during correction.",
+    "Have an authorized independent Exam author incorporate the stable corrected package into a new canonical Exam revision, then freeze the candidate and Exam together in Git and regenerate the exact review target.",
+    "Only after canonicalization, obtain HR-01-R2 over the final policy digest, repeat all seven domain reviews and exception-brief consolidation, run actor-bound Exam protection on the actual author and diff, and obtain another fresh-context Critic review before a human Tech Lead Gate 2 decision."
+  ],
+  "boundaries": {
+    "canonicalExamEdited": false,
+    "candidateArtifactsEdited": false,
+    "priorCriticEdited": false,
+    "gateOneArtifactsEdited": false,
+    "policyEdited": false,
+    "signaturesEdited": false,
+    "implementationEdited": false,
+    "roundTwoReviewRecordsEdited": false,
+    "commitCreated": false,
+    "pushPerformed": false,
+    "gateTwoSigned": false,
+    "builderAuthorized": false,
+    "releaseAuthorized": false,
+    "productionAuthorized": false,
+    "deletionOrMigrationAuthorized": false,
+    "spendingAuthorized": false,
+    "thisRecordOnlyAdvisesOnCandidateAdequacy": true
+  }
+}

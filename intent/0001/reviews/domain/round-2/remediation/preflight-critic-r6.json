@@ -1,0 +1,200 @@
+{
+  "version": "steer-gate-2-round-2-remediation-preflight-critic/v6",
+  "organization": "steer-platform",
+  "item": "0001-flight-deck-foundation",
+  "gate": 2,
+  "reviewedAt": "2026-09-04T02:37:05Z",
+  "reviewer": {
+    "role": "independent-fresh-context-pre-incorporation-critic",
+    "agent": "gate2_r2_remediation_critic_r6",
+    "freshContext": true,
+    "builderIndependent": true,
+    "didNotTrustPriorPassOrTestAgentSummary": true,
+    "humanSignature": false,
+    "advisoryOnly": true
+  },
+  "reviewScope": "Independent technical pre-incorporation review of the unsigned R5-corrected round-two remediation candidate against the exact canonical target, accepted Gate 1 record, frozen round-two evidence, and preserved Critic records R1 through R5. The review independently verified all 46 manifest hashes, reran both validator modes, reproduced every R5 counterexample row, inspected resource grammar and selector unions across all manifest actions, checked credential lifetime, subject, currentness and delegation enforcement, repeated fail-on-unexecuted sensitivity probes, and searched for coherent new authorization bypasses. The candidate was not required to be canonical at this pre-incorporation stage.",
+  "target": {
+    "canonicalExamRevision": "9c7299dd658615cd234e8e03188d607ef1a99fe1",
+    "canonicalExamPath": "intent/0001/EXAM.md",
+    "canonicalExamSha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10",
+    "frozenRoundTwoEvidenceCommit": "61b6d8577712d1290639e4c7b33acef9342e1c51",
+    "candidateManifestSha256": "093a97192f475ce959e414281056d8bae7e0ccdf3db0dde89ae6bf721b5f14a1",
+    "candidatePermissionsSha256": "e253a9f572281ffd9a5d055c3ce4750098b2752550348fb355f9d17acae16c65",
+    "candidateSemanticOraclesSha256": "f138df91ef04909a1ff618feff718194ec168305f823ffa2eb5cbabc160c1418",
+    "preservedCriticHashes": {
+      "r1": "47a30b436a0bfb9177f1f1877c9b81e2f63a113ae048500fb1c48ad4d73a8014",
+      "r2": "f5d75d7b6fb0b576e6707aa2d09745aeecf08af4d6e17eb8f03fe8e6420c492b",
+      "r3": "51c8b8006886e9bf1ba681f50ae4c064c052f0d3d5d618677a03b75578dd66f1",
+      "r4": "84aaf346d2e9ef9768b935ce1ea4657eb69c10a1ef072c0ce18649610708fde0",
+      "r5": "be664f33048162479fed470006f5fd85eb17b38e852e18a9e7744d8bcf097593"
+    }
+  },
+  "integrityChecks": {
+    "canonicalExamExactGitObjectSha256Matches": true,
+    "canonicalExamWorktreeBytesMatchTargetSha256": true,
+    "gateOneArtifactsMatchAcceptedHashes": true,
+    "gateOneProviderRecordedCommercialAuthorityPreserved": true,
+    "gateOneSpendingAuthorized": false,
+    "gateOneInfrastructureCeilingUsdPerMonth": 1000,
+    "modelUsageExcludedFromInfrastructureCeiling": true,
+    "roundTwoTargetBriefAndSevenDomainRecordsInspected": true,
+    "preservedR1ThroughR5CriticRecordsInspectedAndHashMatched": true,
+    "manifestArtifactCount": 46,
+    "manifestPathsUnique": true,
+    "allManifestEntriesExistAndMatch": true,
+    "manifestExcludesItselfToAvoidDigestCycle": true,
+    "fullValidatorExitCode": 0,
+    "fixturesOnlyValidatorExitCode": 0,
+    "validatorReported": "PASS R5 corrected candidate oracles only; next state is fresh-context preflight, not canonicalization",
+    "expectationPerturbationExitCode": 1,
+    "unexecutedIdPerturbationExitCode": 1,
+    "declaredRowsFailOnUnexecutedOrWrongExpectation": true,
+    "candidateNormativelyIncorporatedIntoCanonicalExam": false,
+    "nonCanonicalStatusTreatedAsPreflightBlocker": false
+  },
+  "decision": {
+    "verdict": "SEND_BACK",
+    "confidence": "high",
+    "technicalBlockers": 1,
+    "technicalMajors": 0,
+    "r5FindingResolved": true,
+    "r3TechnicalCounterexamplesClosed": true,
+    "r4FindingsClosed": true,
+    "rationale": "The 46-file package is hash-consistent; both validator modes pass; declared matrices fail when an expectation is changed or an unexecuted ID is inserted; the R3 technical counterexamples and both R4 findings remain closed; and every reproduced R5 resource, lifetime, delegation and upstream-scope counterexample now denies with typed zero effects. However, the destructive lifecycle path is still not target-safe. A signed disposition authorization and copy inventory for objects/a version v1 can be paired with a coherently resealed lifecycle.delete-copy request for objects/attacker. The protected-action oracle does not bind objectKey or versionId to the independent authority record or provider resource policy, its authoritative CAS scope check ignores objectKey when path is absent, and lifecycleDecision does not compare the protected target to any inventory copy. It returns deleted-tombstoned with lifecycle=1. Zero technical blocker/major is therefore not met, so the candidate is not safe for authorized incorporation."
+  },
+  "newFindings": [
+    {
+      "id": "R6-PF-001",
+      "severity": "blocker",
+      "title": "Lifecycle disposition can target an object outside the signed copy inventory",
+      "affects": [
+        "IRREV-G2-R2-001",
+        "PRIV-G2-R2-001",
+        "LEGAL-G2-R2-001",
+        "R2R-PF-004",
+        "R2R2-PF-001"
+      ],
+      "evidence": [
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/PERMISSIONS-MANIFEST.candidate.json",
+          "sha256": "e253a9f572281ffd9a5d055c3ce4750098b2752550348fb355f9d17acae16c65",
+          "lines": "15, 101-105"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+          "sha256": "f138df91ef04909a1ff618feff718194ec168305f823ffa2eb5cbabc160c1418",
+          "lines": "190-230, 315-384, 653-707"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/EXAM-AMENDMENT.candidate.md",
+          "sha256": "7c7374981175fc1eb7e8570b08f0083fe8d14141337a6d6a963771d585b4311c",
+          "lines": "295-310, 435-463"
+        }
+      ],
+      "counterexample": {
+        "id": "R6-LIFECYCLE-UNINVENTORIED-OBJECT",
+        "construction": "Create the normal RC-FAILED-RUN lifecycle fixture, whose signed copy inventory contains only copy-1 at objectKey objects/a and versionId v1. In the lifecycle.delete-copy protected action, change only the immutable request selector objectKey to objects/attacker, recompute immutableRequestDigest, reseal the signed upstream full-selector mirror with that object and digest, and reseal the atomic reservation with the new request digest. Leave the signed disposition authorization, signed copy inventory, authority record, both credentials, delegation and CAS snapshot otherwise unchanged.",
+        "expected": "Block before lifecycle or provider effect because objects/attacker is absent from the exact signed inventory authorized for disposition.",
+        "observed": "lifecycleDecision returns state deleted-tombstoned, firstError null, and effects.lifecycle=1. The action requiredSelectors include objectKey and versionId, but records.disposition.authorize does not bind either selector; PP-LIFECYCLE-OBJECT binds copy-kind rather than exact object/version; the CAS check compares only repositoryId/ref/path; and lifecycleDecision line 706 omits objectKey/versionId/keyId-to-inventory comparison."
+      },
+      "impact": "A coherent carrier envelope can redirect a destructive operation from the authorized inventory to an arbitrary provider object while retaining valid policy, event, inventory, authorization, credential, delegation and race evidence. This violates exact-object/version disposition, deny-before-effect, and the candidate's complete authority-scope claim.",
+      "requiredResolution": "Bind each lifecycle provider operation to one exact signed inventory row, including copyId, provider, copyKind, objectKey, versionId and keyId as applicable. Carry those selectors into the independently signed disposition authorization or a separately authenticated per-copy authority record; bind the authoritative provider snapshot to the same exact resource; compare the protected-action target to the inventory before any effect; and require exactly one inventory match. Add coherent zero-effect negatives for absent object, substituted object/version/key/provider/copy kind, zero match, multiple match, stale inventory and restored-copy races. Refresh all affected hashes and repeat fresh independent pre-incorporation review."
+    }
+  ],
+  "priorFindingDispositions": {
+    "r3Technical": [
+      { "id": "R3-PF-001", "disposition": "resolved-for-stated-CAS-and-replay-counterexample" },
+      { "id": "R3-PF-002", "disposition": "resolved-for-stated-monetary-temporal-counterexample" },
+      { "id": "R3-PF-003", "disposition": "resolved-for-stated-trusted-tester-contradiction" },
+      { "id": "R3-PF-004", "disposition": "resolved-for-stated-policy-boundary-counterexample" },
+      { "id": "R3-PF-005", "disposition": "resolved-for-stated-recovery-inventory-counterexample" },
+      { "id": "R3-PF-006", "disposition": "not-a-pre-incorporation-defect; canonical incorporation remains a governed next-state dependency" }
+    ],
+    "r4": [
+      { "id": "R4-PF-001", "disposition": "resolved-for-exact-path-and-listed-upstream-action-counterexamples; distinct R6 lifecycle target gap remains" },
+      { "id": "R4-PF-002", "disposition": "resolved-for-declared-row-execution-and-fail-on-unexecuted defect" }
+    ],
+    "r5": [
+      { "id": "R5-PF-001", "disposition": "resolved-for-stated-resource-lifetime-delegation-and-upstream-scope-counterexamples; distinct R6 lifecycle inventory binding gap remains" }
+    ]
+  },
+  "executedReviewEvidence": {
+    "r5Reproductions": [
+      "Attacker repository denied PROVIDER_RESOURCE_ZERO_MATCH with typed zero effects.",
+      "Twenty-four-hour over-limit credential denied CREDENTIAL_LIFETIME_INVALID with typed zero effects.",
+      "Forbidden mayDelegateTo edge denied DELEGATION_EDGE_DENIED with typed zero effects.",
+      "Substituted item, Exam revision, product, pod and active hat each denied AUTHORITY_SELECTOR_MISMATCH with typed zero effects.",
+      "Wildcard, zero-match, multiple-match and unknown provider resources each denied with the corresponding provider-resource error and typed zero effects."
+    ],
+    "resourceAndSelectorAudit": {
+      "principals": 17,
+      "providerPermissions": 23,
+      "actions": 34,
+      "protectedActionsExecuted": 10,
+      "staticUnknownDuplicateOrReverseMappingErrors": 0,
+      "resourceGrammarMalformedUnknownOrWildcardErrorsInCandidate": 0,
+      "finding": "The downstream/upstream/provider-resource union is enforced for the ten protected profiles, but exact lifecycle provider targets are downstream-only carrier selectors and are not bound to independent inventory authority, producing R6-PF-001."
+    },
+    "credentialAndDelegationAudit": "Both downstream and upstream credentials traverse the same strict currentness, subject/principal, maximum lifetime, idle-when-declared and one-use-when-declared checks. Delegation issuer/recipient subjects, principals and credential digests are checked, the window is contained in both credentials, and mayDelegateTo is enforced. No bypass of the R5 credential/delegation repairs was reproduced.",
+    "bundledMatrices": [
+      "33 schema IDs and 3 integrity IDs pass.",
+      "65 authorization IDs pass.",
+      "7 spend IDs and 9 signed cost-record branches pass.",
+      "15 sanitized-real IDs pass.",
+      "240 lifecycle cross-product states plus declared lifecycle cases and specials pass.",
+      "8 recovery cuts, 11 recovery cases and 19 corruption cases pass.",
+      "19 monetary vector kinds and 10 forecast IDs pass."
+    ],
+    "validatorSensitivity": [
+      "Changing AUTH-EXAM-POS expected decision from ALLOW to DENY fails with AssertionError: AUTH-EXAM-POS.",
+      "Injecting an otherwise unconsumed R6-UNEXECUTED-ID fails with AssertionError: every declared case/vector ID executes exactly once."
+    ]
+  },
+  "requiredNextState": [
+    "Correct R6-PF-001 and add exact per-copy inventory-to-provider-target authorization and race fixtures; refresh every affected candidate digest and the remediation manifest.",
+    "Rerun full and fixtures-only validators and a fresh independent adversarial pre-incorporation review. PASS requires zero technical blocker and major findings.",
+    "Only after a zero-finding pre-incorporation PASS may the authorized independent Exam author incorporate the stable package through the protected GitHub App path and freeze a new canonical Exam revision.",
+    "Then obtain HR-01-R2, seven new exact-revision domain reviews, a zero-open-blocker/major exception brief, actor-bound Exam protection evidence for the actual author and diff, and a final fresh-context Critic review before the human Tech Lead Gate 2 decision.",
+    "Preserve Gate 1: the USD 1000 monthly infrastructure ceiling excludes model usage and is not spending authority. This review authorizes no Builder work, credential exchange, paid resource, deletion, migration, build, release, production, Gate transition, commit or push."
+  ],
+  "dependenciesNotCandidateDefects": [
+    {
+      "id": "HR-01-R2",
+      "status": "required-after-final-policy-path-digest-and-canonical-revision-stabilize",
+      "owner": "qualified privacy/legal records owner"
+    },
+    {
+      "id": "AUTHORIZED-GITHUB-APP-INCORPORATION",
+      "status": "required-after-zero-technical-blocker-major-preflight",
+      "owner": "authorized independent Exam author"
+    },
+    {
+      "id": "SEVEN-DOMAIN-EXACT-REVISION-REVIEWS",
+      "status": "required-after-canonical-incorporation",
+      "owner": "independent domain reviewers"
+    },
+    {
+      "id": "LIVE-PROVIDER-RECOVERY-EVIDENCE",
+      "status": "required-before-release",
+      "owner": "reliability owner"
+    },
+    {
+      "id": "FUTURE-GATE-3-TRUSTED-TESTER-EVIDENCE",
+      "status": "required-before-applicable-technical-release-or-pilot-activation",
+      "owner": "qualified DHS Trusted Tester assigned to the platform pod"
+    },
+    {
+      "id": "HUMAN-GATE-2-DECISION",
+      "status": "required-after-all-technical-review-and-protection-prerequisites",
+      "owner": "eligible human Tech Lead"
+    }
+  ],
+  "boundaries": {
+    "candidateIsUnsignedAndNonCanonical": true,
+    "reviewIsNotGateDecisionOrSignature": true,
+    "noCanonicalCandidatePriorReviewPolicySignatureOrImplementationFilesEdited": true,
+    "noCommitOrPush": true,
+    "noCredentialProviderSpendDeletionMigrationBuildReleaseOrProductionEffect": true
+  }
+}

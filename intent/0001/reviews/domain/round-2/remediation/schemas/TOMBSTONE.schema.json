@@ -1,0 +1,264 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "steer://schemas/tombstone/v3",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "tombstoneId",
+    "receiptsDigest",
+    "committedAt",
+    "casHead",
+    "eventId",
+    "tenant",
+    "recordClass",
+    "targetDigest",
+    "policyDigest",
+    "inventoryDigest",
+    "providerKeyRegistryDigest",
+    "presentTupleDigest",
+    "authoritySetDigest",
+    "requestSetDigest",
+    "inventoryTuples",
+    "copyDispositions",
+    "recordDigest",
+    "signature"
+  ],
+  "properties": {
+    "version": {
+      "const": "steer-tombstone/v3"
+    },
+    "tombstoneId": {
+      "$ref": "#/$defs/uuid"
+    },
+    "receiptsDigest": {
+      "$ref": "#/$defs/sha"
+    },
+    "committedAt": {
+      "$ref": "#/$defs/time"
+    },
+    "casHead": {
+      "$ref": "#/$defs/sha"
+    },
+    "eventId": {
+      "$ref": "#/$defs/uuid"
+    },
+    "tenant": {
+      "type": "string",
+      "minLength": 1
+    },
+    "recordClass": {
+      "type": "string",
+      "minLength": 1
+    },
+    "targetDigest": {
+      "$ref": "#/$defs/sha"
+    },
+    "policyDigest": {
+      "$ref": "#/$defs/sha"
+    },
+    "inventoryDigest": {
+      "$ref": "#/$defs/sha"
+    },
+    "providerKeyRegistryDigest": {
+      "$ref": "#/$defs/sha"
+    },
+    "presentTupleDigest": {
+      "$ref": "#/$defs/sha"
+    },
+    "authoritySetDigest": {
+      "$ref": "#/$defs/sha"
+    },
+    "requestSetDigest": {
+      "$ref": "#/$defs/sha"
+    },
+    "inventoryTuples": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/tuple"
+      }
+    },
+    "copyDispositions": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/disposition"
+      }
+    },
+    "recordDigest": {
+      "$ref": "#/$defs/sha"
+    },
+    "signature": {
+      "$ref": "#/$defs/signature"
+    }
+  },
+  "$defs": {
+    "tuple": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authorityId",
+        "copyId",
+        "kind",
+        "provider",
+        "providerBindingId",
+        "objectKey",
+        "versionId",
+        "keyId"
+      ],
+      "properties": {
+        "authorityId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "copyId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "providerBindingId": {
+          "type": "string",
+          "pattern": "^provider-binding:[a-z0-9-]+$"
+        },
+        "objectKey": {
+          "type": "string",
+          "minLength": 1
+        },
+        "versionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "keyId": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "disposition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authorityId",
+        "copyId",
+        "kind",
+        "provider",
+        "providerBindingId",
+        "objectKey",
+        "versionId",
+        "keyId",
+        "requestDigest",
+        "idempotencyKey",
+        "providerReceiptDigest",
+        "effect"
+      ],
+      "properties": {
+        "authorityId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "copyId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "providerBindingId": {
+          "type": "string",
+          "pattern": "^provider-binding:[a-z0-9-]+$"
+        },
+        "objectKey": {
+          "type": "string",
+          "minLength": 1
+        },
+        "versionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "keyId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "requestDigest": {
+          "$ref": "#/$defs/sha"
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1
+        },
+        "providerReceiptDigest": {
+          "$ref": "#/$defs/sha"
+        },
+        "effect": {
+          "enum": [
+            "deleted",
+            "crypto-erased",
+            "not-found"
+          ]
+        }
+      }
+    },
+    "sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "uuid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "keyId",
+        "publicKeyHex",
+        "signedDigest",
+        "valueBase64"
+      ],
+      "properties": {
+        "algorithm": {
+          "const": "Ed25519"
+        },
+        "keyId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "publicKeyHex": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "signedDigest": {
+          "$ref": "#/$defs/sha"
+        },
+        "valueBase64": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  },
+  "x-steer-semantic-checks": [
+    "inventoryTuples exactly equal the canonical ordered present inventory tuple array",
+    "presentTupleDigest, authoritySetDigest and requestSetDigest are SHA-256 of the RFC8785-JCS ordered tuple, authority-ID and immutable-request-digest arrays",
+    "every row uniquely binds its exact current authority, independently selected provider binding and protected provider request; no missing, duplicated, reused or extra binding",
+    "providerKeyRegistryDigest byte-matches the lifecycle event and immutable manifest trust anchor"
+  ]
+}

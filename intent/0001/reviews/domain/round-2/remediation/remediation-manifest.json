@@ -1,0 +1,279 @@
+{
+  "version": "steer-gate-2-round-2-remediation-manifest/v8",
+  "status": "unsigned-r9-corrected-candidate-integrity-manifest-awaiting-fresh-preflight",
+  "targetRevision": "9c7299dd658615cd234e8e03188d607ef1a99fe1",
+  "targetExamSha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10",
+  "frozenEvidenceCommit": "61b6d8577712d1290639e4c7b33acef9342e1c51",
+  "digestAlgorithm": "sha256",
+  "artifacts": [
+    {
+      "role": "canonical-base",
+      "path": "intent/0001/EXAM.md",
+      "sha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10"
+    },
+    {
+      "role": "gate-one",
+      "path": "intent/0001/BRIEF.md",
+      "sha256": "a5af593397de0722666baefae846b31881c6429c9691bec886f4a0771a8bc97f"
+    },
+    {
+      "role": "gate-one",
+      "path": "intent/0001/SPEC.md",
+      "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"
+    },
+    {
+      "role": "gate-one",
+      "path": "intent/0001/ARCHITECTURE.md",
+      "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+    },
+    {
+      "role": "gate-one",
+      "path": "intent/0001/PLAN.md",
+      "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+    },
+    {
+      "role": "gate-one-signature",
+      "path": "intent/0001/signatures/gate-1.json",
+      "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+    },
+    {
+      "role": "round-two-exception-brief",
+      "path": "intent/0001/reviews/domain/round-2/exception-brief.json",
+      "sha256": "7e6753e00e799a0d64820eeb43cdb0f79951e5072c242b62ef7694617e414adc"
+    },
+    {
+      "role": "round-two-exception-brief",
+      "path": "intent/0001/reviews/domain/round-2/exception-brief.md",
+      "sha256": "ff7f6ab6cbe49ac809b34c92685a365ed44a77b177435cfa931b847595a65565"
+    },
+    {
+      "role": "round-two-domain-record",
+      "path": "intent/0001/reviews/domain/round-2/records/accessibility.json",
+      "sha256": "2563b85093061087f25f9ff9da6cce87cc0e9b4faa4b7c761a5bc4f930e26265"
+    },
+    {
+      "role": "round-two-domain-record",
+      "path": "intent/0001/reviews/domain/round-2/records/irreversible-operations.json",
+      "sha256": "1d4ef82ee7091274534178999b65dbc15cdb4e984f9dd3bc25dd2eb988ad2c27"
+    },
+    {
+      "role": "round-two-domain-record",
+      "path": "intent/0001/reviews/domain/round-2/records/legal.json",
+      "sha256": "413810d772289a83fe97847eebcf99020a1e70c83b7f15c42985f4c070886704"
+    },
+    {
+      "role": "round-two-domain-record",
+      "path": "intent/0001/reviews/domain/round-2/records/money.json",
+      "sha256": "8f08168f27b6bc532643b6af553b97aee8e704b04456f7627e53ab1fedec4eef"
+    },
+    {
+      "role": "round-two-domain-record",
+      "path": "intent/0001/reviews/domain/round-2/records/privacy.json",
+      "sha256": "7d58bf715ab7cc8aef4cffd81912471522402d746f2aaa0f498377cee9f2c8f5"
+    },
+    {
+      "role": "round-two-domain-record",
+      "path": "intent/0001/reviews/domain/round-2/records/reliability.json",
+      "sha256": "15306e36e10cb17142b45a8618ac0763904d8770e82c0271db815d4258b004d9"
+    },
+    {
+      "role": "round-two-domain-record",
+      "path": "intent/0001/reviews/domain/round-2/records/security.json",
+      "sha256": "b8ac0f7be99d9e85bb471b43ea96e376a8367a4fea5b450faf237effbe4b0b07"
+    },
+    {
+      "role": "historical-accepted-ruling",
+      "path": "intent/0001/reviews/domain/remediation/human-rulings/hr-01.json",
+      "sha256": "ab24437ac426e1da759d6163afab0e1467bc9e19809a57e83566cc89cbd73074"
+    },
+    {
+      "role": "prior-retention-input",
+      "path": "intent/0001/reviews/domain/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+      "sha256": "271d4fa1ee2682f06e504e615cc9e8588ea34ff3ff7d5e2c27f245f80509c96c"
+    },
+    {
+      "role": "prior-permission-input",
+      "path": "intent/0001/reviews/domain/remediation/PERMISSIONS-MANIFEST.candidate.json",
+      "sha256": "46a483533cb1153b0391a9463ca6c3848862ed3bf43b9c7e861077860175bf73"
+    },
+    {
+      "role": "prior-signed-log-input",
+      "path": "intent/0001/reviews/domain/remediation/SIGNED-LOG-SPEC.candidate.md",
+      "sha256": "ece4df65505ed563137d6e4797cbe8977a6ef3cfd3be05dd6ef62da9a15ecbbe"
+    },
+    {
+      "role": "prior-signed-log-input",
+      "path": "intent/0001/reviews/domain/remediation/SIGNED-LOG-VECTORS.candidate.json",
+      "sha256": "1a03cdc28b353036ff612f1d8c93bd3f832e3b1adbc7f77a29a13dbc47a7a168"
+    },
+    {
+      "role": "prior-preflight-input",
+      "path": "intent/0001/reviews/domain/remediation/preflight-critic-r6.json",
+      "sha256": "a1a519d5c237603c775736a50403d143726e4a22e65e8da847d85799b4ea3830"
+    },
+    {
+      "role": "candidate-amendment",
+      "path": "intent/0001/reviews/domain/round-2/remediation/EXAM-AMENDMENT.candidate.md",
+      "sha256": "25f623ac4ab2459a425643ddcbd3003e782a315f0664cff4fb021fa71f883af3"
+    },
+    {
+      "role": "candidate-retention",
+      "path": "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+      "sha256": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32"
+    },
+    {
+      "role": "candidate-permissions",
+      "path": "intent/0001/reviews/domain/round-2/remediation/PERMISSIONS-MANIFEST.candidate.json",
+      "sha256": "3f47a8fc5e7c927de7ddcf1416310ed9747952c28bd762c842a6c33ddde32d4e"
+    },
+    {
+      "role": "candidate-provider-recovery",
+      "path": "intent/0001/reviews/domain/round-2/remediation/PROVIDER-APPROVAL-RECOVERY.candidate.md",
+      "sha256": "e2024657cfb100ae12e0f4ba2b44ae0a6ad3eaa993ec3f49d1c38abbae4fa05c"
+    },
+    {
+      "role": "candidate-provider-key-registry",
+      "path": "intent/0001/reviews/domain/round-2/remediation/PROVIDER-KEY-REGISTRY.candidate.json",
+      "sha256": "20e7973a2daa9f1f21d09091cda62e92c369b6f55e0fb6fd436dafe6724152e8"
+    },
+    {
+      "role": "candidate-fixtures",
+      "path": "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json",
+      "sha256": "08de6ecd58c91eace368814f4e1120671f15ab8a91c955bbd55138d2cb58a423"
+    },
+    {
+      "role": "candidate-cost-vectors",
+      "path": "intent/0001/reviews/domain/round-2/remediation/COST-ORACLE-VECTORS.candidate.json",
+      "sha256": "e71504a443e65596073fcb81de811bf30c2b2bf00310a7c05a0bfc41d87132d1"
+    },
+    {
+      "role": "candidate-schema",
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/COST-EVIDENCE.schema.json",
+      "sha256": "02eba6663432c13a350865194b1897030583c15b92a4e57b1a627350c292fe16"
+    },
+    {
+      "role": "candidate-schema",
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/SPEND-AUTHORIZATION.schema.json",
+      "sha256": "8e0701e006ee9e2e5f7f9a43dba5109826dbd6382b9e2eacfe0f6c3fd13dae73"
+    },
+    {
+      "role": "candidate-schema",
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/TRUSTED-TESTER-EVIDENCE.schema.json",
+      "sha256": "ef8383c5a8c38899c413c4cd7e678826e6c420a7134d07a65ce02652007a5667"
+    },
+    {
+      "role": "candidate-schema",
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/PROTECTED-ACTION-REQUEST.schema.json",
+      "sha256": "58c62d2169b7936afefe1018c62b3eb3ea4e5de6f7ac21355e8ef24d77cae2bb"
+    },
+    {
+      "role": "candidate-schema",
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/LIFECYCLE-EVENT.schema.json",
+      "sha256": "e3a4c42d33959b3a357b94ceef78565f7ef0943e0af8c6960b2c6e672f780948"
+    },
+    {
+      "role": "candidate-schema",
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/RAW-POLICY-GRANT.schema.json",
+      "sha256": "e8f020ac06411cc4690b565fd6e1153cab7ac939ce772e6028237fcd25f5c09d"
+    },
+    {
+      "role": "candidate-schema",
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/DISPOSITION-AUTHORIZATION.schema.json",
+      "sha256": "90c2bfd0c029435dd7d155a513eb97c194b512c9f20bd14ae08681e564e4c7e2"
+    },
+    {
+      "role": "candidate-schema",
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/COPY-INVENTORY.schema.json",
+      "sha256": "d153e065281d79dc86b44df16e25112a7e1c9860ec79f9e0e486fef6b4fc3163"
+    },
+    {
+      "role": "candidate-schema",
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/PROVIDER-KEY-REGISTRY.schema.json",
+      "sha256": "acb6f18b40e5122d0b237bf65d8909fa11aca99f96b94e6b76f91972be2d203b"
+    },
+    {
+      "role": "candidate-schema",
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/PROVIDER-DISPOSITION-RECEIPT.schema.json",
+      "sha256": "5c83eb09845bf4c8310bb46f6b57fbbddf57c19af7a79b28e13a681be08b8ac6"
+    },
+    {
+      "role": "candidate-schema",
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/DISPOSITION-RECEIPT.schema.json",
+      "sha256": "de69466e21eb45d9fa190b92b5b503dbd4503debf2a427385a4cd10e66e8dd3e"
+    },
+    {
+      "role": "candidate-schema",
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/TOMBSTONE.schema.json",
+      "sha256": "1f9b6914d79ed99964cf613dfb5f15e4e8b9109d71da80bcd387c29a649902d4"
+    },
+    {
+      "role": "candidate-finding-map",
+      "path": "intent/0001/reviews/domain/round-2/remediation/finding-resolution.json",
+      "sha256": "d76a4665bf0d091fe6f8e67c72169c9fb712bf61cc4d44b746297d84be2d0611"
+    },
+    {
+      "role": "candidate-validator",
+      "path": "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs",
+      "sha256": "a5fa1d6c044687a97212719262bcdf8d040d43e7baa910d154a490006a8e4d1c"
+    },
+    {
+      "role": "candidate-schema-validator",
+      "path": "intent/0001/reviews/domain/round-2/remediation/schema-validator.candidate.mjs",
+      "sha256": "8daa582edd585a01e078a0664685e5ff3da93850b3c58aa7e8fba6caf6189154"
+    },
+    {
+      "role": "candidate-semantic-oracles",
+      "path": "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+      "sha256": "661ee8ab26533fa7855b45485aabbbe5ba9873cfdb7a7deb3d50883745d0a57c"
+    },
+    {
+      "role": "immutable-preflight-correction-input",
+      "path": "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r1.json",
+      "sha256": "47a30b436a0bfb9177f1f1877c9b81e2f63a113ae048500fb1c48ad4d73a8014"
+    },
+    {
+      "role": "immutable-preflight-correction-input",
+      "path": "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r2.json",
+      "sha256": "f5d75d7b6fb0b576e6707aa2d09745aeecf08af4d6e17eb8f03fe8e6420c492b"
+    },
+    {
+      "role": "immutable-preflight-correction-input",
+      "path": "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r3.json",
+      "sha256": "51c8b8006886e9bf1ba681f50ae4c064c052f0d3d5d618677a03b75578dd66f1"
+    },
+    {
+      "role": "immutable-preflight-correction-input",
+      "path": "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r4.json",
+      "sha256": "84aaf346d2e9ef9768b935ce1ea4657eb69c10a1ef072c0ce18649610708fde0"
+    },
+    {
+      "role": "immutable-preflight-correction-input",
+      "path": "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r5.json",
+      "sha256": "be664f33048162479fed470006f5fd85eb17b38e852e18a9e7744d8bcf097593"
+    },
+    {
+      "role": "immutable-preflight-correction-input",
+      "path": "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r6.json",
+      "sha256": "a63d41c46f5dbb3873bf56ec80bbfc2cb0c589599a3efc2b6a25af3aa593b91d"
+    },
+    {
+      "role": "immutable-preflight-correction-input",
+      "path": "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r7.json",
+      "sha256": "bcfebb9154c2f6e7b25d2716b1e05172b16949c82f8cf99606e7e744651b2ab2"
+    },
+    {
+      "role": "immutable-preflight-correction-input",
+      "path": "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r8.json",
+      "sha256": "5008fcbb508a3a69e35e86ec966c0b8bae1ac0fdbb1d08360bc9dae149739d1f"
+    },
+    {
+      "role": "immutable-preflight-correction-input",
+      "path": "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r9.json",
+      "sha256": "fcc118886ae617dd2f152b9f28f49c35cf77add09508fa03137e759fca17bdfa"
+    }
+  ],
+  "excludedToPreventDigestCycle": [
+    "intent/0001/reviews/domain/round-2/remediation/remediation-manifest.json"
+  ],
+  "validationRule": "Every listed path must exist and match SHA-256 exactly. The artifact list is unique and the manifest excludes only itself. R1 through R9 critic records are immutable correction inputs. Every declared fixture/vector ID and coverage kind must execute through the shared schema or semantic oracle with exact state, first error, and typed effects. R3 through R8 closures remain executable. R9 requires an immutable registry digest and independently selected provider binding in the manifest and signed lifecycle context. Verification selects the sole valid non-revoked public key, algorithm, provider/account/tenant scope, proof type, and issuer from that binding, never from receipt self-claims, while provider-only fixture private keys remain separate from sealRecord. Distinct-provider and rotation-boundary positives pass; local-signer forgery, relabel, cross-provider, unknown/revoked/expired/future key, wrong algorithm/issuer/account/tenant, registry mismatch, proof/preimage tamper, and duplicate transaction deny with typed zero effects. Exact committed same-byte replay remains effect-free. This unsigned R9-corrected candidate awaits a fresh-context safety/completeness preflight before authorized GitHub App incorporation; non-canonical status alone is not a pre-incorporation defect."
+}

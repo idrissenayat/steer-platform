@@ -1,0 +1,170 @@
+{
+  "version": "steer-gate-2-round-2-remediation-preflight-critic/v10",
+  "organization": "steer-platform",
+  "item": "0001-flight-deck-foundation",
+  "gate": 2,
+  "reviewedAt": "2026-09-04T05:05:49Z",
+  "reviewer": {
+    "role": "independent-fresh-context-pre-incorporation-critic",
+    "agent": "gate2_r2_remediation_critic_r10",
+    "freshContext": true,
+    "builderIndependent": true,
+    "didNotTrustPriorPassOrTestAgentSummary": true,
+    "didNotTrustBundledValidator": true,
+    "humanSignature": false,
+    "advisoryOnly": true
+  },
+  "reviewScope": "Independent technical pre-incorporation review of the unsigned R9-corrected round-two remediation candidate against the exact canonical target, accepted Gate 1 record, frozen round-two evidence, and preserved Critic records R1 through R9. The review independently verified all 53 manifest hashes and exact canonical and Gate 1 bytes, ran full and fixtures-only remediation validators plus the repository check, reproduced every declared provider trust-domain case, independently challenged the manifest-selected trust anchor and registry digest, confirmed provider/local signer-domain separation and registry/binding propagation through lifecycle evidence, confirmed the R3 through R8 closures and full matrix execution, and treated authorized App incorporation as a governed next state rather than a pre-incorporation defect.",
+  "target": {
+    "canonicalExamRevision": "9c7299dd658615cd234e8e03188d607ef1a99fe1",
+    "canonicalExamPath": "intent/0001/EXAM.md",
+    "canonicalExamSha256": "91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10",
+    "gateOneArtifactRevision": "281c9736816ec22fa1209b060b58fa8164519f7c",
+    "frozenRoundTwoEvidenceCommit": "61b6d8577712d1290639e4c7b33acef9342e1c51",
+    "candidateManifestSha256": "8d5bf54dcdae5ab1d155ba241ce4263e863f70cb96c9cb3686c350b51eefa54d",
+    "candidatePermissionsSha256": "3f47a8fc5e7c927de7ddcf1416310ed9747952c28bd762c842a6c33ddde32d4e",
+    "candidateSemanticOraclesSha256": "661ee8ab26533fa7855b45485aabbbe5ba9873cfdb7a7deb3d50883745d0a57c",
+    "candidateFixturesSha256": "08de6ecd58c91eace368814f4e1120671f15ab8a91c955bbd55138d2cb58a423",
+    "candidateAmendmentSha256": "25f623ac4ab2459a425643ddcbd3003e782a315f0664cff4fb021fa71f883af3",
+    "candidateProviderKeyRegistrySha256": "20e7973a2daa9f1f21d09091cda62e92c369b6f55e0fb6fd436dafe6724152e8",
+    "candidateProviderKeyRegistrySchemaSha256": "acb6f18b40e5122d0b237bf65d8909fa11aca99f96b94e6b76f91972be2d203b",
+    "candidateProviderReceiptSchemaSha256": "5c83eb09845bf4c8310bb46f6b57fbbddf57c19af7a79b28e13a681be08b8ac6",
+    "preservedR9CriticSha256": "fcc118886ae617dd2f152b9f28f49c35cf77add09508fa03137e759fca17bdfa"
+  },
+  "integrityChecks": {
+    "canonicalExamExactGitObjectSha256Matches": true,
+    "canonicalExamWorktreeBytesMatchTargetSha256": true,
+    "canonicalExamGitAndWorktreeBytesIdentical": true,
+    "gateOneArtifactRevisionIsAncestorOfCanonicalTarget": true,
+    "gateOneArtifactsMatchAcceptedRevisionBytes": true,
+    "gateOneSignatureRecordInspected": true,
+    "gateOneProviderRecordedCommercialAuthorityPreserved": true,
+    "gateOneSpendingAuthorized": false,
+    "gateOneInfrastructureCeilingUsdPerMonth": 1000,
+    "modelUsageExcludedFromInfrastructureCeiling": true,
+    "roundTwoTargetBriefAndSevenDomainRecordsInspected": true,
+    "preservedR1ThroughR9CriticRecordsInspectedAndHashMatched": true,
+    "manifestArtifactCount": 53,
+    "manifestPathsUnique": true,
+    "allManifestEntriesExistAndMatch": true,
+    "manifestExcludesItselfToAvoidDigestCycle": true,
+    "fullValidatorExitCode": 0,
+    "fixturesOnlyValidatorExitCode": 0,
+    "repositoryCheckExitCode": 0,
+    "validatorReported": "PASS R9 corrected candidate oracles only; next state is fresh-context preflight, not canonicalization",
+    "candidateNormativelyIncorporatedIntoCanonicalExam": false,
+    "nonCanonicalStatusTreatedAsPreflightBlocker": false
+  },
+  "decision": {
+    "verdict": "PASS",
+    "confidence": "high",
+    "technicalBlockers": 0,
+    "technicalMajors": 0,
+    "r9FindingResolved": true,
+    "r8FindingsResolved": true,
+    "r7FindingResolved": true,
+    "r6FindingResolved": true,
+    "r5FindingResolved": true,
+    "r4FindingsResolved": true,
+    "r3TechnicalCounterexamplesResolved": true,
+    "readyForAuthorizedIndependentExamIncorporation": true,
+    "rationale": "The 53-file package is hash-consistent, exact canonical and Gate 1 lineage is preserved, both remediation validator modes and the repository check pass, and every declared ID and coverage kind executes. Provider receipt verification now selects a sole current public key from a registry and binding anchored independently by the candidate permissions manifest, not from receipt-controlled claims. Registry bytes, digest, selected binding, provider identity, account, tenant, issuer, algorithm, key ID, receipt preimage, request, tuple, aggregate receipt and tombstone remain coherently bound. The ordinary local signer cannot mint an accepted provider receipt, cross-provider and relabeled proofs fail, key status and rotation rules fail closed or pass at the exact boundary as declared, and replay remains effect-free. No technical blocker or major remains before the separately authorized incorporation step."
+  },
+  "newFindings": [],
+  "priorFindingDispositions": {
+    "r3Technical": "closed for the preserved R3 counterexamples; canonical incorporation remains a governed next-state dependency, not a candidate defect",
+    "r4": "closed for exact path, enumerated upstream action, and complete declared matrix execution",
+    "r5": "closed for complete resource, credential lifetime, delegation, identity, and upstream authority scope counterexamples",
+    "r6": "closed for exact inventory, authority, provider resource, CAS, receipt, tombstone, stale inventory, restored race, and retry-drift counterexamples",
+    "r7": "closed for per-copy and per-key one-to-one cardinality, ordering, tuple, authority, request, receipt, and tombstone binding",
+    "r8": "closed for immutable provider receipt bytes, exact tuple and aggregate derivation, terminal and temporal proof checks, and exact same-byte replay/crash-cut convergence",
+    "r9": "closed: provider receipts verify only against the public key selected from the independently anchored provider registry and binding; local signer forgery and all requested trust-domain negatives fail with typed zero effects"
+  },
+  "executedReviewEvidence": {
+    "providerTrustAnchor": {
+      "registryFileEqualsOracleRegistry": true,
+      "registryJcsDigest": "26d101e3c9d33c1fc61e207ea13f03a28f2a648115f535a85a80d0943e1b4ce8",
+      "permissionsManifestTrustAnchorMatches": true,
+      "receiptClaimsDoNotSelectBinding": true,
+      "missingSelectedBindingResult": "PROVIDER_BINDING_SELECTION_MISMATCH with zero effects",
+      "wrongSelectedBindingResult": "PROVIDER_BINDING_SELECTION_MISMATCH with zero effects",
+      "registryPublicKeyTamperWithoutRedigestResult": "PROVIDER_KEY_REGISTRY_DIGEST_MISMATCH with zero effects",
+      "registryPublicKeyTamperWithInternalRedigestResult": "PROVIDER_KEY_REGISTRY_DIGEST_MISMATCH against the independent permissions anchor with zero effects"
+    },
+    "signerDomainSeparation": {
+      "ordinaryLocalPublicKey": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "ordinaryLocalKeyAbsentFromProviderRegistry": true,
+      "allProviderPublicKeysDistinctFromLocalAndEachOther": true,
+      "providerPrivateKeyMapExported": false,
+      "providerReceiptSealerExported": false,
+      "sealRecordUsesProviderPrivateKey": false,
+      "localSealRecordForgeryResult": "PROVIDER_RECEIPT_PROOF_INVALID with zero effects"
+    },
+    "r9CaseResults": [
+      "Provider A, provider B, and exact old-to-new rotation-boundary positives returned deleted-tombstoned with lifecycle effect 1.",
+      "Local sealRecord forgery, relabeled provider/binding/key claims, and provider-A key for provider B blocked with typed zero effects.",
+      "Unknown, revoked, expired, not-yet-valid, and wrong-algorithm keys blocked with typed zero effects.",
+      "Wrong issuer, account, and tenant, registry-digest mismatch, tampered preimage, tampered proof, and duplicate transaction blocked with typed zero effects."
+    ],
+    "lifecycleBinding": "The registry digest is enforced across the signed lifecycle event, provider request, provider receipt, aggregate receipt, tombstone, and final protected action. The independently selected provider binding is enforced across the signed inventory tuple, authority or raw grant, request, provider receipt, aggregate row, tombstone row, and final protected action.",
+    "r3ThroughR8ClosureConfirmation": "Authoritative CAS/replay state, monetary authorization and proof timing, raw Trusted Tester reconciliation, policy-derived lifecycle boundaries, cut-specific recovery state, exact protected paths and upstream actions, complete resource and credential-lifetime checks, exact-copy targeting, per-copy/per-key bijection, provider receipt byte derivation, and idempotent replay convergence remain enforced for their preserved counterexamples.",
+    "fullMatrixExecution": [
+      "33 schema IDs and 3 integrity IDs executed.",
+      "65 authorization IDs executed.",
+      "7 spend IDs and 9 signed cost-record branches executed.",
+      "15 sanitized-real IDs executed.",
+      "240 lifecycle class-by-boundary-by-precedence states, declared lifecycle cases and specials, 16 R6 negatives, 12 R7 cases, 25 R8 cases, and 18 R9 cases executed.",
+      "8 recovery cuts, 11 recovery cases, and 19 corruption cases executed.",
+      "19 monetary vector kinds and 10 forecast IDs executed.",
+      "The validator compared complete declared ID and coverage-kind sets to executed sets."
+    ],
+    "repositoryCheck": "pnpm check passed kit validation for 95 required artifacts, workflow scope audit, TypeScript, 17 Vitest files with 88 tests, 17 Node control tests, workspace tests, prototype build, and workspace builds."
+  },
+  "requiredNextState": [
+    "An authorized independent Exam author may incorporate the stable package through the protected GitHub App path and freeze a new canonical Exam revision. This PASS is advisory and does not itself authorize or perform incorporation.",
+    "After incorporation, obtain HR-01-R2 against the final policy path and digest, seven new independent domain reviews against the exact new revision, and a zero-open-blocker-or-major exception brief.",
+    "Capture actor-bound Exam protection evidence for the actual author and exact diff, then obtain a final fresh-context Critic review before the eligible human Tech Lead Gate 2 decision.",
+    "Preserve Gate 1: the USD 1000 monthly infrastructure ceiling excludes model usage and is not spending authority."
+  ],
+  "dependenciesNotCandidateDefects": [
+    {
+      "id": "AUTHORIZED-GITHUB-APP-INCORPORATION",
+      "status": "next-governed-state-after-this-zero-finding-preflight",
+      "owner": "authorized independent Exam author"
+    },
+    {
+      "id": "HR-01-R2",
+      "status": "required-after-final-policy-path-digest-and-canonical-revision-stabilize",
+      "owner": "qualified privacy/legal records owner"
+    },
+    {
+      "id": "SEVEN-DOMAIN-EXACT-REVISION-REVIEWS",
+      "status": "required-after-canonical-incorporation",
+      "owner": "independent domain reviewers"
+    },
+    {
+      "id": "LIVE-PROVIDER-RECOVERY-EVIDENCE",
+      "status": "required-before-release",
+      "owner": "reliability owner"
+    },
+    {
+      "id": "FUTURE-GATE-3-TRUSTED-TESTER-EVIDENCE",
+      "status": "required-before-applicable-technical-release-or-pilot-activation",
+      "owner": "qualified DHS Trusted Tester assigned to the platform pod"
+    },
+    {
+      "id": "HUMAN-GATE-2-DECISION",
+      "status": "required-after-all technical review and protection prerequisites",
+      "owner": "eligible human Tech Lead"
+    }
+  ],
+  "boundaries": {
+    "onlyRepositoryWrite": "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r10.json",
+    "candidateIsUnsignedAndNonCanonical": true,
+    "reviewIsNotGateDecisionOrSignature": true,
+    "canonicalCandidatePriorReviewPolicySignatureOrImplementationFilesEdited": false,
+    "commitOrPushPerformed": false,
+    "credentialProviderSpendDeletionMigrationReleaseOrProductionEffectPerformed": false,
+    "humanApprovalCreatedOrInferred": false
+  }
+}

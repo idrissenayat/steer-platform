@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "steer://schemas/trusted-tester-evidence/v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "reviewId", "reviewer", "qualification", "platformPodAssignment", "examRevision", "implementationRevision", "newUiChange", "gate", "reviewedAt", "environments", "checkpointInventory", "checkpointModelDigest", "checkpointResults", "rawBundle", "rawResultsSha256", "summaryDecision", "signedAt", "recordDigest", "signature", "providerProof"],
+  "properties": {
+    "version": { "const": "steer-trusted-tester-evidence/v2" },
+    "reviewId": { "type": "string", "format": "uuid" },
+    "reviewer": {
+      "type": "object", "additionalProperties": false,
+      "required": ["verifiedSubject", "name", "activeHat", "identityIssuer", "identityEvidenceRef"],
+      "properties": {
+        "verifiedSubject": { "type": "string", "minLength": 1 }, "name": { "type": "string", "minLength": 1 },
+        "activeHat": { "const": "accessibility-specialist" }, "identityIssuer": { "type": "string", "format": "uri" },
+        "identityEvidenceRef": { "type": "string", "minLength": 1 }
+      }
+    },
+    "qualification": {
+      "type": "object", "additionalProperties": false,
+      "required": ["scheme", "credentialId", "issuer", "validFrom", "expiresAt", "verifiedAt", "verificationUri", "verificationEvidenceSha256", "providerRecordId"],
+      "properties": {
+        "scheme": { "const": "DHS Trusted Tester" }, "credentialId": { "type": "string", "minLength": 1 },
+        "issuer": { "const": "U.S. Department of Homeland Security" }, "validFrom": { "type": "string", "format": "date-time" },
+        "expiresAt": { "type": "string", "format": "date-time" }, "verifiedAt": { "type": "string", "format": "date-time" },
+        "verificationUri": { "type": "string", "format": "uri" },
+        "verificationEvidenceSha256": { "$ref": "#/$defs/sha" }, "providerRecordId": { "type": "string", "minLength": 1 }
+      }
+    },
+    "platformPodAssignment": {
+      "type": "object", "additionalProperties": false,
+      "required": ["organization", "pod", "assignmentId", "assignmentPath", "assignmentRevision", "assignmentSha256", "effectiveAt", "expiresAt", "verifiedAt", "assignedSubject", "providerProofSha256"],
+      "properties": {
+        "organization": { "const": "steer-platform" }, "pod": { "const": "platform" },
+        "assignmentId": { "type": "string", "format": "uuid" }, "assignmentPath": { "type": "string", "minLength": 1 },
+        "assignmentRevision": { "$ref": "#/$defs/revision" }, "assignmentSha256": { "$ref": "#/$defs/sha" },
+        "effectiveAt": { "type": "string", "format": "date-time" }, "expiresAt": { "type": "string", "format": "date-time" },
+        "verifiedAt": { "type": "string", "format": "date-time" }, "assignedSubject": { "type": "string", "minLength": 1 },
+        "providerProofSha256": { "$ref": "#/$defs/sha" }
+      }
+    },
+    "examRevision": { "$ref": "#/$defs/revision" }, "implementationRevision": { "$ref": "#/$defs/revision" },
+    "newUiChange": { "const": true }, "gate": { "const": 3 }, "reviewedAt": { "type": "string", "format": "date-time" },
+    "environments": {
+      "type": "array", "minItems": 5, "maxItems": 5,
+      "prefixItems": [
+        { "$ref": "#/$defs/chromiumKeyboard" }, { "$ref": "#/$defs/firefoxKeyboard" },
+        { "$ref": "#/$defs/safariVoiceOver" }, { "$ref": "#/$defs/windowsNvda" },
+        { "$ref": "#/$defs/windowsHighContrast" }
+      ]
+    },
+    "checkpointInventory": { "const": ["A01","A02","A03","A04","A05","A06","A07","A08","A09","A10","A11","A12","A13","A14","A15","A16","A17","A18","A19","A20","A21","A22","A23","A24","A25","A26","A27","A28","A29","A30","A31","A32","A33","A34","A35","A36","A37","A38","A39","A40","A41","A42","A43","A44","A45","A46","A47","A48","A49","A50","A51","A52","A53","A54","A55","A56","A57","A58","A59","A60","A61","A62","A63","A64","A65","A66","A67","A68","A69","A70","A71","A72","A73","A74","A75","A76","A77","A78","A79","A80","A81"] },
+    "checkpointModelDigest": { "$ref": "#/$defs/sha" },
+    "checkpointResults": {
+      "type": "object", "additionalProperties": false,
+      "required": ["A01","A02","A03","A04","A05","A06","A07","A08","A09","A10","A11","A12","A13","A14","A15","A16","A17","A18","A19","A20","A21","A22","A23","A24","A25","A26","A27","A28","A29","A30","A31","A32","A33","A34","A35","A36","A37","A38","A39","A40","A41","A42","A43","A44","A45","A46","A47","A48","A49","A50","A51","A52","A53","A54","A55","A56","A57","A58","A59","A60","A61","A62","A63","A64","A65","A66","A67","A68","A69","A70","A71","A72","A73","A74","A75","A76","A77","A78","A79","A80","A81"],
+      "patternProperties": { "^A(0[1-9]|[1-7][0-9]|8[01])$": { "$ref": "#/$defs/checkpointResult" } }
+    },
+    "rawBundle": { "type": "object", "additionalProperties": false, "required": ["encoding", "bytesBase64"], "properties": { "encoding": { "const": "base64-jsonl-utf8" }, "bytesBase64": { "type": "string", "minLength": 1 } } },
+    "rawResultsSha256": { "$ref": "#/$defs/sha" },
+    "summaryDecision": { "enum": ["pass", "send-back"] }, "signedAt": { "type": "string", "format": "date-time" },
+    "recordDigest": { "$ref": "#/$defs/sha" }, "signature": { "$ref": "#/$defs/signature" },
+    "providerProof": {
+      "type": "object", "additionalProperties": false,
+      "required": ["provider", "recordId", "reviewId", "recordDigest", "summaryDigest", "recordedAt", "proofDigest", "signature"],
+      "properties": { "provider": { "type": "string", "minLength": 1 }, "recordId": { "type": "string", "minLength": 1 },
+        "reviewId": { "type": "string", "format": "uuid" }, "recordDigest": { "$ref": "#/$defs/sha" }, "summaryDigest": { "$ref": "#/$defs/sha" }, "recordedAt": { "type": "string", "format": "date-time" }, "proofDigest": { "$ref": "#/$defs/sha" }, "signature": { "$ref": "#/$defs/signature" } }
+    }
+  },
+  "$defs": {
+    "rawLine": { "type": "object", "additionalProperties": false, "required": ["checkpointId", "environmentId", "applicability", "observed"], "properties": { "checkpointId": { "type": "string", "pattern": "^A(0[1-9]|[1-7][0-9]|8[01])$" }, "environmentId": { "type": "string", "minLength": 1 }, "applicability": { "enum": ["applicable", "not-applicable"] }, "observed": { "enum": ["pass", "fail", "not-applicable"] } } },
+    "sha": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "signature": { "type": "object", "additionalProperties": false, "required": ["algorithm", "keyId", "publicKeyHex", "signedDigest", "valueBase64"], "properties": { "algorithm": { "const": "Ed25519" }, "keyId": { "type": "string", "minLength": 1 }, "publicKeyHex": { "type": "string", "pattern": "^[0-9a-f]{64}$" }, "signedDigest": { "$ref": "#/$defs/sha" }, "valueBase64": { "type": "string", "minLength": 1 } } },
+    "environmentBase": {
+      "type": "object", "additionalProperties": false,
+      "required": ["family", "environmentId", "os", "osVersion", "browser", "browserVersion", "assistiveTechnology", "assistiveTechnologyVersion", "viewport"],
+      "properties": {
+        "family": { "type": "string" }, "environmentId": { "type": "string" }, "os": { "type": "string" },
+        "osVersion": { "type": "string", "minLength": 1 }, "browser": { "type": "string" }, "browserVersion": { "type": "string", "minLength": 1 },
+        "assistiveTechnology": { "type": "string" }, "assistiveTechnologyVersion": { "type": "string", "minLength": 1 },
+        "viewport": { "type": "string", "pattern": "^[0-9]+x[0-9]+$" }
+      }
+    },
+    "chromiumKeyboard": { "allOf": [{ "$ref": "#/$defs/environmentBase" }, { "properties": { "family": { "const": "desktop-chromium-keyboard" }, "environmentId": { "const": "env-chromium-keyboard" }, "browser": { "const": "Chromium" }, "assistiveTechnology": { "const": "keyboard-only" } } }] },
+    "firefoxKeyboard": { "allOf": [{ "$ref": "#/$defs/environmentBase" }, { "properties": { "family": { "const": "desktop-firefox-keyboard" }, "environmentId": { "const": "env-firefox-keyboard" }, "browser": { "const": "Firefox" }, "assistiveTechnology": { "const": "keyboard-only" } } }] },
+    "safariVoiceOver": { "allOf": [{ "$ref": "#/$defs/environmentBase" }, { "properties": { "family": { "const": "macos-safari-voiceover" }, "environmentId": { "const": "env-safari-voiceover" }, "os": { "const": "macOS" }, "browser": { "const": "Safari" }, "assistiveTechnology": { "const": "VoiceOver" } } }] },
+    "windowsNvda": { "allOf": [{ "$ref": "#/$defs/environmentBase" }, { "properties": { "family": { "const": "windows-firefox-nvda" }, "environmentId": { "const": "env-windows-nvda" }, "os": { "const": "Windows" }, "browser": { "const": "Firefox" }, "assistiveTechnology": { "const": "NVDA" } } }] },
+    "windowsHighContrast": { "allOf": [{ "$ref": "#/$defs/environmentBase" }, { "properties": { "family": { "const": "windows-edge-high-contrast-zoom" }, "environmentId": { "const": "env-windows-high-contrast" }, "os": { "const": "Windows" }, "browser": { "const": "Edge" }, "assistiveTechnology": { "const": "high-contrast-200-percent-zoom" } } }] },
+    "checkpointResult": {
+      "type": "object", "additionalProperties": false,
+      "required": ["applicability", "outcome", "rawResultRef", "rawResultSha256", "environmentIds"],
+      "properties": {
+        "applicability": { "enum": ["applicable", "not-applicable"] }, "outcome": { "enum": ["pass", "fail", "not-applicable"] },
+        "rawResultRef": { "type": "string", "minLength": 1 }, "rawResultSha256": { "$ref": "#/$defs/sha" },
+        "environmentIds": { "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": { "enum": ["env-chromium-keyboard", "env-firefox-keyboard", "env-safari-voiceover", "env-windows-nvda", "env-windows-high-contrast"] } }
+      }
+    }
+  },
+  "x-steer-semantic-checks": [
+    "reviewer.verifiedSubject equals platformPodAssignment.assignedSubject",
+    "qualification.validFrom <= qualification.verifiedAt <= reviewedAt < qualification.expiresAt",
+    "platformPodAssignment.effectiveAt <= platformPodAssignment.verifiedAt <= reviewedAt < platformPodAssignment.expiresAt",
+    "the five environment IDs are unique and exactly the five prefixItems IDs",
+    "checkpointResults has exactly A01 through A81; applicable permits pass or fail and not-applicable permits only not-applicable",
+    "summaryDecision is derived from raw JSONL and is pass iff every applicable required raw checkpoint passes",
+    "rawResultsSha256 is the digest of decoded complete rawBundle bytes and each exact-key raw line matches summary checkpoint ID, environment, applicability, outcome, reference, and digest",
+    "the human Ed25519 signature covers checkpoint-model digest, exact Exam and implementation, qualification, assignment, review and signing times",
+    "providerProof has an independently verified Ed25519 signature and binds provider identity, provider record ID, reviewId, summary recordDigest, and recordedAt"
+  ]
+}

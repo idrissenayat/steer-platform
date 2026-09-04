@@ -1,0 +1,35 @@
+{
+  "version": "steer-provider-key-registry/v1",
+  "registryId": "00000000-0000-4000-8000-000000000970",
+  "revision": "9999999999999999999999999999999999999999",
+  "issuedAt": "2026-01-01T00:00:00Z",
+  "bindings": [
+    {
+      "bindingId": "provider-binding:disposition-primary",
+      "provider": "multi-copy-disposition-adapter",
+      "providerAccountId": "provider-account:disposition-test-only",
+      "tenant": "steer-platform",
+      "proofType": "detached-jcs-digest-signature",
+      "proofIssuer": "https://disposition-provider.example.test/control-plane",
+      "keys": [
+        { "keyId": "disposition-ed25519-old", "algorithm": "Ed25519", "publicKeyHex": "0561ca867d36fb3d88c392a788f1f12675b44072f8b5d85af5512f9e6fd138d1", "notBefore": "2026-01-01T00:00:00Z", "notAfter": "2026-12-01T23:59:59Z", "revokedAt": null },
+        { "keyId": "disposition-ed25519-new", "algorithm": "Ed25519", "publicKeyHex": "5218606fba432185c1f3a49cc3e08c599f5ba8b1ed627a501ef051549265198d", "notBefore": "2026-12-01T23:59:59Z", "notAfter": "2100-01-01T00:00:00Z", "revokedAt": null },
+        { "keyId": "disposition-ed25519-revoked", "algorithm": "Ed25519", "publicKeyHex": "18e2e7ff02e7b46bb4bb3cda66819e2e842060a6ba11318ceb9f37fd71d3dfdd", "notBefore": "2025-01-01T00:00:00Z", "notAfter": "2100-01-01T00:00:00Z", "revokedAt": "2025-01-01T00:00:00Z" },
+        { "keyId": "disposition-ed25519-expired", "algorithm": "Ed25519", "publicKeyHex": "5b8c7e6b2d424f414900dc480f50796ecf904db0318f2a0c9f345c7df01ee287", "notBefore": "2025-01-01T00:00:00Z", "notAfter": "2026-01-01T00:00:00Z", "revokedAt": null },
+        { "keyId": "disposition-ed25519-future", "algorithm": "Ed25519", "publicKeyHex": "3a547ff48801bcb0b4c3ee8f0b93bb1dcd14e398929ae6cf7f706d283a7fc15b", "notBefore": "2200-01-01T00:00:00Z", "notAfter": "2201-01-01T00:00:00Z", "revokedAt": null }
+      ]
+    },
+    {
+      "bindingId": "provider-binding:kms-primary",
+      "provider": "kms",
+      "providerAccountId": "provider-account:kms-test-only",
+      "tenant": "steer-platform",
+      "proofType": "detached-jcs-digest-signature",
+      "proofIssuer": "https://kms-provider.example.test/control-plane",
+      "keys": [
+        { "keyId": "kms-ed25519-active", "algorithm": "Ed25519", "publicKeyHex": "82628085244105d6eb299b5bfd68c41844041cb35b46fb795794db55364edefa", "notBefore": "2026-01-01T00:00:00Z", "notAfter": "2100-01-01T00:00:00Z", "revokedAt": null }
+      ]
+    }
+  ],
+  "registryDigest": "26d101e3c9d33c1fc61e207ea13f03a28f2a648115f535a85a80d0943e1b4ce8"
+}
