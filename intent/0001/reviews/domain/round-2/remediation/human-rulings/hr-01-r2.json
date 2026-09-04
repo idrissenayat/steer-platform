@@ -1,0 +1,51 @@
+{
+  "version": "steer-human-ruling/v1",
+  "rulingId": "HR-01-R2",
+  "organization": "steer-platform",
+  "item": "0001-flight-deck-foundation",
+  "decision": "ratified-policy-against-canonical-exam",
+  "signer": {
+    "name": "Idriss Enayat",
+    "githubLogin": "idrissenayat",
+    "activeAuthority": "privacy-legal-records-owner",
+    "qualificationAndAuthorizationAttested": true
+  },
+  "boundState": {
+    "policyCommit": "bebbd7537c632d7c2426fdf2271d2f56a800d666",
+    "policyPath": "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+    "policySha256": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32",
+    "canonicalExamCommit": "cd913b96a14323ef318749e35a79e1741cf91c70",
+    "canonicalExamPath": "intent/0001/EXAM.md",
+    "canonicalExamSha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+  },
+  "statement": "I, Idriss Enayat (`github:idrissenayat`), in my qualified and authorized privacy/legal records-owner role, ratify my HR-01-R2 acceptance of the retention and records policy at commit `bebbd7537c632d7c2426fdf2271d2f56a800d666`, SHA-256 `f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32`, against the incorporated canonical `intent/0001/EXAM.md` at commit `cd913b96a14323ef318749e35a79e1741cf91c70`, SHA-256 `84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f`. This ratification does not sign Gate 2 or authorize deletion, production, deployment, release, provider access, or spending.",
+  "signedAt": "2026-09-04T13:08:57Z",
+  "providerProof": {
+    "type": "codex-thread-user-message",
+    "provider": "OpenAI Codex",
+    "threadId": "01a049c9-80d5-7710-9607-2a5ae0c23e43",
+    "sessionId": "01a049c9-80d5-7710-9607-2a5ae0c23e43",
+    "recordLocator": "user message immediately preceding HR-01-R2 ratification processing",
+    "statementSha256": "92c8cfd1728a1fa5f6b0185b6a08c94d287bc3ce10e8298c326fbce86369281a"
+  },
+  "supersedes": {
+    "rulingId": "HR-01-R2-POLICY-APPROVAL",
+    "path": "intent/0001/reviews/domain/round-2/remediation/human-rulings/hr-01-r2-policy-approval.json",
+    "scope": "Gate 2 retention-and-records policy approval and exact canonical Exam binding"
+  },
+  "effects": {
+    "retentionPolicyV2Accepted": true,
+    "canonicalExamRevisionBound": true,
+    "currentCommercialGateTwoRecordsPrerequisiteSatisfied": true,
+    "gateTwoSigned": false,
+    "builderAuthorized": false,
+    "releaseAuthorized": false,
+    "productionAuthorized": false,
+    "deploymentAuthorized": false,
+    "providerAccessAuthorized": false,
+    "deletionAuthorized": false,
+    "spendingAuthorized": false,
+    "regulatedHr02Satisfied": false
+  },
+  "nextRequiredState": "Run exact-revision independent domain reviews and a fresh-context Gate 2 Critic. A separate eligible human Tech Lead Gate 2 decision remains required."
+}
