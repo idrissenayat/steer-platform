@@ -5,23 +5,36 @@ The platform is built using STEER itself: every feature enters as a brief,
 carries an exam, and passes the gates. The pod's own metrics, recorded from
 item one, are the framework's pilot evidence.
 
+## Current delivery
+
+The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
+Workspace/web shell (0005), domain extraction (0006), and the stateless Hono
+API/shared tool registry (0007) are implemented development increments.
+Gate 2 remains open: the latest round-three R5 review returned three blockers
+and two majors. Candidate implementation is not live-provider or release
+authorization. Start the API with `pnpm dev:api`; it exposes OpenAPI and health
+routes but rejects tool requests until real identity integration is built.
+
 ## The numbered implementation chain
 
 | Item | Canonical artifacts | Platform implementation | Remaining evidence |
 |---|---|---|---|
-| 0001 · Flight Deck foundation | `intent/0001/README.md`, revised `BRIEF.md` and `SPEC.md`, App-authored v3.2 `EXAM.md`, Gate 1 `ARCHITECTURE.md`, and read-only `PLAN.md` | Phase 0 kit and the fixture-backed UX/domain prototype, including the v3.2 agent-first domain-assurance model, are implemented | seven agent reviews, exception brief, new Critic, Gate 2, nine authorized production slices, Phase 1 walking skeleton, live connector, triggered human evidence, pilot window, and Gate 3 |
+| 0001 · Flight Deck foundation | `intent/0001/README.md`, revised `BRIEF.md` and `SPEC.md`, App-authored v3.2 `EXAM.md`, Gate 1 `ARCHITECTURE.md`, and signed-snapshot `PLAN.md` | Phase 0 kit, fixture-backed UX/domain prototype, agent-first assurance and three bounded production-code increments | five R5 findings, protected incorporation and exact-revision reviews/rulings, Gate 2, remaining production integrations, walking skeleton, Gate 3 and pilot outcomes |
 | 0002 · Instrumentation and baselines | `intent/0002/README.md`, `BRIEF.md` | versioned content-free event schema, adapters, privacy validation, and both baseline computations are implemented | Product Lead-approved production window and representative figures |
 | 0003 · Full brief detail view | `intent/0003/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md` | rendered, deep-linkable, revision-safe detail panel and all four actions are implemented | 0002 production baseline and manual accessibility record |
 | 0004 · Learn STEER hub | `intent/0004/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md` | source-faithful reader, search, glossary, role orientation, agent slices, and corpus build guard are implemented | 0002 production baseline and manual accessibility record |
-| 0005 · Production workspace and web shell | `intent/0005/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md`, `PLAN.md` | pnpm/Turborepo boundary and visually verified Next.js production shell are implemented without changing the prototype | formal gate records; API, worker, tool registry, and service composition |
-| 0006 · Provider-free domain extraction | `intent/0006/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md`, `PLAN.md` | the existing domain is moved—not copied—into `@steer/domain`; stricter optional/index checks and all consumers are migrated | formal gate records; API, worker, data, and provider packages remain |
+| 0005 · Production workspace and web shell | `intent/0005/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md`, `PLAN.md` | pnpm/Turborepo boundary and visually verified Next.js production shell are implemented without changing the prototype | formal gate records; full stack lock, workers and service composition |
+| 0006 · Provider-free domain extraction | `intent/0006/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md`, `PLAN.md` | the existing domain is moved—not copied—into `@steer/domain`; stricter optional/index checks and all consumers are migrated | formal gate records; worker, data and provider integration remain |
+| 0007 · Shared tool registry and API foundation | `intent/0007/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | Hono, Zod contracts, tenant-scoped context query, generated OpenAPI and 15 focused tests | independent protected Exam, formal gates, actual identity/data/provider integration |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier
 revisions. The numbered 0001 Brief and Spec match the revised supplied sources.
 The numbered Exam preserves its supplied predecessor under `sources/` and is now
-the protected agent-first candidate authored by `steer-test-agent[bot]` at
-`118302e080598a147294e32d40cf5296763c8cc4`.
+the protected agent-first Exam, initially authored by `steer-test-agent[bot]`
+at `118302e080598a147294e32d40cf5296763c8cc4` and subsequently incorporated at
+`cd913b96a14323ef318749e35a79e1741cf91c70`. Unsigned remediation candidates do
+not replace it.
 
 ## Item: 0003 · Full brief detail view
 
@@ -45,7 +58,11 @@ the spec; the outcome contract's baseline must exist before this ships.
 Implementation is present from the requested candidate. Its outcome
 comparison remains dependent on the 0002 first-login baseline.
 
-## Before Gate 1 (human actions, in order)
+## Historical Gate 1 preparation checklist
+
+Gate 1 was signed for the exact snapshot recorded in
+`intent/0001/signatures/gate-1.json`. This original checklist is retained as
+context, not a request to repeat that signature.
 
 1. Resolve the flagged concerns in SPEC.md with their policy owners
    (signature weight, single-host binding, notification design,

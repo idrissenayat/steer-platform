@@ -1,7 +1,8 @@
 # Initial intent completion ledger
 
 Source of truth: `intent/BRIEF.md`, `intent/SPEC.md`, and `intent/EXAM.md`.
-Last implementation audit: 2026-09-03.
+Last implementation audit: 2026-09-04. Current delivery route:
+`docs/PHASE-1-DELIVERY.md`.
 
 ## Outcome status
 
@@ -26,13 +27,14 @@ pull-request tests passed. Framework v3.2 replaces seven routine human domain
 queues with seven independent agent reviews, one exception brief, and
 deterministic human escalation. The first seven revision-bound agent reviews
 and their exception brief are complete and returned 31 findings. An unsigned
-remediation package has passed its sixth fresh-context technical preflight with
-zero new findings, but it is not the canonical Exam and is not a Gate 2 pass.
-HR-01 acceptance of the exact retention-and-records policy digest is the sole
-current commercial human blocker. The corrected Exam still must be published
-by the authorized Test Agent App, re-reviewed by all seven domains at its new
-exact revision, and passed by a final fresh-context Critic before the Tech Lead
-Gate 2 decision.
+remediation package subsequently progressed through protected incorporation
+and further reviews. The canonical Exam is now incorporated at
+`cd913b96a14323ef318749e35a79e1741cf91c70`; HR-01-R2 acceptance and ratification
+are recorded, not Gate 2 approval. The latest round-three R5 candidate preflight
+returned SEND BACK with three blockers and two majors; its published checkpoint
+is `640bd29`. The five corrections and exact-revision incorporation/review
+remain open, including the applicable qualified human ruling on final bytes.
+See `intent/0001/reviews/domain/round-3/remediation/preflight-critic-r5.json`.
 The production Phase 1
 walking skeleton in `intent/0001/ARCHITECTURE.md` is not implemented. The intent
 also requires Gate 2, live identity/code-host configuration, Gate 3 and
@@ -60,8 +62,14 @@ remain open. It is not evidence that the Phase 1 walking skeleton exists.
 Item 0006 also completes the provider-free domain extraction: the original
 modules were moved atomically into `packages/domain`, all consumers use the
 workspace package, and stricter optional/index checks were resolved without
-weakening the shared compiler baseline. API, worker, data, and provider
-foundations remain open.
+weakening the shared compiler baseline.
+
+Item 0007 adds the stateless Hono API and shared Zod tool registry with 15
+focused development tests, generated OpenAPI and default-closed identity
+context access. Identity, worker, data, provider, MCP and full API integration
+remain open; this is the third bounded production-code increment, not a
+completed walking skeleton. `intent/0007/EVIDENCE.md` records verification and
+limitations; its independent protected Exam and formal gates remain pending.
 
 That statement covers the requested feature artifacts in the present
 prototype, not the newly adopted production architecture. The thirteen-case
@@ -170,12 +178,11 @@ path. Numbered intent sources remain unchanged.
    artifact as the only retained copy.
 5. **Gate 1 recorded; Gate 2 remediation active:** the live two-identity GitHub
    control and required CI over the actual Exam diff are now verified in
-   `docs/GITHUB-EXAM-PROTECTION.md`. Round-one domain reviews, consolidation,
-   Test Agent remediation, and technical preflight are complete. Obtain HR-01
-   over the exact retention-policy digest, publish the corrected Exam through
-   the Test Agent App, run seven new exact-revision domain reviews, consolidate,
-   and run the final fresh-context Critic before requesting the Tech Lead Gate 2
-   signature.
+   `docs/GITHUB-EXAM-PROTECTION.md` as historical evidence, not proof for a new
+   revision. HR-01-R2 acceptance and ratification are recorded. Resolve the five
+   round-three R5 findings, then use protected incorporation, exact-revision
+   review and the applicable qualified human ruling before requesting Gate 2.
+   Do not ask for another signature over stale candidate bytes.
 6. Run the ten-to-twenty-item pilot and retain 90 days of outcome evidence.
 
 “Complete” means every machine row is green and each human-owned row has an

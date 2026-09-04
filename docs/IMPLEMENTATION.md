@@ -2,10 +2,10 @@
 
 This branch implements the Phase 0 kit and a validated UX/domain prototype
 toward Phase 1 against a rebuildable fixture connector. The production Phase 1
-foundation is defined in `intent/0001/ARCHITECTURE.md`; it is not yet
-implemented. The proposed Gate-bound route is sequenced in
-`intent/0001/PLAN.md`; that read-only planning draft does not authorize the
-production migration.
+foundation is defined in `intent/0001/ARCHITECTURE.md`; its complete walking
+skeleton is not yet implemented. The Gate 1-bound route is preserved in
+`intent/0001/PLAN.md`. The current delivery sequence and completion boundaries
+are maintained in `docs/PHASE-1-DELIVERY.md`.
 
 The first bounded production increment now exists under `intent/0005`: a
 pnpm/Turborepo workspace and Next.js App Router shell. Root `pnpm check` covers
@@ -18,7 +18,15 @@ migrates every prototype/test consumer to package imports. The package has no
 runtime dependency or vendor SDK, typechecks independently under the stricter
 shared baseline, and remains covered by the original characterization suite.
 
-## Implemented
+Item `intent/0007` adds the Hono API and Zod tool registry: one validated,
+organization-scoped identity-context query, shared internal/HTTP authorization,
+generated OpenAPI, bounded JSON handling and safe errors. Default startup has
+no mock identity: tool calls return 401 and readiness returns 503 until real
+identity and projection integration exists. Fifteen focused development tests
+pass and participate in root checks. This is not a completed OIDC adapter,
+data service, MCP endpoint or Gate 2 approval.
+
+## Implemented prototype and kit behavior
 
 - deterministic artifact-chain projection and dropped-event reconciliation;
 - role-aware decision inbox with conditional specialist seats and SLA state;
@@ -120,22 +128,23 @@ regression tests are operational on protected `main`. Live pull requests
 against the exact numbered Exam verified that the human Builder is rejected,
 the Test Agent App is accepted by CI, and one human CODEOWNER approval is still
 required. This control evidence is not a Gate 2 signature. Seven domain-agent
-review packets are bound under `intent/0001/reviews/domain`. Round one is
-complete: all seven independent agents returned `send-back`, producing one
-consolidated brief with 31 findings. The unsigned remediation package under
-`intent/0001/reviews/domain/remediation` now has a final fresh-context technical
-preflight PASS with zero new findings. Its executable review harness covers the
-full finding chain, signed-log vectors, bidirectional permission mappings,
-retention-state oracle, and manifest integrity. The canonical Exam remains
-unchanged. HR-01 acceptance of the exact retention-and-records policy digest is
-the sole current commercial Gate 2 blocker; after that ruling, the Test Agent
-App must publish the corrected Exam, all seven domains must review that new
-exact revision, and a final fresh-context Critic must pass before a human Tech
-Lead may decide Gate 2. HR-02 remains fail-closed for future regulated release
-or pilot activation and does not block the current commercial Gate 2 path.
+review packets are bound under `intent/0001/reviews/domain`.
 
-The production foundation still to be built includes the Hono API and typed
-tool registry, MCP v2 transport, GitHub App adapter, Postgres/Drizzle/RLS
+Current status supersedes that historical first-review snapshot: the canonical
+Exam was subsequently incorporated at `cd913b96a14323ef318749e35a79e1741cf91c70`.
+HR-01-R2 acceptance and ratification are recorded; neither signs Gate 2.
+The latest round-three R5 preflight at
+`intent/0001/reviews/domain/round-3/remediation/preflight-critic-r5.json`
+returned SEND BACK with three blockers and two majors. The candidate package
+was published at `640bd29`, but is not ready for protected incorporation.
+The remaining corrections concern lifecycle authorization, human/provider
+binding, migration authorization/replay, multi-line cost reconciliation and
+Unicode phone normalization. These five corrections, protected incorporation,
+exact-revision review and the applicable qualified human ruling remain before
+a Gate 2 decision. Historical review passes do not supersede this send-back.
+
+The production foundation still to be built includes authenticated/data tools
+beyond the stateless API slice, MCP v2 transport, GitHub App adapter, Postgres/Drizzle/RLS
 projections, Temporal workers, version-pinned Mastra adapter, LiteLLM gateway,
 OIDC, tenant-scoped evidence storage, product analytics, a secret-manager seam,
 and the thirteen-case architecture walking skeleton. The pnpm/Turborepo
@@ -149,6 +158,7 @@ pnpm check
 pnpm domain-reviews:verify-target
 pnpm domain-reviews:consolidate
 pnpm dev --port 4175
+pnpm dev:api
 ```
 
 `pnpm check` validates the adoption kit and CI scopes, typechecks, runs the

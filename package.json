@@ -11,6 +11,7 @@
     "dev": "vite",
     "dev:prototype": "vite",
     "dev:web": "pnpm --filter @steer/web dev",
+    "dev:api": "pnpm --filter @steer/api dev",
     "build": "pnpm build:prototype && turbo run build --filter='./apps/*' --filter='./packages/*'",
     "build:prototype": "tsc --noEmit && vite build",
     "test": "vitest run",
