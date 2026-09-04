@@ -1,0 +1,252 @@
+{
+  "version": "steer-domain-review-record/v1",
+  "domain": "privacy",
+  "reviewType": "gate-2-exam",
+  "target": {
+    "organization": "steer-platform",
+    "item": "0001-flight-deck-foundation",
+    "revision": "01467e66988e2c76d57f24ebffc324b5c9f0b988",
+    "exam": {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+    }
+  },
+  "reviewer": {
+    "serviceIdentity": "codex-task:/root/gate2_r3_privacy",
+    "agentType": "independent-fresh-context-privacy-domain-review-agent",
+    "model": "OpenAI Codex GPT-5 serving configuration; exact model build not exposed to this task",
+    "configurationRevision": "task-assignment:/root/gate2_r3_privacy@2026-09-04;target:01467e66988e2c76d57f24ebffc324b5c9f0b988;privacy-r3-v1",
+    "freshContext": true,
+    "freshContextEvidence": "Dedicated task /root/gate2_r3_privacy received only the round-three Privacy-domain review assignment, performed no Builder or remediation-author work, first verified the immutable target, then independently read the complete 2,096-line Exam Git object and the exact frozen privacy, remediation, retention, human-ruling, fixture, oracle, and validation evidence before deciding. Prior decisions and Critic reports were treated as evidence rather than authority.",
+    "builderIndependent": true
+  },
+  "decision": "send-back",
+  "confidence": "high",
+  "reviewedAt": "2026-09-04T13:41:10Z",
+  "reviewedCases": [
+    "OR-03",
+    "OR-10",
+    "OR-18",
+    "OR-20",
+    "A3 reproducibility and evidence contract",
+    "A8 privacy inventory, canaries, and record lifecycle",
+    "A14 cross-tenant and existence-oracle matrix",
+    "Cross-tenant matrix: API/UI/BFF/MCP",
+    "Cross-tenant matrix: Postgres direct/pooled",
+    "Cross-tenant matrix: full-text/vector/memory",
+    "Cross-tenant matrix: evidence/object store",
+    "Cross-tenant matrix: model gateway/key/cache/budget",
+    "Cross-tenant matrix: Temporal",
+    "Cross-tenant matrix: cache/session",
+    "Cross-tenant matrix: sandbox/readiness",
+    "Cross-tenant matrix: logs/traces/metrics/analytics",
+    "Cross-tenant matrix: notifications",
+    "Cross-tenant matrix: Git/code-host",
+    "Cross-tenant matrix: release/provisioning/cost",
+    "Gate 1 analytics decision: self-hosted PostHog, content-free events, P90D raw-event retention",
+    "Round-two closure section 4 sanitized-real provenance, inspection, and lifecycle oracle",
+    "Round-two closure section 9 lifecycle disposition authorization",
+    "Round-two closure R2R2 executable correction contract",
+    "Round-two closure R3 authoritative-state correction contract",
+    "Round-two closure R4 exhaustive-policy and executed-matrix correction contract",
+    "Round-two closure R6 through R9 lifecycle copy, receipt, replay, and provider-trust contracts",
+    "Sanitized-real fixture matrix: 15 declared cases",
+    "Sanitized-real adversarial counterexample: five-prompt corpus accepted",
+    "Sanitized-real adversarial counterexample: postal address accepted",
+    "Sanitized-real adversarial counterexample: IPv4 address accepted",
+    "Sanitized-real adversarial counterexample: API secret/token accepted",
+    "Sanitized-real adversarial counterexample: unrelated raw-disposition receipt accepted",
+    "Accepted and ratified HR-01-R2 retention-policy binding",
+    "Production-versus-fixture credential and destination separation",
+    "Prior finding reassessment: PRIV-001",
+    "Prior finding reassessment: PRIV-002",
+    "Prior finding reassessment: PRIV-003",
+    "Prior finding reassessment: PRIV-G2-R2-001"
+  ],
+  "evidence": [
+    {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+    },
+    {
+      "path": "intent/0001/reviews/domain/privacy.md",
+      "sha256": "f9cec7af0f703e0fe61b6bcadba6632058e09b6f8979cd7b375a4508ab7c8046"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-3/review-target.json",
+      "sha256": "e3d7c841b3d5ac8fbb6e31e8601cfaafdff18b40e2d6040abafb38848e79e7d2"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/records/privacy.json",
+      "sha256": "7d58bf715ab7cc8aef4cffd81912471522402d746f2aaa0f498377cee9f2c8f5"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/exception-brief.json",
+      "sha256": "7e6753e00e799a0d64820eeb43cdb0f79951e5072c242b62ef7694617e414adc"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/remediation-manifest.json",
+      "sha256": "8d5bf54dcdae5ab1d155ba241ce4263e863f70cb96c9cb3686c350b51eefa54d"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r10.json",
+      "sha256": "e0285543a74ddb9bc63e9531582310673cb3a5c81e375ed0f98eac22945cfb53"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/EXAM-AMENDMENT.candidate.md",
+      "sha256": "25f623ac4ab2459a425643ddcbd3003e782a315f0664cff4fb021fa71f883af3"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+      "sha256": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json",
+      "sha256": "08de6ecd58c91eace368814f4e1120671f15ab8a91c955bbd55138d2cb58a423"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+      "sha256": "661ee8ab26533fa7855b45485aabbbe5ba9873cfdb7a7deb3d50883745d0a57c"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs",
+      "sha256": "a5fa1d6c044687a97212719262bcdf8d040d43e7baa910d154a490006a8e4d1c"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/finding-resolution.json",
+      "sha256": "d76a4665bf0d091fe6f8e67c72169c9fb712bf61cc4d44b746297d84be2d0611"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/human-rulings/hr-01-r2-policy-approval.json",
+      "sha256": "cb55a6dc3f6048d52a7f4c80d66371581bfe3ee073ad65a6b257f7b9c0721ea6"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/human-rulings/hr-01-r2.json",
+      "sha256": "bec8fda226b48a6ebcb4bd5ae86a1cb0ac4e354a125611c20d139c2885619ddb"
+    },
+    {
+      "path": "intent/0001/SPEC.md",
+      "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"
+    },
+    {
+      "path": "intent/0001/PLAN.md",
+      "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+    },
+    {
+      "path": "intent/0001/signatures/gate-1.json",
+      "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+    },
+    {
+      "path": "kit/policy/gates.json",
+      "sha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56"
+    },
+    {
+      "path": "kit/schemas/domain-review-record.schema.json",
+      "sha256": "50cc75af34849a08dd2ef966a2bf944b711c861b5bd955d1cb9e33c0820857ea"
+    }
+  ],
+  "findings": [
+    {
+      "id": "PRIV-001",
+      "severity": "major",
+      "status": "resolved",
+      "summary": "Resolved at the target revision. OR-03 and A8 require a row for every enumerated browser, service, code-host, database, search/vector, workflow, object, model/provider, identity, intermediary, observability, CI, sandbox, notification, workstation, backup, recovery, and disaster-recovery surface, with applicability or testable exclusion, classification, tenant key, retention ownership, reconstruction risk, and an exact crawl query.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for prior finding PRIV-001 at this exact Exam revision."
+    },
+    {
+      "id": "PRIV-002",
+      "severity": "major",
+      "status": "resolved",
+      "summary": "Resolved at the target revision. OR-20 and the exact-digest policy v2 define authenticated-session boundaries, save and abandonment events, 60-second unsaved-copy erasure, failure and quarantine behavior, holds, access revocation, copy inventory, backup propagation, deletion receipts and tombstones, and the immutable content-free PostHog P90D rule. HR-01-R2 ratifies that policy against the incorporated canonical Exam digest.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+          "sha256": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/human-rulings/hr-01-r2.json",
+          "sha256": "bec8fda226b48a6ebcb4bd5ae86a1cb0ac4e354a125611c20d139c2885619ddb"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for prior finding PRIV-002 at this exact Exam revision."
+    },
+    {
+      "id": "PRIV-003",
+      "severity": "major",
+      "status": "resolved",
+      "summary": "Resolved in the Exam definition at the target revision. OR-18 and A8 apply distinct content canaries across every inventory surface for wrong-tenant disclosure and same-tenant unintended persistence, including exact values, prefixes, truncations, reversible encodings, formatted exceptions, attributes/dimensions, workflow histories, indexes/vectors/model context, request/response caches, object versions, sandboxes, filesystems, containers, residue, and restored backups; any occurrence fails.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for prior finding PRIV-003 at this exact Exam revision."
+    },
+    {
+      "id": "PRIV-G2-R2-001",
+      "severity": "major",
+      "status": "open",
+      "summary": "The incorporated prose and ratified policy add the missing sanitized-real classes and lifecycle, but the mandatory executable privacy closure is not fail-closed and therefore does not fully resolve PRIV-G2-R2-001. The bound `sanitizedRealDecision` never enforces exactly 20 prompt artifacts; its direct-identifier implementation recognizes only email, SSN-like, and phone patterns plus the single literal named entity `Ada Lovelace`, although the policy also prohibits postal address, precise location, government/account/customer/employee/device identifiers, IP/MAC, identity-bearing URLs, biometrics, signatures, secrets, tokens, credentials, and free-text self-identification; and its raw-disposition check accepts any signed receipt with a nonempty copy-ID list without binding those copies to the source, corpus, or complete copy inventory. Independently resealed counterexamples using the exact target-bound oracle returned `ACCEPT` for a five-prompt corpus, postal address text, an IPv4 address, an API secret/token, and an unrelated raw-copy receipt. The 15 declared sanitized-real fixtures contain only one email direct-identifier mutation and no exact-count or category-complete negative matrix, so the bundled suite can report `SANITIZED_REAL_OK` while violating the Exam and policy. The same validator is also hard-bound to the superseded base Exam digest and terminates with a digest assertion when run against this round-three target, so it cannot produce a complete passing target-revision result as currently bound.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/records/privacy.json",
+          "sha256": "7d58bf715ab7cc8aef4cffd81912471522402d746f2aaa0f498377cee9f2c8f5"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+          "sha256": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json",
+          "sha256": "08de6ecd58c91eace368814f4e1120671f15ab8a91c955bbd55138d2cb58a423"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+          "sha256": "661ee8ab26533fa7855b45485aabbbe5ba9873cfdb7a7deb3d50883745d0a57c"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs",
+          "sha256": "a5fa1d6c044687a97212719262bcdf8d040d43e7baa910d154a490006a8e4d1c"
+        }
+      ],
+      "requiredResolution": "Make the target-bound sanitized-real oracle enforce exactly the 20 manifest-bound prompt objects and closed, duplicate-free artifact/derivative inventories; validate the provenance, use authorization, sanitizer and independent-inspector identities/revisions, policy and target digests, raw working-copy inventory, per-copy disposition receipts, encrypted corpus/version/key, and every production-versus-fixture credential and destination as one coherently bound record graph. Replace the narrow hard-coded identifier checks with a revision-bound deterministic detector/oracle and negative fixtures for every prohibited direct-identifier and free-text category, plus category boundary and evasion cases. Recompute linkage results from the frozen authorized source pool rather than accepting claimed trials, and bind each raw receipt one-to-one to the complete authorized inventory. Add exact-count, missing/extra/duplicate prompt, source-pool substitution, receipt substitution, partial inventory, detector/normalization drift, and cross-destination counterexamples. Make the validator runnable and digest-bound to the final canonical Exam revision, refresh every affected digest, and obtain a new independent exact-revision Privacy review."
+    }
+  ],
+  "escalations": [
+    {
+      "triggerId": "unresolved-blocker-or-major-finding",
+      "reason": "PRIV-G2-R2-001 remains an unresolved major Exam-adequacy finding because the exact target-bound privacy oracle accepts records that violate the ratified sanitized-real policy and can still report its declared matrix green. The default-closed policy requires human Privacy specialist escalation unless a revised exact target closes the executable gap; this reviewer cannot accept or waive it.",
+      "findingIds": [
+        "PRIV-G2-R2-001"
+      ]
+    },
+    {
+      "triggerId": "irreversible-external-effect-or-material-rights-impact",
+      "reason": "A false privacy acceptance can place identifiable or secret originator-derived prompt material into Git history, provider copies, caches, indexes, exports, and backups, creating durable propagation and material privacy-rights impact. No such risk acceptance or disposition is authorized by this review.",
+      "findingIds": [
+        "PRIV-G2-R2-001"
+      ]
+    }
+  ],
+  "boundaries": {
+    "doesNotSignGateTwo": true,
+    "doesNotAuthorizeBuildOrRelease": true,
+    "doesNotAuthorizeProductionOrSpend": true,
+    "doesNotAcceptResidualRiskOrWaiveControls": true
+  }
+}

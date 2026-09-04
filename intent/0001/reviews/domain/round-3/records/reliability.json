@@ -1,0 +1,272 @@
+{
+  "version": "steer-domain-review-record/v1",
+  "domain": "reliability",
+  "reviewType": "gate-2-exam",
+  "target": {
+    "organization": "steer-platform",
+    "item": "0001-flight-deck-foundation",
+    "revision": "01467e66988e2c76d57f24ebffc324b5c9f0b988",
+    "exam": {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+    }
+  },
+  "reviewer": {
+    "serviceIdentity": "codex:/root/gate2_r3_reliability",
+    "agentType": "independent-fresh-context-reliability-domain-review-agent",
+    "model": "GPT-5 (exact serving model identifier not exposed to this task)",
+    "configurationRevision": "task-assignment:/root/gate2_r3_reliability@2026-09-04;review-protocol:round-3-v1;target:01467e66988e2c76d57f24ebffc324b5c9f0b988",
+    "freshContext": true,
+    "freshContextEvidence": "Fresh delegated task /root/gate2_r3_reliability independently read the complete 2,096-line canonical Exam and Reliability packet, verified the immutable target and hashes, traced every prior Reliability finding through the incorporated round-two package, ran the exact bound validators, and constructed independent counterexamples. It did not author the Exam, remediation, implementation, prior records, or other round-three records, and treated prior conclusions as evidence rather than authority.",
+    "builderIndependent": true
+  },
+  "decision": "send-back",
+  "confidence": "high",
+  "reviewedAt": "2026-09-04T14:36:29Z",
+  "reviewedCases": [
+    "OR-02 Git-only destroy and rebuild",
+    "OR-23 decision-inbox latency",
+    "OR-24 projection and reconciliation latency",
+    "OR-25 hermetic self-hosted core",
+    "WS-05 durable Gate wait and WF-01 through WF-08",
+    "WS-13 Git-only identical reconstruction",
+    "A3 reproducibility and evidence contract",
+    "A5 walking-skeleton failure interleavings and parity",
+    "A10.1 signature and decision-attempt recovery",
+    "A12 recovery and disaster-recovery rehearsals",
+    "A13 hermetic bindings and portability",
+    "Round-two section 8 provider-native authoritative-decision disaster recovery",
+    "R2R2 and R3 recovery correction contracts",
+    "R4 declared-matrix execution contract",
+    "Prior findings REL-001 through REL-005",
+    "Prior finding REL-G2-R2-001",
+    "Exact-revision target and repository validation paths"
+  ],
+  "evidence": [
+    {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+    },
+    {
+      "path": "intent/0001/ARCHITECTURE.md",
+      "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+    },
+    {
+      "path": "intent/0001/signatures/gate-1.json",
+      "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+    },
+    {
+      "path": "intent/0001/reviews/domain/reliability.md",
+      "sha256": "29b2f7d51306c756b15c84c99c19ed6575ff9f924b641395e64a807104f94c71"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/records/reliability.json",
+      "sha256": "15306e36e10cb17142b45a8618ac0763904d8770e82c0271db815d4258b004d9"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/exception-brief.json",
+      "sha256": "7e6753e00e799a0d64820eeb43cdb0f79951e5072c242b62ef7694617e414adc"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/remediation-manifest.json",
+      "sha256": "8d5bf54dcdae5ab1d155ba241ce4263e863f70cb96c9cb3686c350b51eefa54d"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r10.json",
+      "sha256": "e0285543a74ddb9bc63e9531582310673cb3a5c81e375ed0f98eac22945cfb53"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/EXAM-AMENDMENT.candidate.md",
+      "sha256": "25f623ac4ab2459a425643ddcbd3003e782a315f0664cff4fb021fa71f883af3"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/PROVIDER-APPROVAL-RECOVERY.candidate.md",
+      "sha256": "e2024657cfb100ae12e0f4ba2b44ae0a6ad3eaa993ec3f49d1c38abbae4fa05c"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json",
+      "sha256": "08de6ecd58c91eace368814f4e1120671f15ab8a91c955bbd55138d2cb58a423"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+      "sha256": "661ee8ab26533fa7855b45485aabbbe5ba9873cfdb7a7deb3d50883745d0a57c"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs",
+      "sha256": "a5fa1d6c044687a97212719262bcdf8d040d43e7baa910d154a490006a8e4d1c"
+    },
+    {
+      "path": "scripts/validate-kit.mjs",
+      "sha256": "ffb38c71e980bde139729e854a0655f01eee00266b853d96097800fe6ccbd535"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-3/review-target.json",
+      "sha256": "e3d7c841b3d5ac8fbb6e31e8601cfaafdff18b40e2d6040abafb38848e79e7d2"
+    },
+    {
+      "path": "kit/schemas/domain-review-record.schema.json",
+      "sha256": "50cc75af34849a08dd2ef966a2bf944b711c861b5bd955d1cb9e33c0820857ea"
+    }
+  ],
+  "findings": [
+    {
+      "id": "REL-001",
+      "severity": "blocker",
+      "status": "resolved",
+      "summary": "The canonical Exam preserves the prior closure: OR-02 and WS-13 destroy every enumerated disposable projection, disconnect ingestion archives, reconstruct only from Git/code-host authority, and require per-tenant canonical and semantic equality.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/records/reliability.json",
+          "sha256": "15306e36e10cb17142b45a8618ac0763904d8770e82c0271db815d4258b004d9"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for prior finding REL-001 at this exact Exam revision."
+    },
+    {
+      "id": "REL-002",
+      "severity": "major",
+      "status": "resolved",
+      "summary": "The canonical Exam preserves unambiguous client-monotonic semantic-ready timing for OR-23 and trusted-ingress-to-semantic-commit timing, correlation, clock-offset bounds, complete samples, and nearest-rank per-run p95 rules for OR-24.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/records/reliability.json",
+          "sha256": "15306e36e10cb17142b45a8618ac0763904d8770e82c0271db815d4258b004d9"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for prior finding REL-002 at this exact Exam revision."
+    },
+    {
+      "id": "REL-003",
+      "severity": "major",
+      "status": "resolved",
+      "summary": "The canonical Exam preserves eight named worker-failure cuts, one and three consecutive replacements, pinned-adapter and direct-Temporal paths, full history/timer/idempotency evidence, and an exactly-one workflow and authoritative-result oracle.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/records/reliability.json",
+          "sha256": "15306e36e10cb17142b45a8618ac0763904d8770e82c0271db815d4258b004d9"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for prior finding REL-003 at this exact Exam revision."
+    },
+    {
+      "id": "REL-004",
+      "severity": "major",
+      "status": "resolved",
+      "summary": "The broad recovery-category omission remains closed in A12: Git/code-host, Postgres, evidence store, Temporal, and regional-loss rehearsals have numeric RPO/RTO targets and fail-closed evidence rules. The narrower provider-native-authority closure remains separately assessed under REL-G2-R2-001.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/records/reliability.json",
+          "sha256": "15306e36e10cb17142b45a8618ac0763904d8770e82c0271db815d4258b004d9"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for the broad prior finding REL-004; REL-G2-R2-001 must still be closed."
+    },
+    {
+      "id": "REL-005",
+      "severity": "major",
+      "status": "resolved",
+      "summary": "The canonical Exam preserves a cold clean checkout, empty caches, exact preloads, allowlist-empty environment, default-deny networking, complete network and credential-attempt capture, cross-binding execution, and omission failure for OR-25/A13.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/records/reliability.json",
+          "sha256": "15306e36e10cb17142b45a8618ac0763904d8770e82c0271db815d4258b004d9"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for prior finding REL-005 at this exact Exam revision."
+    },
+    {
+      "id": "REL-G2-R2-001",
+      "severity": "major",
+      "status": "open",
+      "summary": "The incorporated prose now names provider-native authority classes, zero-loss cuts, stable mappings, and independent verification, but its hash-bound executable recovery oracle does not enforce those requirements. A fixture record contains only providerId, cursor, timestamp, tenant, keyId, identityDigest, artifact bytes/digest, policyDigest, and opaque decision bytes; it lacks organization/repository/item/record class, subject, active hat, seat/sequence, full revision, policy revision, provider-proof bytes/type/digest, lifecycle state, export metadata, and envelope digest. The oracle neither schema-validates nor cryptographically verifies provider-journal/restored decision records, and a bare `independentVerification: true` boolean satisfies the verifier predicate. An independently executed fixture missing all those required fields still returned `RECOVERY_VERIFIED`; therefore the prior provider-native decision-loss false pass remains executable.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/records/reliability.json",
+          "sha256": "15306e36e10cb17142b45a8618ac0763904d8770e82c0271db815d4258b004d9"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/PROVIDER-APPROVAL-RECOVERY.candidate.md",
+          "sha256": "e2024657cfb100ae12e0f4ba2b44ae0a6ad3eaa993ec3f49d1c38abbae4fa05c"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+          "sha256": "661ee8ab26533fa7855b45485aabbbe5ba9873cfdb7a7deb3d50883745d0a57c"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json",
+          "sha256": "08de6ecd58c91eace368814f4e1120671f15ab8a91c955bbd55138d2cb58a423"
+        }
+      ],
+      "requiredResolution": "Add a closed schema for every provider-native recovery record and signed independent-verifier result; make the oracle parse canonical serialized bytes, verify the provider proof through the independently anchored provider registry, and compare every required identity, authority, decision, revision, policy, lifecycle, export, mapping, and Git-artifact field before `RECOVERY_VERIFIED`. Replace the boolean verifier flag with retrieved signed evidence. Add missing-field, malformed-field, bad-signature, wrong-binding, wrong-decision/seat/revision/policy, opaque-byte, and fabricated-verifier negatives, and prove the exact declared matrix executes."
+    },
+    {
+      "id": "REL-G2-R3-001",
+      "severity": "major",
+      "status": "open",
+      "summary": "The exact incorporated target has no green executable validation path. `validate-remediation.mjs --fixtures-only` executes all declared matrices and then fails because it hard-codes predecessor Exam SHA-256 `91f274...` while the target Exam is `84ad1d...`. Independently, `pnpm check` fails in `scripts/validate-kit.mjs` because it compares the historical round-two target digest to current Exam working-tree bytes. R10's reported green runs occurred before incorporation and do not establish that the bound package or repository check can validate the exact round-three target, despite the Exam requiring candidate schemas/fixtures to pass at the exact Exam revision and actor-bound CI on the actual author/diff.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r10.json",
+          "sha256": "e0285543a74ddb9bc63e9531582310673cb3a5c81e375ed0f98eac22945cfb53"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs",
+          "sha256": "a5fa1d6c044687a97212719262bcdf8d040d43e7baa910d154a490006a8e4d1c"
+        },
+        {
+          "path": "scripts/validate-kit.mjs",
+          "sha256": "ffb38c71e980bde139729e854a0655f01eee00266b853d96097800fe6ccbd535"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-3/review-target.json",
+          "sha256": "e3d7c841b3d5ac8fbb6e31e8601cfaafdff18b40e2d6040abafb38848e79e7d2"
+        }
+      ],
+      "requiredResolution": "Provide an exact-revision validation entrypoint for `01467e66988e2c76d57f24ebffc324b5c9f0b988` / Exam SHA-256 `84ad1d...` without weakening historical-target verification. Historical round-two checks must read bytes from their declared Git revision rather than current working-tree Exam bytes; the incorporated remediation validator must explicitly validate the predecessor package plus current canonical incorporation, or be superseded by a digest-bound post-incorporation validator. Retain clean outputs showing both the full remediation matrix and `pnpm check` pass at the exact target, then rerun fresh reliability review."
+    }
+  ],
+  "escalations": [
+    {
+      "triggerId": "unresolved-blocker-or-major-finding",
+      "reason": "REL-G2-R2-001 remains an unresolved major because the executable recovery oracle can report `RECOVERY_VERIFIED` without the provider-native decision and proof fields required to prevent authoritative-decision loss. REL-G2-R3-001 is an unresolved major because both the bound remediation validator and repository check fail against the exact incorporated target. Commercial policy requires separate qualified-human Reliability exception disposition unless a corrected exact Exam revision closes both; this agent cannot waive either control.",
+      "findingIds": [
+        "REL-G2-R2-001",
+        "REL-G2-R3-001"
+      ]
+    }
+  ],
+  "boundaries": {
+    "doesNotSignGateTwo": true,
+    "doesNotAuthorizeBuildOrRelease": true,
+    "doesNotAuthorizeProductionOrSpend": true,
+    "doesNotAcceptResidualRiskOrWaiveControls": true
+  }
+}

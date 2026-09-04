@@ -1,0 +1,311 @@
+{
+  "version": "steer-domain-review-record/v1",
+  "domain": "money",
+  "reviewType": "gate-2-exam",
+  "target": {
+    "organization": "steer-platform",
+    "item": "0001-flight-deck-foundation",
+    "revision": "01467e66988e2c76d57f24ebffc324b5c9f0b988",
+    "exam": {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+    }
+  },
+  "reviewer": {
+    "serviceIdentity": "codex-task:/root/gate2_r3_money",
+    "agentType": "independent-fresh-context-cost-control-review-agent",
+    "model": "OpenAI Codex GPT-5 serving configuration; exact model build not exposed to this task",
+    "configurationRevision": "task-assignment:/root/gate2_r3_money@2026-09-04;target:01467e66988e2c76d57f24ebffc324b5c9f0b988;money-r3-v1",
+    "freshContext": true,
+    "freshContextEvidence": "Dedicated task /root/gate2_r3_money received only the round-three Money-domain review assignment, performed no Builder or remediation-author work, first verified the immutable target, then independently inspected the complete 2,096-line exact Exam Git object, prior Money record and exception brief, and the bound monetary schemas, fixtures, semantic oracle, permissions, validator, and Gate 1 no-spend ruling before deciding.",
+    "builderIndependent": true
+  },
+  "decision": "send-back",
+  "confidence": "high",
+  "reviewedAt": "2026-09-04T14:05:08Z",
+  "reviewedCases": [
+    "Gate 1 no-spend ruling: spendingAuthorized=false, separatePaidDeploymentApprovalRequired=true, infrastructure ceiling USD 1000 per calendar month, model usage excluded",
+    "A2 separate verdicts and hard authorization boundaries",
+    "A3 cost, credential, and side-effect evidence ledgers",
+    "OR-03",
+    "OR-07",
+    "OR-08",
+    "OR-10",
+    "OR-11",
+    "OR-17",
+    "OR-18",
+    "OR-19",
+    "OR-20",
+    "OR-24",
+    "OR-25",
+    "WS-02",
+    "WS-05",
+    "WS-06",
+    "WS-08",
+    "WS-09",
+    "WS-10",
+    "WS-11",
+    "A7.1 effective permission baseline",
+    "A10.1 authoritative attempt records",
+    "A10.4 production and spend authorization separation",
+    "A11.1 named spend authorization and pre-spend denial",
+    "A11.2 fixed-point cost control",
+    "A11.3 spend-amplification and model ledger",
+    "A11.4 forecast, actual, breach, shutdown, and reconciliation",
+    "A14 model gateway, key, cache, budget, release, provisioning, and cost isolation",
+    "A15 technical-release predicate",
+    "A16 Gate 2 pass condition",
+    "Round-two closure section 6 spend-authorization record and race oracle",
+    "Round-two closure section 7 cost arithmetic, evidence schemas, and forecast rule",
+    "Round-two closure R2R2 executable correction contract",
+    "Round-two closure R3 authoritative-state and monetary-validation correction contract",
+    "Round-two closure R4 complete declared fixture execution contract",
+    "COST-001 through COST-019 and FC-001 through FC-010",
+    "SPEND-POS and six declared spend negatives",
+    "Nine COST-EVIDENCE record branches and schema negatives",
+    "AUTH-SPEND protected-action and race/path/substitution cases",
+    "Independent counterexamples: invalid cumulative successor, non-calendar-month grant, unapproved provider, denied forecast accepted, post-month-close invoice rejected, incorporated-Exam fixture-validator rejection",
+    "Prior finding reassessment: MONEY-G2-001",
+    "Prior finding reassessment: MONEY-G2-002",
+    "Prior finding reassessment: MONEY-G2-003",
+    "Prior finding reassessment: MONEY-G2-004",
+    "Prior finding reassessment: MONEY-G2-005",
+    "Prior finding reassessment: MONEY-G2-R2-001"
+  ],
+  "evidence": [
+    {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-3/review-target.json",
+      "sha256": "e3d7c841b3d5ac8fbb6e31e8601cfaafdff18b40e2d6040abafb38848e79e7d2"
+    },
+    {
+      "path": "intent/0001/reviews/domain/money.md",
+      "sha256": "dab443caab30051fba785ff1e3dcf529db5f5ebafc056e9d641c02de9f0c1b06"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/records/money.json",
+      "sha256": "8f08168f27b6bc532643b6af553b97aee8e704b04456f7627e53ab1fedec4eef"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/exception-brief.json",
+      "sha256": "7e6753e00e799a0d64820eeb43cdb0f79951e5072c242b62ef7694617e414adc"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/remediation-manifest.json",
+      "sha256": "8d5bf54dcdae5ab1d155ba241ce4263e863f70cb96c9cb3686c350b51eefa54d"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r10.json",
+      "sha256": "e0285543a74ddb9bc63e9531582310673cb3a5c81e375ed0f98eac22945cfb53"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/finding-resolution.json",
+      "sha256": "d76a4665bf0d091fe6f8e67c72169c9fb712bf61cc4d44b746297d84be2d0611"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/COST-ORACLE-VECTORS.candidate.json",
+      "sha256": "e71504a443e65596073fcb81de811bf30c2b2bf00310a7c05a0bfc41d87132d1"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json",
+      "sha256": "08de6ecd58c91eace368814f4e1120671f15ab8a91c955bbd55138d2cb58a423"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/SPEND-AUTHORIZATION.schema.json",
+      "sha256": "8e0701e006ee9e2e5f7f9a43dba5109826dbd6382b9e2eacfe0f6c3fd13dae73"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/COST-EVIDENCE.schema.json",
+      "sha256": "02eba6663432c13a350865194b1897030583c15b92a4e57b1a627350c292fe16"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/PERMISSIONS-MANIFEST.candidate.json",
+      "sha256": "3f47a8fc5e7c927de7ddcf1416310ed9747952c28bd762c842a6c33ddde32d4e"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+      "sha256": "661ee8ab26533fa7855b45485aabbbe5ba9873cfdb7a7deb3d50883745d0a57c"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/schema-validator.candidate.mjs",
+      "sha256": "8daa582edd585a01e078a0664685e5ff3da93850b3c58aa7e8fba6caf6189154"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs",
+      "sha256": "a5fa1d6c044687a97212719262bcdf8d040d43e7baa910d154a490006a8e4d1c"
+    },
+    {
+      "path": "intent/0001/signatures/gate-1.json",
+      "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+    },
+    {
+      "path": "kit/policy/gates.json",
+      "sha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56"
+    },
+    {
+      "path": "kit/schemas/domain-review-record.schema.json",
+      "sha256": "50cc75af34849a08dd2ef966a2bf944b711c861b5bd955d1cb9e33c0820857ea"
+    }
+  ],
+  "findings": [
+    {
+      "id": "MONEY-G2-001",
+      "severity": "blocker",
+      "status": "resolved",
+      "summary": "Resolved at the exact round-three target. The Exam retains separate infrastructure and model trees at organization, tenant, product, pod, and execution scope, requires atomic maximum reservation before credential or use, exercises exact and over-limit behavior, and includes model-gateway/key/cache/budget cross-tenant denial.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for MONEY-G2-001 at this exact Exam revision; preserve the separate scope trees and fail-before-credential tenant isolation."
+    },
+    {
+      "id": "MONEY-G2-002",
+      "severity": "blocker",
+      "status": "resolved",
+      "summary": "Resolved at the exact round-three target. Model attempts, fallback, tokens, tools, workflow retries, replay, worker recovery, sandbox resources, egress, analytics, and evidence volume are bounded; one logical billable identity is required and replay or recovery may create no new billable work.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for MONEY-G2-002 at this exact Exam revision; preserve all amplification bounds and cost-idempotency rules."
+    },
+    {
+      "id": "MONEY-G2-003",
+      "severity": "major",
+      "status": "resolved",
+      "summary": "Resolved at the exact round-three target. Model usage is expressly outside the infrastructure ceiling, has its own authorization and limit tree, and cannot enlarge or be counted within the infrastructure ceiling.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/signatures/gate-1.json",
+          "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for MONEY-G2-003 at this exact Exam revision; the model tree remains separately authorized and measured."
+    },
+    {
+      "id": "MONEY-G2-R2-001",
+      "severity": "blocker",
+      "status": "resolved",
+      "summary": "Resolved at the exact round-three target. Monetary arithmetic uses checked integer nanoUSD, preserves every nonzero sub-cent amount through aggregation, rejects unsafe overflow, and rounds only the closed provider invoice aggregate to display cents with half-to-even; rounded cents never feed authorization or enforcement.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/COST-ORACLE-VECTORS.candidate.json",
+          "sha256": "e71504a443e65596073fcb81de811bf30c2b2bf00310a7c05a0bfc41d87132d1"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for MONEY-G2-R2-001 at this exact Exam revision; preserve nanoUSD accumulation and one-time presentation rounding."
+    },
+    {
+      "id": "MONEY-G2-004",
+      "severity": "blocker",
+      "status": "open",
+      "summary": "The incorporated package adds the required exact spend path, org-budget-owner action, signature, provider proof, CAS, and schema, but its executable semantic oracle still accepts grants that violate the named authorization contract. Independently resealed counterexamples were accepted for a successor whose cumulative infrastructure and model lineage totals were both zero despite a nonzero predecessor and current limits, and for a record labeled calendar-month-utc spanning 2026-01-01 through 2027-01-01. The declared seven spend cases do not execute wrong-tenant, stale, expired, revoked, superseded/replacement, concurrent-winner, or same-key replay semantics against the parsed spend record. A later cost consumer also accepted a signed reservation whose provider proof named unapproved-paid-provider although the authorization permitted only fixture-provider. Thus a syntactically valid signed record can exceed its intended temporal, provider/SKU, and cumulative authority while still passing the bound oracle, so the ceiling remains correctly stated as non-authority but the only grant is not yet deterministic.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/records/money.json",
+          "sha256": "8f08168f27b6bc532643b6af553b97aee8e704b04456f7627e53ab1fedec4eef"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/schemas/SPEND-AUTHORIZATION.schema.json",
+          "sha256": "8e0701e006ee9e2e5f7f9a43dba5109826dbd6382b9e2eacfe0f6c3fd13dae73"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json",
+          "sha256": "08de6ecd58c91eace368814f4e1120671f15ab8a91c955bbd55138d2cb58a423"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+          "sha256": "661ee8ab26533fa7855b45485aabbbe5ba9873cfdb7a7deb3d50883745d0a57c"
+        }
+      ],
+      "requiredResolution": "Make semantic validation prove an exact UTC calendar-month period, currentness at the decision instant, the complete forward-only cumulative predecessor chain and totals, authorization-to-provider/SKU/cost-class containment, and one current winner for CAS/idempotency. Execute distinct malformed, wrong-tenant, stale, expired, revoked, superseded/replacement, over-ceiling, concurrent winner/loser, replay, invalid cumulative lineage, invalid month, and unapproved provider/SKU cases from serialized signed records. Every failed grant and consumer must deny before operational credential/provider request and show zero paid effect. The USD 1000 infrastructure amount remains only a ceiling, never authorization."
+    },
+    {
+      "id": "MONEY-G2-005",
+      "severity": "major",
+      "status": "open",
+      "summary": "The bound cost schemas and fixed-point vectors improve structural evidence, but the parsed cost oracle remains internally inconsistent and incomplete. It accepted a signed forecast with forecastDecision=deny as valid and does not derive that decision from the full signed assumptions. More seriously, section 7 requires provider invoice grouping after UTC month close, while the R3 correction and semantic validator require every record server timestamp and provider-proof time to be strictly before periodEnd; an otherwise valid invoice recorded at 2026-10-01T00:00:00Z for the September period is therefore rejected as COST_PERIOD_INVALID, and the fixture passes only by issuing September invoice proof on September 3 without checking billedAt. The technical-release cost evidence can consequently pass with an asserted contradictory forecast decision and cannot truthfully record the required post-close invoice reconciliation.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/schemas/COST-EVIDENCE.schema.json",
+          "sha256": "02eba6663432c13a350865194b1897030583c15b92a4e57b1a627350c292fe16"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/COST-ORACLE-VECTORS.candidate.json",
+          "sha256": "e71504a443e65596073fcb81de811bf30c2b2bf00310a7c05a0bfc41d87132d1"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+          "sha256": "661ee8ab26533fa7855b45485aabbbe5ba9873cfdb7a7deb3d50883745d0a57c"
+        }
+      ],
+      "requiredResolution": "Separate the usage period from evidence issuance and provider acknowledgement times so authenticated invoice and variance evidence may be created after month close while remaining bound to the closed period and authorization. Validate billedAt and reconciliation timing explicitly. Derive forecastDecision from schema-validated signed assumptions, price, authorization, all five scope trees, model separation, and Gate 1 ceiling rather than accepting its enum. Add exact before/at/after month-close and contradictory-decision negatives plus truthful post-close invoice/variance positives, with every denial effect-free and no forecast treated as spending authority."
+    },
+    {
+      "id": "MONEY-G2-R3-001",
+      "severity": "major",
+      "status": "open",
+      "summary": "The exact incorporated Exam binds the round-two deterministic fixtures and requires candidate schemas and fixtures to pass at the exact Exam revision, but the sole bound validator hard-codes the pre-incorporation Exam SHA-256 91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10. On the immutable round-three target, both ordinary and --fixtures-only execution complete all declared schema, authorization, spend, lifecycle, recovery, cost, and forecast loops and then fail before PASS because the actual incorporated Exam SHA-256 is 84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f. The package therefore cannot produce the exact-revision pass its canonical technical-release predicate demands, and the apparent declared-case pass cannot cure the two monetary counterexamples that the declared matrix omits.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs",
+          "sha256": "a5fa1d6c044687a97212719262bcdf8d040d43e7baa910d154a490006a8e4d1c"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/remediation-manifest.json",
+          "sha256": "8d5bf54dcdae5ab1d155ba241ce4263e863f70cb96c9cb3686c350b51eefa54d"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-3/review-target.json",
+          "sha256": "e3d7c841b3d5ac8fbb6e31e8601cfaafdff18b40e2d6040abafb38848e79e7d2"
+        }
+      ],
+      "requiredResolution": "Bind an exact-revision validator mode that verifies the immutable incorporated Exam, package, schemas, and every declared monetary case without expecting the obsolete base Exam digest. Add the independently reproduced spend-lineage, calendar-period, provider-scope, forecast-decision, and post-close invoice cases to the declared fixture inventory and require exact declared-versus-executed ID and kind equality. Refresh affected digests and obtain a new independent exact-revision review."
+    }
+  ],
+  "escalations": [
+    {
+      "triggerId": "unresolved-blocker-or-major-finding",
+      "reason": "MONEY-G2-004, MONEY-G2-005, and MONEY-G2-R3-001 leave unresolved material spending-authorization, cost-evidence, and exact-revision testability gaps. The commercial default-closed policy requires human Money/Economics specialist escalation unless a revised exact target closes them and a new independent review confirms closure; this agent cannot accept or waive the residual risk.",
+      "findingIds": [
+        "MONEY-G2-004",
+        "MONEY-G2-005",
+        "MONEY-G2-R3-001"
+      ]
+    }
+  ],
+  "boundaries": {
+    "doesNotSignGateTwo": true,
+    "doesNotAuthorizeBuildOrRelease": true,
+    "doesNotAuthorizeProductionOrSpend": true,
+    "doesNotAcceptResidualRiskOrWaiveControls": true
+  }
+}

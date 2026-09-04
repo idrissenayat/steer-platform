@@ -1,0 +1,184 @@
+{
+  "version": "steer-domain-review-record/v1",
+  "domain": "security",
+  "reviewType": "gate-2-exam",
+  "target": {
+    "organization": "steer-platform",
+    "item": "0001-flight-deck-foundation",
+    "revision": "01467e66988e2c76d57f24ebffc324b5c9f0b988",
+    "exam": {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+    }
+  },
+  "reviewer": {
+    "serviceIdentity": "codex-task:/root/gate2_r3_security",
+    "agentType": "independent-fresh-context-security-domain-review-agent",
+    "model": "OpenAI Codex GPT-5 serving configuration; exact model build not exposed to this task",
+    "configurationRevision": "task-assignment:/root/gate2_r3_security@2026-09-04;target:01467e66988e2c76d57f24ebffc324b5c9f0b988;security-r3-v1",
+    "freshContext": true,
+    "freshContextEvidence": "Dedicated task /root/gate2_r3_security received only the round-three Security-domain review assignment, performed no Builder or remediation-author work, first verified the immutable target, then independently inspected the complete 2,096-line Exam Git object and the exact frozen security evidence before deciding.",
+    "builderIndependent": true
+  },
+  "decision": "send-back",
+  "confidence": "high",
+  "reviewedAt": "2026-09-04T13:26:53Z",
+  "reviewedCases": [
+    "OR-17",
+    "OR-19",
+    "WS-02",
+    "WS-04",
+    "WS-07",
+    "WS-08",
+    "WS-11",
+    "SIG-01",
+    "SIG-02",
+    "SIG-03",
+    "SIG-04",
+    "SIG-05",
+    "SIG-06",
+    "SIG-07",
+    "SIG-08",
+    "SIG-09",
+    "SIG-10",
+    "SIG-11",
+    "SIG-12",
+    "SIG-13",
+    "SIG-14",
+    "SIG-15",
+    "A3 credential and side-effect ledgers",
+    "A6.1 OIDC and session matrix",
+    "A6.2 GitHub webhook contract",
+    "A6.3 MCP Streamable HTTP matrix",
+    "A6.4 timing-oracle protocol",
+    "A7.1 effective permission baseline",
+    "A7.2 malicious readiness fixtures",
+    "A10.1 signature and decision-attempt records",
+    "A14 cross-tenant and existence-oracle matrix",
+    "Round-two closure section 3 exhaustive action, path, credential, and role oracle",
+    "Round-two closure R2R2 executable correction contract",
+    "Round-two closure R3 authoritative-state correction contract",
+    "Round-two closure R4 exhaustive-policy and executed-matrix correction contract",
+    "Round-two closure R5 complete resource, delegation, lifetime, and authority-scope correction",
+    "Round-two closure R6 through R9 lifecycle and provider-trust security intersections",
+    "Authorization fixture matrix: 65 declared authorization cases and byte mutations",
+    "Protected App-authorship and live two-identity rollout evidence",
+    "Prior finding reassessment: SEC-G2-R2-001"
+  ],
+  "evidence": [
+    {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+    },
+    {
+      "path": "intent/0001/reviews/domain/security.md",
+      "sha256": "d1f944e90639ff3c5c54426417c5a2f34ae5011ae5e550c0b20d33a36dbaa851"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-3/review-target.json",
+      "sha256": "e3d7c841b3d5ac8fbb6e31e8601cfaafdff18b40e2d6040abafb38848e79e7d2"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/records/security.json",
+      "sha256": "b8ac0f7be99d9e85bb471b43ea96e376a8367a4fea5b450faf237effbe4b0b07"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/exception-brief.json",
+      "sha256": "7e6753e00e799a0d64820eeb43cdb0f79951e5072c242b62ef7694617e414adc"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/remediation-manifest.json",
+      "sha256": "8d5bf54dcdae5ab1d155ba241ce4263e863f70cb96c9cb3686c350b51eefa54d"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r10.json",
+      "sha256": "e0285543a74ddb9bc63e9531582310673cb3a5c81e375ed0f98eac22945cfb53"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/PERMISSIONS-MANIFEST.candidate.json",
+      "sha256": "3f47a8fc5e7c927de7ddcf1416310ed9747952c28bd762c842a6c33ddde32d4e"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json",
+      "sha256": "08de6ecd58c91eace368814f4e1120671f15ab8a91c955bbd55138d2cb58a423"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+      "sha256": "661ee8ab26533fa7855b45485aabbbe5ba9873cfdb7a7deb3d50883745d0a57c"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs",
+      "sha256": "a5fa1d6c044687a97212719262bcdf8d040d43e7baa910d154a490006a8e4d1c"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/finding-resolution.json",
+      "sha256": "d76a4665bf0d091fe6f8e67c72169c9fb712bf61cc4d44b746297d84be2d0611"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/human-rulings/hr-01-r2-policy-approval.json",
+      "sha256": "cb55a6dc3f6048d52a7f4c80d66371581bfe3ee073ad65a6b257f7b9c0721ea6"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/human-rulings/hr-01-r2.json",
+      "sha256": "bec8fda226b48a6ebcb4bd5ae86a1cb0ac4e354a125611c20d139c2885619ddb"
+    },
+    {
+      "path": "intent/0001/evidence/github-exam-protection-rollout.json",
+      "sha256": "b61c40a640ae0348aeadd191091c14225003d1e733c618e841e4da5804513e0d"
+    },
+    {
+      "path": "kit/policy/gates.json",
+      "sha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56"
+    }
+  ],
+  "findings": [
+    {
+      "id": "SEC-G2-R3-001",
+      "severity": "major",
+      "status": "open",
+      "summary": "The incorporated security package does not completely close SEC-G2-R2-001. The governing round-two closure text names `steer-permissions-manifest/v6`, while the exact package manifest binds a permissions artifact whose declared version is `steer-permissions-manifest/v9`; neither the remediation validator nor the protected-action decision validates that version, so the canonical Exam and executable oracle disagree about the normative permission schema. The executable hostile-role coverage is also incomplete relative to the prior required resolution and the Exam's own section 3: the 65 passing authorization cases contain no distinct originator or worker protected-path case, the platform-agent case is only a downstream-principal substitution, and `AUTH-EXAM-BUILDER` and `AUTH-EXAM-COMPROMISED` use the identical `actor-role` mutation, which always substitutes `builder`. The package can therefore report a complete passing declared matrix without proving each named principal and retry/fallback pathway against protected App-authored Exam work.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/records/security.json",
+          "sha256": "b8ac0f7be99d9e85bb471b43ea96e376a8367a4fea5b450faf237effbe4b0b07"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/PERMISSIONS-MANIFEST.candidate.json",
+          "sha256": "3f47a8fc5e7c927de7ddcf1416310ed9747952c28bd762c842a6c33ddde32d4e"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json",
+          "sha256": "08de6ecd58c91eace368814f4e1120671f15ab8a91c955bbd55138d2cb58a423"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+          "sha256": "661ee8ab26533fa7855b45485aabbbe5ba9873cfdb7a7deb3d50883745d0a57c"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs",
+          "sha256": "a5fa1d6c044687a97212719262bcdf8d040d43e7baa910d154a490006a8e4d1c"
+        }
+      ],
+      "requiredResolution": "Make the canonical Exam and the bound permission artifact name the same exact schema/version and make the validator reject any version mismatch. Preserve the existing normal-item protected-path case, replace the duplicate compromised case with a genuinely distinct coherent compromised-caller case, and add independently executed originator, platform-agent, worker, retry, and fallback protected-path negatives with the applicable upstream credential, authority, delegation, assignment, selector, path, and actor-role bytes coherently varied. Every row must deny before operational credential or installation-token exchange and produce the complete typed zero-effect ledger. Refresh every affected digest and obtain a new exact-revision independent review."
+    }
+  ],
+  "escalations": [
+    {
+      "triggerId": "unresolved-blocker-or-major-finding",
+      "reason": "SEC-G2-R3-001 leaves an unresolved major protected-authorship and least-privilege test-oracle gap. The commercial default-closed policy requires Security specialist escalation unless a revised exact target aligns the normative permission schema and executes the complete named hostile-principal matrix; this reviewer cannot accept or waive the residual risk.",
+      "findingIds": [
+        "SEC-G2-R3-001"
+      ]
+    }
+  ],
+  "boundaries": {
+    "doesNotSignGateTwo": true,
+    "doesNotAuthorizeBuildOrRelease": true,
+    "doesNotAuthorizeProductionOrSpend": true,
+    "doesNotAcceptResidualRiskOrWaiveControls": true
+  }
+}

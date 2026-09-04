@@ -1,0 +1,386 @@
+{
+  "version": "steer-domain-review-record/v1",
+  "domain": "legal",
+  "reviewType": "gate-2-exam",
+  "target": {
+    "organization": "steer-platform",
+    "item": "0001-flight-deck-foundation",
+    "revision": "01467e66988e2c76d57f24ebffc324b5c9f0b988",
+    "exam": {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+    }
+  },
+  "reviewer": {
+    "serviceIdentity": "codex-task:/root/gate2_r3_legal",
+    "agentType": "independent-fresh-context-legal-compliance-domain-review-agent",
+    "model": "OpenAI Codex GPT-5 serving configuration; exact model build not exposed to this task",
+    "configurationRevision": "task-assignment:/root/gate2_r3_legal@2026-09-04;target:01467e66988e2c76d57f24ebffc324b5c9f0b988;legal-r3-v1",
+    "freshContext": true,
+    "freshContextEvidence": "Dedicated task /root/gate2_r3_legal received only the round-three Legal-domain review assignment, performed no Builder or remediation-author work, verified the immutable target, read the complete 2,096-line Exam Git object and frozen legal evidence, and independently reproduced the legal-control counterexample and exact-revision validator failure before deciding. Prior approvals, records, and Critic reports were treated as evidence rather than authority or legal advice.",
+    "builderIndependent": true
+  },
+  "decision": "send-back",
+  "confidence": "high",
+  "reviewedAt": "2026-09-04T14:20:55Z",
+  "reviewedCases": [
+    "OR-02",
+    "OR-03",
+    "OR-04",
+    "OR-05",
+    "OR-06",
+    "OR-07",
+    "OR-08",
+    "OR-10",
+    "OR-15",
+    "OR-19",
+    "OR-20",
+    "OR-25",
+    "WS-02",
+    "WS-04",
+    "WS-09",
+    "WS-12",
+    "SIG-01",
+    "SIG-02",
+    "SIG-03",
+    "SIG-04",
+    "SIG-05",
+    "SIG-06",
+    "SIG-07",
+    "SIG-08",
+    "SIG-09",
+    "SIG-10",
+    "SIG-11",
+    "SIG-12",
+    "SIG-13",
+    "SIG-14",
+    "SIG-15",
+    "A1 authority, scope, precedence, support-artifact, and revision binding",
+    "A3 reproducibility, evidence, and side-effect contract",
+    "A6.1 identity and session evidence",
+    "A8 privacy inventory and record lifecycle",
+    "A10.1 signature and authoritative-attempt envelope",
+    "A10.2 attribution after accountability transfer",
+    "A10.3 migration authorization and record preservation",
+    "A10.4 release authorization record",
+    "A10.5 regulated-use signed-log and HR-02 prerequisite",
+    "A15 legal-domain routing and technical-release predicate",
+    "A16 Gate 2 exact-revision and HR-01 prerequisite",
+    "Round-two closure section 4 sanitized-real provenance and lifecycle",
+    "Round-two closure section 8 provider-native decision recovery",
+    "Round-two closure section 9 lifecycle disposition authorization",
+    "Round-two closure section 11 HR-01-R2 exact-revision ruling",
+    "R2R2 lifecycle authorization and receipt contract",
+    "R3 policy-derived lifecycle boundary and signed authorization contract",
+    "R4 exhaustive protected-action and executed-matrix contract",
+    "R5 credential, delegation, identity, and authority-scope contract",
+    "R6 through R9 per-copy authority, provider receipt, replay, and trust-domain contracts",
+    "Prior finding reassessment: LEGAL-G2-001",
+    "Prior finding reassessment: LEGAL-G2-002",
+    "Prior finding reassessment: LEGAL-G2-003",
+    "Prior finding reassessment: LEGAL-G2-004",
+    "Prior finding reassessment: LEGAL-G2-005",
+    "Prior finding reassessment: LEGAL-G2-R2-001",
+    "HR-01-R2 policy acceptance and canonical-Exam ratification evidence",
+    "Executable lifecycle disposition-authority identity counterexample",
+    "Exact incorporated-Exam validator execution"
+  ],
+  "evidence": [
+    {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+    },
+    {
+      "path": "intent/0001/reviews/domain/legal.md",
+      "sha256": "94d7097969dc65a8abe31986419dbb3bd015960678d86ad69f92212959ceb841"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-3/review-target.json",
+      "sha256": "e3d7c841b3d5ac8fbb6e31e8601cfaafdff18b40e2d6040abafb38848e79e7d2"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/records/legal.json",
+      "sha256": "413810d772289a83fe97847eebcf99020a1e70c83b7f15c42985f4c070886704"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/exception-brief.json",
+      "sha256": "7e6753e00e799a0d64820eeb43cdb0f79951e5072c242b62ef7694617e414adc"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/remediation-manifest.json",
+      "sha256": "8d5bf54dcdae5ab1d155ba241ce4263e863f70cb96c9cb3686c350b51eefa54d"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r10.json",
+      "sha256": "e0285543a74ddb9bc63e9531582310673cb3a5c81e375ed0f98eac22945cfb53"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+      "sha256": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/human-rulings/hr-01-r2-policy-approval.json",
+      "sha256": "cb55a6dc3f6048d52a7f4c80d66371581bfe3ee073ad65a6b257f7b9c0721ea6"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/human-rulings/hr-01-r2.json",
+      "sha256": "bec8fda226b48a6ebcb4bd5ae86a1cb0ac4e354a125611c20d139c2885619ddb"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/PERMISSIONS-MANIFEST.candidate.json",
+      "sha256": "3f47a8fc5e7c927de7ddcf1416310ed9747952c28bd762c842a6c33ddde32d4e"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/DISPOSITION-AUTHORIZATION.schema.json",
+      "sha256": "90c2bfd0c029435dd7d155a513eb97c194b512c9f20bd14ae08681e564e4c7e2"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/RAW-POLICY-GRANT.schema.json",
+      "sha256": "e8f020ac06411cc4690b565fd6e1153cab7ac939ce772e6028237fcd25f5c09d"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json",
+      "sha256": "08de6ecd58c91eace368814f4e1120671f15ab8a91c955bbd55138d2cb58a423"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+      "sha256": "661ee8ab26533fa7855b45485aabbbe5ba9873cfdb7a7deb3d50883745d0a57c"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs",
+      "sha256": "a5fa1d6c044687a97212719262bcdf8d040d43e7baa910d154a490006a8e4d1c"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/SIGNED-LOG-SPEC.candidate.md",
+      "sha256": "ece4df65505ed563137d6e4797cbe8977a6ef3cfd3be05dd6ef62da9a15ecbbe"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/PROVIDER-APPROVAL-RECOVERY.candidate.md",
+      "sha256": "e2024657cfb100ae12e0f4ba2b44ae0a6ad3eaa993ec3f49d1c38abbae4fa05c"
+    },
+    {
+      "path": "intent/0001/evidence/github-exam-protection-rollout.json",
+      "sha256": "b61c40a640ae0348aeadd191091c14225003d1e733c618e841e4da5804513e0d"
+    },
+    {
+      "path": "kit/policy/gates.json",
+      "sha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56"
+    },
+    {
+      "path": "kit/schemas/domain-review-record.schema.json",
+      "sha256": "50cc75af34849a08dd2ef966a2bf944b711c861b5bd955d1cb9e33c0820857ea"
+    }
+  ],
+  "findings": [
+    {
+      "id": "LEGAL-G2-001",
+      "severity": "blocker",
+      "status": "resolved",
+      "summary": "Resolved for the current commercial Gate 2 definition. A10.5 keeps any future regulated technical release or pilot fail-closed until the signed-log specification is implemented and verified and a separate current qualified-human HR-02 record exists; it does not falsely require or infer HR-02 for this commercial review.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/remediation/SIGNED-LOG-SPEC.candidate.md",
+          "sha256": "ece4df65505ed563137d6e4797cbe8977a6ef3cfd3be05dd6ef62da9a15ecbbe"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for prior finding LEGAL-G2-001 for the current commercial Gate 2. Preserve the separate fail-closed HR-02 and signed-log implementation requirements before any regulated activation."
+    },
+    {
+      "id": "LEGAL-G2-002",
+      "severity": "major",
+      "status": "resolved",
+      "summary": "Resolved in the canonical Exam definition. A10.1 requires exact organization, item, provider/repository, artifact bytes and revision, seat and sequence, decision and server time, verified subject and active hat, issuer and immutable identity evidence, session, authorization policy, provider proof, and durable provider record, with later independent retrieval and verification.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for prior finding LEGAL-G2-002 in the prose definition; the new executable and present-ruling nonconformance is recorded separately as LEGAL-G2-R3-001."
+    },
+    {
+      "id": "LEGAL-G2-003",
+      "severity": "major",
+      "status": "resolved",
+      "summary": "Resolved at the policy-definition level. The ratified v2 policy gives the previously missing sanitized-real corpus, provenance, raw working copies, sanitized prompts, baselines, derived text, exports, histories, provider copies, backups, and deletion evidence exact classes, triggers, fixed periods, access/export rules, holds, reference precedence, disposition states, receipts, and tombstones.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+          "sha256": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/human-rulings/hr-01-r2.json",
+          "sha256": "bec8fda226b48a6ebcb4bd5ae86a1cb0ac4e354a125611c20d139c2885619ddb"
+        }
+      ],
+      "requiredResolution": "No further class-schedule resolution is required for prior finding LEGAL-G2-003 at this exact policy and Exam digest; preserve its exhaustive schedules and the human-ruling boundary."
+    },
+    {
+      "id": "LEGAL-G2-004",
+      "severity": "major",
+      "status": "resolved",
+      "summary": "Resolved in the Exam definition. A10.1 defines an attributed authoritative-attempt envelope and a fail-closed state machine for create, sign, decline, merge, send-back, release, retry, partial failure, provider-unknown outcomes, reconciliation, and projection without duplicate approval or workflow advance.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for prior finding LEGAL-G2-004 in the canonical prose at this revision."
+    },
+    {
+      "id": "LEGAL-G2-005",
+      "severity": "major",
+      "status": "resolved",
+      "summary": "Resolved in the Exam definition. A10.2 exhausts transfer/reassignment and revoked or disabled predecessor/successor states while keeping completed decisions permanently attributed to the original verified subject, then-active hat, sequence, revision, time, identity evidence, and provider proof.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for prior finding LEGAL-G2-005 at this exact Exam revision."
+    },
+    {
+      "id": "LEGAL-G2-R2-001",
+      "severity": "major",
+      "status": "resolved",
+      "summary": "Resolved as to the prior omission. The incorporated section 4 and ratified policy v2 enumerate sanitized-real prompts, provenance and use authorization, raw working copies and disposition receipts, baselines, failure shrinks, Git/provider/history/fork/version/cache/backup/export copies, production-versus-fixture separation, exact lifecycle triggers and durations, access/export/hold rules, and verified disposition outcomes.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/records/legal.json",
+          "sha256": "413810d772289a83fe97847eebcf99020a1e70c83b7f15c42985f4c070886704"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+          "sha256": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/human-rulings/hr-01-r2.json",
+          "sha256": "bec8fda226b48a6ebcb4bd5ae86a1cb0ac4e354a125611c20d139c2885619ddb"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for the record-class omission in LEGAL-G2-R2-001 itself. The distinct failure to prove who validly authorizes those dispositions is recorded as LEGAL-G2-R3-001."
+    },
+    {
+      "id": "LEGAL-G2-R3-001",
+      "severity": "major",
+      "status": "open",
+      "summary": "The incorporated lifecycle package does not test or enforce the Exam's legal attribution requirement for a current qualified privacy/legal records owner. `DISPOSITION-AUTHORIZATION.schema.json` and `RAW-POLICY-GRANT.schema.json` contain only a constant `signerRole` plus a local record signature; they omit verified human subject, active hat and current qualification/assignment, identity issuer and immutable evidence, session, server decision time, authorization-policy evidence, and durable provider proof. The semantic oracle manufactures these records with the module's fixed local fixture key and accepts them solely on structure, digest, that key, role string, time window, and object bindings. An independently executed target-bound positive `RC-FAILED-RUN` lifecycle fixture reached `deleted-tombstoned` with `effects.lifecycle=1` even though its authorization record had none of those human identity, authority, session, or provider-proof fields. No declared lifecycle case supplies an unqualified, transferred, revoked, wrong-subject, wrong-hat, identity-evidence-missing, session-invalid, or provider-proof-missing disposition signer. The same gap is visible in the present HR-01-R2 prerequisite: it binds the policy and canonical Exam and preserves the non-authorizing boundary, but it has no verified stable subject, identity issuer/evidence, authorization-policy binding, sequence, or durable provider message ID and is not validated against any closed ruling schema or semantic oracle. Thus the package can claim the qualified-human prerequisite and authorize deletion/crypto-erasure without mechanically proving the human identity and active authority required by A10.1, section 9, A16, and the Gate policy.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/human-rulings/hr-01-r2.json",
+          "sha256": "bec8fda226b48a6ebcb4bd5ae86a1cb0ac4e354a125611c20d139c2885619ddb"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/schemas/DISPOSITION-AUTHORIZATION.schema.json",
+          "sha256": "90c2bfd0c029435dd7d155a513eb97c194b512c9f20bd14ae08681e564e4c7e2"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/schemas/RAW-POLICY-GRANT.schema.json",
+          "sha256": "e8f020ac06411cc4690b565fd6e1153cab7ac939ce772e6028237fcd25f5c09d"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/PERMISSIONS-MANIFEST.candidate.json",
+          "sha256": "3f47a8fc5e7c927de7ddcf1416310ed9747952c28bd762c842a6c33ddde32d4e"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json",
+          "sha256": "08de6ecd58c91eace368814f4e1120671f15ab8a91c955bbd55138d2cb58a423"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+          "sha256": "661ee8ab26533fa7855b45485aabbbe5ba9873cfdb7a7deb3d50883745d0a57c"
+        },
+        {
+          "path": "kit/policy/gates.json",
+          "sha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56"
+        }
+      ],
+      "requiredResolution": "Define one closed, target-bound human-ruling and disposition-authority envelope/schema that carries the complete A10.1 identity, active-hat, qualification/assignment, session, server-time, authorization-policy, provider-record, provider-proof, sequence, policy, target, inventory, hold/reference, and conditions binding. Validate its signature and provider proof against independently selected trust anchors rather than a fixture-local signer or role assertion. Make HR-01-R2 and every raw-policy grant and per-copy disposition authorization pass that same semantic path. Add positive and zero-effect negative cases for wrong, absent, unverified, disabled, transferred, revoked, expired, unqualified, wrong-hat, wrong-session, stale-policy/target, missing identity evidence, missing/invalid provider proof, and replay/race signers. Refresh all affected digests, obtain a new actual qualified-human ruling over the final bytes, and repeat exact-revision independent Legal review; this agent cannot create, infer, or waive that ruling."
+    },
+    {
+      "id": "LEGAL-G2-R3-002",
+      "severity": "major",
+      "status": "open",
+      "summary": "The incorporated legal-control package is not executable against the immutable round-three Exam revision. `validate-remediation.mjs` completes its declared signature/authorization, sanitized-real, lifecycle, recovery, cost, and other loops but then asserts that the canonical Exam still has the superseded pre-incorporation SHA-256 `91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10`; the protected incorporated Exam is `84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f`. The observed target run therefore terminates with an assertion failure rather than a target-bound pass. A16 and the round-two technical-release predicate require the package schemas and deterministic fixtures to pass at the exact canonical Exam revision, so R10's pre-incorporation PASS cannot substitute for an executable legal record, retention, disposition, signed-log/provider-proof, and signature matrix at this target.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r10.json",
+          "sha256": "e0285543a74ddb9bc63e9531582310673cb3a5c81e375ed0f98eac22945cfb53"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/remediation-manifest.json",
+          "sha256": "8d5bf54dcdae5ab1d155ba241ce4263e863f70cb96c9cb3686c350b51eefa54d"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs",
+          "sha256": "a5fa1d6c044687a97212719262bcdf8d040d43e7baa910d154a490006a8e4d1c"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-3/review-target.json",
+          "sha256": "e3d7c841b3d5ac8fbb6e31e8601cfaafdff18b40e2d6040abafb38848e79e7d2"
+        }
+      ],
+      "requiredResolution": "Provide an exact-revision validator mode that verifies the protected incorporated Exam and all bound legal-control artifacts without expecting the obsolete base Exam digest. It must execute the complete corrected human-ruling and disposition-authority identity/proof matrix, require declared-versus-executed ID equality, and produce a pass bound to the final canonical Exam revision and refreshed package digests before a new independent Legal review."
+    }
+  ],
+  "escalations": [
+    {
+      "triggerId": "unresolved-blocker-or-major-finding",
+      "reason": "LEGAL-G2-R3-001 and LEGAL-G2-R3-002 leave unresolved major attribution, disposition-authority, human-ruling, and exact-revision testability gaps. The commercial default-closed policy requires Legal specialist escalation unless a revised exact target closes them; this agent cannot accept or waive the residual risk.",
+      "findingIds": [
+        "LEGAL-G2-R3-001",
+        "LEGAL-G2-R3-002"
+      ]
+    },
+    {
+      "triggerId": "inconclusive-or-missing-required-evidence",
+      "reason": "The exact target has no passing target-bound validator for the legal controls, and the current HR-01-R2 and lifecycle authorization records lack the closed identity, qualification, policy, and durable provider-proof evidence needed to establish the required human authority mechanically.",
+      "findingIds": [
+        "LEGAL-G2-R3-001",
+        "LEGAL-G2-R3-002"
+      ]
+    },
+    {
+      "triggerId": "law-regulation-contract-or-policy-requires-human-specialist",
+      "reason": "The Exam and retention policy reserve lifecycle policy acceptance and disposition authority to a current qualified privacy/legal records owner. Closing the record and evidence contract and issuing a new ruling require that qualified human; this agent cannot provide legal advice, declare qualification, or substitute its review for the ruling.",
+      "findingIds": [
+        "LEGAL-G2-R3-001"
+      ]
+    },
+    {
+      "triggerId": "irreversible-external-effect-or-material-rights-impact",
+      "reason": "The defective authorization predicate gates deletion and cryptographic erasure of corpus, evidence, provider, history, backup, and export copies. Permitting those irreversible effects without verified current human authority can materially affect originator and records-preservation rights, so no disposition risk is accepted here.",
+      "findingIds": [
+        "LEGAL-G2-R3-001"
+      ]
+    }
+  ],
+  "boundaries": {
+    "doesNotSignGateTwo": true,
+    "doesNotAuthorizeBuildOrRelease": true,
+    "doesNotAuthorizeProductionOrSpend": true,
+    "doesNotAcceptResidualRiskOrWaiveControls": true
+  }
+}

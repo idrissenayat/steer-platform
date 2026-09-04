@@ -1,0 +1,430 @@
+{
+  "version": "steer-domain-review-record/v1",
+  "domain": "irreversible-operations",
+  "reviewType": "gate-2-exam",
+  "target": {
+    "organization": "steer-platform",
+    "item": "0001-flight-deck-foundation",
+    "revision": "01467e66988e2c76d57f24ebffc324b5c9f0b988",
+    "exam": {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+    }
+  },
+  "reviewer": {
+    "serviceIdentity": "codex-task:/root/gate2_r3_irreversible",
+    "agentType": "independent-fresh-context-irreversible-operations-domain-review-agent",
+    "model": "OpenAI Codex GPT-5 serving configuration; exact model build not exposed to this task",
+    "configurationRevision": "task-assignment:/root/gate2_r3_irreversible@2026-09-04;target:01467e66988e2c76d57f24ebffc324b5c9f0b988;irreversible-r3-v1",
+    "freshContext": true,
+    "freshContextEvidence": "Dedicated task /root/gate2_r3_irreversible received only the round-three Irreversible Operations assignment, performed no Builder, remediation-author, Test Agent, canonical-Exam, signature, migration, deletion, provider, or release work, verified the immutable target, independently read the complete 2,096-line Exam Git object and exact frozen evidence, reproduced the lifecycle counterexamples and target-revision validator failure, and treated prior records and R10 as evidence rather than authority.",
+    "builderIndependent": true
+  },
+  "decision": "send-back",
+  "confidence": "high",
+  "reviewedAt": "2026-09-04T14:51:44Z",
+  "reviewedCases": [
+    "OR-02 Git-only destroy and rebuild",
+    "OR-05 exact-revision signature",
+    "OR-06 send-back idempotency",
+    "OR-14 decay without deletion",
+    "OR-20 originator retention and disposition",
+    "WS-02 authoritative originator commit",
+    "WS-04 complete human signature",
+    "WS-05 durable Gate wait and failure interleavings",
+    "WS-09 immutable tenant evidence",
+    "WS-12 Gate 3 second look",
+    "WS-13 identical reconstruction",
+    "SIG-05 sequence refusal",
+    "SIG-06 exact-revision refusal",
+    "SIG-08 decision and timestamp refusal",
+    "SIG-10 provider conflict, timeout, and retry",
+    "SIG-12 commercial default-closed authorization boundary",
+    "SIG-14 regulated two-human boundary",
+    "A3 evidence, credential, side-effect, and cost ledgers",
+    "A8 privacy inventory, retention, holds, disposition, receipts, and tombstones",
+    "A10.1 authoritative attempt state machine",
+    "A10.3 forward-only expand, backfill, contract, rollback, and recovery matrix",
+    "A10.4 release plan, canary, authorization, failure, and reconciliation matrix",
+    "A11 distinct spend authorization and pre-provider denial",
+    "Round-two closure section 3 protected-action and authority oracle",
+    "Round-two closure section 9 lifecycle disposition and schema-migration authorization",
+    "R2R2 lifecycle execution contract",
+    "R3 authoritative lifecycle state contract",
+    "R4 exhaustive-policy and executed-matrix contract",
+    "R5 resource, delegation, lifetime, and authority-scope contract",
+    "R6 exact-copy inventory contract",
+    "R7 per-copy and per-key bijection contract",
+    "R8 provider receipt and replay contract",
+    "R9 independent provider trust-domain contract",
+    "Cross-tenant delete, expire, release, provisioning, and cost rows",
+    "Prior finding reassessment: IRREV-G2-001 through IRREV-G2-004",
+    "Prior finding reassessment: IRREV-G2-R2-001",
+    "Exact-target remediation validator and declared-versus-executed fixture inventory"
+  ],
+  "evidence": [
+    {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+    },
+    {
+      "path": "intent/0001/reviews/domain/irreversible-operations.md",
+      "sha256": "1b6b78ce9d2fbca354a329011571cc8a9078f1d575ae534a4fd2fa0f4e206ea0"
+    },
+    {
+      "path": "intent/0001/reviews/domain/records/irreversible-operations.json",
+      "sha256": "2e05ea5f8b4c901c6e0fcefe5b8e24433549b9f24876e74f2538e4a890267c0c"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/records/irreversible-operations.json",
+      "sha256": "1d4ef82ee7091274534178999b65dbc15cdb4e984f9dd3bc25dd2eb988ad2c27"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/exception-brief.json",
+      "sha256": "7e6753e00e799a0d64820eeb43cdb0f79951e5072c242b62ef7694617e414adc"
+    },
+    {
+      "path": "intent/0001/PLAN.md",
+      "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+    },
+    {
+      "path": "intent/0001/ARCHITECTURE.md",
+      "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+    },
+    {
+      "path": "intent/0001/signatures/gate-1.json",
+      "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+    },
+    {
+      "path": "kit/policy/gates.json",
+      "sha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/remediation-manifest.json",
+      "sha256": "8d5bf54dcdae5ab1d155ba241ce4263e863f70cb96c9cb3686c350b51eefa54d"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r10.json",
+      "sha256": "e0285543a74ddb9bc63e9531582310673cb3a5c81e375ed0f98eac22945cfb53"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/PERMISSIONS-MANIFEST.candidate.json",
+      "sha256": "3f47a8fc5e7c927de7ddcf1416310ed9747952c28bd762c842a6c33ddde32d4e"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+      "sha256": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/PROVIDER-KEY-REGISTRY.candidate.json",
+      "sha256": "20e7973a2daa9f1f21d09091cda62e92c369b6f55e0fb6fd436dafe6724152e8"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json",
+      "sha256": "08de6ecd58c91eace368814f4e1120671f15ab8a91c955bbd55138d2cb58a423"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+      "sha256": "661ee8ab26533fa7855b45485aabbbe5ba9873cfdb7a7deb3d50883745d0a57c"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs",
+      "sha256": "a5fa1d6c044687a97212719262bcdf8d040d43e7baa910d154a490006a8e4d1c"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/schema-validator.candidate.mjs",
+      "sha256": "8daa582edd585a01e078a0664685e5ff3da93850b3c58aa7e8fba6caf6189154"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/finding-resolution.json",
+      "sha256": "d76a4665bf0d091fe6f8e67c72169c9fb712bf61cc4d44b746297d84be2d0611"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/human-rulings/hr-01-r2-policy-approval.json",
+      "sha256": "cb55a6dc3f6048d52a7f4c80d66371581bfe3ee073ad65a6b257f7b9c0721ea6"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/human-rulings/hr-01-r2.json",
+      "sha256": "bec8fda226b48a6ebcb4bd5ae86a1cb0ac4e354a125611c20d139c2885619ddb"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/PROTECTED-ACTION-REQUEST.schema.json",
+      "sha256": "58c62d2169b7936afefe1018c62b3eb3ea4e5de6f7ac21355e8ef24d77cae2bb"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/LIFECYCLE-EVENT.schema.json",
+      "sha256": "e3a4c42d33959b3a357b94ceef78565f7ef0943e0af8c6960b2c6e672f780948"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/RAW-POLICY-GRANT.schema.json",
+      "sha256": "e8f020ac06411cc4690b565fd6e1153cab7ac939ce772e6028237fcd25f5c09d"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/DISPOSITION-AUTHORIZATION.schema.json",
+      "sha256": "90c2bfd0c029435dd7d155a513eb97c194b512c9f20bd14ae08681e564e4c7e2"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/COPY-INVENTORY.schema.json",
+      "sha256": "d153e065281d79dc86b44df16e25112a7e1c9860ec79f9e0e486fef6b4fc3163"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/PROVIDER-KEY-REGISTRY.schema.json",
+      "sha256": "acb6f18b40e5122d0b237bf65d8909fa11aca99f96b94e6b76f91972be2d203b"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/PROVIDER-DISPOSITION-RECEIPT.schema.json",
+      "sha256": "5c83eb09845bf4c8310bb46f6b57fbbddf57c19af7a79b28e13a681be08b8ac6"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/DISPOSITION-RECEIPT.schema.json",
+      "sha256": "de69466e21eb45d9fa190b92b5b503dbd4503debf2a427385a4cd10e66e8dd3e"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/TOMBSTONE.schema.json",
+      "sha256": "1f9b6914d79ed99964cf613dfb5f15e4e8b9109d71da80bcd387c29a649902d4"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-3/review-target.json",
+      "sha256": "e3d7c841b3d5ac8fbb6e31e8601cfaafdff18b40e2d6040abafb38848e79e7d2"
+    },
+    {
+      "path": "kit/schemas/domain-review-record.schema.json",
+      "sha256": "50cc75af34849a08dd2ef966a2bf944b711c861b5bd955d1cb9e33c0820857ea"
+    }
+  ],
+  "findings": [
+    {
+      "id": "IRREV-G2-001",
+      "severity": "blocker",
+      "status": "resolved",
+      "summary": "Resolved in the canonical Exam definition. A10.3 now requires an enumerated version matrix, expand and migrate sequencing, tenant-scoped resumable backfill, interruption at every batch and checkpoint, mixed old/new readers and writers, application rollback, separately authorized destructive contract, pre/post truth hashes, journals, side effects, backup/PITR, restoration, retry, and cross-tenant refusal. The distinct failure to make that matrix executable is recorded as IRREV-G2-R3-002.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/PLAN.md",
+          "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+        }
+      ],
+      "requiredResolution": "No further prose-scope resolution is required for prior finding IRREV-G2-001; IRREV-G2-R3-002 must be closed before approval."
+    },
+    {
+      "id": "IRREV-G2-002",
+      "severity": "major",
+      "status": "resolved",
+      "summary": "Resolved in the canonical Exam definition. A10.1 supplies one canonical actor-bound mutation-attempt envelope and explicit refused, unknown, committed, and projected transitions for create, sign, decline, merge, send-back, release, and other authoritative writes, including conflict, timeout-before/after-effect, partial result, crash, retry, replay, projection failure, and reconciliation with exactly one authoritative result or safe non-result.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for prior finding IRREV-G2-002 at this exact Exam revision."
+    },
+    {
+      "id": "IRREV-G2-003",
+      "severity": "major",
+      "status": "resolved",
+      "summary": "Resolved in the canonical Exam definition. A10.4 binds the verified release actor and hat, exact Exam and implementation revisions, evidence/configuration/policy, canary and rollback thresholds, idempotency, distinct production and spend authorizations, and durable release-rails result; it tests stale authority/evidence, same-session refusal, conflict, timeout, retry, partial rollout, abort, recovery, and reconciliation and keeps Gate and ceiling states non-authorizing.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/signatures/gate-1.json",
+          "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for prior finding IRREV-G2-003 at this exact Exam revision; all production, release, provider, deployment, and spend actions remain separately human-authorized and unperformed."
+    },
+    {
+      "id": "IRREV-G2-004",
+      "severity": "major",
+      "status": "resolved",
+      "summary": "Resolved at the policy-definition level. The incorporated v2 retention policy and A8 enumerate authoritative artifacts, decisions, signed logs, release/migration records, referenced and failed evidence, security/PostHog logs, projections, deletion evidence, sanitized-real records and copies, fixed triggers/durations, holds, reference revocation, exports, inventory, provider receipts, backup reappearance, tombstones, and fail-closed unknown outcomes. The distinct executable authority and trigger defects are recorded as IRREV-G2-R3-001.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+          "sha256": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/human-rulings/hr-01-r2.json",
+          "sha256": "bec8fda226b48a6ebcb4bd5ae86a1cb0ac4e354a125611c20d139c2885619ddb"
+        }
+      ],
+      "requiredResolution": "No further record-class or prose-lifecycle resolution is required for prior finding IRREV-G2-004; IRREV-G2-R3-001 and IRREV-G2-R3-003 must be closed before approval."
+    },
+    {
+      "id": "IRREV-G2-R2-001",
+      "severity": "major",
+      "status": "resolved",
+      "summary": "Resolved as to the prior missing-action defect. The v9 permissions manifest now enumerates records.disposition.authorize, a per-key raw-policy grant, lifecycle delete/crypto-erase/tombstone actions, lifecycle-worker, migration plan/cleanup authorizers, schema-migration-runner, expand/backfill/contract actions, provider scopes, selectors, delegation, credential lifetimes, CAS, retry, race, protected-path, and provider-trust controls. The new gaps concern the weaker executed lifecycle/migration oracles, not absence of these declarations.",
+      "evidence": [
+        {
+          "path": "intent/0001/reviews/domain/round-2/records/irreversible-operations.json",
+          "sha256": "1d4ef82ee7091274534178999b65dbc15cdb4e984f9dd3bc25dd2eb988ad2c27"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/PERMISSIONS-MANIFEST.candidate.json",
+          "sha256": "3f47a8fc5e7c927de7ddcf1416310ed9747952c28bd762c842a6c33ddde32d4e"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json",
+          "sha256": "08de6ecd58c91eace368814f4e1120671f15ab8a91c955bbd55138d2cb58a423"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for the exact missing-action finding IRREV-G2-R2-001; preserve these narrow declarations while resolving IRREV-G2-R3-001 and IRREV-G2-R3-002."
+    },
+    {
+      "id": "IRREV-G2-R3-001",
+      "severity": "blocker",
+      "status": "open",
+      "summary": "The executable lifecycle oracle can reach `deleted-tombstoned` without proving the ratified policy's authoritative trigger-event or qualified-human disposition contract. The policy requires duplicate-key-rejecting eventVersion 2 events with exact organization, item/environment, record class and revision, actor and authority, policy, correlation, occurred time and durable timestamp authority, provider record, and event-specific members. The bound LIFECYCLE-EVENT schema instead accepts a separate simplified v1 derived event; its signed trigger history has no schema, and deriveLifecycleBoundary trusts rows containing only type, at, and recordId. An independently resealed history row with eventVersion `999`, organization `attacker-tenant`, and timestampAuthority `browser-caller` still produced `deleted-tombstoned` with lifecycle effect 1. The same accepted raw-erasure path uses RAW-POLICY-GRANT v2 records that omit the policy-mandated sanitizer/inspector revisions, allowed temporary-copy providers, safeguards, terminal event, 60-second deadline, erase method, source-original exclusion, complete-inventory rule, signer identity/current qualification, session, authorization policy, and provider proof; an ordinary fixture-local signature plus signerRole string suffices. Thus malformed, wrong-tenant, caller-timed, or under-authorized inputs can satisfy the oracle before deletion or cryptographic erasure.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+          "sha256": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/schemas/LIFECYCLE-EVENT.schema.json",
+          "sha256": "e3a4c42d33959b3a357b94ceef78565f7ef0943e0af8c6960b2c6e672f780948"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/schemas/RAW-POLICY-GRANT.schema.json",
+          "sha256": "e8f020ac06411cc4690b565fd6e1153cab7ac939ce772e6028237fcd25f5c09d"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/schemas/DISPOSITION-AUTHORIZATION.schema.json",
+          "sha256": "90c2bfd0c029435dd7d155a513eb97c194b512c9f20bd14ae08681e564e4c7e2"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json",
+          "sha256": "08de6ecd58c91eace368814f4e1120671f15ab8a91c955bbd55138d2cb58a423"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+          "sha256": "661ee8ab26533fa7855b45485aabbbe5ba9873cfdb7a7deb3d50883745d0a57c"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/human-rulings/hr-01-r2.json",
+          "sha256": "bec8fda226b48a6ebcb4bd5ae86a1cb0ac4e354a125611c20d139c2885619ddb"
+        }
+      ],
+      "requiredResolution": "Replace the simplified lifecycle trigger with a closed schema and semantic path for every exact policy event and event-specific member. Verify each event's stable actor, current authority, provider record/proof, organization/item/class/revision/policy/correlation, server or provider time, ordering, signature, and duplicate-free bytes before deriving expiry. Define one provider-bound qualified-human disposition/raw-grant envelope carrying the complete A10.1 identity, hat, qualification, session, policy, target, inventory, hold/reference, safeguards, allowed-copy/provider, source-original exclusion, deadline, erase method, and conditions. Test wrong/missing/extra/duplicate/stale/wrong-tenant/caller-time events and absent, unqualified, transferred, revoked, wrong-hat, wrong-session, wrong-copy/provider, source-original, safeguard-missing, provider-proof-missing, replay, and race authorities with typed zero effects. Refresh every affected digest, obtain a new exact qualified-human ruling, and repeat exact-revision review."
+    },
+    {
+      "id": "IRREV-G2-R3-002",
+      "severity": "major",
+      "status": "open",
+      "summary": "The incorporated migration definition is not backed by the exhaustive executable matrix promised by R4 and required to close the original blocker. The control fixture has no migration execution collection or migration journal/plan/cleanup schema. Its ten migration rows exercise only the generic protected-action authorization decision; even the positive expand row reports providerRequest 1 but migration effect 0. The validator has no migration execution loop and never proves expand/backfill/contract state or pre/post canonical truth. The permissions actions also carry only plan, journal, tenant-inventory, backup, and rollback-consequence digests: no closed cleanup-authorization record or migration-plan schema makes the human decision name and validate the exact columns/data, batch/checkpoint, supported old/new readers and writers, application rollback state, affected tenants, or provider result. Therefore all declared IDs can pass without executing interruption at every checkpoint, mixed-version compatibility, app rollback, two-runner/idempotent recovery, exact destructive scope, data/signature/audit preservation, or one journaled result/safe non-result.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/PLAN.md",
+          "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/PERMISSIONS-MANIFEST.candidate.json",
+          "sha256": "3f47a8fc5e7c927de7ddcf1416310ed9747952c28bd762c842a6c33ddde32d4e"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json",
+          "sha256": "08de6ecd58c91eace368814f4e1120671f15ab8a91c955bbd55138d2cb58a423"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+          "sha256": "661ee8ab26533fa7855b45485aabbbe5ba9873cfdb7a7deb3d50883745d0a57c"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs",
+          "sha256": "a5fa1d6c044687a97212719262bcdf8d040d43e7baa910d154a490006a8e4d1c"
+        }
+      ],
+      "requiredResolution": "Add closed schemas for the signed migration plan, cleanup authorization, journal/checkpoint, provider result, backup/PITR, restoration, and pre/post truth inventory. Bind exact columns/data and affected tenants rather than opaque unvalidated digests. Execute every supported schema/app version across expand, every backfill batch/checkpoint, contract, concurrent old/new reads and writes, application rollback before/during/after backfill, interruption before/after each effect, retry/replay, two-runner race, stale/wrong-tenant/wrong-column cleanup, partial/unknown provider result, recovery, and restore. Compare exact item, signature, attempt, audit, release, evidence, and data truth; prove one journaled result or safe non-result and typed zero effects for every denial; require declared-versus-executed set equality at the final Exam revision."
+    },
+    {
+      "id": "IRREV-G2-R3-003",
+      "severity": "major",
+      "status": "open",
+      "summary": "The bound remediation validator is not executable as a passing assurance at the immutable round-three target. It runs its schema, authorization, lifecycle, provider receipt, recovery, and cost loops, then asserts that the working canonical Exam still has the superseded pre-incorporation SHA-256 `91f2744d0675f3c62eb122b2783e3aee147c85981740d0f3f4409b53808e6b10`. The protected Exam is `84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f`, so the observed exact-target run exits 1 with a digest assertion. R10's pre-incorporation PASS cannot establish the required final-revision lifecycle, migration, release, and destructive-operation evidence.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r10.json",
+          "sha256": "e0285543a74ddb9bc63e9531582310673cb3a5c81e375ed0f98eac22945cfb53"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/remediation-manifest.json",
+          "sha256": "8d5bf54dcdae5ab1d155ba241ce4263e863f70cb96c9cb3686c350b51eefa54d"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs",
+          "sha256": "a5fa1d6c044687a97212719262bcdf8d040d43e7baa910d154a490006a8e4d1c"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-3/review-target.json",
+          "sha256": "e3d7c841b3d5ac8fbb6e31e8601cfaafdff18b40e2d6040abafb38848e79e7d2"
+        }
+      ],
+      "requiredResolution": "Provide a final-revision validator mode that verifies the protected incorporated Exam and all bound irreversible-operation artifacts instead of asserting the obsolete base digest. It must execute the corrected lifecycle event/authority and migration matrices, verify declared-versus-executed ID and coverage equality, emit typed effect results, and pass against the exact new canonical Exam and refreshed manifest before another independent review."
+    }
+  ],
+  "escalations": [
+    {
+      "triggerId": "unresolved-blocker-or-major-finding",
+      "reason": "IRREV-G2-R3-001 through IRREV-G2-R3-003 leave blocker/major defects in destructive lifecycle authority, trigger derivation, schema-migration execution, and exact-revision validation. The commercial default-closed policy requires an Irreversible Operations human specialist unless a revised exact target closes every finding; this reviewer cannot accept or waive them.",
+      "findingIds": [
+        "IRREV-G2-R3-001",
+        "IRREV-G2-R3-002",
+        "IRREV-G2-R3-003"
+      ]
+    },
+    {
+      "triggerId": "inconclusive-or-missing-required-evidence",
+      "reason": "The target has no passing final-revision remediation validator, no executable migration state/result matrix, and no policy-conforming lifecycle trigger and qualified-human authority evidence path. Passing pre-incorporation fixtures are not final-target evidence.",
+      "findingIds": [
+        "IRREV-G2-R3-001",
+        "IRREV-G2-R3-002",
+        "IRREV-G2-R3-003"
+      ]
+    },
+    {
+      "triggerId": "law-regulation-contract-or-policy-requires-human-specialist",
+      "reason": "The ratified retention policy reserves policy acceptance, raw grants, and per-copy disposition to a current qualified privacy/legal records owner. Closing the authority envelope and issuing a replacement exact-target ruling require that qualified human; this agent cannot infer qualification, provide the ruling, or substitute for it.",
+      "findingIds": [
+        "IRREV-G2-R3-001"
+      ]
+    },
+    {
+      "triggerId": "irreversible-external-effect-or-material-rights-impact",
+      "reason": "Deletion, cryptographic erasure, destructive schema contract, authoritative record mutation, and release execution can irreversibly remove data, evidence, or rights-relevant records. The reproduced lifecycle acceptance and unexecuted migration matrix make separate eligible-human disposition mandatory before any such effect; this record authorizes none.",
+      "findingIds": [
+        "IRREV-G2-R3-001",
+        "IRREV-G2-R3-002"
+      ]
+    }
+  ],
+  "boundaries": {
+    "doesNotSignGateTwo": true,
+    "doesNotAuthorizeBuildOrRelease": true,
+    "doesNotAuthorizeProductionOrSpend": true,
+    "doesNotAcceptResidualRiskOrWaiveControls": true
+  }
+}

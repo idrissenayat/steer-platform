@@ -1,0 +1,272 @@
+{
+  "version": "steer-domain-review-record/v1",
+  "domain": "accessibility",
+  "reviewType": "gate-2-exam",
+  "target": {
+    "organization": "steer-platform",
+    "item": "0001-flight-deck-foundation",
+    "revision": "01467e66988e2c76d57f24ebffc324b5c9f0b988",
+    "exam": {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+    }
+  },
+  "reviewer": {
+    "serviceIdentity": "codex-task:/root/gate2_r3_accessibility",
+    "agentType": "independent-fresh-context-accessibility-domain-review-agent",
+    "model": "OpenAI Codex GPT-5 serving configuration; exact model build not exposed to this task",
+    "configurationRevision": "task-assignment:/root/gate2_r3_accessibility@2026-09-04;target:01467e66988e2c76d57f24ebffc324b5c9f0b988;target-sha256:e3d7c841b3d5ac8fbb6e31e8601cfaafdff18b40e2d6040abafb38848e79e7d2;packet-sha256:f2a4318b6ba7adc489b0a014f95c3740449d0eec996c994b1c092270332087b9;accessibility-r3-v1",
+    "freshContext": true,
+    "freshContextEvidence": "Dedicated task /root/gate2_r3_accessibility received only the round-three Accessibility-domain review assignment, performed no Builder, remediation-author, Test Agent, or canonical-Exam work, first verified the immutable target, then independently read the complete 2,096-line Exam Git object and the exact frozen accessibility packet, accepted Spec, prior record and exception brief, 81-checkpoint model, remediation manifest/R10, Trusted Tester schema, fixtures, semantic oracle, and validator before deciding. Prior decisions and Critic reports were treated as evidence rather than authority.",
+    "builderIndependent": true
+  },
+  "decision": "send-back",
+  "confidence": "high",
+  "reviewedAt": "2026-09-04T13:52:25Z",
+  "reviewedCases": [
+    "OR-21",
+    "OR-22",
+    "A3 reproducibility and evidence contract",
+    "A9.1 complete route and state inventory",
+    "A9.2 requirements and manual environments",
+    "A15 technical-release predicate",
+    "Accepted Spec accessibility requirement: every screen, keyboard-complete flow, automated gauntlet, and platform-pod DHS Trusted Tester Gate 3 review",
+    "Accessibility checkpoint model A01-A81 and required raw record",
+    "Round-two closure section 5 DHS Trusted Tester Gate 3 oracle",
+    "Round-two closure section 10 technical-release predicate",
+    "Round-two closure R2R2 executable correction contract",
+    "Round-two closure R3 authoritative-state correction contract",
+    "Trusted Tester evidence schema v2",
+    "Trusted Tester semantic validator and positive fixture",
+    "Trusted Tester environment omission counterexample",
+    "Trusted Tester 81-total-row false-pass counterexample",
+    "Trusted Tester all-not-applicable-without-rationale false-pass counterexample",
+    "Prior finding reassessment: ACC-G2-001",
+    "Prior finding reassessment: ACC-G2-002",
+    "Prior finding reassessment: ACC-G2-003",
+    "Prior finding reassessment: ACC-G2-R2-001"
+  ],
+  "evidence": [
+    {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+    },
+    {
+      "path": "intent/0001/SPEC.md",
+      "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"
+    },
+    {
+      "path": "intent/0001/reviews/domain/accessibility.md",
+      "sha256": "f2a4318b6ba7adc489b0a014f95c3740449d0eec996c994b1c092270332087b9"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-3/review-target.json",
+      "sha256": "e3d7c841b3d5ac8fbb6e31e8601cfaafdff18b40e2d6040abafb38848e79e7d2"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/records/accessibility.json",
+      "sha256": "2563b85093061087f25f9ff9da6cce87cc0e9b4faa4b7c761a5bc4f930e26265"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/exception-brief.json",
+      "sha256": "7e6753e00e799a0d64820eeb43cdb0f79951e5072c242b62ef7694617e414adc"
+    },
+    {
+      "path": "intent/0001/reviews/domain/remediation/ACCESSIBILITY-81-CHECKPOINTS.md",
+      "sha256": "43d61f4bd52afbb0f206fece2b4f2d784d4af9a4d57fe9f25d2c22a6cab5e361"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/remediation-manifest.json",
+      "sha256": "8d5bf54dcdae5ab1d155ba241ce4263e863f70cb96c9cb3686c350b51eefa54d"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r10.json",
+      "sha256": "e0285543a74ddb9bc63e9531582310673cb3a5c81e375ed0f98eac22945cfb53"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/EXAM-AMENDMENT.candidate.md",
+      "sha256": "25f623ac4ab2459a425643ddcbd3003e782a315f0664cff4fb021fa71f883af3"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/schemas/TRUSTED-TESTER-EVIDENCE.schema.json",
+      "sha256": "ef8383c5a8c38899c413c4cd7e678826e6c420a7134d07a65ce02652007a5667"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json",
+      "sha256": "08de6ecd58c91eace368814f4e1120671f15ab8a91c955bbd55138d2cb58a423"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+      "sha256": "661ee8ab26533fa7855b45485aabbbe5ba9873cfdb7a7deb3d50883745d0a57c"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs",
+      "sha256": "a5fa1d6c044687a97212719262bcdf8d040d43e7baa910d154a490006a8e4d1c"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/finding-resolution.json",
+      "sha256": "d76a4665bf0d091fe6f8e67c72169c9fb712bf61cc4d44b746297d84be2d0611"
+    },
+    {
+      "path": "kit/policy/gates.json",
+      "sha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56"
+    },
+    {
+      "path": "kit/schemas/domain-review-record.schema.json",
+      "sha256": "50cc75af34849a08dd2ef966a2bf944b711c861b5bd955d1cb9e33c0820857ea"
+    }
+  ],
+  "findings": [
+    {
+      "id": "ACC-G2-001",
+      "severity": "blocker",
+      "status": "resolved",
+      "summary": "Resolved at the target revision. Replacement OR-21 and OR-22 plus A9.2 require a complete WCAG 2.1 A/AA and Revised Section 508 conformance ledger, distinguish automated, manual, and combined evaluation, and fail every unresolved conformance failure regardless of axe impact or severity.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for prior finding ACC-G2-001 at this exact Exam revision; preserve its zero-unresolved-failure rule."
+    },
+    {
+      "id": "ACC-G2-002",
+      "severity": "blocker",
+      "status": "resolved",
+      "summary": "Resolved at the target revision. A9.1 enumerates eight production routes, route and interaction states, shared Storybook surfaces, four numeric viewports, zoom, text spacing, reduced motion, forced colors, themes and orientation, and requires bidirectional comparison against the built route registry and Storybook index so an unlisted built surface or missing listed surface fails.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for prior finding ACC-G2-002 at this exact Exam revision; preserve the complete bidirectional inventory."
+    },
+    {
+      "id": "ACC-G2-003",
+      "severity": "major",
+      "status": "resolved",
+      "summary": "Resolved at the target revision as an Exam-level requirement. A1 binds the 81-checkpoint model, A9.2 requires exact environment versions and raw A01-A81 rows for each applicable scenario/environment pair, and the checkpoint model names the required route/state, viewport, browser, OS, assistive-technology, operator, timestamp, outcome, notes, evidence, Exam-revision, and implementation-revision fields. The new open findings below concern a later executable schema/oracle that contradicts this otherwise adequate contract.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/remediation/ACCESSIBILITY-81-CHECKPOINTS.md",
+          "sha256": "43d61f4bd52afbb0f206fece2b4f2d784d4af9a4d57fe9f25d2c22a6cab5e361"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for the Exam-level clauses that resolved ACC-G2-003; the contradictory executable schema/oracle must be corrected under ACC-G2-R3-001 and ACC-G2-R3-002."
+    },
+    {
+      "id": "ACC-G2-R2-001",
+      "severity": "major",
+      "status": "resolved",
+      "summary": "Resolved at the target revision. The incorporated round-two section 5 requires the platform pod's own currently credentialed DHS Trusted Tester at Gate 3 for every new UI, and binds verified identity, accessibility-specialist hat, DHS qualification validity, platform-pod assignment validity and provider proof to exact Exam and implementation revisions. A generic, expired, non-pod, stale, Gate 2, or raw-result-missing record cannot satisfy the predicate.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/SPEC.md",
+          "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/schemas/TRUSTED-TESTER-EVIDENCE.schema.json",
+          "sha256": "ef8383c5a8c38899c413c4cd7e678826e6c420a7134d07a65ce02652007a5667"
+        }
+      ],
+      "requiredResolution": "No further resolution is required for prior finding ACC-G2-R2-001 at this exact Exam revision; preserve the DHS qualification and platform-pod assignment bindings while correcting the separate coverage defects below."
+    },
+    {
+      "id": "ACC-G2-R3-001",
+      "severity": "blocker",
+      "status": "open",
+      "summary": "The incorporated Trusted Tester evidence contract does not preserve A9.2's mandatory environment coverage. Governing A9.2 requires Windows 11 plus Chrome and JAWS, Windows 11 plus Firefox and NVDA, macOS plus Safari and VoiceOver, iOS plus Safari and VoiceOver, and Android plus Chrome and TalkBack, with desktop keyboard-only passes separately. Round-two section 5 instead calls a different set the exact five versioned families, and the bound schema permits only Linux Chromium keyboard-only, Linux Firefox keyboard-only, macOS Safari VoiceOver, Windows Firefox NVDA, and Windows Edge high-contrast/zoom. The supersession map replaces only the reviewer-qualification/evidence portion of OR-22/A9.2, not its environment scope. As written, schema-valid release evidence can omit JAWS, iOS VoiceOver, and Android TalkBack entirely while claiming the exact required family set passed.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/schemas/TRUSTED-TESTER-EVIDENCE.schema.json",
+          "sha256": "ef8383c5a8c38899c413c4cd7e678826e6c420a7134d07a65ce02652007a5667"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+          "sha256": "661ee8ab26533fa7855b45485aabbbe5ba9873cfdb7a7deb3d50883745d0a57c"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json",
+          "sha256": "08de6ecd58c91eace368814f4e1120671f15ab8a91c955bbd55138d2cb58a423"
+        }
+      ],
+      "requiredResolution": "Create one non-contradictory, explicitly superseded environment registry and enforce it identically in OR-22/A9.2, the Trusted Tester schema, fixtures, and semantic validator. At minimum preserve the named Windows Chrome+JAWS, Windows Firefox+NVDA, macOS Safari+VoiceOver, iOS Safari+VoiceOver, and Android Chrome+TalkBack combinations and the separately required desktop keyboard-only passes. Reject any omitted, substituted, duplicated, stale, or unversioned environment, refresh all affected digests, and obtain a new exact-revision review."
+    },
+    {
+      "id": "ACC-G2-R3-002",
+      "severity": "blocker",
+      "status": "open",
+      "summary": "The bound Trusted Tester schema and semantic validator permit a structural false pass that defeats the Exam's omission controls. A9.2 requires raw A01-A81 results for every applicable scenario/environment pair, and the 81-checkpoint model requires each checkpoint/scenario row to carry route/state ID, viewport, browser/OS/assistive-technology versions, operator, start/end timestamps, outcome, notes, evidence references, and exact Exam and implementation revisions. The schema's raw line has exactly four fields, and the validator requires exactly 81 total lines, one environment per checkpoint. Its own positive fixture distributes those 81 rows 17/16/16/16/16 across five environments, although five environments alone require at least 405 checkpoint pairs before the required scenario expansion. The same validator also accepts a summary pass when all 81 checkpoints are marked not-applicable with no criterion-specific rationale, even though OR-22 requires that rationale. Missing route, state, scenario, viewport, environment, and evidence rows can therefore produce a green technical-release predicate.",
+      "evidence": [
+        {
+          "path": "intent/0001/EXAM.md",
+          "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+        },
+        {
+          "path": "intent/0001/reviews/domain/remediation/ACCESSIBILITY-81-CHECKPOINTS.md",
+          "sha256": "43d61f4bd52afbb0f206fece2b4f2d784d4af9a4d57fe9f25d2c22a6cab5e361"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/schemas/TRUSTED-TESTER-EVIDENCE.schema.json",
+          "sha256": "ef8383c5a8c38899c413c4cd7e678826e6c420a7134d07a65ce02652007a5667"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/semantic-oracles.candidate.mjs",
+          "sha256": "661ee8ab26533fa7855b45485aabbbe5ba9873cfdb7a7deb3d50883745d0a57c"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/CONTROL-ORACLE-FIXTURES.candidate.json",
+          "sha256": "08de6ecd58c91eace368814f4e1120671f15ab8a91c955bbd55138d2cb58a423"
+        },
+        {
+          "path": "intent/0001/reviews/domain/round-2/remediation/validate-remediation.mjs",
+          "sha256": "a5fa1d6c044687a97212719262bcdf8d040d43e7baa910d154a490006a8e4d1c"
+        }
+      ],
+      "requiredResolution": "Replace the one-row-per-checkpoint oracle with a manifest-derived exhaustive matrix keyed by route or Storybook surface, state, scenario, viewport, environment, and checkpoint. Every raw row must carry all fields required by the bound checkpoint model, including exact environment versions, operator, timestamps, notes, evidence references, and exact Exam/implementation revisions. Require criterion-specific human rationale for each not-applicable disposition; derive the summary only after proving exact expected-key equality, uniqueness, raw-to-summary equality, and zero missing or extra rows. Add positive full-matrix evidence and negative fixtures deleting or substituting every dimension, plus an all-not-applicable-without-rationale rejection. Refresh all affected digests and obtain a new exact-revision review."
+    }
+  ],
+  "escalations": [
+    {
+      "triggerId": "unresolved-blocker-or-major-finding",
+      "reason": "ACC-G2-R3-001 and ACC-G2-R3-002 are unresolved blockers because the currently bound future release schema and oracle can report pass while omitting mandatory assistive-technology environments and most required checkpoint/scenario rows.",
+      "findingIds": [
+        "ACC-G2-R3-001",
+        "ACC-G2-R3-002"
+      ]
+    },
+    {
+      "triggerId": "law-regulation-contract-or-policy-requires-human-specialist",
+      "reason": "The accepted Spec and Exam invoke WCAG 2.1 AA, Revised Section 508, and the platform pod's DHS Trusted Tester requirement. The corrected Exam must preserve the complete test definition, and a qualified human specialist must later execute and sign the Gate 3 manual evidence.",
+      "findingIds": [
+        "ACC-G2-R3-001",
+        "ACC-G2-R3-002"
+      ]
+    },
+    {
+      "triggerId": "user-facing-accessibility-manual-release-validation",
+      "reason": "This user-facing item requires the platform pod's qualified DHS Trusted Tester to complete the corrected keyboard and assistive-technology matrix at Gate 3. This Gate 2 review assesses only Exam adequacy and does not claim implementation or manual accessibility validation has passed.",
+      "findingIds": []
+    }
+  ],
+  "boundaries": {
+    "doesNotSignGateTwo": true,
+    "doesNotAuthorizeBuildOrRelease": true,
+    "doesNotAuthorizeProductionOrSpend": true,
+    "doesNotAcceptResidualRiskOrWaiveControls": true
+  }
+}
