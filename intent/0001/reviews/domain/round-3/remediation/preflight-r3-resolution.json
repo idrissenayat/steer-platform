@@ -1,0 +1,84 @@
+{
+  "version": "steer-round-3-preflight-r3-resolution/v1",
+  "criticPath": "intent/0001/reviews/domain/round-3/remediation/preflight-critic-r3.json",
+  "criticSha256": "b69371abfecaf274cc6bcf8ba636f27210651b36206c0906c82908dd560a5958",
+  "sourceTargetRevision": "bcf472d4db9e4a95b483676869f01869423fdc95",
+  "sourceExamSha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f",
+  "authorizationPolicyPath": "kit/policy/gates.json",
+  "authorizationPolicySha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56",
+  "retentionPolicyPath": "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+  "retentionPolicySha256": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32",
+  "status": "technical-counterexamples-remediated-human-prerequisites-pending",
+  "findings": [
+    {
+      "id": "PREFLIGHT-R3-R3-001",
+      "severity": "blocker",
+      "technicalStatus": "remediated",
+      "evidence": [
+        "Exact authorization and retention policy bytes are independently read and bound with target revision/digest through applicable graph records.",
+        "Replay-authority and cas-authority are private trust domains; ordinary record signer replay/head fixtures deny with zero effects.",
+        "Closed, current replay/head/reservation records bind request, idempotency key, result, lineage, target and policy; substituted/missing policy bytes, stale head, null ID and missing field fixtures deny."
+      ]
+    },
+    {
+      "id": "PREFLIGHT-R3-R3-002",
+      "severity": "blocker",
+      "technicalStatus": "remediated",
+      "evidence": [
+        "All 16 lifecycle classes execute before/at/after/complete boundaries; 15 disposable classes complete only after the full chain, while the authoritative class remains immutable.",
+        "Every disposable tuple consumes eligible-human disposition authority, protected immutable request, authoritative replay/CAS, provider resource snapshot, provider-registry-selected receipt, ordered aggregate and tombstone.",
+        "Passing fixtures have two copies; raw working data has three distinct keys. Twenty-five lifecycle negatives fail closed with zero lifecycle effects."
+      ]
+    },
+    {
+      "id": "PREFLIGHT-R3-R3-003",
+      "severity": "major",
+      "technicalStatus": "remediated",
+      "evidence": [
+        "Closed COST-EVIDENCE and SPEND-AUTHORIZATION schemas compile and execute.",
+        "Forecast consumes signed price proof; invoice/reconciliation consume signed provider usage, immutable invoice bytes/digest, exact timestamps, revisions and one-to-one ledger/variance/successor lineage.",
+        "Missing/substituted proof, usage time, invoice bytes, usage/invoice mismatch, orphan lines, predecessor gap/fork, stale reference and unavailable-late provider fixtures deny."
+      ]
+    },
+    {
+      "id": "PREFLIGHT-R3-R3-004",
+      "severity": "major",
+      "technicalStatus": "remediated",
+      "evidence": [
+        "Equivalence-class sizes and top-1/Wilson linkage are recomputed from the frozen authorized 100-row source pool; prompts carry no accepted k claim.",
+        "Digit-only, country-code and extension phone fixtures detect; the 11-digit precision boundary does not.",
+        "The complete governed Unicode Cf category is removed with no exceptions; isolate, embedding and Arabic-letter-mark joined-label fixtures detect."
+      ]
+    },
+    {
+      "id": "PREFLIGHT-R3-R3-005",
+      "severity": "major",
+      "technicalStatus": "remediated",
+      "evidence": [
+        "Recovery input/result SHA-256: 2a8c3cf336b2d97bdf13c22fa33e2158985993b2d3133cc377da4a8890e80328 / 64a1887b381dff812a6f4dc2554beb9dcf450afade569e35448ba8d645d9aaad.",
+        "Restore input/result SHA-256: 2562377985c926530bb6d28660d67574593b09f2e3d18991a605f5ecdbfee159 / 1ee543fac6c73ead0e6685644e66ef7f1fb9ed19d082fc4ce2e1b9a919d4ac2d.",
+        "Static expectations compare input digest, result digest, state, first error, transition and typed effect and reject duplicate semantic evidence."
+      ]
+    }
+  ],
+  "validation": {
+    "fixturesOnly": {"status": "pass", "declared": 4001, "executed": 4001},
+    "full": {"status": "pass", "declared": 4001, "executed": 4001, "manifestArtifacts": 59, "preservedPriorRecords": 25},
+    "domainReviewTargetControl": {"status": "pass", "targetRevision": "118302e080598a147294e32d40cf5296763c8cc4"},
+    "pnpmCheck": {"status": "pass", "kitArtifacts": 95, "vitestFiles": 17, "vitestTests": 88, "nodeControlTests": 17, "workspaceTests": 2, "buildsPassed": 3}
+  },
+  "knownGaps": [
+    "No canonical Exam incorporation has occurred.",
+    "No post-incorporation qualified-human legal/privacy ruling exists.",
+    "No actual Gate 3 manual accessibility evidence is claimed; this package contains deterministic contract-test evidence.",
+    "No Gate 2 or release eligibility decision is made."
+  ],
+  "claims": {
+    "gateTwoEligible": false,
+    "releaseEligible": false,
+    "commitPerformed": false,
+    "pushPerformed": false,
+    "qualifiedHumanRulingSatisfied": false,
+    "actualAccessibilityManualRunSatisfied": false
+  }
+}

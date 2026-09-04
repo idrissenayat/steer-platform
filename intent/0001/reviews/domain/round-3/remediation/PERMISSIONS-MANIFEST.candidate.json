@@ -1,0 +1,137 @@
+{
+  "version": "steer-permissions-manifest/v12",
+  "denyByDefault": true,
+  "targetExamRevision": "bcf472d4db9e4a95b483676869f01869423fdc95",
+  "targetExamSha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f",
+  "authorizationPolicyPath": "kit/policy/gates.json",
+  "authorizationPolicyDigest": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56",
+  "providerKeyRegistryDigest": "b97e6165f60c89386108b28af835d9b33dc5df53b6393ad8423aed1777a07444",
+  "providerOnboarding": [
+    {"provider":"fixture-provider-a","account":"fixture-account-a","tenant":"steer-platform","providerBindingId":"fixture-provider-a-binding"},
+    {"provider":"fixture-provider-b","account":"fixture-account-b","tenant":"steer-platform","providerBindingId":"fixture-provider-b-binding"}
+  ],
+  "protectedExamPath": "intent/0001/EXAM.md",
+  "authorizedActorRole": "independent-test-agent",
+  "authorizedPrincipal": "test-agent",
+  "provider": "github",
+  "requiredUpstreamAction": "exam.candidate.author",
+  "downstreamAction": "github.exam.candidate.commit",
+  "maxCredentialLifetimeSeconds": 300,
+  "requiredSelectors": [
+    "organization",
+    "tenant",
+    "repositoryId",
+    "installationId",
+    "item",
+    "path",
+    "targetExamRevision",
+    "targetExamSha256",
+    "authorizationPolicyPath",
+    "authorizationPolicyDigest",
+    "actorSubject",
+    "actorRole",
+    "principal",
+    "provider",
+    "upstreamPrincipal",
+    "upstreamCredentialId",
+    "upstreamCredentialDigest",
+    "delegationDigest",
+    "assignmentDigest",
+    "authorityDigest",
+    "immutableRequestDigest",
+    "idempotencyKey",
+    "casHead",
+    "reservationDigest"
+  ],
+  "namedHostilePaths": [
+    "originator",
+    "platform-agent",
+    "worker",
+    "builder",
+    "compromised-caller",
+    "retry",
+    "retry-drift",
+    "fallback",
+    "missing-field",
+    "extra-field",
+    "unknown-action",
+    "malformed",
+    "wildcard",
+    "zero-match",
+    "multi-match",
+    "stale-credential",
+    "substituted-authority",
+    "cas-loser"
+  ],
+  "denialBefore": [
+    "operational-credential-selection",
+    "installation-token-exchange",
+    "provider-request",
+    "git-write"
+  ],
+  "effectLedgerKeys": [
+    "credentialAccess",
+    "installationToken",
+    "providerRequest",
+    "gitWrite",
+    "lifecycle",
+    "migration",
+    "gate",
+    "release",
+    "paidResource"
+  ],
+  "trustRegistryDigest": "ae7005d79f2d2f3899d5772892d86414cce6c49879358980867b94e16979b4ff",
+  "actions": [
+    {
+      "action": "github.exam.candidate.commit",
+      "requiredUpstreamAction": "exam.candidate.author",
+      "executingPrincipal": "test-agent",
+      "upstreamPrincipal": "exam-authority",
+      "requiredActorRole": "independent-test-agent",
+      "providerPermission": "contents:write",
+      "exactPath": "intent/0001/EXAM.md",
+      "selectors": [
+        "organization",
+        "tenant",
+        "repositoryId",
+        "installationId",
+        "item",
+        "path",
+        "targetExamRevision",
+        "targetExamSha256",
+        "authorizationPolicyPath",
+        "authorizationPolicyDigest",
+        "actorSubject",
+        "actorRole",
+        "principal",
+        "provider",
+        "upstreamPrincipal"
+      ],
+      "resourceIds": [
+        "repository",
+        "path",
+        "installation"
+      ]
+    }
+  ],
+  "providerResources": [
+    {
+      "id": "repository",
+      "selector": "repositoryId",
+      "type": "exact",
+      "value": "steer-platform"
+    },
+    {
+      "id": "path",
+      "selector": "path",
+      "type": "exact",
+      "value": "intent/0001/EXAM.md"
+    },
+    {
+      "id": "installation",
+      "selector": "installationId",
+      "type": "exact",
+      "value": "158779362"
+    }
+  ]
+}

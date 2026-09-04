@@ -1,0 +1,23 @@
+{
+  "version":"steer-lifecycle-policy/v2",
+  "policyPath":"intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+  "policySha256":"f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32",
+  "classes":[
+    {"classId":"RC-AUTHORITATIVE-ARTIFACT","trigger":"record-committed","duration":"indefinite","disposition":"retained-immutable","parentCap":false},
+    {"classId":"RC-DECISION-PROOF","trigger":"item-closed","duration":"P7Y","disposition":"verified-delete-tombstone","parentCap":false},
+    {"classId":"RC-LEGAL-SIGNED-LOG","trigger":"item-closed","duration":"P7Y","disposition":"verified-delete-tombstone","parentCap":false},
+    {"classId":"RC-RELEASE-MIGRATION","trigger":"environment-retired","duration":"P7Y","disposition":"verified-delete-tombstone","parentCap":false},
+    {"classId":"RC-REFERENCED-EVIDENCE","trigger":"item-closed","duration":"P3Y","disposition":"reference-revocation-delete-tombstone","parentCap":false},
+    {"classId":"RC-FAILED-RUN","trigger":"run-terminal","duration":"P90D","disposition":"verified-delete-tombstone","parentCap":false},
+    {"classId":"RC-SECURITY-AUDIT","trigger":"event-committed","duration":"P1Y","disposition":"verified-delete-tombstone","parentCap":false},
+    {"classId":"RC-POSTHOG-RAW","trigger":"event-committed","duration":"P90D","disposition":"verified-delete-tombstone","parentCap":false},
+    {"classId":"RC-REBUILDABLE","trigger":"record-superseded-or-rebuild-requested","duration":"immediate","disposition":"verified-delete","parentCap":false},
+    {"classId":"RC-DELETION-EVIDENCE","trigger":"deletion-completed","duration":"P7Y","disposition":"verified-delete-final-tombstone","parentCap":false},
+    {"classId":"RC-CORPUS-RAW-WORKING","trigger":"corpus-sanitization-terminal","duration":"PT60S","disposition":"crypto-erase-receipt","parentCap":false},
+    {"classId":"RC-CORPUS-PROVENANCE","trigger":"later-corpus-retired-or-derived-closed","duration":"P7Y","disposition":"verified-delete-tombstone","parentCap":false},
+    {"classId":"RC-CORPUS-SANITIZED","trigger":"earlier-corpus-superseded-or-retired","duration":"P1Y","disposition":"crypto-erase-tombstone","parentCap":false},
+    {"classId":"RC-CORPUS-BASELINE","trigger":"corpus-retired","duration":"P3Y","disposition":"verified-delete-tombstone","parentCap":false},
+    {"classId":"RC-CORPUS-DERIVED-TEXT","trigger":"run-terminal","duration":"P90D","disposition":"verified-delete-tombstone","parentCap":true},
+    {"classId":"RC-CORPUS-EXPORT","trigger":"export-completed","duration":"P30D","disposition":"verified-delete-tombstone","parentCap":true}
+  ]
+}

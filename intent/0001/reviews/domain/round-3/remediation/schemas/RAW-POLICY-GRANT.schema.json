@@ -1,0 +1,17 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://steer.invalid/schemas/raw-policy-grant-v4.json",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["version","authority","recordClass","sanitizerRevision","inspectorRevision","completeInventoryRequired","receiptRequired","permittedTargetKind"],
+  "properties":{
+    "version":{"const":"steer-raw-policy-grant/v4"},
+    "authority":{"$ref":"HUMAN-AUTHORITY.schema.json"},
+    "recordClass":{"const":"RC-CORPUS-RAW-WORKING"},
+    "sanitizerRevision":{"type":"string","minLength":1},
+    "inspectorRevision":{"type":"string","minLength":1},
+    "completeInventoryRequired":{"const":true},
+    "receiptRequired":{"const":true},
+    "permittedTargetKind":{"const":"temporary-copy-only"}
+  }
+}

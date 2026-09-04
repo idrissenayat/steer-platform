@@ -1,0 +1,21 @@
+{
+  "version":"steer-round-3-preflight-r2-resolution/v1",
+  "criticPath":"intent/0001/reviews/domain/round-3/remediation/preflight-critic-r2.json",
+  "criticSha256":"8016437ef28f488687feec2e4550f23dfb5cddf264d32547372b3a1f2703c9cb",
+  "sourceTargetRevision":"bcf472d4db9e4a95b483676869f01869423fdc95",
+  "sourceExamSha256":"84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f",
+  "status":"technical-counterexamples-remediated-human-prerequisites-pending",
+  "findings":[
+    {"id":"PREFLIGHT-R3-R2-001","severity":"blocker","technicalStatus":"remediated","evidence":["TRUST-DOMAIN-FORGERY:* 11/11 throw PRIVATE_SIGNING_DOMAIN_UNAVAILABLE","AUTHORIZATION:not-one-use DENY/0","AUTHORIZATION:extra-admin-resource DENY/0","AUTHORIZATION:delegation-window DENY/0","AUTHORIZATION:expired-assignment DENY/0"]},
+    {"id":"PREFLIGHT-R3-R2-002","severity":"blocker","technicalStatus":"remediated","evidence":["10/10 local schemas compile offline","RAW-POLICY-GRANT positive valid; null authority and wrong class invalid","16 classes x before/at/after/completed lifecycle graphs plus nine negative precedence/disposition paths"]},
+    {"id":"PREFLIGHT-R3-R2-003","severity":"blocker","technicalStatus":"remediated","evidence":["target, policy, item, assignment-target and evaluation-time substitutions DENY/0","Exam and retention/authorization policy digests independently pinned"]},
+    {"id":"PREFLIGHT-R3-R2-004","severity":"blocker","technicalStatus":"remediated","evidence":["wrong-source, expired-use, empty-derivative, missing-raw-authority, missing-key, sanitizer and linkage-trial substitutions REJECT/0","all four R2 detector evasions detected","20 classes x plain/evasion/boundary execute"]},
+    {"id":"PREFLIGHT-R3-R2-005","severity":"blocker","technicalStatus":"remediated","evidence":["journal, provider-result, plan, request, backup and truth-lineage transplants block/0","3,600 exact migration tuples plus eight failure cases execute"]},
+    {"id":"PREFLIGHT-R3-R2-006","severity":"blocker","technicalStatus":"remediated","evidence":["missing-root, lineage, cumulative, negative, hierarchy, revoked, replay and CAS substitutions DENY/0","EUR/oversized-price/row-rate/scenario/provider-SKU substitutions DENY/0","invoice, reconciliation and aggregate-before-round boundaries execute"]},
+    {"id":"PREFLIGHT-R3-R2-007","severity":"blocker","technicalStatus":"remediated","evidence":["2,664,900 accessibility keys and raw digest independently recomputed","identity, DHS qualification, assignment, operator, batch and provider substitutions reject","eight distinct recovery cuts and nineteen canonical corruptions execute with numeric RTO and derived inventory"]},
+    {"id":"PREFLIGHT-R3-R2-008","severity":"major","technicalStatus":"remediated","evidence":["NORMATIVE-EXECUTION-INVENTORY independently anchored to Exam and policy","exact normative/control/executed dimension and ID equality","fixtures-only 3944/3944 unique IDs"]}
+  ],
+  "validation":{"fixturesOnly":{"status":"pass","declared":3944,"executed":3944},"full":{"status":"pass","declared":3944,"executed":3944,"manifestArtifacts":51,"preservedPriorRecords":25},"pnpmCheck":{"status":"pass","vitestFiles":17,"vitestTests":88,"nodeControlTests":17,"buildsPassed":3}},
+  "knownGaps":["No canonical Exam incorporation has occurred.","No post-incorporation qualified-human legal/privacy ruling exists.","No actual Gate 3 manual accessibility evidence is claimed; the signed matrix here is deterministic contract-test evidence.","No Gate 2 or release eligibility decision is made."],
+  "claims":{"gateTwoEligible":false,"releaseEligible":false,"commitPerformed":false,"pushPerformed":false,"qualifiedHumanRulingSatisfied":false,"actualAccessibilityManualRunSatisfied":false}
+}

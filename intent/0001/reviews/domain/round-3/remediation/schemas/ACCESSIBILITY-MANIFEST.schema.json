@@ -1,0 +1,15 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://steer.invalid/schemas/accessibility-manifest-v2.json","type":"object","additionalProperties":false,
+  "required":["version","checkpointModel","routes","stories","storyStates","scenarios","viewports","environments","requiredRowFields"],
+  "properties":{
+    "version":{"const":"steer-accessibility-matrix/v2"},
+    "checkpointModel":{"type":"object","additionalProperties":false,"required":["first","last","count"],"properties":{"first":{"const":"A01"},"last":{"const":"A81"},"count":{"const":81}}},
+    "routes":{"type":"array","minItems":8,"maxItems":8,"uniqueItems":true,"items":{"type":"object","additionalProperties":false,"required":["id","states"],"properties":{"id":{"pattern":"^R0[1-8]$"},"states":{"type":"array","minItems":9,"uniqueItems":true,"items":{"type":"string","minLength":1}}}}},
+    "stories":{"type":"array","minItems":13,"maxItems":13,"uniqueItems":true,"items":{"type":"string","minLength":1}},
+    "storyStates":{"type":"array","minItems":9,"uniqueItems":true,"items":{"type":"string","minLength":1}},
+    "scenarios":{"type":"array","minItems":10,"maxItems":10,"uniqueItems":true,"items":{"type":"string","minLength":1}},
+    "viewports":{"type":"array","minItems":4,"maxItems":4,"uniqueItems":true,"items":{"type":"object","additionalProperties":false,"required":["id","width","height","class"],"properties":{"id":{"type":"string","minLength":1},"width":{"type":"integer","minimum":320},"height":{"type":"integer","minimum":600},"class":{"enum":["desktop","mobile"]}}}},
+    "environments":{"type":"array","minItems":7,"maxItems":7,"uniqueItems":true,"items":{"type":"object","additionalProperties":false,"required":["id","os","osVersion","browser","browserVersion","assistiveTechnology","assistiveTechnologyVersion","inputMode","viewportClass"],"properties":{"id":{"type":"string","minLength":1},"os":{"type":"string","minLength":1},"osVersion":{"type":"string","minLength":1},"browser":{"type":"string","minLength":1},"browserVersion":{"type":"string","minLength":1},"assistiveTechnology":{"type":"string","minLength":1},"assistiveTechnologyVersion":{"type":"string","minLength":1},"inputMode":{"enum":["screen-reader","keyboard-only"]},"viewportClass":{"enum":["desktop","mobile"]}}}},
+    "requiredRowFields":{"type":"array","minItems":27,"maxItems":27,"uniqueItems":true,"items":{"type":"string","minLength":1}}
+  }
+}

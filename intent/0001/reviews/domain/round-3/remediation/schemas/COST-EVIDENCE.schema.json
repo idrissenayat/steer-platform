@@ -1,0 +1,12 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://steer.invalid/schemas/cost-evidence-v3.json",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["kind","recordId","organization","tenant","product","pod","execution","authorizationId","authorizationDigest","priceRevision","provider","sku","currency","periodStart","periodEnd","costClass","units","nanoUsdPerUnit","totalNanoUsd","targetExamRevision","targetExamDigest","implementationRevision","providerUsageDigest","providerInvoiceDigest","providerInvoiceBytesDigest","recordDigest","signature"],
+  "properties":{
+    "kind":{"enum":["forecast","invoice","reconciliation","aggregate"]},
+    "recordId":{"type":"string","minLength":1},"organization":{"type":"string","minLength":1},"tenant":{"type":"string","minLength":1},"product":{"type":"string","minLength":1},"pod":{"type":"string","minLength":1},"execution":{"type":"string","minLength":1},"authorizationId":{"type":"string","minLength":1},"authorizationDigest":{"$ref":"#/$defs/digest"},"priceRevision":{"type":"string","minLength":1},"provider":{"type":"string","minLength":1},"sku":{"type":"string","minLength":1},"currency":{"const":"USD"},"periodStart":{"$ref":"#/$defs/time"},"periodEnd":{"$ref":"#/$defs/time"},"costClass":{"enum":["infrastructure","model"]},"units":{"$ref":"#/$defs/uint"},"nanoUsdPerUnit":{"$ref":"#/$defs/uint"},"totalNanoUsd":{"$ref":"#/$defs/uint"},"targetExamRevision":{"$ref":"#/$defs/revision"},"targetExamDigest":{"$ref":"#/$defs/digest"},"implementationRevision":{"$ref":"#/$defs/revision"},"providerUsageDigest":{"type":["string","null"],"pattern":"^[0-9a-f]{64}$"},"providerInvoiceDigest":{"type":["string","null"],"pattern":"^[0-9a-f]{64}$"},"providerInvoiceBytesDigest":{"type":["string","null"],"pattern":"^[0-9a-f]{64}$"},"recordDigest":{"$ref":"#/$defs/digest"},"signature":{"$ref":"#/$defs/signature"}
+  },
+  "$defs":{"digest":{"type":"string","pattern":"^[0-9a-f]{64}$"},"revision":{"type":"string","pattern":"^[0-9a-f]{40}$"},"uint":{"type":"string","pattern":"^(0|[1-9][0-9]*)$"},"time":{"type":"string","pattern":"^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"},"signature":{"type":"object","additionalProperties":false,"required":["algorithm","keyId","signedDigest","valueBase64"],"properties":{"algorithm":{"const":"Ed25519"},"keyId":{"type":"string","minLength":1},"signedDigest":{"$ref":"#/$defs/digest"},"valueBase64":{"type":"string","pattern":"^[A-Za-z0-9+/]{86}==$"}}}}
+}

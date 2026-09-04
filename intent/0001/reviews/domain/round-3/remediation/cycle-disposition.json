@@ -1,0 +1,54 @@
+{
+  "version": "steer-remediation-cycle-disposition/v1",
+  "organization": "steer-platform",
+  "item": "0001-flight-deck-foundation",
+  "round": 3,
+  "status": "hold-send-back",
+  "recordedAt": "2026-09-04T21:07:09Z",
+  "immutableSourceRevision": "bcf472d4db9e4a95b483676869f01869423fdc95",
+  "finalCritic": {
+    "path": "intent/0001/reviews/domain/round-3/remediation/preflight-critic-r5.json",
+    "sha256": "7a05ed7a4186d1eb82e6a360307b837f972ad422d316aa4629033fa9ff7acfdb",
+    "verdict": "SEND_BACK",
+    "confidence": "high",
+    "technicalBlockers": 3,
+    "technicalMajors": 2,
+    "readyForProtectedIncorporation": false
+  },
+  "openFindings": [
+    { "id": "PREFLIGHT-R3-R5-001", "severity": "blocker", "title": "Lifecycle effects bypass the lifecycle-event and shared protected-action contracts, and history ignores prior provider proofs" },
+    { "id": "PREFLIGHT-R3-R5-002", "severity": "blocker", "title": "Human provider proof does not bind the full human authority and is not verified at provider time" },
+    { "id": "PREFLIGHT-R3-R5-003", "severity": "blocker", "title": "Migration can journal an effect without target or implementation binding, shared action authorization, or authoritative replay and CAS state" },
+    { "id": "PREFLIGHT-R3-R5-004", "severity": "major", "title": "Multi-line cost reconciliation validates variance and reconciliation for only the first lineage" },
+    { "id": "PREFLIGHT-R3-R5-005", "severity": "major", "title": "International phone normalization omits Unicode decimal digits" }
+  ],
+  "passingEvidence": {
+    "declaredFixtureIds": 4027,
+    "executedFixtureIds": 4027,
+    "compiledSchemas": 15,
+    "candidateArtifactsVerified": 61,
+    "preservedPriorRecordsVerified": 25,
+    "accessibilityCheckpointKeys": 2664900,
+    "migrationCases": 3614,
+    "recoveryCuts": 8,
+    "recoveryCorruptions": 25,
+    "vitestTests": 88,
+    "controlTests": 17,
+    "workspaceTests": 2,
+    "builds": 3
+  },
+  "nextRequiredState": "Correct only PREFLIGHT-R3-R5-001 through PREFLIGHT-R3-R5-005, add their exact counterexamples to the normative inventory, and obtain a fresh-context Critic disposition with zero technical blockers and majors before protected incorporation.",
+  "boundaries": {
+    "gateTwoSigned": false,
+    "readyForProtectedIncorporation": false,
+    "builderAuthorized": false,
+    "releaseAuthorized": false,
+    "productionAuthorized": false,
+    "deploymentAuthorized": false,
+    "providerAccessAuthorized": false,
+    "deletionAuthorized": false,
+    "migrationAuthorized": false,
+    "spendingAuthorized": false,
+    "postIncorporationHumanRulingRequested": false
+  }
+}

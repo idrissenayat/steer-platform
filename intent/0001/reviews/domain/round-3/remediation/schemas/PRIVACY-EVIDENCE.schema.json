@@ -1,0 +1,410 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://steer.invalid/schemas/privacy-evidence-v3.json",
+  "type": "object",
+  "additionalProperties": false,
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "digest": {
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "bytes": {
+      "type": "string",
+      "minLength": 4
+    },
+    "prompt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "promptId",
+        "bytesBase64",
+        "sha256",
+        "sourceId",
+        "destination",
+        "detectorHits",
+        "namedEntities",
+        "uniqueFourTokens"
+      ],
+      "properties": {
+        "promptId": {
+          "$ref": "#/$defs/id"
+        },
+        "bytesBase64": {
+          "$ref": "#/$defs/bytes"
+        },
+        "sha256": {
+          "$ref": "#/$defs/digest"
+        },
+        "sourceId": {
+          "$ref": "#/$defs/id"
+        },
+        "destination": {
+          "const": "fixture-encrypted-corpus"
+        },
+        "detectorHits": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "namedEntities": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "uniqueFourTokens": {
+          "type": "array",
+          "maxItems": 0
+        }
+      }
+    },
+    "copy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "copyId",
+        "provider",
+        "recordBytes"
+      ],
+      "properties": {
+        "copyId": {
+          "$ref": "#/$defs/id"
+        },
+        "provider": {
+          "$ref": "#/$defs/id"
+        },
+        "recordBytes": {
+          "$ref": "#/$defs/bytes"
+        }
+      }
+    },
+    "receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "copyId",
+        "provider",
+        "objectDigest",
+        "terminal",
+        "recordBytes"
+      ],
+      "properties": {
+        "copyId": {
+          "$ref": "#/$defs/id"
+        },
+        "provider": {
+          "$ref": "#/$defs/id"
+        },
+        "objectDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "terminal": {
+          "const": true
+        },
+        "recordBytes": {
+          "$ref": "#/$defs/bytes"
+        }
+      }
+    }
+  },
+  "required": [
+    "version",
+    "organization",
+    "tenant",
+    "item",
+    "targetExamRevision",
+    "targetExamDigest",
+    "retentionPolicyPath",
+    "retentionPolicyBytes",
+    "policyDigest",
+    "detectorRegistryBytes",
+    "detectorRegistryDigest",
+    "normalizationRevision",
+    "decisionAt",
+    "sourcePoolBytesBase64",
+    "sourcePoolDigest",
+    "sourceAuthorityBytes",
+    "useAuthorizationBytes",
+    "sanitizerRunBytes",
+    "inspectionBytes",
+    "encryptedCorpus",
+    "prompts",
+    "derivatives",
+    "rawCopies",
+    "rawAuthorities",
+    "rawReceipts",
+    "destinationPolicy",
+    "linkageTrials",
+    "linkageClaims"
+  ],
+  "properties": {
+    "version": {
+      "const": "steer-sanitized-real-evidence/v3"
+    },
+    "organization": {
+      "$ref": "#/$defs/id"
+    },
+    "tenant": {
+      "$ref": "#/$defs/id"
+    },
+    "item": {
+      "$ref": "#/$defs/id"
+    },
+    "targetExamRevision": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "targetExamDigest": {
+      "$ref": "#/$defs/digest"
+    },
+    "retentionPolicyPath": {
+      "$ref": "#/$defs/id"
+    },
+    "retentionPolicyBytes": {
+      "$ref": "#/$defs/bytes"
+    },
+    "policyDigest": {
+      "$ref": "#/$defs/digest"
+    },
+    "detectorRegistryBytes": {
+      "$ref": "#/$defs/bytes"
+    },
+    "detectorRegistryDigest": {
+      "$ref": "#/$defs/digest"
+    },
+    "normalizationRevision": {
+      "$ref": "#/$defs/id"
+    },
+    "decisionAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sourcePoolBytesBase64": {
+      "$ref": "#/$defs/bytes"
+    },
+    "sourcePoolDigest": {
+      "$ref": "#/$defs/digest"
+    },
+    "sourceAuthorityBytes": {
+      "$ref": "#/$defs/bytes"
+    },
+    "useAuthorizationBytes": {
+      "$ref": "#/$defs/bytes"
+    },
+    "sanitizerRunBytes": {
+      "$ref": "#/$defs/bytes"
+    },
+    "inspectionBytes": {
+      "$ref": "#/$defs/bytes"
+    },
+    "encryptedCorpus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "corpusId",
+        "version",
+        "encryptedObjectDigest",
+        "manifestDigest",
+        "keyId",
+        "promptInventoryDigest",
+        "destination"
+      ],
+      "properties": {
+        "corpusId": {
+          "$ref": "#/$defs/id"
+        },
+        "version": {
+          "$ref": "#/$defs/id"
+        },
+        "encryptedObjectDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "manifestDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "keyId": {
+          "$ref": "#/$defs/id"
+        },
+        "promptInventoryDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "destination": {
+          "const": "fixture-encrypted-corpus"
+        }
+      }
+    },
+    "prompts": {
+      "type": "array",
+      "minItems": 20,
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/prompt"
+      }
+    },
+    "derivatives": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "derivativeId",
+          "kind",
+          "corpusDigest",
+          "destination",
+          "credentialClass"
+        ],
+        "properties": {
+          "derivativeId": {
+            "$ref": "#/$defs/id"
+          },
+          "kind": {
+            "enum": [
+              "baseline",
+              "failure-shrink",
+              "provider-copy",
+              "model-copy",
+              "cache-copy"
+            ]
+          },
+          "corpusDigest": {
+            "$ref": "#/$defs/digest"
+          },
+          "destination": {
+            "const": "fixture-encrypted-corpus"
+          },
+          "credentialClass": {
+            "const": "fixture-only"
+          }
+        }
+      }
+    },
+    "rawCopies": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/copy"
+      }
+    },
+    "rawAuthorities": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "copyId",
+          "recordBytes"
+        ],
+        "properties": {
+          "copyId": {
+            "$ref": "#/$defs/id"
+          },
+          "recordBytes": {
+            "$ref": "#/$defs/bytes"
+          }
+        }
+      }
+    },
+    "rawReceipts": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/receipt"
+      }
+    },
+    "destinationPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fixtureDestination",
+        "productionDestination",
+        "fixtureCredential",
+        "productionCredential"
+      ],
+      "properties": {
+        "fixtureDestination": {
+          "const": "fixture-encrypted-corpus"
+        },
+        "productionDestination": {
+          "const": "production"
+        },
+        "fixtureCredential": {
+          "const": "fixture-only"
+        },
+        "productionCredential": {
+          "const": "production-only"
+        }
+      }
+    },
+    "linkageTrials": {
+      "type": "array",
+      "minItems": 20,
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "promptId",
+          "predictedSourceId",
+          "actualSourceId",
+          "linked",
+          "score"
+        ],
+        "properties": {
+          "promptId": {
+            "$ref": "#/$defs/id"
+          },
+          "predictedSourceId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "actualSourceId": {
+            "$ref": "#/$defs/id"
+          },
+          "linked": {
+            "type": "boolean"
+          },
+          "score": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "linkageClaims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "top1Millionths",
+        "wilson95UpperMillionths",
+        "minimumK"
+      ],
+      "properties": {
+        "top1Millionths": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "wilson95UpperMillionths": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 250000
+        },
+        "minimumK": {
+          "type": "integer",
+          "minimum": 5
+        }
+      }
+    }
+  }
+}

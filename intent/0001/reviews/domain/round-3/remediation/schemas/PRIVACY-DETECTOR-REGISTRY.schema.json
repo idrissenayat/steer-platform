@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://steer.invalid/schemas/privacy-detector-registry-v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "normalization",
+    "tokenization",
+    "policyClasses",
+    "requiredCaseKinds",
+    "linkage",
+    "revisionBinding"
+  ],
+  "properties": {
+    "version": {
+        "const": "steer-prohibited-identifier-detector/v2"
+    },
+    "normalization": {
+      "type": "array",
+        "minItems": 6,
+        "maxItems": 6,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "tokenization": {
+      "const": "unicode-letter-number"
+    },
+    "policyClasses": {
+      "type": "array",
+      "minItems": 20,
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "requiredCaseKinds": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "plain-positive",
+          "evasion-positive",
+          "boundary-negative"
+        ]
+      }
+    },
+    "linkage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "top1Maximum",
+        "wilson95UpperMaximum",
+        "minimumK"
+      ],
+      "properties": {
+        "top1Maximum": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "wilson95UpperMaximum": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "minimumK": {
+          "type": "integer",
+          "minimum": 2
+        }
+      }
+    },
+    "revisionBinding": {
+      "const": "sha256-of-this-file"
+    }
+  }
+}

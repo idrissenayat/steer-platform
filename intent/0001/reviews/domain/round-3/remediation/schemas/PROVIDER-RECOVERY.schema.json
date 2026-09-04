@@ -1,0 +1,24 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://steer.invalid/schemas/provider-recovery-v4.json",
+  "type":"object",
+  "additionalProperties":false,
+  "$defs":{
+    "id":{"type":"string","minLength":1},
+    "sha":{"type":"string","pattern":"^[0-9a-f]{64}$"},
+    "b64":{"type":"string","minLength":4,"pattern":"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$"},
+    "inventory":{"type":"object","additionalProperties":false,"required":["cursor","providerRecordId","decisionDigest","artifactDigest"],"properties":{"cursor":{"type":"integer","minimum":1},"providerRecordId":{"$ref":"#/$defs/id"},"decisionDigest":{"$ref":"#/$defs/sha"},"artifactDigest":{"$ref":"#/$defs/sha"}}},
+    "signature":{"type":"object","additionalProperties":false,"required":["algorithm","keyId","signedDigest","valueBase64"],"properties":{"algorithm":{"const":"Ed25519"},"keyId":{"$ref":"#/$defs/id"},"signedDigest":{"$ref":"#/$defs/sha"},"valueBase64":{"type":"string","pattern":"^[A-Za-z0-9+/]{86}==$"}}}
+  },
+  "required":["version","recoveryId","cut","organization","tenant","repositoryId","item","recordClass","providerId","providerAccountId","targetExamRevision","targetExamDigest","implementationRevision","retentionPolicyPath","policyDigest","providerProofType","providerTrustAnchorDigest","identityEvidenceBytes","providerEffect","providerAcknowledged","availableSources","providerJournalBytes","exportedRecordBytes","restoredRecordBytes","inventory","preInventory","postInventory","retryIdentity","startedAtMs","verifiedAtMs","rtoLimitMs","independentVerifierBytes","recordDigest","signature"],
+  "properties":{
+    "version":{"const":"steer-provider-recovery/v4"},"recoveryId":{"$ref":"#/$defs/id"},
+    "cut":{"enum":["before-provider-effect","after-provider-effect-before-acknowledgement","after-acknowledgement-before-webhook","after-webhook-before-fetch","after-fetch-before-spool-fsync","after-spool-fsync-before-WORM-acknowledgement","after-WORM-before-projection","after-projection"]},
+    "organization":{"const":"steer-platform"},"tenant":{"const":"steer-platform"},"repositoryId":{"const":"steer-home"},"item":{"const":"0001-flight-deck-foundation"},"recordClass":{"const":"RC-DECISION-PROOF"},"providerId":{"$ref":"#/$defs/id"},"providerAccountId":{"$ref":"#/$defs/id"},"targetExamRevision":{"type":"string","pattern":"^[0-9a-f]{40}$"},"targetExamDigest":{"$ref":"#/$defs/sha"},"implementationRevision":{"type":"string","pattern":"^[0-9a-f]{40}$"},"retentionPolicyPath":{"$ref":"#/$defs/id"},"policyDigest":{"$ref":"#/$defs/sha"},"providerProofType":{"const":"provider-native-worm-journal"},"providerTrustAnchorDigest":{"$ref":"#/$defs/sha"},"identityEvidenceBytes":{"$ref":"#/$defs/b64"},"providerEffect":{"type":"boolean"},"providerAcknowledged":{"type":"boolean"},
+    "availableSources":{"type":"object","additionalProperties":false,"required":["providerJournal","webhook","fetch","spool","worm","projection"],"properties":{"providerJournal":{"type":"boolean"},"webhook":{"type":"boolean"},"fetch":{"type":"boolean"},"spool":{"type":"boolean"},"worm":{"type":"boolean"},"projection":{"type":"boolean"}}},
+    "providerJournalBytes":{"$ref":"#/$defs/b64"},"exportedRecordBytes":{"$ref":"#/$defs/b64"},"restoredRecordBytes":{"$ref":"#/$defs/b64"},
+    "inventory":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/inventory"}},"preInventory":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/inventory"}},"postInventory":{"type":"array","minItems":1,"items":{"$ref":"#/$defs/inventory"}},
+    "retryIdentity":{"type":"object","additionalProperties":false,"required":["attempts","idempotencyKeys","requestDigests"],"properties":{"attempts":{"const":3},"idempotencyKeys":{"type":"array","minItems":3,"maxItems":3,"items":{"$ref":"#/$defs/id"}},"requestDigests":{"type":"array","minItems":3,"maxItems":3,"items":{"$ref":"#/$defs/sha"}}}},
+    "startedAtMs":{"type":"integer","minimum":0},"verifiedAtMs":{"type":"integer","minimum":0},"rtoLimitMs":{"type":"integer","minimum":1},"independentVerifierBytes":{"$ref":"#/$defs/b64"},"recordDigest":{"$ref":"#/$defs/sha"},"signature":{"$ref":"#/$defs/signature"}
+  }
+}

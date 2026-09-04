@@ -1,0 +1,271 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://steer.invalid/schemas/human-authority-v3.json",
+  "type": "object",
+  "additionalProperties": false,
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "revision": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+    },
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "keyId",
+        "signedDigest",
+        "valueBase64"
+      ],
+      "properties": {
+        "algorithm": {
+          "const": "Ed25519"
+        },
+        "keyId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "signedDigest": {
+          "$ref": "#/$defs/sha256"
+        },
+        "valueBase64": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9+/]{86}==$"
+        }
+      }
+    }
+  },
+  "required": [
+    "version",
+    "authorityId",
+    "authorityType",
+    "organization",
+    "tenant",
+    "item",
+    "humanSubject",
+    "identityIssuer",
+    "identityEvidenceDigest",
+    "identityStatus",
+    "activeHat",
+    "qualification",
+    "qualificationEvidenceDigest",
+    "qualificationValidThrough",
+    "assignmentEvidenceDigest",
+    "assignmentValidThrough",
+    "sessionId",
+    "authenticatedAt",
+    "decidedAt",
+    "serverTimeAuthority",
+    "authorizationPolicyPath",
+    "authorizationPolicyRevision",
+    "authorizationPolicyDigest",
+    "providerRecordId",
+    "providerProofDigest",
+    "providerTrustAnchorDigest",
+    "sequence",
+    "targetExamRevision",
+    "targetExamDigest",
+    "retentionPolicyPath",
+    "retentionPolicyDigest",
+    "copyInventoryDigest",
+    "holdState",
+    "referenceState",
+    "conditions",
+    "safeguards",
+    "allowedCopyProviders",
+    "sourceOriginalExcluded",
+    "terminalEventId",
+    "deadlineSeconds",
+    "eraseMethod",
+    "idempotencyKey",
+    "casHead",
+    "status",
+    "validFrom",
+    "expiresAt",
+    "recordDigest",
+    "signature"
+  ],
+  "properties": {
+    "version": {
+      "const": "steer-human-authority/v3"
+    },
+    "authorityId": {
+      "$ref": "#/$defs/id"
+    },
+    "authorityType": {
+      "enum": [
+        "human-ruling",
+        "disposition-authorization",
+        "raw-policy-grant"
+      ]
+    },
+    "organization": {
+      "$ref": "#/$defs/id"
+    },
+    "tenant": {
+      "$ref": "#/$defs/id"
+    },
+    "item": {
+      "$ref": "#/$defs/id"
+    },
+    "humanSubject": {
+      "$ref": "#/$defs/id"
+    },
+    "identityIssuer": {
+      "type": "string",
+      "format": "uri"
+    },
+    "identityEvidenceDigest": {
+      "$ref": "#/$defs/sha256"
+    },
+    "identityStatus": {
+      "const": "verified-active"
+    },
+    "activeHat": {
+      "const": "privacy-legal-records-owner"
+    },
+    "qualification": {
+      "const": "qualified-current"
+    },
+    "qualificationEvidenceDigest": {
+      "$ref": "#/$defs/sha256"
+    },
+    "qualificationValidThrough": {
+      "$ref": "#/$defs/time"
+    },
+    "assignmentEvidenceDigest": {
+      "$ref": "#/$defs/sha256"
+    },
+    "assignmentValidThrough": {
+      "$ref": "#/$defs/time"
+    },
+    "sessionId": {
+      "$ref": "#/$defs/id"
+    },
+    "authenticatedAt": {
+      "$ref": "#/$defs/time"
+    },
+    "decidedAt": {
+      "$ref": "#/$defs/time"
+    },
+    "serverTimeAuthority": {
+      "const": "authorization-service"
+    },
+    "authorizationPolicyPath": {
+      "$ref": "#/$defs/id"
+    },
+    "authorizationPolicyRevision": {
+      "$ref": "#/$defs/revision"
+    },
+    "authorizationPolicyDigest": {
+      "$ref": "#/$defs/sha256"
+    },
+    "providerRecordId": {
+      "$ref": "#/$defs/id"
+    },
+    "providerProofDigest": {
+      "$ref": "#/$defs/sha256"
+    },
+    "providerTrustAnchorDigest": {
+      "$ref": "#/$defs/sha256"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "targetExamRevision": {
+      "$ref": "#/$defs/revision"
+    },
+    "targetExamDigest": {
+      "$ref": "#/$defs/sha256"
+    },
+    "retentionPolicyPath": {
+      "$ref": "#/$defs/id"
+    },
+    "retentionPolicyDigest": {
+      "$ref": "#/$defs/sha256"
+    },
+    "copyInventoryDigest": {
+      "$ref": "#/$defs/sha256"
+    },
+    "holdState": {
+      "const": "none"
+    },
+    "referenceState": {
+      "const": "cleared"
+    },
+    "conditions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/id"
+      },
+      "uniqueItems": true
+    },
+    "safeguards": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "$ref": "#/$defs/id"
+      },
+      "uniqueItems": true
+    },
+    "allowedCopyProviders": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/id"
+      },
+      "uniqueItems": true
+    },
+    "sourceOriginalExcluded": {
+      "const": true
+    },
+    "terminalEventId": {
+      "$ref": "#/$defs/id"
+    },
+    "deadlineSeconds": {
+      "const": 60
+    },
+    "eraseMethod": {
+      "enum": [
+        "provider-delete",
+        "cryptographic-erase"
+      ]
+    },
+    "idempotencyKey": {
+      "$ref": "#/$defs/id"
+    },
+    "casHead": {
+      "$ref": "#/$defs/sha256"
+    },
+    "status": {
+      "const": "current"
+    },
+    "validFrom": {
+      "$ref": "#/$defs/time"
+    },
+    "expiresAt": {
+      "$ref": "#/$defs/time"
+    },
+    "recordDigest": {
+      "$ref": "#/$defs/sha256"
+    },
+    "signature": {
+      "$ref": "#/$defs/signature"
+    }
+  }
+}

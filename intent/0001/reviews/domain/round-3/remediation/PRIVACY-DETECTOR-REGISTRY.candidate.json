@@ -1,0 +1,30 @@
+{
+  "version": "steer-prohibited-identifier-detector/v2",
+  "normalization": ["unicode-nfkc", "case-fold", "strip-all-unicode-format-controls-exceptions-none", "normalize-at-dot-obfuscation", "normalize-phone-digits", "collapse-separators"],
+  "tokenization": "unicode-letter-number",
+  "policyClasses": [
+    "personal-name",
+    "username-handle",
+    "email",
+    "phone",
+    "postal-address",
+    "precise-location",
+    "government-identifier",
+    "account-identifier",
+    "customer-identifier",
+    "employee-identifier",
+    "device-identifier",
+    "ip-address",
+    "mac-address",
+    "identity-bearing-url",
+    "biometric",
+    "signature",
+    "secret",
+    "token",
+    "credential",
+    "free-text-self-identification"
+  ],
+  "requiredCaseKinds": ["plain-positive", "evasion-positive", "boundary-negative"],
+  "linkage": {"top1Maximum": 0.1, "wilson95UpperMaximum": 0.25, "minimumK": 5},
+  "revisionBinding": "sha256-of-this-file"
+}

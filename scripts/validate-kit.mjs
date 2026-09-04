@@ -386,12 +386,16 @@ for (const domain of expectedReviewDomains) {
 const domainReviewTargetRoundTwo = JSON.parse(
   await readFile("intent/0001/reviews/domain/round-2/review-target.json", "utf8"),
 );
+const roundTwoExamBytes = execFileSync("git", [
+  "show",
+  `${domainReviewTargetRoundTwo.targetRevision}:${domainReviewTargetRoundTwo.exam.path}`,
+]);
 if (
   domainReviewTargetRoundTwo.version !== "steer-domain-review-target/v1" ||
   domainReviewTargetRoundTwo.status !== "awaiting-agent-reviews" ||
   domainReviewTargetRoundTwo.round !== 2 ||
   domainReviewTargetRoundTwo.targetRevision !== "9c7299dd658615cd234e8e03188d607ef1a99fe1" ||
-  domainReviewTargetRoundTwo.exam?.sha256 !== sha256(await readFile("intent/0001/EXAM.md")) ||
+  domainReviewTargetRoundTwo.exam?.sha256 !== sha256(roundTwoExamBytes) ||
   domainReviewTargetRoundTwo.requiredDomains?.join(",") !== expectedReviewDomains.join(",") ||
   domainReviewTargetRoundTwo.recordDirectory !== "intent/0001/reviews/domain/round-2/records" ||
   domainReviewTargetRoundTwo.gateBoundary?.doesNotAuthorizeGateTwo !== true ||

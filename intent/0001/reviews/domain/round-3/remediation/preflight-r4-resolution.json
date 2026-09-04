@@ -1,0 +1,96 @@
+{
+  "version": "steer-round-3-preflight-r4-resolution/v1",
+  "criticPath": "intent/0001/reviews/domain/round-3/remediation/preflight-critic-r4.json",
+  "criticSha256": "232f0a8f95c3af1ddc0e87be0f0deeef1b9d27055aa9b5271b368575685a6d68",
+  "sourceTargetRevision": "bcf472d4db9e4a95b483676869f01869423fdc95",
+  "sourceExamSha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f",
+  "authorizationPolicyPath": "kit/policy/gates.json",
+  "authorizationPolicySha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56",
+  "retentionPolicyPath": "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+  "retentionPolicySha256": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32",
+  "status": "technical-counterexamples-remediated-awaiting-fresh-critic-and-human-prerequisites",
+  "findings": [
+    {
+      "id": "PREFLIGHT-R3-R4-001",
+      "severity": "blocker",
+      "technicalStatus": "remediated",
+      "evidence": [
+        "Every destructive lifecycle tuple consumes a complete HUMAN-AUTHORITY decision graph; raw working data additionally consumes a schema-valid composed RAW-POLICY-GRANT rather than a digest surrogate.",
+        "Lifecycle provider keys are selected from an exact independently anchored registry and verified at evidence-signing and evaluation instants.",
+        "Migration contract cleanup consumes full human authority bound to exact plan, backup, columns, data operations and tenants; malformed human, raw-grant and provider-registry/key fixtures fail closed with zero effects."
+      ]
+    },
+    {
+      "id": "PREFLIGHT-R3-R4-002",
+      "severity": "blocker",
+      "technicalStatus": "remediated",
+      "evidence": [
+        "Spend consumes closed REPLAY-LEDGER and CAS-HEAD records signed only by replay-authority and cas-authority trust domains.",
+        "Replay, current head, winner reservation and consumer request bind exact request bytes/digest, idempotency, target, policy, result and head lineage.",
+        "Ordinary-signer replay, missing/stale head, replay-head drift, request drift and CAS loser fixtures deny with zero effects."
+      ]
+    },
+    {
+      "id": "PREFLIGHT-R3-R4-003",
+      "severity": "major",
+      "technicalStatus": "remediated",
+      "evidence": [
+        "Cost validation requires equal exact cardinality and unique complete sets across ledger, provider usage and provider invoice records.",
+        "A reordered two-line complete set passes with the recomputed aggregate; duplicate ledger, provider usage, provider invoice and invoice-ID fixtures deny."
+      ]
+    },
+    {
+      "id": "PREFLIGHT-R3-R4-004",
+      "severity": "major",
+      "technicalStatus": "remediated",
+      "evidence": [
+        "Recovery authority and every nested evidence family bind exact cut, corruption class, organization, tenant, repository/item, record class, provider/account/key, target and implementation revisions, retention policy and proof type.",
+        "Complete decision and Git object bytes are verified against their digests; provider identity and independent verifier identity resolve through separate trust anchors.",
+        "All eight cuts and twenty-five corruptions execute; arbitrary policy, opaque identity, generic decision proof, cut/class scope and revision scope substitutions fail closed."
+      ]
+    },
+    {
+      "id": "PREFLIGHT-R3-R4-005",
+      "severity": "major",
+      "technicalStatus": "remediated",
+      "evidence": [
+        "The migration oracle independently derives schema state, reader and writer observations, rollback state, checkpoint state, recovery source and transition digest for every matrix coordinate.",
+        "Signed pre/post state digests are journal-bound, and the 3,614-row matrix rejects duplicate semantic evidence and transplanted truth or cleanup graphs."
+      ]
+    },
+    {
+      "id": "PREFLIGHT-R3-R4-006",
+      "severity": "major",
+      "technicalStatus": "remediated",
+      "evidence": [
+        "Phone normalization detects non-US `+` and `00` country-code formats from seven through fifteen digits.",
+        "Named `+44` and `0044` positives execute while sixteen-digit, embedded and too-short boundary fixtures remain negative."
+      ]
+    }
+  ],
+  "validation": {
+    "fixturesOnly": {"status": "pass", "declared": 4027, "executed": 4027, "schemas": 15, "accessibilityCheckpointKeys": 2664900, "migrationRows": 3614, "recoveryCuts": 8, "recoveryCorruptions": 25},
+    "full": {"status": "pass", "declared": 4027, "executed": 4027, "manifestArtifacts": 61, "preservedPriorRecords": 25},
+    "directR4Probes": {"status": "pass", "lifecycle": 5, "spend": 7, "cost": 7, "recovery": 7, "migration": 8, "privacy": 5},
+    "pnpmCheck": {"status": "pass", "kitArtifacts": 95, "vitestFiles": 17, "vitestTests": 88, "nodeControlTests": 17, "workspaceTests": 2, "buildsPassed": 3}
+  },
+  "knownGaps": [
+    "No canonical Exam incorporation has occurred.",
+    "No post-incorporation qualified-human legal/privacy ruling exists.",
+    "No actual Gate 3 manual accessibility evidence is claimed; this package contains deterministic contract-test evidence.",
+    "No fresh independent Critic disposition, Gate 2 decision or release decision is made."
+  ],
+  "claims": {
+    "gateTwoEligible": false,
+    "releaseEligible": false,
+    "commitPerformed": false,
+    "pushPerformed": false,
+    "qualifiedHumanRulingSatisfied": false,
+    "actualAccessibilityManualRunSatisfied": false,
+    "productionAuthorized": false,
+    "migrationAuthorized": false,
+    "deletionAuthorized": false,
+    "providerAccessAuthorized": false,
+    "spendingAuthorized": false
+  }
+}

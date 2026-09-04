@@ -1,0 +1,33 @@
+{
+  "version": "steer-accessibility-matrix/v2",
+  "checkpointModel": {"first": "A01", "last": "A81", "count": 81},
+  "routes": [
+    {"id":"R01","states":["normal","loading","empty","error","permission-denied","stale","breached","offline-reconnect","session-expired","gate-ready","gate-blocked","gate-conflicted","gate-unsigned","gate-signing","gate-signed","gate-declined","gate-send-back","gate-provider-unknown","specialist-not-triggered","specialist-waiting","specialist-sla-breached","specialist-signed-disposition","specialist-stale-disposition"]},
+    {"id":"R02","states":["normal","loading","empty","error","permission-denied","stale","breached","offline-reconnect","session-expired"]},
+    {"id":"R03","states":["normal","loading","empty","error","permission-denied","stale","breached","offline-reconnect","session-expired"]},
+    {"id":"R04","states":["normal","loading","empty","error","permission-denied","stale","breached","offline-reconnect","session-expired","gate-ready","gate-blocked","gate-conflicted","gate-unsigned","gate-signing","gate-signed","gate-declined","gate-send-back","gate-provider-unknown","specialist-not-triggered","specialist-waiting","specialist-sla-breached","specialist-signed-disposition","specialist-stale-disposition"]},
+    {"id":"R05","states":["normal","loading","empty","error","permission-denied","stale","breached","offline-reconnect","session-expired"]},
+    {"id":"R06","states":["normal","loading","empty","error","permission-denied","stale","breached","offline-reconnect","session-expired","streaming","interrupted-stream","correction","validation-error","discard","save","confirmation-dialog","cancelled-confirmation","authoritative-save-failure"]},
+    {"id":"R07","states":["normal","loading","empty","error","permission-denied","stale","breached","offline-reconnect","session-expired","streaming","interrupted-stream","correction","validation-error","discard","save","confirmation-dialog","cancelled-confirmation","authoritative-save-failure"]},
+    {"id":"R08","states":["normal","loading","empty","error","permission-denied","stale","breached","offline-reconnect","session-expired"]}
+  ],
+  "stories": ["decision-card","specialist-card","conversation-message","conversation-stream","correction-editor","signature-dialog","status-badge","evidence-panel","board-lane-card","intent-card","notification","error-summary","empty-loading-shell"],
+  "storyStates": ["normal","loading","empty","error","permission-denied","stale","breached","offline-reconnect","session-expired"],
+  "scenarios": ["login","inbox-discovery","gate-card-review","specialist-escalation-review","item-evidence","stale-conflict-recovery","send-back-correction","streaming-originator-onboarding","dialog-cancel-confirm","signature-confirmation"],
+  "viewports": [
+    {"id":"desktop-1440x900","width":1440,"height":900,"class":"desktop"},
+    {"id":"desktop-1024x768","width":1024,"height":768,"class":"desktop"},
+    {"id":"mobile-390x844","width":390,"height":844,"class":"mobile"},
+    {"id":"mobile-320x800","width":320,"height":800,"class":"mobile"}
+  ],
+  "environments": [
+    {"id":"win11-chrome-jaws","os":"Windows 11","osVersion":"23H2","browser":"Chrome","browserVersion":"128.0.6613.120","assistiveTechnology":"JAWS","assistiveTechnologyVersion":"2024.2406.121","inputMode":"screen-reader","viewportClass":"desktop"},
+    {"id":"win11-firefox-nvda","os":"Windows 11","osVersion":"23H2","browser":"Firefox","browserVersion":"130.0","assistiveTechnology":"NVDA","assistiveTechnologyVersion":"2024.3","inputMode":"screen-reader","viewportClass":"desktop"},
+    {"id":"macos-safari-voiceover","os":"macOS","osVersion":"14.6.1","browser":"Safari","browserVersion":"17.6","assistiveTechnology":"VoiceOver","assistiveTechnologyVersion":"14.6.1","inputMode":"screen-reader","viewportClass":"desktop"},
+    {"id":"ios-safari-voiceover","os":"iOS","osVersion":"17.6.1","browser":"Safari","browserVersion":"17.6","assistiveTechnology":"VoiceOver","assistiveTechnologyVersion":"17.6.1","inputMode":"screen-reader","viewportClass":"mobile"},
+    {"id":"android-chrome-talkback","os":"Android","osVersion":"14","browser":"Chrome","browserVersion":"128.0.6613.99","assistiveTechnology":"TalkBack","assistiveTechnologyVersion":"15.0","inputMode":"screen-reader","viewportClass":"mobile"},
+    {"id":"win11-chrome-keyboard","os":"Windows 11","osVersion":"23H2","browser":"Chrome","browserVersion":"128.0.6613.120","assistiveTechnology":"none","assistiveTechnologyVersion":"none","inputMode":"keyboard-only","viewportClass":"desktop"},
+    {"id":"macos-safari-keyboard","os":"macOS","osVersion":"14.6.1","browser":"Safari","browserVersion":"17.6","assistiveTechnology":"none","assistiveTechnologyVersion":"none","inputMode":"keyboard-only","viewportClass":"desktop"}
+  ],
+  "requiredRowFields": ["surfaceKind","surfaceId","state","scenario","viewportId","viewportWidth","viewportHeight","environmentId","os","osVersion","browser","browserVersion","assistiveTechnology","assistiveTechnologyVersion","inputMode","operatorSubject","startedAt","endedAt","checkpoints","notes","evidenceReferences","evidenceBytesBase64","evidenceSha256","applicabilityRationale","checkpointModelDigest","examRevision","implementationRevision"]
+}

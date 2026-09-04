@@ -1,0 +1,341 @@
+{
+  "version": "steer-gate-2-round-3-remediation-preflight-critic/v2",
+  "organization": "steer-platform",
+  "item": "0001-flight-deck-foundation",
+  "gate": 2,
+  "reviewedAt": "2026-09-04T18:05:00Z",
+  "reviewer": {
+    "role": "independent-fresh-context-pre-incorporation-critic",
+    "agent": "gate2_r3_critic_r2",
+    "freshContext": true,
+    "builderIndependent": true,
+    "didNotRelyOnPriorAgentConclusions": true,
+    "didNotTrustDeclaredSuite": true,
+    "humanSignature": false,
+    "advisoryOnly": true
+  },
+  "scope": {
+    "immutableSourceRevision": "bcf472d4db9e4a95b483676869f01869423fdc95",
+    "immutableSourceExam": {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+    },
+    "immutableExceptionBrief": {
+      "path": "intent/0001/reviews/domain/round-3/exception-brief.json",
+      "sha256": "e87e433cbfe284ba592a79992b7cc7170c0e90bedefc273280a02999f5d56be6",
+      "openFindingCount": 14
+    },
+    "reviewedCompletely": [
+      "intent/0001/EXAM.md",
+      "intent/0001/reviews/domain/round-3/README.md",
+      "intent/0001/reviews/domain/round-3/review-target.json",
+      "intent/0001/reviews/domain/round-3/exception-brief.json",
+      "intent/0001/reviews/domain/round-3/exception-brief.md",
+      "intent/0001/reviews/domain/round-3/records/accessibility.json",
+      "intent/0001/reviews/domain/round-3/records/irreversible-operations.json",
+      "intent/0001/reviews/domain/round-3/records/legal.json",
+      "intent/0001/reviews/domain/round-3/records/money.json",
+      "intent/0001/reviews/domain/round-3/records/privacy.json",
+      "intent/0001/reviews/domain/round-3/records/reliability.json",
+      "intent/0001/reviews/domain/round-3/records/security.json",
+      "intent/0001/reviews/domain/round-3/remediation/EXAM-AMENDMENT.candidate.md",
+      "intent/0001/reviews/domain/round-3/remediation/remediation-manifest.json",
+      "intent/0001/reviews/domain/round-3/remediation/finding-resolution.json",
+      "intent/0001/reviews/domain/round-3/remediation/preflight-critic-r1.json",
+      "intent/0001/reviews/domain/round-3/remediation/preflight-r1-resolution.json",
+      "intent/0001/reviews/domain/round-3/remediation/CONTROL-FIXTURES.candidate.json",
+      "intent/0001/reviews/domain/round-3/remediation/PERMISSIONS-MANIFEST.candidate.json",
+      "intent/0001/reviews/domain/round-3/remediation/TRUST-REGISTRY.candidate.json",
+      "intent/0001/reviews/domain/round-3/remediation/PRIVACY-DETECTOR-REGISTRY.candidate.json",
+      "intent/0001/reviews/domain/round-3/remediation/PRIVACY-DETECTOR-CASES.candidate.json",
+      "intent/0001/reviews/domain/round-3/remediation/ACCESSIBILITY-MATRIX-MANIFEST.candidate.json",
+      "intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs",
+      "intent/0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs",
+      "intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs",
+      "intent/0001/reviews/domain/round-3/remediation/validate-remediation.mjs",
+      "intent/0001/reviews/domain/round-3/remediation/schemas/*",
+      "scripts/validate-kit.mjs",
+      "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r10.json",
+      "intent/0001/reviews/domain/round-2/remediation/remediation-manifest.json",
+      "intent/0001/reviews/domain/round-2/remediation/EXAM-AMENDMENT.candidate.md",
+      "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+      "intent/0001/reviews/domain/remediation/human-rulings/hr-01.json",
+      "intent/0001/reviews/domain/round-2/remediation/human-rulings/hr-01-r2-policy-approval.json",
+      "intent/0001/reviews/domain/round-2/remediation/human-rulings/hr-01-r2.json",
+      "intent/0001/signatures/gate-1.json",
+      "kit/policy/gates.json"
+    ]
+  },
+  "integrity": {
+    "candidateManifest": {
+      "path": "intent/0001/reviews/domain/round-3/remediation/remediation-manifest.json",
+      "sha256": "5c25eef21fab3d9011479f9ba065c156e1478155d8e1626d98ef994d50d7a23a",
+      "hashBoundArtifacts": 46,
+      "preservedPriorEvidenceRecords": 25,
+      "allEntriesPresentAndMatching": true,
+      "pathsUnique": true,
+      "selfExcludedToAvoidDigestCycle": true
+    },
+    "sourceExamGitObjectMatches": true,
+    "sourceExceptionBriefGitObjectMatches": true,
+    "gateOneAndSuppliedExamHashesMatchManifest": true,
+    "candidateArtifactsModifiedByCritic": false
+  },
+  "executedChecks": [
+    {
+      "command": "node intent/0001/reviews/domain/round-3/remediation/validate-remediation.mjs --fixtures-only",
+      "exitCode": 0,
+      "result": "PASS; 3802/3802 declared fixture IDs, including 2,664,900 generated accessibility checkpoint keys and 3,608 generated migration rows"
+    },
+    {
+      "command": "node intent/0001/reviews/domain/round-3/remediation/validate-remediation.mjs",
+      "exitCode": 0,
+      "result": "PASS; additionally verified 46 candidate artifacts and 25 preserved prior records"
+    },
+    {
+      "command": "pnpm check",
+      "exitCode": 0,
+      "result": "PASS; 95 kit artifacts, scope audit, type checks, 17 Vitest files with 88 tests, 17 Node control tests, workspace tests, and builds"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "result": "PASS"
+    },
+    {
+      "command": "git show bcf472d4db9e4a95b483676869f01869423fdc95:<source-path> | shasum -a 256",
+      "exitCode": 0,
+      "result": "Exam matched 84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f; exception brief matched e87e433cbfe284ba592a79992b7cc7170c0e90bedefc273280a02999f5d56be6"
+    }
+  ],
+  "decision": {
+    "verdict": "SEND_BACK",
+    "confidence": "high",
+    "technicalBlockers": 7,
+    "technicalMajors": 1,
+    "allFourteenClosuresProven": false,
+    "readyForProtectedIncorporation": false,
+    "rationale": "The hashes and declared loops are green, but the exported public oracles accept independently supplied hostile serialized evidence that violates the amendment. The schema path for raw grants is not compilable offline, signer trust domains are forgeable through the exported fixture signer, and the authorization, privacy, accessibility, human/lifecycle, migration, monetary, and recovery graphs remain materially under-bound. Declared-versus-executed equality covers only the candidate's reduced declarations, not the canonical mandatory matrices."
+  },
+  "findings": [
+    {
+      "id": "PREFLIGHT-R3-R2-001",
+      "severity": "blocker",
+      "title": "Trust-domain separation and protected-action credential/resource enforcement are bypassable",
+      "affectedOpenFindings": ["SEC-G2-R3-001", "LEGAL-G2-R3-001", "IRREV-G2-R3-001", "REL-G2-R2-001", "MONEY-G2-004"],
+      "locations": [
+        "intent/0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs:39-71",
+        "intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs:25-59"
+      ],
+      "reproductions": [
+        {
+          "case": "Set the downstream credential's signed oneUse field to false with the exported sealRecord(...,'downstream') and call authorizationDecision",
+          "observed": "ALLOW with credentialAccess=1, installationToken=1, providerRequest=1, gitWrite=1",
+          "expected": "DENY before effects because the manifest requires a one-use protected-action credential"
+        },
+        {
+          "case": "Append an independently resealed wildcard admin resource row to providerResourcesBytes",
+          "observed": "ALLOW with all four operational effects",
+          "expected": "DENY because unknown, extra, malformed, and wildcard resources are prohibited"
+        },
+        {
+          "case": "Import sealRecord and request domains provider, human-provider, recovery-provider, verifier, authority, assignment, money, upstream, or downstream",
+          "observed": "The public export has each corresponding private key and mints a signature accepted by verifyRecord",
+          "expected": "Provider and human authority fixture private keys must be unavailable to the ordinary record signer and public hostile callers"
+        }
+      ],
+      "analysis": "Credential one-use state is signed but never enforced; delegation credential digests and containment windows are not compared; extra resource rows are ignored; assignment and authority currentness are incomplete. More fundamentally, the same exported signer can mint every supposedly independent trust-domain record, contradicting the R9 separation inherited from the canonical Exam.",
+      "requiredFix": "Move every independent trust-domain private key behind non-exported, domain-specific fixture builders and expose only immutable hostile bytes/public anchors to callers. Enforce exact credential, delegation, assignment, authority, replay/CAS, and resource schemas and cross-bindings, including one-use/idle/currentness/window containment, exact complete resource-set equality, and unknown/extra/wildcard denial. Add these two accepted counterexamples and local-signer forgery attempts to the closed expected execution inventory."
+    },
+    {
+      "id": "PREFLIGHT-R3-R2-002",
+      "severity": "blocker",
+      "title": "RAW-POLICY-GRANT is not resolvable offline and no executable disposition lifecycle exists",
+      "affectedOpenFindings": ["IRREV-G2-R3-001", "LEGAL-G2-R3-001"],
+      "locations": [
+        "intent/0001/reviews/domain/round-3/remediation/schemas/RAW-POLICY-GRANT.schema.json:1",
+        "intent/0001/reviews/domain/round-2/remediation/schema-validator.candidate.mjs:33-46",
+        "intent/0001/reviews/domain/round-3/remediation/validate-remediation.mjs:86-90",
+        "intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs:99-129"
+      ],
+      "reproduction": {
+        "call": "compile202012(parseStrict(RAW-POLICY-GRANT.schema.json))",
+        "observed": "Throws: external $ref prohibited: HUMAN-AUTHORITY.schema.json",
+        "expected": "Offline resolver must load, identify, compose, and validate the referenced schema and a positive/negative raw-grant instance"
+      },
+      "analysis": "The validator only asserts the literal $ref string and separately checks that HUMAN-AUTHORITY rejects null. It never compiles the composed grant schema and never validates a grant. lifecycleEventDecision validates isolated event records and ordering only; it does not execute the 16-class policy table, derive expiry, evaluate hold/reference/read-race precedence, consume per-copy authorities and inventories, verify provider receipts, create aggregate receipts/tombstones, or route through protected-action CAS/replay semantics.",
+      "requiredFix": "Implement a deterministic offline schema registry with URI resolution and composed evaluation, then validate positive and hostile RAW-POLICY-GRANT bytes. Add one lifecycle graph oracle covering all 16 classes, trigger histories, before/at/after boundaries, holds/references/restored copies/read races, complete per-copy/per-key inventories and authorities, independently verified provider receipts, aggregate receipt, tombstone, idempotency/CAS, crash recovery, and typed zero effects."
+    },
+    {
+      "id": "PREFLIGHT-R3-R2-003",
+      "severity": "blocker",
+      "title": "Human authority accepts substituted target Exam and retention policy",
+      "affectedOpenFindings": ["LEGAL-G2-R3-001", "IRREV-G2-R3-001"],
+      "locations": [
+        "intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs:108-123",
+        "intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs:51-83"
+      ],
+      "reproduction": {
+        "case": "Coherently reseal authority/provider/CAS records after changing targetExamRevision to f*40, targetExamDigest to f*64, and retentionPolicyDigest to e*64",
+        "observed": "humanAuthorityDecision returned ALLOW",
+        "expected": "DENY stale/substituted target and policy before authority can satisfy any ruling or disposition predicate"
+      },
+      "analysis": "The function binds the supplied fields to its supplied provider proof, but never compares them to the immutable candidate target, final governed policy path/digest, current assignment target, or current CAS/replay timestamps. The fixed internal time also prevents proof against a caller-supplied authoritative decision instant.",
+      "requiredFix": "Require the immutable expected Exam revision/digest and final policy path/digest as independently hash-bound inputs; bind identity, qualification and assignment records to the same organization, tenant, item, target, hat, validity instant and policy; validate replay/CAS freshness and status. Add coherent target, policy, item, organization, inventory, assignment-target, and timestamp substitutions. Preserve the requirement for a real qualified-human ruling after incorporation."
+    },
+    {
+      "id": "PREFLIGHT-R3-R2-004",
+      "severity": "blocker",
+      "title": "Privacy acceptance ignores signed provenance and use-authorization cross-bindings and remains detector-evasible",
+      "affectedOpenFindings": ["PRIV-G2-R2-001"],
+      "locations": [
+        "intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs:61-87",
+        "intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs:117-123"
+      ],
+      "reproductions": [
+        {
+          "case": "Reseal useAuthorizationBytes with sourcePoolDigest=f*64, validThrough=2026-09-01T00:00:00Z, and allowedDerivatives=[]",
+          "observed": "privacyGraphDecision returned ACCEPT",
+          "expected": "Reject wrong-source, expired, and no-derivative authority"
+        },
+        {
+          "case": "Call detectIdentifiers on alice (at) example (dot) com, passport number AB123456, Account identifier 778899, and My name is Alice Q. Example",
+          "observed": "Each returned no identifier hit",
+          "expected": "The declared email, government/account identifier, and personal-name classes must detect their governed evasions"
+        }
+      ],
+      "analysis": "Source authority, use authorization, sanitizer and inspection records are signature-checked but their fields are not cross-bound to the graph. Prompt sourceId is not resolved to a source row. Sanitizer/inspection results, identities, revisions, authorization windows and corpus digests are not enforced. Raw-copy outer identity/provider is not fully compared to the signed copy and receipt, and the graph omits the promised encrypted corpus/version/key and per-copy disposition authorities. The linkage calculation trusts sourcePool.linked booleans instead of executing the declared linkage procedure.",
+      "requiredFix": "Validate the complete signed privacy graph edge-by-edge: source authority/pool, purpose and time-bounded use authorization, sanitizer/inspector identities and revisions/results, prompt-to-source lineage, encrypted corpus/version/key, every derivative destination/credential, per-copy inventory/authority/receipt, and independently recomputed linkage trials. Expand deterministic normalization/detection to realistic separator, punctuation, title/initial, label, Unicode and encoding evasions with precision boundaries, then add every accepted substitution to declared execution."
+    },
+    {
+      "id": "PREFLIGHT-R3-R2-005",
+      "severity": "blocker",
+      "title": "Migration graphs accept transplanted journal and provider results and do not prove behavior",
+      "affectedOpenFindings": ["IRREV-G2-R3-002"],
+      "locations": [
+        "intent/0001/reviews/domain/round-3/remediation/schemas/MIGRATION-EVIDENCE.schema.json:1-14",
+        "intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs:125-129",
+        "intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs:125-131"
+      ],
+      "reproduction": {
+        "case": "Replace a signed schema-v1 contract graph's journal and providerResult with the signed journal/result from a schema-v2 expand graph, reseal only the outer graph, and call migrationDecision",
+        "observed": "Returned journaled with effects.migration=1",
+        "expected": "Reject because plan, exact version/phase/batch/checkpoint/interleaving/rollback/idempotency, immutable provider request/result, journal, cleanup, backup, restoration and truth must be one cross-bound execution"
+      },
+      "analysis": "The oracle checks only a small plan subset, cleanup columns/tenant for contract, terminal provider status, backup/restoration digest equality and preTruth==postTruth. Journal IDs/state/batch/checkpoint are not bound to execution, plan, matrix or provider result; provider request/transaction is not bound to the immutable request/idempotency/CAS; cleanup backupDigest is not bound to backup; phases and interleavings are labels rather than observed operations. All 3,608 rows reuse generated synthetic records and do not establish reader/writer behavior, interruption, rollback or data truth.",
+      "requiredFix": "Define and enforce signed-edge digests among plan, cleanup authority, immutable request, journal/checkpoint, CAS/idempotency reservation, provider result, backup/PITR/restoration, matrix row and exact pre/post truth. Require phase-specific state transitions and observed old/new reader/writer results, checkpoint-specific before/after effects, rollback outcomes, unique execution/provider IDs, and exact expected effects. Add record-transplant, phase-label, journal-state, request/result, backup and truth-lineage counterexamples."
+    },
+    {
+      "id": "PREFLIGHT-R3-R2-006",
+      "severity": "blocker",
+      "title": "Spend and cost oracles accept broken lineage and substituted prices",
+      "affectedOpenFindings": ["MONEY-G2-004", "MONEY-G2-005", "MONEY-G2-R3-001"],
+      "locations": [
+        "intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs:135-141",
+        "intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs:136-146"
+      ],
+      "reproductions": [
+        {
+          "case": "Remove the predecessor bytes from makeSpendGraph, leaving only spend-2 whose signed predecessorId/predecessorDigest are non-null",
+          "observed": "spendDecision returned ALLOW",
+          "expected": "Reject a non-root authorization with a missing predecessor"
+        },
+        {
+          "case": "Reseal the forecast price as currency EUR and nanoUsdPerUnit 9000000000000000000 without changing its provider/SKU/revision",
+          "observed": "costDecision returned ALLOW and calculated from the cost row's old 4900000 value",
+          "expected": "Reject currency/price contradiction and derive every line from the signed price record"
+        }
+      ],
+      "analysis": "The first chain element is treated as a root without requiring null predecessor fields or recomputing its delta/cumulative values. Only organization infrastructure is ceiling-checked; complete scope hierarchy, model limits, nonnegative bounded values and signed-edge transitions are absent. Reservation/replay records lack complete currentness/status/scope semantics. Cost records are not schema-validated; the price amount and currency are ignored; row amounts are caller authority; forecast has no low/expected/high assumptions or complete five-scope evaluation; invoice and reconciliation do not validate provider invoice grouping, exact units, variance or signed lineage.",
+      "requiredFix": "Use closed spend, price, forecast, reservation, usage, invoice, variance, reconciliation, alert, shutdown, revocation and restart schemas. Recompute every signed preimage/proof and bind every edge, exact UTC period, issued/usage/provider times, provider/SKU/class, five scope trees, model separation, price amount/currency, cumulative root/successor transitions, CAS/idempotency/replay and provider invoice lineage. Add missing-root, negative/overflow, hierarchy, price/currency, temporal, cumulative, forecast-scenario, invoice and reconciliation substitutions."
+    },
+    {
+      "id": "PREFLIGHT-R3-R2-007",
+      "severity": "blocker",
+      "title": "Accessibility and recovery evidence do not meet the canonical exact-set and cut-specific proof contracts",
+      "affectedOpenFindings": ["ACC-G2-R3-001", "ACC-G2-R3-002", "REL-G2-R2-001"],
+      "locations": [
+        "intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs:89-97",
+        "intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs:130-134",
+        "intent/0001/reviews/domain/round-3/remediation/validate-remediation.mjs:54-76"
+      ],
+      "analysis": "Accessibility rows are unsigned and the signed summary lacks reviewer identity, qualification, current pod assignment, environment/revision scope and independently signed provider proof. It counts 2,664,900 checkpoint keys as rowCount while hashing only generated aggregate row bytes; raw checkpoint identity/applicability/outcome is not reconciled to signed summary rows as required by the canonical R3 contract. The positive bundle is factory-generated, not retrieved human evidence. Recovery executes one generic positive record plus nine mutations, not eight distinct reachable loss-cut source states and nineteen canonical corruptions. Its inventory rows are only checked for sequential cursor and unique mapping/digest; they are not derived from or cross-bound to provider journal/export/restored bytes. No numeric RTO, cut-specific durability, webhook/fetch/spool/WORM/Git state, retry identity, exact decision-byte inventory, or failed-rehearsal effect proof exists.",
+      "requiredFix": "For accessibility, consume immutable retrieved raw rows/checkpoints, sign or digest-bind each exact row to a provider-bound qualified-human summary, and verify identity, current qualification/assignment, exact revisions, complete environment/surface/state/scenario/viewport/checkpoint equality and evidence bytes. For recovery, materialize all eight distinct cut states and all nineteen corruptions; derive pre/post inventories from provider/restored bytes, bind every record cursor/mapping/decision/Git object, measure numeric RTO, prove cut-available durability and retry identity, and require zero effects on every failed rehearsal."
+    },
+    {
+      "id": "PREFLIGHT-R3-R2-008",
+      "severity": "major",
+      "title": "Declared-versus-executed equality is exact only for a reduced self-declared inventory",
+      "affectedOpenFindings": ["ACC-G2-R3-002", "IRREV-G2-R3-001", "IRREV-G2-R3-002", "MONEY-G2-004", "MONEY-G2-005", "PRIV-G2-R2-001", "REL-G2-R2-001", "SEC-G2-R3-001"],
+      "locations": [
+        "intent/0001/reviews/domain/round-3/remediation/CONTROL-FIXTURES.candidate.json:1-18",
+        "intent/0001/reviews/domain/round-3/remediation/validate-remediation.mjs:27-48",
+        "intent/0001/reviews/domain/round-3/remediation/validate-remediation.mjs:92-99"
+      ],
+      "analysis": "The final set comparison correctly proves that every ID declared by this CONTROL-FIXTURES file ran once. It cannot prove completeness against the canonical Exam because required classes are absent from the declaration itself: raw-grant instances and composed schema cases; 16-class lifecycle boundary/precedence/disposition/replay/crash graphs; signed accessibility identity/provider summaries; eight recovery cuts and nineteen corruptions; full privacy graph substitutions; migration signed-edge transplants; and complete spend/cost schema families. The validator's PASS therefore overstates closure even though its 3802/3802 arithmetic is accurate.",
+      "requiredFix": "Create an independently derived canonical expected inventory from the Exam, amendment and closed registries, not solely CONTROL-FIXTURES. Compare exact IDs, kinds, dimensions and input/result digests to observed executions. Include every mandatory matrix named in the required fixes above and fail when the executable inventory is narrower than the normative contract."
+    }
+  ],
+  "priorR1Disposition": {
+    "status": "notClosed",
+    "details": "R1's seven findings remain technically open in material part. The new files improve serialization, schemas, signatures and declared-case accounting, but the independent counterexamples above still produce ALLOW, ACCEPT, journaled, or unresolvable-schema outcomes."
+  },
+  "controlResults": {
+    "positiveCandidateModes": "Both declared modes passed and full-mode hashes matched.",
+    "repositoryRegression": "pnpm check passed.",
+    "sourceIntegrity": "Immutable Exam and exception brief matched revision bcf472d4db9e4a95b483676869f01869423fdc95.",
+    "adversarialOutcome": "Hostile serialized evidence produced operational ALLOW, privacy ACCEPT, migration journaled, spend/cost ALLOW, human-authority ALLOW, and an offline schema-compilation failure where the amendment requires fail-closed denial or successful composed validation."
+  },
+  "exactRevisionIncorporationStrategy": {
+    "status": "notReady",
+    "reason": "The candidate correctly treats protected incorporation as a future governed step and does not require current canonicality. Technical incorporation is nevertheless unsafe until this report's blockers and major are resolved and the package is frozen again.",
+    "requiredSequence": [
+      "Resolve all technical findings and obtain a new zero-blocker/zero-major independent preflight over the frozen package.",
+      "Only an authorized independent Exam author may incorporate through the protected GitHub App path and capture actor/diff-bound enforcement evidence.",
+      "Freeze the resulting new canonical Exam revision and exact package digests.",
+      "Obtain the new qualified privacy/legal records-owner ruling over final bytes; historical rulings do not substitute.",
+      "Obtain all seven fresh independent domain reviews, a zero-open exception brief, and a final fresh-context exact-revision Critic.",
+      "Only then may an eligible human Tech Lead decide Gate 2; no prior step authorizes build, release, production, deletion, migration, provider access, or spending."
+    ]
+  },
+  "humanDependencies": [
+    {
+      "id": "NEW-QUALIFIED-RECORDS-OWNER-RULING",
+      "status": "required-after-final-protected-incorporation",
+      "owner": "qualified privacy/legal records owner",
+      "note": "Historical HR-01 and HR-01-R2 records remain immutable evidence but cannot satisfy the new envelope or a future final Exam revision. This Critic did not create, infer, or simulate a ruling."
+    },
+    {
+      "id": "SEVEN-DOMAIN-EXACT-REVISION-REVIEWS",
+      "status": "required-after-any-future-incorporation",
+      "owner": "independent domain reviewers"
+    },
+    {
+      "id": "FINAL-FRESH-CONTEXT-CRITIC",
+      "status": "required-after-future incorporation and new domain records",
+      "owner": "independent Critic"
+    },
+    {
+      "id": "HUMAN-GATE-2-DECISION",
+      "status": "not-eligible",
+      "owner": "eligible human Tech Lead"
+    }
+  ],
+  "boundaries": {
+    "onlyRepositoryWrite": "intent/0001/reviews/domain/round-3/remediation/preflight-critic-r2.json",
+    "candidateArtifactsModified": false,
+    "canonicalExamModified": false,
+    "priorReviewsOrRulingsModified": false,
+    "implementationOrSignaturesModified": false,
+    "commitOrPushPerformed": false,
+    "gateTwoSigned": false,
+    "builderAuthorized": false,
+    "buildOrReleaseAuthorized": false,
+    "productionOrDeploymentAuthorized": false,
+    "providerAccessAuthorized": false,
+    "migrationOrDeletionAuthorized": false,
+    "spendingAuthorized": false,
+    "residualRiskAcceptedOrWaived": false,
+    "humanRulingCreatedOrInferred": false
+  }
+}

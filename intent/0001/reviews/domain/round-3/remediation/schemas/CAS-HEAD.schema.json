@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "CAS-HEAD.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["headId", "source", "head", "sequence", "snapshotAt", "validThrough", "requestDigest", "tupleDigest", "targetExamRevision", "targetExamSha256", "authorizationPolicyDigest", "recordDigest", "signature"],
+  "properties": {
+    "headId": {"type": "string", "minLength": 1},
+    "source": {"const": "authoritative-cas-store"},
+    "head": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "sequence": {"type": "integer", "minimum": 1},
+    "snapshotAt": {"type": "string", "format": "date-time"},
+    "validThrough": {"type": "string", "format": "date-time"},
+    "requestDigest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "tupleDigest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "targetExamRevision": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "targetExamSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "authorizationPolicyDigest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "recordDigest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "signature": {"type": "object", "additionalProperties": false, "required": ["algorithm", "keyId", "signedDigest", "valueBase64"], "properties": {"algorithm": {"const": "Ed25519"}, "keyId": {"type": "string", "minLength": 1}, "signedDigest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "valueBase64": {"type": "string", "minLength": 1}}}
+  }
+}

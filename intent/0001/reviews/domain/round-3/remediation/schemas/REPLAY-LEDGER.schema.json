@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "REPLAY-LEDGER.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["ledgerId", "source", "status", "idempotencyKey", "requestDigest", "resultDigest", "headId", "snapshotAt", "validThrough", "targetExamRevision", "targetExamSha256", "authorizationPolicyDigest", "recordDigest", "signature"],
+  "properties": {
+    "ledgerId": {"type": "string", "minLength": 1},
+    "source": {"const": "authoritative-replay-store"},
+    "status": {"enum": ["unused", "committed"]},
+    "idempotencyKey": {"type": "string", "minLength": 1},
+    "requestDigest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "resultDigest": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "headId": {"type": "string", "minLength": 1},
+    "snapshotAt": {"type": "string", "format": "date-time"},
+    "validThrough": {"type": "string", "format": "date-time"},
+    "targetExamRevision": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "targetExamSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "authorizationPolicyDigest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "recordDigest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "signature": {"type": "object", "additionalProperties": false, "required": ["algorithm", "keyId", "signedDigest", "valueBase64"], "properties": {"algorithm": {"const": "Ed25519"}, "keyId": {"type": "string", "minLength": 1}, "signedDigest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "valueBase64": {"type": "string", "minLength": 1}}}
+  }
+}

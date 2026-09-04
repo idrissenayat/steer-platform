@@ -1,0 +1,18 @@
+{
+  "version":"steer-gate-2-round-3-preflight-r1-resolution/v1",
+  "criticPath":"intent/0001/reviews/domain/round-3/remediation/preflight-critic-r1.json",
+  "criticSha256":"9a9017776041b073ec643bde6750c0b7e8c68f0e463cf4bf2749fd9e36412ab9",
+  "sourceTargetRevision":"bcf472d4db9e4a95b483676869f01869423fdc95",
+  "status":"counterexamples-addressed-independent-closure-review-required-qualified-human-ruling-still-required",
+  "resolutions":[
+    {"id":"PREFLIGHT-R3-001","severity":"blocker","status":"counterexamples-addressed-closure-review-required","evidence":["PERMISSIONS-MANIFEST.candidate.json","TRUST-REGISTRY.candidate.json","strict-evidence.candidate.mjs","evidence-fixtures.candidate.mjs","semantic-oracles.candidate.mjs","validate-remediation.mjs"]},
+    {"id":"PREFLIGHT-R3-002","severity":"blocker","status":"counterexamples-addressed-closure-review-required","evidence":["ACCESSIBILITY-MATRIX-MANIFEST.candidate.json","schemas/ACCESSIBILITY-MANIFEST.schema.json","schemas/ACCESSIBILITY-ROW.schema.json","schemas/ACCESSIBILITY-SUMMARY.schema.json","validate-remediation.mjs"]},
+    {"id":"PREFLIGHT-R3-003","severity":"blocker","status":"counterexamples-addressed-closure-review-and-human-prerequisite-pending","evidence":["schemas/LIFECYCLE-EVENT.schema.json","schemas/HUMAN-AUTHORITY.schema.json","schemas/RAW-POLICY-GRANT.schema.json","TRUST-REGISTRY.candidate.json","validate-remediation.mjs"]},
+    {"id":"PREFLIGHT-R3-004","severity":"blocker","status":"counterexamples-addressed-closure-review-required","evidence":["schemas/MIGRATION-EVIDENCE.schema.json","evidence-fixtures.candidate.mjs","semantic-oracles.candidate.mjs","validate-remediation.mjs"]},
+    {"id":"PREFLIGHT-R3-005","severity":"blocker","status":"counterexamples-addressed-closure-review-required","evidence":["strict-evidence.candidate.mjs","evidence-fixtures.candidate.mjs","semantic-oracles.candidate.mjs","validate-remediation.mjs"]},
+    {"id":"PREFLIGHT-R3-006","severity":"major","status":"counterexamples-addressed-closure-review-required","evidence":["PRIVACY-DETECTOR-REGISTRY.candidate.json","PRIVACY-DETECTOR-CASES.candidate.json","schemas/PRIVACY-DETECTOR-REGISTRY.schema.json","schemas/PRIVACY-EVIDENCE.schema.json","validate-remediation.mjs"]},
+    {"id":"PREFLIGHT-R3-007","severity":"major","status":"counterexamples-addressed-closure-review-required","evidence":["TRUST-REGISTRY.candidate.json","schemas/PROVIDER-RECOVERY.schema.json","evidence-fixtures.candidate.mjs","semantic-oracles.candidate.mjs","validate-remediation.mjs"]}
+  ],
+  "remainingValidationGaps":["RAW-POLICY-GRANT uses an external schema reference that the offline validator must explicitly resolve before compilation.","A fresh independent Critic must verify complete signed-edge cross-binding for privacy, migration behavior, and monetary graphs beyond the declared counterexamples."],
+  "claims":{"gateTwoEligible":false,"releaseEligible":false,"humanRulingPending":true,"commitOrPushAuthorized":false}
+}

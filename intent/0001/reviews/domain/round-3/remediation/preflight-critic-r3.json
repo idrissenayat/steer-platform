@@ -1,0 +1,235 @@
+{
+  "version": "steer-gate-2-round-3-remediation-preflight-critic/v3",
+  "reviewedAt": "2026-09-04T19:03:11Z",
+  "reviewType": "fresh-context-local-software-quality",
+  "target": {
+    "revision": "bcf472d4db9e4a95b483676869f01869423fdc95",
+    "examPath": "intent/0001/EXAM.md",
+    "examSha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f",
+    "exceptionBriefPath": "intent/0001/reviews/domain/round-3/exception-brief.json",
+    "exceptionBriefSha256": "e87e433cbfe284ba592a79992b7cc7170c0e90bedefc273280a02999f5d56be6",
+    "priorCriticR1Sha256": "9a9017776041b073ec643bde6750c0b7e8c68f0e463cf4bf2749fd9e36412ab9",
+    "priorCriticR2Sha256": "8016437ef28f488687feec2e4550f23dfb5cddf264d32547372b3a1f2703c9cb",
+    "priorR1ResolutionSha256": "4ea525541e91db5e32d31fb1a76ddaedfc24b7e2bc8b422ae79fac335bd385fd",
+    "priorR2ResolutionSha256": "6dcce7fdae673751833394e786007fb9f6b86d2eab27daf2f1a90773c7399962"
+  },
+  "decision": {
+    "verdict": "SEND_BACK",
+    "confidence": "high",
+    "technicalBlockers": 2,
+    "technicalMajors": 3,
+    "allRoundThreeClosuresProven": false,
+    "readyForProtectedIncorporation": false,
+    "rationale": "The documented validators and repository checks pass, but independently executed local probes and direct code-to-Exam comparison reproduce material false passes. Policy and authoritative replay/CAS state are not independently established; lifecycle completion bypasses the required human and protected-action graph and is restricted to one copy; cost acceptance lacks the required provider-backed usage, invoice, and reconciliation evidence; privacy trusts k-equivalence claims and has deterministic normalization gaps; and two declared migration recovery cases execute identical bytes. Zero blockers and majors is therefore not established."
+  },
+  "findings": [
+    {
+      "id": "PREFLIGHT-R3-R3-001",
+      "severity": "blocker",
+      "title": "Policy and authoritative replay/CAS state can be supplied by the candidate or an ordinary record caller",
+      "affectedOpenFindings": [
+        "SEC-G2-R3-001",
+        "LEGAL-G2-R3-001",
+        "IRREV-G2-R3-001",
+        "MONEY-G2-004",
+        "PRIV-G2-R2-001"
+      ],
+      "locations": [
+        "intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs:25-63",
+        "intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs:77-94",
+        "intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs:138-156",
+        "intent/0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs:61-90",
+        "intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs:39-46",
+        "intent/0001/reviews/domain/round-3/remediation/validate-remediation.mjs:31-34"
+      ],
+      "reproductions": [
+        {
+          "case": "Run authorizationDecision(makeAuthorizationBundle()) and inspect authorityBytes.policyDigest.",
+          "observed": "ALLOW with credentialAccess=1, installationToken=1, providerRequest=1, and gitWrite=1 while the accepted policyDigest is b repeated 64 times, not an independently retrieved authorization-policy digest.",
+          "expected": "The selected policy path, revision, and digest must be independently anchored and byte-equal across the manifest, request, authority, credentials, delegation, assignment, and protected-action decision."
+        },
+        {
+          "case": "Set makePrivacyGraph().policyDigest to f repeated 64 times without changing any signed inner record and call privacyGraphDecision.",
+          "observed": "ACCEPT with promptCount=20.",
+          "expected": "A substituted retention/privacy policy digest must reject before corpus acceptance."
+        },
+        {
+          "case": "Replace an otherwise positive authorization bundle's replayLedgerBytes with sealRecord({idempotencyKey:'other'}) and casHeadBytes with sealRecord({head:request.casHead}), then call authorizationDecision.",
+          "observed": "ALLOW with all four operational effects; the consumed replay and head record IDs are null.",
+          "expected": "Replay ledger and CAS head must be closed, current records from independently selected authoritative signing domains, not ordinary caller-signable records."
+        },
+        {
+          "case": "Use public sealRecord to create a committed same-key replay ledger for a protected request, or an unused replay record for makeHumanAuthorityBundle(), and call the corresponding decision.",
+          "observed": "The protected action returns REPLAY_NOOP and the human authority returns ALLOW using the ordinary caller-created ledger.",
+          "expected": "Caller-created state must never establish committed replay, unused authority state, or current CAS state."
+        }
+      ],
+      "analysis": "The full manifest currently hash-checks policy files as package artifacts, but that is not the same as oracle-time independent policy selection and binding. The authorization oracle never compares authority.policyDigest to an authoritative policy artifact. Privacy schema-validates policyDigest but never compares it. Human authority compares candidate-local literals rather than supplied independently retrieved policy bytes and a verified revision. Replay ledgers and CAS heads are parsed with the public ordinary-record key; authorization does not enforce a closed replay/head schema or currentness before effects. These gaps directly defeat the canonical authoritative-state and complete-selector contracts.",
+      "requiredFix": "Add immutable authorization/retention policy inputs selected outside caller-controlled evidence, recompute their bytes and revision-bound digests, and bind them through every applicable record. Define closed replay-ledger and CAS-head schemas and independent current trust domains; verify record type, source, status, timestamps, request/idempotency binding, head lineage, and snapshot freshness. Remove ordinary record signing as a source of authoritative replay/CAS state. Add policy substitution, missing policy bytes, ordinary-signer replay/head, stale head, missing fields, and null-ID cases to the independently derived execution inventory."
+    },
+    {
+      "id": "PREFLIGHT-R3-R3-002",
+      "severity": "blocker",
+      "title": "Lifecycle completion succeeds without human authority, protected authorization/replay/CAS, or a multi-copy disposition graph",
+      "affectedOpenFindings": [
+        "IRREV-G2-R3-001",
+        "LEGAL-G2-R3-001",
+        "LEGAL-G2-R3-002"
+      ],
+      "locations": [
+        "intent/0001/EXAM.md:1899-1905",
+        "intent/0001/EXAM.md:1972-2020",
+        "intent/0001/EXAM.md:2022-2050",
+        "intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs:122-135",
+        "intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs:122-124",
+        "intent/0001/reviews/domain/round-3/remediation/validate-remediation.mjs:84-86"
+      ],
+      "reproduction": {
+        "case": "Parse makeLifecycleGraph('RC-FAILED-RUN','complete'), inspect its graph/inventory/request, and call lifecycleGraphDecision.",
+        "observed": "The graph contains no human-authority bundle, protected-action authorization bundle, authoritative replay ledger, CAS head, or atomic reservation. Its signed inventory contains exactly one copy; the oracle explicitly requires inventory.copies.length===1 and accepts one provider receipt. It returns deleted-tombstoned with effects.lifecycle=1.",
+        "expected": "Completion requires a current eligible-human disposition authority where required, one protected provider request and authoritative replay/CAS result per canonical copy/key tuple, independently verified ordered provider receipts, an ordered aggregate receipt, and a tombstone over a passing two-copy and raw-multikey graph."
+      },
+      "analysis": "Receipt-before-aggregate-before-tombstone time checks exist, but the graph omits the governing authorization path and enforces the opposite of the canonical multi-copy requirement. Request and receipt records also omit the canonical full tuple bindings for target/policy/inventory, authority, copy kind, object/version/key, immutable request digest, and provider-resource/CAS snapshots. The package has no canonical PROVIDER-KEY-REGISTRY.candidate.json onboarding map required by the protected Exam; a generic provider trust entry is not the specified per-provider binding proof.",
+      "requiredFix": "Replace the single receipt fields with canonical ordered per-copy/per-key arrays. Require exact complete inventory equality, one current human disposition or permitted raw grant per tuple, one protected request per tuple, independent provider-resource and provider-control-plane snapshots, authoritative replay/CAS decisions, provider-registry-selected receipt proofs, ordered aggregate rows, and a matching tombstone. Execute passing two-copy and raw-multikey cases plus every missing, duplicate, reused, extra, tuple/key/provider/policy/target mismatch, restored race, crash cut, replay, and CAS-loss case with typed zero effects."
+    },
+    {
+      "id": "PREFLIGHT-R3-R3-003",
+      "severity": "major",
+      "title": "Cost invoice and reconciliation acceptance lacks provider-backed evidence and closed cross-record lineage",
+      "affectedOpenFindings": [
+        "MONEY-G2-005",
+        "MONEY-G2-R3-001"
+      ],
+      "locations": [
+        "intent/0001/EXAM.md:1729-1757",
+        "intent/0001/EXAM.md:1864-1866",
+        "intent/0001/EXAM.md:1884-1890",
+        "intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs:190-197",
+        "intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs:182-188",
+        "intent/0001/reviews/domain/round-3/remediation/validate-remediation.mjs:108-121"
+      ],
+      "reproduction": {
+        "case": "Call costDecision(makeCostGraph('invoice-at-close')) and costDecision(makeCostGraph('reconcile-at-24h')); inspect each recordsBytes row.",
+        "observed": "Both return ALLOW. The invoice row has IDs and billed/acknowledged timestamps but no signed provider proof, usage start/end timestamps, provider invoice bytes/digest, implementation or target revision, or usage-record lineage. The reconciliation row has no invoice bytes/digest, usage bytes/digest, variance record, predecessor/successor lineage, or provider proof. The round-three schemas directory and schemaCases inventory contain no COST-EVIDENCE or SPEND-AUTHORIZATION schema.",
+        "expected": "Each forecast, reservation, usage/accrual, provider invoice, variance, reconciliation, alert, shutdown, revocation, and restart artifact must pass its closed discriminator schema and signed semantic lineage; provider invoice/usage proof and actual bytes must bind the closed period, exact units, authorization, price, scope, revisions, provider/SKU, and timestamps."
+      },
+      "analysis": "The monetary signature proves only that the local fixture money key signed a sparse row. String IDs and timestamps are treated as provider facts. Invoice and reconciliation decisions are derived from the first row's claimed IDs/times rather than independently verified provider usage and invoice bytes or a complete bidirectional ledger-to-provider graph. Green arithmetic vectors therefore do not establish truthful post-close reconciliation.",
+      "requiredFix": "Restore closed SPEND-AUTHORIZATION and COST-EVIDENCE schema families and validate every branch. Consume independently provider-signed usage and invoice bytes/proofs, exact usage intervals and units, invoice issue/acknowledgement times, variance and reconciliation successors, target/implementation revisions, and complete one-to-one lineage. Add missing/substituted provider proof, usage time, invoice bytes, usage/invoice mismatch, orphan provider line, orphan ledger line, predecessor gap/fork, stale reference, and late/unavailable-provider cases."
+    },
+    {
+      "id": "PREFLIGHT-R3-R3-004",
+      "severity": "major",
+      "title": "Privacy recomputes linkage but trusts k-equivalence and permits deterministic identifier evasions",
+      "affectedOpenFindings": [
+        "PRIV-G2-R2-001"
+      ],
+      "locations": [
+        "intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs:66-94",
+        "intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs:148-156",
+        "intent/0001/reviews/domain/round-3/remediation/schemas/PRIVACY-EVIDENCE.schema.json:3-5",
+        "intent/0001/reviews/domain/round-3/remediation/PRIVACY-DETECTOR-REGISTRY.candidate.json:1-28"
+      ],
+      "reproductions": [
+        {
+          "case": "Call privacyGraphDecision(makePrivacyGraph()) and inspect the prompt equivalenceClassSize values and source pool.",
+          "observed": "ACCEPT. Every prompt claims equivalenceClassSize=5, and the oracle only checks that the supplied integer is at least five; it never derives an equivalence class from the frozen source pool. The fixture source pool contains 100 rows but only one unique source text.",
+          "expected": "Named-entity, four-token, k-equivalence, top-1 linkage, and Wilson outcomes must all be independently recomputed from the frozen authorized source pool and prompt bytes."
+        },
+        {
+          "case": "Call detectIdentifiers('2025550199') and detectIdentifiers('user\\u2066name: @alice_7').",
+          "observed": "Both return an empty array. normalizePrivacyText leaves U+2066 in the second string.",
+          "expected": "Digit-only phone numbers and identifier labels split by Unicode format controls must be detected or deterministically rejected under the revision-bound normalization policy."
+        }
+      ],
+      "analysis": "The top-1 linkage trials and Wilson result are now recomputed, which is a real improvement over R2. Closure is still incomplete because equivalenceClassSize remains caller authority and the detector normalizer removes only selected format controls. The phone expression requires separators, so a common ten-digit representation evades the declared phone class. The existing one-plain/one-evasion/one-boundary-per-class inventory is insufficient to expose these category boundaries.",
+      "requiredFix": "Define and execute the exact k-equivalence procedure over the frozen source pool and derive each prompt's class size; remove equivalenceClassSize as an accepted claim. Normalize or reject the complete governed Unicode format-control class with explicit safe exceptions, normalize phone digits before classification, and add digit-only, country-code, extension, Unicode-isolate/embedding/mark, joined-label, and precision-boundary fixtures. Keep the existing independently recomputed top-1/Wilson checks."
+    },
+    {
+      "id": "PREFLIGHT-R3-R3-005",
+      "severity": "major",
+      "title": "Declared migration recovery and restore cases execute identical ordinary success evidence",
+      "affectedOpenFindings": [
+        "IRREV-G2-R3-002"
+      ],
+      "locations": [
+        "intent/0001/reviews/domain/round-3/remediation/NORMATIVE-EXECUTION-INVENTORY.candidate.json:20-20",
+        "intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs:166-166",
+        "intent/0001/reviews/domain/round-3/remediation/validate-remediation.mjs:94-97"
+      ],
+      "reproduction": {
+        "case": "Compare makeMigrationFailureCase('recovery') with makeMigrationFailureCase('restore'), hash both, and run migrationDecision on each.",
+        "observed": "The two serialized graphs are byte-identical with SHA-256 2a8c3cf336b2d97bdf13c22fa33e2158985993b2d3133cc377da4a8890e80328. Both return the same journaled migration effect and tuple. The validator marks two distinct declared IDs without comparing per-ID input or result digests.",
+        "expected": "Recovery and restoration must be distinct signed execution graphs with their own reachable state, interruption, backup/PITR/restoration evidence, expected state/result/effects, and unique input/result digests."
+      },
+      "analysis": "Exact declared-ID counting does not prove distinct semantic coverage when multiple IDs consume identical bytes and identical outcomes. The R2 resolution's statement that recovery and restore execute is therefore overstated.",
+      "requiredFix": "Materialize separate recovery and restoration fixtures and expected outcomes, bind them to unique execution/provider/journal/backup/restoration evidence, and compare each declared ID's input digest, result digest, state, first error, and typed effects against an independently derived expectation. Reject duplicate semantic evidence across distinct required cases."
+    }
+  ],
+  "validation": {
+    "roundThreeFixturesOnly": {
+      "command": "node intent/0001/reviews/domain/round-3/remediation/validate-remediation.mjs --fixtures-only",
+      "status": "pass",
+      "declared": 3944,
+      "executed": 3944
+    },
+    "roundThreeFull": {
+      "command": "node intent/0001/reviews/domain/round-3/remediation/validate-remediation.mjs",
+      "status": "pass",
+      "declared": 3944,
+      "executed": 3944,
+      "manifestArtifacts": 51,
+      "preservedPriorRecords": 25
+    },
+    "repository": {
+      "command": "pnpm check",
+      "status": "pass",
+      "kitArtifacts": 95,
+      "vitestFiles": 17,
+      "vitestTests": 88,
+      "nodeControlTests": 17,
+      "workspaceTests": 2,
+      "typechecksPassed": 3,
+      "buildsPassed": 3
+    },
+    "targetedLocalObservations": {
+      "status": "material-counterexamples-reproduced",
+      "authorizationArbitraryPolicyDigest": "ALLOW with four operational effects",
+      "privacySubstitutedPolicyDigest": "ACCEPT",
+      "ordinaryReplayAndHead": "ALLOW or REPLAY_NOOP from public ordinary-record signatures",
+      "singleCopyLifecycle": "deleted-tombstoned with lifecycle effect 1",
+      "sparseInvoiceAndReconciliation": "ALLOW",
+      "digitOnlyPhone": "no identifier hit",
+      "unicodeFormatControlSplit": "no identifier hit",
+      "migrationRecoveryRestore": "byte-identical inputs and identical journaled effects"
+    }
+  },
+  "priorR2ResolutionDisposition": {
+    "status": "notClosed",
+    "details": "The R2 resolution accurately records green package counts, but its technicalStatus=remediated claims for authoritative policy/state, lifecycle, monetary, privacy, and migration coverage are contradicted by the reproducible local observations above."
+  },
+  "otherMaterialReview": {
+    "additionalFindingIdentified": "PREFLIGHT-R3-R3-005",
+    "details": "No further independent blocker or major was identified in the bounded ordinary code/document comparison beyond the five findings recorded here. Passing accessibility and provider-recovery aggregates were not treated as actual human Gate 3 evidence or authorization."
+  },
+  "requiredNextState": [
+    "Correct every blocker and major and add the direct counterexamples to an independently derived normative inventory.",
+    "Freeze the corrected package and rerun both local remediation modes and pnpm check.",
+    "Obtain a new independent fresh-context zero-blocker/zero-major Critic before any protected incorporation.",
+    "After authorized incorporation, obtain the required new exact-revision qualified-human ruling and all seven fresh domain reviews before any eligible human Gate 2 decision."
+  ],
+  "boundaries": {
+    "localGovernanceQaOnly": true,
+    "networkActivityPerformed": false,
+    "offensiveTestingPerformed": false,
+    "credentialWorkPerformed": false,
+    "operationalExploitationPerformed": false,
+    "canonicalExamEdited": false,
+    "priorReviewOrResolutionEdited": false,
+    "otherWorkspaceFilesEditedByReviewer": false,
+    "commitPerformed": false,
+    "pushPerformed": false,
+    "gateTwoEligible": false,
+    "releaseEligible": false,
+    "humanRulingSatisfied": false
+  }
+}

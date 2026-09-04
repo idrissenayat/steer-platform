@@ -1,0 +1,7 @@
+{
+  "version":"steer-provider-key-registry/v1",
+  "bindings":[
+    {"providerBindingId":"fixture-provider-a-binding","domain":"provider-a","provider":"fixture-provider-a","account":"fixture-account-a","tenant":"steer-platform","proofType":"Ed25519-provider-receipt","proofIssuer":"fixture-provider-a-control-plane","algorithm":"Ed25519","keyId":"provider-a-key-v1","publicKeyHex":"0730cf0fcfaca0a97e00cfa1589916e6f8d849a7b33aa073b3433f72936ae4d7","notBefore":"2026-09-01T00:00:00Z","notAfter":"2040-09-01T00:00:00Z","revokedAt":null},
+    {"providerBindingId":"fixture-provider-b-binding","domain":"provider-b","provider":"fixture-provider-b","account":"fixture-account-b","tenant":"steer-platform","proofType":"Ed25519-provider-receipt","proofIssuer":"fixture-provider-b-control-plane","algorithm":"Ed25519","keyId":"provider-b-key-v1","publicKeyHex":"7c7d6ebc348ee7d8dd9489a1143fc3ba1af565ef8d0a2e26fb18bdd3ce1e93ab","notBefore":"2026-09-01T00:00:00Z","notAfter":"2040-09-01T00:00:00Z","revokedAt":null}
+  ]
+}

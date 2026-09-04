@@ -1,0 +1,495 @@
+{
+  "version": "steer-privacy-detector-cases/v1",
+  "cases": [
+    {
+      "id": "personal-name:plain-positive",
+      "class": "personal-name",
+      "kind": "plain-positive",
+      "text": "Alice Example approved this record",
+      "expectedHit": true
+    },
+    {
+      "id": "personal-name:evasion-positive",
+      "class": "personal-name",
+      "kind": "evasion-positive",
+      "text": "Approved by Ａｌｉｃｅ Ｅｘａｍｐｌｅ",
+      "expectedHit": true
+    },
+    {
+      "id": "personal-name:boundary-negative",
+      "class": "personal-name",
+      "kind": "boundary-negative",
+      "text": "Alice approved",
+      "expectedHit": false
+    },
+    {
+      "id": "username-handle:plain-positive",
+      "class": "username-handle",
+      "kind": "plain-positive",
+      "text": "username: @alice_7",
+      "expectedHit": true
+    },
+    {
+      "id": "username-handle:evasion-positive",
+      "class": "username-handle",
+      "kind": "evasion-positive",
+      "text": "user​name: @alice_7",
+      "expectedHit": true
+    },
+    {
+      "id": "username-handle:unicode-isolate-evasion-positive",
+      "class": "username-handle",
+      "kind": "evasion-positive",
+      "text": "user⁦name: @alice_7",
+      "expectedHit": true
+    },
+    {
+      "id": "username-handle:unicode-embedding-evasion-positive",
+      "class": "username-handle",
+      "kind": "evasion-positive",
+      "text": "user‫name: @alice_7",
+      "expectedHit": true
+    },
+    {
+      "id": "username-handle:unicode-mark-evasion-positive",
+      "class": "username-handle",
+      "kind": "evasion-positive",
+      "text": "user؜name: @alice_7",
+      "expectedHit": true
+    },
+    {
+      "id": "username-handle:boundary-negative",
+      "class": "username-handle",
+      "kind": "boundary-negative",
+      "text": "user name field is empty",
+      "expectedHit": false
+    },
+    {
+      "id": "email:plain-positive",
+      "class": "email",
+      "kind": "plain-positive",
+      "text": "alice@example.com",
+      "expectedHit": true
+    },
+    {
+      "id": "email:evasion-positive",
+      "class": "email",
+      "kind": "evasion-positive",
+      "text": "alice [at] example [dot] com",
+      "expectedHit": true
+    },
+    {
+      "id": "email:boundary-negative",
+      "class": "email",
+      "kind": "boundary-negative",
+      "text": "example dot com documentation",
+      "expectedHit": false
+    },
+    {
+      "id": "phone:plain-positive",
+      "class": "phone",
+      "kind": "plain-positive",
+      "text": "202-555-0199",
+      "expectedHit": true
+    },
+    {
+      "id": "phone:evasion-positive",
+      "class": "phone",
+      "kind": "evasion-positive",
+      "text": "２０２-５５５-０１９９",
+      "expectedHit": true
+    },
+    {
+      "id": "phone:digit-only-evasion-positive",
+      "class": "phone",
+      "kind": "evasion-positive",
+      "text": "2025550199",
+      "expectedHit": true
+    },
+    {
+      "id": "phone:country-code-evasion-positive",
+      "class": "phone",
+      "kind": "evasion-positive",
+      "text": "+12025550199",
+      "expectedHit": true
+    },
+    {
+      "id": "phone:uk-plus-country-code-evasion-positive",
+      "class": "phone",
+      "kind": "evasion-positive",
+      "text": "+44 20 7946 0958",
+      "expectedHit": true
+    },
+    {
+      "id": "phone:uk-00-country-code-evasion-positive",
+      "class": "phone",
+      "kind": "evasion-positive",
+      "text": "0044 20 7946 0958",
+      "expectedHit": true
+    },
+    {
+      "id": "phone:extension-evasion-positive",
+      "class": "phone",
+      "kind": "evasion-positive",
+      "text": "2025550199 ext. 42",
+      "expectedHit": true
+    },
+    {
+      "id": "phone:boundary-negative",
+      "class": "phone",
+      "kind": "boundary-negative",
+      "text": "version 202.555",
+      "expectedHit": false
+    },
+    {
+      "id": "phone:embedded-digit-boundary-negative",
+      "class": "phone",
+      "kind": "boundary-negative",
+      "text": "120255501991",
+      "expectedHit": false
+    },
+    {
+      "id": "phone:international-too-long-boundary-negative",
+      "class": "phone",
+      "kind": "boundary-negative",
+      "text": "+1234567890123456",
+      "expectedHit": false
+    },
+    {
+      "id": "postal-address:plain-positive",
+      "class": "postal-address",
+      "kind": "plain-positive",
+      "text": "42 Oak Lane",
+      "expectedHit": true
+    },
+    {
+      "id": "postal-address:evasion-positive",
+      "class": "postal-address",
+      "kind": "evasion-positive",
+      "text": "４２ Ｏａｋ Ｌａｎｅ",
+      "expectedHit": true
+    },
+    {
+      "id": "postal-address:boundary-negative",
+      "class": "postal-address",
+      "kind": "boundary-negative",
+      "text": "oak lane design pattern",
+      "expectedHit": false
+    },
+    {
+      "id": "precise-location:plain-positive",
+      "class": "precise-location",
+      "kind": "plain-positive",
+      "text": "gps: 38.8977, -77.0365",
+      "expectedHit": true
+    },
+    {
+      "id": "precise-location:evasion-positive",
+      "class": "precise-location",
+      "kind": "evasion-positive",
+      "text": "ｇｐｓ: ３８.８９７７, -７７.０３６５",
+      "expectedHit": true
+    },
+    {
+      "id": "precise-location:boundary-negative",
+      "class": "precise-location",
+      "kind": "boundary-negative",
+      "text": "latitude is approximate",
+      "expectedHit": false
+    },
+    {
+      "id": "government-identifier:plain-positive",
+      "class": "government-identifier",
+      "kind": "plain-positive",
+      "text": "ssn: 123-45-6789",
+      "expectedHit": true
+    },
+    {
+      "id": "government-identifier:evasion-positive",
+      "class": "government-identifier",
+      "kind": "evasion-positive",
+      "text": "ＳＳＮ: １２３-４５-６７８９",
+      "expectedHit": true
+    },
+    {
+      "id": "government-identifier:boundary-negative",
+      "class": "government-identifier",
+      "kind": "boundary-negative",
+      "text": "passport requirements",
+      "expectedHit": false
+    },
+    {
+      "id": "account-identifier:plain-positive",
+      "class": "account-identifier",
+      "kind": "plain-positive",
+      "text": "account id: acct-1234",
+      "expectedHit": true
+    },
+    {
+      "id": "account-identifier:evasion-positive",
+      "class": "account-identifier",
+      "kind": "evasion-positive",
+      "text": "ａｃｃｏｕｎｔ ｉｄ: ａｃｃｔ-１２３４",
+      "expectedHit": true
+    },
+    {
+      "id": "account-identifier:boundary-negative",
+      "class": "account-identifier",
+      "kind": "boundary-negative",
+      "text": "account settings",
+      "expectedHit": false
+    },
+    {
+      "id": "customer-identifier:plain-positive",
+      "class": "customer-identifier",
+      "kind": "plain-positive",
+      "text": "customer id: cust-1234",
+      "expectedHit": true
+    },
+    {
+      "id": "customer-identifier:evasion-positive",
+      "class": "customer-identifier",
+      "kind": "evasion-positive",
+      "text": "ｃｕｓｔｏｍｅｒ ｉｄ: ｃｕｓｔ-１２３４",
+      "expectedHit": true
+    },
+    {
+      "id": "customer-identifier:boundary-negative",
+      "class": "customer-identifier",
+      "kind": "boundary-negative",
+      "text": "customer support",
+      "expectedHit": false
+    },
+    {
+      "id": "employee-identifier:plain-positive",
+      "class": "employee-identifier",
+      "kind": "plain-positive",
+      "text": "employee id: emp-1234",
+      "expectedHit": true
+    },
+    {
+      "id": "employee-identifier:evasion-positive",
+      "class": "employee-identifier",
+      "kind": "evasion-positive",
+      "text": "ｅｍｐｌｏｙｅｅ ｉｄ: ｅｍｐ-１２３４",
+      "expectedHit": true
+    },
+    {
+      "id": "employee-identifier:boundary-negative",
+      "class": "employee-identifier",
+      "kind": "boundary-negative",
+      "text": "employee handbook",
+      "expectedHit": false
+    },
+    {
+      "id": "device-identifier:plain-positive",
+      "class": "device-identifier",
+      "kind": "plain-positive",
+      "text": "device id: device-12345",
+      "expectedHit": true
+    },
+    {
+      "id": "device-identifier:evasion-positive",
+      "class": "device-identifier",
+      "kind": "evasion-positive",
+      "text": "ｄｅｖｉｃｅ ｉｄ: ｄｅｖｉｃｅ-１２３４５",
+      "expectedHit": true
+    },
+    {
+      "id": "device-identifier:boundary-negative",
+      "class": "device-identifier",
+      "kind": "boundary-negative",
+      "text": "device configuration",
+      "expectedHit": false
+    },
+    {
+      "id": "ip-address:plain-positive",
+      "class": "ip-address",
+      "kind": "plain-positive",
+      "text": "192.0.2.44",
+      "expectedHit": true
+    },
+    {
+      "id": "ip-address:evasion-positive",
+      "class": "ip-address",
+      "kind": "evasion-positive",
+      "text": "2001:db8::1",
+      "expectedHit": true
+    },
+    {
+      "id": "ip-address:boundary-negative",
+      "class": "ip-address",
+      "kind": "boundary-negative",
+      "text": "version 1.2",
+      "expectedHit": false
+    },
+    {
+      "id": "mac-address:plain-positive",
+      "class": "mac-address",
+      "kind": "plain-positive",
+      "text": "AA:BB:CC:DD:EE:FF",
+      "expectedHit": true
+    },
+    {
+      "id": "mac-address:evasion-positive",
+      "class": "mac-address",
+      "kind": "evasion-positive",
+      "text": "ＡＡ:ＢＢ:ＣＣ:ＤＤ:ＥＥ:ＦＦ",
+      "expectedHit": true
+    },
+    {
+      "id": "mac-address:boundary-negative",
+      "class": "mac-address",
+      "kind": "boundary-negative",
+      "text": "AA:BB:CC",
+      "expectedHit": false
+    },
+    {
+      "id": "identity-bearing-url:plain-positive",
+      "class": "identity-bearing-url",
+      "kind": "plain-positive",
+      "text": "https://example.test/?user=alice",
+      "expectedHit": true
+    },
+    {
+      "id": "identity-bearing-url:evasion-positive",
+      "class": "identity-bearing-url",
+      "kind": "evasion-positive",
+      "text": "ｈｔｔｐｓ://ｅｘａｍｐｌｅ.ｔｅｓｔ/?ｉｄ=１２３４",
+      "expectedHit": true
+    },
+    {
+      "id": "identity-bearing-url:boundary-negative",
+      "class": "identity-bearing-url",
+      "kind": "boundary-negative",
+      "text": "https://example.test/docs",
+      "expectedHit": false
+    },
+    {
+      "id": "biometric:plain-positive",
+      "class": "biometric",
+      "kind": "plain-positive",
+      "text": "fingerprint: abcd1234",
+      "expectedHit": true
+    },
+    {
+      "id": "biometric:evasion-positive",
+      "class": "biometric",
+      "kind": "evasion-positive",
+      "text": "finger​print: abcd1234",
+      "expectedHit": true
+    },
+    {
+      "id": "biometric:boundary-negative",
+      "class": "biometric",
+      "kind": "boundary-negative",
+      "text": "fingerprint",
+      "expectedHit": false
+    },
+    {
+      "id": "signature:plain-positive",
+      "class": "signature",
+      "kind": "plain-positive",
+      "text": "signature: Alice Example",
+      "expectedHit": true
+    },
+    {
+      "id": "signature:evasion-positive",
+      "class": "signature",
+      "kind": "evasion-positive",
+      "text": "signa​ture: Alice Example",
+      "expectedHit": true
+    },
+    {
+      "id": "signature:boundary-negative",
+      "class": "signature",
+      "kind": "boundary-negative",
+      "text": "signature",
+      "expectedHit": false
+    },
+    {
+      "id": "secret:plain-positive",
+      "class": "secret",
+      "kind": "plain-positive",
+      "text": "api_key=abcdefgh",
+      "expectedHit": true
+    },
+    {
+      "id": "secret:evasion-positive",
+      "class": "secret",
+      "kind": "evasion-positive",
+      "text": "api​_key=abcdefgh",
+      "expectedHit": true
+    },
+    {
+      "id": "secret:boundary-negative",
+      "class": "secret",
+      "kind": "boundary-negative",
+      "text": "api key documentation",
+      "expectedHit": false
+    },
+    {
+      "id": "token:plain-positive",
+      "class": "token",
+      "kind": "plain-positive",
+      "text": "bearer abcdefgh",
+      "expectedHit": true
+    },
+    {
+      "id": "token:evasion-positive",
+      "class": "token",
+      "kind": "evasion-positive",
+      "text": "bea​rer abcdefgh",
+      "expectedHit": true
+    },
+    {
+      "id": "token:boundary-negative",
+      "class": "token",
+      "kind": "boundary-negative",
+      "text": "bearer token required",
+      "expectedHit": false
+    },
+    {
+      "id": "credential:plain-positive",
+      "class": "credential",
+      "kind": "plain-positive",
+      "text": "password=secret99",
+      "expectedHit": true
+    },
+    {
+      "id": "credential:evasion-positive",
+      "class": "credential",
+      "kind": "evasion-positive",
+      "text": "pass​word=secret99",
+      "expectedHit": true
+    },
+    {
+      "id": "credential:boundary-negative",
+      "class": "credential",
+      "kind": "boundary-negative",
+      "text": "password policy",
+      "expectedHit": false
+    },
+    {
+      "id": "free-text-self-identification:plain-positive",
+      "class": "free-text-self-identification",
+      "kind": "plain-positive",
+      "text": "I am Alice Example, employed by ExampleCo",
+      "expectedHit": true
+    },
+    {
+      "id": "free-text-self-identification:evasion-positive",
+      "class": "free-text-self-identification",
+      "kind": "evasion-positive",
+      "text": "Ｉ ａｍ Ａｌｉｃｅ Ｅｘａｍｐｌｅ, ｅｍｐｌｏｙｅｄ ｂｙ ＥｘａｍｐｌｅＣｏ",
+      "expectedHit": true
+    },
+    {
+      "id": "free-text-self-identification:boundary-negative",
+      "class": "free-text-self-identification",
+      "kind": "boundary-negative",
+      "text": "Alice works at a sample company",
+      "expectedHit": false
+    }
+  ]
+}

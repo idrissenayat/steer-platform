@@ -1,0 +1,167 @@
+{
+  "bindings": [
+    {
+      "algorithm": "Ed25519",
+      "domain": "record",
+      "keyId": "record-key-v1",
+      "notAfter": "2027-09-01T00:00:00Z",
+      "notBefore": "2026-09-01T00:00:00Z",
+      "publicKeyHex": "e952afc5aa43743ae5ff52a4212d36dd16104e012b74ac4a35dd01966a4a743d",
+      "revokedAt": null
+    },
+    {
+      "algorithm": "Ed25519",
+      "domain": "upstream",
+      "keyId": "upstream-key-v1",
+      "notAfter": "2027-09-01T00:00:00Z",
+      "notBefore": "2026-09-01T00:00:00Z",
+      "publicKeyHex": "61e522901ef75c473688fb8ab6b586a1a01ebeca1f34b6f687fffd8740b5a34d",
+      "revokedAt": null
+    },
+    {
+      "algorithm": "Ed25519",
+      "domain": "downstream",
+      "keyId": "downstream-key-v1",
+      "notAfter": "2027-09-01T00:00:00Z",
+      "notBefore": "2026-09-01T00:00:00Z",
+      "publicKeyHex": "99a4e80f6ad9166bd9566391592c4b37cc6ac9f8412a1a98b3ff982b8c8cbbc0",
+      "revokedAt": null
+    },
+    {
+      "algorithm": "Ed25519",
+      "domain": "delegation",
+      "keyId": "delegation-key-v1",
+      "notAfter": "2027-09-01T00:00:00Z",
+      "notBefore": "2026-09-01T00:00:00Z",
+      "publicKeyHex": "ebc46f3c2f97ff5ce1c96936cca6b4459509b6ba7957842066c39b2e74bed415",
+      "revokedAt": null
+    },
+    {
+      "algorithm": "Ed25519",
+      "domain": "assignment",
+      "keyId": "assignment-key-v1",
+      "notAfter": "2027-09-01T00:00:00Z",
+      "notBefore": "2026-09-01T00:00:00Z",
+      "publicKeyHex": "27b51b2afab5302bdb4ceb3b8f56c51619726cc2b6a1fe45f2c491ca0689a41e",
+      "revokedAt": null
+    },
+    {
+      "algorithm": "Ed25519",
+      "domain": "authority",
+      "keyId": "authority-key-v1",
+      "notAfter": "2027-09-01T00:00:00Z",
+      "notBefore": "2026-09-01T00:00:00Z",
+      "publicKeyHex": "541784c0169282c3d7932140e73dd3575cbc5d3c6e1a2f345a3090fc7e1694af",
+      "revokedAt": null
+    },
+    {
+      "algorithm": "Ed25519",
+      "domain": "provider",
+      "keyId": "provider-key-v1",
+      "notAfter": "2027-09-01T00:00:00Z",
+      "notBefore": "2026-09-01T00:00:00Z",
+      "publicKeyHex": "260a06d36a325c6609a6c520a7dab754d0c9d1252291d64d7a6515498ad6c835",
+      "revokedAt": null
+    },
+    {
+      "algorithm": "Ed25519",
+      "domain": "human-provider",
+      "keyId": "human-provider-key-v1",
+      "notAfter": "2027-09-01T00:00:00Z",
+      "notBefore": "2026-09-01T00:00:00Z",
+      "publicKeyHex": "3cec9f51a8655c79c4fbc129f818449c563acb0758be965da5d8c8aa71944772",
+      "revokedAt": null
+    },
+    {
+      "algorithm": "Ed25519",
+      "domain": "recovery-provider",
+      "keyId": "recovery-provider-key-v1",
+      "notAfter": "2027-09-01T00:00:00Z",
+      "notBefore": "2026-09-01T00:00:00Z",
+      "publicKeyHex": "322dc111be38389e1b912632dbee5733b56535b7856a323ed9c26f52b057f28c",
+      "revokedAt": null
+    },
+    {
+      "algorithm": "Ed25519",
+      "domain": "verifier",
+      "keyId": "verifier-key-v1",
+      "notAfter": "2027-09-01T00:00:00Z",
+      "notBefore": "2026-09-01T00:00:00Z",
+      "publicKeyHex": "89b61e60f1b0113dc622ec610f7bf5d8c6ef44c36301281c47074bde1e378981",
+      "revokedAt": null
+    },
+    {
+      "algorithm": "Ed25519",
+      "domain": "summary",
+      "keyId": "summary-key-v1",
+      "notAfter": "2027-09-01T00:00:00Z",
+      "notBefore": "2026-09-01T00:00:00Z",
+      "publicKeyHex": "e6f49621cdeeb11e7750ce09232c680ace20ff9c41ac8f6f42ebeddf1980f44d",
+      "revokedAt": null
+    },
+    {
+      "algorithm": "Ed25519",
+      "domain": "money",
+      "keyId": "money-key-v1",
+      "notAfter": "2027-09-01T00:00:00Z",
+      "notBefore": "2026-09-01T00:00:00Z",
+      "publicKeyHex": "db11ba0972c68d89031a81e37a7c2e4737694f5a2aa1c8dcb830c383e69bdfc5",
+      "revokedAt": null
+    },
+    {
+      "algorithm": "Ed25519",
+      "domain": "replay-authority",
+      "keyId": "replay-authority-key-v1",
+      "notAfter": "2027-09-01T00:00:00Z",
+      "notBefore": "2026-09-01T00:00:00Z",
+      "publicKeyHex": "b6b9fceced473723d4bb69594fcc79e03e7cc79cbf357657d3641a3fb0d8de82",
+      "revokedAt": null
+    },
+    {
+      "algorithm": "Ed25519",
+      "domain": "cas-authority",
+      "keyId": "cas-authority-key-v1",
+      "notAfter": "2027-09-01T00:00:00Z",
+      "notBefore": "2026-09-01T00:00:00Z",
+      "publicKeyHex": "4d77ac5f256bb6a175c693a2ee6b880c5c92574a9e23cd75905516648fe862ff",
+      "revokedAt": null
+    },
+    {
+      "algorithm": "Ed25519",
+      "domain": "provider-a",
+      "keyId": "provider-a-key-v1",
+      "notAfter": "2040-09-01T00:00:00Z",
+      "notBefore": "2026-09-01T00:00:00Z",
+      "publicKeyHex": "0730cf0fcfaca0a97e00cfa1589916e6f8d849a7b33aa073b3433f72936ae4d7",
+      "revokedAt": null
+    },
+    {
+      "algorithm": "Ed25519",
+      "domain": "provider-b",
+      "keyId": "provider-b-key-v1",
+      "notAfter": "2040-09-01T00:00:00Z",
+      "notBefore": "2026-09-01T00:00:00Z",
+      "publicKeyHex": "7c7d6ebc348ee7d8dd9489a1143fc3ba1af565ef8d0a2e26fb18bdd3ce1e93ab",
+      "revokedAt": null
+    },
+    {
+      "algorithm": "Ed25519",
+      "domain": "provider-usage",
+      "keyId": "provider-usage-key-v1",
+      "notAfter": "2027-09-01T00:00:00Z",
+      "notBefore": "2026-09-01T00:00:00Z",
+      "publicKeyHex": "c547e7b757bba0a785cb93b7b3836be25a4b66fc1fc5a42bb1e652d8d48caacf",
+      "revokedAt": null
+    },
+    {
+      "algorithm": "Ed25519",
+      "domain": "provider-invoice",
+      "keyId": "provider-invoice-key-v1",
+      "notAfter": "2027-09-01T00:00:00Z",
+      "notBefore": "2026-09-01T00:00:00Z",
+      "publicKeyHex": "e887800ec8a45bf911cd7d51c3bc79e6146c9c5171272cfedb5db101f8a66c3c",
+      "revokedAt": null
+    }
+  ],
+  "version": "steer-r3-trust-registry/v1"
+}
