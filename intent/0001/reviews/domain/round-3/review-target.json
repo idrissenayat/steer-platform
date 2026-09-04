@@ -1,0 +1,59 @@
+{
+  "version": "steer-domain-review-target/v1",
+  "round": 3,
+  "organization": "steer-platform",
+  "item": "0001-flight-deck-foundation",
+  "reviewType": "gate-2-exam",
+  "status": "awaiting-agent-reviews",
+  "targetRevision": "01467e66988e2c76d57f24ebffc324b5c9f0b988",
+  "canonicalExamAuthorship": {
+    "revision": "cd913b96a14323ef318749e35a79e1741cf91c70",
+    "author": "steer-test-agent[bot]",
+    "githubSignatureVerified": true
+  },
+  "exam": {
+    "path": "intent/0001/EXAM.md",
+    "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+  },
+  "acceptedGateOneArtifacts": [
+    { "path": "intent/0001/BRIEF.md", "sha256": "a5af593397de0722666baefae846b31881c6429c9691bec886f4a0771a8bc97f" },
+    { "path": "intent/0001/SPEC.md", "sha256": "7330397f7a406b1d88d4f6a2c7205e8671d75c07bfec7840775c2b2614af54ff" },
+    { "path": "intent/0001/ARCHITECTURE.md", "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65" },
+    { "path": "intent/0001/PLAN.md", "sha256": "92696a531e61d988a593b31e81a76cb1aae19348c23d665ed301490ac2544b5f" },
+    { "path": "intent/0001/signatures/gate-1.json", "sha256": "63032a9b2ff0f3a41af0b38b887b648e604336156a5bcefbe32de18648556709" }
+  ],
+  "sharedEvidence": [
+    { "path": "kit/policy/gates.json", "sha256": "68f53ae5845445758eb7cb8a1a8518f31c37120cfe92373b6bf0f8dfed404b56" },
+    { "path": "intent/0001/evidence/github-exam-protection-rollout.json", "sha256": "b61c40a640ae0348aeadd191091c14225003d1e733c618e841e4da5804513e0d" },
+    { "path": "intent/0001/reviews/domain/round-2/exception-brief.json", "sha256": "7e6753e00e799a0d64820eeb43cdb0f79951e5072c242b62ef7694617e414adc" },
+    { "path": "intent/0001/reviews/domain/round-2/records/security.json", "sha256": "b8ac0f7be99d9e85bb471b43ea96e376a8367a4fea5b450faf237effbe4b0b07" },
+    { "path": "intent/0001/reviews/domain/round-2/records/privacy.json", "sha256": "7d58bf715ab7cc8aef4cffd81912471522402d746f2aaa0f498377cee9f2c8f5" },
+    { "path": "intent/0001/reviews/domain/round-2/records/accessibility.json", "sha256": "2563b85093061087f25f9ff9da6cce87cc0e9b4faa4b7c761a5bc4f930e26265" },
+    { "path": "intent/0001/reviews/domain/round-2/records/money.json", "sha256": "8f08168f27b6bc532643b6af553b97aee8e704b04456f7627e53ab1fedec4eef" },
+    { "path": "intent/0001/reviews/domain/round-2/records/legal.json", "sha256": "413810d772289a83fe97847eebcf99020a1e70c83b7f15c42985f4c070886704" },
+    { "path": "intent/0001/reviews/domain/round-2/records/reliability.json", "sha256": "15306e36e10cb17142b45a8618ac0763904d8770e82c0271db815d4258b004d9" },
+    { "path": "intent/0001/reviews/domain/round-2/records/irreversible-operations.json", "sha256": "1d4ef82ee7091274534178999b65dbc15cdb4e984f9dd3bc25dd2eb988ad2c27" },
+    { "path": "intent/0001/reviews/domain/round-2/remediation/remediation-manifest.json", "sha256": "8d5bf54dcdae5ab1d155ba241ce4263e863f70cb96c9cb3686c350b51eefa54d" },
+    { "path": "intent/0001/reviews/domain/round-2/remediation/preflight-critic-r10.json", "sha256": "e0285543a74ddb9bc63e9531582310673cb3a5c81e375ed0f98eac22945cfb53" },
+    { "path": "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md", "sha256": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32" },
+    { "path": "intent/0001/reviews/domain/round-2/remediation/human-rulings/hr-01-r2-policy-approval.json", "sha256": "cb55a6dc3f6048d52a7f4c80d66371581bfe3ee073ad65a6b257f7b9c0721ea6" },
+    { "path": "intent/0001/reviews/domain/round-2/remediation/human-rulings/hr-01-r2.json", "sha256": "bec8fda226b48a6ebcb4bd5ae86a1cb0ac4e354a125611c20d139c2885619ddb" }
+  ],
+  "requiredDomains": ["security", "privacy", "accessibility", "money", "legal", "reliability", "irreversible-operations"],
+  "reviewerPolicy": {
+    "default": "independent-fresh-context-domain-agent",
+    "builderMayReview": false,
+    "commercialHumanSpecialist": "only-on-deterministic-escalation",
+    "regulatedHumanSpecialist": "required-for-every-activated-domain",
+    "consolidation": "single-exception-brief"
+  },
+  "recordDirectory": "intent/0001/reviews/domain/round-3/records",
+  "gateBoundary": {
+    "reviewPurpose": "Decide whether the protected, App-authored Gate 2 Exam is complete, testable, strict, incorporates the accepted remediation, and closes all prior domain findings.",
+    "doesNotProveTechnicalRelease": true,
+    "doesNotAuthorizeGateTwo": true,
+    "doesNotAuthorizeBuildOrRelease": true,
+    "doesNotAuthorizeProductionOrSpend": true,
+    "doesNotAuthorizeDeploymentProviderAccessOrDeletion": true
+  }
+}
