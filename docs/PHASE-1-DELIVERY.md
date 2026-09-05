@@ -591,3 +591,23 @@ workflow foundation and durable reconciliation orchestration. OAuth onboarding,
 real runtime bindings, large-inventory/removal/rollback policy, full operating
 surfaces and the five R5 findings remain open. No default activation, spending,
 deployment, release or gate approval. Safe isolated implementation continues.
+
+## Completed development increment: 0035
+
+Added opt-in MCP mounting through the combined identity runtime and gateway,
+with an independent explicit client allowlist and the same fixed Git authority
+and curated ToolServices. Combined shutdown closes admission, drains actual
+requests/SDK cleanup and then closes shared pools. Browser-only lifecycle stays
+compatible. Default startup remains closed and readiness remains incomplete.
+
+An official agent client now reads a PostgreSQL-backed artifact through the same
+actual HTTPS service used by the human browser. Pinned Git bytes, tenant denial,
+cookie rejection and committed revocation/restoration are verified. The browser
+suite passes 25 counted groups plus inventory; all 63 API and repository checks
+pass. Evidence: `intent/0035/EVIDENCE.md`; guide: `docs/COMBINED-MCP-RUNTIME.md`.
+
+Next bounded increment: Temporal workflow foundation and durable reconciliation
+orchestration. OAuth onboarding, real runtime bindings, remaining agent/model
+services, large-inventory/removal/rollback policy, full operating surfaces and
+the five R5 findings remain open. No gate, deployment, release or spending
+approval is inferred. Safe isolated implementation remains unblocked.

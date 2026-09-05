@@ -15,6 +15,9 @@ import { reserveLocalPort } from './local-tls-harness.ts';
 import { createGitAuthorizationHarness } from './git-authorization-harness.ts';
 import { createNextWebHarness } from './next-web-harness.ts';
 import type { SessionTestHarness } from './session-harness.ts';
+import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';
+import { createMcpTestFetch } from './mcp-keycloak.integration.ts';
+import { mcpProtocolVersion } from '../src/mcp.ts';
 
 /** Disposable Chromium/HTTPS fixture. No user's browser profile or OS trust changes. */
 export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: Buffer; temporary: string }) {
@@ -81,6 +84,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
     const badOrigin = `https://localhost:${badPort}`;
     return { origin, close, async run(deps: { issuer: string; clientSecret: string; subject: string;
       username: string; password: string; fetch: typeof fetch;
+      agent: { bearer: string; clientId: string; grant: AuthorizationRecord };
       createSessions: (binding: { issuer: string; clientId: string; redirectUri: string }) => Promise<SessionTestHarness>;
       check: (label: string, run: () => Promise<void>) => Promise<void> }) {
       const { issuer, check } = deps;
@@ -107,14 +111,34 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
       const source = await createGitAuthorizationHarness(tls.temporary, grant);
       assert.ok(storage.createProjectionFixture);
       const projection = await storage.createProjectionFixture(source.reader, [source.artifactPath, source.secondArtifactPath]);
+      await source.publish([grant, deps.agent.grant]);
       assert.ok(storage.shutdown);
       const dependencies = { fetch: deps.fetch, reader: source.reader, authorizationPath: source.authorizationPath, services: projection.services,
+        mcp: { clientIds: [deps.agent.clientId] },
         sessions: { store: storage.store, binding: { issuer, clientId: configuration.clientId, redirectUri: configuration.redirectUri }, shutdown: storage.shutdown } };
       api = createIdentityService(configuration, dependencies);
       const bindGateway = (rendererOrigin: string) => createIdentityGateway({ publicOrigin: origin, rendererOrigin, issuer },
         { identity: { fetch: (request) => api!.fetch(request) } });
       gateway = bindGateway(web.rendererOrigin);
       const services = [api];
+      await check('combined HTTPS gateway serves a real agent PostgreSQL artifact query with current Git authority', async () => {
+        const transportFetch = createMcpTestFetch(origin, tls.certificate.toString());
+        const client = new Client({ name: 'steer-combined-fixture', version: '1.0.0' }, { versionNegotiation: { mode: { pin: mcpProtocolVersion } } });
+        try {
+          await client.connect(new StreamableHTTPClientTransport(new URL(`${origin}/mcp`), { protocolVersion: mcpProtocolVersion,
+            requestInit: { headers: { authorization: `Bearer ${deps.agent.bearer}` } }, fetch: transportFetch }));
+          const read = () => client.callTool({ name: 'projection.artifact.read', arguments: projection.input });
+          const result = await read(); assert.ok(!result.isError);
+          const actual = (result.structuredContent as { result: { content: string } }).result;
+          assert.equal(actual.content, (await source.reader.readArtifact(projection.input.path, projection.input.revision)).content);
+          assert.equal((await client.callTool({ name: 'projection.artifact.read', arguments: { ...projection.input, organizationId: 'foreign' } })).isError, true);
+          assert.equal((await transportFetch(`${origin}/mcp`, { method: 'POST', headers: {
+            authorization: `Bearer ${deps.agent.bearer}`, cookie: '__Host-steer-session=synthetic',
+          } })).status, 403);
+          await source.publish([grant, { ...deps.agent.grant, active: false }]); await assert.rejects(read());
+          await source.publish([grant, deps.agent.grant]); assert.ok(!(await read()).isError);
+        } finally { await client.close(); }
+      });
       const spki = createHash('sha256').update(new X509Certificate(tls.certificate).publicKey.export({ type: 'spki', format: 'der' })).digest('base64');
       // Test-only exception for this run's key, not blanket TLS-error suppression.
       browser = await chromium.launch({ headless: true, chromiumSandbox: true,
@@ -286,7 +310,8 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
       });
       await check('composed identity services stop admission and confirm request/resource shutdown in the actual browser', async () => {
         await Promise.all(services.map((service) => service.shutdown()));
-        for (const service of services) assert.deepEqual(service.status(), { state: 'stopped', activeRequests: 0 });
+        for (const service of services) assert.deepEqual(service.status(), { state: 'stopped', activeRequests: 0,
+          mcp: { stopping: true, active: 0, cleanupFailed: false } });
         assert.equal((await tool()).status, 503);
         assert.throws(() => storage.freshStore(), /Synthetic runtime resources are closed/);
         assert.deepEqual(await storage.counts(), { transactions: 0, sessions: 0 });

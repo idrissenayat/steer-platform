@@ -31,7 +31,7 @@ export function createIdentityGateway(configuration: { publicOrigin: string; ren
     const url = new URL(request.url);
     if (url.origin !== publicOrigin || url.username || url.password || url.hash) return fail(400);
     const path = url.pathname;
-    if (path.startsWith('/auth/') || path.startsWith('/v1/') || path.startsWith('/health/') || path === '/openapi.json') {
+    if (path.startsWith('/auth/') || path.startsWith('/v1/') || path.startsWith('/health/') || path === '/openapi.json' || path === '/mcp') {
       // Auth, cookies, callback query and method checks remain exclusively in the identity service.
       return identityFetch(request);
     }

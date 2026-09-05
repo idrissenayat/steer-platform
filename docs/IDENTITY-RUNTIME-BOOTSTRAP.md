@@ -70,3 +70,8 @@ Increment 0032 adds a separate createProjectionRuntime entry with its own strict
 profile/secrets, explicit agent authenticator and steer_projector pool. It offers
 one bounded runOnce plus shutdown, not identity routes or automatic scheduling.
 See `docs/REPOSITORY-RECONCILIATION.md`; identity/default CLI startup is unchanged.
+
+Increment 0035 optionally mounts MCP through profile mcp.clientIds, an explicit
+independent client allowlist using the same issuer/audience and fixed Git/service
+bindings. Combined shutdown drains both transports before closing shared pools.
+Default CLI remains unchanged. See `docs/COMBINED-MCP-RUNTIME.md`.

@@ -11,6 +11,26 @@ import { startLocalIdentityListener } from '../src/identity-listener.ts';
 import { reserveLocalPort } from './local-tls-harness.ts';
 import { mcpProtocolVersion } from '../src/mcp.ts';
 
+/** Fixed-origin HTTPS transport trusting only the generated fixture certificate. */
+export function createMcpTestFetch(origin: string, cert: string): typeof fetch {
+  return async (input, init) => {
+    const request = new Request(input, init); const url = new URL(request.url);
+    assert.equal(url.origin, origin); assert.equal(url.pathname, '/mcp');
+    const body = Buffer.from(await request.arrayBuffer()); assert.ok(body.length <= 16384);
+    return new Promise<Response>((resolve, reject) => {
+      const outgoing = httpsRequest(url, { family: 4, agent: false, ca: cert, rejectUnauthorized: true, servername: 'localhost',
+        method: request.method, headers: Object.fromEntries(request.headers), signal: request.signal }, (incoming) => {
+        const chunks: Buffer[] = []; let bytes = 0;
+        incoming.on('data', (chunk: Buffer) => { bytes += chunk.length; if (bytes > 1024 * 1024) incoming.destroy(); else chunks.push(chunk); });
+        incoming.once('error', () => reject(new Error('Synthetic MCP response failed.')));
+        incoming.once('end', () => resolve(new Response(Buffer.concat(chunks), { status: incoming.statusCode!,
+          headers: Object.fromEntries(Object.entries(incoming.headers).filter((entry): entry is [string, string] => typeof entry[1] === 'string')) })));
+      });
+      outgoing.setTimeout(12000, () => outgoing.destroy()); outgoing.once('error', () => reject(new Error('Synthetic MCP HTTPS failed.'))); outgoing.end(body);
+    });
+  };
+}
+
 /** Actual SDK client/TLS/Keycloak/Git composition; only generated test identity and owned listener. */
 export async function testMcpKeycloak(options: { configuration: OidcConfiguration; bearer: string; grant: AuthorizationRecord;
   providerFetch: typeof fetch; temporary: string; key: string; cert: string;
@@ -21,22 +41,7 @@ export async function testMcpKeycloak(options: { configuration: OidcConfiguratio
     const endpoint = createGitBackedMcpEndpoint(origin, options.configuration, { reader: source.reader,
       authorizationPath: source.authorizationPath, fetch: options.providerFetch });
     const listener = await startLocalIdentityListener({ publicOrigin: origin, tls: { key: options.key, cert: options.cert } }, endpoint);
-    const transportFetch: typeof fetch = async (input, init) => {
-      const request = new Request(input, init); const url = new URL(request.url);
-      assert.equal(url.origin, origin); assert.equal(url.pathname, '/mcp');
-      const body = Buffer.from(await request.arrayBuffer()); assert.ok(body.length <= 16384);
-      return new Promise<Response>((resolve, reject) => {
-        const outgoing = httpsRequest(url, { family: 4, agent: false, ca: options.cert, rejectUnauthorized: true, servername: 'localhost',
-          method: request.method, headers: Object.fromEntries(request.headers), signal: request.signal }, (incoming) => {
-          const chunks: Buffer[] = []; let bytes = 0;
-          incoming.on('data', (chunk: Buffer) => { bytes += chunk.length; if (bytes > 1024 * 1024) incoming.destroy(); else chunks.push(chunk); });
-          incoming.once('error', () => reject(new Error('Synthetic MCP response failed.')));
-          incoming.once('end', () => resolve(new Response(Buffer.concat(chunks), { status: incoming.statusCode!,
-            headers: Object.fromEntries(Object.entries(incoming.headers).filter((entry): entry is [string, string] => typeof entry[1] === 'string')) })));
-        });
-        outgoing.setTimeout(12000, () => outgoing.destroy()); outgoing.once('error', () => reject(new Error('Synthetic MCP HTTPS failed.'))); outgoing.end(body);
-      });
-    };
+    const transportFetch = createMcpTestFetch(origin, options.cert);
     const client = new Client({ name: 'steer-isolated-mcp', version: '1.0.0' }, { versionNegotiation: { mode: { pin: mcpProtocolVersion } } });
     try {
       await client.connect(new StreamableHTTPClientTransport(new URL(`${origin}/mcp`), { protocolVersion: mcpProtocolVersion,

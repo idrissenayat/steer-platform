@@ -56,15 +56,17 @@ until they actually settle; existing provider/database budgets still apply.
 
 ## Evidence and remaining integration
 
-The official client passes canonical schema/result parity and authorization,
+In increment 0034, the official client passed canonical schema/result parity and authorization,
 capacity and shutdown tests. A separate actual local TLS listener verifies a real
 Keycloak token against synthetic Git grants, observes committed revocation and
 restoration, compares MCP/HTTP results and confirms listener closure. Browser/
-Postgres regression remains separate and passing; this does not claim a live
+Postgres regression was separate and passing; that increment does not claim a live
 provider account or database artifact read over MCP.
 
-Default CLI, combined browser runtime and renderer gateway do not mount /mcp yet.
-Combined lifecycle/resource wiring, OAuth metadata/onboarding, stdio, wider client
+Increment 0035 adds opt-in combined browser runtime/gateway mounting and shared
+resource lifecycle, with actual PostgreSQL artifact read evidence described in
+COMBINED-MCP-RUNTIME.md. Default CLI still does not mount /mcp.
+OAuth metadata/onboarding, stdio, wider client
 compatibility, any future streams, Temporal workflows and actual runtime binding
 remain open. No spending/deployment/gate approval is inferred.
 

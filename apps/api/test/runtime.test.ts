@@ -39,6 +39,8 @@ test('runtime strictly rejects malformed profiles, secret injection and downstre
     { ...profile, browser: { ...profile.browser, tokenEndpoint: 'https://foreign.example/token' } },
     { ...profile, github: { ...profile.github, authorizationPath: '../membership' } },
     { ...profile, database: { ...profile.database, user: 'postgres' } },
+    { ...profile, mcp: { clientIds: [] } }, { ...profile, mcp: { clientIds: ['agent', 'agent'] } },
+    { ...profile, mcp: { clientIds: ['agent'], extra: true } },
     { ...profile, database: { ...profile.database, host: 'remote.example' } }, { ...profile, sessionKeyId: 'missing' }]) {
     await assert.rejects(createIdentityRuntime(invalid, secrets), /^Error: Identity runtime configuration could not be initialized\.$/);
   }
@@ -54,12 +56,14 @@ test('explicit local bootstrap serves isolated HTTPS gateway with real lazy runt
   const deny: typeof fetch = async () => { calls++; throw new Error('Provider access forbidden'); };
   try {
     const local = await startLocalIdentityRuntime({ version: 'steer-local-identity/v1', rendererOrigin: 'http://127.0.0.1:49001',
-      identity: { ...profile, browser: { ...profile.browser, redirectUri: `${origin}/auth/callback` } } },
+      identity: { ...profile, mcp: { clientIds: ['agent'] }, browser: { ...profile.browser, redirectUri: `${origin}/auth/callback` } } },
     { identity: secrets, tls: { key: tls.key, cert: tls.cert } }, { identity: deny, github: deny,
       renderer: async () => new Response('<h1>Synthetic renderer</h1>', { headers: { 'content-type': 'text/html' } }) });
     try {
       assert.equal((await localHttpsRequest(origin, tls.cert)).status, 200);
       assert.equal((await localHttpsRequest(origin, tls.cert, '/health/ready')).status, 503);
+      assert.equal((await localHttpsRequest(origin, tls.cert, '/mcp', { method: 'POST' })).status, 401);
+      assert.equal(local.status().identity.mcp?.stopping, false);
       assert.equal((await localHttpsRequest(origin, tls.cert, '/v1/tools/session.context', { method: 'POST' })).status, 401);
       assert.equal(local.status().identity.database.connections, 0); assert.equal(calls, 0);
     } finally { await local.shutdown(); }

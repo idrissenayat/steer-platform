@@ -62,3 +62,37 @@ test('resource shutdown failures stay failed/closed, sanitized and are not retri
   assert.deepEqual(service.status(), { state: 'failed', activeRequests: 0 });
   assert.equal((await service.fetch(new Request(`${origin}/health/live`))).status, 503);
 });
+
+test('MCP mounting requires explicit nonempty unique client bindings and never uses browser cookies', async () => {
+  for (const clientIds of [[], ['agent', 'agent'], [''], ['a'.repeat(201)]]) {
+    assert.throws(() => createIdentityService(configuration, { ...dependencies, mcp: { clientIds } }), /Invalid MCP client binding/);
+  }
+  let calls = 0;
+  for (const enabled of [false, true]) {
+    const service = createIdentityService(configuration, { ...dependencies,
+      ...(enabled ? { mcp: { clientIds: ['agent'] } } : {}), fetch: async () => { calls++; throw new Error('Forbidden provider'); } });
+    try {
+      assert.equal((await service.fetch(new Request(`${origin}/mcp`, { method: 'POST' }))).status, enabled ? 401 : 404);
+      if (enabled) assert.equal((await service.fetch(new Request(`${origin}/mcp`, {
+        method: 'POST', headers: { cookie: '__Host-steer-session=synthetic', authorization: 'Bearer synthetic' },
+      }))).status, 403);
+      assert.equal(calls, 0);
+    } finally { await service.shutdown(); }
+  }
+});
+
+test('combined service drains both admissions before closing shared resources', async () => {
+  let finish: (value: boolean) => void = () => {}; let entered: () => void = () => {}; let closed = 0;
+  const admitted = new Promise<void>((resolve) => { entered = resolve; });
+  const service = createIdentityService(configuration, { ...dependencies, mcp: { clientIds: ['agent'] },
+    sessions: { ...dependencies.sessions, shutdown: async () => { closed++; }, store: { ...store,
+      insertTransaction: async () => { entered(); return new Promise<boolean>((resolve) => { finish = resolve; }); },
+    } } });
+  const request = service.fetch(new Request(`${origin}/auth/login`, { method: 'POST', headers: { origin } }));
+  await admitted; const stop = service.shutdown(); assert.equal(stop, service.shutdown());
+  await Promise.resolve(); await Promise.resolve(); assert.equal(closed, 0);
+  assert.equal(service.status().mcp?.stopping, true);
+  assert.equal((await service.fetch(new Request(`${origin}/mcp`, { method: 'POST' }))).status, 503);
+  finish(false); await request; await stop; assert.equal(closed, 1);
+  assert.deepEqual(service.status(), { state: 'stopped', activeRequests: 0, mcp: { stopping: true, active: 0, cleanupFailed: false } });
+});

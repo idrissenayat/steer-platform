@@ -330,14 +330,18 @@ Postgres/browser fixture. See `docs/REPOSITORY-INVENTORY.md` for limits.
 Item `intent/0034` adds an official MCP SDK v2 stateless Streamable HTTP profile,
 pinned to protocol 2026-07-28, serving the existing registry and safe tool results.
 Fixed Git-backed OIDC authority and actual TLS/Keycloak/Git client verification
-are implemented. Default/combined browser runtime mounting is not yet enabled;
+are implemented. Default CLI mounting remains disabled;
 see `docs/MCP-TRANSPORT.md` and the component lock `docs/stack/mcp.json`.
+
+Item `intent/0035` adds opt-in combined MCP runtime/gateway mounting, an explicit
+separate client allowlist and shared-resource shutdown coordination. See
+`docs/COMBINED-MCP-RUNTIME.md` for configuration and evidence boundaries.
 
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.
 Still to be built or composed: business tools beyond session context and curated
-artifact reads, combined MCP runtime/OAuth onboarding, large-repository inventory/partitioning and
+artifact reads, MCP OAuth onboarding, large-repository inventory/partitioning and
 source-removal/rollback policy beyond bounded discovery, Temporal workers,
 version-pinned Mastra adapter, LiteLLM gateway, tenant-scoped evidence storage,
 production product analytics, an approved live secret-manager binding, runtime/ingress

@@ -53,7 +53,7 @@ test('auth/API requests and response cookies remain solely with the identity ser
   const gateway = createIdentityGateway(configuration, { identity: { fetch: async (value) => { seen = value; return output; } },
     fetch: async () => { assert.fail('Identity traffic reached renderer'); } });
   assert.equal(await gateway.fetch(input), output); assert.equal(seen, input);
-  for (const path of ['/v1/tools/session.context', '/health/ready', '/openapi.json', '/auth/logout']) {
+  for (const path of ['/v1/tools/session.context', '/health/ready', '/openapi.json', '/auth/logout', '/mcp']) {
     const original = request(path); assert.equal(await gateway.fetch(original), output); assert.equal(seen, original);
   }
 });

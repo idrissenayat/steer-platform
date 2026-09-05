@@ -26,6 +26,7 @@ const profileSchema = z.strictObject({
       owner: text, repository: text, branch: text }) }),
   database: databaseSchema,
   readModel: z.strictObject({ database: databaseSchema, paths: z.array(artifactProjectionInputSchema.shape.path).min(1).max(1000) }).optional(),
+  mcp: z.strictObject({ clientIds: z.array(z.string().min(1).max(200)).min(1).max(100).refine((ids) => new Set(ids).size === ids.length) }).optional(),
   sessionKeyId: text,
 });
 const secretsSchema = z.strictObject({ browserClientSecret: text, githubPrivateKeyPem: text,
@@ -160,6 +161,7 @@ export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unk
     const service = createIdentityService({ ...profile.browser, clientSecret: secrets.browserClientSecret }, {
       reader, authorizationPath: profile.github.authorizationPath,
       sessions: { binding, store, shutdown: shutdownPools },
+      ...(profile.mcp ? { mcp: profile.mcp } : {}),
       ...(artifactProjection ? { services: { artifactProjection } } : {}),
       ...(transports.identity ? { fetch: transports.identity } : {}),
     });

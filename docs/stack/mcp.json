@@ -19,5 +19,6 @@
   "bodyBytes": 16384,
   "bodyDeadlineMilliseconds": 5000,
   "subscriptions": false,
-  "defaultRuntimeActivation": false
+  "defaultRuntimeActivation": false,
+  "optionalCombinedMount": true
 }
