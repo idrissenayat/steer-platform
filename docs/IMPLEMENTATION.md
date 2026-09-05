@@ -43,9 +43,11 @@ Item `intent/0010` adds the read-only GitHub App adapter and Git-backed current
 authorization resolver. Thirteen tests verify restricted token scope,
 commit/tree/blob integrity, source encoding, path modes and freshness denial.
 The adapter's development tests used isolated provider responses. The separate
-runtime App is now installed read-only on the STEER repository, but its private
-key download is blocked and signed API verification remains pending. See
-`docs/GITHUB-RUNTIME-APP.md` for exact IDs, scope and the user credential handoff.
+runtime App is installed read-only on the STEER repository. Its dedicated key
+is secured outside Git; signed App/installation readbacks and a revision-bound
+artifact read passed against GitHub. See `docs/GITHUB-RUNTIME-APP.md` for exact
+scope and evidence. Default API startup and browser login are not yet wired
+to the live provider; the read-only smoke check is not end-to-end completion.
 
 Item `intent/0011` adds atomic, idempotent ingestion and a single-artifact
 reconciler. Four new unit tests and three new real PostgreSQL checks pass for

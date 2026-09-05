@@ -1,8 +1,9 @@
 # STEER runtime GitHub App
 
 Observed on 2026-09-05 UTC (2026-09-04 EDT), from GitHub's authenticated
-registration, permissions and installation pages. This is provider setup
-evidence, not Gate 2 approval or a working end-to-end runtime.
+settings pages and signed API readbacks. The read-only provider adapter has
+passed a live artifact read. This is not Gate 2 approval or a working
+end-to-end platform runtime.
 
 ## Identity and scope
 
@@ -48,28 +49,66 @@ file was found in Downloads. The browser tool also blocked access to its
 download manager. No browser protections were bypassed and no second key was
 generated automatically.
 
-**Current blocker:** the user must complete the private-key download through
-their own browser and provide the saved file path, not the key contents. If the
-original download cannot be recovered, a replacement key is needed. Verify the
-replacement before requesting retirement of the inaccessible original key;
-do not delete keys without the required approval.
+### Credential handoff resolved
 
-No PEM has been retrieved or stored by this task. No runtime App JWT,
-installation token, or signed API readback has been performed. Do not mark
-the provider integration ready on the strength of UI installation alone.
+The user completed a replacement download and reported it ready. The exact
+runtime PEM was found in Downloads, validated as RSA 2048, and its public-key
+fingerprint matched GitHub key ID `4354040`:
+`SHA256:uG41s8LHpEtVQDmPmEMNUAeAZ1hEBb51lO4/mBjP/pg=`.
 
-## Next verification
+The file was moved, without overwriting an existing file, to
+`/Users/idrissenayat/.config/steer/runtime-github/private-key.pem` outside Git.
+The containing directory is mode `700`; the file is mode `600`. The original
+Downloads copy was moved rather than duplicated. Key bytes were not printed,
+committed, added to browser storage or sent to another provider.
 
-1. Secure the user-provided runtime PEM outside Git, with directory mode 700
-   and file mode 600; confirm its public fingerprint against GitHub.
-2. Read back the App and installation using the runtime identity. Verify owner,
-   App/installation/repository IDs, selected scope, permissions and no events.
-3. Use the existing restricted-token adapter to read a revision-bound artifact
-   on the candidate branch and verify the blob/content hashes. Never print
-   JWTs, tokens, PEM contents or repository artifact bodies in evidence logs.
-4. Record redacted provider evidence, then continue identity and ingestion
-   composition. Keep real writes, deployment, spending and gate signing closed.
+After successful authentication with the replacement, the user explicitly
+approved permanent revocation of only unused key `4354007`. GitHub's settings
+readback confirmed that only replacement `4354040` remained. This revocation
+cannot be undone; the independent Test Agent keys were untouched.
 
-While the credential handoff is pending, the continuous implementation task is
-paused at this user-only blocker; do not repeatedly generate keys, repeat the
-unchanged request, or claim background implementation progress.
+## Live verification
+
+At `2026-09-05T02:28:26.367Z`, signed requests to `/app` and
+`/app/installations/159172046` verified the expected App, owner, installation,
+selected-repository mode, unsuspended installation, exactly Contents/Metadata
+read-only permissions, and an empty event list.
+
+The existing `createGitHubReader` then requested an installation token restricted
+to numeric repository `1349965471` and Contents read-only. Its returned
+repository list contained exactly the expected repository and its returned
+permissions passed the adapter's least-privilege checks. The reader resolved
+the candidate branch, read a commit/tree/blob-bound artifact, validated the
+Git blob hash and SHA-256 content digest, and rechecked an unchanged branch head.
+
+| Evidence field | Value |
+|---|---|
+| Branch | `codex/phase-1-foundation` |
+| Revision | `7aad6588b2faba3cd67e1d6b0745130e23a58ab6` |
+| Artifact | `docs/PHASE-1-DELIVERY.md` |
+| Git blob SHA | `569fa351238d61c5c08034bf9cd13a8ec13526fb` |
+| Content SHA-256 | `38e7365b7ba2e765ec011a8117f85048f926f9b6ae2e848adee9b08fe0bec46c` |
+| UTF-8 bytes | `9668` |
+
+At `2026-09-05T02:30:02.245Z`, after unused-key revocation, a fresh signed App
+read and fresh restricted installation-token branch read both succeeded again.
+Only public binding metadata, hashes and status were logged; tokens and
+artifact bodies were not logged. Tokens were held only in the short-lived
+verification process. No repository-content write or production-data action
+was attempted.
+
+The verification-only `organizationId` (`steer-runtime-verification`) is a
+local test label, not an authoritative STEER tenant membership or access grant.
+This exercise does not establish the operating-repository authorization source,
+configure browser login, enable default API authentication, or ingest records
+into a production database.
+
+## Next integration
+
+The credential handoff is complete; the implementation loop may resume safe
+bounded development without requesting the same App/key approval again.
+Continue local Keycloak/browser, trusted membership-source configuration and
+durable ingestion composition. Use this runtime identity only within its
+approved read scope; do not discover or reuse Test Agent credentials. Keep
+real writes, deployment, spending, release and gate signing closed. Store no
+JWTs, tokens or PEM contents in repository configuration or evidence logs.

@@ -116,23 +116,30 @@ See `intent/0012/EVIDENCE.md`; host Node was not replaced.
 Next integration: runtime GitHub App binding, local Keycloak/browser and
 authorized operating-repository membership composition, followed by durable
 ingestion and workflow transports. The separate runtime App is installed, but
-its credential download requires user handoff; do not repurpose the independent
-Test Agent key or enable live reads under that identity.
+its dedicated credential and a live read-only artifact check are now verified;
+do not repurpose the independent Test Agent key or enable live reads under
+that identity.
 M2 remains partial until those identities and tenant data are wired end to end.
 Live Git writes remain blocked on M0 and applicable provider authorization. Remaining
 M1 work includes full stack lock and
 local service composition; the shell alone does not complete P1-01.
 
-## Provider checkpoint: runtime App installed, credential handoff blocked
+## Provider checkpoint: runtime App installed and live read verified
 
 On 2026-09-05 UTC the user approved and GitHub confirmed installation of
 `steer-platform-runtime` (App `4836171`, installation `159172046`) on only
 `idrissenayat/steer-platform`, with Contents/Metadata read-only. Webhooks and
 user OAuth are disabled. The independent Test Agent App was untouched.
 
-GitHub created a runtime private key, but Chrome blocked the download. The
-user must complete the download and provide its local path; no key contents
-should be pasted into chat. No runtime credential has been retrieved or used,
-and no signed API evidence exists yet. Details and recovery boundaries are in
-`docs/GITHUB-RUNTIME-APP.md`. Pause the implementation loop at this user-only
-handoff without repeating unchanged requests or mutating work while waiting.
+The original browser download failed, then the user completed a replacement
+download. The replacement fingerprint was matched against GitHub and its PEM
+moved outside Git with owner-only permissions. Signed App/installation reads,
+a restricted-token commit-bound artifact read, and hash/head checks passed.
+The user approved revocation of the unused original key; it was revoked and
+the replacement authenticated successfully afterward.
+
+The credential blocker is resolved. Resume safe bounded implementation without
+repeating the App/key approval request. Exact provider evidence and remaining
+integration limits are in `docs/GITHUB-RUNTIME-APP.md`. Local Keycloak/browser,
+authoritative membership-source configuration and durable ingestion remain
+unfinished; CLI startup is still deny-all. No gate or deployment is approved.
