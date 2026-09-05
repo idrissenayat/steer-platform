@@ -1,5 +1,5 @@
 import { type Client, WorkflowIdConflictPolicy, WorkflowIdReusePolicy, WorkflowExecutionAlreadyStartedError, WorkflowNotFoundError } from '@temporalio/client';
-import { parsePlan, parseScope, workflowId } from './contracts.ts';
+import { parsePlan, parseScope, workflowId, parseGateWatchPlan, gateWatchId } from './contracts.ts';
 
 /** Trusted administrative start only; no public route or unverified tenant input. */
 export function startReconciliation(client: Client, taskQueue: string, raw: unknown) {
@@ -9,6 +9,14 @@ export function startReconciliation(client: Client, taskQueue: string, raw: unkn
     workflowIdConflictPolicy: WorkflowIdConflictPolicy.FAIL,
     workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE,
   });
+}
+
+/** Trusted internal start only. Public tool authorization and production source verification are separate. */
+export function startGateWatch(client: Client, taskQueue: string, raw: unknown) {
+  const plan = parseGateWatchPlan(raw);
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(taskQueue)) throw new Error('Invalid gate watch task queue.');
+  return client.workflow.start('watchGateDecision', { workflowId: gateWatchId(plan.target), taskQueue, args: [plan],
+    workflowIdConflictPolicy: WorkflowIdConflictPolicy.FAIL, workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE });
 }
 
 /** Fixed trusted namespace/queue/scope. No credentials, routing choices or automatic retry from caller input. */

@@ -16,6 +16,7 @@ import { invokeTool, ToolError } from '@steer/tool-registry';
 import { createIdentityRuntime } from '../../api/src/runtime.ts';
 import { workflowId } from '../src/contracts.ts';
 import { testProjectedWorkflow } from './projection.integration.ts';
+import { testGateWatch } from './gate-watch.integration.ts';
 
 // Exact official test binary, no real cluster, OS installation or persistent database.
 const version = '1.8.3';
@@ -161,6 +162,7 @@ try {
       assert.equal((await env.client.workflow.getHandle(managed.scheduler.workflowId).describe()).status.name, 'COMPLETED');
     } finally { await runtime?.shutdown(); await managed.shutdown(); }
   });
+  await testGateWatch(env, bundle, check);
   console.log(`Temporal integration: ${passed} checks passed; actual local server, Git/PostgreSQL and recreated SDK workers; synthetic identities only.`);
 } finally {
   try { if (worker) { worker.shutdown(); await running; } }

@@ -26,7 +26,7 @@ reads (0031), bounded manifest reconciliation (0032) and revision-bound source
 inventory (0033), shared MCP transport (0034), combined MCP runtime (0035) and
 Temporal workflow foundation (0036) and durable Git/PostgreSQL reconciliation
 (0037), worker-process recovery (0038), authorized scheduling tools (0039) and
-managed scheduler runtime binding (0040) are
+managed scheduler runtime binding (0040) and durable gate observation (0041) are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
 [provider evidence](docs/GITHUB-RUNTIME-APP.md).
@@ -79,6 +79,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0038 · Worker-process recovery | `intent/0038/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | lazy ordered service lifecycle, actual different-PID SIGKILL recovery during timers and fresh post-crash Git authority | active-activity/fleet/server recovery, queue authority, gate waits/cursors, production bindings and formal gates |
 | 0039 · Authorized scheduling tools | `intent/0039/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | shared start/status tools, fresh grants, fixed routing/caps, truthful uncertainty, HTTP/MCP parity and actual Temporal dispatch | runtime connection ownership, live cluster ACLs, gate waits/cursors, business tools and formal gates |
 | 0040 · Managed scheduler runtime | `intent/0040/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | explicit profile/factory pairing, exact binding, bounded in-flight drain and actual owned Temporal connection closure | live cluster security, complete OIDC-to-Temporal flow, gate waits/cursors, business tools and formal gates |
+| 0041 · Durable gate observation | `intent/0041/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | revision-bound watch, reference-only checkpoints, restart/replay, supersession and bounded exhaustion | actual Git/provider verification, event cursors, public composition, business tools and formal gates |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier

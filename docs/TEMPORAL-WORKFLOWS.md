@@ -80,6 +80,10 @@ connection ownership; see MANAGED-SCHEDULER-RUNTIME.md. Next: add source-derived
 gate waits/cursors and bounded long-lived scheduling. Real cluster TLS/identity,
 OTel, production retention and formal gates remain open.
 
+Increment 0041 adds a separate gate-watch worker and revision-bound observation
+workflow. Its source checkpoint is not an approval or complete event cursor;
+see GATE-WATCH-WORKFLOWS.md for the synthetic-observer verification boundary.
+
 Primary references: [Temporal testing guide](https://docs.temporal.io/develop/typescript/best-practices/testing-suite),
 [SDK 1.23.0 release](https://github.com/temporalio/sdk-typescript/releases/tag/v1.23.0),
 [CLI 1.8.3 checksums](https://github.com/temporalio/cli/releases/download/v1.8.3/checksums.txt).

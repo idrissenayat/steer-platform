@@ -721,3 +721,22 @@ tools and full operating screens under the same shared authorization contracts.
 The live cluster connection/security profile, complete OIDC-to-Temporal flow,
 remaining recovery/operational services and five R5 findings remain open.
 No gate, provider access, deployment, release or spending approval is inferred.
+
+## Completed development increment: 0041
+
+Added a bounded gate-watch workflow with deterministic scope/gate/revision ID,
+fixed observer binding, reference-only checkpoints, durable waits and explicit
+superseded/decision-recorded/exhausted outcomes. No outcome signs or approves a
+gate; downstream actions still require fresh canonical policy and authorization.
+
+Three native groups and four new actual Temporal groups pass. The full Temporal
+suite now has sixteen groups, including checkpoint/worker recreation/history
+replay, stale-target supersession, exhaustion and non-retried source failure.
+The observer is synthetic; a checkpoint is not a complete durable event cursor.
+Evidence: intent/0041/EVIDENCE.md; guide: docs/GATE-WATCH-WORKFLOWS.md.
+
+Next bounded increment: Git-backed revision observation, followed by canonical
+signature-policy verification, complete event cursors and public watch composition.
+Business tools/screens, remaining services and five R5 findings stay open.
+Protected/signed records, live provider permissions and deployment/spending
+boundaries remain unchanged. Continue safe implementation without another prompt.

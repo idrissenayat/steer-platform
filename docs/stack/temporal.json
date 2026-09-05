@@ -27,6 +27,8 @@
   "separateProcessTimerRecoveryVerified": true,
   "canonicalSchedulingToolsVerified": true,
   "managedSchedulerRuntimeVerified": true,
+  "gateWatchWorkflowVerified": true,
+  "canonicalGateSourceVerifierVerified": false,
   "liveClusterAuthorizationVerified": false,
   "activeActivityCrashRecoveryVerified": false
 }

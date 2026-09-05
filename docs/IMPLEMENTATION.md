@@ -369,6 +369,12 @@ and closes only after request/operation drain. Real isolated Temporal connection
 closure is verified without stopping the server or its other client. No live
 cluster settings are activated. See `docs/MANAGED-SCHEDULER-RUNTIME.md`.
 
+Item `intent/0041` adds a bounded revision-bound gate-observation workflow with
+fixed source-reader binding, durable checkpoints and explicit superseded,
+decision-recorded or exhausted outcomes. No outcome is approval. Actual Temporal
+restart/replay tests use a synthetic observer; canonical Git/provider verification
+and complete event cursors remain open. See `docs/GATE-WATCH-WORKFLOWS.md`.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.
