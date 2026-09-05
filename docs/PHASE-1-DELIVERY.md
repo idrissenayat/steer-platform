@@ -903,3 +903,19 @@ Next: exact-revision authenticated Brief read tools and the rendered backlog/det
 surface. Five R5 findings, canonical gate proof, remaining services and formal/
 manual/operational requirements remain open. Continue safe increments without
 new provider, signature, spending, deployment or release authority.
+
+## Completed development increment: 0051
+
+Added intent.brief.read with both Brief and curated-content grants, exact source
+revision/fingerprint selection, independently recomputed content/blob digests and
+post-parse authorization. It returns the same source-preserving structural model
+through HTTP/MCP, with no inferred lifecycle or approval. Default runtime remains
+unconfigured; no provider or database privilege has been widened.
+
+Root/native checks and all 31 actual browser/identity groups pass. Evidence is in
+intent/0051/EVIDENCE.md. Guide: docs/AUTHENTICATED-BRIEF-READS.md.
+
+Next: bounded authenticated Brief discovery/catalog and rendered backlog/detail
+binding. Five R5 findings, canonical proof, remaining services and formal/manual/
+operational requirements stay open. Continue safe development without new
+provider, signature, spending, deployment or release authority.

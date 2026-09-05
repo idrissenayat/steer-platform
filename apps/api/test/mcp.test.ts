@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { test } from 'node:test';
 import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';
 import { describeTools } from '@steer/tool-registry';
@@ -7,9 +8,10 @@ import { createApi } from '../src/app.ts';
 
 const origin = 'https://steer.test', now = new Date('2026-09-05T10:00:00Z');
 const principal = { subject: 'synthetic-agent', organizationId: 'org-a', type: 'agent', hats: [],
-  toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'workflow.reconciliation.start', 'workflow.reconciliation.status'], expiresAt: new Date(now.getTime() + 300000).toISOString() };
+  toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'intent.brief.read', 'workflow.reconciliation.start', 'workflow.reconciliation.status'], expiresAt: new Date(now.getTime() + 300000).toISOString() };
 const input = { organizationId: 'org-a', repository: 'github:1', path: 'BRIEF.md', revision: 'a'.repeat(40) };
-const output = { ...input, kind: 'projection', content: 'synthetic artifact', blobSha: 'b'.repeat(40), contentDigest: 'c'.repeat(64) };
+const content = '# Brief: Synthetic artifact\n\n## Problem\n\nA scoped synthetic problem.\n';
+const output = { ...input, kind: 'projection', content, blobSha: createHash('sha1').update(`blob ${Buffer.byteLength(content)}\0`).update(content).digest('hex'), contentDigest: createHash('sha256').update(content).digest('hex') };
 const scope = { organizationId: 'org-a', repository: 'github:1', paths: ['BRIEF.md'] };
 async function connect(endpoint: ReturnType<typeof createMcpEndpoint>) {
   const client = new Client({ name: 'steer-synthetic-test', version: '1.0.0' }, { versionNegotiation: { mode: { pin: mcpProtocolVersion } } });
@@ -45,6 +47,7 @@ test('official MCP v2 client lists canonical schemas and calls the same tools as
     }
     const api = createApi(dependencies);
     for (const [name, args] of [['session.context', { organizationId: 'org-a' }], ['projection.artifact.read', input],
+      ['intent.brief.read', { ...input, contentDigest: output.contentDigest }],
       ['projection.changes.read', { organizationId: scope.organizationId, repository: scope.repository, cursor: null, limit: 100 }],
       ['projection.snapshot.read', { organizationId: scope.organizationId, repository: scope.repository }],
       ['workflow.reconciliation.start', { ...schedulingScope, rounds: 1, intervalMs: 1000 }], ['workflow.reconciliation.status', schedulingScope]] as const) {

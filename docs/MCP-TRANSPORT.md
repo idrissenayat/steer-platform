@@ -75,6 +75,11 @@ OAuth metadata/onboarding, stdio, wider client
 compatibility, any future streams and actual runtime binding
 remain open. No spending/deployment/gate approval is inferred.
 
+Increment 0051 adds intent.brief.read to the same discovery/dispatch contract,
+including exact source/fingerprint selection and both explicit Brief/content
+grants. HTTP and MCP return the same structural source view; see
+AUTHENTICATED-BRIEF-READS.md. It remains a read-only operation, never approval.
+
 Official serving reference used for implementation: [SDK HTTP serving guide](https://github.com/modelcontextprotocol/typescript-sdk/blob/main/docs/serving/http.md).
 The installed 2.0.0 declarations/source were checked for the exact factory,
 legacy-rejection and client negotiation APIs. Evidence: intent/0034/EVIDENCE.md.

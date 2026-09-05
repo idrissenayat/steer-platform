@@ -203,7 +203,7 @@ try {
     const storage = await createPostgresSessionHarness(binding); closeSessions = storage.close; return storage;
   };
   if (browserHarness) await browserHarness.run({ ...humanDependencies, createSessions,
-    agent: { bearer, clientId: 'steer-test-agent', grant: { ...grant, active: true, toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read'] } } });
+    agent: { bearer, clientId: 'steer-test-agent', grant: { ...grant, active: true, toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'intent.brief.read'] } } });
   else await testKeycloakHumanFlow({ ...humanDependencies, ...(durable ? { createSessions } : {}) });
   console.log(`Keycloak integration: ${passed} checks passed; server 26.7.3; no real user or provider credentials used.`);
 } catch {

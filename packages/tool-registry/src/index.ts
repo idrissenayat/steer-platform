@@ -1,4 +1,6 @@
 import { roles } from '@steer/domain/types';
+import { readBriefDocument } from '@steer/domain/brief-document';
+import { briefDocumentSchema } from './brief-document.ts';
 import { z } from 'zod';
 import { projectionChangesInputSchema, projectionChangePageSchema, projectionChangesOutputSchema,
   ProjectionCursorResetRequiredError, projectionSnapshotInputSchema, projectionSnapshotPageSchema, projectionSnapshotOutputSchema,
@@ -57,6 +59,12 @@ export const artifactProjectionOutputSchema = z.strictObject({ kind: z.literal('
   content: z.string().max(512 * 1024).refine((value) => new TextEncoder().encode(value).byteLength <= 512 * 1024) });
 export type ArtifactProjectionInput = z.infer<typeof artifactProjectionInputSchema>;
 export type ArtifactProjection = z.infer<typeof artifactProjectionOutputSchema>;
+export const briefProjectionInputSchema = artifactProjectionInputSchema.extend({
+  path: path.refine((value) => /^(?:BRIEF\.md|intent\/[0-9]{4,}\/BRIEF\.md)$/.test(value)),
+  contentDigest: z.string().regex(/^[a-f0-9]{64}$/),
+});
+export const briefProjectionOutputSchema = artifactProjectionOutputSchema.extend({ kind: z.literal('brief-projection'), document: briefDocumentSchema });
+export type BriefProjection = z.infer<typeof briefProjectionOutputSchema>;
 export interface ArtifactProjectionReader {
   readonly scope: Readonly<{ organizationId: string; repository: string; paths: readonly string[] }>;
   read(input: ArtifactProjectionInput, principal: Principal): Promise<unknown>;
@@ -280,15 +288,56 @@ const snapshotQuery = {
   },
 };
 
+const briefGrant = defineQuery({ name: 'intent.brief.read', description: 'Authorize an exact Brief document read.',
+  input: briefProjectionInputSchema, output: principalSchema, handler: (_input, principal) => principal });
+const briefAuthorization = { invoke(raw: unknown, context: InvocationContext) {
+  const principal = briefGrant.invoke(raw, context);
+  // The document tool cannot widen the existing curated raw-content permission.
+  if (!principal.toolGrants.includes('projection.artifact.read')) throw new ToolError('FORBIDDEN');
+  return principal;
+} };
+const briefQuery = {
+  name: 'intent.brief.read', description: 'Read a curated Brief at an exact revision and SHA-256, preserving source structure; requires both intent.brief.read and projection.artifact.read grants. Not Git currentness, workflow state or gate authority.',
+  kind: 'query' as const, scope: 'organization' as const, authorization: 'explicit-tool-grant' as const,
+  input: briefProjectionInputSchema, output: briefProjectionOutputSchema.nullable(),
+  async invoke(raw: unknown, context: InvocationContext): Promise<BriefProjection | null> {
+    const initial = briefAuthorization.invoke(raw, context); const input = briefProjectionInputSchema.parse(raw);
+    const reader = context.services?.artifactProjection;
+    if (!reader || !context.revalidate) throw new ToolError('UNAVAILABLE');
+    if (reader.scope.organizationId !== input.organizationId || reader.scope.repository !== input.repository || !reader.scope.paths.includes(input.path)) throw new ToolError('FORBIDDEN');
+    const principal = await freshToolPrincipal(briefAuthorization, input, initial, context);
+    const artifact = await projectionQuery.invoke({ organizationId: input.organizationId, repository: input.repository,
+      path: input.path, revision: input.revision }, { ...context, principal });
+    let result: BriefProjection | null = null;
+    if (artifact) {
+      try {
+        const bytes = new TextEncoder().encode(artifact.content);
+        const prefix = new TextEncoder().encode(`blob ${bytes.byteLength}\0`);
+        const gitBytes = new Uint8Array(prefix.length + bytes.length); gitBytes.set(prefix); gitBytes.set(bytes, prefix.length);
+        const hex = (buffer: ArrayBuffer) => [...new Uint8Array(buffer)].map((value) => value.toString(16).padStart(2, '0')).join('');
+        const [digest, blob] = await Promise.all([crypto.subtle.digest('SHA-256', bytes), crypto.subtle.digest('SHA-1', gitBytes)]);
+        if (hex(digest) !== artifact.contentDigest || hex(blob) !== artifact.blobSha) throw new Error();
+        if (artifact.contentDigest === input.contentDigest) {
+          result = briefProjectionOutputSchema.parse({ ...artifact, kind: 'brief-projection', document: readBriefDocument(artifact.content) });
+        }
+      } catch { throw new ToolError('INTERNAL_ERROR'); }
+    }
+    // Check both grants after source read, digest work and structural parsing, even for absence.
+    await freshToolPrincipal(briefAuthorization, input, initial, context);
+    return result;
+  },
+};
+
 // Frozen definitions are the common source for discovery, dispatch and HTTP contracts.
-const definitions = Object.freeze([Object.freeze(contextQuery), Object.freeze(projectionQuery), Object.freeze(reconciliationStart), Object.freeze(reconciliationStatus), Object.freeze(changesQuery), Object.freeze(snapshotQuery)]);
+const definitions = Object.freeze([Object.freeze(contextQuery), Object.freeze(projectionQuery), Object.freeze(reconciliationStart), Object.freeze(reconciliationStatus), Object.freeze(changesQuery), Object.freeze(snapshotQuery), Object.freeze(briefQuery)]);
 export function invokeTool(name: 'session.context', input: unknown, context: InvocationContext): z.output<typeof contextOutput>;
 export function invokeTool(name: 'projection.artifact.read', input: unknown, context: InvocationContext): Promise<ArtifactProjection | null>;
 export function invokeTool(name: 'workflow.reconciliation.start', input: unknown, context: InvocationContext): Promise<ReconciliationStartResult>;
 export function invokeTool(name: 'workflow.reconciliation.status', input: unknown, context: InvocationContext): Promise<ReconciliationStatusResult>;
 export function invokeTool(name: 'projection.changes.read', input: unknown, context: InvocationContext): Promise<ProjectionChangesResult>;
 export function invokeTool(name: 'projection.snapshot.read', input: unknown, context: InvocationContext): Promise<ProjectionSnapshotResult>;
-export function invokeTool(name: string, input: unknown, context: InvocationContext): z.output<typeof contextOutput> | Promise<ArtifactProjection | null | ReconciliationStartResult | ReconciliationStatusResult | ProjectionChangesResult | ProjectionSnapshotResult>;
+export function invokeTool(name: 'intent.brief.read', input: unknown, context: InvocationContext): Promise<BriefProjection | null>;
+export function invokeTool(name: string, input: unknown, context: InvocationContext): z.output<typeof contextOutput> | Promise<ArtifactProjection | BriefProjection | null | ReconciliationStartResult | ReconciliationStatusResult | ProjectionChangesResult | ProjectionSnapshotResult>;
 export function invokeTool(name: string, input: unknown, context: InvocationContext) {
   const definition = definitions.find((tool) => tool.name === name);
   if (!definition) throw new ToolError('TOOL_NOT_FOUND');

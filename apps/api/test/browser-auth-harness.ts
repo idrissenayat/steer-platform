@@ -109,7 +109,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         assert.deepEqual(await storage.counts(), { transactions: 0, sessions: 0 });
       });
       const grant: AuthorizationRecord = { issuer, subject: deps.subject, organizationId: 'synthetic-org', type: 'human',
-        hats: ['product-lead'], toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read'], active: true,
+        hats: ['product-lead'], toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'intent.brief.read'], active: true,
         validAfter: new Date(0).toISOString(), expiresAt: new Date(Date.now() + 600000).toISOString() };
       const source = await createGitAuthorizationHarness(tls.temporary, grant);
       assert.ok(storage.createProjectionFixture);
@@ -140,8 +140,13 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
             requestInit: { headers: { authorization: `Bearer ${deps.agent.bearer}` } }, fetch: transportFetch }));
           const read = () => client.callTool({ name: 'projection.artifact.read', arguments: projection.input });
           const result = await read(); assert.ok(!result.isError);
-          const actual = (result.structuredContent as { result: { content: string } }).result;
+          const actual = (result.structuredContent as { result: { content: string; contentDigest: string } }).result;
           assert.equal(actual.content, (await source.reader.readArtifact(projection.input.path, projection.input.revision)).content);
+          const brief = await client.callTool({ name: 'intent.brief.read', arguments: { ...projection.input, contentDigest: actual.contentDigest } });
+          assert.ok(!brief.isError);
+          const briefResult = (brief.structuredContent as { result: { kind: string; content: string; document: { title: string } } }).result;
+          assert.equal(briefResult.kind, 'brief-projection'); assert.equal(briefResult.content, actual.content);
+          assert.equal(briefResult.document.title, 'Synthetic scoped outcome');
           const feed = await client.callTool({ name: 'projection.changes.read', arguments: {
             organizationId: projection.input.organizationId, repository: projection.input.repository, cursor: null, limit: 100,
           } });
@@ -407,6 +412,23 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         assert.equal((await read({ ...projection.input, revision: '0'.repeat(40) })).data, null);
         await source.publish([{ ...grant, toolGrants: ['session.context'] }]); assert.equal((await read(projection.input)).status, 403);
         await source.publish([grant]); assert.equal((await read(projection.input)).status, 200);
+      });
+      await check('browser reads a fingerprint-bound Brief document through real Git/PostgreSQL and current dual grants', async () => {
+        const sourceArtifact = await source.reader.readArtifact(source.artifactPath, projection.input.revision);
+        const input = { ...projection.input, contentDigest: sourceArtifact.contentDigest };
+        const read = (value = input) => page.evaluate(async (args) => {
+          const response = await fetch('/v1/tools/intent.brief.read', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(args) });
+          return { status: response.status, data: await response.json() };
+        }, value);
+        const result = await read(); assert.equal(result.status, 200);
+        assert.equal(result.data.kind, 'brief-projection'); assert.equal(result.data.content, sourceArtifact.content);
+        assert.equal(result.data.document.title, 'Synthetic scoped outcome');
+        assert.equal((await read({ ...input, contentDigest: '0'.repeat(64) })).data, null);
+        for (const missing of ['intent.brief.read', 'projection.artifact.read']) {
+          await source.publish([{ ...grant, toolGrants: grant.toolGrants.filter((name) => name !== missing) }]);
+          const denied = await read(); assert.equal(denied.status, 403); assert.ok(!JSON.stringify(denied.data).includes(sourceArtifact.content));
+        }
+        await source.publish([grant]); assert.equal((await read()).status, 200);
       });
       await check('authenticated browser resumes actual projection changes and observes scope, reset and current Git grant denial', async () => {
         const input: ProjectionChangesInput = { organizationId: projection.input.organizationId, repository: projection.input.repository, cursor: null, limit: 1 };

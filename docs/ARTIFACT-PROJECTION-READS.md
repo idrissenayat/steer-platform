@@ -26,6 +26,11 @@ disposable projections, and permission resolution reads current Git separately.
 
 ## Explicit runtime binding
 
+Increment 0051 adds a structured Brief read on this same curated reader. It
+requires both intent.brief.read and projection.artifact.read, an expected digest,
+and the exact selected revision. See AUTHENTICATED-BRIEF-READS.md. Raw-content
+permission and scope are not widened by this derived tool.
+
 The identity runtime profile optionally accepts readModel with database settings
 matching the existing database transport schema and 1–1000 unique relative paths.
 Organization and repository are derived from the fixed GitHub binding, not input.

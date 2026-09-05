@@ -432,6 +432,12 @@ and never interprets author/status metadata as verified authority. Actual kit an
 canonical source tests accompany it. Authenticated Brief read tools and rendered
 detail remain next; see `docs/BRIEF-DOCUMENT-MODEL.md`.
 
+Item `intent/0051` exposes that source model through intent.brief.read, requiring
+both explicit Brief and curated-content grants. It verifies selected revision/
+fingerprint and source bytes, then rechecks both grants before returning the
+same structural result through HTTP/MCP. No catalog, status inference or new live
+profile is enabled. See `docs/AUTHENTICATED-BRIEF-READS.md`.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.
