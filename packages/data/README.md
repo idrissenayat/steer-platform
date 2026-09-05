@@ -27,6 +27,22 @@ superuser, bypass, role-management or table-ownership privileges before
 migrations. The harness provisions them only inside its own test database.
 No production migration or credential-loading command is provided here.
 
+## Ephemeral authentication storage
+
+`@steer/data/browser-session` implements the shared server session contract with
+AES-256-GCM, an explicit secret-provider keyring, five-minute maximum TTL,
+bounded capacity and atomic one-use login consumption. Separate `steer_auth`
+tables use forced RLS scoped to the trusted identity binding, not a pre-auth
+user-supplied organization. Provision `steer_auth_runtime` separately with
+NOINHERIT and no elevated/ownership privileges before migrations 0002/0003.
+The harness alone provisions that role in its disposable database.
+
+No browser route, production connection or encryption key is configured here.
+Expired-row reclamation affects only short-lived auth rows, not Git records.
+Cold expired rows remain until a later insert or an approved operational purge;
+expiry immediately denies authentication regardless. See `intent/0015/SPEC.md`
+for boundaries, capacity/keyring configuration and remaining operational work.
+
 Later increments must connect the authoritative Git ingestion, reconciliation,
 grant-freshness checks, rebuild/replay, operational queues and API tools. This
 package alone does not establish any of those workflows or gate authority.

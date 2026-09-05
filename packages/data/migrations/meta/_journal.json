@@ -15,6 +15,20 @@
       "when": 1788566821922,
       "tag": "0001_runtime_isolation",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788578070886,
+      "tag": "0002_browser_sessions",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788578070887,
+      "tag": "0003_auth_isolation",
+      "breakpoints": true
     }
   ]
 }

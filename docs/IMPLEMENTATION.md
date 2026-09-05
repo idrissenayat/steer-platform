@@ -74,6 +74,14 @@ local logout. Eleven synthetic cryptographic/concurrency tests pass. No HTTP
 route or durable session store is enabled. Refresh and provider-wide logout
 remain deferred; see the item's Evidence for the required route/storage controls.
 
+Item `intent/0015` implements that storage contract in PostgreSQL: dedicated
+pre-auth namespace/role, FORCE RLS, AES-256-GCM with explicit versioned keyring,
+five-minute maximum TTL, bounded insert capacity, atomic one-use consumption,
+cross-process persistence and scoped local logout. Unit and real disposable
+PostgreSQL checks pass. Browser routes remain disabled; real runtime database,
+key-provider configuration, trusted membership and human-code integration are
+not supplied by this increment. No operational purge/deployment is authorized.
+
 ## Implemented prototype and kit behavior
 
 - deterministic artifact-chain projection and dropped-event reconciliation;

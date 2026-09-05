@@ -1,0 +1,353 @@
+{
+  "id": "5f4ef75b-7600-481f-8ae9-d952fdc8ad8e",
+  "prevId": "f0ebffc6-5ebd-4f03-b66e-ba9234632d63",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "steer_auth.browser_sessions": {
+      "name": "browser_sessions",
+      "schema": "steer_auth",
+      "columns": {
+        "namespace": {
+          "name": "namespace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "key_hash": {
+          "name": "key_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "encrypted_value": {
+          "name": "encrypted_value",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "browser_sessions_expiry": {
+          "name": "browser_sessions_expiry",
+          "columns": [
+            {
+              "expression": "namespace",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "expires_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "browser_sessions_namespace_key_hash_pk": {
+          "name": "browser_sessions_namespace_key_hash_pk",
+          "columns": [
+            "namespace",
+            "key_hash"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {
+        "browser_sessions_namespace": {
+          "name": "browser_sessions_namespace",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "using": "\"steer_auth\".\"browser_sessions\".\"namespace\" = nullif(current_setting('steer.auth_namespace', true), '')",
+          "withCheck": "\"steer_auth\".\"browser_sessions\".\"namespace\" = nullif(current_setting('steer.auth_namespace', true), '')"
+        }
+      },
+      "checkConstraints": {
+        "browser_sessions_keys": {
+          "name": "browser_sessions_keys",
+          "value": "\"steer_auth\".\"browser_sessions\".\"namespace\" ~ '^[a-f0-9]{64}$' AND \"steer_auth\".\"browser_sessions\".\"key_hash\" ~ '^[a-f0-9]{64}$'"
+        },
+        "browser_sessions_ttl": {
+          "name": "browser_sessions_ttl",
+          "value": "\"steer_auth\".\"browser_sessions\".\"expires_at\" > \"steer_auth\".\"browser_sessions\".\"created_at\" AND \"steer_auth\".\"browser_sessions\".\"expires_at\" <= \"steer_auth\".\"browser_sessions\".\"created_at\" + interval '5 minutes'"
+        },
+        "browser_sessions_size": {
+          "name": "browser_sessions_size",
+          "value": "octet_length(\"steer_auth\".\"browser_sessions\".\"encrypted_value\"::text) <= 41000"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "steer.ingestion_events": {
+      "name": "ingestion_events",
+      "schema": "steer",
+      "columns": {
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "repository": {
+          "name": "repository",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_revision": {
+          "name": "source_revision",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content_digest": {
+          "name": "content_digest",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "received_at": {
+          "name": "received_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "ingestion_events_organization_id_event_id_pk": {
+          "name": "ingestion_events_organization_id_event_id_pk",
+          "columns": [
+            "organization_id",
+            "event_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {
+        "event_tenant": {
+          "name": "event_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "using": "\"steer\".\"ingestion_events\".\"organization_id\" = nullif(current_setting('steer.organization_id', true), '')",
+          "withCheck": "\"steer\".\"ingestion_events\".\"organization_id\" = nullif(current_setting('steer.organization_id', true), '')"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "steer_auth.login_transactions": {
+      "name": "login_transactions",
+      "schema": "steer_auth",
+      "columns": {
+        "namespace": {
+          "name": "namespace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "key_hash": {
+          "name": "key_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "encrypted_value": {
+          "name": "encrypted_value",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "login_transactions_expiry": {
+          "name": "login_transactions_expiry",
+          "columns": [
+            {
+              "expression": "namespace",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "expires_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "login_transactions_namespace_key_hash_pk": {
+          "name": "login_transactions_namespace_key_hash_pk",
+          "columns": [
+            "namespace",
+            "key_hash"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {
+        "login_transactions_namespace": {
+          "name": "login_transactions_namespace",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "using": "\"steer_auth\".\"login_transactions\".\"namespace\" = nullif(current_setting('steer.auth_namespace', true), '')",
+          "withCheck": "\"steer_auth\".\"login_transactions\".\"namespace\" = nullif(current_setting('steer.auth_namespace', true), '')"
+        }
+      },
+      "checkConstraints": {
+        "login_transactions_keys": {
+          "name": "login_transactions_keys",
+          "value": "\"steer_auth\".\"login_transactions\".\"namespace\" ~ '^[a-f0-9]{64}$' AND \"steer_auth\".\"login_transactions\".\"key_hash\" ~ '^[a-f0-9]{64}$'"
+        },
+        "login_transactions_ttl": {
+          "name": "login_transactions_ttl",
+          "value": "\"steer_auth\".\"login_transactions\".\"expires_at\" > \"steer_auth\".\"login_transactions\".\"created_at\" AND \"steer_auth\".\"login_transactions\".\"expires_at\" <= \"steer_auth\".\"login_transactions\".\"created_at\" + interval '5 minutes'"
+        },
+        "login_transactions_size": {
+          "name": "login_transactions_size",
+          "value": "octet_length(\"steer_auth\".\"login_transactions\".\"encrypted_value\"::text) <= 41000"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "steer.projection_records": {
+      "name": "projection_records",
+      "schema": "steer",
+      "columns": {
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "record_key": {
+          "name": "record_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "repository": {
+          "name": "repository",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_revision": {
+          "name": "source_revision",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content_digest": {
+          "name": "content_digest",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "projection_records_organization_id_record_key_pk": {
+          "name": "projection_records_organization_id_record_key_pk",
+          "columns": [
+            "organization_id",
+            "record_key"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {
+        "projection_tenant": {
+          "name": "projection_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "using": "\"steer\".\"projection_records\".\"organization_id\" = nullif(current_setting('steer.organization_id', true), '')",
+          "withCheck": "\"steer\".\"projection_records\".\"organization_id\" = nullif(current_setting('steer.organization_id', true), '')"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    }
+  },
+  "enums": {},
+  "schemas": {
+    "steer": "steer",
+    "steer_auth": "steer_auth"
+  },
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

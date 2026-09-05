@@ -12,7 +12,8 @@ Workspace/web shell (0005), domain extraction (0006), stateless Hono
 API/shared tool registry (0007), OIDC adapter/API composition (0008), and
 PostgreSQL/Drizzle tenant foundations (0009), verified Git reads and ingestion
 (0010/0011), native Node/package checks (0012), and a real local Keycloak
-contract harness (0013) are implemented development increments. The separate
+contract harness (0013), browser-session broker (0014) and encrypted durable
+session storage (0015) are implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
 [provider evidence](docs/GITHUB-RUNTIME-APP.md).
 Gate 2 remains open: the latest round-three R5 review returned three blockers
@@ -37,7 +38,8 @@ routes but rejects tool requests until real identity integration is built.
 | 0011 · Verified-artifact ingestion | `intent/0011/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | atomic idempotent ingestion, CAS, source-based repair; four unit and three PostgreSQL checks | independent protected Exam, formal gates, durable consumers and full-repository replay |
 | 0012 · Native runtime and package seams | `intent/0012/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | domain native import fix, package-boundary tests, full repository verified on Node 24.20.0 | independent protected Exam, formal gates, full service/stack lock and live integration |
 | 0013 · Real Keycloak contract | `intent/0013/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | six real-provider check groups for scoped TLS, agent claims/JWKS, revocation, tenant/hat/client/audience denial and shared API grants | human browser login, trusted real membership, persistent identity composition and formal gates |
-| 0014 · Human sign-in/session contract | `intent/0014/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | server-side code/PKCE broker, opaque cookies, short-lived sessions and local logout; eleven new tests | durable encrypted session storage, HTTP/browser integration, refresh/provider logout, trusted real membership and formal gates |
+| 0014 · Human sign-in/session contract | `intent/0014/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | server-side code/PKCE broker, opaque cookies, short-lived sessions and local logout; eleven new tests | HTTP/browser integration, refresh/provider logout, trusted real membership and formal gates; storage supplied by 0015 |
+| 0015 · Durable encrypted sessions | `intent/0015/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | dedicated auth role/FORCE RLS, authenticated encryption, bounded TTL/capacity, cross-process atomic consumption and key rotation | HTTP/browser integration, approved runtime secret configuration, real membership, operational purge/rotation and formal gates |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier

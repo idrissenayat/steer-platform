@@ -2,6 +2,8 @@ import { createHash, randomBytes } from 'node:crypto';
 import { createRemoteJWKSet, customFetch, jwtVerify } from 'jose';
 import { z } from 'zod';
 import { type Principal } from '@steer/tool-registry';
+import { transactionSchema, sessionSchema, type BrowserSessionStore } from '@steer/tool-registry/browser-session';
+export type { LoginTransaction, BrowserSession, BrowserSessionStore } from '@steer/tool-registry/browser-session';
 import { createOidcAuthenticator, type IdentityDependencies } from './oidc.ts';
 
 const https = z.string().url().refine((value) => {
@@ -15,26 +17,6 @@ const configSchema = z.strictObject({
 });
 export type BrowserSessionConfiguration = z.infer<typeof configSchema>;
 const opaque = z.string().regex(/^[A-Za-z0-9_-]{43}$/);
-const transactionSchema = z.strictObject({
-  browserHash: z.string().regex(/^[a-f0-9]{64}$/), verifier: opaque, nonce: opaque,
-  createdAt: z.number().int(), expiresAt: z.number().int(),
-});
-const sessionSchema = z.strictObject({
-  accessToken: z.string().min(1).max(16384), subject: z.string().min(1).max(200),
-  organizationId: z.string().min(1).max(200), createdAt: z.number().int(), expiresAt: z.number().int(),
-});
-export type LoginTransaction = z.infer<typeof transactionSchema>;
-export type BrowserSession = z.infer<typeof sessionSchema>;
-/** Trusted server-only storage. No default in-memory or browser-storage implementation. */
-export interface BrowserSessionStore {
-  /** Atomically insert only if absent; enforce TTL and bounded capacity. */
-  insertTransaction(key: string, value: LoginTransaction): Promise<boolean>;
-  /** Atomically read AND remove, across all processes, before exchanging a code. */
-  consumeTransaction(key: string): Promise<unknown>;
-  insertSession(key: string, value: BrowserSession): Promise<boolean>;
-  readSession(key: string): Promise<unknown>;
-  deleteSession(key: string): Promise<void>;
-}
 export class BrowserSessionError extends Error {
   constructor() { super('The sign-in operation could not be completed.'); }
 }

@@ -10,6 +10,7 @@ import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { withTenant, readProjection } from '../src/index.ts';
 import { ingestVerifiedArtifact, projectionKey } from '../src/ingestion.ts';
 import type { Principal } from '@steer/tool-registry';
+import { testBrowserSessionStorage } from './session-storage.integration.ts';
 
 const exec = promisify(execFile);
 const docker = async (...args: string[]) => (await exec('docker', args, { timeout: 30000 })).stdout.trim();
@@ -45,14 +46,14 @@ try {
   };
   const admin = connect('postgres');
   // These roles and generated credentials exist only in this disposable container.
-  for (const role of ['steer_app', 'steer_projector']) {
+  for (const role of ['steer_app', 'steer_projector', 'steer_auth_runtime']) {
     await admin.query(`CREATE ROLE ${role} LOGIN PASSWORD '${password}' NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS`);
   }
   const migrationsFolder = fileURLToPath(new URL('../migrations/', import.meta.url));
   await check('versioned Drizzle migrations apply twice without replay effects', async () => {
     await migrate(drizzle(admin), { migrationsFolder });
     await migrate(drizzle(admin), { migrationsFolder });
-    assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 2);
+    assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 4);
   });
   const app = connect('steer_app');
   const projector = connect('steer_projector');
@@ -143,6 +144,8 @@ try {
     assert.deepEqual(await readProjection(app, identity('org-ingest'), key), before);
     assert.equal(await eventCount(), 2);
   });
+  await testBrowserSessionStorage({ admin, app, projector, connect, check,
+    connection: { host: '127.0.0.1', port, user: 'steer_auth_runtime', password, database: 'steer_test' } });
   console.log(`PostgreSQL integration: ${passed} checks passed; server ${(await admin.query('SHOW server_version')).rows[0].server_version}`);
 } finally {
   await Promise.all(pools.map((pool) => pool.end()));

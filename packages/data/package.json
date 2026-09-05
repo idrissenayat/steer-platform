@@ -1,6 +1,6 @@
 {
   "name": "@steer/data", "version": "0.1.0", "private": true, "type": "module",
-  "exports": { ".": "./src/index.ts", "./schema": "./src/schema.ts", "./ingestion": "./src/ingestion.ts" },
+  "exports": { ".": "./src/index.ts", "./schema": "./src/schema.ts", "./ingestion": "./src/ingestion.ts", "./browser-session": "./src/browser-session.ts" },
   "scripts": {
     "build": "tsc --noEmit", "typecheck": "tsc --noEmit", "test": "node --test test/*.test.ts",
     "test:integration": "node test/postgres.integration.ts",

@@ -167,9 +167,30 @@ short-lived server sessions and current-grant/local-logout enforcement.
 Eleven new tests pass; root checks pass on Node 24.20.0. No live browser route,
 real human identity or persistent session store has been enabled.
 
-Next: implement bounded encrypted server session/transaction storage with
-cross-process atomic consumption, then same-origin POST start/logout and GET
+Storage was subsequently implemented in 0015 below. Next: same-origin POST start/logout and GET
 callback routes with secure cookie/error/CSRF handling. Verify against a local
 Keycloak authorization-code client before exposing login in Next.js. Continue
 trusted membership configuration separately; never promote test grants to real
 authority. Refresh-token rotation and provider-wide logout are still open.
+
+## Completed development increment: 0015
+
+Implemented encrypted durable login/session storage behind the shared contract,
+without reversing package dependencies. The dedicated auth role and namespace
+have forced RLS and no business-table access. AES-256-GCM authenticates record
+identity/timestamps; inserts enforce five-minute TTL and bounded capacity;
+login consumption commits once across Node processes. Explicit retained keys
+support reading prior ciphertext during rotation. No key is generated for real
+runtime use and no HTTP route or production connection has been enabled.
+
+The PostgreSQL harness now covers 18 check groups (the original 11 plus seven
+session groups), including process restart/readback, atomic consumption,
+namespace/role isolation, concurrent capacity, expiry, tampering and key rotation.
+Only disposable synthetic container data is reclaimed. Root checks also pass
+on Node 24.20.0. Evidence: `intent/0015/EVIDENCE.md`.
+
+Next bounded increment: same-origin browser login/callback/logout route
+composition with generic errors, no-store responses and CSRF protections, then
+a real local Keycloak human authorization-code flow. Keep startup deny-all until
+trusted membership and approved server secrets/database configuration are wired.
+Gate 2, spending, deployment and release remain separate and open.
