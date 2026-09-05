@@ -56,7 +56,31 @@ export interface ArtifactProjectionReader {
   readonly scope: Readonly<{ organizationId: string; repository: string; paths: readonly string[] }>;
   read(input: ArtifactProjectionInput, principal: Principal): Promise<unknown>;
 }
-export interface ToolServices { artifactProjection?: ArtifactProjectionReader }
+const scopedReference = (max: number) => z.string().min(1).max(max).regex(/^[A-Za-z0-9][A-Za-z0-9._:/-]*$/);
+export const reconciliationScopeSchema = z.strictObject({ organizationId: scopedReference(64), repository: scopedReference(96), itemId: scopedReference(96) });
+export const reconciliationStartSchema = reconciliationScopeSchema.extend({ rounds: z.number().int().min(1).max(100), intervalMs: z.number().int().min(1000).max(86400000) });
+const executionId = z.string().min(1).max(1000);
+export const reconciliationStartResultSchema = z.discriminatedUnion('outcome', [
+  z.strictObject({ workflowId: executionId, outcome: z.literal('started'), runId: z.uuid() }),
+  z.strictObject({ workflowId: executionId, outcome: z.literal('duplicate') }),
+  z.strictObject({ workflowId: executionId, outcome: z.literal('unknown') }),
+]);
+export const reconciliationStatusResultSchema = z.discriminatedUnion('outcome', [
+  z.strictObject({ workflowId: executionId, outcome: z.literal('found'), runId: z.uuid(), state: z.enum(['RUNNING', 'COMPLETED', 'FAILED', 'CANCELLED', 'TERMINATED', 'CONTINUED_AS_NEW', 'TIMED_OUT']) }),
+  z.strictObject({ workflowId: executionId, outcome: z.literal('not-found') }),
+  z.strictObject({ workflowId: executionId, outcome: z.literal('unknown') }),
+]);
+export type ReconciliationStart = z.infer<typeof reconciliationStartSchema>;
+export type ReconciliationStartResult = z.infer<typeof reconciliationStartResultSchema>;
+export type ReconciliationStatusResult = z.infer<typeof reconciliationStatusResultSchema>;
+export interface ReconciliationScheduler {
+  readonly scope: Readonly<z.infer<typeof reconciliationScopeSchema>>;
+  readonly workflowId: string;
+  readonly limits: Readonly<{ maxRounds: number; minIntervalMs: number }>;
+  start(input: ReconciliationStart): Promise<unknown>;
+  inspect(): Promise<unknown>;
+}
+export interface ToolServices { artifactProjection?: ArtifactProjectionReader; reconciliationScheduler?: ReconciliationScheduler }
 
 const contextInput = z.strictObject({ organizationId: identifier });
 const contextOutput = principalSchema.omit({ expiresAt: true });
@@ -140,11 +164,67 @@ const projectionQuery = {
   },
 };
 
+const startAuthorization = defineQuery({ name: 'workflow.reconciliation.start', description: 'Authorize reconciliation scheduling.',
+  input: reconciliationStartSchema, output: principalSchema, handler: (_input, principal) => principal });
+const statusAuthorization = defineQuery({ name: 'workflow.reconciliation.status', description: 'Authorize reconciliation status.',
+  input: reconciliationScopeSchema, output: principalSchema, handler: (_input, principal) => principal });
+async function freshSchedulerPrincipal(guard: typeof startAuthorization | typeof statusAuthorization, input: unknown, initial: Principal, context: InvocationContext) {
+  if (initial.type === 'agent' && initial.hats.length) throw new ToolError('UNAUTHENTICATED');
+  if (!context.revalidate) throw new ToolError('UNAVAILABLE');
+  let current: unknown; try { current = await context.revalidate(); } catch { throw new ToolError('UNAUTHENTICATED'); }
+  const now = context.clock?.() ?? new Date();
+  if (!Number.isFinite(now.getTime()) || now.getTime() < context.now.getTime() || Date.parse(initial.expiresAt) <= now.getTime()) throw new ToolError('UNAUTHENTICATED');
+  const fresh = guard.invoke(input, { principal: current, now });
+  if (fresh.subject !== initial.subject || fresh.type !== initial.type || (fresh.type === 'agent' && fresh.hats.length)) throw new ToolError('UNAUTHENTICATED');
+  return fresh;
+}
+function schedulerFor(input: z.infer<typeof reconciliationScopeSchema>, context: InvocationContext) {
+  const scheduler = context.services?.reconciliationScheduler;
+  if (!scheduler || !context.revalidate) throw new ToolError('UNAVAILABLE');
+  if (scheduler.scope.organizationId !== input.organizationId || scheduler.scope.repository !== input.repository || scheduler.scope.itemId !== input.itemId) throw new ToolError('FORBIDDEN');
+  if (!executionId.safeParse(scheduler.workflowId).success) throw new ToolError('UNAVAILABLE');
+  return scheduler;
+}
+const reconciliationStart = {
+  name: 'workflow.reconciliation.start', description: 'Start bounded projection reconciliation in the configured scope; unknown outcomes require status inspection, not blind retry.',
+  kind: 'command' as const, scope: 'organization' as const, authorization: 'explicit-tool-grant' as const,
+  input: reconciliationStartSchema, output: reconciliationStartResultSchema,
+  async invoke(raw: unknown, context: InvocationContext): Promise<ReconciliationStartResult> {
+    const initial = startAuthorization.invoke(raw, context); const input = reconciliationStartSchema.parse(raw); const scheduler = schedulerFor(input, context);
+    if (!Number.isSafeInteger(scheduler.limits.maxRounds) || !Number.isSafeInteger(scheduler.limits.minIntervalMs) ||
+      scheduler.limits.maxRounds < 1 || scheduler.limits.maxRounds > 100 || scheduler.limits.minIntervalMs < 1000 || scheduler.limits.minIntervalMs > 86400000) throw new ToolError('UNAVAILABLE');
+    if (input.rounds > scheduler.limits.maxRounds || input.intervalMs < scheduler.limits.minIntervalMs) throw new ToolError('FORBIDDEN');
+    // Authorization is refreshed immediately before dispatch; a later revocation cannot undo an accepted start.
+    await freshSchedulerPrincipal(startAuthorization, input, initial, context);
+    const uncertain: ReconciliationStartResult = { workflowId: scheduler.workflowId, outcome: 'unknown' };
+    try {
+      const result = reconciliationStartResultSchema.safeParse(await scheduler.start(input));
+      return result.success && result.data.workflowId === scheduler.workflowId ? result.data : uncertain;
+    } catch { return uncertain; }
+  },
+};
+const reconciliationStatus = {
+  name: 'workflow.reconciliation.status', description: 'Inspect the configured reconciliation execution; workflow completion is not gate approval.',
+  kind: 'query' as const, scope: 'organization' as const, authorization: 'explicit-tool-grant' as const,
+  input: reconciliationScopeSchema, output: reconciliationStatusResultSchema,
+  async invoke(raw: unknown, context: InvocationContext): Promise<ReconciliationStatusResult> {
+    const initial = statusAuthorization.invoke(raw, context); const input = reconciliationScopeSchema.parse(raw); const scheduler = schedulerFor(input, context);
+    await freshSchedulerPrincipal(statusAuthorization, input, initial, context);
+    let result: unknown;
+    try { result = await scheduler.inspect(); } catch { result = { workflowId: scheduler.workflowId, outcome: 'unknown' }; }
+    await freshSchedulerPrincipal(statusAuthorization, input, initial, context);
+    const output = reconciliationStatusResultSchema.safeParse(result);
+    return output.success && output.data.workflowId === scheduler.workflowId ? output.data : { workflowId: scheduler.workflowId, outcome: 'unknown' };
+  },
+};
+
 // Frozen definitions are the common source for discovery, dispatch and HTTP contracts.
-const definitions = Object.freeze([Object.freeze(contextQuery), Object.freeze(projectionQuery)]);
+const definitions = Object.freeze([Object.freeze(contextQuery), Object.freeze(projectionQuery), Object.freeze(reconciliationStart), Object.freeze(reconciliationStatus)]);
 export function invokeTool(name: 'session.context', input: unknown, context: InvocationContext): z.output<typeof contextOutput>;
 export function invokeTool(name: 'projection.artifact.read', input: unknown, context: InvocationContext): Promise<ArtifactProjection | null>;
-export function invokeTool(name: string, input: unknown, context: InvocationContext): z.output<typeof contextOutput> | Promise<ArtifactProjection | null>;
+export function invokeTool(name: 'workflow.reconciliation.start', input: unknown, context: InvocationContext): Promise<ReconciliationStartResult>;
+export function invokeTool(name: 'workflow.reconciliation.status', input: unknown, context: InvocationContext): Promise<ReconciliationStatusResult>;
+export function invokeTool(name: string, input: unknown, context: InvocationContext): z.output<typeof contextOutput> | Promise<ArtifactProjection | null | ReconciliationStartResult | ReconciliationStatusResult>;
 export function invokeTool(name: string, input: unknown, context: InvocationContext) {
   const definition = definitions.find((tool) => tool.name === name);
   if (!definition) throw new ToolError('TOOL_NOT_FOUND');

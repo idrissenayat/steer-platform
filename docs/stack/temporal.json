@@ -25,5 +25,7 @@
   "productionClusterBinding": false,
   "gitPostgresActivityComposition": true,
   "separateProcessTimerRecoveryVerified": true,
+  "canonicalSchedulingToolsVerified": true,
+  "liveClusterAuthorizationVerified": false,
   "activeActivityCrashRecoveryVerified": false
 }

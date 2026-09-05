@@ -676,3 +676,24 @@ leases, server/database restore, OTel, production bindings/retention and full
 operating surfaces remain separate requirements. Automatic retries stay disabled.
 The five R5 findings and all formal gate/deployment/release/spending boundaries
 remain open; safe isolated implementation continues.
+
+## Completed development increment: 0039
+
+Added canonical workflow.reconciliation.start and workflow.reconciliation.status
+tools with fixed org/repository/item scope, runtime caps and fresh explicit grants.
+The Temporal adapter snapshots namespace/queue configuration. Unknown starts
+remain unknown; retained duplicate execution and typed missing-status outcomes
+are distinct. No automatic replay, caller-selected routing or gate decision.
+
+Five registry and two client groups plus expanded official MCP/HTTP parity cover
+authorization, injection, uncertainty, output filtering and configuration bounds.
+Eleven actual Temporal integration groups now include canonical tool dispatch,
+missing/completed status and duplicate denial alongside existing Git/PostgreSQL
+and separate-process recovery regression. Evidence: intent/0039/EVIDENCE.md;
+guide: docs/AUTHORIZED-SCHEDULING.md.
+
+Next bounded increment: explicit scheduler connection ownership in trusted
+runtime composition, then source-derived gate waits/cursors and business tools.
+Live cluster ACLs/authentication, active-activity/fleet/server recovery, full
+operating screens and remaining services stay open. Default startup is unchanged.
+No gate, live provider, deployment, release or spending approval is inferred.

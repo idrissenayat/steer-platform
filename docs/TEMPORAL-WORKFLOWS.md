@@ -29,7 +29,8 @@ It computes a versioned workflow ID from escaped organization/repository/item
 segments. The workflow independently checks that ID. Duplicate active and retained
 closed executions are refused. Temporal's history-retention expiry can permit ID
 reuse later; this is not a permanent business idempotency record. Shared cluster
-namespace/task-queue ACLs and an authenticated start service remain required.
+namespace/task-queue ACLs remain required. Increment 0039 adds the optional
+authenticated canonical start/status boundary; see AUTHORIZED-SCHEDULING.md.
 
 ## Execution and recovery contract
 
@@ -73,7 +74,9 @@ fixture content. See intent/0036/EVIDENCE.md and docs/stack/temporal.json.
 Increment 0037 adds actual Git/PostgreSQL activity composition and shared fresh
 authorization/lifecycle; see WORKER-PROJECTION-RUNTIME.md for its verified scope.
 Increment 0038 adds separate-process restart during durable waits; see
-WORKER-PROCESS-RECOVERY.md. Next: add source-derived
+WORKER-PROCESS-RECOVERY.md. Increment 0039 adds canonical authorized scheduling
+with fixed routing and explicit uncertainty. Next: compose trusted connection
+ownership and add source-derived
 gate waits/cursors and bounded long-lived scheduling. Real cluster TLS/identity,
 OTel, production retention and formal gates remain open.
 

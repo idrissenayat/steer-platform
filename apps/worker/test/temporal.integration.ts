@@ -10,7 +10,8 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { TestWorkflowEnvironment } from '@temporalio/testing';
 import { bundleWorkflowCode, DefaultLogger, Runtime, Worker } from '@temporalio/worker';
 import { createReconciliationWorker } from '../src/worker.ts';
-import { startReconciliation } from '../src/client.ts';
+import { startReconciliation, createReconciliationSchedulerClient } from '../src/client.ts';
+import { invokeTool, ToolError } from '@steer/tool-registry';
 import { workflowId } from '../src/contracts.ts';
 import { testProjectedWorkflow } from './projection.integration.ts';
 
@@ -107,6 +108,31 @@ try {
   });
   await stopWorker();
   await testProjectedWorkflow(env, bundle, temporary, check);
+  const scheduledScope = { ...scope, itemId: 'intent/0039' };
+  worker = await createReconciliationWorker({ connection: env.nativeConnection, namespace: 'default', taskQueue: queue, workflowBundle: bundle }, scheduledScope, port);
+  running = worker.run();
+  await check('canonical authorized scheduling uses actual Temporal starts, fixed routing, status and retained duplicate denial', async () => {
+    const scheduler = createReconciliationSchedulerClient(env.client, { namespace: 'default', taskQueue: queue, scope: scheduledScope, maxRounds: 1, minIntervalMs: 1000 });
+    const now = new Date();
+    const principal = { subject: 'synthetic-scheduler', organizationId: scope.organizationId, type: 'agent', hats: [],
+      toolGrants: ['workflow.reconciliation.start', 'workflow.reconciliation.status'], expiresAt: new Date(now.getTime() + 60000).toISOString() };
+    const context = { principal, now, revalidate: async () => principal, services: { reconciliationScheduler: scheduler } };
+    const request = { ...scheduledScope, rounds: 1, intervalMs: 1000 };
+    const before = calls;
+    assert.deepEqual(await invokeTool('workflow.reconciliation.status', scheduledScope, context), { workflowId: scheduler.workflowId, outcome: 'not-found' });
+    await assert.rejects(invokeTool('workflow.reconciliation.start', request, { ...context, revalidate: async () => null }), (error) => error instanceof ToolError && error.code === 'UNAUTHENTICATED');
+    await assert.rejects(invokeTool('workflow.reconciliation.start', { ...request, rounds: 2 }, context), (error) => error instanceof ToolError && error.code === 'FORBIDDEN');
+    assert.equal(calls, before);
+    assert.equal((await invokeTool('workflow.reconciliation.status', scheduledScope, context)).outcome, 'not-found');
+    const result = await invokeTool('workflow.reconciliation.start', request, context);
+    assert.equal(result.outcome, 'started'); assert.ok('runId' in result);
+    await env.client.workflow.getHandle(scheduler.workflowId).result();
+    assert.equal(calls, before + 1);
+    assert.deepEqual(await invokeTool('workflow.reconciliation.status', scheduledScope, context), { workflowId: scheduler.workflowId, outcome: 'found', runId: result.runId, state: 'COMPLETED' });
+    assert.deepEqual(await invokeTool('workflow.reconciliation.start', request, context), { workflowId: scheduler.workflowId, outcome: 'duplicate' });
+    assert.equal(calls, before + 1);
+  });
+  await stopWorker();
   console.log(`Temporal integration: ${passed} checks passed; actual local server, Git/PostgreSQL and recreated SDK workers; synthetic identities only.`);
 } finally {
   try { if (worker) { worker.shutdown(); await running; } }

@@ -66,8 +66,13 @@ provider account or database artifact read over MCP.
 Increment 0035 adds opt-in combined browser runtime/gateway mounting and shared
 resource lifecycle, with actual PostgreSQL artifact read evidence described in
 COMBINED-MCP-RUNTIME.md. Default CLI still does not mount /mcp.
+Increment 0039 adds canonical reconciliation start/status tools when an explicit
+scheduler service is supplied. Start is advertised non-read-only and
+non-idempotent; status remains read-only. Both require fresh explicit grants.
+Unknown mutation outcomes are not rolled back or retried by the transport.
+See AUTHORIZED-SCHEDULING.md for fixed routing and receipt semantics.
 OAuth metadata/onboarding, stdio, wider client
-compatibility, any future streams, Temporal workflows and actual runtime binding
+compatibility, any future streams and actual runtime binding
 remain open. No spending/deployment/gate approval is inferred.
 
 Official serving reference used for implementation: [SDK HTTP serving guide](https://github.com/modelcontextprotocol/typescript-sdk/blob/main/docs/serving/http.md).

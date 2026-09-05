@@ -46,7 +46,7 @@ export function createMcpEndpoint(publicOrigin: string, dependencies: ApiDepende
         server.setRequestHandler('tools/list', async () => ({ tools: describeTools().map((tool) => ({
           name: tool.name, description: tool.description, inputSchema: tool.inputSchema as Tool['inputSchema'],
           outputSchema: { type: 'object', properties: { result: tool.outputSchema }, required: ['result'], additionalProperties: false } as Tool['outputSchema'],
-          annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+          annotations: { readOnlyHint: tool.kind === 'query', destructiveHint: false, idempotentHint: tool.kind === 'query', openWorldHint: false },
         })) }));
         server.setRequestHandler('tools/call', async (call) => {
           try {

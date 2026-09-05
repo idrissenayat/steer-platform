@@ -356,11 +356,19 @@ duplicate ingestion; a fresh process observes Git revocation committed while
 its predecessor was dead. Active-activity/fleet and server restore are separate
 gaps. See `docs/WORKER-PROCESS-RECOVERY.md`.
 
+Item `intent/0039` adds shared authorized reconciliation start/status tools and
+a fixed-routing Temporal client adapter. Fresh grants, bounded scope/caps,
+post-I/O status checks and explicit uncertain mutation receipts prevent caller
+routing and false rollback claims. HTTP/MCP parity and real local Temporal
+dispatch pass; default runtime activation remains disabled. See
+`docs/AUTHORIZED-SCHEDULING.md` for composition and remaining cluster boundaries.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.
 Still to be built or composed: business tools beyond session context and curated
-artifact reads, MCP OAuth onboarding, large-repository inventory/partitioning and
+artifact reads and bounded reconciliation scheduling, MCP OAuth onboarding,
+large-repository inventory/partitioning and
 source-removal/rollback policy beyond bounded discovery, Temporal gate/cursor
 composition and active-activity/fleet/server recovery,
 version-pinned Mastra adapter, LiteLLM gateway, tenant-scoped evidence storage,

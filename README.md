@@ -25,7 +25,7 @@ encrypted secret-provider loading (0030) and authenticated artifact projection
 reads (0031), bounded manifest reconciliation (0032) and revision-bound source
 inventory (0033), shared MCP transport (0034), combined MCP runtime (0035) and
 Temporal workflow foundation (0036) and durable Git/PostgreSQL reconciliation
-(0037) and worker-process recovery (0038) are
+(0037), worker-process recovery (0038) and authorized scheduling tools (0039) are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
 [provider evidence](docs/GITHUB-RUNTIME-APP.md).
@@ -76,6 +76,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0036 · Temporal workflow foundation | `intent/0036/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | pinned worker package, scoped durable timers and actual worker-recreation/history-replay proof | Git/Postgres composition, process/fleet recovery, gate waits, production bindings and formal gates |
 | 0037 · Durable Git/PostgreSQL reconciliation | `intent/0037/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | shared authorized job lifecycle, actual worker/data composition and duplicate-safe Git/PostgreSQL resume/repair/revocation proof | process/fleet recovery, authenticated scheduling, gate waits/cursors, production bindings and formal gates |
 | 0038 · Worker-process recovery | `intent/0038/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | lazy ordered service lifecycle, actual different-PID SIGKILL recovery during timers and fresh post-crash Git authority | active-activity/fleet/server recovery, queue authority, gate waits/cursors, production bindings and formal gates |
+| 0039 · Authorized scheduling tools | `intent/0039/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | shared start/status tools, fresh grants, fixed routing/caps, truthful uncertainty, HTTP/MCP parity and actual Temporal dispatch | runtime connection ownership, live cluster ACLs, gate waits/cursors, business tools and formal gates |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier
