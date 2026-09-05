@@ -562,6 +562,15 @@ or executable authorization. The original arithmetic/lineage semantics remain
 mandatory; full money runtime semantics and recovery/other public timing remain
 open. See `intent/0064/SPEC.md` and `intent/0064/EVIDENCE.md`.
 
+Item `intent/0065` composes all supplied recovery signatures with explicit 0058
+times and a separate observer anchor. Exact original bytes, complete inventory,
+native identity/journal times and an independently attested recovery interval
+are checked before original recovery semantics. The one-hour RTO cannot be
+inflated by a caller. Old source history is distinct from recovery duration;
+strict encoded-byte validation preserves binary Git objects. Pre-ack outcomes
+remain unknown and every result has zero effects/execution authority. The bounded
+model is not a real restore service. See `intent/0065/SPEC.md` and `EVIDENCE.md`.
+
 ## Local commands
 
 ```sh

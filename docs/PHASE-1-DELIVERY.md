@@ -1143,3 +1143,22 @@ migration normative coverage and complete-package independent/protected review.
 This does not prove stored replay-result bytes or live atomic spending, and the
 legacy observed-as-of rule still needs review. All five R5 findings remain open.
 No spending, provider access, protected edit, signature, deployment or release.
+
+## Completed development increment: 0065 — recovery time composition
+
+All six supplied recovery signatures now consume explicit 0058 timing, even
+across the old pre-ack early-return cases. A separate pinned observation binds
+exact original bytes, complete inventory and recovery interval. Native identity/
+journal times and the actual journal anchor are checked. The one-hour RTO is
+fixed, while historical journal age remains separate from recovery duration.
+Canonical base64/fatal UTF-8 protects decoded evidence without normalizing binary
+Git objects. Unknown outcomes stay unknown; no recovery or other effect executes.
+
+Eight cuts, 25 corruptions, every signature per cut, coherent old-accept/new-deny
+graphs, one-hour boundaries and four-row capacity are tested. Evidence:
+intent/0065/EVIDENCE.md. No real restore or provider observation is claimed.
+
+Next: direct authorization/accessibility and remaining public-oracle timing
+inventory, followed by full lifecycle/migration normative coverage and complete-
+package independent/protected review. All five R5 findings remain formally open.
+No spending, provider access, protected edit, signature, deployment or release.
