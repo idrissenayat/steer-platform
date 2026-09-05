@@ -8,7 +8,7 @@ import { createApi } from '../src/app.ts';
 
 const origin = 'https://steer.test', now = new Date('2026-09-05T10:00:00Z');
 const principal = { subject: 'synthetic-agent', organizationId: 'org-a', type: 'agent', hats: [],
-  toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'intent.brief.read', 'workflow.reconciliation.start', 'workflow.reconciliation.status'], expiresAt: new Date(now.getTime() + 300000).toISOString() };
+  toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'intent.brief.read', 'intent.brief.catalog', 'workflow.reconciliation.start', 'workflow.reconciliation.status'], expiresAt: new Date(now.getTime() + 300000).toISOString() };
 const input = { organizationId: 'org-a', repository: 'github:1', path: 'BRIEF.md', revision: 'a'.repeat(40) };
 const content = '# Brief: Synthetic artifact\n\n## Problem\n\nA scoped synthetic problem.\n';
 const output = { ...input, kind: 'projection', content, blobSha: createHash('sha1').update(`blob ${Buffer.byteLength(content)}\0`).update(content).digest('hex'), contentDigest: createHash('sha256').update(content).digest('hex') };
@@ -30,7 +30,8 @@ test('official MCP v2 client lists canonical schemas and calls the same tools as
   const schedulingScope = { organizationId: 'org-a', repository: 'github:1', itemId: 'intent/0001' };
   const receipt = { workflowId: 'steer-reconcile/v1/org-a/github%3A1/intent%2F0001', runId: '00000000-0000-4000-8000-000000000039' };
   const dependencies = { authenticate: async () => principal, now: () => now,
-    services: { artifactProjection: { scope, read: async () => output },
+    services: { artifactProjection: { scope, read: async () => output,
+      catalog: async () => [{ path: input.path, revision: input.revision, contentDigest: output.contentDigest }] },
       projectionChanges: { scope, read: async () => ({ events: [], cursor: null, hasMore: false, snapshotRequired: true }) }, reconciliationScheduler: {
       scope: schedulingScope, workflowId: receipt.workflowId, limits: { maxRounds: 2, minIntervalMs: 1000 },
       start: async () => ({ ...receipt, outcome: 'started' }), inspect: async () => ({ ...receipt, outcome: 'found', state: 'RUNNING' }),
@@ -48,6 +49,7 @@ test('official MCP v2 client lists canonical schemas and calls the same tools as
     const api = createApi(dependencies);
     for (const [name, args] of [['session.context', { organizationId: 'org-a' }], ['projection.artifact.read', input],
       ['intent.brief.read', { ...input, contentDigest: output.contentDigest }],
+      ['intent.brief.catalog', { organizationId: input.organizationId, repository: input.repository }],
       ['projection.changes.read', { organizationId: scope.organizationId, repository: scope.repository, cursor: null, limit: 100 }],
       ['projection.snapshot.read', { organizationId: scope.organizationId, repository: scope.repository }],
       ['workflow.reconciliation.start', { ...schedulingScope, rounds: 1, intervalMs: 1000 }], ['workflow.reconciliation.status', schedulingScope]] as const) {

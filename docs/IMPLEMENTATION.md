@@ -438,6 +438,12 @@ fingerprint and source bytes, then rechecks both grants before returning the
 same structural result through HTTP/MCP. No catalog, status inference or new live
 profile is enabled. See `docs/AUTHENTICATED-BRIEF-READS.md`.
 
+Item `intent/0052` adds a bounded curated Brief catalog on the same read-only
+database pool. Current explicit grants and exact path/key mapping restrict
+metadata to permitted Briefs; no content/status or unrelated inventory is exposed.
+Real PostgreSQL and agent/browser discovery tests pass. No new privilege, migration
+or live profile is introduced. See `docs/BRIEF-CATALOG.md`.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.

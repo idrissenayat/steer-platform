@@ -32,7 +32,8 @@ evaluation (0043), ordered projection-change delivery (0044) and authorized
 HTTP/MCP feed reads (0045), coherent reference snapshots/checkpoints (0046) and
 bounded consumer lifecycle (0047), nonce-controlled Next.js scripts (0048) and
 an authenticated read-only browser reference panel (0049) and source-faithful
-Brief document model (0050) and authenticated exact-revision Brief reads (0051) are
+Brief document model (0050), authenticated exact-revision Brief reads (0051) and
+curated Brief discovery (0052) are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
 [provider evidence](docs/GITHUB-RUNTIME-APP.md).
@@ -96,6 +97,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0049 · Browser reference panel | `intent/0049/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | bounded same-origin read transport, real consumer UI, scope/error/lifecycle clearing and reference-only display | full business models/screens, canonical approval proofs, formal/manual and operational gates |
 | 0050 · Brief document model | `intent/0050/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | source-preserving kit section model, explicit ambiguity/omissions, actual-source tests and structural limits | authenticated Brief reads, rendered backlog/detail, full operating evidence and formal gates |
 | 0051 · Authenticated Brief reads | `intent/0051/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | exact revision/fingerprint, dual grants, source integrity and shared HTTP/MCP structural read | Brief catalog/detail UI, authoritative lifecycle, canonical proof and formal gates |
+| 0052 · Curated Brief catalog | `intent/0052/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | complete bounded curated metadata, current grants/RLS, source-key checks and actual catalog-to-Brief read | trusted workspace display binding, rendered catalog/detail, authoritative lifecycle and formal gates |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier

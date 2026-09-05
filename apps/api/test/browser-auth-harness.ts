@@ -109,7 +109,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         assert.deepEqual(await storage.counts(), { transactions: 0, sessions: 0 });
       });
       const grant: AuthorizationRecord = { issuer, subject: deps.subject, organizationId: 'synthetic-org', type: 'human',
-        hats: ['product-lead'], toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'intent.brief.read'], active: true,
+        hats: ['product-lead'], toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'intent.brief.read', 'intent.brief.catalog'], active: true,
         validAfter: new Date(0).toISOString(), expiresAt: new Date(Date.now() + 600000).toISOString() };
       const source = await createGitAuthorizationHarness(tls.temporary, grant);
       assert.ok(storage.createProjectionFixture);
@@ -142,7 +142,11 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           const result = await read(); assert.ok(!result.isError);
           const actual = (result.structuredContent as { result: { content: string; contentDigest: string } }).result;
           assert.equal(actual.content, (await source.reader.readArtifact(projection.input.path, projection.input.revision)).content);
-          const brief = await client.callTool({ name: 'intent.brief.read', arguments: { ...projection.input, contentDigest: actual.contentDigest } });
+          const catalog = await client.callTool({ name: 'intent.brief.catalog', arguments: { organizationId: projection.input.organizationId, repository: projection.input.repository } });
+          assert.ok(!catalog.isError);
+          const references = (catalog.structuredContent as { result: { records: { path: string; revision: string; contentDigest: string }[] } }).result.records;
+          assert.deepEqual(references, [{ path: projection.input.path, revision: projection.input.revision, contentDigest: actual.contentDigest }]);
+          const brief = await client.callTool({ name: 'intent.brief.read', arguments: { organizationId: projection.input.organizationId, repository: projection.input.repository, ...references[0] } });
           assert.ok(!brief.isError);
           const briefResult = (brief.structuredContent as { result: { kind: string; content: string; document: { title: string } } }).result;
           assert.equal(briefResult.kind, 'brief-projection'); assert.equal(briefResult.content, actual.content);
@@ -412,6 +416,21 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         assert.equal((await read({ ...projection.input, revision: '0'.repeat(40) })).data, null);
         await source.publish([{ ...grant, toolGrants: ['session.context'] }]); assert.equal((await read(projection.input)).status, 403);
         await source.publish([grant]); assert.equal((await read(projection.input)).status, 200);
+      });
+      await check('browser discovers only curated Brief references and discards catalog access after committed revocation', async () => {
+        const input = { organizationId: projection.input.organizationId, repository: projection.input.repository };
+        const read = (value = input) => page.evaluate(async (args) => {
+          const response = await fetch('/v1/tools/intent.brief.catalog', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(args) });
+          return { status: response.status, data: await response.json() };
+        }, value);
+        const result = await read(); assert.equal(result.status, 200); assert.equal(result.data.kind, 'brief-catalog');
+        assert.equal(result.data.records.length, 1); assert.equal(result.data.records[0].path, source.artifactPath);
+        assert.equal(result.data.records[0].revision, projection.input.revision);
+        assert.equal(Object.keys(result.data.records[0]).sort().join(','), 'contentDigest,path,revision');
+        assert.equal((await read({ ...input, repository: 'github:foreign' })).status, 403);
+        await source.publish([{ ...grant, toolGrants: grant.toolGrants.filter((name) => name !== 'intent.brief.catalog') }]);
+        assert.equal((await read()).status, 403);
+        await source.publish([grant]); assert.equal((await read()).status, 200);
       });
       await check('browser reads a fingerprint-bound Brief document through real Git/PostgreSQL and current dual grants', async () => {
         const sourceArtifact = await source.reader.readArtifact(source.artifactPath, projection.input.revision);

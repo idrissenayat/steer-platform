@@ -31,6 +31,11 @@ requires both intent.brief.read and projection.artifact.read, an expected digest
 and the exact selected revision. See AUTHENTICATED-BRIEF-READS.md. Raw-content
 permission and scope are not widened by this derived tool.
 
+Increment 0052 adds an optional catalog capability to this reader, selecting only
+its already-curated Brief metadata with three explicit grants. It reuses the same
+pool and role, without needing repository-wide snapshot permission. See
+BRIEF-CATALOG.md for complete-set bounds and metadata/integrity limitations.
+
 The identity runtime profile optionally accepts readModel with database settings
 matching the existing database transport schema and 1–1000 unique relative paths.
 Organization and repository are derived from the fixed GitHub binding, not input.

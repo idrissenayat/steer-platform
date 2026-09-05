@@ -164,6 +164,22 @@ try {
     assert.equal(await ingestVerifiedArtifact(projector, agent, second, second.revision), 'repaired');
     assert.equal((await reader.read(input, principal) as { content: string }).content, second.content);
   });
+  await check('Brief catalog returns complete curated references with actual RLS, restricted role and corruption rejection', async () => {
+    const organizationId = 'org-catalog'; const repository = 'github:52';
+    const writer = { ...agent, organizationId }; const principal = { ...identity(organizationId),
+      toolGrants: ['intent.brief.catalog', 'intent.brief.read', 'projection.artifact.read'] };
+    const records = ['BRIEF.md', 'intent/0001/BRIEF.md', 'intent/9999/BRIEF.md', 'SPEC.md'].map((path) => ({ ...second, organizationId, repository, path }));
+    for (const record of records) await ingestVerifiedArtifact(projector, writer, record, null);
+    const binding = { organizationId, repository, paths: ['BRIEF.md', 'intent/0001/BRIEF.md', 'SPEC.md'] };
+    const reader = createArtifactProjectionReader(app, binding);
+    assert.deepEqual(await reader.catalog!(principal), records.slice(0, 2).map(({ path, revision, contentDigest }) => ({ path, revision, contentDigest })));
+    assert.deepEqual(await createArtifactProjectionReader(app, { ...binding, organizationId: 'org-other' }).catalog!({ ...principal, organizationId: 'org-other' }), []);
+    await assert.rejects(createArtifactProjectionReader(projector, binding).catalog!(principal), /Unsafe projection reader role/);
+    await admin.query("UPDATE steer.projection_records SET value=jsonb_set(value,'{path}','\"intent/9999/BRIEF.md\"') WHERE organization_id=$1 AND record_key=$2", [organizationId, projectionKey(repository, 'BRIEF.md')]);
+    await assert.rejects(reader.catalog!(principal), /Invalid Brief catalog/);
+    assert.equal(await ingestVerifiedArtifact(projector, writer, records[0]!, records[0]!.revision), 'repaired');
+    assert.equal((await reader.catalog!(principal) as unknown[]).length, 2);
+  });
   await testRuntimePool({ admin, check, host: '127.0.0.1', port, password, database: 'steer_test' });
   await testProjectionChanges({ admin, app, projector, connect, check });
   console.log(`PostgreSQL integration: ${passed} checks passed; server ${(await admin.query('SHOW server_version')).rows[0].server_version}`);

@@ -65,9 +65,16 @@ export const briefProjectionInputSchema = artifactProjectionInputSchema.extend({
 });
 export const briefProjectionOutputSchema = artifactProjectionOutputSchema.extend({ kind: z.literal('brief-projection'), document: briefDocumentSchema });
 export type BriefProjection = z.infer<typeof briefProjectionOutputSchema>;
+export const briefCatalogInputSchema = artifactProjectionInputSchema.pick({ organizationId: true, repository: true });
+export const briefCatalogRecordsSchema = z.array(z.strictObject({ path: briefProjectionInputSchema.shape.path,
+  revision, contentDigest: briefProjectionInputSchema.shape.contentDigest })).max(1000);
+export const briefCatalogOutputSchema = briefCatalogInputSchema.extend({ kind: z.literal('brief-catalog'), records: briefCatalogRecordsSchema });
+export type BriefCatalog = z.infer<typeof briefCatalogOutputSchema>;
 export interface ArtifactProjectionReader {
   readonly scope: Readonly<{ organizationId: string; repository: string; paths: readonly string[] }>;
   read(input: ArtifactProjectionInput, principal: Principal): Promise<unknown>;
+  /** Optional curated metadata read; never an unrestricted repository listing. */
+  catalog?(principal: Principal): Promise<unknown>;
 }
 const scopedReference = (max: number) => z.string().min(1).max(max).regex(/^[A-Za-z0-9][A-Za-z0-9._:/-]*$/);
 export const reconciliationScopeSchema = z.strictObject({ organizationId: scopedReference(64), repository: scopedReference(96), itemId: scopedReference(96) });
@@ -328,8 +335,35 @@ const briefQuery = {
   },
 };
 
+const catalogGrant = defineQuery({ name: 'intent.brief.catalog', description: 'Authorize curated Brief discovery.',
+  input: briefCatalogInputSchema, output: principalSchema, handler: (_input, principal) => principal });
+const catalogAuthorization = { invoke(raw: unknown, context: InvocationContext) {
+  const principal = catalogGrant.invoke(raw, context);
+  if (!['intent.brief.read', 'projection.artifact.read'].every((grant) => principal.toolGrants.includes(grant))) throw new ToolError('FORBIDDEN');
+  return principal;
+} };
+const catalogQuery = {
+  name: 'intent.brief.catalog', description: 'Discover at most 1000 currently projected curated Brief paths/revisions/fingerprints, not lifecycle status. Requires catalog, Brief-read and curated-content grants.',
+  kind: 'query' as const, scope: 'organization' as const, authorization: 'explicit-tool-grant' as const,
+  input: briefCatalogInputSchema, output: briefCatalogOutputSchema,
+  async invoke(raw: unknown, context: InvocationContext): Promise<BriefCatalog> {
+    const initial = catalogAuthorization.invoke(raw, context); const input = briefCatalogInputSchema.parse(raw);
+    const reader = context.services?.artifactProjection;
+    if (!reader?.catalog || !context.revalidate) throw new ToolError('UNAVAILABLE');
+    if (reader.scope.organizationId !== input.organizationId || reader.scope.repository !== input.repository) throw new ToolError('FORBIDDEN');
+    const principal = await freshToolPrincipal(catalogAuthorization, input, initial, context);
+    let rawRecords: unknown;
+    try { rawRecords = await reader.catalog(principal); } catch { throw new ToolError('INTERNAL_ERROR'); }
+    await freshToolPrincipal(catalogAuthorization, input, initial, context);
+    const parsed = briefCatalogRecordsSchema.safeParse(rawRecords);
+    if (!parsed.success || parsed.data.some((record) => !reader.scope.paths.includes(record.path)) ||
+        new Set(parsed.data.map((record) => record.path)).size !== parsed.data.length) throw new ToolError('INTERNAL_ERROR');
+    return { ...input, kind: 'brief-catalog', records: parsed.data.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0) };
+  },
+};
+
 // Frozen definitions are the common source for discovery, dispatch and HTTP contracts.
-const definitions = Object.freeze([Object.freeze(contextQuery), Object.freeze(projectionQuery), Object.freeze(reconciliationStart), Object.freeze(reconciliationStatus), Object.freeze(changesQuery), Object.freeze(snapshotQuery), Object.freeze(briefQuery)]);
+const definitions = Object.freeze([Object.freeze(contextQuery), Object.freeze(projectionQuery), Object.freeze(reconciliationStart), Object.freeze(reconciliationStatus), Object.freeze(changesQuery), Object.freeze(snapshotQuery), Object.freeze(briefQuery), Object.freeze(catalogQuery)]);
 export function invokeTool(name: 'session.context', input: unknown, context: InvocationContext): z.output<typeof contextOutput>;
 export function invokeTool(name: 'projection.artifact.read', input: unknown, context: InvocationContext): Promise<ArtifactProjection | null>;
 export function invokeTool(name: 'workflow.reconciliation.start', input: unknown, context: InvocationContext): Promise<ReconciliationStartResult>;
@@ -337,7 +371,8 @@ export function invokeTool(name: 'workflow.reconciliation.status', input: unknow
 export function invokeTool(name: 'projection.changes.read', input: unknown, context: InvocationContext): Promise<ProjectionChangesResult>;
 export function invokeTool(name: 'projection.snapshot.read', input: unknown, context: InvocationContext): Promise<ProjectionSnapshotResult>;
 export function invokeTool(name: 'intent.brief.read', input: unknown, context: InvocationContext): Promise<BriefProjection | null>;
-export function invokeTool(name: string, input: unknown, context: InvocationContext): z.output<typeof contextOutput> | Promise<ArtifactProjection | BriefProjection | null | ReconciliationStartResult | ReconciliationStatusResult | ProjectionChangesResult | ProjectionSnapshotResult>;
+export function invokeTool(name: 'intent.brief.catalog', input: unknown, context: InvocationContext): Promise<BriefCatalog>;
+export function invokeTool(name: string, input: unknown, context: InvocationContext): z.output<typeof contextOutput> | Promise<ArtifactProjection | BriefProjection | BriefCatalog | null | ReconciliationStartResult | ReconciliationStatusResult | ProjectionChangesResult | ProjectionSnapshotResult>;
 export function invokeTool(name: string, input: unknown, context: InvocationContext) {
   const definition = definitions.find((tool) => tool.name === name);
   if (!definition) throw new ToolError('TOOL_NOT_FOUND');

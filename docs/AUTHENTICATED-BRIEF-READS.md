@@ -45,7 +45,8 @@ authorization still comes from the separate Git-backed identity resolver.
 Raw source/HTML/instructions are data. A renderer must not execute them or treat
 Author/Status text as authenticated facts. The final detail view follows the
 rendered, no-raw-Markdown-toggle design; this API does not introduce a manual
-originator workflow. Brief discovery/catalog and that UI remain next.
+originator workflow. Increment 0052 adds curated discovery through
+intent.brief.catalog (see BRIEF-CATALOG.md); rendered workspace binding remains next.
 
 Evidence: intent/0051/EVIDENCE.md. Five R5 findings and the canonical gate-proof,
 formal/manual/operational and release requirements remain open.

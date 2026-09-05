@@ -919,3 +919,22 @@ Next: bounded authenticated Brief discovery/catalog and rendered backlog/detail
 binding. Five R5 findings, canonical proof, remaining services and formal/manual/
 operational requirements stay open. Continue safe development without new
 provider, signature, spending, deployment or release authority.
+
+## Completed development increment: 0052
+
+Added intent.brief.catalog using only the existing curated reader and restricted
+app pool. A complete bounded metadata query returns Brief paths/revisions/digests,
+with exact key/path checks, current explicit grants and forced RLS. No content,
+status, uncurated inventory, new database role or migration is introduced.
+
+Root/native checks, all 34 PostgreSQL groups and 32 actual browser/identity groups
+pass, including agent catalog-to-Brief reading. Evidence: intent/0052/EVIDENCE.md;
+guide: docs/BRIEF-CATALOG.md. Four identical ignored generated-type duplicates
+were moved aside recoverably to resolve a local typecheck failure; no source
+workaround or destructive cleanup was used.
+
+Next: trusted workspace repository display binding and rendered Brief catalog/
+detail integration, without manual path/fingerprint entry for originators.
+Five R5 findings, canonical proof and remaining service/formal/manual/operational
+requirements stay open. Continue safe development without new provider, signature,
+spending, deployment or release authority.
