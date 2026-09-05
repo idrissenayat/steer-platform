@@ -22,5 +22,6 @@
   "workflowContract": "steer-reconcile/v1",
   "activityMaximumAttempts": 1,
   "defaultRuntimeActivation": false,
-  "productionClusterBinding": false
+  "productionClusterBinding": false,
+  "gitPostgresActivityComposition": true
 }

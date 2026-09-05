@@ -70,8 +70,9 @@ test. Tenant/wrong-ID/duplicate denials, non-retried failure and timer cancellat
 are tested. History checks decode payload bytes before looking for private
 fixture content. See intent/0036/EVIDENCE.md and docs/stack/temporal.json.
 
-Next: connect the actual revision-bound Git/Postgres reconciliation runtime,
-exercise idempotent failure recovery and process restart, then add source-derived
+Increment 0037 adds actual Git/PostgreSQL activity composition and shared fresh
+authorization/lifecycle; see WORKER-PROJECTION-RUNTIME.md for its verified scope.
+Next: exercise process restart and recovery, then add source-derived
 gate waits/cursors and bounded long-lived scheduling. Real cluster TLS/identity,
 OTel, production retention and formal gates remain open.
 

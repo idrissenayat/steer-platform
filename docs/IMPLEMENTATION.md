@@ -344,12 +344,18 @@ recreates worker instances and replays history without repeating acknowledged
 activities. The activity backend is synthetic; actual projection composition
 remains next. See `docs/TEMPORAL-WORKFLOWS.md`.
 
+Item `intent/0037` composes actual Git/PostgreSQL projection work with Temporal
+activities and shares authorized job lifecycle with the API runtime. Exact-byte
+readback, duplicate-safe resume/replay, repair and committed revocation are
+verified with disposable services and synthetic identity. See
+`docs/WORKER-PROJECTION-RUNTIME.md` for limits.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.
 Still to be built or composed: business tools beyond session context and curated
 artifact reads, MCP OAuth onboarding, large-repository inventory/partitioning and
-source-removal/rollback policy beyond bounded discovery, Temporal projection/gate
+source-removal/rollback policy beyond bounded discovery, Temporal gate/cursor
 composition and process/fleet recovery,
 version-pinned Mastra adapter, LiteLLM gateway, tenant-scoped evidence storage,
 production product analytics, an approved live secret-manager binding, runtime/ingress

@@ -12,6 +12,7 @@ import { bundleWorkflowCode, DefaultLogger, Runtime, Worker } from '@temporalio/
 import { createReconciliationWorker } from '../src/worker.ts';
 import { startReconciliation } from '../src/client.ts';
 import { workflowId } from '../src/contracts.ts';
+import { testProjectedWorkflow } from './projection.integration.ts';
 
 // Exact official test binary, no real cluster, OS installation or persistent database.
 const version = '1.8.3';
@@ -105,7 +106,8 @@ try {
     assert.equal((await handle.describe()).status.name, 'CANCELLED'); assert.equal(calls, before);
   });
   await stopWorker();
-  console.log(`Temporal integration: ${passed} checks passed; actual local server and recreated SDK workers, synthetic activity port only.`);
+  await testProjectedWorkflow(env, bundle, temporary, check);
+  console.log(`Temporal integration: ${passed} checks passed; actual local server, Git/PostgreSQL and recreated SDK workers; synthetic identities only.`);
 } finally {
   try { if (worker) { worker.shutdown(); await running; } }
   finally { try { await environment?.teardown(); } finally { await rm(temporary, { recursive: true, force: true }); } }

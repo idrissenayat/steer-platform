@@ -75,3 +75,8 @@ Increment 0035 optionally mounts MCP through profile mcp.clientIds, an explicit
 independent client allowlist using the same issuer/audience and fixed Git/service
 bindings. Combined shutdown drains both transports before closing shared pools.
 Default CLI remains unchanged. See `docs/COMBINED-MCP-RUNTIME.md`.
+
+Increment 0037 shares projection-job authorization, overlap and shutdown logic
+with the worker through an adapter, preserving the API one-shot profile/status.
+It adds final same-subject reauthorization before returning reconciliation
+results. See `docs/WORKER-PROJECTION-RUNTIME.md`; no default startup changes.

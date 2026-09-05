@@ -10,11 +10,18 @@
     "test:integration": "node test/temporal.integration.ts"
   },
   "dependencies": {
+    "@steer/adapters": "workspace:*",
+    "@steer/data": "workspace:*",
+    "zod": "4.5.4",
     "@temporalio/client": "1.23.0",
     "@temporalio/worker": "1.23.0",
     "@temporalio/workflow": "1.23.0"
   },
   "devDependencies": {
+    "@steer/tool-registry": "workspace:*",
+    "pg": "8.23.0",
+    "@types/pg": "8.23.1",
+    "drizzle-orm": "0.45.2",
     "@temporalio/testing": "1.23.0",
     "@types/node": "25.0.3",
     "typescript": "7.0.2"

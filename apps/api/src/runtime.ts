@@ -8,8 +8,7 @@ import { startLocalIdentityListener } from './identity-listener.ts';
 import { secretReferenceSchema, type SecretProvider } from '@steer/adapters/secrets';
 import { artifactProjectionInputSchema } from '@steer/tool-registry';
 import { createArtifactProjectionReader } from '@steer/data/artifact-reader';
-import { principalSchema } from '@steer/tool-registry';
-import { reconcileArtifacts, reconcileRepository, type SnapshotProjectionSink, type ProjectionOutcome } from '@steer/adapters/reconcile';
+import { createProjectionJob } from '@steer/adapters/projection-job';
 import { ingestVerifiedArtifact, projectionKey } from '@steer/data/ingestion';
 import { readProjection } from '@steer/data';
 
@@ -49,37 +48,13 @@ export async function createProjectionRuntime(rawProfile: unknown, rawSecrets: u
     const reader = createGitHubReader(profile.github.binding, { appJwt: createAppJwtSigner(profile.github.appId, secrets.githubPrivateKeyPem),
       ...(dependencies.github ? { fetch: dependencies.github } : {}) });
     const ownedPool = createRuntimePool({ ...profile.database, user: 'steer_projector', password: secrets.databasePassword }); pool = ownedPool;
-    let stopping = false, active: Promise<Awaited<ReturnType<typeof reconcileArtifacts>>> | undefined, closing: Promise<void> | undefined;
-    let controller: AbortController | undefined;
-    const authorize = async () => {
-      const principal = principalSchema.parse(await dependencies.authenticate());
-      if (principal.type !== 'agent' || principal.hats.length || principal.organizationId !== profile.github.binding.organizationId ||
-          !principal.toolGrants.includes('projection.ingest') || Date.parse(principal.expiresAt) <= Date.now()) throw new Error('Projection identity is not authorized.');
-      return principal;
-    };
-    return {
-      runOnce() {
-        if (stopping || active) return Promise.reject(new Error('Projection runtime is not accepting work.'));
-        controller = new AbortController(); const signal = controller.signal;
-        active = (async () => {
-          let identity: Awaited<ReturnType<typeof authorize>>;
-          try { identity = await authorize(); } catch { throw new Error('Projection identity is not authorized.'); }
-          const current = async () => { const next = await authorize(); if (next.subject !== identity.subject) throw new Error('Projection identity changed.'); return next; };
-          const sink: SnapshotProjectionSink<ProjectionOutcome> = {
-            currentRevision: async (repository, path) => (await readProjection(ownedPool, await current(), projectionKey(repository, path)))?.sourceRevision ?? null,
-            ingest: async (snapshot, expected) => ingestVerifiedArtifact(ownedPool, await current(), snapshot, expected),
-          };
-          return profile.selection ? reconcileRepository(reader, profile.selection, sink, signal) : reconcileArtifacts(reader, profile.paths!, sink, signal);
-        })().finally(() => { active = undefined; controller = undefined; });
-        return active;
-      },
-      shutdown() {
-        if (!closing) { stopping = true; controller?.abort(); const pending = active;
-          closing = (async () => { try { await pending; } catch { /* Failure is reported to the run caller. */ } await ownedPool.shutdown(); })(); }
-        return closing;
-      },
-      status: () => ({ stopping, active: Boolean(active), database: ownedPool.status() }),
-    };
+    const job = createProjectionJob(reader, profile.selection ? { selection: profile.selection } : { paths: profile.paths }, {
+      authenticate: dependencies.authenticate, shutdownResources: () => ownedPool.shutdown(), sink: (current) => ({
+        currentRevision: async (repository, path) => (await readProjection(ownedPool, await current(), projectionKey(repository, path)))?.sourceRevision ?? null,
+        ingest: async (snapshot, expected) => ingestVerifiedArtifact(ownedPool, await current(), snapshot, expected),
+      }),
+    });
+    return { runOnce: job.runOnce, shutdown: job.shutdown, status: () => ({ ...job.status(), database: ownedPool.status() }) };
   } catch {
     try { if (pool) await pool.shutdown(); }
     catch { throw new Error('Projection runtime cleanup could not be confirmed.'); }

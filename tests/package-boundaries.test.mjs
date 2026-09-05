@@ -16,8 +16,9 @@ const rules = {
     builtinEntryOnly: { 'node:https': 'src/identity-listener.ts' },
     entryOnly: { '@steer/data': 'src/runtime.ts', zod: 'src/runtime.ts', '@modelcontextprotocol/server': 'src/mcp.ts' } },
   'apps/web': { folders: ['app'], packages: ['next', 'react', 'react-dom'], builtins: [] },
-  'apps/worker': { folders: ['src'], packages: ['@temporalio/client', '@temporalio/worker', '@temporalio/workflow'], builtins: [],
-    entryOnly: { '@temporalio/client': 'src/client.ts', '@temporalio/worker': 'src/worker.ts', '@temporalio/workflow': 'src/workflows.ts' } },
+  'apps/worker': { folders: ['src'], packages: ['@steer/adapters', '@steer/data', 'zod', '@temporalio/client', '@temporalio/worker', '@temporalio/workflow'], builtins: [],
+    entryOnly: { '@steer/adapters': 'src/runtime.ts', '@steer/data': 'src/runtime.ts', zod: 'src/runtime.ts',
+      '@temporalio/client': 'src/client.ts', '@temporalio/worker': 'src/worker.ts', '@temporalio/workflow': 'src/workflows.ts' } },
 };
 const packageName = (specifier) => specifier.startsWith('@') ? specifier.split('/').slice(0, 2).join('/') : specifier.split('/')[0];
 function imports(source) {

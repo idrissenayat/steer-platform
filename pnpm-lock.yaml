@@ -128,6 +128,12 @@ importers:
 
   apps/worker:
     dependencies:
+      '@steer/adapters':
+        specifier: workspace:*
+        version: link:../../packages/adapters
+      '@steer/data':
+        specifier: workspace:*
+        version: link:../../packages/data
       '@temporalio/client':
         specifier: 1.23.0
         version: 1.23.0
@@ -137,13 +143,28 @@ importers:
       '@temporalio/workflow':
         specifier: 1.23.0
         version: 1.23.0
+      zod:
+        specifier: 4.5.4
+        version: 4.5.4
     devDependencies:
+      '@steer/tool-registry':
+        specifier: workspace:*
+        version: link:../../packages/tool-registry
       '@temporalio/testing':
         specifier: 1.23.0
         version: 1.23.0(@swc/helpers@0.5.23)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.26)(sharp@0.35.4(@types/node@25.0.3))
       '@types/node':
         specifier: 25.0.3
         version: 25.0.3
+      '@types/pg':
+        specifier: 8.23.1
+        version: 8.23.1
+      drizzle-orm:
+        specifier: 0.45.2
+        version: 0.45.2(@types/pg@8.23.1)(pg@8.23.0)
+      pg:
+        specifier: 8.23.0
+        version: 8.23.0
       typescript:
         specifier: 7.0.2
         version: 7.0.2

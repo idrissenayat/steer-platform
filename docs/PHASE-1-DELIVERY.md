@@ -634,3 +634,24 @@ derived gate waits/cursors. Automatic retries remain disabled until that recover
 contract is verified. Cluster TLS/identity, task-queue authorization, OTel,
 production retention, remaining services/surfaces and five R5 findings remain
 open. No gate, provider, deployment, release or spending approval is inferred.
+
+## Completed development increment: 0037
+
+Added the worker's explicit fixed-scope Git/PostgreSQL projection runtime and
+shared authorized job lifecycle with the API one-shot composition. Fresh agent
+checks, same-subject storage authority, final reauthorization, overlap refusal
+and actual resource drain are maintained in one adapter. Database imports remain
+in composition roots, not workflow contracts or activity protocol code.
+
+Eight actual Temporal integration groups now include Git/PostgreSQL ingestion,
+worker/runtime recreation, exact-byte readback, unchanged event count on replay,
+source-based repair and committed revocation. The service identity is synthetic;
+Git grants and storage adapters are actual. This is not process-crash, real OIDC/
+GitHub binding or lost SQL acknowledgement evidence. All repository checks pass.
+Guide: `docs/WORKER-PROJECTION-RUNTIME.md`; evidence: `intent/0037/EVIDENCE.md`.
+
+Next bounded increment: process-level durable-worker recovery and safe restart
+composition, then authenticated scheduling/queue boundaries and source-derived
+gate waits/cursors. Automatic retries remain disabled; fleet leasing, OTel,
+production runtime/retention, full operating surfaces and five R5 findings stay
+open. No gate, deployment, release or spending approval is inferred.
