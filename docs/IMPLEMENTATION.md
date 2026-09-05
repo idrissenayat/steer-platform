@@ -628,6 +628,14 @@ erasure or a production rule to create more copies. The current post-terminal
 human approval is not the policy's pre-terminal raw grant; the next protocol is
 specified in `intent/0072/PLAN.md`. That gap and formal review remain open.
 
+Item `intent/0073` adds an offline pre-terminal raw grant verifier. One complete
+human grant binds the exact prepared tuples and trusted lifecycle context before
+the named terminal, without signing future state or receipts. Backdated validity,
+late enrollment, incomplete proof and substituted bindings deny. Success remains
+zero-effect and explicitly does not authorize execution. Current batch
+consumption, holds/references, per-copy actions and separate tombstone composition
+are next; 0061's raw path is not changed by this helper. See `intent/0073/PLAN.md`.
+
 ## Local commands
 
 ```sh

@@ -1289,3 +1289,21 @@ per-copy one-use actions without new per-object human decisions. Keep batch
 consumption/replay and separate tombstone evidence explicit. Retention/rotation/
 reference, other precision paths and migration/normative evidence also remain.
 All five R5 findings stay open; no protected edit, provider effects, gate or spending.
+
+## Completed development increment: 0073 — pre-terminal raw grant eligibility
+
+Added a closed offline verifier for independently signed preparation and complete
+human enrollment before the named terminal. The same grant covers pass/fail/
+cancelled outcomes and binds only facts available beforehand. Exact inventory,
+provider, context, revision, safeguards and nanosecond time checks remain required.
+Success is explicitly non-executable, zero-effect evidence; it neither consumes
+the grant nor changes the existing 0061 raw execution composition.
+
+Full repository checks pass with 129 root controls and 88 prototype tests.
+See intent/0073/EVIDENCE.md for synthetic versus cached verification boundaries.
+
+Next is authoritative batch reservation/replay and full raw lifecycle integration
+under intent/0073/PLAN.md, preserving current holds/references/inventory, exact
+per-copy actions and timely receipts, and separate tombstone authority. Further
+retention/rotation/reference, precision and migration/normative coverage remains.
+All five R5 findings stay open. No protected edit, provider effects, gate or spending.
