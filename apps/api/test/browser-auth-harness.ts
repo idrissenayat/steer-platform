@@ -102,11 +102,13 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         assert.deepEqual(await storage.counts(), { transactions: 0, sessions: 0 });
       });
       const grant: AuthorizationRecord = { issuer, subject: deps.subject, organizationId: 'synthetic-org', type: 'human',
-        hats: ['product-lead'], toolGrants: ['session.context'], active: true,
+        hats: ['product-lead'], toolGrants: ['session.context', 'projection.artifact.read'], active: true,
         validAfter: new Date(0).toISOString(), expiresAt: new Date(Date.now() + 600000).toISOString() };
       const source = await createGitAuthorizationHarness(tls.temporary, grant);
+      assert.ok(storage.createProjectionFixture);
+      const projection = await storage.createProjectionFixture(source.reader, source.artifactPath);
       assert.ok(storage.shutdown);
-      const dependencies = { fetch: deps.fetch, reader: source.reader, authorizationPath: source.authorizationPath,
+      const dependencies = { fetch: deps.fetch, reader: source.reader, authorizationPath: source.authorizationPath, services: projection.services,
         sessions: { store: storage.store, binding: { issuer, clientId: configuration.clientId, redirectUri: configuration.redirectUri }, shutdown: storage.shutdown } };
       api = createIdentityService(configuration, dependencies);
       const bindGateway = (rendererOrigin: string) => createIdentityGateway({ publicOrigin: origin, rendererOrigin, issuer },
@@ -219,6 +221,19 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           return (await axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] } })).violations.map(({ id, impact }) => ({ id, impact }));
         });
         assert.deepEqual(violations, []);
+      });
+      await check('browser reads only its granted exact-revision projection ingested from actual synthetic Git through PostgreSQL', async () => {
+        const read = (input: typeof projection.input) => page.evaluate(async (value) => {
+          const response = await fetch('/v1/tools/projection.artifact.read', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(value) });
+          return { status: response.status, data: await response.json() };
+        }, input);
+        const result = await read(projection.input); assert.equal(result.status, 200); assert.equal(result.data.kind, 'projection');
+        assert.equal(result.data.content, (await source.reader.readArtifact(source.artifactPath, projection.input.revision)).content);
+        assert.equal((await read({ ...projection.input, organizationId: 'foreign-org' })).status, 403);
+        assert.equal((await read({ ...projection.input, path: source.authorizationPath })).status, 403);
+        assert.equal((await read({ ...projection.input, revision: '0'.repeat(40) })).data, null);
+        await source.publish([{ ...grant, toolGrants: ['session.context'] }]); assert.equal((await read(projection.input)).status, 403);
+        await source.publish([grant]); assert.equal((await read(projection.input)).status, 200);
       });
       await check('browser cross-site logout omits the Lax cookie and the API rejects the foreign Origin', async () => {
         await page.goto(attackerOrigin);

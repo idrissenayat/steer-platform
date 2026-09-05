@@ -104,3 +104,15 @@ test('secret-backed startup rejects invalid reference, encoding and credential b
     assert.ok(plaintext.every((byte) => byte === 0));
   }
 });
+
+test('read-model binding requires separate explicit credential and closes both bounded runtime pools', async () => {
+  const readModel = { database: profile.database, paths: ['BRIEF.md'] };
+  await assert.rejects(createIdentityRuntime({ ...profile, readModel }, secrets));
+  await assert.rejects(createIdentityRuntime(profile, { ...secrets, readModelDatabasePassword: 'synthetic-read-password' }));
+  await assert.rejects(createIdentityRuntime({ ...profile, readModel: { ...readModel, paths: ['BRIEF.md', 'BRIEF.md'] } },
+    { ...secrets, readModelDatabasePassword: 'synthetic-read-password' }));
+  const runtime = await createIdentityRuntime({ ...profile, readModel }, { ...secrets, readModelDatabasePassword: 'synthetic-read-password' });
+  try { assert.equal(runtime.status().readModel?.connections, 0); assert.equal(runtime.status().readModel?.closed, false); }
+  finally { await runtime.shutdown(); }
+  assert.equal(runtime.status().database.closed, true); assert.equal(runtime.status().readModel?.closed, true);
+});

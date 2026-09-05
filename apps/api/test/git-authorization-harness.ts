@@ -16,9 +16,11 @@ export async function createGitAuthorizationHarness(temporary: string, record: A
     '-c', 'user.email=fixture@example.invalid', ...args], { cwd: directory, timeout: 10000 })).stdout.trim();
   await git('init', '--initial-branch=synthetic', '--object-format=sha1');
   const authorizationPath = 'access/authorization.json';
+  const artifactPath = 'BRIEF.md';
+  await writeFile(join(directory, artifactPath), '# Synthetic artifact\nScoped projection test.', { mode: 0o600 });
   const publish = async (records: AuthorizationRecord[], organizationId = record.organizationId) => {
     await writeFile(join(directory, authorizationPath), JSON.stringify({ version: 'steer-authorization/v1', organizationId, records }), { mode: 0o600 });
-    await git('add', '--', authorizationPath);
+    await git('add', '--', authorizationPath, artifactPath);
     await git('commit', '--allow-empty', '-m', 'Synthetic membership revision');
     return git('rev-parse', 'HEAD');
   };
@@ -35,12 +37,12 @@ export async function createGitAuthorizationHarness(temporary: string, record: A
       return head;
     },
     async readArtifact(path, revision) {
-      if (path !== authorizationPath || !/^[a-f0-9]{40}$/.test(revision)) throw new Error('Invalid synthetic source request.');
+      if (![authorizationPath, artifactPath].includes(path) || !/^[a-f0-9]{40}$/.test(revision)) throw new Error('Invalid synthetic source request.');
       const content = await git('show', `${revision}:${path}`);
       return { organizationId: record.organizationId, repositoryId: 1, revision, path, content,
         contentDigest: fault === 'digest' ? '0'.repeat(64) : createHash('sha256').update(content).digest('hex'),
         blobSha: await git('rev-parse', `${revision}:${path}`) };
     },
   };
-  return { reader, authorizationPath, publish, setFault(value: typeof fault) { fault = value; headReads = 0; } };
+  return { reader, authorizationPath, artifactPath, publish, setFault(value: typeof fault) { fault = value; headReads = 0; } };
 }

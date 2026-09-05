@@ -2,6 +2,7 @@ import type { BrowserSessionConfiguration, BrowserSessionStore } from '@steer/ad
 import type { ArtifactReader } from '@steer/adapters/github';
 import type { IdentityDependencies } from '@steer/adapters/identity';
 import { createGitBackedBrowserApi } from './git-browser.ts';
+import type { ToolServices } from '@steer/tool-registry';
 
 export interface ManagedIdentitySessions {
   readonly binding: Readonly<{ issuer: string; clientId: string; redirectUri: string }>;
@@ -13,7 +14,7 @@ export interface ManagedIdentitySessions {
 /** Explicit lifecycle composition, not an environment loader or readiness approval. */
 export function createIdentityService(configuration: BrowserSessionConfiguration,
   dependencies: Pick<IdentityDependencies, 'fetch' | 'now'> & {
-    reader: ArtifactReader; authorizationPath: string; sessions: ManagedIdentitySessions;
+    reader: ArtifactReader; authorizationPath: string; sessions: ManagedIdentitySessions; services?: ToolServices;
   }) {
   const sessions = dependencies.sessions;
   if (!sessions || typeof sessions.shutdown !== 'function' || !sessions.binding ||
@@ -21,6 +22,7 @@ export function createIdentityService(configuration: BrowserSessionConfiguration
       sessions.binding.redirectUri !== configuration.redirectUri) throw new Error('Invalid identity service resource binding.');
   const app = createGitBackedBrowserApi(configuration, { reader: dependencies.reader,
     authorizationPath: dependencies.authorizationPath, store: sessions.store,
+    ...(dependencies.services ? { services: dependencies.services } : {}),
     ...(dependencies.fetch ? { fetch: dependencies.fetch } : {}),
     ...(dependencies.now ? { now: dependencies.now } : {}),
   });

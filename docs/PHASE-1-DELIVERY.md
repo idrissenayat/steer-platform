@@ -511,3 +511,22 @@ surfaces. Live secret/provider bindings, real account access, public ingress,
 process supervision, full product parity, manual accessibility, the five R5
 findings and all gate/deployment/release/spending boundaries remain separate.
 Isolated implementation remains unblocked.
+
+## Completed development increment: 0031
+
+Added the canonical asynchronous projection.artifact.read query, explicit grant
+and curated tenant/repository/path binding, with fresh authorization after I/O.
+The read-only PostgreSQL adapter checks login role, RLS, exact revision and
+bounded cached-byte integrity. Optional explicit runtime configuration owns a
+separate read-model credential/pool and includes it in shutdown/status.
+
+Actual synthetic Git single-path reconciliation into PostgreSQL is now read
+through the authenticated browser API. All 23 browser and 27 database groups
+pass; see `intent/0031/EVIDENCE.md` and `docs/ARTIFACT-PROJECTION-READS.md`.
+No UI change, current-HEAD proof or production worker is claimed.
+
+Next bounded increment: repository projection reconciliation/replay composition,
+then shared workflow transports and real operating surfaces. Real bindings,
+governed writes, public ingress/supervision, manual accessibility, the five R5
+findings and gate/deployment/release/spending boundaries remain separate.
+Isolated implementation remains unblocked.

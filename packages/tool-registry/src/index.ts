@@ -21,6 +21,7 @@ const failures = {
   TOOL_NOT_FOUND: { status: 404, message: 'Tool not found.' },
   INVALID_INPUT: { status: 422, message: 'Input does not match the tool contract.' },
   INTERNAL_ERROR: { status: 500, message: 'The operation could not be completed.' },
+  UNAVAILABLE: { status: 503, message: 'The required service is not configured or available.' },
 } as const;
 export type ToolErrorCode = keyof typeof failures;
 export class ToolError extends Error {
@@ -37,7 +38,25 @@ export class ToolError extends Error {
 export interface InvocationContext {
   principal: unknown;
   now: Date;
+  clock?: () => Date;
+  revalidate?: () => Promise<unknown>;
+  services?: ToolServices;
 }
+
+const path = z.string().min(1).max(500).refine((value) => value.split('/').every((part) => part && part !== '.' && part !== '..') && !/[\\\u0000-\u001f\u007f]/.test(value));
+const repository = z.string().regex(/^[a-z][a-z0-9-]{0,31}:[A-Za-z0-9_-]{1,160}$/);
+const revision = z.string().regex(/^[a-f0-9]{40}$/);
+export const artifactProjectionInputSchema = z.strictObject({ organizationId: identifier, repository, path, revision });
+export const artifactProjectionOutputSchema = z.strictObject({ kind: z.literal('projection'), organizationId: identifier, repository, path,
+  revision, blobSha: revision, contentDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  content: z.string().max(512 * 1024).refine((value) => new TextEncoder().encode(value).byteLength <= 512 * 1024) });
+export type ArtifactProjectionInput = z.infer<typeof artifactProjectionInputSchema>;
+export type ArtifactProjection = z.infer<typeof artifactProjectionOutputSchema>;
+export interface ArtifactProjectionReader {
+  readonly scope: Readonly<{ organizationId: string; repository: string; paths: readonly string[] }>;
+  read(input: ArtifactProjectionInput, principal: Principal): Promise<unknown>;
+}
+export interface ToolServices { artifactProjection?: ArtifactProjectionReader }
 
 const contextInput = z.strictObject({ organizationId: identifier });
 const contextOutput = principalSchema.omit({ expiresAt: true });
@@ -92,8 +111,40 @@ const contextQuery = defineQuery({
   }),
 });
 
+const projectionAuthorization = defineQuery({ name: 'projection.artifact.read', description: 'Validate a scoped projection read.',
+  input: artifactProjectionInputSchema, output: principalSchema, handler: (_input, principal) => principal });
+const projectionQuery = {
+  name: 'projection.artifact.read', description: 'Read a rebuildable artifact projection at an exact source revision; never authority for grants or signatures.',
+  kind: 'query' as const, scope: 'organization' as const, authorization: 'explicit-tool-grant' as const,
+  input: artifactProjectionInputSchema, output: artifactProjectionOutputSchema.nullable(),
+  async invoke(raw: unknown, context: InvocationContext): Promise<ArtifactProjection | null> {
+    const principal = projectionAuthorization.invoke(raw, context);
+    const input = artifactProjectionInputSchema.parse(raw);
+    const reader = context.services?.artifactProjection;
+    if (!reader || !context.revalidate) throw new ToolError('UNAVAILABLE');
+    if (reader.scope.organizationId !== input.organizationId || reader.scope.repository !== input.repository || !reader.scope.paths.includes(input.path)) throw new ToolError('FORBIDDEN');
+    let result: unknown;
+    try { result = await reader.read(input, principal); } catch { throw new ToolError('INTERNAL_ERROR'); }
+    // Do not release content after a revocation, identity switch or expiry during I/O.
+    let current: unknown;
+    try { current = await context.revalidate(); } catch { throw new ToolError('UNAUTHENTICATED'); }
+    const now = context.clock?.() ?? new Date();
+    if (!Number.isFinite(now.getTime()) || now.getTime() < context.now.getTime()) throw new ToolError('UNAUTHENTICATED');
+    const fresh = projectionAuthorization.invoke(input, { principal: current, now });
+    if (fresh.subject !== principal.subject || fresh.organizationId !== principal.organizationId || fresh.type !== principal.type ||
+        Date.parse(principal.expiresAt) <= now.getTime()) throw new ToolError('UNAUTHENTICATED');
+    const output = artifactProjectionOutputSchema.nullable().safeParse(result);
+    if (!output.success || (output.data && (output.data.organizationId !== input.organizationId || output.data.repository !== input.repository ||
+        output.data.path !== input.path || output.data.revision !== input.revision))) throw new ToolError('INTERNAL_ERROR');
+    return output.data;
+  },
+};
+
 // Frozen definitions are the common source for discovery, dispatch and HTTP contracts.
-const definitions = Object.freeze([Object.freeze(contextQuery)]);
+const definitions = Object.freeze([Object.freeze(contextQuery), Object.freeze(projectionQuery)]);
+export function invokeTool(name: 'session.context', input: unknown, context: InvocationContext): z.output<typeof contextOutput>;
+export function invokeTool(name: 'projection.artifact.read', input: unknown, context: InvocationContext): Promise<ArtifactProjection | null>;
+export function invokeTool(name: string, input: unknown, context: InvocationContext): z.output<typeof contextOutput> | Promise<ArtifactProjection | null>;
 export function invokeTool(name: string, input: unknown, context: InvocationContext) {
   const definition = definitions.find((tool) => tool.name === name);
   if (!definition) throw new ToolError('TOOL_NOT_FOUND');
@@ -128,7 +179,7 @@ export function createOpenApiDocument() {
           requestBody: { required: true, content: { 'application/json': { schema: tool.inputSchema } } },
           responses: {
             '200': { description: 'Validated tool result', content: { 'application/json': { schema: tool.outputSchema } } },
-            ...Object.fromEntries([400, 401, 403, 404, 413, 415, 422, 500].map((status) => [
+            ...Object.fromEntries([400, 401, 403, 404, 413, 415, 422, 500, 503].map((status) => [
               String(status), { description: 'Request rejected', content: { 'application/json': { schema: { $ref: '#/components/schemas/ToolError' } } } },
             ])),
           },

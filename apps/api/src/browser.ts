@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { secureHeaders } from 'hono/secure-headers';
 import { createBrowserSessionBroker, type BrowserSessionConfiguration, type BrowserSessionStore } from '@steer/adapters/browser-session';
 import { createOidcAuthenticator, type IdentityDependencies } from '@steer/adapters/identity';
-import { createOpenApiDocument, invokeTool, ToolError } from '@steer/tool-registry';
+import { createOpenApiDocument, invokeTool, ToolError, type ToolServices } from '@steer/tool-registry';
 import { createApi } from './app.ts';
 import { readRequestBody } from './request-body.ts';
 import { sessionViewSchema } from './session-view.ts';
@@ -57,7 +57,7 @@ async function emptyBody(request: Request): Promise<boolean> {
 
 /** Explicit composition only. CLI startup never installs these routes by default. */
 export function createBrowserApi(configuration: BrowserSessionConfiguration,
-  dependencies: IdentityDependencies & { store: BrowserSessionStore }) {
+  dependencies: IdentityDependencies & { store: BrowserSessionStore; services?: ToolServices }) {
   const broker = createBrowserSessionBroker(configuration, dependencies);
   const callback = new URL(configuration.redirectUri);
   if (callback.pathname !== '/auth/callback') throw new Error('Invalid browser route configuration.');
@@ -123,6 +123,7 @@ export function createBrowserApi(configuration: BrowserSessionConfiguration,
   });
   app.get('/openapi.json', (c) => c.json(createBrowserOpenApiDocument()));
   app.route('/', createApi({
+    ...(dependencies.services ? { services: dependencies.services } : {}),
     authenticate: async (request) => {
       const cookies = request.headers.get('cookie');
       const hasSession = cookies?.split(';').some((part) => part.trim().startsWith('__Host-steer-session=')) ?? false;

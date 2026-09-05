@@ -6,8 +6,13 @@ import { createIdentityService } from './identity-service.ts';
 import { createIdentityGateway } from './identity-gateway.ts';
 import { startLocalIdentityListener } from './identity-listener.ts';
 import { secretReferenceSchema, type SecretProvider } from '@steer/adapters/secrets';
+import { artifactProjectionInputSchema } from '@steer/tool-registry';
+import { createArtifactProjectionReader } from '@steer/data/artifact-reader';
 
 const text = z.string().min(1);
+const databaseSchema = z.strictObject({ host: text, port: z.number(), database: text,
+  transport: z.discriminatedUnion('kind', [z.strictObject({ kind: z.literal('tls'), ca: text }),
+    z.strictObject({ kind: z.literal('isolated-loopback-test') })]) });
 const profileSchema = z.strictObject({
   version: z.literal('steer-identity-runtime/v1'),
   browser: z.strictObject({ issuer: text, jwksUri: text, authorizationEndpoint: text,
@@ -15,13 +20,12 @@ const profileSchema = z.strictObject({
   github: z.strictObject({ appId: text, authorizationPath: text,
     binding: z.strictObject({ organizationId: text, installationId: z.number(), repositoryId: z.number(),
       owner: text, repository: text, branch: text }) }),
-  database: z.strictObject({ host: text, port: z.number(), database: text,
-    transport: z.discriminatedUnion('kind', [z.strictObject({ kind: z.literal('tls'), ca: text }),
-      z.strictObject({ kind: z.literal('isolated-loopback-test') })]) }),
+  database: databaseSchema,
+  readModel: z.strictObject({ database: databaseSchema, paths: z.array(artifactProjectionInputSchema.shape.path).min(1).max(1000) }).optional(),
   sessionKeyId: text,
 });
 const secretsSchema = z.strictObject({ browserClientSecret: text, githubPrivateKeyPem: text,
-  databasePassword: text, sessionKeys: z.record(z.string(), z.instanceof(Uint8Array)) });
+  databasePassword: text, sessionKeys: z.record(z.string(), z.instanceof(Uint8Array)), readModelDatabasePassword: text.optional() });
 
 const localProfileSchema = z.strictObject({ version: z.literal('steer-local-identity/v1'), identity: profileSchema, rendererOrigin: text });
 const localSecretsSchema = z.strictObject({ identity: secretsSchema, tls: z.strictObject({ key: text, cert: text }) });
@@ -72,28 +76,39 @@ export async function startLocalIdentityRuntime(rawProfile: unknown, rawSecrets:
 /** Actual composition root. Explicit values only; never reads environment, files or remote secrets. */
 export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unknown,
   transports: { identity?: typeof fetch; github?: typeof fetch } = {}) {
-  let pool: ReturnType<typeof createRuntimePool> | undefined;
+  const pools: ReturnType<typeof createRuntimePool>[] = [];
+  const shutdownPools = async () => {
+    const results = await Promise.allSettled(pools.map((pool) => pool.shutdown()));
+    if (results.some((result) => result.status === 'rejected')) throw new Error('Identity runtime resource shutdown failed.');
+  };
   try {
     const profile = profileSchema.parse(rawProfile); const secrets = secretsSchema.parse(rawSecrets);
+    if (Boolean(profile.readModel) !== Boolean(secrets.readModelDatabasePassword)) throw new Error('Incomplete read-model binding.');
     const reader = createGitHubReader(profile.github.binding, {
       appJwt: createAppJwtSigner(profile.github.appId, secrets.githubPrivateKeyPem),
       ...(transports.github ? { fetch: transports.github } : {}),
     });
-    pool = createRuntimePool({ ...profile.database, user: 'steer_auth_runtime', password: secrets.databasePassword });
+    const pool = createRuntimePool({ ...profile.database, user: 'steer_auth_runtime', password: secrets.databasePassword }); pools.push(pool);
+    let readPool: ReturnType<typeof createRuntimePool> | undefined;
+    if (profile.readModel) { readPool = createRuntimePool({ ...profile.readModel.database, user: 'steer_app', password: secrets.readModelDatabasePassword! }); pools.push(readPool); }
+    const artifactProjection = readPool && profile.readModel ? createArtifactProjectionReader(readPool, {
+      organizationId: profile.github.binding.organizationId, repository: `github:${profile.github.binding.repositoryId}`, paths: profile.readModel.paths,
+    }) : undefined;
     const binding = { issuer: profile.browser.issuer, clientId: profile.browser.clientId, redirectUri: profile.browser.redirectUri };
     const store = createPostgresBrowserSessionStore(pool, { binding,
       keyring: { currentKeyId: profile.sessionKeyId, keys: secrets.sessionKeys } });
     const ownedPool = pool;
     const service = createIdentityService({ ...profile.browser, clientSecret: secrets.browserClientSecret }, {
       reader, authorizationPath: profile.github.authorizationPath,
-      sessions: { binding, store, shutdown: () => ownedPool.shutdown() },
+      sessions: { binding, store, shutdown: shutdownPools },
+      ...(artifactProjection ? { services: { artifactProjection } } : {}),
       ...(transports.identity ? { fetch: transports.identity } : {}),
     });
     return { fetch: service.fetch, shutdown: service.shutdown,
-      status: () => ({ ...service.status(), database: ownedPool.status() }) };
+      status: () => ({ ...service.status(), database: ownedPool.status(), ...(readPool ? { readModel: readPool.status() } : {}) }) };
   } catch {
     // Startup creates no listener. Dispose any allocated lazy pool before rejecting.
-    try { if (pool) await pool.shutdown(); }
+    try { await shutdownPools(); }
     catch { throw new Error('Identity runtime cleanup could not be confirmed.'); }
     throw new Error('Identity runtime configuration could not be initialized.');
   }

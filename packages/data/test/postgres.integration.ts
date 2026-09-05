@@ -9,6 +9,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { withTenant, readProjection } from '../src/index.ts';
 import { ingestVerifiedArtifact, projectionKey } from '../src/ingestion.ts';
+import { createArtifactProjectionReader } from '../src/artifact-reader.ts';
 import type { Principal } from '@steer/tool-registry';
 import { testBrowserSessionStorage } from './session-storage.integration.ts';
 import { testRuntimePool } from './runtime-pool.integration.ts';
@@ -147,6 +148,21 @@ try {
   });
   await testBrowserSessionStorage({ admin, app, projector, connect, check,
     connection: { host: '127.0.0.1', port, user: 'steer_auth_runtime', password, database: 'steer_test' } });
+  await check('actual read-only projection adapter checks exact revisions, RLS, role and cached-byte integrity', async () => {
+    const binding = { organizationId: 'org-ingest', repository: second.repository, paths: [second.path] };
+    const principal = { ...identity('org-ingest'), toolGrants: ['projection.artifact.read'] };
+    const input = { organizationId: 'org-ingest', repository: second.repository, path: second.path, revision: second.revision };
+    const reader = createArtifactProjectionReader(app, binding);
+    assert.equal((await reader.read(input, principal) as { content: string }).content, second.content);
+    assert.equal(await reader.read({ ...input, revision: first.revision }, principal), null);
+    await assert.rejects(createArtifactProjectionReader(projector, binding).read(input, principal), /Unsafe projection reader role/);
+    assert.equal(await createArtifactProjectionReader(app, { ...binding, organizationId: 'org-b' }).read({ ...input, organizationId: 'org-b' },
+      { ...principal, organizationId: 'org-b' }), null);
+    await admin.query("UPDATE steer.projection_records SET content_digest=$1 WHERE organization_id='org-ingest' AND record_key=$2", ['0'.repeat(64), key]);
+    await assert.rejects(reader.read(input, principal), /Invalid artifact projection/);
+    assert.equal(await ingestVerifiedArtifact(projector, agent, second, second.revision), 'repaired');
+    assert.equal((await reader.read(input, principal) as { content: string }).content, second.content);
+  });
   await testRuntimePool({ admin, check, host: '127.0.0.1', port, password, database: 'steer_test' });
   console.log(`PostgreSQL integration: ${passed} checks passed; server ${(await admin.query('SHOW server_version')).rows[0].server_version}`);
 } finally {

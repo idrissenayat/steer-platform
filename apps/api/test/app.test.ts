@@ -12,6 +12,22 @@ const app = createApi({ authenticate: async () => principal, now: () => now });
 const call = (body: string, path = 'session.context', headers: Record<string, string> = {}) =>
   app.request(`/v1/tools/${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body });
 
+test('HTTP awaits projection services and reauthenticates before returning content', async () => {
+  const input = { organizationId: 'org-a', repository: 'github:1', path: 'BRIEF.md', revision: 'a'.repeat(40) };
+  const current = { ...principal, toolGrants: ['projection.artifact.read'] };
+  const scope = { organizationId: 'org-a', repository: 'github:1', paths: ['BRIEF.md'] };
+  let active = true; let revoke = false; let reads = 0;
+  const configured = createApi({ now: () => now, authenticate: async () => active ? current : null,
+    services: { artifactProjection: { scope, read: async () => { reads++; if (revoke) active = false;
+      return { ...input, kind: 'projection', content: 'synthetic-only-content', blobSha: 'b'.repeat(40), contentDigest: 'c'.repeat(64) }; } } } });
+  const request = (value = input) => configured.request('/v1/tools/projection.artifact.read', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(value) });
+  const successful = await request(); assert.equal(successful.status, 200); assert.equal((await successful.json()).kind, 'projection');
+  assert.equal((await request({ ...input, organizationId: 'foreign' })).status, 403); assert.equal(reads, 1);
+  revoke = true; const denied = await request(); assert.equal(denied.status, 401); assert.ok(!(await denied.text()).includes('synthetic-only-content'));
+  const absent = createApi({ now: () => now, authenticate: async () => current });
+  assert.equal((await absent.request('/v1/tools/projection.artifact.read', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input) })).status, 503);
+});
+
 test('HTTP and internal registry return the same organization-scoped result', async () => {
   const input = { organizationId: 'org-a' };
   const response = await call(JSON.stringify(input));

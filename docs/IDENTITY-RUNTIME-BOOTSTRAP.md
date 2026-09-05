@@ -58,3 +58,10 @@ entry, reading a supplied provider's pinned encrypted bundle and clearing its
 temporary byte/key inputs. Filesystem access stays in the dedicated adapter,
 not this API file. Base/default startup still does not discover secrets or enable
 real bindings. Contract and evidence: `docs/ENCRYPTED-SECRETS.md`, `intent/0030`.
+
+Increment 0031 optionally pairs profile readModel.database/paths with the separate
+readModelDatabasePassword secret (also supported by encrypted bundles). It owns
+a second bounded lazy pool using steer_app, never the auth login/password by
+default. Fixed org/repository come from the existing GitHub binding. Both pools
+close on service shutdown or startup failure. No reader is enabled without the
+complete explicit pair. See `docs/ARTIFACT-PROJECTION-READS.md` and `intent/0031`.

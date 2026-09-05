@@ -307,11 +307,18 @@ actual isolated TLS/Postgres verification proves it works after input-buffer
 cleanup. No existing credential, KMS or public service was activated. See
 `docs/ENCRYPTED-SECRETS.md`.
 
+Item `intent/0031` connects an exact-revision artifact projection query through
+the shared registry, rechecks current authorization after asynchronous I/O and
+uses a curated read-only tenant adapter. Explicit runtime configuration adds a
+separate bounded read pool. Synthetic Git ingestion through actual PostgreSQL
+and the authenticated browser is verified; cached bytes are not Git authority.
+See `docs/ARTIFACT-PROJECTION-READS.md`.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.
-Still to be built or composed: authenticated business/data tools beyond session
-context, MCP v2 transport, full-repository projection replay, Temporal workers,
+Still to be built or composed: business tools beyond session context and curated
+artifact reads, MCP v2 transport, full-repository projection replay, Temporal workers,
 version-pinned Mastra adapter, LiteLLM gateway, tenant-scoped evidence storage,
 production product analytics, an approved live secret-manager binding, runtime/ingress
 configuration, full authenticated workspace UI and the thirteen-case architecture walking

@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
 import type { BrowserSessionStore, BrowserSession, LoginTransaction, BrowserSessionConfiguration } from '@steer/adapters/browser-session';
+import type { ArtifactReader } from '@steer/adapters/github';
+import type { ArtifactProjectionInput, ToolServices } from '@steer/tool-registry';
 
 export interface SessionTestHarness {
   kind: 'memory' | 'postgres';
@@ -15,6 +17,7 @@ export interface SessionTestHarness {
   shutdown?: () => Promise<void>;
   verifyRuntimeBootstrap?: (configuration: BrowserSessionConfiguration, privateKeyPem: string) => Promise<void>;
   verifySecretBootstrap?: (configuration: BrowserSessionConfiguration, tls: { key: string; cert: string }) => Promise<void>;
+  createProjectionFixture?: (reader: ArtifactReader, path: string) => Promise<{ services: ToolServices; input: ArtifactProjectionInput }>;
 }
 
 /** Explicit provider-only test fixture; never exported by a production package. */

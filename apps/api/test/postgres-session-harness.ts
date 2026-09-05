@@ -15,6 +15,11 @@ import { createIdentityRuntime, startLocalIdentityFromSecretProvider } from '../
 import { createEncryptedFileSecretProvider } from '@steer/adapters/secrets';
 import { createSecretFixture } from '../../../packages/adapters/test/secret-fixture.ts';
 import { reserveLocalPort, localHttpsRequest } from './local-tls-harness.ts';
+import { createArtifactProjectionReader } from '@steer/data/artifact-reader';
+import { ingestVerifiedArtifact, projectionKey } from '@steer/data/ingestion';
+import { readProjection } from '@steer/data';
+import { reconcileArtifact } from '@steer/adapters/reconcile';
+import type { Principal } from '@steer/tool-registry';
 
 /** Two disposable services only; no externally supplied connection or credential. */
 export async function createPostgresSessionHarness(binding: SessionIdentityBinding): Promise<SessionTestHarness & { close(): Promise<void> }> {
@@ -63,10 +68,10 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
     await migrate(drizzle(admin), { migrationsFolder });
     assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 4);
     const config = { binding, keyring: { currentKeyId: 'synthetic', keys: { synthetic: encryptionKey } } };
-    const runtime = () => {
+    const runtime = (user: 'steer_auth_runtime' | 'steer_app' | 'steer_projector' = 'steer_auth_runtime') => {
       if (runtimeClosed) throw new Error('Synthetic runtime resources are closed.');
       const pool = createRuntimePool({ host: '127.0.0.1', port: Number(mapping.split(':')[1]),
-        user: 'steer_auth_runtime', password, database: 'steer_auth_test', transport: { kind: 'isolated-loopback-test' } });
+        user, password, database: 'steer_auth_test', transport: { kind: 'isolated-loopback-test' } });
       pools.push(pool); runtimePools.push(pool); return pool;
     };
     const freshStore = () => createPostgresBrowserSessionStore(runtime(), config);
@@ -74,6 +79,18 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
     const transactionKeys = async () => (await admin.query<{ key_hash: string }>(
       'SELECT key_hash FROM steer_auth.login_transactions WHERE namespace=$1', [namespace])).rows;
     return { kind: 'postgres', store, freshStore, close,
+      createProjectionFixture: async (reader, path) => {
+        const projector = runtime('steer_projector'); const app = runtime('steer_app');
+        const organizationId = reader.binding.organizationId; const repository = `github:${reader.binding.repositoryId}`;
+        const principal: Principal = { subject: 'synthetic-projector', organizationId, type: 'agent', hats: [],
+          toolGrants: ['projection.ingest'], expiresAt: new Date(Date.now() + 300000).toISOString() };
+        assert.equal(await reconcileArtifact(reader, path, {
+          currentRevision: async () => (await readProjection(projector, principal, projectionKey(repository, path)))?.sourceRevision ?? null,
+          ingest: (snapshot, expected) => ingestVerifiedArtifact(projector, principal, snapshot, expected),
+        }), 'applied');
+        return { services: { artifactProjection: createArtifactProjectionReader(app, { organizationId, repository, paths: [path] }) },
+          input: { organizationId, repository, path, revision: await reader.readHead() } };
+      },
       verifyRuntimeBootstrap: async (configuration, privateKeyPem) => {
         const { clientSecret, ...browser } = configuration;
         let providerCalls = 0;
