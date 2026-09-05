@@ -73,7 +73,7 @@ needed. A task heartbeat resumes bounded work and candidate-branch pushes;
 existing gate, spending and provider boundaries still apply. No repeated
 unchanged blocker notifications or broad Critic loops are intended.
 
-## Current increment: 0009
+## Completed development increment: 0009
 
 Implemented the first two Drizzle/PostgreSQL tables, forced organization RLS,
 separate app/projector grants, transaction-local tenant handling and typed
@@ -83,8 +83,17 @@ rollback and concurrent callers. The run-owned synthetic database was removed.
 See `intent/0009/EVIDENCE.md`; `pnpm test:data:integration` reruns that harness.
 No production database or authoritative Git record was changed.
 
-Next increment: Git-backed ingestion/reconciliation and a freshness-checked
-authorization projection, followed by local Keycloak/browser composition.
+## Current increment: 0010
+
+Implemented a read-only GitHub App adapter and current Git authorization
+resolver. Reads restrict installation credentials to one numeric repository
+ID and contents-read, pin artifacts to commits, validate Git blob/SHA-256
+digests and reject changed heads. Thirteen new tests pass, with no real App
+credentials accessed. Test Agent identity remains separate from runtime.
+
+Next increment: idempotent ingestion/reconciliation of verified source
+snapshots, followed by local Keycloak/browser composition. Authorization will
+remain read-through to current Git authority, not trust a stale projection.
 M2 remains partial until those identities and tenant data are wired end to end.
 Live Git writes remain blocked on M0 and applicable provider authorization. Remaining
 M1 work includes full stack lock, provider-free package-boundary checks, and

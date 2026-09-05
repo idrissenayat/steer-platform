@@ -16,12 +16,12 @@ const configSchema = z.strictObject({
 });
 export type OidcConfiguration = z.input<typeof configSchema>;
 
-const grantSchema = principalSchema.extend({
+export const authorizationRecordSchema = principalSchema.extend({
   issuer: httpsUrl,
   active: z.boolean(),
   validAfter: z.iso.datetime(),
 });
-export type AuthorizationRecord = z.infer<typeof grantSchema>;
+export type AuthorizationRecord = z.infer<typeof authorizationRecordSchema>;
 export interface IdentityLookup {
   issuer: string;
   subject: string;
@@ -84,7 +84,7 @@ export function createOidcAuthenticator(configuration: OidcConfiguration, depend
       if (!config.clientIds.includes(token.azp) || token.exp <= token.iat ||
           token.exp - token.iat > config.maxTokenAgeSeconds ||
           token.iat * 1000 > now.getTime()) return null;
-      const record = grantSchema.safeParse(await dependencies.resolveAuthorization({
+      const record = authorizationRecordSchema.safeParse(await dependencies.resolveAuthorization({
         issuer: token.iss, subject: token.sub, organizationId: token.steer_org,
       }));
       if (!record.success) return null;

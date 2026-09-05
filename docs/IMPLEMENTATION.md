@@ -39,6 +39,11 @@ Tenant context is transaction-local and scrubbed around pool reuse. Five unit
 tests and eight real PostgreSQL checks pass. This is local synthetic database
 evidence, not a provider-connected read model or production migration.
 
+Item `intent/0010` adds the read-only GitHub App adapter and Git-backed current
+authorization resolver. Thirteen tests verify restricted token scope,
+commit/tree/blob integrity, source encoding, path modes and freshness denial.
+Only isolated provider responses were used; live App configuration is pending.
+
 ## Implemented prototype and kit behavior
 
 - deterministic artifact-chain projection and dropped-event reconciliation;
