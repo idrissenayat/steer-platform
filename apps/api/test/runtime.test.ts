@@ -149,3 +149,31 @@ test('projection runtime refuses overlap and shutdown waits for actual pending s
   await assert.rejects(runtime.runOnce(), /not accepting work/); release(); await rejected; await shutdown;
   assert.equal(runtime.status().active, false); assert.equal(runtime.status().database.closed, true);
 });
+
+test('projection runtime requires exactly one source selector and composes empty inventory without SQL or deletion', async () => {
+  const { paths: _paths, ...base } = projectionProfile;
+  const selection = { roots: ['intent'], fileNames: ['BRIEF.md'] };
+  for (const value of [base, { ...projectionProfile, selection }, { ...base, selection: { roots: ['../intent'], fileNames: ['BRIEF.md'] } }]) {
+    await assert.rejects(createProjectionRuntime(value, projectionSecrets, { authenticate: async () => projectionAgent }));
+  }
+  const revision = 'a'.repeat(40), treeSha = 'b'.repeat(40); let trees = 0;
+  const runtime = await createProjectionRuntime({ ...base, selection }, projectionSecrets, { authenticate: async () => projectionAgent,
+    github: async (input, init) => {
+      const url = new URL(String(input)); assert.equal(url.origin, 'https://api.github.com');
+      if (url.pathname === '/app/installations/1/access_tokens') {
+        assert.deepEqual(JSON.parse(String(init?.body)), { repository_ids: [1], permissions: { contents: 'read' } });
+        return Response.json({ token: 'synthetic', expires_at: new Date(Date.now() + 3600000).toISOString(),
+          repositories: [{ id: 1, full_name: 'synthetic/synthetic' }], permissions: { contents: 'read', metadata: 'read' } });
+      }
+      assert.equal(init?.method, 'GET');
+      if (url.pathname.endsWith('/git/ref/heads/synthetic')) return Response.json({ ref: 'refs/heads/synthetic', object: { type: 'commit', sha: revision } });
+      if (url.pathname.endsWith(`/git/commits/${revision}`)) return Response.json({ sha: revision, tree: { sha: treeSha } });
+      if (url.pathname.endsWith(`/git/trees/${treeSha}`)) { trees++; return Response.json({ sha: treeSha, truncated: false, tree: [] }); }
+      throw new Error('Unexpected synthetic provider request.');
+    } });
+  try {
+    const result = await runtime.runOnce(); assert.equal(result.revision, revision); assert.equal(result.status, 'reconciled');
+    assert.deepEqual(result.outcomes, []); assert.equal(trees, 1); assert.equal(runtime.status().database.connections, 0);
+  } finally { await runtime.shutdown(); }
+  assert.equal(runtime.status().database.closed, true);
+});

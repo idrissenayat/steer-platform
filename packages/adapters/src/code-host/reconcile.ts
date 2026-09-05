@@ -1,4 +1,4 @@
-import type { ArtifactReader, ArtifactSnapshot } from './github.ts';
+import { artifactSelectionSchema, matchesArtifactSelection, type ArtifactReader, type ArtifactSnapshot, type ArtifactSelection, type RepositoryReader } from './github.ts';
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { artifactProjectionInputSchema } from '@steer/tool-registry';
@@ -38,7 +38,7 @@ const pathsSchema = z.array(artifactProjectionInputSchema.shape.path).min(1).max
 
 /** Explicit manifest, one revision, bounded staging; not atomic across records or a scheduler. */
 export async function reconcileArtifacts(reader: ArtifactReader, rawPaths: readonly string[],
-  sink: SnapshotProjectionSink<ProjectionOutcome>, signal?: AbortSignal) {
+  sink: SnapshotProjectionSink<ProjectionOutcome>, signal?: AbortSignal, expectedHead?: string) {
   const parsed = pathsSchema.safeParse(rawPaths);
   if (!parsed.success || new Set(parsed.data).size !== parsed.data.length) throw new ReconciliationError('INVALID_SCOPE', 0, null);
   const paths = [...parsed.data].sort();
@@ -58,6 +58,7 @@ export async function reconcileArtifacts(reader: ArtifactReader, rawPaths: reado
   revision = await source(() => reader.readHead());
   if (!artifactProjectionInputSchema.shape.revision.safeParse(revision).success) throw new ReconciliationError('SOURCE_FAILED', 0, null);
   const pinned = revision;
+  if (expectedHead !== undefined && expectedHead !== pinned) throw new ReconciliationError('SOURCE_CHANGED', 0, pinned);
   const stable = async () => { if (await source(() => reader.readHead()) !== pinned) throw new ReconciliationError('SOURCE_CHANGED', acknowledged, pinned); };
   const staged: { snapshot: Omit<ArtifactSnapshot, 'repositoryId'> & { repository: string }; expected: string | null }[] = [];
   for (const path of paths) {
@@ -84,4 +85,35 @@ export async function reconcileArtifacts(reader: ArtifactReader, rawPaths: reado
   }
   await stable();
   return { revision: pinned, status: outcomes.some((item) => item.outcome === 'superseded') ? 'superseded' as const : 'reconciled' as const, outcomes };
+}
+
+/** Discover only a trusted selector's complete bounded manifest, then reconcile the same revision. */
+export async function reconcileRepository(reader: RepositoryReader, rawSelection: ArtifactSelection,
+  sink: SnapshotProjectionSink<ProjectionOutcome>, signal?: AbortSignal) {
+  const selection = artifactSelectionSchema.safeParse(rawSelection);
+  if (!selection.success) throw new ReconciliationError('INVALID_SCOPE', 0, null);
+  let revision: string | null = null;
+  const abort = () => { if (signal?.aborted) throw new ReconciliationError('ABORTED', 0, revision); };
+  let inventory;
+  try {
+    abort(); revision = artifactProjectionInputSchema.shape.revision.parse(await reader.readHead()); abort();
+    inventory = z.strictObject({ organizationId: z.string(), repositoryId: z.number(), revision: artifactProjectionInputSchema.shape.revision,
+      treeSha: artifactProjectionInputSchema.shape.revision,
+      entries: z.array(z.strictObject({ path: artifactProjectionInputSchema.shape.path, blobSha: artifactProjectionInputSchema.shape.revision })).max(100),
+    }).parse(await reader.readInventory(selection.data, revision));
+    abort();
+    if (inventory.organizationId !== reader.binding.organizationId || inventory.repositoryId !== reader.binding.repositoryId || inventory.revision !== revision ||
+      new Set(inventory.entries.map((item) => item.path)).size !== inventory.entries.length ||
+      inventory.entries.some((item) => !matchesArtifactSelection(item.path, selection.data))) throw new Error();
+    if (await reader.readHead() !== revision) throw new ReconciliationError('SOURCE_CHANGED', 0, revision); abort();
+  } catch (error) { if (error instanceof ReconciliationError) throw error; throw new ReconciliationError('SOURCE_FAILED', 0, revision); }
+  if (!inventory.entries.length) return { revision, treeSha: inventory.treeSha, status: 'reconciled' as const, outcomes: [] };
+  const blobs = new Map(inventory.entries.map((item) => [item.path, item.blobSha]));
+  const pinnedReader: ArtifactReader = { binding: reader.binding, readHead: () => reader.readHead(),
+    readArtifact: async (path, rev) => {
+      const snapshot = await reader.readArtifact(path, rev);
+      if (rev !== revision || snapshot.blobSha !== blobs.get(path)) throw new Error('Inventory snapshot mismatch.');
+      return snapshot;
+    } };
+  return { ...await reconcileArtifacts(pinnedReader, [...blobs.keys()], sink, signal, revision), treeSha: inventory.treeSha };
 }

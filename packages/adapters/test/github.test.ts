@@ -130,3 +130,42 @@ test('valid blob hashes do not hide invalid UTF-8 and UTF-8 BOM bytes are preser
     else assert.equal((await source.readArtifact(path, revision)).content, data.toString());
   }
 });
+
+test('inventory returns only exact-root and filename-selected regular artifacts at the requested revision', async () => {
+  const entry = responses.tree.tree[0]!;
+  const f = fixture({ tree: { ...responses.tree, tree: [
+    { ...entry, path: 'intent/0002/SPEC.md' }, { ...entry, path: 'intent/0001/BRIEF.md' },
+    { ...entry, path: 'intent-extra/0001/BRIEF.md' }, { ...entry, path: 'intent/0001/notes.txt' },
+    { ...entry, path: 'tools/run', mode: '100755' }, { ...entry, path: 'intent', mode: '040000', type: 'tree' },
+  ] } });
+  assert.deepEqual(await f.reader.readInventory({ roots: ['intent'], fileNames: ['BRIEF.md', 'SPEC.md'] }, revision), {
+    organizationId: binding.organizationId, repositoryId: binding.repositoryId, revision, treeSha,
+    entries: [{ path: 'intent/0001/BRIEF.md', blobSha }, { path: 'intent/0002/SPEC.md', blobSha }],
+  });
+  assert.equal(f.calls.length, 3); assert.ok(!f.calls.some((url) => url.includes('/git/blobs/')));
+  assert.deepEqual((await f.reader.readInventory({ roots: ['other'], fileNames: ['BRIEF.md'] }, revision)).entries, []);
+});
+
+test('invalid inventory selectors and mutable revisions deny before provider requests', async () => {
+  const f = fixture();
+  for (const selection of [{ roots: [], fileNames: ['BRIEF.md'] }, { roots: ['../intent'], fileNames: ['BRIEF.md'] },
+    { roots: ['intent', 'intent/nested'], fileNames: ['BRIEF.md'] }, { roots: ['', 'intent'], fileNames: ['BRIEF.md'] },
+    { roots: ['intent'], fileNames: ['BRIEF.md', 'BRIEF.md'] }, { roots: ['intent'], fileNames: ['x/BRIEF.md'] }]) {
+    await assert.rejects(f.reader.readInventory(selection, revision), safeFailure);
+  }
+  await assert.rejects(f.reader.readInventory({ roots: [''], fileNames: ['BRIEF.md'] }, 'main'), safeFailure);
+  assert.equal(f.calls.length, 0);
+});
+
+test('inventory rejects incomplete, ambiguous, oversized and nonregular selected trees instead of skipping entries', async () => {
+  const entry = { ...responses.tree.tree[0]!, path: 'intent/0001/BRIEF.md' };
+  for (const tree of [
+    { ...responses.tree, truncated: true }, { ...responses.tree, sha: 'c'.repeat(40) },
+    { ...responses.tree, tree: [entry, entry] }, { ...responses.tree, tree: [{ ...entry, path: '../intent/BRIEF.md' }] },
+    ...['100755', '120000', 'unknown'].map((mode) => ({ ...responses.tree, tree: [{ ...entry, mode }] })),
+    { ...responses.tree, tree: [{ ...entry, type: 'commit', mode: '160000' }] },
+    { ...responses.tree, tree: Array.from({ length: 101 }, (_, i) => ({ ...entry, path: `intent/${i}/BRIEF.md` })) },
+    { ...responses.tree, tree: Array.from({ length: 10001 }, (_, i) => ({ ...entry, path: `other/${i}/note` })) },
+  ]) await assert.rejects(fixture({ tree }).reader.readInventory({ roots: ['intent'], fileNames: ['BRIEF.md'] }, revision), safeFailure);
+  await assert.rejects(fixture({ commit: { ...responses.commit, sha: 'c'.repeat(40) } }).reader.readInventory({ roots: [''], fileNames: ['BRIEF.md'] }, revision), safeFailure);
+});

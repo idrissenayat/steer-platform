@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
-import type { ArtifactReader } from '@steer/adapters/github';
+import { artifactSelectionSchema, matchesArtifactSelection, type RepositoryReader } from '@steer/adapters/github';
 import type { AuthorizationRecord } from '@steer/adapters/identity';
 
 /** Synthetic local commits, not a GitHub installation or a production reader. */
@@ -29,7 +29,7 @@ export async function createGitAuthorizationHarness(temporary: string, record: A
   await publish([record]);
   let fault: 'none' | 'unavailable' | 'moving-head' | 'digest' = 'none';
   let headReads = 0;
-  const reader: ArtifactReader = {
+  const reader: RepositoryReader = {
     binding: Object.freeze({ organizationId: record.organizationId, repositoryId: 1, installationId: 1,
       owner: 'synthetic', repository: 'synthetic', branch: 'synthetic' }),
     async readHead() {
@@ -37,6 +37,21 @@ export async function createGitAuthorizationHarness(temporary: string, record: A
       const head = await git('rev-parse', 'HEAD');
       if (fault === 'moving-head' && ++headReads % 2 === 0) return '0'.repeat(40);
       return head;
+    },
+    async readInventory(rawSelection, revision) {
+      const selection = artifactSelectionSchema.parse(rawSelection);
+      if (!/^[a-f0-9]{40}$/.test(revision) || fault === 'unavailable') throw new Error('Invalid synthetic inventory request.');
+      const raw = (await exec('git', ['ls-tree', '-rz', revision], { cwd: directory, timeout: 10000 })).stdout;
+      const entries = raw.split('\0').filter(Boolean).flatMap((row) => {
+        const match = /^(\d+) (\w+) ([a-f0-9]{40})\t([\s\S]+)$/.exec(row);
+        if (!match) throw new Error('Invalid synthetic tree.');
+        const [, mode, type, blobSha, path] = match;
+        if (!matchesArtifactSelection(path!, selection)) return [];
+        if (mode !== '100644' || type !== 'blob') throw new Error('Invalid selected synthetic entry.');
+        return [{ path: path!, blobSha: blobSha! }];
+      });
+      return { organizationId: record.organizationId, repositoryId: 1, revision,
+        treeSha: await git('rev-parse', `${revision}^{tree}`), entries };
     },
     async readArtifact(path, revision) {
       if (![authorizationPath, artifactPath, secondArtifactPath].includes(path) || !/^[a-f0-9]{40}$/.test(revision)) throw new Error('Invalid synthetic source request.');

@@ -68,3 +68,9 @@ they do not claim a live provider-connected runtime factory pass.
 See intent/0032/EVIDENCE.md. This completes explicit-manifest replay, not automatic
 whole-repository discovery, deletion/pruning, durable workers, production deployment
 or Gate 2. Git remains authoritative; projections remain disposable.
+
+Increment 0033 adds bounded automatic discovery through explicit roots/fileNames
+selection as an alternative to enumerated paths. The runtime requires exactly
+one mode. Discovered descriptors are bound to the same revision throughout source
+staging. This does not add pruning or large-inventory partitioning. Current guide:
+`REPOSITORY-INVENTORY.md`; evidence: `intent/0033/EVIDENCE.md`.

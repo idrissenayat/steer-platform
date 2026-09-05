@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createAppJwtSigner, createGitHubReader } from '@steer/adapters/github';
+import { createAppJwtSigner, createGitHubReader, artifactSelectionSchema } from '@steer/adapters/github';
 import { createPostgresBrowserSessionStore } from '@steer/data/browser-session';
 import { createRuntimePool } from '@steer/data/runtime-pool';
 import { createIdentityService } from './identity-service.ts';
@@ -9,7 +9,7 @@ import { secretReferenceSchema, type SecretProvider } from '@steer/adapters/secr
 import { artifactProjectionInputSchema } from '@steer/tool-registry';
 import { createArtifactProjectionReader } from '@steer/data/artifact-reader';
 import { principalSchema } from '@steer/tool-registry';
-import { reconcileArtifacts } from '@steer/adapters/reconcile';
+import { reconcileArtifacts, reconcileRepository, type SnapshotProjectionSink, type ProjectionOutcome } from '@steer/adapters/reconcile';
 import { ingestVerifiedArtifact, projectionKey } from '@steer/data/ingestion';
 import { readProjection } from '@steer/data';
 
@@ -33,7 +33,8 @@ const secretsSchema = z.strictObject({ browserClientSecret: text, githubPrivateK
 
 const projectionProfileSchema = z.strictObject({ version: z.literal('steer-projection-runtime/v1'),
   github: profileSchema.shape.github.omit({ authorizationPath: true }), database: databaseSchema,
-  paths: z.array(artifactProjectionInputSchema.shape.path).min(1).max(100) });
+  paths: z.array(artifactProjectionInputSchema.shape.path).min(1).max(100).optional(), selection: artifactSelectionSchema.optional(),
+}).refine((value) => Boolean(value.paths) !== Boolean(value.selection));
 const projectionSecretsSchema = z.strictObject({ githubPrivateKeyPem: text, databasePassword: text });
 
 /** Explicit one-shot job composition; no HTTP dispatch, timer, automatic retry or agent impersonation. */
@@ -43,7 +44,7 @@ export async function createProjectionRuntime(rawProfile: unknown, rawSecrets: u
   let pool: ReturnType<typeof createRuntimePool> | undefined;
   try {
     const profile = projectionProfileSchema.parse(rawProfile); const secrets = projectionSecretsSchema.parse(rawSecrets);
-    if (new Set(profile.paths).size !== profile.paths.length) throw new Error();
+    if (profile.paths && new Set(profile.paths).size !== profile.paths.length) throw new Error();
     const reader = createGitHubReader(profile.github.binding, { appJwt: createAppJwtSigner(profile.github.appId, secrets.githubPrivateKeyPem),
       ...(dependencies.github ? { fetch: dependencies.github } : {}) });
     const ownedPool = createRuntimePool({ ...profile.database, user: 'steer_projector', password: secrets.databasePassword }); pool = ownedPool;
@@ -63,10 +64,11 @@ export async function createProjectionRuntime(rawProfile: unknown, rawSecrets: u
           let identity: Awaited<ReturnType<typeof authorize>>;
           try { identity = await authorize(); } catch { throw new Error('Projection identity is not authorized.'); }
           const current = async () => { const next = await authorize(); if (next.subject !== identity.subject) throw new Error('Projection identity changed.'); return next; };
-          return reconcileArtifacts(reader, profile.paths, {
+          const sink: SnapshotProjectionSink<ProjectionOutcome> = {
             currentRevision: async (repository, path) => (await readProjection(ownedPool, await current(), projectionKey(repository, path)))?.sourceRevision ?? null,
             ingest: async (snapshot, expected) => ingestVerifiedArtifact(ownedPool, await current(), snapshot, expected),
-          }, signal);
+          };
+          return profile.selection ? reconcileRepository(reader, profile.selection, sink, signal) : reconcileArtifacts(reader, profile.paths!, sink, signal);
         })().finally(() => { active = undefined; controller = undefined; });
         return active;
       },

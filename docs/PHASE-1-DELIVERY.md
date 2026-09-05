@@ -552,3 +552,23 @@ then shared workflow transports and remaining operating surfaces. Live runtime
 authenticator/secret binding, production operations, the five R5 findings and
 all gate/deployment/release/spending boundaries remain separate. Safe isolated
 implementation remains unblocked.
+
+## Completed development increment: 0033
+
+Added exact-revision repository inventory through explicit directory/filename
+selectors. Complete bounded recursive trees, canonical unique paths and selected
+regular-file modes are required; truncated/oversized inventories fail instead of
+silently skipping artifacts. Descriptor-bound reconciliation refuses revision
+substitution. The opt-in projector runtime accepts exactly one of paths/selection.
+
+Actual synthetic Git inventory selects two artifacts, excluding authorization
+JSON, and feeds PostgreSQL replay/repair plus authenticated browser readback.
+Provider-contract, race, empty-manifest and runtime configuration tests pass.
+Evidence: `intent/0033/EVIDENCE.md`; guide: `docs/REPOSITORY-INVENTORY.md`.
+No SQL deletion, live provider activation or atomic repository snapshot is claimed.
+
+Next bounded increment: shared transport/workflow foundation, then durable
+reconciliation orchestration and remaining operating surfaces. Large-inventory
+partitioning, source-removal/rollback policy and actual runtime bindings remain
+explicit gaps. The five R5 findings and all gate/deployment/release/spending
+boundaries remain separate; safe isolated implementation remains unblocked.

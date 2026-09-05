@@ -24,11 +24,30 @@ export interface ArtifactReader {
   readHead(): Promise<string>;
   readArtifact(path: string, revision: string): Promise<ArtifactSnapshot>;
 }
+export interface ArtifactInventory {
+  organizationId: string;
+  repositoryId: number;
+  revision: string;
+  treeSha: string;
+  entries: { path: string; blobSha: string }[];
+}
+export interface RepositoryReader extends ArtifactReader {
+  readInventory(selection: ArtifactSelection, revision: string): Promise<ArtifactInventory>;
+}
 export class CodeHostError extends Error {
   constructor() { super('The configured code-host source could not be verified.'); }
 }
 const pathSchema = z.string().min(1).max(500).refine((value) =>
   value.split('/').every((part) => part.length > 0 && part !== '.' && part !== '..') && !/[\\\u0000-\u001f\u007f]/.test(value));
+export const artifactSelectionSchema = z.strictObject({
+  roots: z.array(z.union([z.literal(''), pathSchema])).min(1).max(10),
+  fileNames: z.array(pathSchema.refine((value) => !value.includes('/'))).min(1).max(20),
+}).refine((value) => new Set(value.fileNames).size === value.fileNames.length && new Set(value.roots).size === value.roots.length &&
+  !value.roots.some((root, index) => value.roots.some((other, otherIndex) => index !== otherIndex && (other === '' || root.startsWith(`${other}/`)))));
+export type ArtifactSelection = z.infer<typeof artifactSelectionSchema>;
+export function matchesArtifactSelection(path: string, selection: ArtifactSelection) {
+  return selection.roots.some((root) => root === '' || path.startsWith(`${root}/`)) && selection.fileNames.includes(path.slice(path.lastIndexOf('/') + 1));
+}
 const maxArtifactBytes = 512 * 1024;
 const maxResponseBytes = 2 * 1024 * 1024;
 
@@ -66,7 +85,7 @@ export function createAppJwtSigner(appId: string, privateKeyPem: string, clock =
 
 export function createGitHubReader(rawBinding: GitHubBinding, dependencies: {
   appJwt: () => Promise<string>; fetch?: typeof globalThis.fetch; now?: () => Date;
-}): ArtifactReader {
+}): RepositoryReader {
   const parsed = bindingSchema.safeParse(rawBinding);
   if (!parsed.success) throw new CodeHostError();
   const binding = Object.freeze(parsed.data);
@@ -109,6 +128,26 @@ export function createGitHubReader(rawBinding: GitHubBinding, dependencies: {
         await request(`${repoPath}/git/ref/heads/${binding.branch.split('/').map(encodeURIComponent).join('/')}`, await token()));
       if (result.ref !== `refs/heads/${binding.branch}`) throw new CodeHostError();
       return result.object.sha;
+    }),
+    readInventory: (rawSelection, revision) => safely(async () => {
+      const selection = artifactSelectionSchema.parse(rawSelection); sha.parse(revision);
+      const credential = await token();
+      const commit = z.object({ sha, tree: z.object({ sha }) }).parse(await request(`${repoPath}/git/commits/${revision}`, credential));
+      if (commit.sha !== revision) throw new CodeHostError();
+      const tree = z.object({ sha, truncated: z.boolean(), tree: z.array(z.object({ path: pathSchema,
+        mode: z.string(), type: z.string(), sha })).max(10000) }).parse(await request(`${repoPath}/git/trees/${commit.tree.sha}?recursive=1`, credential));
+      if (tree.sha !== commit.tree.sha || tree.truncated || new Set(tree.tree.map((entry) => entry.path)).size !== tree.tree.length) throw new CodeHostError();
+      const entries: ArtifactInventory['entries'] = [];
+      for (const entry of tree.tree) {
+        if (!((entry.type === 'tree' && entry.mode === '040000') || (entry.type === 'commit' && entry.mode === '160000') ||
+          (entry.type === 'blob' && ['100644', '100755', '120000'].includes(entry.mode)))) throw new CodeHostError();
+        if (!matchesArtifactSelection(entry.path, selection)) continue;
+        if (entry.type !== 'blob' || entry.mode !== '100644') throw new CodeHostError();
+        entries.push({ path: entry.path, blobSha: entry.sha });
+        if (entries.length > 100) throw new CodeHostError();
+      }
+      entries.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
+      return { organizationId: binding.organizationId, repositoryId: binding.repositoryId, revision, treeSha: tree.sha, entries };
     }),
     readArtifact: (path, revision) => safely(async () => {
       pathSchema.parse(path); sha.parse(revision);

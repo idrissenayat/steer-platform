@@ -321,12 +321,18 @@ Git/Postgres replay and repair feed the authenticated browser fixture without
 rewriting history. This is not automatic whole-repository discovery or a durable
 worker. See `docs/REPOSITORY-RECONCILIATION.md`.
 
+Item `intent/0033` adds exact-revision GitHub tree inventory with explicit roots/
+filenames, complete-response bounds and unsafe-file rejection. Inventory descriptors
+feed reconciliation without revision substitution; runtime selection is opt-in
+and mutually exclusive with paths. Actual synthetic Git discovery feeds the
+Postgres/browser fixture. See `docs/REPOSITORY-INVENTORY.md` for limits.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.
 Still to be built or composed: business tools beyond session context and curated
-artifact reads, MCP v2 transport, source inventory/full-repository projection
-composition beyond explicit manifests, Temporal workers,
+artifact reads, MCP v2 transport, large-repository inventory/partitioning and
+source-removal/rollback policy beyond bounded discovery, Temporal workers,
 version-pinned Mastra adapter, LiteLLM gateway, tenant-scoped evidence storage,
 production product analytics, an approved live secret-manager binding, runtime/ingress
 configuration, full authenticated workspace UI and the thirteen-case architecture walking

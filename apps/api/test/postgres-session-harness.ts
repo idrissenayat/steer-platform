@@ -18,7 +18,7 @@ import { reserveLocalPort, localHttpsRequest } from './local-tls-harness.ts';
 import { createArtifactProjectionReader } from '@steer/data/artifact-reader';
 import { ingestVerifiedArtifact, projectionKey } from '@steer/data/ingestion';
 import { readProjection } from '@steer/data';
-import { reconcileArtifacts, type SnapshotProjectionSink, type ProjectionOutcome } from '@steer/adapters/reconcile';
+import { reconcileRepository, type SnapshotProjectionSink, type ProjectionOutcome } from '@steer/adapters/reconcile';
 import type { Principal } from '@steer/tool-registry';
 
 /** Two disposable services only; no externally supplied connection or credential. */
@@ -88,13 +88,16 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
           currentRevision: async (_repository, path) => (await readProjection(projector, principal, projectionKey(repository, path)))?.sourceRevision ?? null,
           ingest: (snapshot, expected) => ingestVerifiedArtifact(projector, principal, snapshot, expected),
         });
-        const first = await reconcileArtifacts(reader, paths, sink());
+        const selection = { roots: [''], fileNames: paths };
+        const inventory = await reader.readInventory(selection, await reader.readHead());
+        assert.deepEqual(inventory.entries.map((item) => item.path).sort(), [...paths].sort());
+        const first = await reconcileRepository(reader, selection, sink());
         assert.equal(first.status, 'reconciled'); assert.ok(first.outcomes.every((item) => item.outcome === 'applied'));
         const events = Number((await admin.query('SELECT count(*) AS count FROM steer.ingestion_events WHERE organization_id=$1', [organizationId])).rows[0].count);
-        assert.ok((await reconcileArtifacts(reader, paths, sink())).outcomes.every((item) => item.outcome === 'duplicate'));
+        assert.ok((await reconcileRepository(reader, selection, sink())).outcomes.every((item) => item.outcome === 'duplicate'));
         const path = paths[0]!;
         await admin.query('UPDATE steer.projection_records SET content_digest=$1 WHERE organization_id=$2 AND record_key=$3', ['0'.repeat(64), organizationId, projectionKey(repository, path)]);
-        const repaired = await reconcileArtifacts(reader, paths, sink());
+        const repaired = await reconcileRepository(reader, selection, sink());
         assert.equal(repaired.outcomes.find((item) => item.path === path)?.outcome, 'repaired');
         assert.equal(Number((await admin.query('SELECT count(*) AS count FROM steer.ingestion_events WHERE organization_id=$1', [organizationId])).rows[0].count), events);
         const projectionReader = createArtifactProjectionReader(app, { organizationId, repository, paths });
@@ -103,7 +106,7 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
             { ...principal, toolGrants: ['projection.artifact.read'] }) as { content: string };
           assert.equal(actual.content, (await reader.readArtifact(item, first.revision)).content);
         }
-        console.log('PASS pinned two-artifact Git manifest replays and repairs PostgreSQL without rewriting history');
+        console.log('PASS revision-bound Git inventory selects two artifacts, then replays and repairs PostgreSQL without rewriting history');
         return { services: { artifactProjection: projectionReader }, input: { organizationId, repository, path, revision: first.revision } };
       },
       verifyRuntimeBootstrap: async (configuration, privateKeyPem) => {
