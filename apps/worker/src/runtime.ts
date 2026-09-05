@@ -1,16 +1,28 @@
 import { z } from 'zod';
 import type { RepositoryReader } from '@steer/adapters/github';
 import { createProjectionJob } from '@steer/adapters/projection-job';
+import { createGitGateObserver } from '@steer/adapters/gate-observation';
 import { createRuntimePool } from '@steer/data/runtime-pool';
 import { readProjection } from '@steer/data';
 import { ingestVerifiedArtifact, projectionKey } from '@steer/data/ingestion';
-import { parseScope, type ReconciliationScope } from './contracts.ts';
-import { createReconciliationActivities } from './activities.ts';
+import { parseScope, parseGateTarget, type ReconciliationScope } from './contracts.ts';
+import { createReconciliationActivities, createGateWatchActivities } from './activities.ts';
 
 const databaseSchema = z.strictObject({ host: z.string(), port: z.number(), database: z.string(),
   transport: z.discriminatedUnion('kind', [z.strictObject({ kind: z.literal('tls'), ca: z.string() }),
     z.strictObject({ kind: z.literal('isolated-loopback-test') })]),
 });
+
+/** Read-only Git observation composition; no database, signer, public endpoint or live binding. */
+export function createWorkerGateObservationRuntime(rawTarget: unknown, source: { artifactPaths: string[]; recordPath: string; recordItem: string },
+  dependencies: { reader: RepositoryReader; authenticate: () => Promise<unknown> }) {
+  try {
+    const target = parseGateTarget(rawTarget);
+    const selected = z.strictObject({ artifactPaths: z.array(z.string()), recordPath: z.string(), recordItem: z.string() }).parse(source);
+    const observer = createGitGateObserver(dependencies.reader, { ...target, ...selected }, dependencies.authenticate);
+    return { activities: createGateWatchActivities(target, observer), shutdown: observer.shutdown, status: observer.status };
+  } catch { throw new Error('Worker gate source configuration could not be initialized.'); }
+}
 
 /** Explicit production data composition; reader/authenticator are trusted prebound adapters, never workflow inputs. */
 export async function createWorkerProjectionRuntime(options: { scope: ReconciliationScope; database: unknown; selector: unknown },

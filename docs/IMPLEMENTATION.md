@@ -375,6 +375,12 @@ decision-recorded or exhausted outcomes. No outcome is approval. Actual Temporal
 restart/replay tests use a synthetic observer; canonical Git/provider verification
 and complete event cursors remain open. See `docs/GATE-WATCH-WORKFLOWS.md`.
 
+Item `intent/0042` binds gate observation to current Git source with fresh agent
+authority, exact artifact-set/blob checks, bounded inventory and matching record
+provenance. Actual Git/Temporal record commit and revocation/recreation tests pass.
+Record provenance is not signer/decision-policy verification; see
+`docs/GIT-GATE-OBSERVATION.md` for that explicit boundary.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.

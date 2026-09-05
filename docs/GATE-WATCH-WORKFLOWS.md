@@ -61,6 +61,10 @@ exhaustion, duplicate/wrong-ID refusal and source failure. This is not an actual
 Git signature verifier, a separate gate-worker process crash, cluster restore or
 all-in-one identity-to-gate flow. See intent/0041/EVIDENCE.md for exact results.
 
+Increment 0042 adds actual Git-backed format/provenance observation and fresh
+observer authority; see GIT-GATE-OBSERVATION.md. It still does not validate
+canonical signer/decision policy or authorize downstream work.
+
 Next: canonical revision-bound source observation/verification, durable event
 cursor contract and public authorized watch composition, followed by business
 tools and operating screens. No formal gate or release approval is inferred.

@@ -28,6 +28,7 @@
   "canonicalSchedulingToolsVerified": true,
   "managedSchedulerRuntimeVerified": true,
   "gateWatchWorkflowVerified": true,
+  "gitGateRecordObservationVerified": true,
   "canonicalGateSourceVerifierVerified": false,
   "liveClusterAuthorizationVerified": false,
   "activeActivityCrashRecoveryVerified": false

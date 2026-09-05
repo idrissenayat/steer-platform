@@ -17,6 +17,7 @@ import { createIdentityRuntime } from '../../api/src/runtime.ts';
 import { workflowId } from '../src/contracts.ts';
 import { testProjectedWorkflow } from './projection.integration.ts';
 import { testGateWatch } from './gate-watch.integration.ts';
+import { testGitGateSource } from './gate-source.integration.ts';
 
 // Exact official test binary, no real cluster, OS installation or persistent database.
 const version = '1.8.3';
@@ -163,6 +164,7 @@ try {
     } finally { await runtime?.shutdown(); await managed.shutdown(); }
   });
   await testGateWatch(env, bundle, check);
+  await testGitGateSource(env, bundle, temporary, check);
   console.log(`Temporal integration: ${passed} checks passed; actual local server, Git/PostgreSQL and recreated SDK workers; synthetic identities only.`);
 } finally {
   try { if (worker) { worker.shutdown(); await running; } }

@@ -740,3 +740,22 @@ signature-policy verification, complete event cursors and public watch compositi
 Business tools/screens, remaining services and five R5 findings stay open.
 Protected/signed records, live provider permissions and deployment/spending
 boundaries remain unchanged. Continue safe implementation without another prompt.
+
+## Completed development increment: 0042
+
+The gate observer now reads actual pinned Git source, compares the governed
+artifact set to the target revision and matches a bounded record envelope with
+fresh same-subject agent authority before/after reads. Absent/stale records stay
+distinct from source failure; changed artifacts supersede the old target.
+
+Four native adapter groups and two new actual Git/Temporal groups pass. Eighteen
+Temporal groups now include committing a synthetic send-back while stopped,
+observing its exact digest after recreation and denying a later round after
+Git-committed grant revocation. Full repository and frozen install checks pass.
+Guide: docs/GIT-GATE-OBSERVATION.md; evidence: intent/0042/EVIDENCE.md.
+
+Next: canonical signer/decision-policy verification, then complete durable event
+cursors and public gate-watch composition. Structural record matching does not
+close policy, provider proof or Gate 2. Business tools/screens and remaining
+services stay open. Continue authorized implementation; no new provider access,
+protected edits, gate signature, deployment, release or spending is authorized.

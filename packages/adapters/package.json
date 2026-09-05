@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "exports": { "./identity": "./src/identity/oidc.ts", "./browser-session": "./src/identity/browser-session.ts", "./github": "./src/code-host/github.ts", "./authorization": "./src/identity/authorization.ts", "./reconcile": "./src/code-host/reconcile.ts", "./projection-job": "./src/code-host/projection-job.ts", "./secrets": "./src/secrets/file.ts" },
+  "exports": { "./identity": "./src/identity/oidc.ts", "./browser-session": "./src/identity/browser-session.ts", "./github": "./src/code-host/github.ts", "./authorization": "./src/identity/authorization.ts", "./reconcile": "./src/code-host/reconcile.ts", "./projection-job": "./src/code-host/projection-job.ts", "./gate-observation": "./src/code-host/gate-observation.ts", "./secrets": "./src/secrets/file.ts" },
   "scripts": {
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
