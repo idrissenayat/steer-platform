@@ -1048,3 +1048,22 @@ ledger is docs/GATE-2-CORRECTIONS.md. All five findings remain formally open;
 independent complete-package review/protected incorporation and exact-revision
 rulings are still required. No protected file, provider, signature, spending,
 destructive real-data action, deployment or release authority changes.
+
+## Completed development increment: 0060 — shared protected-action candidate
+
+All six lifecycle/migration actions and the existing Exam-candidate commit now
+have a single zero-effect successor permission verifier. A trusted context binds
+exact target/implementation/policy/scope/resources, while ten closed independently
+signed records prove actor/credential/delegation/assignment/authority, resources
+and request-specific replay/CAS at explicit record/evaluation times. Source:
+intent/0060/SPEC.md; verification: intent/0060/EVIDENCE.md.
+
+Next: integrate the exact closed 0059 events and full 0058 human/raw authority
+with all 0060 copy/tombstone actions in the lifecycle graph, then complete the
+migration graph's plan/before-after truth/action composition. The shared verifier
+does not itself validate external human evidence, install production grants,
+consume credentials, reserve a live store or execute an operation. Do not infer
+effect authority from a returned descriptor or caller-provided context.
+Remaining public-oracle timing, independent complete-package review/protected
+incorporation and exact-revision rulings follow. All five findings remain open;
+no protected edit, provider access, destructive action, spend or release authorized.

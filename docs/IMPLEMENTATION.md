@@ -516,6 +516,15 @@ proof. Shared lifecycle/migration actions and graph composition are next. The
 current per-finding status is in `docs/GATE-2-CORRECTIONS.md`; all five findings
 remain formally open. See `intent/0059/EVIDENCE.md`.
 
+Item `intent/0060` adds the shared protected-action successor: the Exam-candidate
+commit and six lifecycle/migration actions traverse one deny-by-default verifier.
+It binds an independently installed target/policy/scope and exact resource grants
+to actor credentials, delegation, assignment, authority and signed replay/CAS,
+using explicit times for all ten records. Candidate success has zero effects.
+The full lifecycle/migration graph must still consume it and validate the actual
+human/raw/plan evidence and exact inputs before effect-specific processing.
+No production route or atomic execution is enabled. See `intent/0060/EVIDENCE.md`.
+
 ## Local commands
 
 ```sh
