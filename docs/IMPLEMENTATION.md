@@ -233,12 +233,22 @@ Unicode phone normalization. These five corrections, protected incorporation,
 exact-revision review and the applicable qualified human ruling remain before
 a Gate 2 decision. Historical review passes do not supersede this send-back.
 
-The production foundation still to be built includes authenticated/data tools
-beyond the stateless API slice, MCP v2 transport, GitHub App adapter, Postgres/Drizzle/RLS
-projections, Temporal workers, version-pinned Mastra adapter, LiteLLM gateway,
-OIDC, tenant-scoped evidence storage, product analytics, a secret-manager seam,
-and the thirteen-case architecture walking skeleton. The pnpm/Turborepo
-monorepo, Next.js shell, and provider-free domain package already exist.
+Item `intent/0020` composes the Git authorization resolver into both browser and
+bearer authentication. Actual temporary Git commits drive revocation through the
+Chromium/Keycloak/encrypted-Postgres harness. Source outages, moving heads,
+integrity failures and missing/duplicate/cross-organization records deny without
+stale fallback. The new factory cannot accept a substitute grant resolver.
+This is synthetic membership evidence, not configuration of real access.
+
+The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
+provider-free domain, stateless tool API, normalized OIDC/browser authentication,
+read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.
+Still to be built or composed: authenticated business/data tools beyond session
+context, MCP v2 transport, full-repository projection replay, Temporal workers,
+version-pinned Mastra adapter, LiteLLM gateway, tenant-scoped evidence storage,
+production product analytics, a secret-manager seam, approved runtime/ingress
+configuration, production sign-in UI and the thirteen-case architecture walking
+skeleton. Existing increment evidence does not complete these remaining services.
 
 ## Local commands
 

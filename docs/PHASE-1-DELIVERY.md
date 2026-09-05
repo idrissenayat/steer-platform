@@ -282,3 +282,25 @@ the actual production Next.js sign-in surface, public configuration and live
 provider writes closed until prerequisites are evidenced. Chromium test forms
 do not complete production UI, other-browser, accessibility, M0 or formal gate
 acceptance. Gate 2's five findings and all approval/spending boundaries remain.
+
+## Completed development increment: 0020
+
+Added explicit fixed-source Git-backed browser/bearer identity composition.
+The factory installs the read-through resolver internally, ignores any extra
+resolver override and rejects malformed authorization paths at construction.
+The actual Chromium/Keycloak/encrypted-Postgres harness now reads synthetic
+memberships from immutable commits in an owned temporary local Git repository.
+
+Nine browser groups plus six existing provider groups pass, including committed
+revocation, absent/duplicate/cross-organization records, source outage, head
+movement and digest mismatch. Existing sessions deny on the next request and
+recover only after valid source restoration; no old grant is retained as a
+fallback. Bearer composition has equivalent focused checks. Evidence and full
+regression results: `intent/0020/EVIDENCE.md`.
+
+Next bounded increment: fail-closed request/resource limits and trusted runtime
+configuration. Then connect the actual production UI and remaining M2 services.
+Do not mistake the synthetic local Git reader for a live membership deployment,
+or the separately verified runtime App read for authorization to write grants.
+Default public startup/readiness remains closed. M0/Gate 2's five findings,
+independent reviews and deployment/release/spending boundaries are unchanged.

@@ -15,14 +15,15 @@ PostgreSQL/Drizzle tenant foundations (0009), verified Git reads and ingestion
 contract harness (0013), browser-session broker (0014) and encrypted durable
 session storage (0015), explicit browser HTTP composition (0016) and real
 Keycloak human-code contract verification (0017) and assembled encrypted-session
-integration (0018) and Chromium authentication verification (0019) are
+integration (0018), Chromium authentication verification (0019) and Git-backed
+browser/bearer identity composition (0020) are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
 [provider evidence](docs/GITHUB-RUNTIME-APP.md).
 Gate 2 remains open: the latest round-three R5 review returned three blockers
 and two majors. Candidate implementation is not live-provider or release
 authorization. Start the API with `pnpm dev:api`; it exposes OpenAPI and health
-routes but rejects tool requests until real identity integration is built.
+routes but rejects tool requests until trusted runtime identity settings are explicitly installed.
 
 ## The numbered implementation chain
 
@@ -47,6 +48,7 @@ routes but rejects tool requests until real identity integration is built.
 | 0017 · Real human-code provider contract | `intent/0017/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | actual Keycloak form/code exchange, explicit subject mapper, real token/session/grant/logout checks and provider rejection cases | browser-engine cookie/TLS behavior, combined durable storage, approved runtime membership/settings and formal gates |
 | 0018 · Assembled identity/storage | `intent/0018/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | real provider code exchange into encrypted Postgres, callback race, separate app/store reconstruction, wrong-key denial and cross-instance logout | actual browser-engine/ingress behavior, authoritative membership, approved runtime settings and formal gates |
 | 0019 · Chromium authentication | `intent/0019/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | real HTTPS browser forms, cross-site callback, cookie/CSRF/referrer checks, reconstruction and logout against Keycloak/Postgres | other browsers, production UI/ingress, authoritative membership, approved runtime settings and formal gates |
+| 0020 · Git-backed identity composition | `intent/0020/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | fixed-source browser/bearer authority, synthetic Git commit revocation and fail-closed source/document checks through Chromium/Keycloak/Postgres | real approved membership source, ingress/runtime settings, production UI and formal gates |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier

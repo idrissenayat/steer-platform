@@ -38,7 +38,13 @@ business authority or gate-signing permission.
 
 ## Transport and runtime prerequisites
 
-`createBrowserApi` is explicit, not part of default CLI startup. Configure trusted
+`createGitBackedBrowserApi` is the explicit Git-authority composition over
+`createBrowserApi`, not part of default CLI startup. It requires a trusted
+`ArtifactReader`, fixed authorization path and session store, and installs the
+read-through resolver itself for both cookie and bearer authentication. Extra
+dependency fields cannot override that resolver. Invalid paths fail construction.
+Requests/token claims must never choose the source binding or artifact path.
+Configure trusted
 canonical HTTPS ingress, same-origin POST login/logout, callback-query/cookie
 redaction, request deadlines/rate limits, an approved database role/key provider
 and the real membership source before activation. Do not infer origin from
@@ -84,7 +90,17 @@ exception permits the generated test certificate; an unrelated bad certificate
 must still fail. This is not a production CA-chain pass and changes no OS trust.
 The test validates native forms, cross-site callback/cookie behavior, HttpOnly/
 Lax storage, CSRF denial and logout. It does not validate production Next.js UI,
-Safari/WebKit/Firefox, public ingress or real Git-backed membership.
+Safari/WebKit/Firefox, public ingress or real user membership configuration.
+
+Increment 0020 extends that browser command with production Git-resolver
+composition and actual commits in a disposable local repository. Current valid
+membership permits the session-context tool; a committed revocation, removed
+record, duplicate identity, cross-organization record/document, unavailable
+source, moving head or digest mismatch returns 401 on the next request. Restoring
+the valid source restores authority without recreating the still-valid session.
+There is no stale-grant or database authority fallback. The local test reader is
+not a GitHub transport: live installation/artifact evidence remains separately
+recorded in `GITHUB-RUNTIME-APP.md`. Neither test path writes real memberships.
 
 References: [Keycloak subject mapper at 26.7.3](https://github.com/keycloak/keycloak/blob/26.7.3/services/src/main/java/org/keycloak/protocol/oidc/mappers/SubMapper.java),
 [Keycloak OIDC flows](https://www.keycloak.org/securing-apps/oidc-layers).

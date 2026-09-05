@@ -11,6 +11,10 @@ export const authorizationDocumentSchema = z.strictObject({
 
 /** Read-through authority: deliberately no stale cache or database fallback. */
 export function createGitAuthorizationResolver(reader: ArtifactReader, path: string) {
+  if (typeof path !== 'string' || !path.length || path.length > 500 ||
+      path.split('/').some((part) => !part || part === '.' || part === '..') || /[\\\u0000-\u001f\u007f]/.test(path)) {
+    throw new Error('Invalid authorization source configuration.');
+  }
   return async (lookup: Readonly<IdentityLookup>) => {
     try {
       if (lookup.organizationId !== reader.binding.organizationId) return null;

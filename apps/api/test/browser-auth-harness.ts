@@ -8,13 +8,14 @@ import { promisify } from 'node:util';
 import { getRequestListener } from '@hono/node-server';
 import { chromium, type Browser } from 'playwright';
 import type { AuthorizationRecord } from '@steer/adapters/identity';
-import { createBrowserApi } from '../src/browser.ts';
+import { createGitBackedBrowserApi } from '../src/git-browser.ts';
+import { createGitAuthorizationHarness } from './git-authorization-harness.ts';
 import type { SessionTestHarness } from './session-harness.ts';
 
 /** Disposable Chromium/HTTPS fixture. No user's browser profile or OS trust changes. */
 export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: Buffer; temporary: string }) {
   const servers: Server[] = []; let browser: Browser | undefined;
-  let api: ReturnType<typeof createBrowserApi> | undefined;
+  let api: ReturnType<typeof createGitBackedBrowserApi> | undefined;
   let origin = ''; let issuerOrigin = ''; let callbackUrl = ''; let callbackCrossSite = false; let callbackHasLoginCookie = false;
   let loginStatus = 0; let loginOriginMatches = false;
   let homeHasReferer = false;
@@ -78,11 +79,12 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         redirectUri: `${origin}/auth/callback`, clientId: 'steer-test-web', clientSecret: deps.clientSecret, audience: 'steer-api' };
       const storage = await deps.createSessions({ issuer, clientId: configuration.clientId, redirectUri: configuration.redirectUri });
       assert.equal(storage.kind, 'postgres');
-      let grant: AuthorizationRecord = { issuer, subject: deps.subject, organizationId: 'synthetic-org', type: 'human',
+      const grant: AuthorizationRecord = { issuer, subject: deps.subject, organizationId: 'synthetic-org', type: 'human',
         hats: ['product-lead'], toolGrants: ['session.context'], active: true,
         validAfter: new Date(0).toISOString(), expiresAt: new Date(Date.now() + 600000).toISOString() };
-      const dependencies = { store: storage.store, fetch: deps.fetch, resolveAuthorization: async () => grant };
-      api = createBrowserApi(configuration, dependencies);
+      const source = await createGitAuthorizationHarness(tls.temporary, grant);
+      const dependencies = { store: storage.store, fetch: deps.fetch, reader: source.reader, authorizationPath: source.authorizationPath };
+      api = createGitBackedBrowserApi(configuration, dependencies);
       const spki = createHash('sha256').update(new X509Certificate(tls.certificate).publicKey.export({ type: 'spki', format: 'der' })).digest('base64');
       // Test-only exception for this run's key, not blanket TLS-error suppression.
       browser = await chromium.launch({ headless: true, chromiumSandbox: true,
@@ -143,11 +145,24 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         assert.equal((await storage.counts()).sessions, 1);
         await page.goto(origin); assert.equal((await tool()).status, 200);
       });
-      await check('browser session recovers after API/store reconstruction and observes current grant revocation', async () => {
-        api = createBrowserApi(configuration, { ...dependencies, store: storage.freshStore() });
+      await check('browser session recovers after reconstruction and observes Git-committed membership revocation', async () => {
+        api = createGitBackedBrowserApi(configuration, { ...dependencies, store: storage.freshStore() });
         await page.reload(); assert.equal((await tool()).status, 200);
-        grant = { ...grant, active: false }; assert.equal((await tool()).status, 401);
-        grant = { ...grant, active: true }; assert.equal((await tool()).status, 200);
+        await source.publish([{ ...grant, active: false }]); assert.equal((await tool()).status, 401);
+        await source.publish([grant]); assert.equal((await tool()).status, 200);
+      });
+      await check('Git source outage, moving head and digest failure deny existing browser sessions without stale fallback', async () => {
+        for (const fault of ['unavailable', 'moving-head', 'digest'] as const) {
+          source.setFault(fault); assert.equal((await tool()).status, 401);
+          source.setFault('none'); assert.equal((await tool()).status, 200);
+        }
+      });
+      await check('Git-committed missing, duplicate and cross-organization memberships fail closed', async () => {
+        for (const records of [[], [grant, grant], [{ ...grant, organizationId: 'foreign-org' }]]) {
+          await source.publish(records); assert.equal((await tool()).status, 401);
+        }
+        await source.publish([grant], 'foreign-org'); assert.equal((await tool()).status, 401);
+        await source.publish([grant]); assert.equal((await tool()).status, 200);
       });
       await check('browser callback replay fails safely and does not destroy the valid session', async () => {
         const replay = callbackUrl;
