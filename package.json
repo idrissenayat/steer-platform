@@ -21,6 +21,7 @@
     "test:data:integration": "pnpm --filter @steer/data test:integration",
     "test:identity:integration": "pnpm --filter @steer/api test:identity:integration",
     "test:auth:integration": "pnpm --filter @steer/api test:auth:integration",
+    "test:auth:browser": "pnpm --filter @steer/api test:auth:browser",
     "typecheck": "pnpm typecheck:prototype && turbo run typecheck --filter='./apps/*' --filter='./packages/*'",
     "typecheck:prototype": "tsc --noEmit",
     "kit:check": "node scripts/validate-kit.mjs",

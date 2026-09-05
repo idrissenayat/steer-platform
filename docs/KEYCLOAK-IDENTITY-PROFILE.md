@@ -5,6 +5,7 @@ replace the Gate 1-bound architecture or authorize a provider deployment.
 Development evidence is in `intent/0013`, `intent/0014`, `intent/0016` and
 `intent/0017`. Encrypted persistence is covered by `0015` and assembled
 provider/Postgres behavior by `0018`.
+Chromium-specific browser behavior is covered by `0019`.
 
 ## Required human-client settings
 
@@ -44,6 +45,12 @@ and the real membership source before activation. Do not infer origin from
 untrusted forwarding headers. No real secrets or deployment recipe are supplied
 by the synthetic harness.
 
+The page that submits the native sign-in form must allow the exact configured
+IdP origin as well as self in CSP `form-action`; Chromium also checks the
+authorization redirect against that policy. Keep the issuer allowlist fixed
+and retain no-referrer on callback responses so code-bearing queries cannot
+become the final page's referrer. Do not broaden the policy to arbitrary origins.
+
 Use the durable store's distinct `steer_auth_runtime` role and identity namespace;
 keep all application instances on the same binding, encryption keyring and
 capacity settings. Do not promote the harness's Maps or grant resolver into a
@@ -68,6 +75,16 @@ wrong-key denial and logout across instances. This mode has no Map fallback.
 Both modes retain synthetic grants and in-process Hono request handling, not a
 real runtime membership source or public ingress. No production identities,
 grants or signatures are implied.
+
+Run `npm exec --yes --package=node@24.20.0 -- pnpm test:auth:browser` for isolated
+Chromium 151.0.7922.34 via Playwright 1.62.1. Install its matched local binary with
+`pnpm --filter @steer/api exec playwright install chromium` if missing. Browser
+requests are restricted to this run's local origins. A temporary SPKI-only
+exception permits the generated test certificate; an unrelated bad certificate
+must still fail. This is not a production CA-chain pass and changes no OS trust.
+The test validates native forms, cross-site callback/cookie behavior, HttpOnly/
+Lax storage, CSRF denial and logout. It does not validate production Next.js UI,
+Safari/WebKit/Firefox, public ingress or real Git-backed membership.
 
 References: [Keycloak subject mapper at 26.7.3](https://github.com/keycloak/keycloak/blob/26.7.3/services/src/main/java/org/keycloak/protocol/oidc/mappers/SubMapper.java),
 [Keycloak OIDC flows](https://www.keycloak.org/securing-apps/oidc-layers).

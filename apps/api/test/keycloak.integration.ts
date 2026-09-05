@@ -11,12 +11,14 @@ import { createOidcAuthenticator, type AuthorizationRecord } from '@steer/adapte
 import { createOidcApi } from '../src/identity.ts';
 import { testKeycloakHumanFlow } from './keycloak-human.integration.ts';
 import { createPostgresSessionHarness } from './postgres-session-harness.ts';
+import { createBrowserAuthHarness } from './browser-auth-harness.ts';
 
 // Deliberately separate from normal tests: requires Docker and OpenSSL, never real credentials.
 const image = 'quay.io/keycloak/keycloak@sha256:ff4257d0d64efbe99ed1ddfaf07765cc3c36dc7518bf8324d41961327f441c54';
 const exec = promisify(execFile);
-const durable = process.argv.slice(2).includes('--durable');
-assert.ok(process.argv.slice(2).every((argument) => argument === '--durable'), 'Unknown integration argument');
+const browserMode = process.argv.slice(2).includes('--browser');
+const durable = browserMode || process.argv.slice(2).includes('--durable');
+assert.ok(process.argv.slice(2).every((argument) => ['--durable', '--browser'].includes(argument)), 'Unknown integration argument');
 const docker = async (...args: string[]) => (await exec('docker', args, { timeout: 30000 })).stdout.trim();
 const name = `steer-0013-${randomUUID()}`;
 const temporary = await mkdtemp(join(tmpdir(), 'steer-0013-'));
@@ -27,6 +29,7 @@ const humanPassword = randomBytes(32).toString('hex');
 const humanClientSecret = randomBytes(32).toString('hex');
 let containerId: string | undefined;
 let closeSessions: (() => Promise<void>) | undefined;
+let browserHarness: Awaited<ReturnType<typeof createBrowserAuthHarness>> | undefined;
 let passed = 0;
 let stage = 'disposable service initialization';
 const check = async (label: string, run: () => Promise<void>) => { stage = label; await run(); passed++; console.log(`PASS ${label}`); };
@@ -35,6 +38,13 @@ try {
   await chmod(temporary, 0o700);
   const realmFolder = join(temporary, 'import');
   await mkdir(realmFolder, { mode: 0o700 });
+  await exec('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-noenc', '-days', '1',
+    '-subj', '/CN=localhost', '-addext', 'subjectAltName=IP:127.0.0.1,DNS:localhost',
+    '-keyout', join(temporary, 'tls.key'), '-out', join(temporary, 'tls.crt')], { timeout: 30000 });
+  await chmod(join(temporary, 'tls.key'), 0o600);
+  const certificate = await readFile(join(temporary, 'tls.crt'));
+  if (browserMode) browserHarness = await createBrowserAuthHarness({ key: await readFile(join(temporary, 'tls.key')), certificate, temporary });
+  const browserOrigin = browserHarness?.origin ?? 'https://steer.test';
   const claim = (key: string, value: string, type = 'String') => ({
     name: key, protocol: 'openid-connect', protocolMapper: 'oidc-hardcoded-claim-mapper',
     config: { 'claim.name': key, 'claim.value': value, 'jsonType.label': type,
@@ -56,7 +66,7 @@ try {
       publicClient: false, secret: humanClientSecret, serviceAccountsEnabled: false,
       standardFlowEnabled: true, implicitFlowEnabled: false, directAccessGrantsEnabled: false,
       consentRequired: false, fullScopeAllowed: false, defaultClientScopes: [], optionalClientScopes: [],
-      redirectUris: ['https://steer.test/auth/callback'], webOrigins: ['https://steer.test'],
+      redirectUris: [`${browserOrigin}/auth/callback`], webOrigins: [browserOrigin],
       attributes: { 'pkce.code.challenge.method': 'S256' },
       protocolMappers: [{
         // Minimal scopes omit Keycloak's default "basic" scope: bind sub explicitly.
@@ -74,11 +84,6 @@ try {
         emailVerified: true, firstName: 'Synthetic', lastName: 'Tester', requiredActions: [],
         credentials: [{ type: 'password', value: humanPassword, temporary: false }] }],
   }), { mode: 0o600 });
-  await exec('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-noenc', '-days', '1',
-    '-subj', '/CN=localhost', '-addext', 'subjectAltName=IP:127.0.0.1,DNS:localhost',
-    '-keyout', join(temporary, 'tls.key'), '-out', join(temporary, 'tls.crt')], { timeout: 30000 });
-  await chmod(join(temporary, 'tls.key'), 0o600);
-  const certificate = await readFile(join(temporary, 'tls.crt'));
   // Match the host owner for 0600 read-only bind mounts; group 0 is the image's writable group.
   const uid = process.getuid?.();
   assert.ok(uid && uid > 0, 'Run this local harness as a non-root Unix user');
@@ -188,12 +193,14 @@ try {
     assert.equal((await call('synthetic-org')).status, 401);
     assert.equal((await api.request('/health/ready')).status, 503);
   });
-  await testKeycloakHumanFlow({ issuer, clientSecret: humanClientSecret, subject: humanSubject,
-    username: 'synthetic-human', password: humanPassword, fetch: scopedFetch, check,
-    ...(durable ? { createSessions: async (binding: { issuer: string; clientId: string; redirectUri: string }) => {
-      stage = 'disposable encrypted authentication database initialization';
-      const storage = await createPostgresSessionHarness(binding); closeSessions = storage.close; return storage;
-    } } : {}) });
+  const humanDependencies = { issuer, clientSecret: humanClientSecret, subject: humanSubject,
+    username: 'synthetic-human', password: humanPassword, fetch: scopedFetch, check };
+  const createSessions = async (binding: { issuer: string; clientId: string; redirectUri: string }) => {
+    stage = 'disposable encrypted authentication database initialization';
+    const storage = await createPostgresSessionHarness(binding); closeSessions = storage.close; return storage;
+  };
+  if (browserHarness) await browserHarness.run({ ...humanDependencies, createSessions });
+  else await testKeycloakHumanFlow({ ...humanDependencies, ...(durable ? { createSessions } : {}) });
   console.log(`Keycloak integration: ${passed} checks passed; server 26.7.3; no real user or provider credentials used.`);
 } catch {
   // Do not echo token responses, realm secrets or child-process arguments on failure.
@@ -201,14 +208,18 @@ try {
   process.exitCode = 1;
 } finally {
   try {
-    if (closeSessions) await closeSessions();
+    if (browserHarness) { await browserHarness.close(); console.log('Closed only this run\'s isolated Chromium and HTTPS test servers.'); }
   } finally {
-    if (containerId && /^[a-f0-9]{64}$/.test(containerId)) {
-      assert.equal(await docker('inspect', '--format', '{{index .Config.Labels "steer.integration"}}', containerId), '0013');
-      await docker('stop', '--time', '5', containerId);
+    try {
+      if (closeSessions) await closeSessions();
+    } finally {
+      if (containerId && /^[a-f0-9]{64}$/.test(containerId)) {
+        assert.equal(await docker('inspect', '--format', '{{index .Config.Labels "steer.integration"}}', containerId), '0013');
+        await docker('stop', '--time', '5', containerId);
+      }
+      // temporary is the exact mkdtemp result owned solely by this harness invocation.
+      await rm(temporary, { recursive: true, force: true });
+      console.log('Removed only this run\'s synthetic Keycloak container, data and generated TLS/test credentials.');
     }
-    // temporary is the exact mkdtemp result owned solely by this harness invocation.
-    await rm(temporary, { recursive: true, force: true });
-    console.log('Removed only this run\'s synthetic Keycloak container, data and generated TLS/test credentials.');
   }
 }

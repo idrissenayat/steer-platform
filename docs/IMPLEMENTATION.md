@@ -107,6 +107,15 @@ callbacks across two app instances produce one exchange; logout denies both
 instances. Only test/dev dependencies were added. Browser-engine/real-ingress
 behavior, authoritative membership and operational configuration remain open.
 
+Item `intent/0019` exercises a real isolated Chromium engine against loopback
+HTTPS STEER/Keycloak and encrypted PostgreSQL (`pnpm test:auth:browser`). Seven
+browser groups cover the scoped local certificate exception/negative certificate,
+native login/callback, secure host-only HttpOnly/Lax cookies, cross-site logout
+denial, app/store reconstruction with fresh revocation, replay and native logout.
+The first browser run caught a fixture CSP redirect restriction; the form page
+now explicitly allows the configured IdP origin. No production Next.js screen,
+public CA trust, other browser engine or real membership is claimed by this test.
+
 ## Implemented prototype and kit behavior
 
 - deterministic artifact-chain projection and dropped-event reconciliation;

@@ -253,9 +253,32 @@ the session, wrong-key instances deny, and local logout invalidates both origina
 and reconstructed apps. The twelve provider-only groups and full root checks
 also pass. Evidence: `intent/0018/EVIDENCE.md`; command: `pnpm test:auth:integration`.
 
-Next bounded increment: real browser cookie/TLS/navigation validation against
-the assembled local services, followed by trusted Git-derived membership/runtime
-composition and ingress resource limits. App-object reconstruction in this test
+Chromium cookie/navigation checks were subsequently implemented in 0019 below.
+Next: trusted Git-derived membership/runtime composition and ingress resource
+limits. App-object reconstruction in this test
 is not a browser pass or an OS-process restart. Current grant records remain
 synthetic, public startup remains closed, and M0/Gate 2, independent signatures,
 deployment, release and spending authorization remain separate and unresolved.
+
+## Completed development increment: 0019
+
+Added real isolated Chromium navigation against Node HTTPS, the production Hono
+browser routes, local Keycloak and encrypted PostgreSQL. The browser uses a
+temporary profile and a key-scoped exception for only the generated test TLS
+certificate; a different invalid certificate is rejected. No system trust or
+normal browser settings change. Playwright 1.62.1 is pinned without a dependency
+age-policy exemption.
+
+Seven browser groups pass alongside six existing agent groups: native cross-site
+login, secure host-only HttpOnly/Lax cookie behavior, no callback-query referrer,
+cross-site logout cookie omission and server denial, app/store reconstruction,
+current grant revocation, replay and native logout. A real browser-only fixture
+CSP issue was corrected by allowing the exact configured IdP form destination.
+Root and prior provider/assembled checks remain passing. Evidence: `intent/0019`.
+
+Next bounded increment: compose trusted Git-derived membership with the verified
+identity/session boundary and define fail-closed runtime/ingress limits. Keep
+the actual production Next.js sign-in surface, public configuration and live
+provider writes closed until prerequisites are evidenced. Chromium test forms
+do not complete production UI, other-browser, accessibility, M0 or formal gate
+acceptance. Gate 2's five findings and all approval/spending boundaries remain.
