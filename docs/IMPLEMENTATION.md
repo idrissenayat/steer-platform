@@ -476,6 +476,14 @@ untrusted previous history entry. Reference metadata can persist in a user-copie
 URL/history; source bodies and credentials are never stored there. See
 `intent/0054/EVIDENCE.md` and `docs/AUTHENTICATED-BRIEF-LIBRARY.md`.
 
+Item `intent/0055` adds conservative review ordering to the rendered Brief.
+Whole parsed section groups move without changing source bytes or the selected
+revision. Unknown content stays present; ambiguous/reference-bearing documents
+retain their original order with an explanatory note. No semantic badge, gate
+route, provenance or history is inferred from prose. See `intent/0055/EVIDENCE.md`
+and the authenticated Brief library guide. Governed business actions and trusted
+business-state/history prerequisites remain open, as do all five R5 findings.
+
 ## Local commands
 
 ```sh

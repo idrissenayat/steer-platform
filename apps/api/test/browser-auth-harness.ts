@@ -354,6 +354,9 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         const detail = page.getByRole('dialog', { name: 'Synthetic scoped outcome' }); await detail.waitFor();
         assert.equal(await detail.getByText('Scoped projection test.', { exact: true }).count(), 1);
         assert.equal(await detail.getByRole('heading', { name: 'Open questions', exact: true }).count(), 1);
+        assert.deepEqual(await detail.locator('.brief-markdown h2').allTextContents(), ['Problem', 'Proposed outcome', 'Outcome contract',
+          'Constraints', 'Domain tags', 'Affected users and systems', 'Open questions', 'Additional context']);
+        assert.match((await detail.locator('.brief-reading-note').textContent())!, /sections arranged for review/);
         assert.equal(await detail.locator('script, img, a[href]').count(), 0);
         assert.equal(await page.evaluate(() => Boolean((window as unknown as { __steerBriefUnsafe?: boolean }).__steerBriefUnsafe)), false);
         briefStage = 'dialog keyboard containment';
@@ -366,11 +369,13 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         await detail.getByText('Source revision details', { exact: true }).click();
         assert.ok((await detail.textContent())?.includes(projection.input.revision));
         const directory = process.env.STEER_WORKSPACE_SCREENSHOT_DIR;
+        await detail.locator('.brief-detail-body').evaluate((element) => { element.scrollTop = 0; });
         if (directory) await page.screenshot({ path: join(directory, 'brief-detail-desktop.png') });
         await page.setViewportSize({ width: 390, height: 844 });
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
         assert.equal(await detail.evaluate((element) => element.scrollWidth <= element.clientWidth), true);
         assert.equal(await detail.locator('.brief-detail-body').evaluate((element) => element.scrollWidth <= element.clientWidth), true);
+        await detail.locator('.brief-detail-body').evaluate((element) => { element.scrollTop = 0; });
         if (directory) await page.screenshot({ path: join(directory, 'brief-detail-mobile.png') });
         await detail.locator('.brief-detail-body').evaluate((element) => { element.scrollTop = element.scrollHeight; });
         assert.equal(await detail.locator('.brief-source code').last().evaluate((element) => {

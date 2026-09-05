@@ -26,7 +26,15 @@ to open the exact catalog-selected source revision. Refresh Briefs explicitly
 discards prior state and rediscovers. No repository/path/fingerprint form is
 needed. Large catalogs show 20 of at most 1,000 records per page.
 
-The side panel renders original Markdown as inert content in source order.
+The side panel renders original Markdown as inert content. Increment 0055 arranges
+whole parsed sections in review order: Problem, Proposed outcome, Outcome contract,
+Constraints, Sizing and scoping, Domain tags, Affected users and systems, Open
+questions. Unknown sections follow in original relative order; no content is
+dropped and missing sections are not invented. Source bytes and revision do not change.
+Duplicate known headings, rich-text headings, ambiguous title structure, reference
+definitions (even nested) or structural limits retain the complete original order.
+A reading note explains which presentation is used. This is not a source rewrite
+or evidence of semantic completeness, measurement readiness or gate routing.
 Raw HTML is escaped; links and media are labeled inert text, with no outbound
 navigation or remote media fetching. This deliberately omits source exits until
 their trusted binding and instrumentation exist. The dialog supports keyboard
@@ -64,11 +72,11 @@ schema and selected tuple. Neither establishes that Git has remained unchanged.
 
 No lifecycle state, human signature, title/outcome for unloaded cards, provenance
 or metrics are invented. Pull/decline/merge/questions are not connected. Exact
-reference navigation is implemented in 0054; judgment-order presentation,
-history/provenance, source exits/instrumentation, lifecycle actions and qualified manual accessibility
+reference navigation is implemented in 0054 and conservative judgment-order
+presentation in 0055. History/provenance, source exits/instrumentation, lifecycle actions and qualified manual accessibility
 review remain open under intent/0003 and Phase 1. Five R5 Gate 2 findings remain
 open; no protected Exam, gate, spending, release or deployment authority changes.
 
-Implementation and evidence: intent/0053 and intent/0054. Related: BRIEF-CATALOG.md,
+Implementation and evidence: intent/0053, intent/0054 and intent/0055. Related: BRIEF-CATALOG.md,
 AUTHENTICATED-BRIEF-READS.md, AUTHENTICATED-WORKSPACE.md,
 PHASE-1-DELIVERY.md and the original intent/0003/SPEC.md.

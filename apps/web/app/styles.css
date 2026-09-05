@@ -177,6 +177,7 @@ button:focus-visible, .access-footer a:focus-visible { outline: .2rem solid var(
 .brief-detail-header button { width: auto; min-width: 6.5rem; padding: .5rem .8rem; }
 .brief-detail-body { padding: 1.5rem; overflow: auto; min-height: 0; overflow-wrap: anywhere; }
 .brief-markdown { line-height: 1.7; }
+.brief-reading-note { font-size: .8rem; color: var(--steer-muted); padding-bottom: .8rem; border-bottom: 1px solid var(--steer-border); }
 .brief-markdown h1 { font-size: 1.7rem; max-width: none; }
 .brief-markdown h2 { font-size: 1.35rem; margin-top: 1.8rem; }
 .brief-markdown h3 { font-size: 1.15rem; }

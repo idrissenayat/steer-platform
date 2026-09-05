@@ -972,3 +972,20 @@ without losing unknown/duplicate source content, then trusted business-state and
 lifecycle prerequisites. Automatic post-provider-login return-to-link, governed
 actions, qualified manual review and five R5 findings remain open. No provider,
 signature, spending, production data, deployment or release authority is added.
+
+## Completed development increment: 0055
+
+Known Brief sections now follow the review sequence using whole parsed nodes;
+source bytes, exact revision and every unknown section are retained. Ambiguous
+headings, reference definitions and exceeded structural limits keep original
+order. A reading note explains the presentation. Sizing and scoping follows
+Constraints; missing content, semantic badges, routes and authority are not invented.
+
+Actual browser checks confirm DOM order through synthetic Git/PostgreSQL and
+Keycloak. Native renderer tests cover preservation and conservative fallback;
+desktop/mobile layout is inspected. Final verification: intent/0055/EVIDENCE.md.
+Next: trusted business-state and lifecycle prerequisites, including the five
+targeted M0 findings; do not mistake additional read-only UI for their closure.
+Automatic post-login link restoration, provenance/history, governed actions,
+qualified manual review and operational/pilot evidence remain open. No provider,
+signature, spending, production data, deployment or release authority is added.
