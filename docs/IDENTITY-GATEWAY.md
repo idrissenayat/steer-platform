@@ -17,7 +17,8 @@ start either process, load profiles/secrets or establish TLS.
 - /auth/, /v1/, /health/ and /openapi.json go to the identity service unchanged.
 - GET / and allowlisted /_next/static/ assets go to the fixed renderer.
 - Page/asset queries, other paths and non-GET rendering are rejected.
-- Anonymous/static renderer requests carry only a constructed Accept header.
+- Static renderer requests carry only a constructed Accept header. Root requests
+  also receive the gateway-generated nonce CSP introduced in increment 0048.
   Increment 0029 adds a strict, verified session display header for signed-in root
   rendering only; browser-supplied versions of that header are discarded. Browser cookies,
   bearer/Host/forwarded/referrer headers, query strings and bodies never cross.
@@ -32,8 +33,9 @@ The reader checks monotonic time to prevent immediate-chunk timer starvation.
 Cancellation is verified against real Node HTTP sockets; it is not a claim about
 an arbitrary transport that ignores AbortSignal or a universal process deadline.
 
-Successful rendered responses are no-store/nosniff, use same-origin referrers
-and disallow scripts. CSP permits self CSS/connect and self plus the exact issuer
+Successful rendered responses are no-store/nosniff and use same-origin referrers.
+Increment 0048 permits nonce-marked root scripts under strict-dynamic, with inline
+handlers denied; static/error responses still deny scripts. CSP permits self CSS/connect and self plus the exact issuer
 origin for forms. Identity responses are untouched, including the callback's
 no-referrer policy. This preserves native POST Origin while preventing the
 authorization callback URL from leaking into root navigation.
@@ -50,8 +52,9 @@ This factory is not a complete production server. Trusted profile/secret loading
 public TLS/ingress and socket supervision remain separate. The outer listener
 must stop admission and coordinate gateway requests, identity resources and the
 renderer process; the gateway does not own those dependencies or claim readiness.
-Default CLI startup remains closed/unconfigured. No hydration/nonces, SSE,
-authenticated workspace, real membership or gate acceptance is implied.
+Default CLI startup remains closed/unconfigured. The nonce-script prerequisite
+is documented in docs/NONCE-SCRIPT-BOUNDARY.md. SSE, full operating surfaces,
+real membership and gate acceptance remain separate requirements.
 
 Development artifacts and verification: `intent/0027/`.
 

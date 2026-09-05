@@ -61,10 +61,14 @@ export function createIdentityGateway(configuration: { publicOrigin: string; ren
     const deadline = performance.now() + RENDER_TIMEOUT_MS;
     let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
     try {
+      // A fresh request nonce is authority generated here, never copied from browser headers.
+      // Dynamic Next.js rendering extracts it from the private request CSP and marks its scripts.
+      const nonce = path === '/' ? btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(24)))) : undefined;
+      const policy = `default-src 'none'; ${nonce ? `script-src 'nonce-${nonce}' 'strict-dynamic'; script-src-attr 'none'; ` : ''}style-src 'self'; connect-src 'self'; form-action 'self' ${issuerOrigin}; base-uri 'none'; frame-ancestors 'none'`;
       // No spreading Request/headers: fixed authority, no query, cookies, bearer, Host or forwarded headers.
       const response = await transport(`${rendererOrigin}${path}`, { method: 'GET', credentials: 'omit',
         redirect: 'error', cache: 'no-store', referrerPolicy: 'no-referrer', signal: controller.signal,
-        headers: { accept: path === '/' ? 'text/html' : types[match![1]!]!, ...(viewHeader ? { 'x-steer-session-view': viewHeader } : {}) } });
+        headers: { accept: path === '/' ? 'text/html' : types[match![1]!]!, ...(nonce ? { 'content-security-policy': policy } : {}), ...(viewHeader ? { 'x-steer-session-view': viewHeader } : {}) } });
       const expectedType = path === '/' ? 'text/html' : types[match![1]!]!;
       const contentType = response.headers.get('content-type')?.split(';')[0]?.trim().toLowerCase();
       if (response.status !== 200 || response.redirected || contentType !== expectedType || !response.body) {
@@ -87,7 +91,7 @@ export function createIdentityGateway(configuration: { publicOrigin: string; ren
       for (const chunk of chunks) { body.set(chunk, offset); offset += chunk.byteLength; }
       return new Response(body, { headers: { 'content-type': expectedType + (path === '/' || match?.[1] === 'css' || match?.[1] === 'js' ? '; charset=utf-8' : ''),
         'cache-control': 'no-store', 'referrer-policy': 'same-origin', 'x-content-type-options': 'nosniff',
-        'content-security-policy': `default-src 'none'; style-src 'self'; connect-src 'self'; form-action 'self' ${issuerOrigin}; base-uri 'none'; frame-ancestors 'none'`,
+        'content-security-policy': policy,
       } });
     } catch { return fail(request.signal.aborted ? 408 : 502); }
     finally {

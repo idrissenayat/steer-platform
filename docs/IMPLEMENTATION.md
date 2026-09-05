@@ -414,6 +414,12 @@ cache after committed revocation and reloads after restored synthetic access.
 No browser transport, timer, UI or durable client cache is enabled. See
 `docs/PROJECTION-CONSUMER.md`.
 
+Item `intent/0048` adds gateway-owned per-page CSP nonces for the already-dynamic
+Next.js root. Actual Chromium verifies framework execution, nonce freshness and
+blocked forged parser-inserted scripts/handlers. Existing forms, authentication,
+revocation and accessibility checks pass. This is a script-execution prerequisite,
+not full interactive work surfaces. See `docs/NONCE-SCRIPT-BOUNDARY.md`.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.

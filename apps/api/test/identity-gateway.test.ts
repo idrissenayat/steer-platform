@@ -17,23 +17,42 @@ test('gateway validates fixed HTTPS public/issuer and explicit loopback-only ren
     assert.throws(() => createIdentityGateway({ ...configuration, issuer }, { identity }));
 });
 
-test('renderer sees only fixed public path and Accept, never browser credentials or upstream security headers', async () => {
-  let calls = 0;
+test('renderer sees fixed path and generated CSP, never browser credentials or spoofed security headers', async () => {
+  let calls = 0; let policy: string | null = null;
   const gateway = createIdentityGateway(configuration, { identity, fetch: async (input, init) => {
     calls++; assert.equal(input, `${configuration.rendererOrigin}/`);
-    assert.deepEqual([...new Headers(init?.headers)], [['accept', 'text/html']]);
+    const headers = new Headers(init?.headers); policy = headers.get('content-security-policy');
+    assert.deepEqual([...headers.keys()], ['accept', 'content-security-policy']);
+    assert.match(policy!, /script-src 'nonce-[A-Za-z0-9+/]{32}' 'strict-dynamic'/);
     assert.equal(init?.credentials, 'omit'); assert.equal(init?.redirect, 'error');
     assert.equal(init?.method, 'GET'); assert.equal(init?.body, undefined);
     return new Response('<h1>STEER</h1>', { headers: { 'content-type': 'text/html', 'set-cookie': 'renderer=unsafe',
       location: 'https://untrusted.example', 'access-control-allow-origin': '*', 'content-security-policy': "script-src *" } });
   } });
   const response = await gateway.fetch(request('/', { headers: { cookie: 'secret=value', authorization: 'Bearer secret',
-    host: 'untrusted.example', 'x-forwarded-host': 'untrusted.example', referer: 'https://steer.example/auth/callback?code=secret' } }));
+    host: 'untrusted.example', 'x-forwarded-host': 'untrusted.example', referer: 'https://steer.example/auth/callback?code=secret',
+    'x-nonce': 'attacker', 'content-security-policy': "script-src 'unsafe-inline'" } }));
   assert.equal(response.status, 200); assert.equal(calls, 1); assert.equal(await response.text(), '<h1>STEER</h1>');
   for (const header of ['set-cookie', 'location', 'access-control-allow-origin']) assert.equal(response.headers.get(header), null);
   assert.equal(response.headers.get('referrer-policy'), 'same-origin');
   assert.equal(response.headers.get('cache-control'), 'no-store');
-  assert.equal(response.headers.get('content-security-policy'), "default-src 'none'; style-src 'self'; connect-src 'self'; form-action 'self' https://identity.example; base-uri 'none'; frame-ancestors 'none'");
+  assert.equal(response.headers.get('content-security-policy'), policy);
+  assert.ok(!policy!.includes('unsafe-inline')); assert.ok(!policy!.includes('unsafe-eval')); assert.ok(!policy!.includes('attacker'));
+});
+
+test('every rendered page gets a distinct unpredictable nonce and static/error responses keep script denial', async () => {
+  const gateway = createIdentityGateway(configuration, { identity, fetch: async (input, init) => {
+    const headers = new Headers(init?.headers);
+    if (String(input).endsWith('.js')) { assert.equal(headers.get('content-security-policy'), null); return new Response('void 0', { headers: { 'content-type': 'application/javascript' } }); }
+    return page();
+  } });
+  const policies = await Promise.all(Array.from({ length: 32 }, async () => (await gateway.fetch(request())).headers.get('content-security-policy')!));
+  const nonces = policies.map((policy) => /'nonce-([A-Za-z0-9+/]{32})'/.exec(policy)?.[1]);
+  assert.ok(nonces.every(Boolean)); assert.equal(new Set(nonces).size, 32);
+  const asset = await gateway.fetch(request('/_next/static/chunks/synthetic.js'));
+  assert.equal(asset.status, 200); assert.ok(!asset.headers.get('content-security-policy')!.includes('nonce-'));
+  const denied = await gateway.fetch(request('/invalid'));
+  assert.equal(denied.status, 404); assert.equal(denied.headers.get('content-security-policy'), "default-src 'none'; frame-ancestors 'none'");
 });
 
 test('canonical origin, query, path and method rejection makes no renderer or identity calls', async () => {

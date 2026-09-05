@@ -847,3 +847,22 @@ Next: browser transport and safe production UI hydration/binding, then full
 operating models/surfaces. Canonical gate source/proof verification, five R5
 findings and remaining formal/manual/operational evidence stay open. Continue
 authorized increments without new live provider, signature or spending authority.
+
+## Completed development increment: 0048
+
+The gateway now generates a fresh random page nonce and supplies its exact CSP
+to the private dynamic Next.js renderer and browser response. Framework scripts
+execute under that policy; forged parser-inserted scripts and inline handlers
+are rejected. Browser-supplied nonces/policies and renderer response security
+headers remain untrusted. Static/error responses retain script denial.
+
+Native isolation/nonce tests and all 28 actual authentication/browser groups
+pass. A read-only fixture honors Retry-After following its rapid hydrated reloads;
+production rate limits and mutation retry behavior were not loosened. Evidence:
+intent/0048/EVIDENCE.md; guide: docs/NONCE-SCRIPT-BOUNDARY.md.
+
+Next: bounded browser transport and reference-consumer UI binding, then full
+operating models/screens. Audit future dynamic script sinks and measure capacity;
+no blanket XSS or production-readiness claim is made. Five R5 findings, canonical
+gate proof and formal/manual/operational requirements remain open. Continue safe
+implementation without implying new provider, signature or spending authority.

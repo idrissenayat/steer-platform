@@ -5,6 +5,7 @@ import { execFile } from 'node:child_process';
 import { chmod, readFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
+import { setTimeout as delay } from 'node:timers/promises';
 import { getRequestListener } from '@hono/node-server';
 import { chromium, type Browser } from 'playwright';
 import type { AuthorizationRecord } from '@steer/adapters/identity';
@@ -119,8 +120,16 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         mcp: { clientIds: [deps.agent.clientId] },
         sessions: { store: storage.store, binding: { issuer, clientId: configuration.clientId, redirectUri: configuration.redirectUri }, shutdown: storage.shutdown } };
       api = createIdentityService(configuration, dependencies);
+      let injectCspProbe = false;
       const bindGateway = (rendererOrigin: string) => createIdentityGateway({ publicOrigin: origin, rendererOrigin, issuer },
-        { identity: { fetch: (request) => api!.fetch(request) } });
+        { identity: { fetch: (request) => api!.fetch(request) }, fetch: async (input, init) => {
+          const response = await fetch(input, init);
+          if (!injectCspProbe || new URL(String(input)).pathname !== '/') return response;
+          // Test-only parser-inserted probes. Dynamic injection by trusted scripts is
+          // deliberately allowed by strict-dynamic and is not an untrusted HTML test.
+          const body = (await response.text()).replace('</body>', '<script id="synthetic-csp-script" nonce="forged-nonce">window.__steerUnsafeScript = true</script><button id="synthetic-csp-handler" onclick="window.__steerUnsafeHandler = true">Synthetic CSP probe</button></body>');
+          return new Response(body, { status: response.status, headers: response.headers });
+        } });
       gateway = bindGateway(web.rendererOrigin);
       const services = [api];
       await check('combined HTTPS gateway serves a real agent PostgreSQL artifact query with current Git authority', async () => {
@@ -182,7 +191,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
       const tool = () => page.evaluate(async () => {
         const response = await fetch('/v1/tools/session.context', { method: 'POST',
           headers: { 'content-type': 'application/json' }, body: JSON.stringify({ organizationId: 'synthetic-org' }) });
-        return { status: response.status, data: await response.json() };
+        return { status: response.status, retryAfter: response.headers.get('retry-after'), data: await response.json() };
       });
       await check('Chromium trusts only the generated test key and rejects an unrelated invalid certificate', async () => {
         const badPage = await context.newPage();
@@ -191,7 +200,34 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         assert.equal(await page.title(), 'STEER · Phase 1 foundation');
         assert.equal(await page.getByRole('heading', { name: 'Welcome to STEER.' }).count(), 1);
       });
-      await check('actual Next.js native sign-in page preserves responsive layout and keyboard access without page scripts', async () => {
+      await check('actual Next.js scripts use fresh gateway nonces while forged inline scripts and handlers are blocked', async () => {
+        const response = await page.goto(origin); assert.ok(response);
+        const policy = (await response.allHeaders())['content-security-policy']!;
+        const nonce = /'nonce-([A-Za-z0-9+/]{32})'/.exec(policy)?.[1]; assert.ok(nonce);
+        assert.ok(!policy.includes('unsafe-inline')); assert.ok(!policy.includes('unsafe-eval'));
+        const scripts = await page.locator('script').evaluateAll((elements) => elements.map((element) => (element as HTMLScriptElement).nonce));
+        assert.ok(scripts.length > 0); assert.ok(scripts.every((value) => value === nonce));
+        await page.waitForFunction(() => Array.isArray((window as unknown as { __next_f?: unknown }).__next_f));
+        await page.addInitScript(() => {
+          const state = window as unknown as { __steerCspViolations: string[] }; state.__steerCspViolations = [];
+          document.addEventListener('securitypolicyviolation', (event) => { state.__steerCspViolations.push(event.effectiveDirective); });
+        });
+        injectCspProbe = true;
+        try {
+          await page.reload(); await page.locator('#synthetic-csp-handler').click();
+          await page.waitForFunction(() => {
+          const events = (window as unknown as { __steerCspViolations: string[] }).__steerCspViolations;
+          return events.includes('script-src-elem') && events.includes('script-src-attr');
+          });
+          assert.deepEqual(await page.evaluate(() => {
+          const state = window as unknown as { __steerUnsafeScript?: boolean; __steerUnsafeHandler?: boolean };
+          return [Boolean(state.__steerUnsafeScript), Boolean(state.__steerUnsafeHandler)];
+          }), [false, false]);
+        } finally { injectCspProbe = false; }
+        const next = await page.reload(); assert.ok(next);
+        assert.notEqual(/'nonce-([A-Za-z0-9+/]{32})'/.exec((await next.allHeaders())['content-security-policy']!)?.[1], nonce);
+      });
+      await check('actual Next.js native sign-in page preserves responsive layout and keyboard access with nonce-controlled scripts', async () => {
         await page.setViewportSize({ width: 1440, height: 1000 });
         await page.goto(origin);
         const signIn = page.getByRole('button', { name: 'Sign in', exact: true });
@@ -370,7 +406,14 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         const response = page.waitForResponse((value) => value.url() === `${origin}/auth/logout`);
         await page.getByRole('button', { name: 'Sign out', exact: true }).click();
         assert.equal((await response).status(), 303);
-        await page.waitForURL(`${origin}/`, { waitUntil: 'load' }); assert.equal((await tool()).status, 401);
+        await page.waitForURL(`${origin}/`, { waitUntil: 'load' });
+        // Hydrated reloads load real framework assets and can exhaust the fixed burst.
+        // Respect bounded Retry-After for this read-only assertion; never replay logout.
+        let afterLogout = await tool();
+        for (let attempt = 0; afterLogout.status === 429 && attempt < 3; attempt++) {
+          assert.equal(afterLogout.retryAfter, '1'); await delay(1000); afterLogout = await tool();
+        }
+        assert.equal(afterLogout.status, 401);
         assert.equal((await storage.counts()).sessions, 0);
         assert.equal((await context.cookies(origin)).filter((cookie) => cookie.name.startsWith('__Host-steer-')).length, 0);
       });
