@@ -552,6 +552,16 @@ mandatory. This offline audit does not authorize corpus use or spending. Other
 cost/spend/recovery timing and independent/protected review remain open. See
 `intent/0063/SPEC.md` and `intent/0063/EVIDENCE.md`.
 
+Item `intent/0064` adds explicit-time audit composition for the remaining cost
+modes and spending-decision evidence. Every authorization link/nested provider
+proof, consumer, replay/head/reservation and cost/provider row is checked, with
+independent exact-byte observation. Forecast/spend requires current authority;
+invoice/aggregate remains a historical audit. Replay cannot bypass reservation
+time checks. Success is VERIFIED with executionAuthorized false, never a payment
+or executable authorization. The original arithmetic/lineage semantics remain
+mandatory; full money runtime semantics and recovery/other public timing remain
+open. See `intent/0064/SPEC.md` and `intent/0064/EVIDENCE.md`.
+
 ## Local commands
 
 ```sh

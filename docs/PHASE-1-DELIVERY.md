@@ -1123,3 +1123,23 @@ by complete lifecycle/migration normative coverage and independent review. The
 legacy observation-time interpretation itself remains subject to that review.
 All five R5 findings remain formally open. No production corpus use, spending,
 provider access, protected edit, signature, deployment or release is authorized.
+
+## Completed development increment: 0064 — remaining money time composition
+
+Forecast, invoice, aggregate and spending-decision evidence now consume 0058
+explicit-time verification for every signature, including every authorization
+chain provider proof and replay/head/reservation. Independent exact-byte
+observation binds the full code-derived inventory. Spend/forecast needs current
+authority; historical invoice/aggregate audit is distinct from new spending.
+Replay cannot skip reservation timing/currentness. Accepted evidence reports
+VERIFIED and executionAuthorized false, with zero effects.
+
+The selected 20 spend and 28 non-reconciliation cost cases, old-accept/new-deny
+counterexamples, all time/signature slots, permutations, full 64-item boundaries
+and real signed overflow graphs are tested. See intent/0064/EVIDENCE.md.
+
+Next: recovery and other-public-oracle timing inventory, then full lifecycle/
+migration normative coverage and complete-package independent/protected review.
+This does not prove stored replay-result bytes or live atomic spending, and the
+legacy observed-as-of rule still needs review. All five R5 findings remain open.
+No spending, provider access, protected edit, signature, deployment or release.

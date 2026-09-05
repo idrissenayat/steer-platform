@@ -38,7 +38,7 @@ and exact-reference Brief navigation (0054), with review-ordered reading (0055),
 Unicode-phone privacy (0056), multi-line cost (0057) and full human-authority
 (0058), closed lifecycle-event/history (0059) and shared protected-action
 (0060), composed lifecycle evidence (0061), composed migration evidence (0062)
-and explicit-time privacy/reconciliation evidence (0063)
+and explicit-time privacy/reconciliation (0063) and remaining money evidence (0064)
 correction candidates, are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
@@ -115,6 +115,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0061 · Composed lifecycle candidate | `intent/0061/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | full human/event/shared-action checks on every copy and tombstone, authoritative inventory/holds, exact receipts and raw deadline | full retention matrix/registry coverage, migration, remaining timing and independent/protected review |
 | 0062 · Composed migration candidate | `intent/0062/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | approved plan/state, actual bounded transformation and preserved source bytes, backup/restore, full cleanup and shared authorization | full compatibility/concurrency/checkpoint matrix, remaining timing, live atomic execution and independent/protected review |
 | 0063 · Privacy/reconciliation time candidate | `intent/0063/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | explicit trusted clock, every record/nested proof timed, independent exact-byte observation, original Unicode/plural-lineage checks | other public-oracle timing, legacy observation semantics review, normative matrices and independent/protected acceptance |
+| 0064 · Remaining money time candidate | `intent/0064/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | all remaining cost/spend signatures and nested proofs timed; current authority versus historical audit; exact observation; no execution authority | recovery/other public timing, complete normative/runtime money evidence and independent/protected review |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier
