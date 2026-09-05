@@ -5,6 +5,7 @@ import { createProtectedActionVerifier, manifestBytes, manifestDigest } from '..
 import { jcs, sha256, TRUST_REGISTRY, TARGET_REVISION, TARGET_EXAM_SHA, AUTHORIZATION_POLICY_BYTES, AUTHORIZATION_POLICY_PATH, AUTHORIZATION_POLICY_SHA, zeroEffects } from '../intent/0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
 import { authorizationDecision } from '../intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs';
 import { makeAuthorizationBundle } from '../intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs';
+import { exactInstant, formatExactInstant } from '../intent/0069/exact-time.candidate.mjs';
 
 // Synthetic keys remain private to this test module. No real credential is read.
 const signFixture = (input, domain) => {
@@ -66,6 +67,23 @@ const rejected = (value, expectedVerifier = value.verifier, now = evaluation) =>
   const result = expectedVerifier.verify(value.bytes, now);
   assert.deepEqual(result, { decision: 'DENY', firstError: 'PROTECTED_ACTION_INVALID', effects: zeroEffects() });
 };
+
+test('0070: every shared action uses exact lifetime limits and earliest-expiry ordering', () => {
+  for (let index = 0; index < definitions.length; index++) {
+    const value = fixture(index, {
+      resources: (record) => { record.validThrough = '2026-09-04T12:00:50Z'; },
+      request: (record) => { record.validThrough = '2026-09-04T12:00:50.000000001Z'; },
+    });
+    const result = value.verifier.verify(value.bytes, evaluation);
+    assert.equal(result.decision, 'AUTHORIZED_CANDIDATE');
+    assert.equal(result.validThrough, '2026-09-04T12:00:50Z');
+    rejected(value, value.verifier, '2026-09-04T12:00:50Z');
+    assert.equal(value.verifier.verify(value.bytes, '2026-09-04T12:00:49.999999999Z').decision, 'AUTHORIZED_CANDIDATE');
+    const exact = fixture(index, { upstream: (record) => { record.validThrough = formatExactInstant(exactInstant(record.recordedAt) + 300000000000n); } });
+    assert.equal(exact.verifier.verify(exact.bytes, evaluation).decision, 'AUTHORIZED_CANDIDATE');
+    rejected(fixture(index, { upstream: (record) => { record.validThrough = formatExactInstant(exactInstant(record.recordedAt) + 300000000001n); } }));
+  }
+});
 
 test('one successor verifier covers the prior Exam action and all six omitted lifecycle/migration actions', () => {
   assert.equal(definitions.length, 7);

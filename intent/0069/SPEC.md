@@ -37,7 +37,7 @@ public lifecycleBoundary delegates to exactRetentionBoundary. Policy digests
 change; existing signed candidate envelopes are not silently upgraded. Frozen
 source files, trust registries, protected Exams and signatures remain unchanged.
 
-## Deliberate compatibility boundary
+## Deliberate compatibility boundary at 0069 delivery
 
 This does NOT replace all whole-second business parsers or frozen schemas. The
 composed lifecycle still rejects fractional event/evaluation evidence through
@@ -45,6 +45,11 @@ those existing guards. It does not round fractional inputs into valid legacy
 evidence. Whole-second composed fixtures continue to work. End-to-end adoption
 needs a separately explicit successor schema/time contract and all native/as-of,
 freshness, authority, replay and receipt comparisons checked at exact precision.
+
+Increment 0070 subsequently supplies that explicit schema/comparison adoption
+for the human/event/shared-action/lifecycle path. The original public audit and
+migration paths retain their separate business-time requirements; this primitive
+still does not imply universal precision adoption or future-key authority.
 
 The helper also does NOT make an expired historical key current. An old proof
 cannot pass a future audit merely because a fresh key exists. Tests use isolated

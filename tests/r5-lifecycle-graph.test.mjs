@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 import { createLifecycleGraphVerifier, lifecycleBoundary, policyDigest } from '../intent/0061/lifecycle-graph.candidate.mjs';
 import { humanAuthorityBindingDigest } from '../intent/0058/human-authority.candidate.mjs';
 import { manifestBytes, manifestDigest } from '../intent/0060/protected-actions.candidate.mjs';
+import { exactInstant, formatExactInstant } from '../intent/0069/exact-time.candidate.mjs';
 import { makeHumanAuthorityBundle, makeLifecycleEventBytes, makeLifecycleGraph } from '../intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs';
 import { lifecycleGraphDecision as frozen } from '../intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs';
 import { jcs, sha256, TRUST_REGISTRY, TARGET_REVISION, TARGET_EXAM_SHA, AUTHORIZATION_POLICY_PATH, AUTHORIZATION_POLICY_SHA, AUTHORIZATION_POLICY_BYTES, RETENTION_POLICY_SHA, zeroEffects } from '../intent/0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
@@ -23,7 +24,8 @@ const target = { examRevision: TARGET_REVISION, examDigest: TARGET_EXAM_SHA, imp
 
 // All keys and signing helpers are synthetic and private to this test file.
 function fixture(options = {}) {
-  const evaluatedAt = options.evaluationTime ?? evaluation, offset = options.offset ?? 0;
+  const at = (seconds) => formatExactInstant(BigInt(epoch) * 1000000n + BigInt(seconds) * BigInt(options.tickNanoseconds ?? 1000000000) + BigInt(options.nanoseconds ?? 0));
+  const evaluatedAt = options.evaluationTime ?? at(50), until = at(150), offset = options.offset ?? 0;
   const edits = options.edits ?? {}, edit = (key, value) => { edits[key]?.(value); return value; };
   const config = { version: 'steer-lifecycle-context/v1', implementationRevision: target.implementationRevision, repositoryId: scope.repositoryId, installationId: scope.installationId,
     recordId: 'record-1', recordClass: options.recordClass ?? 'RC-REBUILDABLE', artifactRevision: 'b'.repeat(40), environmentId: null,
@@ -133,7 +135,7 @@ function fixture(options = {}) {
     provider: 'fixture-provider-a', resourceDomain: 'provider-a', resources: { objectId: config.recordId, recordClass: config.recordClass, inventoryDigest: inventory.recordDigest,
       tupleDigest, aggregateReceiptDigest: aggregate.recordDigest, path: config.tombstonePath }, authorityEvidenceDigest: full.authority.recordDigest, inputDigest: baseDigest };
   graph.tombstone = { humanBundleBytes: full.bytes, ...action('tombstone', grant, full.authority, 35 + offset) };
-  edit('graph', graph); return { graph, config, configBytes, bytes: jcs(graph), verifier: createLifecycleGraphVerifier(configBytes) };
+  edit('graph', graph); return { graph, config, configBytes, evaluationTime: evaluatedAt, bytes: jcs(graph), verifier: createLifecycleGraphVerifier(configBytes) };
 }
 const denied = (value, now = evaluation) => assert.deepEqual(value.verifier.verify(value.bytes, now), { state: 'blocked', firstError: 'LIFECYCLE_GRAPH_INVALID', effects: zeroEffects() });
 
@@ -231,10 +233,52 @@ test('calendar retention bounds, future scheduling, immutable retention and malf
   for (const bytes of [value.bytes + ' ', '{}', 'x'.repeat(16777217)]) denied({ ...value, bytes });
   assert.equal(value.verifier.verify(value.bytes).state, 'blocked');
   denied(value, '2027-09-01T00:00:00Z');
-  // Exact key/calendar primitives do not silently enable fractional signed
-  // graphs through the legacy whole-second event and business schemas.
+  // Changing only the evaluation instant does not replace the exact clock
+  // binding in the complete human evidence bundle.
   denied(value, '2026-09-04T12:00:50.000000001Z');
   for (const field of ['casWinner', 'authorizationDecision', 'trustRegistryBytes', 'evaluationTime']) denied({ ...value, bytes: jcs({ ...value.graph, [field]: true }) });
+});
+
+test('0070: complete lifecycle, human and shared action paths preserve nanosecond chronology', () => {
+  for (const recordClass of ['RC-REBUILDABLE', 'RC-CORPUS-RAW-WORKING']) for (const replay of [false, true]) {
+    for (const options of [{ nanoseconds: 123456789 }, { tickNanoseconds: 1 }]) {
+      const value = fixture({ recordClass, replay, ...options }), before = value.bytes;
+      const result = value.verifier.verify(value.bytes, value.evaluationTime);
+      assert.equal(result.state, 'validated-lifecycle-candidate', JSON.stringify({ recordClass, replay, options, result }));
+      assert.equal(result.protectedActionCount, 3); assert.equal(result.replayCount, replay ? 3 : 0);
+      assert.deepEqual(result.effects, zeroEffects()); assert.equal(value.bytes, before);
+    }
+  }
+});
+
+test('0070: one-nanosecond late raw erasure and premature parent-capped actions deny', () => {
+  const options = { recordClass: 'RC-CORPUS-RAW-WORKING', nanoseconds: 1, offset: 41, evaluationTime: '2026-09-04T12:01:30.000000001Z' };
+  const exact = fixture(options); assert.equal(exact.verifier.verify(exact.bytes, exact.evaluationTime).state, 'validated-lifecycle-candidate');
+  const late = fixture({ ...options, edits: { 'copy-2:receipt': (record) => { record.recordedAt = formatExactInstant(exactInstant(record.recordedAt) + 1n); } } });
+  denied(late, late.evaluationTime);
+  for (const [capNs, expected] of [[15n, 'validated-lifecycle-candidate'], [16n, 'blocked']]) {
+    const value = fixture({ recordClass: 'RC-CORPUS-DERIVED-TEXT', eventType: 'run-terminal', tickNanoseconds: 1,
+      edits: { state: (state) => { state.parentExpiryAt = formatExactInstant(BigInt(epoch) * 1000000n + capNs); } } });
+    assert.equal(value.verifier.verify(value.bytes, value.evaluationTime).state, expected);
+  }
+});
+
+test('0070: fractional event, inventory, identity and receipt mutations cannot use rounded chronology', () => {
+  const changes = [
+    ['event-1', (record) => { record.occurredAt = '2026-09-04T12:00:00.000000001Z'; }],
+    ['inventory', (record) => { record.recordedAt = '2026-09-04T12:00:00.000000003Z'; }],
+    ['copy-1:human', (record) => { record.authenticatedAt = '2026-09-04T12:00:00.000000006Z'; }],
+    ['copy-1:reservation', (record) => { record.recordedAt = '2026-09-04T12:00:00.000000015Z'; }],
+    ['copy-1:receipt', (record) => { record.recordedAt = '2026-09-04T12:00:00.000000017Z'; }],
+    ['aggregate', (record) => { record.recordedAt = '2026-09-04T12:00:00.000000019Z'; }],
+    ['tombstone:human', (record) => { record.decidedAt = '2026-09-04T12:00:00.000000024Z'; }],
+  ];
+  for (const [name, change] of changes) {
+    const value = fixture({ tickNanoseconds: 1, edits: { [name]: change } }); denied(value, value.evaluationTime);
+  }
+  for (const bad of ['2026-09-04T12:00:00.1Z', '2026-02-29T12:00:00.000000001Z', '2026-09-04T12:00:00.0000000001Z']) {
+    const value = fixture({ edits: { 'event-2': (event) => { event.occurredAt = bad; } } }); denied(value);
+  }
 });
 
 // Expected boundaries come from the signed records policy, not the code under

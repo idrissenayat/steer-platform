@@ -5,7 +5,9 @@ Adds BigInt nanosecond instants and calendar retention arithmetic. The shared
 rounding; 0061's public boundary helper preserves fractions and exact parent caps.
 
 This is a precision foundation, not end-to-end fractional-time enablement or
-archival authority. Legacy event/business schemas still reject unsupported
-fractional inputs. No frozen trust windows or records are changed.
+archival authority. At 0069 delivery, legacy event/business checks still rejected
+fractional inputs. Increment 0070 subsequently adopts explicit precision schemas
+and comparisons for the human/event/action/lifecycle path; other paths remain
+separate. No frozen trust windows or records are changed.
 
 Read BRIEF, SPEC, PLAN, development ACCEPTANCE and EVIDENCE. Gate 2 stays open.

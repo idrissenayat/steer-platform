@@ -1,14 +1,15 @@
 // Complete-binding successor candidate; no frozen oracle, Exam or live route is changed.
 import { readFileSync } from 'node:fs';
-import { compileOffline } from '../0001/reviews/domain/round-3/remediation/offline-schema-registry.candidate.mjs';
+import { compilePreciseSchema, schemaPolicyDigest } from '../0070/precision-schemas.candidate.mjs';
+import { exactInstant as strictTime } from '../0069/exact-time.candidate.mjs';
 import { AUTHORIZATION_POLICY_BYTES, AUTHORIZATION_POLICY_PATH, AUTHORIZATION_POLICY_SHA, RETENTION_POLICY_BYTES,
   RETENTION_POLICY_PATH, RETENTION_POLICY_SHA, TARGET_REVISION, TARGET_EXAM_SHA,
-  exactKeys, jcs, parseCanonical, sha256, strictTime, zeroEffects } from '../0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
+  exactKeys, jcs, parseCanonical, sha256, zeroEffects } from '../0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
 import { createTimedRecordVerifier } from './record-verifier.candidate.mjs';
 
 const registryBytes = jcs(JSON.parse(readFileSync(new URL('../0001/reviews/domain/round-3/remediation/TRUST-REGISTRY.candidate.json', import.meta.url), 'utf8')));
 const verifier = createTimedRecordVerifier(registryBytes);
-const schema = compileOffline('HUMAN-AUTHORITY.schema.json');
+const schema = compilePreciseSchema('HUMAN-AUTHORITY.schema.json');
 const fields = ['authorityBytes', 'providerProofBytes', 'identityEvidenceBytes', 'qualificationEvidenceBytes', 'assignmentEvidenceBytes',
   'inventoryBytes', 'authorizationPolicyBytes', 'retentionPolicyBytes', 'replayLedgerBytes', 'casHeadBytes', 'casReservationBytes', 'evaluationTime'];
 const excluded = new Set(['providerProofDigest', 'recordDigest', 'signature']);
@@ -16,7 +17,7 @@ export function humanAuthorityBindingDigest(authority) {
   return sha256(jcs(Object.fromEntries(Object.entries(authority).filter(([field]) => !excluded.has(field)))));
 }
 export const correctionPolicyBytes = jcs({ version: 'steer-r5-002-human/v1', finding: 'PREFLIGHT-R3-R5-002',
-  registryDigest: verifier.registryDigest, timePolicyDigest: verifier.timePolicyDigest, binding: 'all canonical authority fields except providerProofDigest, recordDigest, signature',
+  registryDigest: verifier.registryDigest, timePolicyDigest: verifier.timePolicyDigest, schemaPolicyDigest, binding: 'all canonical authority fields except providerProofDigest, recordDigest, signature',
   providerTime: 'recordedAt equals decidedAt; verify key at recordedAt and evaluationTime',
   supportingTime: 'identity verifiedAt; inventory capturedAt; replay/head snapshotAt; reservation recordedAt; qualification/assignment as of decidedAt',
   envelopeLimit: 1048576, recordLimit: 65536,

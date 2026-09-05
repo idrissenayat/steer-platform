@@ -1,7 +1,7 @@
 // Offline successor contract. No credentials, providers, stores or effect executors.
-import { exactKeys, hex, jcs, parseCanonical, sha256, strictTime, zeroEffects } from '../0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
+import { exactKeys, hex, jcs, parseCanonical, sha256, zeroEffects } from '../0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
 import { createTimedRecordVerifier } from '../0058/record-verifier.candidate.mjs';
-import { timePolicyDigest } from '../0069/exact-time.candidate.mjs';
+import { exactInstant as strictTime, timePolicyDigest } from '../0069/exact-time.candidate.mjs';
 
 const copyKeys = ['objectId', 'recordClass', 'copyId', 'copyKind', 'providerBindingId', 'account', 'objectKey', 'versionId', 'keyId', 'inventoryDigest', 'tupleDigest'];
 const migrationKeys = ['database', 'schema', 'schemaFrom', 'schemaTo', 'oldAppVersion', 'newAppVersion', 'batch', 'checkpoint', 'executionId', 'planDigest'];
@@ -15,7 +15,7 @@ const actions = [
 ];
 export const manifestBytes = jcs({ version: 'steer-protected-actions/v1', denyByDefault: true, actions, timePolicyDigest,
   maxCredentialLifetimeSeconds: 300, maxEvidenceAgeSeconds: 300, maxGrants: 128,
-  contract: 'one verifier for all seven actions; exact independently installed grants; zero effects' });
+  contract: 'one verifier for all seven actions; exact independently installed grants and nanosecond comparisons; zero effects' });
 export const manifestDigest = sha256(manifestBytes);
 const common = ['kind', 'contextDigest', 'operationDigest', 'recordedAt', 'validThrough'];
 const signed = ['recordDigest', 'signature'];
@@ -89,7 +89,7 @@ export function createProtectedActionVerifier(trustedContextBytes) {
         requireValue(exactKeys(operation, ['requestId', 'grantId', 'idempotencyKey', 'casHead', 'requestedAt']) &&
           ['requestId', 'grantId', 'idempotencyKey'].every((key) => text(operation[key])) && hex(operation.casHead, 64));
         const requested = strictTime(operation.requestedAt);
-        requireValue(requested !== null && requested <= now && now - requested <= 300000);
+        requireValue(requested !== null && requested <= now && now - requested <= 300000000000n);
         const grant = context.grants.find((value) => value.grantId === operation.grantId);
         requireValue(grant); const action = actions.find((value) => value.action === grant.action);
         const operationDigest = sha256(jcs({ contextDigest, operation })), records = {};
@@ -103,8 +103,8 @@ export function createProtectedActionVerifier(trustedContextBytes) {
           requireValue(exactKeys(record, [...common, ...recordFields[kind], ...signed]) && record.kind === kind &&
             record.contextDigest === contextDigest && record.operationDigest === operationDigest);
           const at = strictTime(record.recordedAt), until = strictTime(record.validThrough);
-          requireValue(at !== null && until !== null && at <= now && now < until && until - at <= 300000 &&
-            now - at <= 300000 && (['replay', 'head', 'reservation'].includes(kind) || at <= requested));
+          requireValue(at !== null && until !== null && at <= now && now < until && until - at <= 300000000000n &&
+            now - at <= 300000000000n && (['replay', 'head', 'reservation'].includes(kind) || at <= requested));
           records[kind] = record;
         }
         const { request, upstream, downstream, delegation, assignment, authority, resources, replay, head, reservation } = records;
@@ -141,8 +141,8 @@ export function createProtectedActionVerifier(trustedContextBytes) {
           hex(head.previousHead, 64) && Number.isSafeInteger(head.sequence) && head.sequence > 0 &&
           replay.idempotencyKey === operation.idempotencyKey && reservation.idempotencyKey === operation.idempotencyKey &&
           strictTime(replay.recordedAt) >= requested && strictTime(head.recordedAt) >= requested &&
-          strictTime(reservation.recordedAt) >= Math.max(strictTime(replay.recordedAt), strictTime(head.recordedAt)) &&
-          strictTime(reservation.validThrough) <= Math.min(strictTime(replay.validThrough), strictTime(head.validThrough)));
+          strictTime(reservation.recordedAt) >= strictTime(replay.recordedAt) && strictTime(reservation.recordedAt) >= strictTime(head.recordedAt) &&
+          strictTime(reservation.validThrough) <= strictTime(replay.validThrough) && strictTime(reservation.validThrough) <= strictTime(head.validThrough));
         requireValue((replay.status === 'unused' && replay.resultDigest === null && reservation.status === 'reserved' && reservation.winner === true) ||
           (replay.status === 'committed' && hex(replay.resultDigest, 64) && reservation.status === 'already-committed' && reservation.winner === false));
         // Returning a descriptor is not acquiring a token, consuming a credential,
@@ -150,7 +150,7 @@ export function createProtectedActionVerifier(trustedContextBytes) {
         return { decision: replay.status === 'committed' ? 'REPLAY_NOOP' : 'AUTHORIZED_CANDIDATE', firstError: null, effects: zeroEffects(),
           contextDigest, operationDigest, requestDigest: request.recordDigest, action: action.action,
           resourcesDigest: sha256(jcs(grant.resources)), inputDigest: grant.inputDigest, authorityEvidenceDigest: grant.authorityEvidenceDigest,
-          evaluatedAt: evaluationTime, validThrough: Object.values(records).map((record) => record.validThrough).sort()[0],
+          evaluatedAt: evaluationTime, validThrough: Object.values(records).map((record) => record.validThrough).sort((a, b) => strictTime(a) < strictTime(b) ? -1 : strictTime(a) > strictTime(b) ? 1 : 0)[0],
           resultDigest: replay.resultDigest, reservationDigest: reservation.recordDigest };
       } catch { return deny(); }
     },

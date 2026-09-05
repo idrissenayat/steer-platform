@@ -19,9 +19,10 @@ Registry and record limits are 65,536 UTF-16 code units; at most 128 anchors.
 Increment 0069 supplies exact BigInt nanosecond parsing for this shared verifier:
 whole seconds or exactly nine fractional digits, Z only. The selected key's
 half-open windows are never rounded. timePolicyDigest is exposed and bound by
-the affected candidate policies. This does not itself change this human
-successor's remaining whole-second business/schema checks or grant archival
-validity to expired keys. See `intent/0069/SPEC.md`.
+the affected candidate policies. Increment 0070 also adopts exact instants in
+the human business checks and explicit successor schema, whose digest binds the
+unchanged source and changed time grammar. Neither grants archival validity to
+expired keys. See `intent/0069/SPEC.md` and `intent/0070/SPEC.md`.
 
 The caller must derive the record timestamp from the appropriate signed field,
 not a separate user claim. Evaluation time comes from the trusted decision

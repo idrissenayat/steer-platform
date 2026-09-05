@@ -606,6 +606,14 @@ compatibility remains, and legacy business/event guards still reject fractional
 graphs without rounding. This is not full graph-level nanosecond support or
 permission to validate expired historical keys. See `intent/0069/SPEC.md`.
 
+Item `intent/0070` adopts exact time through the human/event/shared-action/
+lifecycle composition, using explicit in-memory successor schemas with source
+and successor digests. Complete first/replay graphs pass at nanosecond precision;
+one-nanosecond deadline/cap violations deny. Earliest credential expiry is selected
+by instant, not lexical order. Frozen files/keys remain unchanged. This does not
+enable fractional business evidence in all other audit/migration paths or close
+full raw-grant/retention requirements. See `intent/0070/SPEC.md` and `EVIDENCE.md`.
+
 ## Local commands
 
 ```sh

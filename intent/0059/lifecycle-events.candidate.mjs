@@ -1,14 +1,15 @@
 // Closed event/history candidate. Validation is not lifecycle-effect authorization.
 import { readFileSync } from 'node:fs';
-import { compileOffline } from '../0001/reviews/domain/round-3/remediation/offline-schema-registry.candidate.mjs';
-import { exactKeys, jcs, parseCanonical, sha256, strictTime, zeroEffects } from '../0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
+import { compilePreciseSchema, schemaPolicyDigest } from '../0070/precision-schemas.candidate.mjs';
+import { exactInstant as strictTime } from '../0069/exact-time.candidate.mjs';
+import { exactKeys, jcs, parseCanonical, sha256, zeroEffects } from '../0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
 import { createTimedRecordVerifier } from '../0058/record-verifier.candidate.mjs';
 
-const schema = compileOffline('LIFECYCLE-EVENT.schema.json');
+const schema = compilePreciseSchema('LIFECYCLE-EVENT.schema.json');
 const registryBytes = jcs(JSON.parse(readFileSync(new URL('../0001/reviews/domain/round-3/remediation/TRUST-REGISTRY.candidate.json', import.meta.url), 'utf8')));
 const verifier = createTimedRecordVerifier(registryBytes);
 export const correctionPolicyBytes = jcs({ version: 'steer-r5-001-events/v1', finding: 'PREFLIGHT-R3-R5-001',
-  registryDigest: verifier.registryDigest, timePolicyDigest: verifier.timePolicyDigest, contract: 'closed current and prior lifecycle events with complete provider proof binding',
+  registryDigest: verifier.registryDigest, timePolicyDigest: verifier.timePolicyDigest, schemaPolicyDigest, contract: 'closed current and prior lifecycle events with complete provider proof binding',
   times: 'strictly increasing; recordedAt equals occurredAt; key valid at event and evaluation time',
   scope: 'same organization/item/environment; does not authorize a record disposition', historyLimit: 128, recordLimit: 65536, envelopeLimit: 8388608,
 });

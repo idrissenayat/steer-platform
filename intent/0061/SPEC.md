@@ -49,7 +49,9 @@ the later of retirement and the maximum verified derived-record deletion over
 a closed provider-signed manifest pinned by current authority-signed state.
 See `intent/0068/SPEC.md` for its closed schema and compatibility boundary.
 Other triggers follow the table; rebuildable records explicitly select the
-earliest supersession/rebuild request. Calendar
+earliest supersession/rebuild request. As of 0070, all human/event/action/lifecycle
+comparisons and calendar arithmetic use exact BigInt nanoseconds with bound
+successor schemas (see `intent/0070/SPEC.md`). Calendar
 years clamp leap day, days/seconds use exact UTC arithmetic, and malformed durations
 reject. Indefinite classes remain immutable; ordinary records before expiry are
 scheduled. Compound earlier/later rules select matching events; provenance

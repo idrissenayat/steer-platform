@@ -1239,3 +1239,19 @@ Next: explicit successor event/business time schemas, archival/future-retention
 and reference-revocation completion, full raw-key/grant coverage, then migration
 and normative evidence. All five R5 findings and independent/protected review
 remain open; no real provider effects, gate signature, deployment or spending.
+
+## Completed development increment: 0070 — exact lifecycle composition
+
+Explicit in-memory human/event/raw successor schemas now bind their original and
+transformed digests while preserving closed shapes. Exact instants flow through
+human authority, event history, all seven shared actions and composed lifecycle
+decisions. First/replay graphs work with fractional or nanosecond-separated
+timestamps; one-nanosecond raw-deadline and parent-cap violations deny. Earliest
+credential expiry is chosen by instant, not lexical timestamp order.
+
+No frozen file or key window changed. This does not close other public/migration
+precision paths, equal-time event ordinals, auxiliary event-time semantics,
+archival/future-retention, reference revocation, raw three-key inventory or the
+raw grant's pre-terminal authorization/composition requirements. Those are next
+alongside the remaining migration/normative package, before independent review.
+All five R5 findings remain open; no provider effects, gate, deployment or spending.

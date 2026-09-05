@@ -1,20 +1,20 @@
 // Offline evidence composition. No lifecycle executor, provider or store writes.
 import { readFileSync } from 'node:fs';
 import { AUTHORIZATION_POLICY_BYTES, AUTHORIZATION_POLICY_PATH, AUTHORIZATION_POLICY_SHA, RETENTION_POLICY_SHA,
-  TARGET_REVISION, TARGET_EXAM_SHA, exactKeys, hex, jcs, parseCanonical, sha256, strictTime, zeroEffects } from '../0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
-import { compileOffline } from '../0001/reviews/domain/round-3/remediation/offline-schema-registry.candidate.mjs';
+  TARGET_REVISION, TARGET_EXAM_SHA, exactKeys, hex, jcs, parseCanonical, sha256, zeroEffects } from '../0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
+import { compilePreciseSchema, schemaPolicyDigest } from '../0070/precision-schemas.candidate.mjs';
 import { createTimedRecordVerifier } from '../0058/record-verifier.candidate.mjs';
 import { correctedHumanAuthorityDecision, correctionPolicyDigest as humanPolicy } from '../0058/human-authority.candidate.mjs';
 import { correctedLifecycleEventDecision, correctionPolicyDigest as eventPolicy } from '../0059/lifecycle-events.candidate.mjs';
 import { createProtectedActionVerifier, manifestDigest } from '../0060/protected-actions.candidate.mjs';
-import { exactRetentionBoundary, timePolicyDigest } from '../0069/exact-time.candidate.mjs';
+import { exactInstant as strictTime, exactRetentionBoundary, timePolicyDigest } from '../0069/exact-time.candidate.mjs';
 const read = (name) => readFileSync(new URL(`../0001/reviews/domain/round-3/remediation/${name}`, import.meta.url), 'utf8').trimEnd();
 const registryBytes = jcs(JSON.parse(read('TRUST-REGISTRY.candidate.json'))), registry = parseCanonical(registryBytes);
 const providerBytes = read('PROVIDER-KEY-REGISTRY.candidate.json'), providers = JSON.parse(providerBytes).bindings;
 const tableBytes = read('LIFECYCLE-POLICY-TABLE.candidate.json'), table = JSON.parse(tableBytes);
-const timed = createTimedRecordVerifier(registryBytes), rawSchema = compileOffline('RAW-POLICY-GRANT.schema.json');
+const timed = createTimedRecordVerifier(registryBytes), rawSchema = compilePreciseSchema('RAW-POLICY-GRANT.schema.json');
 export const policyDigest = sha256(jcs({ version: 'steer-lifecycle-graph/v1', tableDigest: sha256(tableBytes),
-  providerDigest: sha256(providerBytes), registryDigest: timed.registryDigest, humanPolicy, eventPolicy, manifestDigest, timePolicyDigest,
+  providerDigest: sha256(providerBytes), registryDigest: timed.registryDigest, humanPolicy, eventPolicy, manifestDigest, timePolicyDigest, schemaPolicyDigest,
   rules: 'exact closed event/history, authoritative state/inventory, earliest rebuildable trigger, provenance waits for closed derived manifest deletion events not item closure, full human/raw proof, shared copy/tombstone actions, ordered provider receipts; zero execution', maxCopies: 32, maxDerivedRecords: 128 }));
 const requireValue = (value) => { if (!value) throw new Error('LIFECYCLE_GRAPH_INVALID'); };
 const text = (value) => typeof value === 'string' && value.length > 0 && value.length <= 512 && !/[\u0000-\u001f*?]/u.test(value);
@@ -70,7 +70,7 @@ export function createLifecycleGraphVerifier(configBytes) {
         };
         const inventory = readProof(graph.inventoryBytes, 'provider', ['kind', 'configDigest', 'inventoryId', 'source', 'copies', 'complete', 'validThrough']);
         requireValue(inventory.kind === 'inventory' && inventory.source === 'authoritative-copy-inventory' && inventory.complete === true && text(inventory.inventoryId) &&
-          now - time(inventory.recordedAt) <= 300000 && now < time(inventory.validThrough) && Array.isArray(inventory.copies) && inventory.copies.length > 0 && inventory.copies.length <= 32);
+          now - time(inventory.recordedAt) <= 300000000000n && now < time(inventory.validThrough) && Array.isArray(inventory.copies) && inventory.copies.length > 0 && inventory.copies.length <= 32);
         const copies = inventory.copies, copyIds = new Set(), physical = new Set();
         for (const copy of copies) {
           requireValue(exactKeys(copy, copyFields) && copyFields.filter((key) => key !== 'sourceOriginal').every((key) => text(copy[key])) && copy.sourceOriginal === false);
@@ -82,7 +82,7 @@ export function createLifecycleGraphVerifier(configBytes) {
         const state = readProof(graph.stateBytes, 'authority', ['kind', 'configDigest', 'source', 'inventoryDigest', 'historyDigest', 'historyComplete', 'holdState', 'referenceState', 'referenceRevocationDigest', 'parentExpiryAt', 'validThrough', ...(provenance ? ['derivedInventoryDigest'] : [])]);
         requireValue(state.kind === 'state' && state.source === 'authoritative-lifecycle-store' && state.inventoryDigest === inventory.recordDigest &&
           state.historyDigest === historyDigest && state.historyComplete === true && time(state.recordedAt) >= time(events.at(-1).occurredAt) &&
-          time(state.recordedAt) >= time(inventory.recordedAt) && now - time(state.recordedAt) <= 300000 && now < time(state.validThrough));
+          time(state.recordedAt) >= time(inventory.recordedAt) && now - time(state.recordedAt) <= 300000000000n && now < time(state.validThrough));
         requireValue(['none', 'released', 'active'].includes(state.holdState) && ['cleared', 'active'].includes(state.referenceState));
         const holds = new Set();
         for (const event of events) {
@@ -105,7 +105,7 @@ export function createLifecycleGraphVerifier(configBytes) {
           const derived = readProof(graph.derivedInventoryBytes, 'provider', ['kind', 'configDigest', 'source', 'manifestId', 'corpusId', 'corpusVersion', 'entries', 'complete', 'validThrough']);
           requireValue(derived.kind === 'derived-inventory' && derived.source === 'authoritative-derived-record-manifest' && text(derived.manifestId) &&
             derived.complete === true && derived.recordDigest === state.derivedInventoryDigest && derived.corpusId === retired.corpusId &&
-            derived.corpusVersion === retired.corpusVersion && now - time(derived.recordedAt) <= 300000 && now < time(derived.validThrough) &&
+            derived.corpusVersion === retired.corpusVersion && now - time(derived.recordedAt) <= 300000000000n && now < time(derived.validThrough) &&
             time(derived.recordedAt) >= time(events.at(-1).occurredAt) && time(derived.recordedAt) <= time(state.recordedAt) &&
             Array.isArray(derived.entries) && derived.entries.length <= 128 && deletions.length === derived.entries.length);
           const ids = new Set(), completionIds = new Set();
@@ -215,7 +215,7 @@ export function createLifecycleGraphVerifier(configBytes) {
         const aggregate = readProof(graph.aggregateBytes, 'provider', ['kind', 'configDigest', 'inputDigest', 'inventoryDigest', 'receiptDigests', 'allCopiesGone']);
         requireValue(aggregate.kind === 'aggregate' && aggregate.inputDigest === baseDigest && aggregate.inventoryDigest === inventory.recordDigest &&
           equal(aggregate.receiptDigests, receipts.map((receipt) => receipt.recordDigest)) && aggregate.allCopiesGone === true &&
-          time(aggregate.recordedAt) > Math.max(...receipts.map((receipt) => time(receipt.recordedAt))));
+          receipts.every((receipt) => time(aggregate.recordedAt) > time(receipt.recordedAt)));
         const tombstone = graph.tombstone; requireValue(exactKeys(tombstone, ['humanBundleBytes', 'actionBundleBytes', 'receiptBytes']));
         const conditions = [`lifecycle-inventory:${inventory.recordDigest}`, `aggregate:${aggregate.recordDigest}`, `input:${baseDigest}`];
         const authority = human(tombstone.humanBundleBytes, copies, conditions, 'provider-delete', 'disposition-authorization');
