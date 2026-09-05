@@ -26,6 +26,13 @@ identity and projection integration exists. Fifteen focused development tests
 pass and participate in root checks. This is not a completed OIDC adapter,
 data service, MCP endpoint or Gate 2 approval.
 
+Item `intent/0008` adds a normalized OIDC adapter with RS256 verification,
+pinned issuer/JWKS/audience/client, bounded token lifetime and fresh
+issuer/subject/org-bound grant lookup on every request. Revoked human and agent
+identities deny without waiting for token expiry. Eleven new tests pass,
+including cryptographic API integration. Actual Keycloak login and the trusted
+grant projection are not connected; CLI startup remains deny-all.
+
 ## Implemented prototype and kit behavior
 
 - deterministic artifact-chain projection and dropped-event reconciliation;

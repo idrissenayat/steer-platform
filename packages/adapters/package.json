@@ -1,0 +1,14 @@
+{
+  "name": "@steer/adapters",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { "./identity": "./src/identity/oidc.ts" },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/*.test.ts"
+  },
+  "dependencies": { "@steer/tool-registry": "workspace:*", "jose": "6.2.10", "zod": "4.5.4" },
+  "devDependencies": { "@types/node": "25.0.3", "typescript": "7.0.2" }
+}

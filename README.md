@@ -8,8 +8,9 @@ item one, are the framework's pilot evidence.
 ## Current delivery
 
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
-Workspace/web shell (0005), domain extraction (0006), and the stateless Hono
-API/shared tool registry (0007) are implemented development increments.
+Workspace/web shell (0005), domain extraction (0006), stateless Hono
+API/shared tool registry (0007), and OIDC adapter/API composition (0008) are
+implemented development increments.
 Gate 2 remains open: the latest round-three R5 review returned three blockers
 and two majors. Candidate implementation is not live-provider or release
 authorization. Start the API with `pnpm dev:api`; it exposes OpenAPI and health
@@ -26,6 +27,7 @@ routes but rejects tool requests until real identity integration is built.
 | 0005 · Production workspace and web shell | `intent/0005/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md`, `PLAN.md` | pnpm/Turborepo boundary and visually verified Next.js production shell are implemented without changing the prototype | formal gate records; full stack lock, workers and service composition |
 | 0006 · Provider-free domain extraction | `intent/0006/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md`, `PLAN.md` | the existing domain is moved—not copied—into `@steer/domain`; stricter optional/index checks and all consumers are migrated | formal gate records; worker, data and provider integration remain |
 | 0007 · Shared tool registry and API foundation | `intent/0007/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | Hono, Zod contracts, tenant-scoped context query, generated OpenAPI and 15 focused tests | independent protected Exam, formal gates, actual identity/data/provider integration |
+| 0008 · Normalized OIDC adapter | `intent/0008/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | signed access-token verification, current-grant/revocation checks and API composition; eleven new tests | independent protected Exam, formal gates, real Keycloak/browser login and trusted grant projection |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier

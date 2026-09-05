@@ -59,6 +59,20 @@ Verification: frozen install, root `pnpm check`, 15 new focused tests and
 loopback HTTP smoke checks passed. Details and runtime limitations are in
 `intent/0007/EVIDENCE.md`. No visible UI change is claimed for this backend slice.
 
-Next increment: M2 identity adapter and local tenant-data integration. Remaining
+## Current increment: 0008
+
+Implemented the normalized Keycloak-compatible OIDC adapter and API composition
+boundary. Eleven new tests cover actual JWT signatures, claims/time validation,
+current grant resolution, immediate revocation, agent/human separation and
+API tenant denial. Root checks passed; see `intent/0008/EVIDENCE.md`.
+The default CLI remains deny-all: browser login, actual Keycloak configuration
+and a trusted Git-backed grant projection are not yet connected.
+
+The user has requested continuous implementation until user-only input is
+needed. A task heartbeat resumes bounded work and candidate-branch pushes;
+existing gate, spending and provider boundaries still apply. No repeated
+unchanged blocker notifications or broad Critic loops are intended.
+
+Next increment: M2 local tenant-data integration and RLS verification. Remaining
 M1 work includes full stack lock, provider-free package-boundary checks, and
 local service composition; the shell alone does not complete P1-01.

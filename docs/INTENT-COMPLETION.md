@@ -71,6 +71,11 @@ remain open; this is the third bounded production-code increment, not a
 completed walking skeleton. `intent/0007/EVIDENCE.md` records verification and
 limitations; its independent protected Exam and formal gates remain pending.
 
+Item 0008 implements the OIDC verification/normalization adapter and its API
+composition seam with eleven new tests. Identity-provider configuration,
+browser login, trusted grant projection and tenant database integration still
+remain. No gate or production identity claim follows from isolated JWT tests.
+
 That statement covers the requested feature artifacts in the present
 prototype, not the newly adopted production architecture. The thirteen-case
 walking-skeleton exam must pass before the Phase 1 foundation can be marked

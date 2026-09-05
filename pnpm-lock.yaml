@@ -54,6 +54,9 @@ importers:
       '@hono/node-server':
         specifier: 2.1.1
         version: 2.1.1(hono@4.13.5)
+      '@steer/adapters':
+        specifier: workspace:*
+        version: link:../../packages/adapters
       '@steer/tool-registry':
         specifier: workspace:*
         version: link:../../packages/tool-registry
@@ -64,6 +67,9 @@ importers:
       '@types/node':
         specifier: 25.0.3
         version: 25.0.3
+      jose:
+        specifier: 6.2.10
+        version: 6.2.10
       typescript:
         specifier: 7.0.2
         version: 7.0.2
@@ -89,6 +95,25 @@ importers:
       '@types/react-dom':
         specifier: 19.2.5
         version: 19.2.5(@types/react@19.2.18)
+      typescript:
+        specifier: 7.0.2
+        version: 7.0.2
+
+  packages/adapters:
+    dependencies:
+      '@steer/tool-registry':
+        specifier: workspace:*
+        version: link:../tool-registry
+      jose:
+        specifier: 6.2.10
+        version: 6.2.10
+      zod:
+        specifier: 4.5.4
+        version: 4.5.4
+    devDependencies:
+      '@types/node':
+        specifier: 25.0.3
+        version: 25.0.3
       typescript:
         specifier: 7.0.2
         version: 7.0.2
@@ -863,6 +888,9 @@ packages:
 
   is-potential-custom-element-name@1.0.1:
     resolution: {integrity: sha512-bCYeRA2rVibKZd+s2625gGnGF/t7DSqDs4dP7CrLA1m7jKWz6pps0LpYLJN8Q64HtmPKJ1hrN3nzPNKFEKOUiQ==}
+
+  jose@6.2.10:
+    resolution: {integrity: sha512-iiW7J9qRFlGxvCOIBDBDxFePQSn7ZMAnrYGhrrOo6siO/MIqwfyilLR27pkfDgUk+raLuzADS8A3S/KLBisc0g==}
 
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -1760,6 +1788,8 @@ snapshots:
       - '@noble/hashes'
 
   is-potential-custom-element-name@1.0.1: {}
+
+  jose@6.2.10: {}
 
   js-tokens@4.0.0: {}
 
