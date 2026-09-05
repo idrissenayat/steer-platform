@@ -1,0 +1,31 @@
+{
+  "version": "steer-public-oracle-timing-inventory/v1",
+  "status": "development-candidate-not-independent-acceptance",
+  "source": "intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs",
+  "sourceSha256": "3f38ff88dcc82016f9728fdc1ef6b4390db69e03ee221ef5bc4457f3f07fcccc",
+  "oracles": [
+    { "name": "authorizationDecision", "successors": [{ "path": "intent/0066/authorization-time.candidate.mjs", "export": "createAuthorizationTimeVerifier", "test": "tests/r5-authorization-time.test.mjs", "scope": "original manifest first/replay audit" }] },
+    { "name": "privacyGraphDecision", "successors": [{ "path": "intent/0063/privacy-cost-time.candidate.mjs", "export": "createPrivacyCostTimeVerifier", "test": "tests/r5-privacy-cost-time.test.mjs", "scope": "privacy with 0056 Unicode correction" }] },
+    { "name": "accessibilityMatrixProof", "successors": [{ "path": "intent/0067/accessibility-time.candidate.mjs", "export": "createAccessibilityTimeVerifier", "test": "tests/r5-accessibility-time.test.mjs", "scope": "full synthetic matrix evidence, not manual audit" }] },
+    { "name": "lifecycleEventDecision", "successors": [{ "path": "intent/0059/lifecycle-events.candidate.mjs", "export": "correctedLifecycleEventDecision", "test": "tests/r5-lifecycle-events.test.mjs", "scope": "current event and every historical proof" }] },
+    { "name": "lifecycleGraphDecision", "successors": [{ "path": "intent/0061/lifecycle-graph.candidate.mjs", "export": "createLifecycleGraphVerifier", "test": "tests/r5-lifecycle-graph.test.mjs", "scope": "bounded full copy/tombstone graph; full retention matrix still open" }] },
+    { "name": "humanAuthorityDecision", "successors": [{ "path": "intent/0058/human-authority.candidate.mjs", "export": "correctedHumanAuthorityDecision", "test": "tests/r5-human-correction.test.mjs", "scope": "full human/provider binding with explicit evaluation" }] },
+    { "name": "migrationDecision", "successors": [{ "path": "intent/0062/migration-graph.candidate.mjs", "export": "createMigrationGraphVerifier", "test": "tests/r5-migration-graph.test.mjs", "scope": "bounded transformation graph; full compatibility matrix still open" }] },
+    { "name": "recoveryDecision", "successors": [{ "path": "intent/0065/recovery-time.candidate.mjs", "export": "createRecoveryTimeVerifier", "test": "tests/r5-recovery-time.test.mjs", "scope": "four-row recovery evidence; pre-ack remains unknown" }] },
+    { "name": "spendDecision", "successors": [{ "path": "intent/0064/money-time.candidate.mjs", "export": "createMoneyTimeVerifier", "test": "tests/r5-money-time.test.mjs", "scope": "spend evidence audit, not execution authority" }] },
+    { "name": "costDecision", "successors": [
+      { "path": "intent/0063/privacy-cost-time.candidate.mjs", "export": "createPrivacyCostTimeVerifier", "test": "tests/r5-privacy-cost-time.test.mjs", "scope": "plural reconciliation via 0057" },
+      { "path": "intent/0064/money-time.candidate.mjs", "export": "createMoneyTimeVerifier", "test": "tests/r5-money-time.test.mjs", "scope": "forecast, invoice and aggregate" }
+    ] }
+  ],
+  "unsignedHelpers": ["normalizePrivacyText", "detectIdentifiers"],
+  "retiredFactories": ["makeLifecycleEvent", "makeHumanAuthority"],
+  "historicalPrimitiveReexports": ["TARGET_REVISION", "TARGET_EXAM_SHA", "H40", "H64", "sha256", "clone", "zeroEffects", "jcs", "TRUST_ANCHORS", "sealRecord", "verifyRecord", "checkedAdd", "checkedMultiply", "MAX_NANOUSD", "AUTHORIZATION_POLICY_PATH", "AUTHORIZATION_POLICY_SHA", "RETENTION_POLICY_PATH", "RETENTION_POLICY_SHA"],
+  "boundaries": [
+    "Frozen direct exports retain old behavior for review reproduction; production must not import them as authorization.",
+    "Explicit evaluation must be supplied by trusted composition; timestamps in evidence are not the runtime clock.",
+    "Observed-as-of legacy records do not prove original issuance.",
+    "Source/symbol/test coverage does not prove full behavioral or normative acceptance.",
+    "All five R5 findings remain open until independent review and protected incorporation."
+  ]
+}

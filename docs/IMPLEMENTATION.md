@@ -579,6 +579,15 @@ instead of the old model's hypothetical write counters. This is an audit, not a
 Git capability or a replacement for 0060's shared contract. See
 `intent/0066/SPEC.md` and `intent/0066/EVIDENCE.md`.
 
+Item `intent/0067` adds explicit-time checks to all six accessibility signatures
+and bounded chronology to every raw row, retaining the complete original matrix
+and byte-digest validation. Independent provider proof binds the summary/batch
+and their identity/qualification/assignment references. Full synthetic coverage
+is explicitly not a human audit. Its public-oracle inventory maps all ten signed
+source functions to real successor exports/tests and records preserved historical
+helpers separately. This completes the named inventory, not independent or full
+normative acceptance. See `intent/0067/SPEC.md` and `intent/0067/EVIDENCE.md`.
+
 ## Local commands
 
 ```sh

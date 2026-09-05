@@ -39,7 +39,8 @@ Unicode-phone privacy (0056), multi-line cost (0057) and full human-authority
 (0058), closed lifecycle-event/history (0059) and shared protected-action
 (0060), composed lifecycle evidence (0061), composed migration evidence (0062)
 and explicit-time privacy/reconciliation (0063), remaining money (0064) and
-recovery (0065) and original authorization evidence (0066)
+recovery (0065), original authorization (0066) and accessibility evidence (0067),
+with a checked public-oracle timing inventory
 correction candidates, are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
@@ -119,6 +120,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0064 · Remaining money time candidate | `intent/0064/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | all remaining cost/spend signatures and nested proofs timed; current authority versus historical audit; exact observation; no execution authority | recovery/other public timing, complete normative/runtime money evidence and independent/protected review |
 | 0065 · Recovery time candidate | `intent/0065/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | complete timed recovery signatures, independent interval/inventory, one-hour ceiling, native journal times and strict byte encodings; unknown remains unknown | remaining public timing inventory, full normative/runtime recovery and independent/protected review |
 | 0066 · Original authorization time candidate | `intent/0066/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | ten signatures timed with current authority; independent observation; request digest checked before replay; no hypothetical write effects | accessibility/public timing inventory, full normative/runtime authorization and independent/protected review |
+| 0067 · Accessibility time and public inventory | `intent/0067/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md`, `PUBLIC-ORACLE-TIMING.json` | six timed signatures, full bounded synthetic matrix, row chronology and ten-oracle source/export inventory | full lifecycle/migration normative coverage, real/manual evidence, legacy trust semantics and independent/protected review |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier

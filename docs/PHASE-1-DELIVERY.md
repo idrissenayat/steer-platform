@@ -1180,3 +1180,22 @@ Next: accessibility and full public-oracle timing inventory, then complete
 lifecycle/migration normative coverage and independent/protected review. The
 separate shared-action contract remains in 0060. All five R5 findings stay open;
 no spending, provider access, protected edit, signature, deployment or release.
+
+## Completed development increment: 0067 — accessibility time and public inventory
+
+The accessibility path checks six signatures with explicit native/as-of times,
+provider-bound transitive evidence and a trusted evaluation clock. Every raw row
+is bounded by identity, qualification, assignment and summary chronology before
+original matrix verification. All 32,900 synthetic rows / 2,664,900 checkpoint
+keys and 16 original cases are exercised; manualAuditComplete remains false.
+
+The checked public-oracle inventory maps all ten signed source functions to
+actual successor exports and tests, with unsigned helpers/retired factories and
+historical primitives explicitly separate. This is not a proof of full normative
+behavior or independent acceptance. Evidence: intent/0067/EVIDENCE.md.
+
+Next: full lifecycle retention, compound/reference/parent and future-key coverage,
+then migration compatibility/concurrency/checkpoints and the normative package.
+Resolve archival/current-authority semantics explicitly; never extend frozen key
+windows just to manufacture future positives. All five R5 findings remain open.
+No real audit, provider access, protected edit, signature, deployment or release.
