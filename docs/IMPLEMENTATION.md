@@ -644,7 +644,15 @@ Full original winning and current batch chains bind every request, preventing a
 committed-status surrogate or substituted plan. Copy replay can finish a separate
 first tombstone; mixed partial-copy retries deny. This is offline evidence, not
 an atomic store or live erasure worker. Durable partial-copy recovery with fresh
-current-state checks is next under `intent/0074/PLAN.md`.
+current-state checks is extended by the bounded 0075 candidate.
+
+Item `intent/0075` adds explicit raw-v3 continuation for a single independently
+signed checkpoint. Original grant, requests and opening proofs stay unchanged;
+fresh extending history and complete remaining inventory must match the exact
+completed receipt partition. New holds/references deny continuation. A current
+winning batch reservation and every per-copy proof remain mandatory; separate
+tombstone approval also binds the checkpoint. Repeated checkpoints and actual
+durable recovery are not yet implemented. See `intent/0075/PLAN.md`.
 
 ## Local commands
 

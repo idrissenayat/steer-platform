@@ -8,6 +8,7 @@ import { manifestBytes, manifestDigest } from '../intent/0060/protected-actions.
 import { exactInstant, formatExactInstant } from '../intent/0069/exact-time.candidate.mjs';
 import { policyDigest as preterminalPolicy } from '../intent/0073/raw-preterminal.candidate.mjs';
 import { policyDigest as rawBatchPolicy } from '../intent/0074/raw-batch.candidate.mjs';
+import { policyDigest as checkpointPolicy } from '../intent/0075/raw-checkpoint.candidate.mjs';
 import { makeHumanAuthorityBundle, makeLifecycleEventBytes, makeLifecycleGraph } from '../intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs';
 import { lifecycleGraphDecision as frozen } from '../intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs';
 import { jcs, sha256, TRUST_REGISTRY, TARGET_REVISION, TARGET_EXAM_SHA, AUTHORIZATION_POLICY_PATH, AUTHORIZATION_POLICY_SHA, AUTHORIZATION_POLICY_BYTES, RETENTION_POLICY_SHA, zeroEffects } from '../intent/0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
@@ -34,6 +35,7 @@ function fixture(options = {}) {
     actorSubject: 'service:lifecycle-worker', upstreamSubject: 'authority:lifecycle', tombstonePath: 'intent/0001/evidence/tombstone.json', tombstoneProviderBindingId: 'fixture-provider-a-binding' };
   edit('config', config); const configBytes = jcs(config), configDigest = sha256(configBytes);
   const raw = config.recordClass === 'RC-CORPUS-RAW-WORKING';
+  const continuation = raw && Array.isArray(options.continueCopies);
   const type = options.eventType ?? (raw ? 'corpus-sanitization-terminal' : 'record-superseded');
   function event(eventType, index, second) {
     const value = { ...JSON.parse(makeLifecycleEventBytes(eventType, index)), recordId: config.recordId, recordClass: config.recordClass, artifactRevision: config.artifactRevision,
@@ -69,7 +71,7 @@ function fixture(options = {}) {
   const state = seal(edit('state', { kind: 'state', configDigest, source: 'authoritative-lifecycle-store', inventoryDigest: inventory.recordDigest,
     historyDigest: sha256(jcs([...historyBytes, eventBytes])), historyComplete: true, holdState: 'none', referenceState: 'cleared', referenceRevocationDigest: null, parentExpiryAt: null, recordedAt: at(2), validThrough: until,
     ...(provenance ? { derivedInventoryDigest: derived.recordDigest } : {}) }), options.stateDomain ?? 'authority');
-  const graph = { version: raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1', configDigest, policyDigest, eventBytes, historyBytes, inventoryBytes: jcs(inventory), stateBytes: jcs(state), referenceRevocationBytes: '', copies: [], aggregateBytes: '', tombstone: {},
+  const graph = { version: continuation ? 'steer-lifecycle-graph/raw-v3' : raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1', configDigest, policyDigest, eventBytes, historyBytes, inventoryBytes: jcs(inventory), stateBytes: jcs(state), referenceRevocationBytes: '', copies: [], aggregateBytes: '', tombstone: {},
     ...(provenance ? { derivedInventoryBytes: jcs(derived) } : {}) };
   const tupleDigest = sha256(jcs(copies));
   function human(label, selected, conditions, method, isRaw, second) {
@@ -106,7 +108,8 @@ function fixture(options = {}) {
     ...(provenance ? { derivedInventoryBytes: graph.derivedInventoryBytes } : {}), ...(raw ? { rawGrantBindingDigest } : {}) }));
   const plannedRequests = new Map();
   function action(label, grant, authority, second) {
-    const replayed = label === 'tombstone' ? (options.tombstoneReplay ?? options.replay) : (options.replayCopies ? options.replayCopies.includes(label) : options.replay);
+    const recoveringCopy = continuation && label !== 'tombstone';
+    const replayed = label === 'tombstone' ? (options.tombstoneReplay ?? options.replay) : recoveringCopy ? options.continueCopies.includes(label) : (options.replayCopies ? options.replayCopies.includes(label) : options.replay);
     const context = { version: 'steer-protected-action-context/v1', manifestDigest, trustRegistryBytes: jcs(TRUST_REGISTRY), target: structuredClone(target), scope: structuredClone(scope), grants: [structuredClone(grant)] };
     edit(`${label}:context`, context);
     const contextDigest = sha256(jcs(context)), definition = JSON.parse(manifestBytes).actions.find((entry) => entry.action === grant.action);
@@ -130,13 +133,13 @@ function fixture(options = {}) {
     plannedRequests.set(label, structuredClone(request));
     const receipt = seal(edit(`${label}:receipt`, { kind: 'receipt', configDigest, contextDigest, inputDigest: baseDigest, requestDigest: request.recordDigest,
       resourcesDigest: sha256(jcs(grant.resources)), authorityDigest: authority.recordDigest, action: grant.action, transactionId: `transaction-${label}`,
-      effect: grant.action === 'lifecycle.crypto-erase' ? 'crypto-erased' : grant.action === 'lifecycle.commit-tombstone' ? 'tombstone-committed' : 'deleted', status: 'terminal-success', recordedAt: at(second + 4) }), grant.resourceDomain);
+      effect: grant.action === 'lifecycle.crypto-erase' ? 'crypto-erased' : grant.action === 'lifecycle.commit-tombstone' ? 'tombstone-committed' : 'deleted', status: 'terminal-success', recordedAt: at(second + (recoveringCopy && !replayed ? 11 : 4)) }), grant.resourceDomain);
     const replay = emit('replay', { ledgerId: `replay-${label}`, source: 'authoritative-replay-store', requestDigest: request.recordDigest, idempotencyKey: operation.idempotencyKey,
-      status: replayed ? 'committed' : 'unused', resultDigest: replayed ? receipt.recordDigest : null, headId: `head-${label}` }, 'replay-authority', at(second + (replayed ? 5 : 1)));
-    const head = emit('head', { headId: `head-${label}`, source: 'authoritative-cas-store', requestDigest: request.recordDigest, head: operation.casHead, previousHead: '9'.repeat(64), sequence: 4 }, 'cas-authority', at(second + 1));
+      status: replayed ? 'committed' : 'unused', resultDigest: replayed ? receipt.recordDigest : null, headId: `head-${label}` }, 'replay-authority', at(second + (recoveringCopy ? (replayed ? 8 : 10) : replayed ? 5 : 1)));
+    const head = emit('head', { headId: `head-${label}`, source: 'authoritative-cas-store', requestDigest: request.recordDigest, head: operation.casHead, previousHead: '9'.repeat(64), sequence: 4 }, 'cas-authority', at(second + (recoveringCopy ? (replayed ? 8 : 10) : 1)));
     emit('reservation', { reservationId: `reserve-${label}`, source: 'authoritative-cas-store', requestDigest: request.recordDigest, headId: head.headId,
       headDigest: head.recordDigest, replayDigest: replay.recordDigest, expectedHead: head.head, idempotencyKey: operation.idempotencyKey, winner: !replayed,
-      status: replayed ? 'already-committed' : 'reserved' }, 'cas-authority', at(second + (replayed ? 6 : 2)));
+      status: replayed ? 'already-committed' : 'reserved' }, 'cas-authority', at(second + (recoveringCopy ? (replayed ? 9 : 10) : replayed ? 6 : 2)));
     const bundle = { version: 'steer-protected-action-bundle/v1', contextDigest, ...Object.fromEntries(Object.entries(records).map(([kind, record]) => [`${kind}Bytes`, jcs(record)])) };
     edit(`${label}:action-bundle`, bundle); return { actionBundleBytes: jcs(bundle), receiptBytes: jcs(receipt) };
   }
@@ -149,7 +152,8 @@ function fixture(options = {}) {
     graph.copies.push({ copyId: copy.copyId, ...(!raw ? { humanBundleBytes: full.bytes, rawGrantBytes: '' } : {}), ...action(copy.copyId, grant, full.authority, 15 + offset) });
   }
   const aggregate = seal(edit('aggregate', { kind: 'aggregate', configDigest, inputDigest: baseDigest, inventoryDigest: inventory.recordDigest,
-    receiptDigests: graph.copies.map((entry) => JSON.parse(entry.receiptBytes).recordDigest), allCopiesGone: true, recordedAt: at(25 + offset) }), 'provider'); graph.aggregateBytes = jcs(aggregate);
+    receiptDigests: graph.copies.map((entry) => JSON.parse(entry.receiptBytes).recordDigest), allCopiesGone: true, recordedAt: at((continuation ? 28 : 25) + offset) }), 'provider'); graph.aggregateBytes = jcs(aggregate);
+  let checkpoint;
   if (raw) {
     const emit = (kind, values, second, domain) => seal(edit(`raw-batch-${kind}`, { kind: `raw-batch-${kind}`, configDigest, consumptionKey: rawGrantBindingDigest,
       ...values, recordedAt: at(second + offset), validThrough: until }), domain);
@@ -163,20 +167,40 @@ function fixture(options = {}) {
     const openingReplay = emit('opening-replay', { source: 'authoritative-replay-store', planDigest: plan.recordDigest, headId: openingHead.headId, status: 'unused', resultDigest: null }, 16, 'replay-authority');
     const openingReservation = emit('opening-reservation', { source: 'authoritative-cas-store', planDigest: plan.recordDigest, headId: openingHead.headId,
       headDigest: openingHead.recordDigest, replayDigest: openingReplay.recordDigest, expectedHead: openingHead.head, winner: true, status: 'reserved' }, 16, 'cas-authority');
+    if (continuation) {
+      const freshHistory = [...historyBytes, eventBytes, ...(options.checkpointHistory ?? []).map((row, index) => event(row.type, historyBytes.length + 2 + index, row.second + offset))];
+      const freshHistoryDigest = sha256(jcs(freshHistory));
+      const pending = copies.filter((copy) => !options.continueCopies.includes(copy.copyId));
+      const freshInventory = seal(edit('checkpoint-inventory', { kind: 'raw-checkpoint-inventory', configDigest, source: 'authoritative-copy-inventory',
+        inventoryId: 'fresh-raw-inventory', copies: structuredClone(pending), complete: true, recordedAt: at(20 + offset), validThrough: until }), 'provider');
+      const freshState = seal(edit('checkpoint-state', { kind: 'raw-checkpoint-state', configDigest, source: 'authoritative-lifecycle-store', inventoryDigest: freshInventory.recordDigest,
+        historyDigest: freshHistoryDigest, historyComplete: true, holdState: 'none', referenceState: 'cleared', recordedAt: at(21 + offset), validThrough: until }), 'authority');
+      checkpoint = seal(edit('checkpoint-record', { kind: 'raw-checkpoint', configDigest, source: 'authoritative-raw-recovery', checkpointId: 'checkpoint-1',
+        sequence: 1, previousCheckpointDigest: null, consumptionKey: rawGrantBindingDigest, inputDigest: baseDigest, planDigest: plan.recordDigest,
+        openingReservationDigest: openingReservation.recordDigest, authorityDigest: rawFull.authority.recordDigest, tupleDigest,
+        completed: graph.copies.filter((copy) => options.continueCopies.includes(copy.copyId)).map((copy) => ({ copyId: copy.copyId,
+          requestDigest: plannedRequests.get(copy.copyId).recordDigest, receiptDigest: JSON.parse(copy.receiptBytes).recordDigest })),
+        remaining: pending.map((copy) => copy.copyId), inventoryDigest: freshInventory.recordDigest, stateDigest: freshState.recordDigest, historyDigest: freshHistoryDigest,
+        recordedAt: at(22 + offset), validThrough: until }), 'authority');
+      graph.continuationBytes = jcs(edit('checkpoint-envelope', { version: 'steer-raw-checkpoint/v1', policyDigest: checkpointPolicy,
+        inventoryBytes: jcs(freshInventory), stateBytes: jcs(freshState), checkpointBytes: jcs(checkpoint), eventBytes: freshHistory.at(-1), historyBytes: freshHistory.slice(0, -1) }));
+    }
     const head = emit('head', { source: 'authoritative-cas-store', planDigest: plan.recordDigest, openingReservationDigest: openingReservation.recordDigest, headId: openingHead.headId,
-      head: options.replay ? '8'.repeat(64) : openingHead.head, previousHead: options.replay ? openingHead.head : openingHead.previousHead, sequence: options.replay ? 2 : 1 }, options.replay ? 26 : 16, 'cas-authority');
+      head: continuation || options.replay ? '8'.repeat(64) : openingHead.head, previousHead: continuation || options.replay ? openingHead.head : openingHead.previousHead,
+      sequence: continuation || options.replay ? 2 : 1 }, continuation ? 23 : options.replay ? 26 : 16, 'cas-authority');
     const replay = emit('replay', { source: 'authoritative-replay-store', planDigest: plan.recordDigest, openingReservationDigest: openingReservation.recordDigest, headId: head.headId,
-      status: options.replay ? 'committed' : 'unused', resultDigest: options.replay ? aggregate.recordDigest : null }, options.replay ? 26 : 16, 'replay-authority');
+      status: continuation ? 'checkpointed' : options.replay ? 'committed' : 'unused', resultDigest: continuation ? checkpoint.recordDigest : options.replay ? aggregate.recordDigest : null }, continuation ? 23 : options.replay ? 26 : 16, 'replay-authority');
     const reservation = emit('reservation', { source: 'authoritative-cas-store', planDigest: plan.recordDigest, openingReservationDigest: openingReservation.recordDigest, headId: head.headId, headDigest: head.recordDigest,
-      replayDigest: replay.recordDigest, expectedHead: head.head, winner: !options.replay, status: options.replay ? 'already-committed' : 'reserved' }, options.replay ? 27 : 16, 'cas-authority');
+      replayDigest: replay.recordDigest, expectedHead: head.head, winner: continuation || !options.replay, status: !continuation && options.replay ? 'already-committed' : 'reserved' }, continuation ? 24 : options.replay ? 27 : 16, 'cas-authority');
     const opening = edit('raw-batch-opening', { headBytes: jcs(openingHead), replayBytes: jcs(openingReplay), reservationBytes: jcs(openingReservation) });
-    graph.rawBatchBytes = jcs(edit('raw-batch', { version: 'steer-raw-batch/v1', policyDigest: rawBatchPolicy, planBytes: jcs(plan), openingBytes: jcs(opening), headBytes: jcs(head), replayBytes: jcs(replay), reservationBytes: jcs(reservation) }));
+    graph.rawBatchBytes = jcs(edit('raw-batch', { version: continuation ? 'steer-raw-batch/v2' : 'steer-raw-batch/v1', policyDigest: rawBatchPolicy, planBytes: jcs(plan), openingBytes: jcs(opening), headBytes: jcs(head), replayBytes: jcs(replay), reservationBytes: jcs(reservation) }));
   }
-  const full = human('tombstone', copies, [`lifecycle-inventory:${inventory.recordDigest}`, `aggregate:${aggregate.recordDigest}`, `input:${baseDigest}`], 'provider-delete', false, 27 + offset);
+  const full = human('tombstone', copies, [`lifecycle-inventory:${inventory.recordDigest}`, `aggregate:${aggregate.recordDigest}`, `input:${baseDigest}`,
+    ...(continuation ? [`raw-checkpoint:${checkpoint.recordDigest}`] : [])], 'provider-delete', false, (continuation ? 30 : 27) + offset);
   const grant = { grantId: 'tombstone', action: 'lifecycle.commit-tombstone', actorSubject: config.actorSubject, upstreamSubject: config.upstreamSubject,
     provider: 'fixture-provider-a', resourceDomain: 'provider-a', resources: { objectId: config.recordId, recordClass: config.recordClass, inventoryDigest: inventory.recordDigest,
       tupleDigest, aggregateReceiptDigest: aggregate.recordDigest, path: config.tombstonePath }, authorityEvidenceDigest: full.authority.recordDigest, inputDigest: baseDigest };
-  graph.tombstone = { humanBundleBytes: full.bytes, ...action('tombstone', grant, full.authority, 35 + offset) };
+  graph.tombstone = { humanBundleBytes: full.bytes, ...action('tombstone', grant, full.authority, (continuation ? 38 : 35) + offset) };
   edit('graph', graph); return { graph, config, configBytes, evaluationTime: evaluatedAt, bytes: jcs(graph), verifier: createLifecycleGraphVerifier(configBytes) };
 }
 const denied = (value, now = evaluation) => assert.deepEqual(value.verifier.verify(value.bytes, now), { state: 'blocked', firstError: 'LIFECYCLE_GRAPH_INVALID', effects: zeroEffects() });
@@ -535,6 +559,120 @@ test('0074: every signed batch record rejects forged signatures and wrong-domain
       else { record.signature.valueBase64 = Buffer.alloc(64).toString('base64'); bundle[field] = jcs(record); }
     } } }));
   }
+});
+
+test('0075: every completed subset resumes only remaining copies using unchanged original requests and grant', () => {
+  const recordClass = 'RC-CORPUS-RAW-WORKING', original = fixture({ recordClass }), originalBatch = JSON.parse(original.graph.rawBatchBytes);
+  for (let mask = 0; mask < 8; mask++) {
+    const completed = ['copy-1', 'copy-2', 'copy-3'].filter((_, index) => mask & (1 << index));
+    const value = fixture({ recordClass, continueCopies: completed }), before = value.bytes, result = value.verifier.verify(value.bytes, evaluation);
+    assert.equal(result.state, 'validated-lifecycle-candidate', JSON.stringify({ mask, result })); assert.equal(result.rawBatchMode, 'continuation');
+    assert.equal(result.completedBeforeContinuation, completed.length); assert.equal(result.replayCount, completed.length);
+    assert.equal(result.protectedActionCount, 4); assert.equal(result.executionAuthorized, false); assert.deepEqual(result.effects, zeroEffects());
+    assert.equal(value.bytes, before); assert.equal(value.graph.rawPolicyBytes, original.graph.rawPolicyBytes);
+    const batch = JSON.parse(value.graph.rawBatchBytes); assert.equal(batch.planBytes, originalBatch.planBytes); assert.equal(batch.openingBytes, originalBatch.openingBytes);
+    for (const copy of value.graph.copies) {
+      const prior = original.graph.copies.find((entry) => entry.copyId === copy.copyId);
+      assert.equal(JSON.parse(copy.actionBundleBytes).requestBytes, JSON.parse(prior.actionBundleBytes).requestBytes);
+      if (completed.includes(copy.copyId)) assert.equal(copy.receiptBytes, prior.receiptBytes);
+    }
+    const checkpoint = JSON.parse(value.graph.continuationBytes), inventory = JSON.parse(checkpoint.inventoryBytes);
+    assert.deepEqual(inventory.copies.map((copy) => copy.copyId), ['copy-1', 'copy-2', 'copy-3'].filter((id) => !completed.includes(id)));
+  }
+});
+
+test('0075: new holds/references, incomplete or changed fresh inventories prevent continuation', () => {
+  const defaults = { recordClass: 'RC-CORPUS-RAW-WORKING', continueCopies: ['copy-1'] };
+  for (const [kind, patch] of [
+    ['checkpoint-inventory', { complete: false }], ['checkpoint-inventory', { source: 'caller' }],
+    ['checkpoint-state', { historyComplete: false }], ['checkpoint-state', { source: 'caller' }],
+    ['checkpoint-state', { holdState: 'active' }], ['checkpoint-state', { referenceState: 'active' }],
+    ['checkpoint-state', { inventoryDigest: 'f'.repeat(64) }], ['checkpoint-state', { historyDigest: 'f'.repeat(64) }],
+  ]) denied(fixture({ ...defaults, edits: { [kind]: (record) => Object.assign(record, patch) } }));
+  for (const change of [
+    (record) => { record.copies.pop(); }, (record) => { record.copies.reverse(); },
+    (record) => { record.copies[0].keyId = 'substituted'; }, (record) => { record.copies[0].sourceOriginal = true; },
+    (record) => { record.copies.push({ ...record.copies[0], copyId: 'copy-1' }); },
+  ]) denied(fixture({ ...defaults, edits: { 'checkpoint-inventory': change } }));
+  denied(fixture({ ...defaults, checkpointHistory: [{ type: 'hold-applied', second: 17 }] }));
+  const released = fixture({ ...defaults, checkpointHistory: [{ type: 'hold-applied', second: 17 }, { type: 'hold-released', second: 18 }], edits: {
+    'event-3': (event) => { event.holdId = 'new-hold'; }, 'event-4': (event) => { event.holdId = 'new-hold'; }, 'checkpoint-state': (state) => { state.holdState = 'released'; },
+  } });
+  assert.equal(released.verifier.verify(released.bytes, evaluation).state, 'validated-lifecycle-candidate');
+  denied(fixture({ ...defaults, checkpointHistory: [{ type: 'hold-released', second: 18 }] }));
+  denied(fixture({ ...defaults, checkpointHistory: [{ type: 'corpus-sanitization-terminal', second: 18 }] }));
+});
+
+test('0075: exact checkpoint partition, original-plan scope and winning store bindings cannot be replaced', () => {
+  const defaults = { recordClass: 'RC-CORPUS-RAW-WORKING', continueCopies: ['copy-1'] };
+  for (const field of ['consumptionKey', 'inputDigest', 'planDigest', 'openingReservationDigest', 'authorityDigest', 'tupleDigest', 'inventoryDigest', 'stateDigest', 'historyDigest', 'configDigest'])
+    denied(fixture({ ...defaults, edits: { 'checkpoint-record': (record) => { record[field] = 'f'.repeat(64); } } }));
+  for (const change of [
+    (record) => { record.completed = []; }, (record) => { record.remaining.pop(); }, (record) => { record.remaining.reverse(); },
+    (record) => { record.completed.push(record.completed[0]); }, (record) => { record.remaining.push('copy-1'); },
+    ...['copyId', 'requestDigest', 'receiptDigest'].map((field) => (record) => { record.completed[0][field] = 'wrong'; }),
+    (record) => { record.sequence = 2; }, (record) => { record.previousCheckpointDigest = 'f'.repeat(64); },
+  ]) denied(fixture({ ...defaults, edits: { 'checkpoint-record': change } }));
+  for (const [kind, patch] of [
+    ['raw-batch-replay', { resultDigest: 'f'.repeat(64) }], ['raw-batch-replay', { status: 'unused' }],
+    ['raw-batch-reservation', { winner: false }], ['raw-batch-reservation', { status: 'already-committed' }],
+    ['raw-batch-head', { sequence: 3 }], ['raw-batch-head', { previousHead: 'f'.repeat(64) }],
+  ]) denied(fixture({ ...defaults, edits: { [kind]: (record) => Object.assign(record, patch) } }));
+  const first = fixture(defaults), other = fixture({ ...defaults, edits: { 'checkpoint-record': (record) => { record.checkpointId = 'competing-checkpoint'; } } });
+  denied({ ...other, bytes: jcs({ ...other.graph, rawBatchBytes: first.graph.rawBatchBytes }) });
+});
+
+test('0075: checkpoint chronology and every remaining receipt preserve exact deadlines', () => {
+  const defaults = { recordClass: 'RC-CORPUS-RAW-WORKING', continueCopies: ['copy-1'] };
+  for (const [kind, second] of [['checkpoint-inventory', 15], ['checkpoint-inventory', 18], ['checkpoint-state', 19], ['checkpoint-record', 20],
+    ['checkpoint-record', 24], ['raw-batch-reservation', 26], ['copy-2:reservation', 23], ['copy-3:receipt', 24]])
+    denied(fixture({ ...defaults, edits: { [kind]: (record) => { record.recordedAt = at(second); } } }));
+  const exact = fixture({ ...defaults, edits: { 'copy-1:receipt': (record) => { record.recordedAt = at(20); } } });
+  assert.equal(exact.verifier.verify(exact.bytes, evaluation).state, 'validated-lifecycle-candidate');
+  denied(fixture({ ...defaults, edits: { 'copy-1:receipt': (record) => { record.recordedAt = formatExactInstant(exactInstant(at(20)) + 1n); } } }));
+  const boundary = { ...defaults, offset: 34, evaluationTime: at(90) }, onTime = fixture(boundary);
+  assert.equal(onTime.verifier.verify(onTime.bytes, at(90)).state, 'validated-lifecycle-candidate');
+  for (const label of ['copy-2', 'copy-3']) denied(fixture({ ...boundary, edits: { [`${label}:receipt`]: (record) => {
+    record.recordedAt = formatExactInstant(exactInstant(record.recordedAt) + 1n);
+  } } }), at(90));
+  const nano = fixture({ ...defaults, tickNanoseconds: 1 });
+  assert.equal(nano.verifier.verify(nano.bytes, nano.evaluationTime).state, 'validated-lifecycle-candidate');
+});
+
+test('0075: every fresh proof and unchanged history prefix is required; format and version confusion deny', () => {
+  const defaults = { recordClass: 'RC-CORPUS-RAW-WORKING', continueCopies: ['copy-1'] };
+  for (const field of ['inventoryBytes', 'stateBytes', 'checkpointBytes']) {
+    denied(fixture({ ...defaults, edits: { 'checkpoint-envelope': (input) => { delete input[field]; } } }));
+    for (const wrongDomain of [false, true]) denied(fixture({ ...defaults, edits: { 'checkpoint-envelope': (input) => {
+      const record = JSON.parse(input[field]);
+      if (wrongDomain) input[field] = jcs(seal(record, 'record'));
+      else { record.signature.valueBase64 = Buffer.alloc(64).toString('base64'); input[field] = jcs(record); }
+    } } }));
+  }
+  for (const kind of ['checkpoint-inventory', 'checkpoint-state', 'checkpoint-record']) {
+    denied(fixture({ ...defaults, edits: { [kind]: (record) => { record.validThrough = evaluation; } } }));
+    denied(fixture({ ...defaults, edits: { [kind]: (record) => { record.extra = true; } } }));
+  }
+  for (const change of [
+    (input) => { input.historyBytes = []; }, (input) => { input.policyDigest = 'f'.repeat(64); },
+    (input) => { input.callerApproval = true; }, (input) => { input.inventoryBytes += ' '; },
+  ]) denied(fixture({ ...defaults, edits: { 'checkpoint-envelope': change } }));
+  for (const change of [
+    (graph) => { delete graph.continuationBytes; }, (graph) => { graph.continuationBytes += ' '; },
+    (graph) => { graph.continuationBytes = 'x'.repeat(2097153); }, (graph) => { graph.version = 'steer-lifecycle-graph/raw-v2'; },
+  ]) denied(fixture({ ...defaults, edits: { graph: change } }));
+  denied(fixture({ ...defaults, edits: { 'raw-batch': (batch) => { batch.version = 'steer-raw-batch/v1'; } } }));
+  denied(fixture({ recordClass: defaults.recordClass, edits: { 'raw-batch': (batch) => { batch.version = 'steer-raw-batch/v2'; } } }));
+});
+
+test('0075: recovery still requires complete remaining actions and checkpoint-bound independent tombstone authority', () => {
+  const defaults = { recordClass: 'RC-CORPUS-RAW-WORKING', continueCopies: ['copy-1'] };
+  for (const label of ['copy-1', 'copy-2', 'copy-3']) for (const field of ['requestBytes', 'upstreamBytes', 'downstreamBytes', 'delegationBytes', 'assignmentBytes', 'authorityBytes', 'resourcesBytes', 'replayBytes', 'headBytes', 'reservationBytes'])
+    denied(fixture({ ...defaults, edits: { [`${label}:action-bundle`]: (bundle) => { delete bundle[field]; } } }));
+  denied(fixture({ ...defaults, edits: { 'tombstone:human': (record) => { record.conditions.pop(); } } }));
+  denied(fixture({ ...defaults, edits: { 'tombstone:human': (record) => { record.conditions[3] = 'raw-checkpoint:other'; } } }));
+  for (const field of ['humanBundleBytes', 'actionBundleBytes', 'receiptBytes'])
+    denied(fixture({ ...defaults, edits: { graph: (graph) => { delete graph.tombstone[field]; } } }));
 });
 
 // Expected boundaries come from the signed records policy, not the code under

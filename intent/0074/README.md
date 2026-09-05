@@ -7,5 +7,6 @@ reservation chains prevent committed status from replacing authorization proof.
 Tombstone authorization remains separate.
 
 Offline evidence only: no atomic store, deletion worker, token or live effect.
-Mixed partial-copy recovery remains closed. Read BRIEF, SPEC, PLAN, development
+Mixed partial-copy recovery remains closed on raw-v2; subsequent 0075 adds an
+explicit raw-v3 single-checkpoint path. Read BRIEF, SPEC, PLAN, development
 ACCEPTANCE and EVIDENCE. All five R5 findings remain formally open.

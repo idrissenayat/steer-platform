@@ -10,6 +10,7 @@ import { createProtectedActionVerifier, manifestDigest } from '../0060/protected
 import { exactInstant as strictTime, exactRetentionBoundary, timePolicyDigest } from '../0069/exact-time.candidate.mjs';
 import { createRawPreterminalVerifier, policyDigest as rawPolicyDigest } from '../0073/raw-preterminal.candidate.mjs';
 import { verifyRawBatchEvidence, policyDigest as rawBatchPolicyDigest } from '../0074/raw-batch.candidate.mjs';
+import { verifyRawCheckpointEvidence } from '../0075/raw-checkpoint.candidate.mjs';
 const read = (name) => readFileSync(new URL(`../0001/reviews/domain/round-3/remediation/${name}`, import.meta.url), 'utf8').trimEnd();
 const registryBytes = jcs(JSON.parse(read('TRUST-REGISTRY.candidate.json'))), registry = parseCanonical(registryBytes);
 const providerBytes = read('PROVIDER-KEY-REGISTRY.candidate.json'), providers = JSON.parse(providerBytes).bindings;
@@ -59,8 +60,9 @@ export function createLifecycleGraphVerifier(configBytes) {
         requireValue(typeof serialized === 'string' && serialized.length <= 16777216);
         const graph = parseCanonical(serialized);
         const provenance = config.recordClass === 'RC-CORPUS-PROVENANCE';
-        requireValue(exactKeys(graph, ['version', 'policyDigest', 'configDigest', 'eventBytes', 'historyBytes', 'inventoryBytes', 'stateBytes', 'referenceRevocationBytes', 'copies', 'aggregateBytes', 'tombstone', ...(provenance ? ['derivedInventoryBytes'] : []), ...(raw ? ['rawPolicyBytes', 'rawBatchBytes'] : [])]) &&
-          graph.version === (raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1') && graph.policyDigest === policyDigest && graph.configDigest === configDigest);
+        const continuation = raw && graph.version === 'steer-lifecycle-graph/raw-v3';
+        requireValue(exactKeys(graph, ['version', 'policyDigest', 'configDigest', 'eventBytes', 'historyBytes', 'inventoryBytes', 'stateBytes', 'referenceRevocationBytes', 'copies', 'aggregateBytes', 'tombstone', ...(provenance ? ['derivedInventoryBytes'] : []), ...(raw ? ['rawPolicyBytes', 'rawBatchBytes'] : []), ...(continuation ? ['continuationBytes'] : [])]) &&
+          (continuation || graph.version === (raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1')) && graph.policyDigest === policyDigest && graph.configDigest === configDigest);
         const eventsResult = correctedLifecycleEventDecision(jcs({ version: 'steer-r5-001-events/v1', policyDigest: eventPolicy,
           scope: { organization: scope.organization, itemId: scope.item, environmentId: config.environmentId }, eventBytes: graph.eventBytes, historyBytes: graph.historyBytes, evaluationTime }));
         requireValue(eventsResult.state === 'validated-trigger');
@@ -210,7 +212,7 @@ export function createLifecycleGraphVerifier(configBytes) {
           transactions.add(receipt.transactionId); return { receipt, replay: result.decision === 'REPLAY_NOOP',
             batchEntry: { copyId: grant.grantId, requestDigest: result.requestDigest, operationDigest: result.operationDigest,
               idempotencyKey: operation.idempotencyKey, requestedAt: operation.requestedAt, reservationAt: parseCanonical(bundle.reservationBytes).recordedAt,
-              receiptAt: receipt.recordedAt, replayed: result.decision === 'REPLAY_NOOP' } };
+              receiptAt: receipt.recordedAt, receiptDigest: receipt.recordDigest, replayed: result.decision === 'REPLAY_NOOP' } };
         };
         const receipts = [], batchEntries = []; let replayCount = 0;
         for (const copy of copies) {
@@ -231,17 +233,30 @@ export function createLifecycleGraphVerifier(configBytes) {
         requireValue(aggregate.kind === 'aggregate' && aggregate.inputDigest === baseDigest && aggregate.inventoryDigest === inventory.recordDigest &&
           equal(aggregate.receiptDigests, receipts.map((receipt) => receipt.recordDigest)) && aggregate.allCopiesGone === true &&
           receipts.every((receipt) => time(aggregate.recordedAt) > time(receipt.recordedAt)));
-        let batchEvidence;
+        let batchEvidence, checkpointEvidence;
         if (raw) {
+          const batch = parseCanonical(graph.rawBatchBytes);
+          requireValue(batch.version === (continuation ? 'steer-raw-batch/v2' : 'steer-raw-batch/v1'));
+          if (continuation) {
+            const opening = parseCanonical(parseCanonical(batch.openingBytes).reservationBytes);
+            checkpointEvidence = verifyRawCheckpointEvidence(graph.continuationBytes, { configDigest, inputDigest: baseDigest, preterminalBindingDigest: rawEvidence.batchBindingDigest,
+              authorityDigest: rawAuthority.recordDigest, tupleDigest, recordId: config.recordId, artifactRevision: config.artifactRevision, environmentId: config.environmentId,
+              originalHistoryBytes: [...graph.historyBytes, graph.eventBytes], copies, originalStateAt: state.recordedAt, planDigest: parseCanonical(batch.planBytes).recordDigest,
+              openingReservationDigest: opening.recordDigest, openingAt: opening.recordedAt, entries: batchEntries }, evaluationTime);
+            requireValue(checkpointEvidence.state === 'verified-raw-checkpoint');
+          }
           batchEvidence = verifyRawBatchEvidence(graph.rawBatchBytes, { configDigest, inputDigest: baseDigest, preterminalBindingDigest: rawEvidence.batchBindingDigest,
             authorityDigest: rawAuthority.recordDigest, tupleDigest, terminalDigest: trigger.recordDigest, terminalAt: trigger.occurredAt, deadlineAt: boundaryAt,
-            stateAt: state.recordedAt, entries: batchEntries, aggregateDigest: aggregate.recordDigest, aggregateAt: aggregate.recordedAt }, evaluationTime);
+            stateAt: state.recordedAt, entries: batchEntries, aggregateDigest: aggregate.recordDigest, aggregateAt: aggregate.recordedAt,
+            ...(continuation ? { checkpoint: Object.fromEntries(['checkpointDigest', 'recordedAt', 'completedCopyIds', 'remainingCopyIds'].map((field) => [field, checkpointEvidence[field]])) } : {}) }, evaluationTime);
           requireValue(batchEvidence.state === 'verified-raw-batch');
         }
         const tombstone = graph.tombstone; requireValue(exactKeys(tombstone, ['humanBundleBytes', 'actionBundleBytes', 'receiptBytes']));
-        const conditions = [`lifecycle-inventory:${inventory.recordDigest}`, `aggregate:${aggregate.recordDigest}`, `input:${baseDigest}`];
+        const conditions = [`lifecycle-inventory:${inventory.recordDigest}`, `aggregate:${aggregate.recordDigest}`, `input:${baseDigest}`,
+          ...(continuation ? [`raw-checkpoint:${checkpointEvidence.checkpointDigest}`] : [])];
         const authority = human(tombstone.humanBundleBytes, copies, conditions, 'provider-delete', 'disposition-authorization');
         requireValue(time(authority.decidedAt) >= time(aggregate.recordedAt));
+        if (continuation) requireValue(time(authority.decidedAt) >= time(checkpointEvidence.recordedAt));
         const binding = bindingFor(config.tombstoneProviderBindingId);
         const grant = { grantId: 'tombstone', action: 'lifecycle.commit-tombstone', actorSubject: config.actorSubject, upstreamSubject: config.upstreamSubject,
           provider: binding.provider, resourceDomain: binding.domain, resources: { objectId: config.recordId, recordClass: config.recordClass, inventoryDigest: inventory.recordDigest,
@@ -251,6 +266,7 @@ export function createLifecycleGraphVerifier(configBytes) {
           copyCount: copies.length, protectedActionCount: copies.length + 1, replayCount,
           ...(raw ? { rawBatchMode: batchEvidence.mode, rawBatchPlanDigest: batchEvidence.planDigest, rawBatchReservationDigest: batchEvidence.reservationDigest,
             rawGrantDigest: rawAuthority.recordDigest, executionAuthorized: false } : {}),
+          ...(continuation ? { rawCheckpointDigest: checkpointEvidence.checkpointDigest, completedBeforeContinuation: checkpointEvidence.completedCopyIds.length } : {}),
           evidenceDigest: sha256(jcs([...receipts.map((receipt) => receipt.recordDigest), aggregate.recordDigest, checked.receipt.recordDigest,
             ...(raw ? [rawAuthority.recordDigest, batchEvidence.planDigest, batchEvidence.reservationDigest] : [])])) };
       } catch { return blocked(); }

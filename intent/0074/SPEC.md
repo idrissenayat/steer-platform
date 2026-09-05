@@ -82,6 +82,10 @@ Tombstone retains its own complete human and shared action proofs.
 
 ## Results, limits and recovery boundary
 
+Subsequent 0075 adds batch-v2/raw-v3 with one fully verified fresh checkpoint.
+Its policy is explicitly bound into this helper's digest. The v1 modes described
+here remain all-first/all-replay; mixed sets need the separate 0075 contract.
+
 Raw success includes mode, plan/reservation/authority digests and explicitly
 executionAuthorized false. Its evidence digest additionally binds raw authority
 and batch plan/current reservation, transitively covering the original chain.

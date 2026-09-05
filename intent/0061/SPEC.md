@@ -1,4 +1,4 @@
-# Spec: Composed lifecycle evidence, ordinary v1 / raw v2
+# Spec: Composed lifecycle evidence, ordinary v1 / raw v2-v3
 
 ## Trusted reference and source fidelity
 
@@ -24,6 +24,8 @@ invoker and has no default. Every current/prior event traverses 0059's actual
 closed schema, full provider binding, explicit signature times and ordered
 duplicate checks. All events must match the selected record, class, artifact,
 policy, organization, item and environment, not just share an arbitrary scope.
+Raw-v3 additionally requires continuationBytes and batch-v2 for a single
+checkpoint (0075); raw-v2 does not accept that field or mixed copy modes.
 
 A closed provider-signed inventory names 1–32 exact non-original copies. Copy IDs
 are unique and sorted; duplicate physical provider/account/object/version tuples
@@ -86,6 +88,11 @@ inventory. Current inventory must match it and follow terminal. All raw copies
 derive authority from that one grant, not new per-object decisions. Raw-v1's
 post-terminal approval path is rejected. Full original/current batch evidence
 additionally binds actual current input and every request. See `intent/0074/SPEC.md`.
+For raw-v3, 0075 verifies a separate fresh inventory/state/history checkpoint
+without replacing original signed inputs. Its exact completed/remaining partition
+must match per-copy verifier results and a winning current batch reservation.
+Tombstone human conditions additionally bind the checkpoint, and its decision
+must follow both checkpoint and aggregate. See `intent/0075/SPEC.md`.
 
 Only after validation does composition derive a single exact 0060 grant. Its
 context binds the actual Exam/implementation/policy/scope; its resources bind

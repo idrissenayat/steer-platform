@@ -44,7 +44,7 @@ with a checked public-oracle timing inventory and source-faithful lifecycle
 retention/derived-manifest corrections (0068), exact time primitives (0069) and
 precise lifecycle composition (0070), policy-ranked event ordering (0071) and
 three-key raw lifecycle evidence (0072), pre-terminal raw grant eligibility (0073)
-and raw grant/batch lifecycle integration (0074),
+raw grant/batch lifecycle integration (0074) and single-checkpoint raw recovery (0075),
 correction candidates, are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
@@ -132,6 +132,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0072 · Three-key raw evidence | `intent/0072/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | three key tuples/two providers, four complete actions, permutations, per-copy proof omissions and exact deadlines | pre-terminal raw-grant/batch-consumption protocol, retention/rotation/reference/migration and independent/protected review |
 | 0073 · Pre-terminal raw grant | `intent/0073/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | exact prepared inventory and complete human enrollment before terminal; eligibility only, integrated in 0074 | remaining recovery/normative coverage and independent/protected review |
 | 0074 · Raw batch integration | `intent/0074/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | one pre-terminal grant; full original/current batch chains; every copy action/receipt and separate tombstone | durable partial-copy recovery/current-state refresh, remaining normative coverage and independent/protected review; no live store or erasure |
+| 0075 · Raw recovery checkpoint | `intent/0075/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | one exact completed/remaining partition, fresh history/inventory/state, winning continuation and checkpoint-bound tombstone | repeated-checkpoint/crash recovery, real store integration, remaining normative coverage and independent/protected review |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier

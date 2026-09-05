@@ -1325,3 +1325,20 @@ work is durable checkpoint/current-state-refresh evidence under intent/0074/PLAN
 then remaining retention/rotation/reference, time and migration/normative coverage.
 No atomic store, actual concurrency exclusion, live erasure, independent ruling
 or completed Gate 2 is claimed. All five R5 findings remain formally open.
+
+## Completed development increment: 0075 — single-checkpoint raw recovery
+
+Raw-v3 now composes one exact checkpoint with fresh extending history, remaining
+inventory and hold/reference state. Original grant, request plan and opening
+proofs remain immutable. Completed receipts are preserved; only remaining tuples
+can pass first-mode action checks under a winning continuation reservation.
+Separate human tombstone approval also binds the checkpoint.
+
+Full checks pass with 143 root controls and 88 prototype tests; the focused
+lifecycle suite passes 34 groups. See intent/0075/EVIDENCE.md for the scope.
+
+All eight completed subsets of the three-copy scenario are covered. A second
+checkpoint remains closed: next is bounded monotonic checkpoint-chain/crash
+evidence under intent/0075/PLAN.md. This is offline evidence, not a durable store,
+live recovery or erasure worker. Remaining retention/rotation/reference, time,
+migration/normative evidence and all five R5 formal findings remain open.
