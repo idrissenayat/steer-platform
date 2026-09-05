@@ -1020,3 +1020,16 @@ open. Next: R5-002 complete human/provider authority, then R5-001 lifecycle and
 R5-003 migration composition. Independent complete-package review, protected
 incorporation and exact-revision rulings remain required. Frozen history and
 protected Exams are unchanged; no signature, deployment or release is authorized.
+
+## Completed development increment: 0058 — full human-authority candidate
+
+The human portion of R5-002 now binds the complete authority and selected provider
+anchor and verifies signatures at explicit record/evaluation times. A reusable
+timed verifier has no fixed-time default. Tests reproduce both original R5 accepts
+and successor denies, cover every authority field and retain all 17 prior cases.
+Evidence: intent/0058/EVIDENCE.md. Frozen files/Exams and live routes are unchanged.
+
+Next: lifecycle/migration corrections and adoption of the explicit-time rule by
+every corrected public oracle. R5-002 remains partial until that integration is
+verified. All five findings remain formally open, with complete-package independent
+review/protected incorporation and revision-bound human rulings still required.

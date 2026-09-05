@@ -500,6 +500,14 @@ No spending or production route is enabled. R5-004/005 have test-backed candidat
 all five findings remain formally open. R5-002/001/003 corrections and independent
 complete-package review are next. See `intent/0057/EVIDENCE.md`.
 
+Item `intent/0058` implements the full human-authority portion of R5-002 with a
+no-default-time shared verifier. Provider proofs bind all authority fields except
+the three circular digest/signature fields and must match an independently
+selected anchor at recorded/evaluation time. Exact frozen counterexamples and all
+17 prior authority cases are tested. This is not full R5-002 closure: other public
+candidate oracles still need time-rule integration, followed by independent
+complete-package review. See `intent/0058/EVIDENCE.md`; no live route is enabled.
+
 ## Local commands
 
 ```sh

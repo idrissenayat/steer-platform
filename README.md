@@ -35,7 +35,8 @@ an authenticated read-only browser reference panel (0049) and source-faithful
 Brief document model (0050), authenticated exact-revision Brief reads (0051) and
 curated Brief discovery (0052), a trusted-scope rendered Brief library (0053)
 and exact-reference Brief navigation (0054), with review-ordered reading (0055), and
-Unicode-phone privacy (0056) and multi-line cost (0057) correction candidates, are
+Unicode-phone privacy (0056), multi-line cost (0057) and full human-authority
+(0058) correction candidates, are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
 [provider evidence](docs/GITHUB-RUNTIME-APP.md).
@@ -105,6 +106,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0055 · Review-ordered Brief reading | `intent/0055/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | whole-section judgment order, source-faithful fallback for ambiguity, unknown content retention and inert rendering | trusted provenance/history, governed lifecycle, production baselines and formal/manual evidence |
 | 0056 · R5 Unicode-phone correction | `intent/0056/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | bounded Unicode 17 phone detector and policy-bound graph correction; reproduces frozen acceptance and corrected rejection | remaining authority/lifecycle/migration corrections, independent review, protected incorporation and formal gates |
 | 0057 · R5 multi-line cost correction | `intent/0057/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | exact plural variance/successor lineage, reordered positives, missing/cross-line denials and aggregate-before-rounding | remaining authority/lifecycle/migration corrections, independent review, protected incorporation and formal gates |
+| 0058 · Full human-authority candidate | `intent/0058/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | complete provider payload binding, independent anchor and explicit record/evaluation-time verification | remaining all-public-oracle timing, lifecycle/migration corrections, independent/protected review and gates |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier
