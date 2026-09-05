@@ -9,3 +9,5 @@ controls continuation; the tombstone approval also binds the checkpoint.
 Offline evidence only, not a durable store or live erasure runner. This increment
 supports one checkpoint, not repeated interruptions or arbitrary checkpoint
 chains. Read BRIEF, SPEC, PLAN, development ACCEPTANCE and EVIDENCE.
+Subsequent 0076 provides an explicit chain extension; the v1 single-checkpoint
+contract does not silently accept those inputs.

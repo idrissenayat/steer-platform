@@ -651,8 +651,16 @@ signed checkpoint. Original grant, requests and opening proofs stay unchanged;
 fresh extending history and complete remaining inventory must match the exact
 completed receipt partition. New holds/references deny continuation. A current
 winning batch reservation and every per-copy proof remain mandatory; separate
-tombstone approval also binds the checkpoint. Repeated checkpoints and actual
-durable recovery are not yet implemented. See `intent/0075/PLAN.md`.
+tombstone approval also binds the checkpoint. Repeated checkpoints are extended
+by 0076; actual durable recovery remains unimplemented. See `intent/0075/PLAN.md`.
+
+Item `intent/0076` adds raw-v4 bounded checkpoint chains. Every step proves its
+predecessor and winning reservation, preserves completed receipts and original
+inputs, and rechecks fresh extending history/inventory/state. Receipts inside a
+known hold interval deny even if the hold was later released. Final tombstone
+approval binds the complete chain. This is offline evidence, not a real store or
+restart. Terminal consumption and acknowledgment-loss evidence remain next under
+`intent/0076/PLAN.md`; all five R5 findings remain open.
 
 ## Local commands
 

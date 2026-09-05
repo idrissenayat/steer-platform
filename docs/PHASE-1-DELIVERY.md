@@ -1342,3 +1342,20 @@ checkpoint remains closed: next is bounded monotonic checkpoint-chain/crash
 evidence under intent/0075/PLAN.md. This is offline evidence, not a durable store,
 live recovery or erasure worker. Remaining retention/rotation/reference, time,
 migration/normative evidence and all five R5 formal findings remain open.
+
+## Completed development increment: 0076 — bounded repeated-checkpoint chains
+
+Raw-v4 verifies every full predecessor checkpoint and winning store chain,
+monotonic completed receipts and extending history with fresh remaining inventory.
+Original grant/requests/plan/opening remain unchanged. Erasure receipts inside
+later-revealed hold intervals deny. Final human tombstone approval binds the chain.
+
+Full repository checks pass with 150 root controls and 88 prototype tests;
+the focused lifecycle suite passes 41 groups. See intent/0076/EVIDENCE.md.
+
+All 27 two-checkpoint partitions and a 33-step nanosecond capacity scenario pass.
+These are offline assertions, not real restarts, atomic storage or erasure.
+Next is terminal consumption/acknowledgment-loss evidence under intent/0076/PLAN.md,
+then remaining retention/rotation/reference, time and migration/normative coverage.
+All five R5 findings and independent/protected review remain open; no gate,
+provider mutation, deployment, release or spending is authorized.

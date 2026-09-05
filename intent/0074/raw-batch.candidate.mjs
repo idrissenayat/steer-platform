@@ -9,7 +9,7 @@ import { policyDigest as checkpointPolicy } from '../0075/raw-checkpoint.candida
 const registryBytes = jcs(JSON.parse(readFileSync(new URL('../0001/reviews/domain/round-3/remediation/TRUST-REGISTRY.candidate.json', import.meta.url), 'utf8')));
 const timed = createTimedRecordVerifier(registryBytes);
 export const policyDigest = sha256(jcs({ version: 'steer-raw-batch/v1', registryDigest: timed.registryDigest, timePolicyDigest, preterminalPolicy, checkpointPolicy,
-  rules: 'one stable grant consumption key; exact ordered request plan; full winning opening chain before receipts, current chain pins opening; v1 all-first/all-replay, v2 verified single checkpoint; separate tombstone; zero execution', maxCopies: 32 }));
+  rules: 'one stable grant consumption key; exact plan; full winning opening before receipts; v1 first/replay, v2 single checkpoint, v3 verified predecessor reservation chain; separate tombstone; zero execution', maxCopies: 32 }));
 const ensure = (value) => { if (!value) throw new Error('RAW_BATCH_INVALID'); };
 const time = (value) => { const result = exactInstant(value); ensure(result !== null); return result; };
 const text = (value) => typeof value === 'string' && value.length > 0 && value.length <= 512 && value.trim() === value && !/[\u0000-\u001f\u007f*?]/u.test(value);
@@ -28,18 +28,18 @@ export function verifyRawBatchEvidence(serialized, trusted, evaluationTime) {
     const now = time(evaluationTime);
     ensure(typeof serialized === 'string' && serialized.length <= 524288);
     const bundle = parseCanonical(serialized);
-    const continuation = bundle.version === 'steer-raw-batch/v2';
+    const chained = bundle.version === 'steer-raw-batch/v3', continuation = chained || bundle.version === 'steer-raw-batch/v2';
     ensure(exactKeys(bundle, ['version', 'policyDigest', 'planBytes', 'openingBytes', 'headBytes', 'replayBytes', 'reservationBytes']) &&
       (continuation || bundle.version === 'steer-raw-batch/v1') && bundle.policyDigest === policyDigest);
     ensure(exactKeys(trusted, ['configDigest', 'inputDigest', 'preterminalBindingDigest', 'authorityDigest', 'tupleDigest', 'terminalDigest',
-      'terminalAt', 'deadlineAt', 'stateAt', 'entries', 'aggregateDigest', 'aggregateAt', ...(continuation ? ['checkpoint'] : [])]) &&
+      'terminalAt', 'deadlineAt', 'stateAt', 'entries', 'aggregateDigest', 'aggregateAt', ...(continuation ? ['checkpoint'] : []), ...(chained ? ['previousBatchHead'] : [])]) &&
       ['configDigest', 'inputDigest', 'preterminalBindingDigest', 'authorityDigest', 'tupleDigest', 'terminalDigest', 'aggregateDigest'].every((key) => hex(trusted[key], 64)) &&
       Array.isArray(trusted.entries) && trusted.entries.length > 0 && trusted.entries.length <= 32);
     const readRecord = (kind, bytes, opening = false) => {
       ensure(typeof bytes === 'string' && bytes.length <= 65536);
       const raw = parseCanonical(bytes), domain = kind === 'plan' ? 'authority' : kind === 'replay' ? 'replay-authority' : 'cas-authority';
       const record = timed.verifyBytes(bytes, { domain, recordedAt: raw.recordedAt, evaluatedAt: evaluationTime }).record;
-      ensure(exactKeys(record, ['kind', 'configDigest', 'consumptionKey', ...fields[kind], ...(!opening && kind !== 'plan' ? ['openingReservationDigest'] : []), 'recordedAt', 'validThrough', 'recordDigest', 'signature']) &&
+      ensure(exactKeys(record, ['kind', 'configDigest', 'consumptionKey', ...fields[kind], ...(!opening && kind !== 'plan' ? ['openingReservationDigest', ...(chained ? ['previousReservationDigest'] : [])] : []), 'recordedAt', 'validThrough', 'recordDigest', 'signature']) &&
         record.kind === `raw-batch-${opening ? 'opening-' : ''}${kind}` && record.configDigest === trusted.configDigest && record.consumptionKey === trusted.preterminalBindingDigest &&
         time(record.recordedAt) <= now && now < time(record.validThrough) && now - time(record.recordedAt) <= 300000000000n &&
         time(record.validThrough) - time(record.recordedAt) <= 300000000000n);
@@ -82,18 +82,23 @@ export function verifyRawBatchEvidence(serialized, trusted, evaluationTime) {
     const repeated = replay.status === 'committed' && replay.resultDigest === trusted.aggregateDigest && reservation.status === 'already-committed' && reservation.winner === false;
     if (continuation) {
       const checkpoint = trusted.checkpoint;
+      const prior = chained ? trusted.previousBatchHead : { headId: opening.head.headId, head: opening.head.head, sequence: opening.head.sequence, reservationDigest: opening.reservation.recordDigest };
+      ensure(exactKeys(prior, ['headId', 'head', 'sequence', 'reservationDigest']) && text(prior.headId) && hex(prior.head, 64) && hex(prior.reservationDigest, 64) && Number.isSafeInteger(prior.sequence) && prior.sequence > 0);
       ensure(exactKeys(checkpoint, ['checkpointDigest', 'recordedAt', 'completedCopyIds', 'remainingCopyIds']) && hex(checkpoint.checkpointDigest, 64) &&
-        same(checkpoint.completedCopyIds, trusted.entries.filter((entry) => entry.replayed).map((entry) => entry.copyId)) &&
-        same(checkpoint.remainingCopyIds, trusted.entries.filter((entry) => !entry.replayed).map((entry) => entry.copyId)) &&
+        Array.isArray(checkpoint.completedCopyIds) && Array.isArray(checkpoint.remainingCopyIds) &&
+        same(checkpoint.completedCopyIds, trusted.entries.filter((entry) => chained ? checkpoint.completedCopyIds.includes(entry.copyId) : entry.replayed).map((entry) => entry.copyId)) &&
+        same(checkpoint.remainingCopyIds, trusted.entries.filter((entry) => chained ? !checkpoint.completedCopyIds.includes(entry.copyId) : !entry.replayed).map((entry) => entry.copyId)) &&
         replay.status === 'checkpointed' && replay.resultDigest === checkpoint.checkpointDigest && reservation.status === 'reserved' && reservation.winner === true &&
-        head.previousHead === opening.head.head && head.sequence === opening.head.sequence + 1 && head.head !== opening.head.head);
+        head.headId === prior.headId && head.previousHead === prior.head && head.sequence === prior.sequence + 1 && head.head !== prior.head);
       for (const record of [head, replay, reservation]) ensure(time(record.recordedAt) >= time(checkpoint.recordedAt));
-      ensure(trusted.entries.every((entry) => entry.replayed || (time(entry.reservationAt) >= time(reservation.recordedAt) && time(entry.receiptAt) > time(reservation.recordedAt))));
+      if (chained) for (const record of [head, replay, reservation]) ensure(record.previousReservationDigest === prior.reservationDigest);
+      ensure(trusted.entries.every((entry) => !checkpoint.remainingCopyIds.includes(entry.copyId) ||
+        (time(entry.reservationAt) >= time(reservation.recordedAt) && time(entry.receiptAt) > time(reservation.recordedAt))));
     } else if (first) ensure(['head', 'previousHead', 'sequence'].every((field) => head[field] === opening.head[field]) &&
       trusted.entries.every((entry) => !entry.replayed && time(entry.reservationAt) >= time(reservation.recordedAt) && time(entry.receiptAt) > time(reservation.recordedAt)));
     else ensure(repeated && head.previousHead === opening.head.head && head.sequence === opening.head.sequence + 1 && head.head !== opening.head.head &&
       trusted.entries.every((entry) => entry.replayed) && time(replay.recordedAt) >= time(trusted.aggregateAt));
-    return { state: 'verified-raw-batch', mode: continuation ? 'continuation' : first ? 'first' : 'replay', planDigest: plan.recordDigest, consumptionKey: plan.consumptionKey,
+    return { state: 'verified-raw-batch', mode: chained ? 'continuation-chain' : continuation ? 'continuation' : first ? 'first' : 'replay', planDigest: plan.recordDigest, consumptionKey: plan.consumptionKey,
       reservationDigest: reservation.recordDigest, effects: zeroEffects(), executionAuthorized: false };
   } catch { return { state: 'blocked', firstError: 'RAW_BATCH_INVALID', effects: zeroEffects(), executionAuthorized: false }; }
 }

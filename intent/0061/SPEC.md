@@ -1,4 +1,4 @@
-# Spec: Composed lifecycle evidence, ordinary v1 / raw v2-v3
+# Spec: Composed lifecycle evidence, ordinary v1 / raw v2-v4
 
 ## Trusted reference and source fidelity
 
@@ -26,6 +26,8 @@ duplicate checks. All events must match the selected record, class, artifact,
 policy, organization, item and environment, not just share an arbitrary scope.
 Raw-v3 additionally requires continuationBytes and batch-v2 for a single
 checkpoint (0075); raw-v2 does not accept that field or mixed copy modes.
+Raw-v4 uses a full checkpoint chain (0076), checkpoint-v2 and batch-v3; it cannot
+substitute a last-only snapshot. Its tombstone approval binds the entire chain.
 
 A closed provider-signed inventory names 1–32 exact non-original copies. Copy IDs
 are unique and sorted; duplicate physical provider/account/object/version tuples
@@ -93,6 +95,9 @@ without replacing original signed inputs. Its exact completed/remaining partitio
 must match per-copy verifier results and a winning current batch reservation.
 Tombstone human conditions additionally bind the checkpoint, and its decision
 must follow both checkpoint and aggregate. See `intent/0075/SPEC.md`.
+0076 extends this to bounded repeated checkpoints. Every full predecessor and
+winning reservation is verified, with monotonic completed receipts/history and
+rejection of receipts inside known hold intervals. See `intent/0076/SPEC.md`.
 
 Only after validation does composition derive a single exact 0060 grant. Its
 context binds the actual Exam/implementation/policy/scope; its resources bind

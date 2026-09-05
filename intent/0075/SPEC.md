@@ -1,5 +1,9 @@
 # Spec: Raw-v3 single-checkpoint continuation
 
+Subsequent 0076 adds checkpoint-v2 only under a full verified predecessor chain.
+V1 retains the single-checkpoint contract below. The shared verifier also rejects
+receipts inside known hold intervals, including subsequently released holds.
+
 ## Versions and composition
 
 0061 accepts raw-v2/all-first-or-all-replay as before. Continuation requires

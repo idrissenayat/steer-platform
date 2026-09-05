@@ -85,6 +85,9 @@ Tombstone retains its own complete human and shared action proofs.
 Subsequent 0075 adds batch-v2/raw-v3 with one fully verified fresh checkpoint.
 Its policy is explicitly bound into this helper's digest. The v1 modes described
 here remain all-first/all-replay; mixed sets need the separate 0075 contract.
+0076 additionally defines batch-v3 with full previous-reservation links, invoked
+only by the bounded checkpoint-chain composition. Neither extension is an
+automatic upgrade of signed v1 records.
 
 Raw success includes mode, plan/reservation/authority digests and explicitly
 executionAuthorized false. Its evidence digest additionally binds raw authority

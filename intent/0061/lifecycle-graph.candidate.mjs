@@ -11,14 +11,15 @@ import { exactInstant as strictTime, exactRetentionBoundary, timePolicyDigest } 
 import { createRawPreterminalVerifier, policyDigest as rawPolicyDigest } from '../0073/raw-preterminal.candidate.mjs';
 import { verifyRawBatchEvidence, policyDigest as rawBatchPolicyDigest } from '../0074/raw-batch.candidate.mjs';
 import { verifyRawCheckpointEvidence } from '../0075/raw-checkpoint.candidate.mjs';
+import { verifyRawCheckpointChain, policyDigest as rawChainPolicyDigest } from '../0076/raw-checkpoint-chain.candidate.mjs';
 const read = (name) => readFileSync(new URL(`../0001/reviews/domain/round-3/remediation/${name}`, import.meta.url), 'utf8').trimEnd();
 const registryBytes = jcs(JSON.parse(read('TRUST-REGISTRY.candidate.json'))), registry = parseCanonical(registryBytes);
 const providerBytes = read('PROVIDER-KEY-REGISTRY.candidate.json'), providers = JSON.parse(providerBytes).bindings;
 const tableBytes = read('LIFECYCLE-POLICY-TABLE.candidate.json'), table = JSON.parse(tableBytes);
 const timed = createTimedRecordVerifier(registryBytes);
 export const policyDigest = sha256(jcs({ version: 'steer-lifecycle-graph/v1', tableDigest: sha256(tableBytes),
-  providerDigest: sha256(providerBytes), registryDigest: timed.registryDigest, humanPolicy, eventPolicy, manifestDigest, timePolicyDigest, schemaPolicyDigest, rawPolicyDigest, rawBatchPolicyDigest,
-  rules: 'exact closed event/history, authoritative state/inventory, earliest rebuildable trigger, provenance waits for closed derived manifest deletion events not item closure, raw-v2 preterminal grant and current batch; full human proof for ordinary copies/tombstone; shared actions and ordered receipts; zero execution', maxCopies: 32, maxDerivedRecords: 128 }));
+  providerDigest: sha256(providerBytes), registryDigest: timed.registryDigest, humanPolicy, eventPolicy, manifestDigest, timePolicyDigest, schemaPolicyDigest, rawPolicyDigest, rawBatchPolicyDigest, rawChainPolicyDigest,
+  rules: 'exact event/history and authoritative state/inventory; policy retention; raw-v2 grant/batch, raw-v3 single checkpoint, raw-v4 full predecessor chain; full human proof for ordinary copies/tombstone; shared actions and ordered receipts; zero execution', maxCopies: 32, maxDerivedRecords: 128 }));
 const requireValue = (value) => { if (!value) throw new Error('LIFECYCLE_GRAPH_INVALID'); };
 const text = (value) => typeof value === 'string' && value.length > 0 && value.length <= 512 && !/[\u0000-\u001f*?]/u.test(value);
 const time = (value) => { const result = strictTime(value); requireValue(result !== null); return result; };
@@ -60,7 +61,8 @@ export function createLifecycleGraphVerifier(configBytes) {
         requireValue(typeof serialized === 'string' && serialized.length <= 16777216);
         const graph = parseCanonical(serialized);
         const provenance = config.recordClass === 'RC-CORPUS-PROVENANCE';
-        const continuation = raw && graph.version === 'steer-lifecycle-graph/raw-v3';
+        const chained = raw && graph.version === 'steer-lifecycle-graph/raw-v4';
+        const continuation = chained || raw && graph.version === 'steer-lifecycle-graph/raw-v3';
         requireValue(exactKeys(graph, ['version', 'policyDigest', 'configDigest', 'eventBytes', 'historyBytes', 'inventoryBytes', 'stateBytes', 'referenceRevocationBytes', 'copies', 'aggregateBytes', 'tombstone', ...(provenance ? ['derivedInventoryBytes'] : []), ...(raw ? ['rawPolicyBytes', 'rawBatchBytes'] : []), ...(continuation ? ['continuationBytes'] : [])]) &&
           (continuation || graph.version === (raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1')) && graph.policyDigest === policyDigest && graph.configDigest === configDigest);
         const eventsResult = correctedLifecycleEventDecision(jcs({ version: 'steer-r5-001-events/v1', policyDigest: eventPolicy,
@@ -236,24 +238,27 @@ export function createLifecycleGraphVerifier(configBytes) {
         let batchEvidence, checkpointEvidence;
         if (raw) {
           const batch = parseCanonical(graph.rawBatchBytes);
-          requireValue(batch.version === (continuation ? 'steer-raw-batch/v2' : 'steer-raw-batch/v1'));
+          requireValue(batch.version === (chained ? 'steer-raw-batch/v3' : continuation ? 'steer-raw-batch/v2' : 'steer-raw-batch/v1'));
+          const batchContext = { configDigest, inputDigest: baseDigest, preterminalBindingDigest: rawEvidence.batchBindingDigest,
+            authorityDigest: rawAuthority.recordDigest, tupleDigest, terminalDigest: trigger.recordDigest, terminalAt: trigger.occurredAt, deadlineAt: boundaryAt,
+            stateAt: state.recordedAt, entries: batchEntries, aggregateDigest: aggregate.recordDigest, aggregateAt: aggregate.recordedAt };
           if (continuation) {
             const opening = parseCanonical(parseCanonical(batch.openingBytes).reservationBytes);
-            checkpointEvidence = verifyRawCheckpointEvidence(graph.continuationBytes, { configDigest, inputDigest: baseDigest, preterminalBindingDigest: rawEvidence.batchBindingDigest,
+            const checkpointContext = { configDigest, inputDigest: baseDigest, preterminalBindingDigest: rawEvidence.batchBindingDigest,
               authorityDigest: rawAuthority.recordDigest, tupleDigest, recordId: config.recordId, artifactRevision: config.artifactRevision, environmentId: config.environmentId,
               originalHistoryBytes: [...graph.historyBytes, graph.eventBytes], copies, originalStateAt: state.recordedAt, planDigest: parseCanonical(batch.planBytes).recordDigest,
-              openingReservationDigest: opening.recordDigest, openingAt: opening.recordedAt, entries: batchEntries }, evaluationTime);
-            requireValue(checkpointEvidence.state === 'verified-raw-checkpoint');
+              openingReservationDigest: opening.recordDigest, openingAt: opening.recordedAt, entries: batchEntries };
+            checkpointEvidence = chained ? verifyRawCheckpointChain(graph.continuationBytes, { checkpointContext, batchContext, finalBatchBytes: graph.rawBatchBytes }, evaluationTime) :
+              verifyRawCheckpointEvidence(graph.continuationBytes, checkpointContext, evaluationTime);
+            requireValue(checkpointEvidence.state === (chained ? 'verified-raw-checkpoint-chain' : 'verified-raw-checkpoint'));
           }
-          batchEvidence = verifyRawBatchEvidence(graph.rawBatchBytes, { configDigest, inputDigest: baseDigest, preterminalBindingDigest: rawEvidence.batchBindingDigest,
-            authorityDigest: rawAuthority.recordDigest, tupleDigest, terminalDigest: trigger.recordDigest, terminalAt: trigger.occurredAt, deadlineAt: boundaryAt,
-            stateAt: state.recordedAt, entries: batchEntries, aggregateDigest: aggregate.recordDigest, aggregateAt: aggregate.recordedAt,
+          batchEvidence = chained ? checkpointEvidence.batchEvidence : verifyRawBatchEvidence(graph.rawBatchBytes, { ...batchContext,
             ...(continuation ? { checkpoint: Object.fromEntries(['checkpointDigest', 'recordedAt', 'completedCopyIds', 'remainingCopyIds'].map((field) => [field, checkpointEvidence[field]])) } : {}) }, evaluationTime);
           requireValue(batchEvidence.state === 'verified-raw-batch');
         }
         const tombstone = graph.tombstone; requireValue(exactKeys(tombstone, ['humanBundleBytes', 'actionBundleBytes', 'receiptBytes']));
         const conditions = [`lifecycle-inventory:${inventory.recordDigest}`, `aggregate:${aggregate.recordDigest}`, `input:${baseDigest}`,
-          ...(continuation ? [`raw-checkpoint:${checkpointEvidence.checkpointDigest}`] : [])];
+          ...(continuation ? [`raw-checkpoint:${checkpointEvidence.checkpointDigest}`] : []), ...(chained ? [`raw-checkpoint-chain:${checkpointEvidence.chainDigest}`] : [])];
         const authority = human(tombstone.humanBundleBytes, copies, conditions, 'provider-delete', 'disposition-authorization');
         requireValue(time(authority.decidedAt) >= time(aggregate.recordedAt));
         if (continuation) requireValue(time(authority.decidedAt) >= time(checkpointEvidence.recordedAt));
@@ -267,6 +272,7 @@ export function createLifecycleGraphVerifier(configBytes) {
           ...(raw ? { rawBatchMode: batchEvidence.mode, rawBatchPlanDigest: batchEvidence.planDigest, rawBatchReservationDigest: batchEvidence.reservationDigest,
             rawGrantDigest: rawAuthority.recordDigest, executionAuthorized: false } : {}),
           ...(continuation ? { rawCheckpointDigest: checkpointEvidence.checkpointDigest, completedBeforeContinuation: checkpointEvidence.completedCopyIds.length } : {}),
+          ...(chained ? { rawCheckpointCount: checkpointEvidence.checkpointCount, rawCheckpointChainDigest: checkpointEvidence.chainDigest } : {}),
           evidenceDigest: sha256(jcs([...receipts.map((receipt) => receipt.recordDigest), aggregate.recordDigest, checked.receipt.recordDigest,
             ...(raw ? [rawAuthority.recordDigest, batchEvidence.planDigest, batchEvidence.reservationDigest] : [])])) };
       } catch { return blocked(); }
