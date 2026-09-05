@@ -777,3 +777,22 @@ Next: authenticated source/proof normalization and verification, complete event
 cursors and public watch composition. Business tools/screens and remaining
 services still need implementation. Five R5 findings remain open; live authority,
 signed/protected artifacts and deployment/spending restrictions are unchanged.
+
+## Completed development increment: 0044
+
+Added derived tenant/repository projection delivery streams and immutable change
+references through an invoker-rights transactional trigger. Stream-row locks
+serialize positions through commit; duplicates/no-op updates stay silent and
+rollback leaves no committed gap. Fixed-scope internal reads use exact decimal
+cursors and one SQL snapshot, rejecting foreign/stale/future/gapped positions.
+
+Two native and four actual PostgreSQL groups cover the new behavior. The real
+database suite now has 31 groups, including observed concurrent lock blocking.
+Reference pages require initial snapshot composition and are not a Git or gate
+authority. Evidence: intent/0044/EVIDENCE.md; guide: docs/PROJECTION-CHANGE-FEED.md.
+
+This independent delivery prerequisite was implemented without assuming a live
+approval-proof binding. Next: authenticated gate source/proof normalization and
+public snapshot/stream composition, then governed business tools and full screens.
+The five R5 findings, manual/qualified evidence, operational policies and formal
+gates remain open. No live migration, provider access or spending was authorized.

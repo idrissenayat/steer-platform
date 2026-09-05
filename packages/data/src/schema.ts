@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { pgSchema, pgPolicy, primaryKey, text, jsonb, timestamp, check, index } from 'drizzle-orm/pg-core';
+import { pgSchema, pgPolicy, primaryKey, text, jsonb, timestamp, check, index, bigint, uuid } from 'drizzle-orm/pg-core';
 
 export const steer = pgSchema('steer');
 const tenant = sql`nullif(current_setting('steer.organization_id', true), '')`;
@@ -47,4 +47,24 @@ export const projectionRecords = steer.table('projection_records', {
 }, (table) => [
   primaryKey({ columns: [table.organizationId, table.recordKey] }),
   pgPolicy('projection_tenant', { for: 'all', using: sql`${table.organizationId} = ${tenant}`, withCheck: sql`${table.organizationId} = ${tenant}` }),
+]).enableRLS();
+
+// Disposable projection delivery order, never a Git or gate-signature authority.
+export const projectionStreams = steer.table('projection_streams', {
+  organizationId: text('organization_id').notNull(), repository: text('repository').notNull(),
+  generation: uuid('generation').notNull().defaultRandom(), position: bigint('position', { mode: 'bigint' }).notNull(),
+}, (table) => [
+  primaryKey({ columns: [table.organizationId, table.repository] }),
+  check('projection_stream_position', sql`${table.position} > 0`),
+  pgPolicy('stream_tenant', { for: 'all', using: sql`${table.organizationId} = ${tenant}`, withCheck: sql`${table.organizationId} = ${tenant}` }),
+]).enableRLS();
+
+export const projectionChanges = steer.table('projection_changes', {
+  organizationId: text('organization_id').notNull(), repository: text('repository').notNull(),
+  generation: uuid('generation').notNull(), position: bigint('position', { mode: 'bigint' }).notNull(),
+  recordKey: text('record_key').notNull(), sourceRevision: text('source_revision').notNull(), contentDigest: text('content_digest').notNull(),
+}, (table) => [
+  primaryKey({ columns: [table.organizationId, table.repository, table.generation, table.position] }),
+  check('projection_change_position', sql`${table.position} > 0`),
+  pgPolicy('change_tenant', { for: 'all', using: sql`${table.organizationId} = ${tenant}`, withCheck: sql`${table.organizationId} = ${tenant}` }),
 ]).enableRLS();

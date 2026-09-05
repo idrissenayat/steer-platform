@@ -386,6 +386,13 @@ facts, including complete human seats, session/chronology and independent domain
 assurance. Every result still requires source verification. It is not a signing
 tool or authenticated canonical verifier; see `docs/GATE-POLICY-EVALUATION.md`.
 
+Item `intent/0044` adds a transactional projection-change feed with forced tenant
+RLS, repository commit ordering, bounded reference-only pages and generation-bound
+decimal cursors. Actual PostgreSQL tests prove later commits cannot overtake a
+held stream position, rollback consumes no committed position, and missing events
+force reset. No public streaming endpoint or canonical approval log is enabled;
+see `docs/PROJECTION-CHANGE-FEED.md` for snapshot and authority boundaries.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.

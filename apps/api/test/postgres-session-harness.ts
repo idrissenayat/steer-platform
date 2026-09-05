@@ -66,7 +66,7 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
     }
     const migrationsFolder = fileURLToPath(new URL('../migrations/', import.meta.resolve('@steer/data')));
     await migrate(drizzle(admin), { migrationsFolder });
-    assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 4);
+    assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 5);
     const config = { binding, keyring: { currentKeyId: 'synthetic', keys: { synthetic: encryptionKey } } };
     const runtime = (user: 'steer_auth_runtime' | 'steer_app' | 'steer_projector' = 'steer_auth_runtime') => {
       if (runtimeClosed) throw new Error('Synthetic runtime resources are closed.');

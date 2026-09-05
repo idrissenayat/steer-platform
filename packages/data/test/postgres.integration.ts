@@ -13,6 +13,7 @@ import { createArtifactProjectionReader } from '../src/artifact-reader.ts';
 import type { Principal } from '@steer/tool-registry';
 import { testBrowserSessionStorage } from './session-storage.integration.ts';
 import { testRuntimePool } from './runtime-pool.integration.ts';
+import { testProjectionChanges } from './projection-changes.integration.ts';
 
 const exec = promisify(execFile);
 const docker = async (...args: string[]) => (await exec('docker', args, { timeout: 30000 })).stdout.trim();
@@ -55,16 +56,16 @@ try {
   await check('versioned Drizzle migrations apply twice without replay effects', async () => {
     await migrate(drizzle(admin), { migrationsFolder });
     await migrate(drizzle(admin), { migrationsFolder });
-    assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 4);
+    assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 5);
   });
   const app = connect('steer_app');
   const projector = connect('steer_projector');
-  await check('both data tables force RLS and both policies have USING and WITH CHECK', async () => {
+  await check('all four data tables force RLS and every policy has USING and WITH CHECK', async () => {
     const tables = await admin.query("SELECT relrowsecurity, relforcerowsecurity FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='steer' AND c.relkind='r'");
-    assert.equal(tables.rows.length, 2);
+    assert.equal(tables.rows.length, 4);
     assert.ok(tables.rows.every((row) => row.relrowsecurity && row.relforcerowsecurity));
     const policies = await admin.query("SELECT qual, with_check FROM pg_policies WHERE schemaname='steer'");
-    assert.equal(policies.rows.length, 2); assert.ok(policies.rows.every((row) => row.qual && row.with_check));
+    assert.equal(policies.rows.length, 4); assert.ok(policies.rows.every((row) => row.qual && row.with_check));
   });
   for (const org of ['org-a', 'org-b']) await withTenant(projector, identity(org), async (client) => {
     await client.query('INSERT INTO steer.ingestion_events VALUES ($1,$2,$3,$4,$5,now())', [org, 'event-1', 'synthetic/repo', 'a'.repeat(40), 'b'.repeat(64)]);
@@ -164,6 +165,7 @@ try {
     assert.equal((await reader.read(input, principal) as { content: string }).content, second.content);
   });
   await testRuntimePool({ admin, check, host: '127.0.0.1', port, password, database: 'steer_test' });
+  await testProjectionChanges({ admin, app, projector, connect, check });
   console.log(`PostgreSQL integration: ${passed} checks passed; server ${(await admin.query('SHOW server_version')).rows[0].server_version}`);
 } finally {
   await Promise.all(pools.map((pool) => pool.end()));
