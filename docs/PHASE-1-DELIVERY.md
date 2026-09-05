@@ -830,3 +830,20 @@ Next: consumer lifecycle and authenticated operating surfaces/business models,
 alongside canonical gate source/proof verification and remaining services.
 The five R5 findings and formal/manual/qualified evidence remain open. Continue
 authorized implementation without inferring gate, provider or spending authority.
+
+## Completed development increment: 0047
+
+Added the portable reference-consumer lifecycle: complete replacement snapshots,
+bounded ordered page application, exact cursors, explicit catching-up/no-stream
+states and reset/failure clearing. Views are immutable; closure immediately clears
+state and stops admission while awaiting actual work, including reentrant ports.
+
+Eight native groups and actual MCP/Keycloak/Git/PostgreSQL consumer verification
+pass. Committed agent revocation clears cached references and restored synthetic
+access requires a new snapshot. Evidence: intent/0047/EVIDENCE.md; guide:
+docs/PROJECTION-CONSUMER.md. No browser timer, persistence or UI was added.
+
+Next: browser transport and safe production UI hydration/binding, then full
+operating models/surfaces. Canonical gate source/proof verification, five R5
+findings and remaining formal/manual/operational evidence stay open. Continue
+authorized increments without new live provider, signature or spending authority.

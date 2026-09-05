@@ -64,3 +64,7 @@ Next: consumer lifecycle and operating surfaces, canonical gate source/proof
 verification, larger-repository/operational policy and remaining services.
 The five R5 findings, qualified/manual evidence and formal gate requirements
 remain open; delivery references never substitute for human approval.
+
+Increment 0047 adds a portable bounded consumer for this lifecycle. See
+docs/PROJECTION-CONSUMER.md. Browser transport, UI and durable client storage
+remain unimplemented; no implicit live activation accompanies the helper.

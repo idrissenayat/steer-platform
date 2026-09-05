@@ -407,6 +407,13 @@ together; inventories above 1000 records fail instead of truncating. This is a
 derived reference view, not full business/UI parity or current Git authority.
 See `docs/PROJECTION-SNAPSHOT.md`.
 
+Item `intent/0047` adds a portable bounded reference consumer with atomic page/
+cursor publication, immutable views, explicit reset/failure clearing and truthful
+reentrant shutdown. Actual MCP/Keycloak/Git/PostgreSQL verification clears its
+cache after committed revocation and reloads after restored synthetic access.
+No browser transport, timer, UI or durable client cache is enabled. See
+`docs/PROJECTION-CONSUMER.md`.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.

@@ -29,7 +29,8 @@ Temporal workflow foundation (0036) and durable Git/PostgreSQL reconciliation
 managed scheduler runtime binding (0040), durable gate observation (0041) and
 Git-backed gate-record observation (0042) and strict internal gate-policy
 evaluation (0043), ordered projection-change delivery (0044) and authorized
-HTTP/MCP feed reads (0045) and coherent reference snapshots/checkpoints (0046) are
+HTTP/MCP feed reads (0045), coherent reference snapshots/checkpoints (0046) and
+bounded consumer lifecycle (0047) are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
 [provider evidence](docs/GITHUB-RUNTIME-APP.md).
@@ -88,6 +89,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0044 · Ordered projection changes | `intent/0044/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | tenant/repository transactional feed, commit-ordered cursors, bounded reads and reset detection | public snapshot/stream composition, canonical approval events, operational policies, business tools and formal gates |
 | 0045 · Authorized projection feed | `intent/0045/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | shared HTTP/MCP query, pre/post authorization, strict cursor/result checks, opt-in runtime and actual browser paging/reset | initial snapshot/stream handshake, canonical approval proof, operating screens, operational policies and formal gates |
 | 0046 · Coherent reference snapshot | `intent/0046/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | one-statement inventory/checkpoint, shared scoped query, capacity refusal and actual concurrency/browser resume | consumer lifecycle/UI, business read models, canonical approval proof, operational policies and formal gates |
+| 0047 · Projection consumer lifecycle | `intent/0047/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | bounded snapshot/page application, reset/failure clearing, immutable views, truthful drain and actual MCP revocation proof | browser transport/UI, durable consumer storage, business models, canonical approval proof and formal gates |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier

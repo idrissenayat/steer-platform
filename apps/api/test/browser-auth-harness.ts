@@ -19,6 +19,7 @@ import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/cli
 import { createMcpTestFetch } from './mcp-keycloak.integration.ts';
 import { mcpProtocolVersion } from '../src/mcp.ts';
 import type { ProjectionChangesInput, ProjectionChangesResult, ProjectionSnapshotResult } from '@steer/tool-registry';
+import { createProjectionConsumer } from '@steer/tool-registry/projection-consumer';
 
 /** Disposable Chromium/HTTPS fixture. No user's browser profile or OS trust changes. */
 export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: Buffer; temporary: string }) {
@@ -143,6 +144,23 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           assert.ok(!snapshot.isError); const state = (snapshot.structuredContent as { result: ProjectionSnapshotResult }).result;
           assert.equal(state.outcome, 'snapshot'); assert.equal(state.records.length, 2);
           if (changes.outcome === 'page') assert.deepEqual(state.cursor, changes.cursor);
+          const consumeTool = async (name: string, args: Record<string, unknown>) => {
+            const result = await client.callTool({ name, arguments: args });
+            if (result.isError) throw new Error('Synthetic consumer tool denied.');
+            return (result.structuredContent as { result: unknown }).result;
+          };
+          const consumer = createProjectionConsumer({ organizationId: projection.input.organizationId, repository: projection.input.repository }, {
+            snapshot: (args) => consumeTool('projection.snapshot.read', { ...args }),
+            changes: (args) => consumeTool('projection.changes.read', { ...args }),
+          });
+          try {
+            const initial = await consumer.sync(); assert.equal(initial.phase, 'ready'); assert.equal(initial.records.length, 2); assert.equal(initial.cursor?.position, '4');
+            assert.deepEqual((await consumer.sync()).records, initial.records);
+            await source.publish([grant, { ...deps.agent.grant, active: false }]);
+            const denied = await consumer.sync(); assert.equal(denied.phase, 'failed'); assert.deepEqual(denied.records, []); assert.equal(denied.cursor, null);
+            await source.publish([grant, deps.agent.grant]); assert.equal((await consumer.sync()).phase, 'ready');
+          } finally { await consumer.close(); }
+          assert.equal(consumer.view().phase, 'closed');
           assert.equal((await client.callTool({ name: 'projection.artifact.read', arguments: { ...projection.input, organizationId: 'foreign' } })).isError, true);
           assert.equal((await transportFetch(`${origin}/mcp`, { method: 'POST', headers: {
             authorization: `Bearer ${deps.agent.bearer}`, cookie: '__Host-steer-session=synthetic',
