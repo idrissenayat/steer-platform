@@ -8,6 +8,7 @@ import { startLocalIdentityListener } from './identity-listener.ts';
 import { secretReferenceSchema, type SecretProvider } from '@steer/adapters/secrets';
 import { artifactProjectionInputSchema, reconciliationScopeSchema, type ReconciliationScheduler } from '@steer/tool-registry';
 import { createArtifactProjectionReader } from '@steer/data/artifact-reader';
+import { createProjectionChangeReader } from '@steer/data/projection-changes';
 import { createProjectionJob } from '@steer/adapters/projection-job';
 import { ingestVerifiedArtifact, projectionKey } from '@steer/data/ingestion';
 import { readProjection } from '@steer/data';
@@ -32,7 +33,7 @@ const profileSchema = z.strictObject({
     binding: z.strictObject({ organizationId: text, installationId: z.number(), repositoryId: z.number(),
       owner: text, repository: text, branch: text }) }),
   database: databaseSchema,
-  readModel: z.strictObject({ database: databaseSchema, paths: z.array(artifactProjectionInputSchema.shape.path).min(1).max(1000) }).optional(),
+  readModel: z.strictObject({ database: databaseSchema, paths: z.array(artifactProjectionInputSchema.shape.path).min(1).max(1000), changes: z.literal(true).optional() }).optional(),
   mcp: z.strictObject({ clientIds: z.array(z.string().min(1).max(200)).min(1).max(100).refine((ids) => new Set(ids).size === ids.length) }).optional(),
   scheduling: schedulingSchema.optional(),
   sessionKeyId: text,
@@ -146,6 +147,9 @@ export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unk
     const artifactProjection = readPool && profile.readModel ? createArtifactProjectionReader(readPool, {
       organizationId: profile.github.binding.organizationId, repository: `github:${profile.github.binding.repositoryId}`, paths: profile.readModel.paths,
     }) : undefined;
+    const projectionChanges = readPool && profile.readModel?.changes ? createProjectionChangeReader(readPool, {
+      organizationId: profile.github.binding.organizationId, repository: `github:${profile.github.binding.repositoryId}`,
+    }) : undefined;
     const binding = { issuer: profile.browser.issuer, clientId: profile.browser.clientId, redirectUri: profile.browser.redirectUri };
     const store = createPostgresBrowserSessionStore(pool, { binding,
       keyring: { currentKeyId: profile.sessionKeyId, keys: secrets.sessionKeys } });
@@ -164,6 +168,7 @@ export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unk
       ...(profile.mcp ? { mcp: profile.mcp } : {}),
       ...((artifactProjection || managedScheduler) ? { services: {
         ...(artifactProjection ? { artifactProjection } : {}), ...(managedScheduler ? { reconciliationScheduler: managedScheduler.scheduler } : {}),
+        ...(projectionChanges ? { projectionChanges } : {}),
       } } : {}),
       ...(transports.identity ? { fetch: transports.identity } : {}),
     });

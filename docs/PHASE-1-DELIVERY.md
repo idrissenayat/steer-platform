@@ -796,3 +796,19 @@ approval-proof binding. Next: authenticated gate source/proof normalization and
 public snapshot/stream composition, then governed business tools and full screens.
 The five R5 findings, manual/qualified evidence, operational policies and formal
 gates remain open. No live migration, provider access or spending was authorized.
+
+## Completed development increment: 0045
+
+The projection feed now has one shared registry/HTTP/MCP contract, fixed scope,
+explicit grant, pre/post-I/O authorization and strict cursor/page/reset checks.
+Opt-in identity runtime composition reuses its bounded read pool. Existing
+artifact path grants do not imply repository-wide reference access.
+
+Five new native registry groups and actual browser paging/reset/grant-revocation
+checks pass, alongside MCP/HTTP parity. Evidence: intent/0045/EVIDENCE.md;
+guide: docs/AUTHORIZED-PROJECTION-FEED.md. Initial pages explicitly still require
+a coherent snapshot; no streaming UI or canonical approval authority is claimed.
+
+Next: initial snapshot/checkpoint consistency for these consumers, authenticated
+gate source/proof verification and business screens/tools. Keep the five R5
+findings and all gate, provider, deployment and spending boundaries unchanged.

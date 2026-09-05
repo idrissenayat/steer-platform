@@ -56,3 +56,7 @@ is enabled. The gate source/proof verifier and five R5 findings remain open.
 
 Development evidence: intent/0044/EVIDENCE.md. Signed architecture/plan and all
 provider, gate, deployment, release and spending boundaries are unchanged.
+
+Increment 0045 adds opt-in shared HTTP/MCP reads and moves cursor/page schemas to
+the registry. See docs/AUTHORIZED-PROJECTION-FEED.md. Snapshot/SSE composition
+and canonical gate authority remain outside the feed.

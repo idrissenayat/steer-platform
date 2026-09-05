@@ -156,6 +156,9 @@ test('read-model binding requires separate explicit credential and closes both b
   try { assert.equal(runtime.status().readModel?.connections, 0); assert.equal(runtime.status().readModel?.closed, false); }
   finally { await runtime.shutdown(); }
   assert.equal(runtime.status().database.closed, true); assert.equal(runtime.status().readModel?.closed, true);
+  await assert.rejects(createIdentityRuntime({ ...profile, readModel: { ...readModel, changes: 'enabled' } }, { ...secrets, readModelDatabasePassword: 'synthetic-read-password' }));
+  const feedRuntime = await createIdentityRuntime({ ...profile, readModel: { ...readModel, changes: true } }, { ...secrets, readModelDatabasePassword: 'synthetic-read-password' });
+  assert.equal(feedRuntime.status().readModel?.connections, 0); await feedRuntime.shutdown(); assert.equal(feedRuntime.status().readModel?.closed, true);
 });
 
 const projectionProfile = { version: 'steer-projection-runtime/v1',

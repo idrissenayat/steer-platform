@@ -1,21 +1,15 @@
 import { z } from 'zod';
-import { principalSchema, type Principal } from '@steer/tool-registry';
+import { principalSchema, projectionPositionSchema as position, projectionChangeScopeSchema as scopeSchema,
+  projectionChangesInputSchema, ProjectionCursorResetRequiredError, type Principal } from '@steer/tool-registry';
+export { projectionCursorSchema, ProjectionCursorResetRequiredError, type ProjectionCursor } from '@steer/tool-registry';
 import type { DatabasePool } from './runtime-pool.ts';
 import { withTenant } from './index.ts';
 
-const identifier = z.string().min(1).max(200);
-const position = z.string().refine((value) => /^(0|[1-9][0-9]{0,18})$/.test(value) && BigInt(value) <= 9223372036854775807n);
-const scopeSchema = z.strictObject({ organizationId: identifier, repository: identifier });
-export const projectionCursorSchema = scopeSchema.extend({ generation: z.uuid(), position });
-export type ProjectionCursor = z.infer<typeof projectionCursorSchema>;
-const inputSchema = z.strictObject({ cursor: projectionCursorSchema.nullable(), limit: z.number().int().min(1).max(100) });
+const inputSchema = projectionChangesInputSchema.pick({ cursor: true, limit: true });
 const storedSchema = z.strictObject({ generation: z.uuid(), head: position,
   position: position.nullable(), record_key: z.string().min(1).max(500).nullable(),
   source_revision: z.string().regex(/^[a-f0-9]{40}$/).nullable(), content_digest: z.string().regex(/^[a-f0-9]{64}$/).nullable(),
 });
-export class ProjectionCursorResetRequiredError extends Error {
-  constructor() { super('Projection cursor requires a fresh snapshot.'); this.name = 'ProjectionCursorResetRequiredError'; }
-}
 
 /** Internal, fixed-scope derived delivery feed. Never an identity or gate authority.
  * Caller must authenticate and refresh authorization around this asynchronous read. */

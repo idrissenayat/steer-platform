@@ -18,6 +18,7 @@ import type { SessionTestHarness } from './session-harness.ts';
 import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';
 import { createMcpTestFetch } from './mcp-keycloak.integration.ts';
 import { mcpProtocolVersion } from '../src/mcp.ts';
+import type { ProjectionChangesInput, ProjectionChangesResult } from '@steer/tool-registry';
 
 /** Disposable Chromium/HTTPS fixture. No user's browser profile or OS trust changes. */
 export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: Buffer; temporary: string }) {
@@ -106,7 +107,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         assert.deepEqual(await storage.counts(), { transactions: 0, sessions: 0 });
       });
       const grant: AuthorizationRecord = { issuer, subject: deps.subject, organizationId: 'synthetic-org', type: 'human',
-        hats: ['product-lead'], toolGrants: ['session.context', 'projection.artifact.read'], active: true,
+        hats: ['product-lead'], toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read'], active: true,
         validAfter: new Date(0).toISOString(), expiresAt: new Date(Date.now() + 600000).toISOString() };
       const source = await createGitAuthorizationHarness(tls.temporary, grant);
       assert.ok(storage.createProjectionFixture);
@@ -131,6 +132,11 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           const result = await read(); assert.ok(!result.isError);
           const actual = (result.structuredContent as { result: { content: string } }).result;
           assert.equal(actual.content, (await source.reader.readArtifact(projection.input.path, projection.input.revision)).content);
+          const feed = await client.callTool({ name: 'projection.changes.read', arguments: {
+            organizationId: projection.input.organizationId, repository: projection.input.repository, cursor: null, limit: 100,
+          } });
+          assert.ok(!feed.isError); const changes = (feed.structuredContent as { result: ProjectionChangesResult }).result;
+          assert.equal(changes.outcome, 'page'); if (changes.outcome === 'page') { assert.equal(changes.events.length, 4); assert.equal(changes.snapshotRequired, true); }
           assert.equal((await client.callTool({ name: 'projection.artifact.read', arguments: { ...projection.input, organizationId: 'foreign' } })).isError, true);
           assert.equal((await transportFetch(`${origin}/mcp`, { method: 'POST', headers: {
             authorization: `Bearer ${deps.agent.bearer}`, cookie: '__Host-steer-session=synthetic',
@@ -258,6 +264,25 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         assert.equal((await read({ ...projection.input, revision: '0'.repeat(40) })).data, null);
         await source.publish([{ ...grant, toolGrants: ['session.context'] }]); assert.equal((await read(projection.input)).status, 403);
         await source.publish([grant]); assert.equal((await read(projection.input)).status, 200);
+      });
+      await check('authenticated browser resumes actual projection changes and observes scope, reset and current Git grant denial', async () => {
+        const input: ProjectionChangesInput = { organizationId: projection.input.organizationId, repository: projection.input.repository, cursor: null, limit: 1 };
+        const read = (value: ProjectionChangesInput) => page.evaluate(async (args) => {
+          const response = await fetch('/v1/tools/projection.changes.read', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(args) });
+          return { status: response.status, data: await response.json() };
+        }, value);
+        const first = await read(input); assert.equal(first.status, 200); assert.equal(first.data.outcome, 'page');
+        assert.equal(first.data.events.length, 1); assert.equal(first.data.snapshotRequired, true); assert.equal(first.data.hasMore, true);
+        const next = { ...input, cursor: first.data.cursor, limit: 100 };
+        const remaining = await read(next); assert.equal(remaining.status, 200); assert.equal(remaining.data.events.length, 3);
+        assert.equal(remaining.data.snapshotRequired, false); assert.equal(remaining.data.hasMore, false);
+        assert.deepEqual((await read({ ...next, cursor: remaining.data.cursor })).data.events, []);
+        assert.equal((await read({ ...next, organizationId: 'foreign' })).status, 403);
+        assert.equal((await read({ ...next, cursor: { ...next.cursor, repository: 'foreign' } })).status, 403);
+        const reset = await read({ ...next, cursor: { ...next.cursor, generation: '00000000-0000-4000-8000-000000000000' } });
+        assert.equal(reset.status, 200); assert.equal(reset.data.outcome, 'reset-required'); assert.equal('events' in reset.data, false);
+        await source.publish([{ ...grant, toolGrants: ['session.context'] }]); assert.equal((await read(next)).status, 403);
+        await source.publish([grant]); assert.equal((await read(next)).status, 200);
       });
       await check('browser cross-site logout omits the Lax cookie and the API rejects the foreign Origin', async () => {
         await page.goto(attackerOrigin);

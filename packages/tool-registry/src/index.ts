@@ -1,5 +1,8 @@
 import { roles } from '@steer/domain/types';
 import { z } from 'zod';
+import { projectionChangesInputSchema, projectionChangePageSchema, projectionChangesOutputSchema,
+  ProjectionCursorResetRequiredError, type ProjectionChangeReader, type ProjectionChangesResult } from './projection-changes.ts';
+export * from './projection-changes.ts';
 
 const identifier = z.string().min(1).max(200);
 export const principalSchema = z.strictObject({
@@ -80,7 +83,7 @@ export interface ReconciliationScheduler {
   start(input: ReconciliationStart): Promise<unknown>;
   inspect(): Promise<unknown>;
 }
-export interface ToolServices { artifactProjection?: ArtifactProjectionReader; reconciliationScheduler?: ReconciliationScheduler }
+export interface ToolServices { artifactProjection?: ArtifactProjectionReader; reconciliationScheduler?: ReconciliationScheduler; projectionChanges?: ProjectionChangeReader }
 
 const contextInput = z.strictObject({ organizationId: identifier });
 const contextOutput = principalSchema.omit({ expiresAt: true });
@@ -168,7 +171,7 @@ const startAuthorization = defineQuery({ name: 'workflow.reconciliation.start', 
   input: reconciliationStartSchema, output: principalSchema, handler: (_input, principal) => principal });
 const statusAuthorization = defineQuery({ name: 'workflow.reconciliation.status', description: 'Authorize reconciliation status.',
   input: reconciliationScopeSchema, output: principalSchema, handler: (_input, principal) => principal });
-async function freshSchedulerPrincipal(guard: typeof startAuthorization | typeof statusAuthorization, input: unknown, initial: Principal, context: InvocationContext) {
+async function freshToolPrincipal(guard: { invoke(raw: unknown, context: InvocationContext): Principal }, input: unknown, initial: Principal, context: InvocationContext) {
   if (initial.type === 'agent' && initial.hats.length) throw new ToolError('UNAUTHENTICATED');
   if (!context.revalidate) throw new ToolError('UNAVAILABLE');
   let current: unknown; try { current = await context.revalidate(); } catch { throw new ToolError('UNAUTHENTICATED'); }
@@ -195,7 +198,7 @@ const reconciliationStart = {
       scheduler.limits.maxRounds < 1 || scheduler.limits.maxRounds > 100 || scheduler.limits.minIntervalMs < 1000 || scheduler.limits.minIntervalMs > 86400000) throw new ToolError('UNAVAILABLE');
     if (input.rounds > scheduler.limits.maxRounds || input.intervalMs < scheduler.limits.minIntervalMs) throw new ToolError('FORBIDDEN');
     // Authorization is refreshed immediately before dispatch; a later revocation cannot undo an accepted start.
-    await freshSchedulerPrincipal(startAuthorization, input, initial, context);
+    await freshToolPrincipal(startAuthorization, input, initial, context);
     const uncertain: ReconciliationStartResult = { workflowId: scheduler.workflowId, outcome: 'unknown' };
     try {
       const result = reconciliationStartResultSchema.safeParse(await scheduler.start(input));
@@ -209,22 +212,56 @@ const reconciliationStatus = {
   input: reconciliationScopeSchema, output: reconciliationStatusResultSchema,
   async invoke(raw: unknown, context: InvocationContext): Promise<ReconciliationStatusResult> {
     const initial = statusAuthorization.invoke(raw, context); const input = reconciliationScopeSchema.parse(raw); const scheduler = schedulerFor(input, context);
-    await freshSchedulerPrincipal(statusAuthorization, input, initial, context);
+    await freshToolPrincipal(statusAuthorization, input, initial, context);
     let result: unknown;
     try { result = await scheduler.inspect(); } catch { result = { workflowId: scheduler.workflowId, outcome: 'unknown' }; }
-    await freshSchedulerPrincipal(statusAuthorization, input, initial, context);
+    await freshToolPrincipal(statusAuthorization, input, initial, context);
     const output = reconciliationStatusResultSchema.safeParse(result);
     return output.success && output.data.workflowId === scheduler.workflowId ? output.data : { workflowId: scheduler.workflowId, outcome: 'unknown' };
   },
 };
 
+const changesAuthorization = defineQuery({ name: 'projection.changes.read', description: 'Authorize a scoped projection change page.',
+  input: projectionChangesInputSchema, output: principalSchema, handler: (_input, principal) => principal });
+const changesQuery = {
+  name: 'projection.changes.read', description: 'Read bounded derived projection references; initial snapshots and explicit cursor resets are required, never gate authority.',
+  kind: 'query' as const, scope: 'organization' as const, authorization: 'explicit-tool-grant' as const,
+  input: projectionChangesInputSchema, output: projectionChangesOutputSchema,
+  async invoke(raw: unknown, context: InvocationContext): Promise<ProjectionChangesResult> {
+    const initial = changesAuthorization.invoke(raw, context); const input = projectionChangesInputSchema.parse(raw);
+    const reader = context.services?.projectionChanges;
+    if (!reader || !context.revalidate) throw new ToolError('UNAVAILABLE');
+    if (reader.scope.organizationId !== input.organizationId || reader.scope.repository !== input.repository ||
+      (input.cursor && (input.cursor.organizationId !== input.organizationId || input.cursor.repository !== input.repository))) throw new ToolError('FORBIDDEN');
+    const principal = await freshToolPrincipal(changesAuthorization, input, initial, context);
+    let rawPage: unknown; let reset = false;
+    try { rawPage = await reader.read({ cursor: input.cursor, limit: input.limit }, principal); }
+    catch (error) { if (error instanceof ProjectionCursorResetRequiredError) reset = true; else throw new ToolError('INTERNAL_ERROR'); }
+    await freshToolPrincipal(changesAuthorization, input, initial, context);
+    const scope = { organizationId: input.organizationId, repository: input.repository };
+    if (reset) return { ...scope, outcome: 'reset-required' };
+    const parsed = projectionChangePageSchema.safeParse(rawPage);
+    if (!parsed.success) throw new ToolError('INTERNAL_ERROR');
+    const page = parsed.data; const offset = BigInt(input.cursor?.position ?? '0');
+    if (page.events.length > input.limit || page.snapshotRequired !== (input.cursor === null) ||
+      (page.hasMore && page.events.length !== input.limit) ||
+      page.events.some((event, index) => BigInt(event.position) !== offset + BigInt(index + 1)) ||
+      (page.cursor ? page.cursor.organizationId !== input.organizationId || page.cursor.repository !== input.repository ||
+        (input.cursor !== null && page.cursor.generation !== input.cursor.generation) ||
+        BigInt(page.cursor.position) !== offset + BigInt(page.events.length)
+        : input.cursor !== null || page.events.length !== 0 || page.hasMore)) throw new ToolError('INTERNAL_ERROR');
+    return { ...scope, ...page, outcome: 'page' };
+  },
+};
+
 // Frozen definitions are the common source for discovery, dispatch and HTTP contracts.
-const definitions = Object.freeze([Object.freeze(contextQuery), Object.freeze(projectionQuery), Object.freeze(reconciliationStart), Object.freeze(reconciliationStatus)]);
+const definitions = Object.freeze([Object.freeze(contextQuery), Object.freeze(projectionQuery), Object.freeze(reconciliationStart), Object.freeze(reconciliationStatus), Object.freeze(changesQuery)]);
 export function invokeTool(name: 'session.context', input: unknown, context: InvocationContext): z.output<typeof contextOutput>;
 export function invokeTool(name: 'projection.artifact.read', input: unknown, context: InvocationContext): Promise<ArtifactProjection | null>;
 export function invokeTool(name: 'workflow.reconciliation.start', input: unknown, context: InvocationContext): Promise<ReconciliationStartResult>;
 export function invokeTool(name: 'workflow.reconciliation.status', input: unknown, context: InvocationContext): Promise<ReconciliationStatusResult>;
-export function invokeTool(name: string, input: unknown, context: InvocationContext): z.output<typeof contextOutput> | Promise<ArtifactProjection | null | ReconciliationStartResult | ReconciliationStatusResult>;
+export function invokeTool(name: 'projection.changes.read', input: unknown, context: InvocationContext): Promise<ProjectionChangesResult>;
+export function invokeTool(name: string, input: unknown, context: InvocationContext): z.output<typeof contextOutput> | Promise<ArtifactProjection | null | ReconciliationStartResult | ReconciliationStatusResult | ProjectionChangesResult>;
 export function invokeTool(name: string, input: unknown, context: InvocationContext) {
   const definition = definitions.find((tool) => tool.name === name);
   if (!definition) throw new ToolError('TOOL_NOT_FOUND');

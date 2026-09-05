@@ -28,7 +28,8 @@ Temporal workflow foundation (0036) and durable Git/PostgreSQL reconciliation
 (0037), worker-process recovery (0038), authorized scheduling tools (0039) and
 managed scheduler runtime binding (0040), durable gate observation (0041) and
 Git-backed gate-record observation (0042) and strict internal gate-policy
-evaluation (0043) and ordered projection-change delivery (0044) are
+evaluation (0043), ordered projection-change delivery (0044) and authorized
+HTTP/MCP feed reads (0045) are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
 [provider evidence](docs/GITHUB-RUNTIME-APP.md).
@@ -85,6 +86,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0042 · Git gate-record observation | `intent/0042/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | fresh scoped observer, exact Git/artifact-set provenance, actual commit/restart and grant-revocation tests | canonical signer/decision policy, event cursors, public watch composition, business tools and formal gates |
 | 0043 · Strict gate-policy evaluation | `intent/0043/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | normalized human/hat/sequence/chronology, second-look and independent domain-evidence checks | authenticated source/proof normalization, canonical gate verifier, event cursors, business tools and formal gates |
 | 0044 · Ordered projection changes | `intent/0044/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | tenant/repository transactional feed, commit-ordered cursors, bounded reads and reset detection | public snapshot/stream composition, canonical approval events, operational policies, business tools and formal gates |
+| 0045 · Authorized projection feed | `intent/0045/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | shared HTTP/MCP query, pre/post authorization, strict cursor/result checks, opt-in runtime and actual browser paging/reset | initial snapshot/stream handshake, canonical approval proof, operating screens, operational policies and formal gates |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier

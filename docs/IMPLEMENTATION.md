@@ -393,6 +393,13 @@ held stream position, rollback consumes no committed position, and missing event
 force reset. No public streaming endpoint or canonical approval log is enabled;
 see `docs/PROJECTION-CHANGE-FEED.md` for snapshot and authority boundaries.
 
+Item `intent/0045` exposes the derived feed through the shared registry, HTTP and
+MCP, with fixed scope, explicit grants, fresh pre/post authorization and strict
+page/reset validation. The identity runtime explicitly opts in to the existing
+read pool. Actual browser/Keycloak/Git/PostgreSQL paging and grant-revocation
+checks pass; no initial snapshot or feed UI is claimed. See
+`docs/AUTHORIZED-PROJECTION-FEED.md`.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.
