@@ -160,7 +160,26 @@ button:focus-visible, .access-footer a:focus-visible { outline: .2rem solid var(
 .workspace-surfaces h3 { margin: 0 0 .8rem; font-size: 1rem; }
 .workspace-surfaces li p { color: var(--steer-muted); line-height: 1.6; font-size: .9rem; }
 .workspace-surfaces li > span { font-size: .75rem; color: #7c1943; font-weight: 750; }
+.reference-panel { margin-top: 2rem; }
+.reference-panel h2 { font-size: 1.7rem; }
+.reference-form { display: flex; gap: 1rem; align-items: flex-end; }
+.reference-form > div { flex: 1; min-width: 0; }
+.reference-form label { display: block; font-weight: 700; font-size: .9rem; margin-bottom: .6rem; }
+.reference-form input { width: 100%; min-height: 3rem; border: 1px solid #9b7d8e; border-radius: .8rem; padding: .75rem; font: inherit; background: white; color: var(--steer-ink); }
+.reference-form input:focus-visible { outline: .2rem solid var(--steer-focus); outline-offset: .2rem; }
+.reference-form button { width: auto; padding: .7rem 1.2rem; margin: 0; }
+.reference-controls { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1rem; }
+.reference-controls button { width: auto; padding: .6rem 1rem; font-size: .85rem; }
+.reference-controls button:disabled { opacity: .6; cursor: not-allowed; }
+.reference-list { list-style: none; padding: 0; display: grid; gap: .8rem; }
+.reference-list li { padding: 1rem; border: 1px solid var(--steer-border); border-radius: .8rem; background: #fffaf7; overflow-wrap: anywhere; }
+.reference-list h3 { font-size: .95rem; line-height: 1.5; }
+.reference-list dl { margin: .8rem 0 0; display: grid; gap: .7rem; }
+.reference-list dt { color: var(--steer-muted); font-size: .75rem; }
+.reference-list dd { margin: .25rem 0 0; font-size: .8rem; }
+.reference-list code { overflow-wrap: anywhere; }
 @media (max-width: 760px) {
+  .reference-form { flex-direction: column; align-items: stretch; }
   .access-grid { grid-template-columns: 1fr; padding: 2.5rem 0; gap: 2rem; }
   .brand-caption { display: none; }
   .access-intro h1 { font-size: 2.6rem; }

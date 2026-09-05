@@ -184,15 +184,34 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         args: [`--ignore-certificate-errors-spki-list=${spki}`] });
       const context = await browser.newContext({ ignoreHTTPSErrors: false, acceptDownloads: false });
       const allowed = new Set([origin, new URL(issuer).origin, attackerOrigin, badOrigin]);
+      let nextApplicationRequest = Date.now();
       await context.route('**/*', async (route) => {
-        if (allowed.has(new URL(route.request().url()).origin)) await route.continue(); else await route.abort('blockedbyclient');
+        const requestOrigin = new URL(route.request().url()).origin;
+        if (!allowed.has(requestOrigin)) { await route.abort('blockedbyclient'); return; }
+        if (requestOrigin === origin) {
+          // Functional navigation tests use the configured sustained ingress rate.
+          // Each actual request is sent once; this is not a production-limit override or retry.
+          const scheduled = Math.max(Date.now(), nextApplicationRequest); nextApplicationRequest = scheduled + 500;
+          if (scheduled > Date.now()) await delay(scheduled - Date.now());
+        }
+        await route.continue();
       });
       const page = await context.newPage(); page.setDefaultTimeout(15000); page.setDefaultNavigationTimeout(20000);
-      const tool = () => page.evaluate(async () => {
+      const readSessionOnce = () => page.evaluate(async () => {
         const response = await fetch('/v1/tools/session.context', { method: 'POST',
           headers: { 'content-type': 'application/json' }, body: JSON.stringify({ organizationId: 'synthetic-org' }) });
         return { status: response.status, retryAfter: response.headers.get('retry-after'), data: await response.json() };
       });
+      const tool = async () => {
+        let result = await readSessionOnce();
+        // Expanded real-script navigation can consume the shared admission burst.
+        // Only this read-only assertion may honor Retry-After; auth mutations never retry.
+        for (let attempt = 0; result.status === 429 && attempt < 3; attempt++) {
+          console.log('Synthetic session assertion: HTTP 429, honoring bounded Retry-After.');
+          assert.equal(result.retryAfter, '1'); await delay(1000); result = await readSessionOnce();
+        }
+        return result;
+      };
       await check('Chromium trusts only the generated test key and rejects an unrelated invalid certificate', async () => {
         const badPage = await context.newPage();
         try { await assert.rejects(badPage.goto(badOrigin), /ERR_CERT_/); } finally { await badPage.close(); }
@@ -312,6 +331,70 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         });
         assert.deepEqual(violations, []);
       });
+      await check('hydrated reference panel loads real data, clears on committed grant denial, and rejects foreign scope', async () => {
+        const panel = page.getByRole('region', { name: 'Repository references' });
+        const input = panel.getByLabel('Repository scope ID');
+        await input.fill(projection.input.repository);
+        await page.keyboard.press('Tab');
+        assert.equal(await panel.getByRole('button', { name: 'Load references', exact: true }).evaluate((element) => element === document.activeElement), true);
+        await page.keyboard.press('Enter');
+        await page.waitForFunction(() => document.querySelector('[data-testid="reference-status"]')?.textContent?.startsWith('References loaded.'));
+        assert.equal(await panel.getByTestId('reference-list').locator('li').count(), 2);
+        assert.ok((await panel.textContent())?.includes(projection.input.revision));
+        await source.publish([{ ...grant, toolGrants: ['session.context'] }]);
+        await panel.getByRole('button', { name: 'Refresh references', exact: true }).click();
+        await page.waitForFunction(() => document.querySelector('[data-testid="reference-status"]')?.textContent?.startsWith('References could not be verified.'));
+        assert.equal(await panel.getByTestId('reference-list').count(), 0);
+        await source.publish([grant]);
+        await panel.getByRole('button', { name: 'Refresh references', exact: true }).click();
+        await page.waitForFunction(() => document.querySelector('[data-testid="reference-status"]')?.textContent?.startsWith('References loaded.'));
+        assert.equal(await panel.getByTestId('reference-list').locator('li').count(), 2);
+        const directory = process.env.STEER_WORKSPACE_SCREENSHOT_DIR;
+        if (directory) await page.screenshot({ path: join(directory, 'references-desktop.png'), fullPage: true });
+        await page.setViewportSize({ width: 390, height: 844 });
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+        if (directory) await page.screenshot({ path: join(directory, 'references-mobile.png'), fullPage: true });
+        await page.setViewportSize({ width: 1440, height: 1000 });
+        const violations = await page.evaluate(async () => {
+          const axe = (window as unknown as { axe: { run: (node: Document, options: unknown) => Promise<{ violations: { id: string; impact: string }[] }> } }).axe;
+          return (await axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] } })).violations.map(({ id, impact }) => ({ id, impact }));
+        });
+        assert.deepEqual(violations, []);
+        await input.fill('foreign/repository'); assert.equal(await panel.getByTestId('reference-list').count(), 0);
+        await panel.getByRole('button', { name: 'Load references', exact: true }).click();
+        await page.waitForFunction(() => document.querySelector('[data-testid="reference-status"]')?.textContent?.startsWith('References could not be verified.'));
+        assert.equal(await panel.getByTestId('reference-list').count(), 0);
+        await panel.getByRole('button', { name: 'Clear references', exact: true }).click();
+        assert.equal(await panel.getByRole('button', { name: 'Refresh references', exact: true }).isDisabled(), true);
+        assert.deepEqual(await page.evaluate(() => [Object.keys(localStorage), Object.keys(sessionStorage)]), [[], []]);
+      });
+      await check('reference panel clears on page lifecycle and local session expiry without automatic reload or polling', async () => {
+        const panel = page.getByRole('region', { name: 'Repository references' });
+        await panel.getByLabel('Repository scope ID').fill(projection.input.repository);
+        await panel.getByRole('button', { name: 'Load references', exact: true }).click();
+        await page.waitForFunction(() => document.querySelector('[data-testid="reference-status"]')?.textContent?.startsWith('References loaded.'));
+        // Explicit lifecycle dispatch covers the cleanup handler, not an assertion of browser BFCache eligibility.
+        await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: true })));
+        assert.equal(await panel.getByTestId('reference-list').count(), 0);
+        await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true })));
+        assert.equal(await panel.getByRole('button', { name: 'Refresh references', exact: true }).isDisabled(), true);
+        // Keep browser-only clock manipulation isolated from later authentication cases.
+        const expiryPage = await context.newPage();
+        try {
+          let requests = 0; expiryPage.on('request', (request) => { if (new URL(request.url()).pathname.startsWith('/v1/tools/projection.')) requests++; });
+          await expiryPage.clock.install(); await expiryPage.goto(origin);
+          const expiryPanel = expiryPage.getByRole('region', { name: 'Repository references' });
+          await expiryPanel.getByLabel('Repository scope ID').fill(projection.input.repository);
+          await expiryPanel.getByRole('button', { name: 'Load references', exact: true }).click();
+          await expiryPage.waitForFunction(() => document.querySelector('[data-testid="reference-status"]')?.textContent?.startsWith('References loaded.'));
+          const beforeExpiry = requests;
+          await expiryPage.clock.fastForward(310000);
+          assert.equal(await expiryPanel.getByTestId('reference-list').count(), 0);
+          assert.equal(await expiryPanel.getByRole('button', { name: 'Load references', exact: true }).isDisabled(), true);
+          assert.match((await expiryPanel.getByTestId('reference-status').textContent())!, /Session display expired/);
+          assert.equal(requests, beforeExpiry, 'Display expiry must not poll or reload references');
+        } finally { await expiryPage.close(); }
+      });
       await check('browser reads only its granted exact-revision projection ingested from actual synthetic Git through PostgreSQL', async () => {
         const read = (input: typeof projection.input) => page.evaluate(async (value) => {
           const response = await fetch('/v1/tools/projection.artifact.read', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(value) });
@@ -407,12 +490,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         await page.getByRole('button', { name: 'Sign out', exact: true }).click();
         assert.equal((await response).status(), 303);
         await page.waitForURL(`${origin}/`, { waitUntil: 'load' });
-        // Hydrated reloads load real framework assets and can exhaust the fixed burst.
-        // Respect bounded Retry-After for this read-only assertion; never replay logout.
-        let afterLogout = await tool();
-        for (let attempt = 0; afterLogout.status === 429 && attempt < 3; attempt++) {
-          assert.equal(afterLogout.retryAfter, '1'); await delay(1000); afterLogout = await tool();
-        }
+        const afterLogout = await tool();
         assert.equal(afterLogout.status, 401);
         assert.equal((await storage.counts()).sessions, 0);
         assert.equal((await context.cookies(origin)).filter((cookie) => cookie.name.startsWith('__Host-steer-')).length, 0);

@@ -1,6 +1,7 @@
 import { connection } from 'next/server';
 import { headers } from 'next/headers';
 import { identityView, sessionView } from './identity-view';
+import ProjectionPanel from './projection-panel';
 
 export default async function FoundationPage() {
   await connection();
@@ -20,6 +21,7 @@ export default async function FoundationPage() {
           <div><dt>Session expires (UTC)</dt><dd><time dateTime={session.expiresAt}>{new Date(session.expiresAt).toISOString().replace('T', ' ').replace('.000Z', ' UTC')}</time></dd></div></dl>
         <p className="access-hint session-snapshot">Checked for this page load. Refresh to recheck access. Every action is authorized again; this display is not a gate signature.</p>
       </section>
+      <ProjectionPanel key={`${session.subject}:${session.organizationId}:${session.expiresAt}`} organizationId={session.organizationId} expiresAt={session.expiresAt} />
       <section className="workspace-surfaces" aria-labelledby="surfaces-title"><h2 id="surfaces-title">Your operating surfaces</h2><p className="access-hint">Session access is connected. These production work surfaces are still being built.</p>
         <ul>{[['Intent backlog', 'Frame outcomes and boundaries before work is pulled.'], ['Flight board', 'Follow work through its lifecycle and evidence gates.'], ['Inbox', 'Review the decisions that need your attention.']].map(([name, description]) =>
           <li key={name}><h3>{name}</h3><p>{description}</p><span>Not connected yet</span></li>)}</ul></section>

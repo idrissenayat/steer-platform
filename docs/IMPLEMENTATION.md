@@ -420,6 +420,12 @@ blocked forged parser-inserted scripts/handlers. Existing forms, authentication,
 revocation and accessibility checks pass. This is a script-execution prerequisite,
 not full interactive work surfaces. See `docs/NONCE-SCRIPT-BOUNDARY.md`.
 
+Item `intent/0049` connects a read-only reference panel to the shared consumer and
+same-origin cookie-authenticated HTTP tools. Explicit repository selection never
+grants access; failures, scope changes and display lifecycle clear old references.
+Only keys/fingerprints are displayed, not invented intent states or approvals.
+See `docs/BROWSER-REFERENCES.md` and the increment's verification evidence.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.

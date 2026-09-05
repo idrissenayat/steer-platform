@@ -866,3 +866,22 @@ operating models/screens. Audit future dynamic script sinks and measure capacity
 no blanket XSS or production-readiness claim is made. Five R5 findings, canonical
 gate proof and formal/manual/operational requirements remain open. Continue safe
 implementation without implying new provider, signature or spending authority.
+
+## Completed development increment: 0049
+
+The authenticated Next.js workspace now has an explicit read-only repository
+reference panel using the canonical consumer. A bounded same-origin transport
+keeps credentials in the existing secure cookie flow, rejects malformed/denied
+data and cancels closed work. Scope edits, lifecycle events and display expiry
+discard cached references. Existing pink/orange design and native forms remain.
+
+Native checks and all 30 paced functional browser groups pass, including
+keyboard entry, populated responsive/automated accessibility and inspected
+desktop/mobile views. Evidence is in intent/0049/EVIDENCE.md; guide:
+docs/BROWSER-REFERENCES.md. This is reference
+inspection, not full intent backlog/board/inbox parity or live provider enablement.
+
+Next: typed operating artifact models/read tools and the production intent backlog,
+detail, board and inbox. Canonical gate proof, five R5 findings, remaining services
+and formal/manual/operational requirements remain open. Continue safe increments
+without inferring signature, provider, spending, deployment or release authority.

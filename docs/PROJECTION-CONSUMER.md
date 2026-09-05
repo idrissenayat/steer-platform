@@ -42,8 +42,9 @@ authenticated transport. They must throw on transport/tool errors rather than
 pass an error envelope as successful data. The controller validates data too,
 but cannot independently prove identity, source currentness or policy approval.
 Host UI code must close/clear on logout, session expiry and scope replacement.
-That browser transport, lifecycle host and UI are the next increment, not claimed
-complete here. No hidden polling or durable browser cache is introduced.
+Increment 0049 supplies that browser transport and lifecycle host in a read-only
+reference panel; see docs/BROWSER-REFERENCES.md. Full operating screens remain
+separate. No hidden polling or durable browser cache is introduced.
 
 Native lifecycle/race cases and actual MCP/Keycloak/Git/PostgreSQL evidence are
 recorded in intent/0047/EVIDENCE.md. The five R5 findings, canonical gate source/
