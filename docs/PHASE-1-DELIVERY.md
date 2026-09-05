@@ -209,9 +209,31 @@ revocation and documentation parity. Full root checks pass on Node 24.20.0.
 Default CLI remains deny-all and does not expose auth routes; this is synthetic
 HTTP evidence, not a real browser/provider-flow pass. See `intent/0016/EVIDENCE.md`.
 
-Next bounded increment: verify a local Keycloak human authorization-code/PKCE
-flow using disposable identities and the real browser route composition,
-then connect encrypted storage and authoritative membership configuration.
+The real local human-code HTTP flow was subsequently verified in 0017 below.
+Next: combined encrypted storage/browser and authoritative membership work.
 Public activation additionally requires ingress resource/rate limits and
 approved database/key-provider settings. Refresh/provider logout, M0 findings,
 all formal gates and deployment/spending authorization remain open.
+
+## Completed development increment: 0017
+
+Extended the digest-pinned disposable Keycloak harness with a separate synthetic
+human/confidential client and actual password-form/code exchange through STEER's
+HTTP routes. A real profile mismatch was found: empty default scopes omitted
+the human access-token subject mapper. Added the explicit provider mapper;
+required-subject, token-pair and grant checks were not weakened.
+
+Twelve real-provider check groups now pass: six existing agent groups and six
+human groups covering S256/disabled grants, wrong-password rejection, valid
+code exchange, human context, replay/tenant/revocation, local logout and wrong
+PKCE/client-secret denial. Root Node 24 checks pass. Only synthetic resources
+were used and cleaned up. Evidence: `intent/0017/EVIDENCE.md`; reusable binding
+requirements: `docs/KEYCLOAK-IDENTITY-PROFILE.md`.
+
+Next bounded increment: assemble the real provider routes with encrypted
+Postgres storage in an isolated local harness, then verify actual browser cookie,
+TLS/navigation behavior and trusted Git-backed membership configuration. The
+current form driver is not a browser-engine pass and its Map/grant fixtures
+must not become runtime fallbacks. Public activation remains closed pending
+those prerequisites, ingress limits and approved runtime settings. M0's five
+R5 findings, independent reviews and all gate/release/spending boundaries remain.

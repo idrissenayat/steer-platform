@@ -9,6 +9,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { promisify } from 'node:util';
 import { createOidcAuthenticator, type AuthorizationRecord } from '@steer/adapters/identity';
 import { createOidcApi } from '../src/identity.ts';
+import { testKeycloakHumanFlow } from './keycloak-human.integration.ts';
 
 // Deliberately separate from normal tests: requires Docker and OpenSSL, never real credentials.
 const image = 'quay.io/keycloak/keycloak@sha256:ff4257d0d64efbe99ed1ddfaf07765cc3c36dc7518bf8324d41961327f441c54';
@@ -18,9 +19,13 @@ const name = `steer-0013-${randomUUID()}`;
 const temporary = await mkdtemp(join(tmpdir(), 'steer-0013-'));
 const clientSecret = randomBytes(32).toString('hex');
 const subject = randomUUID();
+const humanSubject = randomUUID();
+const humanPassword = randomBytes(32).toString('hex');
+const humanClientSecret = randomBytes(32).toString('hex');
 let containerId: string | undefined;
 let passed = 0;
-const check = async (label: string, run: () => Promise<void>) => { await run(); passed++; console.log(`PASS ${label}`); };
+let stage = 'disposable service initialization';
+const check = async (label: string, run: () => Promise<void>) => { stage = label; await run(); passed++; console.log(`PASS ${label}`); };
 
 try {
   await chmod(temporary, 0o700);
@@ -43,9 +48,27 @@ try {
           name: 'steer-audience', protocol: 'openid-connect', protocolMapper: 'oidc-audience-mapper',
           config: { 'included.custom.audience': 'steer-api', 'access.token.claim': 'true', 'id.token.claim': 'false' },
         }],
+    }, { clientId: 'steer-test-web', enabled: true, protocol: 'openid-connect',
+      publicClient: false, secret: humanClientSecret, serviceAccountsEnabled: false,
+      standardFlowEnabled: true, implicitFlowEnabled: false, directAccessGrantsEnabled: false,
+      consentRequired: false, fullScopeAllowed: false, defaultClientScopes: [], optionalClientScopes: [],
+      redirectUris: ['https://steer.test/auth/callback'], webOrigins: ['https://steer.test'],
+      attributes: { 'pkce.code.challenge.method': 'S256' },
+      protocolMappers: [{
+        // Minimal scopes omit Keycloak's default "basic" scope: bind sub explicitly.
+        name: 'steer-subject', protocol: 'openid-connect', protocolMapper: 'oidc-sub-mapper',
+        config: { 'access.token.claim': 'true', 'introspection.token.claim': 'false' },
+      }, claim('steer_org', 'synthetic-org'), claim('steer_kind', 'human'),
+        claim('steer_hats', '["product-lead"]', 'JSON'), {
+          name: 'steer-audience', protocol: 'openid-connect', protocolMapper: 'oidc-audience-mapper',
+          config: { 'included.custom.audience': 'steer-api', 'access.token.claim': 'true', 'id.token.claim': 'false' },
+        }],
     }],
     users: [{ id: subject, username: 'service-account-steer-test-agent', enabled: true,
-      serviceAccountClientId: 'steer-test-agent' }],
+      serviceAccountClientId: 'steer-test-agent' },
+      { id: humanSubject, username: 'synthetic-human', enabled: true, email: 'synthetic@example.invalid',
+        emailVerified: true, firstName: 'Synthetic', lastName: 'Tester', requiredActions: [],
+        credentials: [{ type: 'password', value: humanPassword, temporary: false }] }],
   }), { mode: 0o600 });
   await exec('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-noenc', '-days', '1',
     '-subj', '/CN=localhost', '-addext', 'subjectAltName=IP:127.0.0.1,DNS:localhost',
@@ -85,7 +108,9 @@ try {
         res.on('error', reject);
         res.on('end', () => {
           const headers = new Headers();
-          for (const [key, value] of Object.entries(res.headers)) if (value !== undefined) headers.set(key, Array.isArray(value) ? value.join(', ') : value);
+          for (const [key, value] of Object.entries(res.headers)) if (value !== undefined) {
+            for (const item of Array.isArray(value) ? value : [value]) headers.append(key, item);
+          }
           resolve(new Response(new Uint8Array(Buffer.concat(chunks)), { status: res.statusCode ?? 500, headers }));
         });
       });
@@ -159,10 +184,12 @@ try {
     assert.equal((await call('synthetic-org')).status, 401);
     assert.equal((await api.request('/health/ready')).status, 503);
   });
+  await testKeycloakHumanFlow({ issuer, clientSecret: humanClientSecret, subject: humanSubject,
+    username: 'synthetic-human', password: humanPassword, fetch: scopedFetch, check });
   console.log(`Keycloak integration: ${passed} checks passed; server 26.7.3; no real user or provider credentials used.`);
 } catch {
   // Do not echo token responses, realm secrets or child-process arguments on failure.
-  console.error('Keycloak integration failed. Inspect the harness stage; credentials are intentionally omitted.');
+  console.error(`Keycloak integration failed at ${stage}. Credentials and response payloads are intentionally omitted.`);
   process.exitCode = 1;
 } finally {
   if (containerId && /^[a-f0-9]{64}$/.test(containerId)) {

@@ -91,6 +91,14 @@ composed OpenAPI extends the registry descriptions without duplicating schemas.
 The default CLI still exposes no auth routes. Real browser/Keycloak human-code
 verification, trusted runtime wiring and ingress limits remain unfinished.
 
+Item `intent/0017` verifies the actual Keycloak human form and authorization-code
+exchange through that HTTP boundary using generated identities. The minimal
+client needed an explicit access-token subject mapper; STEER's required-subject
+validation was preserved. The provider harness now covers six agent and six
+human-flow check groups. This is a scoped HTTPS form driver, not browser-engine
+evidence. See `docs/KEYCLOAK-IDENTITY-PROFILE.md` for the required profile and
+remaining combined-storage, browser, membership and runtime prerequisites.
+
 ## Implemented prototype and kit behavior
 
 - deterministic artifact-chain projection and dropped-event reconciliation;
