@@ -17,6 +17,7 @@ import { createWorkerProjectionRuntime } from '../src/runtime.ts';
 import { createActivityWorker } from '../src/worker.ts';
 import { startReconciliation } from '../src/client.ts';
 import { workflowId } from '../src/contracts.ts';
+import { startProcessWorker } from './process-harness.ts';
 
 export async function testProjectedWorkflow(env: TestWorkflowEnvironment, bundle: WorkflowBundle, temporary: string,
   check: (name: string, run: () => Promise<void>) => Promise<void>) {
@@ -24,6 +25,7 @@ export async function testProjectedWorkflow(env: TestWorkflowEnvironment, bundle
   const name = `steer-0037-${randomUUID()}`, password = randomBytes(24).toString('hex');
   let container: string | undefined, admin: Pool | undefined;
   let runtime: Awaited<ReturnType<typeof createWorkerProjectionRuntime>> | undefined, worker: Worker | undefined, running: Promise<void> | undefined;
+  let child: Awaited<ReturnType<typeof startProcessWorker>> | undefined;
   const scope = { organizationId: 'synthetic-projection', repository: 'github:1', itemId: 'intent/0001' };
   const grant: AuthorizationRecord = { issuer: 'https://synthetic.invalid/issuer', subject: 'synthetic-projector', organizationId: scope.organizationId,
     type: 'agent', hats: [], toolGrants: ['projection.ingest'], active: true, validAfter: new Date(0).toISOString(), expiresAt: new Date(Date.now() + 600000).toISOString() };
@@ -98,8 +100,46 @@ export async function testProjectedWorkflow(env: TestWorkflowEnvironment, bundle
       await assert.rejects(runtime!.activities.reconcile({ ...revokedScope, organizationId: 'foreign' })); assert.equal(await count(), before);
     });
     await stop();
+    const startChild = (itemId: string) => startProcessWorker({ address: env.address, taskQueue: 'steer-0038', bundle,
+      scope: { ...scope, itemId }, database, password, directory: source.directory, issuer: grant.issuer, subject: grant.subject });
+    const waitForTimer = async (handle: { query(name: string): Promise<unknown> }) => {
+      for (let attempt = 0; attempt < 100; attempt++) {
+        try { if ((await handle.query('reconciliationProgress') as { phase: string }).phase === 'waiting') return; } catch { /* Poll startup. */ }
+        await delay(50);
+      }
+      throw new Error('Separate worker did not reach durable timer.');
+    };
+    await source.publish([grant]);
+    await check('SIGKILL of a separate worker process during a durable timer resumes the same run with exact Git/PostgreSQL data', async () => {
+      const processScope = { ...scope, itemId: 'intent/0003' }; const before = await count(); const revision = await source.reader.readHead();
+      child = await startChild(processScope.itemId); const firstPid = child.pid;
+      const handle = await startReconciliation(env.client, 'steer-0038', { scope: processScope, rounds: 2, intervalMs: 5000 });
+      await waitForTimer(handle); assert.equal(await count(), before + 2); const runId = (await handle.describe()).runId;
+      const killed = await child.stop('SIGKILL'); assert.equal(killed.signal, 'SIGKILL'); child = undefined;
+      child = await startChild(processScope.itemId); assert.notEqual(child.pid, firstPid);
+      assert.deepEqual(await handle.result(), { completed: 2, last: { revision, status: 'reconciled', acknowledged: 2 } });
+      assert.equal((await handle.describe()).runId, runId); assert.equal(await count(), before + 2);
+      for (const path of [source.artifactPath, source.secondArtifactPath]) {
+        const row = (await admin!.query('SELECT value FROM steer.projection_records WHERE organization_id=$1 AND record_key=$2', [scope.organizationId, projectionKey(scope.repository, path)])).rows[0];
+        assert.equal(row.value.content, (await source.reader.readArtifact(path, revision)).content);
+      }
+      const closed = await child.stop('SIGTERM'); child = undefined;
+      assert.equal(closed.code, 0); assert.equal(closed.signal, null);
+      assert.deepEqual(closed.stopped, { type: 'stopped', state: 'stopped', databaseClosed: true, connectionClosed: true });
+    });
+    await check('a fresh worker process rereads Git revocation committed while its predecessor was dead', async () => {
+      const processScope = { ...scope, itemId: 'intent/0004' };
+      child = await startChild(processScope.itemId);
+      const handle = await startReconciliation(env.client, 'steer-0038', { scope: processScope, rounds: 2, intervalMs: 5000 });
+      await waitForTimer(handle); const before = await count();
+      assert.equal((await child.stop('SIGKILL')).signal, 'SIGKILL'); child = undefined;
+      await source.publish([{ ...grant, active: false }]); child = await startChild(processScope.itemId);
+      await assert.rejects(handle.result()); assert.equal(await count(), before);
+      const closed = await child.stop('SIGTERM'); child = undefined;
+      assert.equal(closed.code, 0); assert.deepEqual(closed.stopped, { type: 'stopped', state: 'stopped', databaseClosed: true, connectionClosed: true });
+    });
   } finally {
-    try { if (worker) { worker.shutdown(); await running; } }
+    try { if (child) await child.stop('SIGKILL'); if (worker) { worker.shutdown(); await running; } }
     finally { try { await runtime?.shutdown(); await admin?.end(); }
       finally { if (container && /^[a-f0-9]{64}$/.test(container)) {
         assert.equal(await docker('inspect', '--format', '{{index .Config.Labels "steer.integration"}}', container), '0037'); await docker('stop', '--time', '5', container);

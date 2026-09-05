@@ -61,5 +61,5 @@ export async function createGitAuthorizationHarness(temporary: string, record: A
         blobSha: await git('rev-parse', `${revision}:${path}`) };
     },
   };
-  return { reader, authorizationPath, artifactPath, secondArtifactPath, publish, setFault(value: typeof fault) { fault = value; headReads = 0; } };
+  return { directory, reader, authorizationPath, artifactPath, secondArtifactPath, publish, setFault(value: typeof fault) { fault = value; headReads = 0; } };
 }

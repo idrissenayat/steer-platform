@@ -72,7 +72,8 @@ fixture content. See intent/0036/EVIDENCE.md and docs/stack/temporal.json.
 
 Increment 0037 adds actual Git/PostgreSQL activity composition and shared fresh
 authorization/lifecycle; see WORKER-PROJECTION-RUNTIME.md for its verified scope.
-Next: exercise process restart and recovery, then add source-derived
+Increment 0038 adds separate-process restart during durable waits; see
+WORKER-PROCESS-RECOVERY.md. Next: add source-derived
 gate waits/cursors and bounded long-lived scheduling. Real cluster TLS/identity,
 OTel, production retention and formal gates remain open.
 

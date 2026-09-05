@@ -23,5 +23,7 @@
   "activityMaximumAttempts": 1,
   "defaultRuntimeActivation": false,
   "productionClusterBinding": false,
-  "gitPostgresActivityComposition": true
+  "gitPostgresActivityComposition": true,
+  "separateProcessTimerRecoveryVerified": true,
+  "activeActivityCrashRecoveryVerified": false
 }

@@ -655,3 +655,24 @@ composition, then authenticated scheduling/queue boundaries and source-derived
 gate waits/cursors. Automatic retries remain disabled; fleet leasing, OTel,
 production runtime/retention, full operating surfaces and five R5 findings stay
 open. No gate, deployment, release or spending approval is inferred.
+
+## Completed development increment: 0038
+
+Added an explicit lazy worker-service lifecycle with ordered worker/runtime/
+connection cleanup, truthful pending/failed states and stop-during-construction
+handling. Actual owned child processes open their own connections, projection
+pools and Git grant readers using only generated IPC configuration.
+
+Ten Temporal integration groups now include SIGKILL during a durable timer and
+different-PID resumption of the same workflow execution, exact Git/PostgreSQL
+readback, unchanged event counts and fresh revocation committed while the old
+process was dead. Healthy replacements close normally under one SIGTERM owner.
+All repository checks and eleven worker native tests pass. Evidence:
+`intent/0038/EVIDENCE.md`; guide: `docs/WORKER-PROCESS-RECOVERY.md`.
+
+Next bounded increment: authenticated scheduling/queue boundaries and source-
+derived gate waits/cursors. Active-activity crash/acknowledgement recovery, fleet
+leases, server/database restore, OTel, production bindings/retention and full
+operating surfaces remain separate requirements. Automatic retries stay disabled.
+The five R5 findings and all formal gate/deployment/release/spending boundaries
+remain open; safe isolated implementation continues.

@@ -350,13 +350,19 @@ readback, duplicate-safe resume/replay, repair and committed revocation are
 verified with disposable services and synthetic identity. See
 `docs/WORKER-PROJECTION-RUNTIME.md` for limits.
 
+Item `intent/0038` adds a lazy worker-service lifecycle and actual separate-
+process SIGKILL/restart during a durable timer. The same run resumes without
+duplicate ingestion; a fresh process observes Git revocation committed while
+its predecessor was dead. Active-activity/fleet and server restore are separate
+gaps. See `docs/WORKER-PROCESS-RECOVERY.md`.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.
 Still to be built or composed: business tools beyond session context and curated
 artifact reads, MCP OAuth onboarding, large-repository inventory/partitioning and
 source-removal/rollback policy beyond bounded discovery, Temporal gate/cursor
-composition and process/fleet recovery,
+composition and active-activity/fleet/server recovery,
 version-pinned Mastra adapter, LiteLLM gateway, tenant-scoped evidence storage,
 production product analytics, an approved live secret-manager binding, runtime/ingress
 configuration, full authenticated workspace UI and the thirteen-case architecture walking

@@ -58,3 +58,8 @@ then authenticated scheduling/queue boundaries, source-derived gate waits and
 durable cursors. OTel, production identity/TLS/retention and five R5 findings
 remain open. No spending, release, deployment or gate approval is inferred.
 Evidence: intent/0037/EVIDENCE.md. Run pnpm test:workflow:integration.
+
+Increment 0038 adds actual separate-process recovery during durable timers and
+an explicit worker/runtime/connection lifecycle owner. See
+WORKER-PROCESS-RECOVERY.md for evidence and limits; active-activity/fleet and
+server/database failure remain unverified by that increment.
