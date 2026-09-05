@@ -624,17 +624,27 @@ Item `intent/0072` expands the raw composed fixture to three distinct key tuples
 across two providers, four complete actions and all six copy-envelope orders.
 Every copy's human/shared proof omissions, transplants, partial receipts and
 one-nanosecond deadline violation deny. This is synthetic coverage, not actual
-erasure or a production rule to create more copies. The current post-terminal
-human approval is not the policy's pre-terminal raw grant; the next protocol is
-specified in `intent/0072/PLAN.md`. That gap and formal review remain open.
+erasure or a production rule to create more copies. At that increment, the raw
+path still required post-terminal approval. The successor protocol specified in
+`intent/0072/PLAN.md` is now implemented as offline candidates 0073/0074; formal
+review and full recovery remain open.
 
 Item `intent/0073` adds an offline pre-terminal raw grant verifier. One complete
 human grant binds the exact prepared tuples and trusted lifecycle context before
 the named terminal, without signing future state or receipts. Backdated validity,
 late enrollment, incomplete proof and substituted bindings deny. Success remains
 zero-effect and explicitly does not authorize execution. Current batch
-consumption, holds/references, per-copy actions and separate tombstone composition
-are next; 0061's raw path is not changed by this helper. See `intent/0073/PLAN.md`.
+consumption and lifecycle composition are separate from this helper and are
+integrated in 0074. See `intent/0073/PLAN.md` for the original handoff.
+
+Item `intent/0074` requires explicit raw-v2 in the actual lifecycle candidate.
+One pre-terminal grant supplies all exact per-copy authorities; current inventory,
+holds/references, complete shared actions and timely receipts remain mandatory.
+Full original winning and current batch chains bind every request, preventing a
+committed-status surrogate or substituted plan. Copy replay can finish a separate
+first tombstone; mixed partial-copy retries deny. This is offline evidence, not
+an atomic store or live erasure worker. Durable partial-copy recovery with fresh
+current-state checks is next under `intent/0074/PLAN.md`.
 
 ## Local commands
 

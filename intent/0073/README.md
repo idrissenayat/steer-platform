@@ -6,4 +6,6 @@ binds facts available at approval time, not future state or receipt bytes.
 
 This verifies grant eligibility only. It never authorizes execution, consumes
 the grant, replaces current holds/references, or changes the existing 0061 raw
-action path. Read BRIEF, SPEC, PLAN, development ACCEPTANCE and EVIDENCE.
+action path by itself. The subsequent 0074 increment now composes this helper
+with actual lifecycle and original/current batch evidence; see `intent/0074/SPEC.md`.
+Read BRIEF, SPEC, PLAN, development ACCEPTANCE and EVIDENCE.

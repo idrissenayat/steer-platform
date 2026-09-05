@@ -2,20 +2,22 @@
 import { readFileSync } from 'node:fs';
 import { AUTHORIZATION_POLICY_BYTES, AUTHORIZATION_POLICY_PATH, AUTHORIZATION_POLICY_SHA, RETENTION_POLICY_SHA,
   TARGET_REVISION, TARGET_EXAM_SHA, exactKeys, hex, jcs, parseCanonical, sha256, zeroEffects } from '../0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
-import { compilePreciseSchema, schemaPolicyDigest } from '../0070/precision-schemas.candidate.mjs';
+import { schemaPolicyDigest } from '../0070/precision-schemas.candidate.mjs';
 import { createTimedRecordVerifier } from '../0058/record-verifier.candidate.mjs';
 import { correctedHumanAuthorityDecision, correctionPolicyDigest as humanPolicy } from '../0058/human-authority.candidate.mjs';
 import { correctedLifecycleEventDecision, correctionPolicyDigest as eventPolicy } from '../0059/lifecycle-events.candidate.mjs';
 import { createProtectedActionVerifier, manifestDigest } from '../0060/protected-actions.candidate.mjs';
 import { exactInstant as strictTime, exactRetentionBoundary, timePolicyDigest } from '../0069/exact-time.candidate.mjs';
+import { createRawPreterminalVerifier, policyDigest as rawPolicyDigest } from '../0073/raw-preterminal.candidate.mjs';
+import { verifyRawBatchEvidence, policyDigest as rawBatchPolicyDigest } from '../0074/raw-batch.candidate.mjs';
 const read = (name) => readFileSync(new URL(`../0001/reviews/domain/round-3/remediation/${name}`, import.meta.url), 'utf8').trimEnd();
 const registryBytes = jcs(JSON.parse(read('TRUST-REGISTRY.candidate.json'))), registry = parseCanonical(registryBytes);
 const providerBytes = read('PROVIDER-KEY-REGISTRY.candidate.json'), providers = JSON.parse(providerBytes).bindings;
 const tableBytes = read('LIFECYCLE-POLICY-TABLE.candidate.json'), table = JSON.parse(tableBytes);
-const timed = createTimedRecordVerifier(registryBytes), rawSchema = compilePreciseSchema('RAW-POLICY-GRANT.schema.json');
+const timed = createTimedRecordVerifier(registryBytes);
 export const policyDigest = sha256(jcs({ version: 'steer-lifecycle-graph/v1', tableDigest: sha256(tableBytes),
-  providerDigest: sha256(providerBytes), registryDigest: timed.registryDigest, humanPolicy, eventPolicy, manifestDigest, timePolicyDigest, schemaPolicyDigest,
-  rules: 'exact closed event/history, authoritative state/inventory, earliest rebuildable trigger, provenance waits for closed derived manifest deletion events not item closure, full human/raw proof, shared copy/tombstone actions, ordered provider receipts; zero execution', maxCopies: 32, maxDerivedRecords: 128 }));
+  providerDigest: sha256(providerBytes), registryDigest: timed.registryDigest, humanPolicy, eventPolicy, manifestDigest, timePolicyDigest, schemaPolicyDigest, rawPolicyDigest, rawBatchPolicyDigest,
+  rules: 'exact closed event/history, authoritative state/inventory, earliest rebuildable trigger, provenance waits for closed derived manifest deletion events not item closure, raw-v2 preterminal grant and current batch; full human proof for ordinary copies/tombstone; shared actions and ordered receipts; zero execution', maxCopies: 32, maxDerivedRecords: 128 }));
 const requireValue = (value) => { if (!value) throw new Error('LIFECYCLE_GRAPH_INVALID'); };
 const text = (value) => typeof value === 'string' && value.length > 0 && value.length <= 512 && !/[\u0000-\u001f*?]/u.test(value);
 const time = (value) => { const result = strictTime(value); requireValue(result !== null); return result; };
@@ -42,7 +44,9 @@ export function createLifecycleGraphVerifier(configBytes) {
     row = table.classes.find((entry) => entry.classId === config.recordClass);
     requireValue(row && providers.some((binding) => binding.providerBindingId === config.tombstoneProviderBindingId) && table.policySha256 === RETENTION_POLICY_SHA);
   } catch { throw new Error('LIFECYCLE_CONFIGURATION_INVALID'); }
-  const configDigest = sha256(configBytes);
+  const configDigest = sha256(configBytes), raw = config.recordClass === 'RC-CORPUS-RAW-WORKING';
+  const rawVerifier = raw ? createRawPreterminalVerifier(jcs({ version: 'steer-raw-preparation-context/v1', lifecycleConfigDigest: configDigest,
+    recordId: config.recordId, artifactRevision: config.artifactRevision, environmentId: config.environmentId })) : null;
   const scope = { organization: 'steer-platform', tenant: 'steer-platform', repositoryId: config.repositoryId, installationId: config.installationId, item: '0001-flight-deck-foundation' };
   const actionContext = (grant) => ({ version: 'steer-protected-action-context/v1', manifestDigest, trustRegistryBytes: registryBytes,
     target: { examRevision: TARGET_REVISION, examDigest: TARGET_EXAM_SHA, implementationRevision: config.implementationRevision,
@@ -55,8 +59,8 @@ export function createLifecycleGraphVerifier(configBytes) {
         requireValue(typeof serialized === 'string' && serialized.length <= 16777216);
         const graph = parseCanonical(serialized);
         const provenance = config.recordClass === 'RC-CORPUS-PROVENANCE';
-        requireValue(exactKeys(graph, ['version', 'policyDigest', 'configDigest', 'eventBytes', 'historyBytes', 'inventoryBytes', 'stateBytes', 'referenceRevocationBytes', 'copies', 'aggregateBytes', 'tombstone', ...(provenance ? ['derivedInventoryBytes'] : [])]) &&
-          graph.version === 'steer-lifecycle-graph/v1' && graph.policyDigest === policyDigest && graph.configDigest === configDigest);
+        requireValue(exactKeys(graph, ['version', 'policyDigest', 'configDigest', 'eventBytes', 'historyBytes', 'inventoryBytes', 'stateBytes', 'referenceRevocationBytes', 'copies', 'aggregateBytes', 'tombstone', ...(provenance ? ['derivedInventoryBytes'] : []), ...(raw ? ['rawPolicyBytes', 'rawBatchBytes'] : [])]) &&
+          graph.version === (raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1') && graph.policyDigest === policyDigest && graph.configDigest === configDigest);
         const eventsResult = correctedLifecycleEventDecision(jcs({ version: 'steer-r5-001-events/v1', policyDigest: eventPolicy,
           scope: { organization: scope.organization, itemId: scope.item, environmentId: config.environmentId }, eventBytes: graph.eventBytes, historyBytes: graph.historyBytes, evaluationTime }));
         requireValue(eventsResult.state === 'validated-trigger');
@@ -137,7 +141,6 @@ export function createLifecycleGraphVerifier(configBytes) {
         const boundaryAt = lifecycleBoundary(trigger.occurredAt, row.duration, state.parentExpiryAt);
         if (boundaryAt === null) return { state: 'retained-immutable', firstError: null, effects: zeroEffects(), boundaryAt };
         if (state.holdState === 'active' || state.referenceState !== 'cleared') return { state: 'retained-on-hold', firstError: null, effects: zeroEffects(), boundaryAt };
-        const raw = config.recordClass === 'RC-CORPUS-RAW-WORKING';
         if (!raw && now < time(boundaryAt)) return { state: 'scheduled', firstError: null, effects: zeroEffects(), boundaryAt };
         if (row.disposition.startsWith('reference-')) {
           const reference = readProof(graph.referenceRevocationBytes, 'authority', ['kind', 'configDigest', 'source', 'inventoryDigest', 'historyDigest', 'decision']);
@@ -146,12 +149,26 @@ export function createLifecycleGraphVerifier(configBytes) {
             time(reference.recordedAt) <= time(state.recordedAt));
         } else requireValue(graph.referenceRevocationBytes === '' && state.referenceRevocationDigest === null);
         requireValue(Array.isArray(graph.copies) && graph.copies.length === copies.length && new Set(graph.copies.map((entry) => entry.copyId)).size === copies.length);
+        let rawEvidence, rawAuthority;
+        if (raw) {
+          rawEvidence = rawVerifier.verify(graph.rawPolicyBytes, jcs(trigger), evaluationTime);
+          requireValue(rawEvidence.state === 'verified-preterminal-grant' && rawEvidence.tupleDigest === tupleDigest && rawEvidence.copyCount === copies.length && rawEvidence.deadlineAt === boundaryAt);
+          const rawInput = parseCanonical(graph.rawPolicyBytes), preparation = parseCanonical(rawInput.preparationBytes);
+          requireValue(equal(preparation.copies, copies) && time(inventory.recordedAt) >= time(trigger.occurredAt));
+          rawAuthority = parseCanonical(parseCanonical(rawInput.humanBundleBytes).authorityBytes);
+        }
         const baseDigest = sha256(jcs({ configDigest, policyDigest, eventBytes: graph.eventBytes, historyBytes: graph.historyBytes, inventoryBytes: graph.inventoryBytes, stateBytes: graph.stateBytes, referenceRevocationBytes: graph.referenceRevocationBytes,
-          ...(provenance ? { derivedInventoryBytes: graph.derivedInventoryBytes } : {}) }));
+          ...(provenance ? { derivedInventoryBytes: graph.derivedInventoryBytes } : {}), ...(raw ? { rawGrantBindingDigest: rawEvidence.batchBindingDigest } : {}) }));
         const usedAuthorities = new Set(), usedRequests = new Set(), usedIdempotency = new Set(), transactions = new Set();
         const humanProofs = new Set(), humanReservations = new Set(), humanKeys = new Set(), humanHeads = new Set();
         const credentialIds = new Set(), reservationIds = new Set(), actionHeads = new Set();
         const unique = (set, value) => { requireValue(!set.has(value)); set.add(value); };
+        if (raw) {
+          const enrollment = parseCanonical(parseCanonical(graph.rawPolicyBytes).humanBundleBytes);
+          unique(usedAuthorities, rawAuthority.authorityId); unique(humanProofs, rawAuthority.providerRecordId); unique(humanKeys, rawAuthority.idempotencyKey);
+          unique(humanReservations, parseCanonical(enrollment.casReservationBytes).reservationId);
+          const head = parseCanonical(enrollment.casHeadBytes); unique(humanHeads, jcs([head.headId, head.head]));
+        }
         const bindingFor = (id) => {
           const binding = providers.find((entry) => entry.providerBindingId === id); requireValue(binding && binding.tenant === scope.tenant);
           const anchor = registry.bindings.find((entry) => entry.domain === binding.domain && entry.keyId === binding.keyId);
@@ -190,32 +207,37 @@ export function createLifecycleGraphVerifier(configBytes) {
             time(receipt.recordedAt) > time(operation.requestedAt) && time(receipt.recordedAt) <= latest);
           if (result.decision === 'REPLAY_NOOP') requireValue(result.resultDigest === receipt.recordDigest && time(receipt.recordedAt) <= time(parseCanonical(bundle.replayBytes).recordedAt));
           else requireValue(time(receipt.recordedAt) > time(parseCanonical(bundle.reservationBytes).recordedAt));
-          transactions.add(receipt.transactionId); return { receipt, replay: result.decision === 'REPLAY_NOOP' };
+          transactions.add(receipt.transactionId); return { receipt, replay: result.decision === 'REPLAY_NOOP',
+            batchEntry: { copyId: grant.grantId, requestDigest: result.requestDigest, operationDigest: result.operationDigest,
+              idempotencyKey: operation.idempotencyKey, requestedAt: operation.requestedAt, reservationAt: parseCanonical(bundle.reservationBytes).recordedAt,
+              receiptAt: receipt.recordedAt, replayed: result.decision === 'REPLAY_NOOP' } };
         };
-        const receipts = []; let replayCount = 0;
+        const receipts = [], batchEntries = []; let replayCount = 0;
         for (const copy of copies) {
           const entry = graph.copies.find((value) => value.copyId === copy.copyId);
-          requireValue(exactKeys(entry, ['copyId', 'humanBundleBytes', 'rawGrantBytes', 'actionBundleBytes', 'receiptBytes']));
+          requireValue(exactKeys(entry, raw ? ['copyId', 'actionBundleBytes', 'receiptBytes'] : ['copyId', 'humanBundleBytes', 'rawGrantBytes', 'actionBundleBytes', 'receiptBytes']));
           const binding = bindingFor(copy.providerBindingId); requireValue(binding.provider === copy.provider && binding.account === copy.account);
           const crypto = raw || row.disposition.startsWith('crypto-erase'), action = crypto ? 'lifecycle.crypto-erase' : 'lifecycle.delete-copy';
           const conditions = [`lifecycle-inventory:${inventory.recordDigest}`, `tuple:${sha256(jcs(copy))}`, `input:${baseDigest}`];
-          const authority = human(entry.humanBundleBytes, [copy], conditions, crypto ? 'cryptographic-erase' : 'provider-delete', raw ? 'raw-policy-grant' : 'disposition-authorization');
-          if (raw) {
-            const grant = parseCanonical(entry.rawGrantBytes);
-            requireValue(rawSchema(grant).length === 0 && equal(grant.authority, authority) && copy.copyKind === 'temporary-working' &&
-              grant.sanitizerRevision === trigger.sanitizerRevision && grant.inspectorRevision === trigger.inspectionRevision &&
-              time(authority.validFrom) <= time(trigger.occurredAt) && time(authority.expiresAt) >= time(boundaryAt));
-          } else requireValue(entry.rawGrantBytes === '');
+          const authority = raw ? rawAuthority : human(entry.humanBundleBytes, [copy], conditions, crypto ? 'cryptographic-erase' : 'provider-delete', 'disposition-authorization');
+          if (!raw) requireValue(entry.rawGrantBytes === '');
           const resources = { objectId: config.recordId, recordClass: config.recordClass, ...Object.fromEntries(['copyId', 'copyKind', 'providerBindingId', 'account', 'objectKey', 'versionId', 'keyId'].map((key) => [key, copy[key]])), inventoryDigest: inventory.recordDigest, tupleDigest };
           const grant = { grantId: copy.copyId, action, actorSubject: config.actorSubject, upstreamSubject: config.upstreamSubject, provider: copy.provider, resourceDomain: binding.domain,
             resources, authorityEvidenceDigest: authority.recordDigest, inputDigest: baseDigest };
           const checked = verifyAction(entry, grant, binding, authority, raw ? time(trigger.occurredAt) : time(boundaryAt), raw ? time(boundaryAt) : now);
-          receipts.push(checked.receipt); if (checked.replay) replayCount++;
+          receipts.push(checked.receipt); batchEntries.push(checked.batchEntry); if (checked.replay) replayCount++;
         }
         const aggregate = readProof(graph.aggregateBytes, 'provider', ['kind', 'configDigest', 'inputDigest', 'inventoryDigest', 'receiptDigests', 'allCopiesGone']);
         requireValue(aggregate.kind === 'aggregate' && aggregate.inputDigest === baseDigest && aggregate.inventoryDigest === inventory.recordDigest &&
           equal(aggregate.receiptDigests, receipts.map((receipt) => receipt.recordDigest)) && aggregate.allCopiesGone === true &&
           receipts.every((receipt) => time(aggregate.recordedAt) > time(receipt.recordedAt)));
+        let batchEvidence;
+        if (raw) {
+          batchEvidence = verifyRawBatchEvidence(graph.rawBatchBytes, { configDigest, inputDigest: baseDigest, preterminalBindingDigest: rawEvidence.batchBindingDigest,
+            authorityDigest: rawAuthority.recordDigest, tupleDigest, terminalDigest: trigger.recordDigest, terminalAt: trigger.occurredAt, deadlineAt: boundaryAt,
+            stateAt: state.recordedAt, entries: batchEntries, aggregateDigest: aggregate.recordDigest, aggregateAt: aggregate.recordedAt }, evaluationTime);
+          requireValue(batchEvidence.state === 'verified-raw-batch');
+        }
         const tombstone = graph.tombstone; requireValue(exactKeys(tombstone, ['humanBundleBytes', 'actionBundleBytes', 'receiptBytes']));
         const conditions = [`lifecycle-inventory:${inventory.recordDigest}`, `aggregate:${aggregate.recordDigest}`, `input:${baseDigest}`];
         const authority = human(tombstone.humanBundleBytes, copies, conditions, 'provider-delete', 'disposition-authorization');
@@ -227,7 +249,10 @@ export function createLifecycleGraphVerifier(configBytes) {
         const checked = verifyAction(tombstone, grant, binding, authority, time(aggregate.recordedAt)); if (checked.replay) replayCount++;
         return { state: 'validated-lifecycle-candidate', firstError: null, effects: zeroEffects(), configDigest, policyDigest, boundaryAt,
           copyCount: copies.length, protectedActionCount: copies.length + 1, replayCount,
-          evidenceDigest: sha256(jcs([...receipts.map((receipt) => receipt.recordDigest), aggregate.recordDigest, checked.receipt.recordDigest])) };
+          ...(raw ? { rawBatchMode: batchEvidence.mode, rawBatchPlanDigest: batchEvidence.planDigest, rawBatchReservationDigest: batchEvidence.reservationDigest,
+            rawGrantDigest: rawAuthority.recordDigest, executionAuthorized: false } : {}),
+          evidenceDigest: sha256(jcs([...receipts.map((receipt) => receipt.recordDigest), aggregate.recordDigest, checked.receipt.recordDigest,
+            ...(raw ? [rawAuthority.recordDigest, batchEvidence.planDigest, batchEvidence.reservationDigest] : [])])) };
       } catch { return blocked(); }
     },
   });

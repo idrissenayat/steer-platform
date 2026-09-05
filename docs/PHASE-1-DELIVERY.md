@@ -1307,3 +1307,21 @@ under intent/0073/PLAN.md, preserving current holds/references/inventory, exact
 per-copy actions and timely receipts, and separate tombstone authority. Further
 retention/rotation/reference, precision and migration/normative coverage remains.
 All five R5 findings stay open. No protected edit, provider effects, gate or spending.
+
+## Completed development increment: 0074 — raw grant and batch lifecycle integration
+
+The actual lifecycle candidate now requires raw-v2 with one complete pre-terminal
+grant, exact current inventory/history/state, all per-copy shared action proofs
+and timely receipts. Full original winning and current independent batch chains
+bind the grant, current input and every exact request. Old raw-v1 and per-copy
+human grant fields deny. Tombstone retains separate human/action authorization.
+
+The 28-group focused lifecycle suite and full repository checks pass, including
+137 root controls and 88 prototype tests. See intent/0074/EVIDENCE.md for limits.
+
+All-first and exact all-copy replay work, including a separate first tombstone
+after copy replay. Mixed partial-copy retries remain closed. The next bounded
+work is durable checkpoint/current-state-refresh evidence under intent/0074/PLAN.md,
+then remaining retention/rotation/reference, time and migration/normative coverage.
+No atomic store, actual concurrency exclusion, live erasure, independent ruling
+or completed Gate 2 is claimed. All five R5 findings remain formally open.

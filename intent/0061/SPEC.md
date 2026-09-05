@@ -1,4 +1,4 @@
-# Spec: Composed lifecycle evidence, version 1
+# Spec: Composed lifecycle evidence, ordinary v1 / raw v2
 
 ## Trusted reference and source fidelity
 
@@ -18,7 +18,8 @@ delegate to the frozen lifecycle graph's weaker surrogate path.
 
 The graph has exactly version, policyDigest, configDigest, eventBytes,
 historyBytes, inventoryBytes, stateBytes, referenceRevocationBytes, copies,
-aggregateBytes and tombstone. Evaluation time comes separately from the trusted
+aggregateBytes and tombstone. Provenance adds derivedInventoryBytes; raw-v2 adds
+rawPolicyBytes and rawBatchBytes (0074). Evaluation time comes separately from the trusted
 invoker and has no default. Every current/prior event traverses 0059's actual
 closed schema, full provider binding, explicit signature times and ordered
 duplicate checks. All events must match the selected record, class, artifact,
@@ -75,20 +76,23 @@ whose disposition specifies crypto erasure select crypto-erase rather than delet
 
 ## Full human evidence and all protected actions
 
-For each copy, invoke 0058 on the actual human bundle using the graph evaluation
+For each ordinary copy, invoke 0058 on the actual human bundle using the graph evaluation
 instant. Require the exact terminal event, appropriate disposition/raw authority
 type and erase method, fixed safeguards, selected providers, copy inventory and
 conditions binding inventory, exact tuple and complete graph input digest.
-Human evidence follows the current state snapshot. Raw grants additionally pass
-the frozen closed RAW-POLICY-GRANT schema, embed the exact verified authority,
-match sanitizer/inspector revisions, cover the deadline and target only a
-temporary-working copy, never a source original.
+Ordinary human evidence follows the current state snapshot. As of 0074, raw-v2
+instead invokes 0073 once on a complete pre-terminal grant over the prepared
+inventory. Current inventory must match it and follow terminal. All raw copies
+derive authority from that one grant, not new per-object decisions. Raw-v1's
+post-terminal approval path is rejected. Full original/current batch evidence
+additionally binds actual current input and every request. See `intent/0074/SPEC.md`.
 
 Only after validation does composition derive a single exact 0060 grant. Its
 context binds the actual Exam/implementation/policy/scope; its resources bind
 the selected copy/inventory/tuple; its authority digest is the full verified
 human record and its input digest binds events/history/inventory/state/reference
-proof bytes. The graph never accepts caller-installed grants or decision objects.
+proof bytes. Raw input additionally binds the stable pre-terminal grant identity.
+The graph never accepts caller-installed grants or decision objects.
 Invoke 0060 for every delete/crypto-erase action, including every copy, not only
 the first. The ten-record credential/delegation/assignment/authority/resource/
 replay/CAS contract is therefore mandatory on the real composition path.
@@ -123,7 +127,8 @@ is not reused as tombstone authorization.
 ## Results, limits and remaining boundaries
 
 Success returns validated-lifecycle-candidate, counts, boundary and a digest of
-the exact ordered receipt/aggregate/tombstone evidence. Retention outcomes are
+the exact ordered receipt/aggregate/tombstone evidence, plus raw authority and
+batch plan/current reservation for raw-v2. Retention outcomes are
 immutable, scheduled or retained-on-hold. Failures return a fixed content-free
 error; every outcome has typed zero effects. This evaluator does not claim to
 have deleted a copy, consumed a credential or performed atomic CAS.

@@ -37,6 +37,11 @@ of additional live copies, assert actual provider completeness, or close R5-001.
 
 ## Remaining raw-policy protocol gap
 
+Historical gap at 0072: subsequent 0073/0074 implement pre-terminal eligibility
+and all-first/all-replay raw-v2 composition. Partial-copy recovery and formal
+review remain open; see `intent/0074/SPEC.md`. The original evidence below is not
+rewritten or retroactively treated as pre-terminal acceptance.
+
 The current candidate's human copy approval must follow the signed state, which
 itself follows terminal sanitization. It also binds the complete post-terminal
 graph input. That is not the accepted policy's pre-terminal raw grant enabling

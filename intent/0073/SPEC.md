@@ -71,6 +71,7 @@ fixed error without leaking input. Repeated audits do not consume the grant.
 The actual terminal is validated as a single event, not proof of complete
 history. Current inventory, holds, references, authoritative batch consumption,
 per-copy credential/reservation/receipt checks and separate tombstone authority
-are absent from this helper and cannot be inferred from its success. The 0061
-post-terminal raw path remains unchanged until explicit integration. Frozen
+are absent from this helper and cannot be inferred from its success. Subsequent
+0074 integration now supplies full lifecycle and original/current batch checks
+for all-first/all-replay sets; partial-copy recovery remains open. Frozen
 records, Exams, registries, policies and key windows are untouched.
