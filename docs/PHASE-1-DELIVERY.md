@@ -1103,3 +1103,23 @@ and live atomic dispatch are not established by this bounded model. Complete-
 package independent review/protected incorporation and exact-revision rulings
 remain required. All five findings remain formally open; no real migration,
 protected edit, provider access, spending, deployment or release is authorized.
+
+## Completed development increment: 0063 — privacy/reconciliation time composition
+
+The 0056 privacy and 0057 plural reconciliation consumers now have an explicit
+0058 timing path for every signature and nested spending-provider proof. A
+closed independent observation binds the exact input and derived record inventory.
+Trusted composition supplies evaluation time; requests cannot override clock or
+registry. Legacy records with no issuance field are explicitly observed-as-of,
+not assigned an invented issuance time. Original Unicode, privacy and all-line
+cost checks remain mandatory; current source/use expiry is also checked.
+
+Counterexamples, individual signature/time slots, observation drift, time
+boundaries, all 32 line-array permutations and the full 64-line case are tested.
+All results have zero execution effects. Evidence: intent/0063/EVIDENCE.md.
+
+Next: non-reconciliation cost/spend and recovery/public-oracle timing, followed
+by complete lifecycle/migration normative coverage and independent review. The
+legacy observation-time interpretation itself remains subject to that review.
+All five R5 findings remain formally open. No production corpus use, spending,
+provider access, protected edit, signature, deployment or release is authorized.

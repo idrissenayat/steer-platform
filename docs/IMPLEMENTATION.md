@@ -542,6 +542,16 @@ bind the same request and exact replay result. Tests cover all three phases,
 replay, interruptions and rollback with zero execution effects. This is not a
 live SQL runner or full compatibility/concurrency matrix. See `intent/0062/EVIDENCE.md`.
 
+Item `intent/0063` composes the 0056 privacy and 0057 plural reconciliation
+corrections with explicit 0058 time verification of every signed record, including
+the nested spending-provider proof. Independent observation binds the exact input
+and complete derived inventory. Historical records without issuance fields use
+an explicit observed-as-of rule, not fabricated creation times. Current privacy
+grants, signed event times, original Unicode detection and all-line lineage remain
+mandatory. This offline audit does not authorize corpus use or spending. Other
+cost/spend/recovery timing and independent/protected review remain open. See
+`intent/0063/SPEC.md` and `intent/0063/EVIDENCE.md`.
+
 ## Local commands
 
 ```sh
