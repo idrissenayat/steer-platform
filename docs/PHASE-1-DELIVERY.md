@@ -408,3 +408,24 @@ listener/profile loading. Real credentials/membership, public TLS/ingress,
 supervision and total transaction/network budgets remain explicit prerequisites.
 The five R5 findings and independent-review, gate, deployment, release and
 spending boundaries remain unchanged.
+
+## Completed development increment: 0026
+
+Added the requested pink/orange native sign-in interface in actual Next.js
+production source. Public configuration is explicit and disabled by default.
+Native fixed-path forms keep passwords/provider tokens out of the page and work
+with page scripts disabled. Existing product prototype and source docs remain.
+
+The browser harness builds/starts production Next.js, serves its root/static
+assets through the owned HTTPS gateway and exercises real identity/storage/Git
+behavior. Responsive, keyboard, disabled-state and automated accessibility checks
+and credential-free screenshot review are included. A real browser Origin failure
+was corrected by using same-origin referrer policy on the form document while
+retaining no-referrer on the callback. Evidence: `intent/0026/EVIDENCE.md`;
+guide: `docs/NATIVE-SIGN-IN-UI.md`.
+
+Next bounded increment: trusted local listener/profile integration and
+authenticated workspace/session UI. This native SSR proof does not cover client
+hydration, other browsers, manual accessibility, real membership/public TLS or
+full product parity. Preserve the five R5 findings and all independent-review,
+gate, deployment, release and spending boundaries.

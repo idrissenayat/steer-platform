@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createHash, X509Certificate } from 'node:crypto';
 import { createServer, type Server } from 'node:https';
 import { execFile } from 'node:child_process';
-import { chmod, readFile } from 'node:fs/promises';
+import { chmod, readFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 import { getRequestListener } from '@hono/node-server';
@@ -10,11 +10,13 @@ import { chromium, type Browser } from 'playwright';
 import type { AuthorizationRecord } from '@steer/adapters/identity';
 import { createIdentityService } from '../src/identity-service.ts';
 import { createGitAuthorizationHarness } from './git-authorization-harness.ts';
+import { createNextWebHarness } from './next-web-harness.ts';
 import type { SessionTestHarness } from './session-harness.ts';
 
 /** Disposable Chromium/HTTPS fixture. No user's browser profile or OS trust changes. */
 export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: Buffer; temporary: string }) {
   const servers: Server[] = []; let browser: Browser | undefined;
+  let web: Awaited<ReturnType<typeof createNextWebHarness>> | undefined;
   let api: ReturnType<typeof createIdentityService> | undefined;
   let origin = ''; let issuerOrigin = ''; let callbackUrl = ''; let callbackCrossSite = false; let callbackHasLoginCookie = false;
   let loginStatus = 0; let loginOriginMatches = false;
@@ -34,7 +36,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
     const address = server.address(); assert.ok(address && typeof address !== 'string'); return address.port;
   };
   const close = async () => {
-    try { if (browser) await browser.close(); }
+    try { if (browser) await browser.close(); if (web) await web.close(); }
     finally {
       await Promise.all(servers.map((server) => new Promise<void>((resolve, reject) => {
         server.closeAllConnections(); server.close((error) => error ? reject(error) : resolve());
@@ -44,7 +46,8 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
   try {
     const port = await startServer(tls.key, tls.certificate, async (request) => {
       const url = new URL(request.url);
-      if (url.pathname === '/' && request.method === 'GET') { homeHasReferer = request.headers.has('referer'); return html(pageHtml); }
+      if (url.pathname === '/' && request.method === 'GET') { homeHasReferer = request.headers.has('referer'); return web ? web.page(request) : html(pageHtml); }
+      if (url.pathname.startsWith('/_next/static/') && web) return web.page(request);
       if (url.pathname === '/auth/callback') {
         callbackUrl = request.url; callbackCrossSite = request.headers.get('sec-fetch-site') === 'cross-site';
         callbackHasLoginCookie = /(?:^|;\s*)__Host-steer-login=/.test(request.headers.get('cookie') ?? '');
@@ -74,6 +77,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
       check: (label: string, run: () => Promise<void>) => Promise<void> }) {
       const { issuer, check } = deps;
       issuerOrigin = new URL(issuer).origin;
+      web = await createNextWebHarness(origin, issuer);
       const configuration = { issuer, jwksUri: `${issuer}/protocol/openid-connect/certs`,
         authorizationEndpoint: `${issuer}/protocol/openid-connect/auth`, tokenEndpoint: `${issuer}/protocol/openid-connect/token`,
         redirectUri: `${origin}/auth/callback`, clientId: 'steer-test-web', clientSecret: deps.clientSecret, audience: 'steer-api' };
@@ -112,7 +116,39 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         const badPage = await context.newPage();
         try { await assert.rejects(badPage.goto(badOrigin), /ERR_CERT_/); } finally { await badPage.close(); }
         assert.equal((await page.goto(origin))?.status(), 200);
-        assert.equal(await page.title(), 'STEER isolated authentication test');
+        assert.equal(await page.title(), 'STEER · Phase 1 foundation');
+        assert.equal(await page.getByRole('heading', { name: 'Welcome to STEER.' }).count(), 1);
+      });
+      await check('actual Next.js native sign-in page preserves responsive layout and keyboard access without page scripts', async () => {
+        await page.setViewportSize({ width: 1440, height: 1000 });
+        await page.goto(origin);
+        const signIn = page.getByRole('button', { name: 'Sign in', exact: true });
+        assert.equal(await signIn.isEnabled(), true);
+        await page.keyboard.press('Tab'); assert.equal(await signIn.evaluate((element) => element === document.activeElement), true);
+        const directory = process.env.STEER_UI_SCREENSHOT_DIR;
+        if (directory) { await mkdir(directory, { recursive: true }); await page.screenshot({ path: join(directory, 'sign-in-desktop.png'), fullPage: true }); }
+        await page.setViewportSize({ width: 390, height: 844 });
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+        assert.equal(await signIn.isVisible(), true);
+        if (directory) await page.screenshot({ path: join(directory, 'sign-in-mobile.png'), fullPage: true });
+        await page.setViewportSize({ width: 1440, height: 1000 });
+      });
+      await check('Next.js disables sign-in when public view configuration is absent and passes automated accessibility checks', async () => {
+        const enabledWeb = web!;
+        const disabledWeb = await createNextWebHarness(origin, issuer, false);
+        try {
+          web = disabledWeb; await page.goto(origin);
+          assert.equal(await page.getByRole('button', { name: 'Sign in', exact: true }).isDisabled(), true);
+          assert.equal(await page.locator('form').count(), 0);
+        } finally { web = enabledWeb; await disabledWeb.close(); }
+        await page.goto(origin);
+        const axeSource = await readFile(new URL('../../../node_modules/axe-core/axe.min.js', import.meta.url), 'utf8');
+        await page.evaluate((source) => { eval(source); }, axeSource);
+        const violations = await page.evaluate(async () => {
+          const axe = (window as unknown as { axe: { run: (node: Document, options: unknown) => Promise<{ violations: { id: string; impact: string }[] }> } }).axe;
+          return (await axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] } })).violations.map(({ id, impact }) => ({ id, impact }));
+        });
+        assert.deepEqual(violations, []);
       });
       await check('native browser form and cross-site Keycloak navigation complete the real encrypted-session login', async () => {
         let step = 'login-redirect';

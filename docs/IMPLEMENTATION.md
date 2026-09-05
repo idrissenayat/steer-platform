@@ -272,6 +272,13 @@ lazy and opens no listener or real provider connection automatically. A syntheti
 PostgreSQL login transaction proves real storage wiring. Details and remaining
 listener/secret-loading requirements: `docs/IDENTITY-RUNTIME-BOOTSTRAP.md`.
 
+Item `intent/0026` replaces the Next.js foundation landing page with the requested
+pink/orange native sign-in surface. It is disabled unless its public view profile
+is explicit; no API or account access is enabled by those flags. Actual production
+Next.js rendering now participates in the browser authentication harness, with
+responsive/keyboard/automated accessibility checks and reviewed screenshots.
+See `docs/NATIVE-SIGN-IN-UI.md`; full product UI and real listener remain separate.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.

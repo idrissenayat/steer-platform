@@ -110,3 +110,40 @@ h1 {
   outline: 0.25rem solid var(--steer-focus);
   outline-offset: 0.25rem;
 }
+
+.access-shell { max-width: 82rem; margin: 0 auto; min-height: 100svh; padding: clamp(1.25rem, 4vw, 3.5rem); }
+.access-brand { display: flex; align-items: center; gap: .75rem; font-size: 1.35rem; font-weight: 850; letter-spacing: .05em; }
+.brand-mark { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border-radius: .9rem; background: var(--steer-pink); color: white; }
+.brand-caption { margin-left: auto; font-size: .8rem; letter-spacing: 0; font-weight: 500; color: var(--steer-muted); }
+.access-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: clamp(2rem, 6vw, 6rem); align-items: center; padding: 4.5rem 0; }
+.access-intro h1 { max-width: 15ch; font-size: clamp(2.7rem, 5.5vw, 5rem); line-height: 1.03; }
+.access-intro .lede { max-width: 40ch; font-size: 1.1rem; }
+.access-principles { list-style: none; padding: 0; margin: 2rem 0 0; display: grid; gap: 1.2rem; }
+.access-principles li { display: flex; gap: 1rem; align-items: flex-start; }
+.access-principles li > span { padding: .5rem; border-radius: .65rem; color: #7c1943; background: var(--steer-pink-soft); font-size: .8rem; font-weight: 750; }
+.access-principles p { margin: .3rem 0 0; color: var(--steer-muted); font-size: .9rem; line-height: 1.5; }
+.access-card { padding: clamp(1.5rem, 3vw, 2.5rem); background: var(--steer-surface); border: 1px solid var(--steer-border); border-radius: 1.6rem; box-shadow: 0 1.5rem 4rem #51203b15; }
+.access-label { color: #7c1943; font-size: .75rem; font-weight: 800; letter-spacing: .13em; }
+.access-card h2 { margin: 1rem 0; font-size: clamp(1.8rem, 3vw, 2.25rem); letter-spacing: -.04em; }
+.access-card p { color: var(--steer-muted); line-height: 1.6; }
+.access-card h3 { font-size: .95rem; margin: 0; }
+.access-primary, .access-secondary { width: 100%; min-height: 3rem; border-radius: .8rem; font: inherit; font-weight: 750; cursor: pointer; }
+.access-primary { margin-top: 1rem; color: white; background: var(--steer-pink); border: 1px solid var(--steer-pink); }
+.access-primary:hover:not(:disabled) { background: #c51f61; }
+.access-primary:disabled { cursor: not-allowed; background: #726874; border-color: #726874; }
+.access-secondary { background: white; border: 1px solid var(--steer-border); color: var(--steer-ink); }
+.access-secondary:hover { background: var(--steer-pink-soft); }
+.access-hint { font-size: .82rem; }
+.access-divider { height: 1px; background: var(--steer-border); margin: 1.5rem 0; }
+.access-note { padding: 1rem; margin-top: 1.5rem; background: #fff7f0; border-left: .2rem solid var(--steer-orange); border-radius: .4rem .7rem .7rem .4rem; font-size: .8rem; }
+.access-note p { margin: .35rem 0 0; }
+.access-footer { display: flex; gap: 1rem; justify-content: space-between; color: var(--steer-muted); font-size: .8rem; }
+.access-footer a { color: #7c1943; text-underline-offset: .25rem; }
+button:focus-visible, .access-footer a:focus-visible { outline: .2rem solid var(--steer-focus); outline-offset: .3rem; }
+@media (max-width: 760px) {
+  .access-grid { grid-template-columns: 1fr; padding: 2.5rem 0; gap: 2rem; }
+  .brand-caption { display: none; }
+  .access-intro h1 { font-size: 2.6rem; }
+  .access-principles { display: none; }
+  .access-footer { flex-direction: column; }
+}

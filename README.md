@@ -18,7 +18,8 @@ Keycloak human-code contract verification (0017) and assembled encrypted-session
 integration (0018), Chromium authentication verification (0019) and Git-backed
 browser/bearer identity composition (0020), request resource boundaries (0021)
 runtime database resource limits (0022), failure/shutdown handling (0023) and
-identity service lifecycle composition (0024) and explicit runtime bootstrap (0025) are
+identity service lifecycle composition (0024), explicit runtime bootstrap (0025)
+and native Next.js sign-in surface (0026) are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
 [provider evidence](docs/GITHUB-RUNTIME-APP.md).
@@ -56,6 +57,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0023 · Database failure/shutdown | `intent/0023/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | active lease errors, graceful/forced drain and actual lost-COMMIT-acknowledgement test with no replay | service lifecycle composition, active-network detection, total transaction budgets, real TLS/bindings and formal gates |
 | 0024 · Identity service lifecycle | `intent/0024/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | exact managed-resource binding, closed admission and truthful request/resource drain; real browser service shutdown | runtime bootstrap, real configuration/TLS, production UI, supervision and formal gates |
 | 0025 · Identity runtime bootstrap | `intent/0025/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | strict separate profile/secrets, actual adapter/storage/service assembly and exact-file import boundary; real encrypted login transaction | trusted listener/secret loading, real membership/TLS, production UI and formal gates |
+| 0026 · Native Next.js sign-in | `intent/0026/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | responsive pink/orange native forms, disabled default, actual production renderer/browser integration and automated accessibility | local listener/profile, authenticated workspace UI, manual accessibility, other browsers and formal gates |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier

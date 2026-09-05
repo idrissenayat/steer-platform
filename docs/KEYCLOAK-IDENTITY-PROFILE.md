@@ -73,6 +73,13 @@ authorization redirect against that policy. Keep the issuer allowlist fixed
 and retain no-referrer on callback responses so code-bearing queries cannot
 become the final page's referrer. Do not broaden the policy to arbitrary origins.
 
+The native form document itself must preserve Origin (the 0026 gateway uses
+`Referrer-Policy: same-origin`). Applying no-referrer to that document made
+Chromium send an unusable Origin on POST; the API correctly denied it. This is
+distinct from retaining no-referrer on the code-bearing callback. The current
+browser harness uses the actual production-built Next.js native page with scripts
+disabled, not the old small HTML fixture; see `NATIVE-SIGN-IN-UI.md` for scope.
+
 Use the durable store's distinct `steer_auth_runtime` role and identity namespace;
 keep all application instances on the same binding, encryption keyring and
 capacity settings. Do not promote the harness's Maps or grant resolver into a
