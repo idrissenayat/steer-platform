@@ -5,6 +5,9 @@ export interface DatabasePool { connect(): Promise<PoolClient> }
 export class DatabaseCapacityError extends Error {
   constructor() { super('The runtime database connection is unavailable.'); }
 }
+export class DatabaseCommitOutcomeUnknownError extends Error {
+  constructor() { super('The database commit outcome could not be confirmed.'); }
+}
 const configurationSchema = z.strictObject({
   host: z.string().min(1).max(253).regex(/^[A-Za-z0-9.:-]+$/),
   port: z.number().int().min(1).max(65535), database: z.string().min(1).max(63).regex(/^[A-Za-z0-9_-]+$/),
@@ -37,18 +40,43 @@ export function createRuntimePool(raw: unknown) {
     max: 8, connectionTimeoutMillis: 2000, idleTimeoutMillis: 10000, maxLifetimeSeconds: 300,
     statement_timeout: 5000, lock_timeout: 1000, idle_in_transaction_session_timeout: 5000,
   });
-  let pending = 0; let closed = false; let idleErrors = 0; let ending: Promise<void> | undefined;
+  let pending = 0; let closed = false; let idleErrors = 0; let activeErrors = 0; let forcedReleases = 0;
+  let ending: Promise<void> | undefined; let stopping: Promise<void> | undefined;
+  const leases = new Map<PoolClient, () => void>();
+  const end = () => { closed = true; ending ??= pool.end(); return ending; };
   // pg removes broken idle clients. Expose a content-free health count, not raw errors.
   pool.on('error', () => { idleErrors++; });
   return {
     async connect(): Promise<PoolClient> {
       if (closed || pending >= 32) throw new DatabaseCapacityError();
       pending++;
-      try { return await pool.connect(); }
+      try {
+        const client = await pool.connect();
+        if (closed) { client.release(); throw new DatabaseCapacityError(); }
+        const release = client.release.bind(client); let released = false; let forced = false; let failed = false;
+        // Checked-out clients have no pool idle-error listener between queries.
+        const onError = () => { activeErrors++; failed = true; };
+        client.on('error', onError);
+        client.release = (cause?: Error | boolean) => {
+          if (released) { if (forced) return; throw new Error('Database lease already released.'); }
+          released = true; leases.delete(client);
+          try { release(cause || failed); } finally { client.removeListener('error', onError); }
+        };
+        leases.set(client, () => { forced = true; forcedReleases++; client.release(true); });
+        return client;
+      }
       catch { throw new DatabaseCapacityError(); }
       finally { pending--; }
     },
-    status: () => ({ connections: pool.totalCount, idle: pool.idleCount, pending, idleErrors, closed }),
-    end() { closed = true; ending ??= pool.end(); return ending; },
+    status: () => ({ connections: pool.totalCount, idle: pool.idleCount, pending, active: leases.size, idleErrors, activeErrors, forcedReleases, closed }),
+    end,
+    /** Explicit service shutdown: stop admission, drain five seconds, evict owned leases. */
+    shutdown() {
+      if (stopping) return stopping;
+      const drain = end();
+      const timer = setTimeout(() => { for (const evict of [...leases.values()]) evict(); }, 5000);
+      stopping = drain.finally(() => clearTimeout(timer));
+      return stopping;
+    },
   };
 }

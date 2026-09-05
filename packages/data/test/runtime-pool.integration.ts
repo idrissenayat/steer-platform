@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import { setTimeout as delay } from 'node:timers/promises';
 import type { Pool } from 'pg';
-import { createRuntimePool, DatabaseCapacityError } from '../src/runtime-pool.ts';
+import { createRuntimePool, DatabaseCapacityError, DatabaseCommitOutcomeUnknownError } from '../src/runtime-pool.ts';
 import { withTenant } from '../src/index.ts';
 import type { Principal } from '@steer/tool-registry';
+import { createPostgresRelay } from './postgres-relay.ts';
 
 export async function testRuntimePool(deps: { host: string; port: number; password: string; database: string;
   admin: Pool; check: (name: string, run: () => Promise<void>) => Promise<void> }) {
@@ -65,6 +66,61 @@ export async function testRuntimePool(deps: { host: string; port: number; passwo
         assert.equal(terminated, true); await assert.rejects(client.query('SELECT 1'));
       } finally { client.release(true); }
       assert.equal(await withTenant(pool, principal(), async () => 'recovered'), 'recovered');
+    });
+    await deps.check('a checked-out connection failing between queries is observed without crashing and is evicted', async () => {
+      const before = pool.status().activeErrors;
+      const client = await pool.connect();
+      try {
+        const pid = (await client.query('SELECT pg_backend_pid() AS pid')).rows[0].pid as number;
+        assert.ok(Number.isInteger(pid) && pid > 0);
+        await deps.admin.query('SELECT pg_terminate_backend($1)', [pid]);
+        for (let attempt = 0; attempt < 50 && pool.status().activeErrors === before; attempt++) await delay(20);
+        assert.ok(pool.status().activeErrors > before);
+        await assert.rejects(client.query('SELECT 1'));
+      } finally { client.release(); }
+      assert.equal(pool.status().active, 0);
+      assert.equal(await withTenant(pool, principal(), async () => 'recovered'), 'recovered');
+    });
+    await deps.check('shutdown stops admission while an ordinary active lease drains without forced eviction', async () => {
+      const closing = createRuntimePool({ host: deps.host, port: deps.port, password: deps.password, database: deps.database,
+        user: 'steer_app', transport: { kind: 'isolated-loopback-test' } });
+      const client = await closing.connect(); let drained = false;
+      const stop = closing.shutdown(); assert.equal(closing.shutdown(), stop);
+      void stop.then(() => { drained = true; });
+      await assert.rejects(closing.connect(), DatabaseCapacityError);
+      await delay(20); assert.equal(drained, false);
+      assert.equal((await client.query('SELECT 1 AS value')).rows[0].value, 1);
+      client.release(); await stop;
+      assert.equal(closing.status().active, 0); assert.equal(closing.status().connections, 0);
+      assert.equal(closing.status().forcedReleases, 0);
+    });
+    await deps.check('lost COMMIT acknowledgement remains an unknown caller outcome; shutdown evicts without retry', async () => {
+      const relay = await createPostgresRelay(deps.port);
+      const closing = createRuntimePool({ host: '127.0.0.1', port: relay.port, password: deps.password, database: deps.database,
+        user: 'steer_projector', transport: { kind: 'isolated-loopback-test' } });
+      let calls = 0; let settled = false;
+      try {
+        const outcome = withTenant(closing, principal(), async (client) => {
+          calls++;
+          await client.query('INSERT INTO steer.ingestion_events VALUES ($1,$2,$3,$4,$5,now())',
+            [principal().organizationId, 'synthetic-commit-ack-loss', 'synthetic/repo', 'a'.repeat(40), 'b'.repeat(64)]);
+          relay.cutReplies();
+          return 'must-not-claim-confirmed';
+        }).then(() => { settled = true; return false; }, (cause: unknown) => { settled = true; return cause instanceof DatabaseCommitOutcomeUnknownError; });
+        let committed = 0;
+        for (let attempt = 0; attempt < 75 && !committed; attempt++) {
+          committed = (await deps.admin.query('SELECT count(*)::int AS count FROM steer.ingestion_events WHERE organization_id=$1 AND event_id=$2',
+            [principal().organizationId, 'synthetic-commit-ack-loss'])).rows[0].count;
+          if (!committed) await delay(20);
+        }
+        assert.equal(committed, 1, 'Only the independent test observer knows the commit succeeded');
+        assert.equal(settled, false);
+        const started = performance.now(); await closing.shutdown();
+        assert.ok(performance.now() - started < 8000);
+        assert.equal(await outcome, true); assert.equal(calls, 1);
+        assert.equal(closing.status().forcedReleases, 1); assert.equal(closing.status().active, 0);
+        assert.equal(closing.status().connections, 0);
+      } finally { await closing.shutdown(); await relay.close(); }
     });
   } finally { await pool.end(); }
 }

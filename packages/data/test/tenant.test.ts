@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { Pool } from 'pg';
 import { withTenant } from '../src/index.ts';
+import { DatabaseCommitOutcomeUnknownError } from '../src/runtime-pool.ts';
 import type { Principal } from '@steer/tool-registry';
 
 const now = new Date('2026-09-04T12:00:00Z');
@@ -72,4 +73,14 @@ test('post-commit cleanup failure evicts the connection without misreporting the
   }) } as unknown as Pool;
   assert.equal(await withTenant(pool, principal, async () => 'committed result', () => now), 'committed result');
   assert.equal(evicted, true);
+});
+
+test('a failed COMMIT acknowledgement is explicitly unknown, never replayed or reported as a rollback', async () => {
+  let operations = 0; let commits = 0;
+  const pool = { connect: async () => ({ query: async (sql: string) => {
+    if (sql === 'COMMIT') { commits++; throw new Error('private-connection-detail'); }
+    return { rows: [{ rolname: 'steer_app', rolsuper: false, rolbypassrls: false, owns_objects: false }] };
+  }, release: () => {} }) } as unknown as Pool;
+  await assert.rejects(withTenant(pool, principal, async () => { operations++; }, () => now), DatabaseCommitOutcomeUnknownError);
+  assert.equal(operations, 1); assert.equal(commits, 1);
 });

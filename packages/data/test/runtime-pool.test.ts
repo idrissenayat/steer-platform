@@ -13,9 +13,10 @@ test('runtime pool rejects unsafe roles, implicit transports and option/DSN over
     assert.throws(() => createRuntimePool(input), (cause: unknown) => cause instanceof Error && cause.message === 'Invalid runtime database configuration.');
   }
   const pool = createRuntimePool(configuration);
-  assert.deepEqual(pool.status(), { connections: 0, idle: 0, pending: 0, idleErrors: 0, closed: false });
+  assert.deepEqual(pool.status(), { connections: 0, idle: 0, pending: 0, active: 0, idleErrors: 0, activeErrors: 0, forcedReleases: 0, closed: false });
   const ending = pool.end(); assert.equal(pool.end(), ending); await ending;
   await assert.rejects(pool.connect(), DatabaseCapacityError);
   assert.equal(pool.status().closed, true);
   assert.ok(!JSON.stringify(pool.status()).includes(configuration.password));
+  const stopping = pool.shutdown(); assert.equal(pool.shutdown(), stopping); await stopping;
 });

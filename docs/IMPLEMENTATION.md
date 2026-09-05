@@ -253,6 +253,12 @@ assembled browser/provider authentication now uses the bounded pool. See
 `docs/DATABASE-RUNTIME-LIMITS.md` for the remaining network, total-transaction,
 shutdown and production TLS boundaries.
 
+Item `intent/0023` handles checked-out client errors, explicit graceful/forced pool
+shutdown, and typed unknown business COMMIT outcomes. A real loopback fault relay
+drops the acknowledgement of an actually committed synthetic row; no automatic
+retry occurs. This is database lifecycle evidence, not complete service wiring
+or proactive detection of every stalled network connection.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.

@@ -1,5 +1,5 @@
 import type { PoolClient } from 'pg';
-import { applyRuntimeQueryLimits, type DatabasePool } from './runtime-pool.ts';
+import { applyRuntimeQueryLimits, DatabaseCommitOutcomeUnknownError, type DatabasePool } from './runtime-pool.ts';
 import { and, eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { principalSchema, type Principal } from '@steer/tool-registry';
@@ -14,6 +14,7 @@ export async function withTenant<T>(pool: DatabasePool, rawPrincipal: Principal,
   }
   const client = await pool.connect();
   let broken = false;
+  let commitStarted = false;
   try {
     await applyRuntimeQueryLimits(client);
     // Scrub any prior session-level setting before opening our transaction.
@@ -33,6 +34,7 @@ export async function withTenant<T>(pool: DatabasePool, rawPrincipal: Principal,
     }
     await client.query("SELECT set_config('steer.organization_id', $1, true)", [parsed.data.organizationId]);
     const result = await operation(client);
+    commitStarted = true;
     await client.query('COMMIT');
     // A cleanup failure must evict the connection, not misreport a confirmed
     // commit as a failed operation that a caller might retry.
@@ -44,6 +46,7 @@ export async function withTenant<T>(pool: DatabasePool, rawPrincipal: Principal,
       await client.query('ROLLBACK');
       await client.query("SELECT set_config('steer.organization_id', '', false)");
     } catch { broken = true; }
+    if (commitStarted) throw new DatabaseCommitOutcomeUnknownError();
     throw cause;
   } finally {
     client.release(broken);

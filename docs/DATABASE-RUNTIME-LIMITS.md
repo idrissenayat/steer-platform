@@ -45,3 +45,31 @@ claim client-side promise timeout as proof that PostgreSQL stopped work.
 
 Evidence: `intent/0022/EVIDENCE.md`. No spending, deployment, real memberships,
 database credentials or gate approval is authorized by these defaults.
+
+## Connection failure and explicit shutdown (0023)
+
+The bounded pool tracks active leases and attaches an error listener while each
+client is borrowed. A failure between queries cannot escape through an unhandled
+client error; the pool counts it and destroys that client on release. Status now
+also reports active leases, active errors and forced-release counts, without
+query/credential content.
+
+`end()` shares a graceful drain promise. `shutdown()` is an explicit service-owner
+operation: stop admission immediately, drain five seconds, then evict owned
+remaining leases. Its shared promise follows the actual pool drain; late cleanup
+after a forced release is safe. The five seconds is a grace interval, not proof
+that every OS/network closure finishes within a universal deadline. Future
+service startup/shutdown wiring must distinguish those states.
+
+If business COMMIT was sent but cannot be confirmed, `withTenant` returns a
+`DatabaseCommitOutcomeUnknownError`. A best-effort ROLLBACK cannot establish that
+COMMIT failed. Do not retry automatically or present the write as rolled back.
+Reconcile using the operation's exact durable/idempotent identity before deciding
+what to do. A confirmed COMMIT remains successful if later cleanup fails.
+Authentication storage retains generic failure and no automatic replay.
+
+The integration test actually commits one synthetic row while a loopback relay
+drops the server acknowledgement. Only the independent test observer sees that
+row; the caller remains uncertain and is disconnected by explicit shutdown.
+This proves the no-retry/unknown-outcome path, not a production network detector.
+Evidence: `intent/0023/EVIDENCE.md`.

@@ -347,3 +347,23 @@ or active-network deadlines, and loopback testing is not production TLS evidence
 Continue safe local implementation without opening real membership/public access
 or spending. Five R5 findings, protected review/signatures and all formal gates
 remain distinct and unresolved.
+
+## Completed development increment: 0023
+
+Added bounded active-lease error accounting and explicit graceful/forced database
+shutdown. New acquisition stops immediately; ordinary leases can finish, while
+owned remaining leases are evicted after a five-second grace interval. Shared
+drain promises and safe late cleanup prevent false completion/double release.
+
+Business COMMIT acknowledgement loss now has an explicit unknown-outcome error.
+The synthetic loopback relay test commits one row while hiding the server reply;
+the caller does not report success or retry. An independent test observer sees
+the row, and explicit shutdown releases the stalled connection. Exact backend
+failure between queries and normal drain/recovery are also tested.
+Evidence: `intent/0023/EVIDENCE.md`; guide: `docs/DATABASE-RUNTIME-LIMITS.md`.
+
+Next bounded increment: trusted runtime/service composition and lifecycle wiring.
+The pool shutdown grace is not a universal network deadline; production TLS,
+total transaction budgets, real approved membership/key bindings and public
+ingress remain separate prerequisites. Preserve the five R5 findings and all
+independent-review, gate, deployment, release and spending boundaries.
