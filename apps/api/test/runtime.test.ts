@@ -19,6 +19,43 @@ const secrets = { browserClientSecret: 'synthetic-not-a-real-client-secret', dat
   githubPrivateKeyPem: generateKeyPairSync('rsa', { modulusLength: 2048 }).privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
   sessionKeys: { synthetic: randomBytes(32) } };
 
+const scheduling = { itemId: 'intent/0040', maxRounds: 2, minIntervalMs: 1000 };
+const scheduler = { scope: { organizationId: 'synthetic', repository: 'github:1', itemId: scheduling.itemId },
+  workflowId: 'steer-reconcile/v1/synthetic/github%3A1/intent%2F0040', limits: { maxRounds: 2, minIntervalMs: 1000 },
+  start: async () => ({ workflowId: 'synthetic', outcome: 'unknown' }), inspect: async () => ({ workflowId: 'synthetic', outcome: 'unknown' }) };
+
+test('runtime requires explicit scheduler profile/factory pairing and binds returned scope and limits', async () => {
+  let created = 0, closed = 0;
+  const createScheduler = async () => { created++; return { scheduler, shutdown: async () => { closed++; } }; };
+  for (const invalid of [{ ...profile, scheduling: { ...scheduling, namespace: 'injected' } }, { ...profile, scheduling: { ...scheduling, maxRounds: 101 } }, profile]) {
+    await assert.rejects(createIdentityRuntime(invalid, secrets, { createScheduler }), /configuration could not be initialized/);
+  }
+  await assert.rejects(createIdentityRuntime({ ...profile, scheduling }, secrets), /configuration could not be initialized/);
+  assert.equal(created, 0); assert.equal(closed, 0);
+  for (const mismatch of [{ ...scheduler, scope: { ...scheduler.scope, organizationId: 'foreign' } },
+    { ...scheduler, scope: { ...scheduler.scope, repository: 'github:2' } }, { ...scheduler, scope: { ...scheduler.scope, itemId: 'other' } },
+    { ...scheduler, limits: { ...scheduler.limits, maxRounds: 3 } }, { ...scheduler, limits: { ...scheduler.limits, minIntervalMs: 2000 } }]) {
+    await assert.rejects(createIdentityRuntime({ ...profile, scheduling }, secrets, {
+      createScheduler: async () => ({ scheduler: mismatch, shutdown: async () => { closed++; } }),
+    }), /configuration could not be initialized/);
+  }
+  assert.equal(closed, 5);
+  const runtime = await createIdentityRuntime({ ...profile, scheduling }, secrets, { createScheduler });
+  assert.equal(created, 1); assert.equal(runtime.status().database.connections, 0);
+  await runtime.shutdown(); await runtime.shutdown(); assert.equal(closed, 6); assert.equal(runtime.status().database.closed, true);
+});
+
+test('scheduler failure does not leak resource details or prevent other runtime resources from closing', async () => {
+  let closed = 0;
+  const runtime = await createIdentityRuntime({ ...profile, scheduling }, secrets, {
+    createScheduler: async () => ({ scheduler, shutdown: async () => { closed++; throw new Error('private provider failure'); } }),
+  });
+  await assert.rejects(runtime.shutdown(), /^Error: Identity service shutdown failed\.$/);
+  assert.equal(runtime.status().state, 'failed'); assert.equal(runtime.status().database.closed, true); assert.equal(closed, 1);
+  await assert.rejects(runtime.shutdown()); assert.equal(closed, 1);
+  assert.equal((await runtime.fetch(new Request('https://steer.example/health/live'))).status, 503);
+});
+
 test('runtime constructs real components lazily without provider access, implicit login or readiness approval', async () => {
   let requests = 0;
   const transport: typeof fetch = async () => { requests++; throw new Error('must-not-contact-provider'); };

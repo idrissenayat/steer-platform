@@ -35,3 +35,39 @@ export function createReconciliationSchedulerClient(client: Client, configuratio
     },
   });
 }
+
+/** Transfers ownership of one already configured connection; construction and shutdown failures are sanitized. */
+export async function createManagedReconciliationScheduler(client: Client,
+  configuration: Parameters<typeof createReconciliationSchedulerClient>[1], closeConnection: () => Promise<void>) {
+  let close: Promise<void> | undefined;
+  const release = () => close ??= Promise.resolve().then(closeConnection);
+  let adapter: ReturnType<typeof createReconciliationSchedulerClient>;
+  try { adapter = createReconciliationSchedulerClient(client, configuration); }
+  catch {
+    try { await release(); } catch { throw new Error('Scheduler initialization cleanup could not be confirmed.'); }
+    throw new Error('Scheduler could not be initialized.');
+  }
+  let state: 'running' | 'draining' | 'stopped' | 'failed' = 'running';
+  let active = 0; let drained: (() => void) | undefined; let shutdown: Promise<void> | undefined;
+  async function invoke<T>(operation: () => Promise<T>): Promise<T> {
+    if (state !== 'running' || active >= 8) throw new Error('Scheduler is not accepting operations.');
+    active++;
+    try { return await operation(); }
+    finally { active--; if (active === 0) drained?.(); }
+  }
+  const scheduler = Object.freeze({ scope: adapter.scope, workflowId: adapter.workflowId, limits: adapter.limits,
+    start: (input: Parameters<typeof adapter.start>[0]) => invoke(() => adapter.start(input)),
+    inspect: () => invoke(() => adapter.inspect()),
+  });
+  return Object.freeze({ scheduler, status: () => ({ state, active }),
+    shutdown(): Promise<void> {
+      if (shutdown) return shutdown;
+      state = 'draining';
+      const wait = active === 0 ? Promise.resolve() : new Promise<void>((resolve) => { drained = resolve; });
+      shutdown = wait.then(release).then(() => { drained = undefined; state = 'stopped'; }, () => {
+        drained = undefined; state = 'failed'; throw new Error('Scheduler shutdown could not be confirmed.');
+      });
+      return shutdown;
+    },
+  });
+}

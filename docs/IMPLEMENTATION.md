@@ -363,6 +363,12 @@ routing and false rollback claims. HTTP/MCP parity and real local Temporal
 dispatch pass; default runtime activation remains disabled. See
 `docs/AUTHORIZED-SCHEDULING.md` for composition and remaining cluster boundaries.
 
+Item `intent/0040` binds the optional scheduler into the identity runtime through
+an explicit matched profile/factory. Its managed adapter bounds actual operations
+and closes only after request/operation drain. Real isolated Temporal connection
+closure is verified without stopping the server or its other client. No live
+cluster settings are activated. See `docs/MANAGED-SCHEDULER-RUNTIME.md`.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.

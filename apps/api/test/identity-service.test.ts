@@ -96,3 +96,19 @@ test('combined service drains both admissions before closing shared resources', 
   finish(false); await request; await stop; assert.equal(closed, 1);
   assert.deepEqual(service.status(), { state: 'stopped', activeRequests: 0, mcp: { stopping: true, active: 0, cleanupFailed: false } });
 });
+
+test('browser-only scheduling composition drains admitted requests before closing scheduler and identity resources', async () => {
+  let finish!: (value: boolean) => void; let entered!: () => void; let closed = 0;
+  const admitted = new Promise<void>((resolve) => { entered = resolve; });
+  const service = createIdentityService(configuration, { ...dependencies,
+    services: { reconciliationScheduler: { scope: { organizationId: 'synthetic', repository: 'github:1', itemId: 'intent/0040' },
+      workflowId: 'synthetic', limits: { maxRounds: 1, minIntervalMs: 1000 }, start: async () => null, inspect: async () => null } },
+    sessions: { ...dependencies.sessions, shutdown: async () => { closed++; }, store: { ...store,
+      insertTransaction: async () => { entered(); return new Promise<boolean>((resolve) => { finish = resolve; }); },
+    } } });
+  const request = service.fetch(new Request(`${origin}/auth/login`, { method: 'POST', headers: { origin } }));
+  await admitted; const stop = service.shutdown();
+  await Promise.resolve(); await Promise.resolve(); assert.equal(closed, 0);
+  assert.equal((await service.fetch(new Request(`${origin}/health/live`))).status, 503);
+  finish(false); await request; await stop; assert.equal(closed, 1); assert.equal(service.status().state, 'stopped');
+});

@@ -6,7 +6,7 @@ import { createIdentityService } from './identity-service.ts';
 import { createIdentityGateway } from './identity-gateway.ts';
 import { startLocalIdentityListener } from './identity-listener.ts';
 import { secretReferenceSchema, type SecretProvider } from '@steer/adapters/secrets';
-import { artifactProjectionInputSchema } from '@steer/tool-registry';
+import { artifactProjectionInputSchema, reconciliationScopeSchema, type ReconciliationScheduler } from '@steer/tool-registry';
 import { createArtifactProjectionReader } from '@steer/data/artifact-reader';
 import { createProjectionJob } from '@steer/adapters/projection-job';
 import { ingestVerifiedArtifact, projectionKey } from '@steer/data/ingestion';
@@ -16,6 +16,14 @@ const text = z.string().min(1);
 const databaseSchema = z.strictObject({ host: text, port: z.number(), database: text,
   transport: z.discriminatedUnion('kind', [z.strictObject({ kind: z.literal('tls'), ca: text }),
     z.strictObject({ kind: z.literal('isolated-loopback-test') })]) });
+export interface ManagedRuntimeScheduler { readonly scheduler: ReconciliationScheduler; shutdown(): Promise<void> }
+export interface IdentityRuntimeDependencies {
+  identity?: typeof fetch; github?: typeof fetch;
+  /** Explicit factory transfers ownership on success; it must clean any allocation if it rejects. */
+  createScheduler?: () => Promise<ManagedRuntimeScheduler>;
+}
+const schedulingSchema = z.strictObject({ itemId: reconciliationScopeSchema.shape.itemId,
+  maxRounds: z.number().int().min(1).max(100), minIntervalMs: z.number().int().min(1000).max(86400000) });
 const profileSchema = z.strictObject({
   version: z.literal('steer-identity-runtime/v1'),
   browser: z.strictObject({ issuer: text, jwksUri: text, authorizationEndpoint: text,
@@ -26,6 +34,7 @@ const profileSchema = z.strictObject({
   database: databaseSchema,
   readModel: z.strictObject({ database: databaseSchema, paths: z.array(artifactProjectionInputSchema.shape.path).min(1).max(1000) }).optional(),
   mcp: z.strictObject({ clientIds: z.array(z.string().min(1).max(200)).min(1).max(100).refine((ids) => new Set(ids).size === ids.length) }).optional(),
+  scheduling: schedulingSchema.optional(),
   sessionKeyId: text,
 });
 const secretsSchema = z.strictObject({ browserClientSecret: text, githubPrivateKeyPem: text,
@@ -70,7 +79,7 @@ const encodedSecretsSchema = z.strictObject({ version: z.literal('steer-local-id
 
 /** Explicit secret-provider input; no provider discovery, environment loading or real binding by default. */
 export async function startLocalIdentityFromSecretProvider(rawProfile: unknown, rawReference: unknown, provider: SecretProvider,
-  transports: { identity?: typeof fetch; github?: typeof fetch; renderer?: typeof fetch } = {}) {
+  transports: IdentityRuntimeDependencies & { renderer?: typeof fetch } = {}) {
   let plaintext: Uint8Array | undefined;
   const decodedKeys: Uint8Array[] = [];
   try {
@@ -90,7 +99,7 @@ export async function startLocalIdentityFromSecretProvider(rawProfile: unknown, 
 
 /** Explicit opt-in local listener; not wired into default CLI or an environment/secret loader. */
 export async function startLocalIdentityRuntime(rawProfile: unknown, rawSecrets: unknown,
-  transports: { identity?: typeof fetch; github?: typeof fetch; renderer?: typeof fetch } = {}) {
+  transports: IdentityRuntimeDependencies & { renderer?: typeof fetch } = {}) {
   let runtime: Awaited<ReturnType<typeof createIdentityRuntime>> | undefined;
   try {
     const profile = localProfileSchema.parse(rawProfile); const secrets = localSecretsSchema.parse(rawSecrets);
@@ -110,15 +119,23 @@ export async function startLocalIdentityRuntime(rawProfile: unknown, rawSecrets:
 
 /** Actual composition root. Explicit values only; never reads environment, files or remote secrets. */
 export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unknown,
-  transports: { identity?: typeof fetch; github?: typeof fetch } = {}) {
+  transports: IdentityRuntimeDependencies = {}) {
   const pools: ReturnType<typeof createRuntimePool>[] = [];
+  let managedScheduler: ManagedRuntimeScheduler | undefined;
+  let stopOwned: Promise<void> | undefined;
   const shutdownPools = async () => {
-    const results = await Promise.allSettled(pools.map((pool) => pool.shutdown()));
-    if (results.some((result) => result.status === 'rejected')) throw new Error('Identity runtime resource shutdown failed.');
+    return stopOwned ??= (async () => {
+      const results = await Promise.allSettled([
+        ...pools.map((pool) => pool.shutdown()),
+        ...(managedScheduler ? [Promise.resolve().then(() => managedScheduler!.shutdown())] : []),
+      ]);
+      if (results.some((result) => result.status === 'rejected')) throw new Error('Identity runtime resource shutdown failed.');
+    })();
   };
   try {
     const profile = profileSchema.parse(rawProfile); const secrets = secretsSchema.parse(rawSecrets);
     if (Boolean(profile.readModel) !== Boolean(secrets.readModelDatabasePassword)) throw new Error('Incomplete read-model binding.');
+    if (Boolean(profile.scheduling) !== Boolean(transports.createScheduler)) throw new Error('Incomplete scheduler binding.');
     const reader = createGitHubReader(profile.github.binding, {
       appJwt: createAppJwtSigner(profile.github.appId, secrets.githubPrivateKeyPem),
       ...(transports.github ? { fetch: transports.github } : {}),
@@ -132,12 +149,22 @@ export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unk
     const binding = { issuer: profile.browser.issuer, clientId: profile.browser.clientId, redirectUri: profile.browser.redirectUri };
     const store = createPostgresBrowserSessionStore(pool, { binding,
       keyring: { currentKeyId: profile.sessionKeyId, keys: secrets.sessionKeys } });
+    if (profile.scheduling && transports.createScheduler) {
+      managedScheduler = await transports.createScheduler();
+      const scheduler = managedScheduler.scheduler;
+      if (typeof managedScheduler.shutdown !== 'function' || !scheduler || typeof scheduler.start !== 'function' || typeof scheduler.inspect !== 'function' ||
+        scheduler.scope.organizationId !== profile.github.binding.organizationId || scheduler.scope.repository !== `github:${profile.github.binding.repositoryId}` ||
+        scheduler.scope.itemId !== profile.scheduling.itemId || scheduler.limits.maxRounds !== profile.scheduling.maxRounds ||
+        scheduler.limits.minIntervalMs !== profile.scheduling.minIntervalMs) throw new Error('Mismatched scheduler binding.');
+    }
     const ownedPool = pool;
     const service = createIdentityService({ ...profile.browser, clientSecret: secrets.browserClientSecret }, {
       reader, authorizationPath: profile.github.authorizationPath,
       sessions: { binding, store, shutdown: shutdownPools },
       ...(profile.mcp ? { mcp: profile.mcp } : {}),
-      ...(artifactProjection ? { services: { artifactProjection } } : {}),
+      ...((artifactProjection || managedScheduler) ? { services: {
+        ...(artifactProjection ? { artifactProjection } : {}), ...(managedScheduler ? { reconciliationScheduler: managedScheduler.scheduler } : {}),
+      } } : {}),
       ...(transports.identity ? { fetch: transports.identity } : {}),
     });
     return { fetch: service.fetch, shutdown: service.shutdown,

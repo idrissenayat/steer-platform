@@ -45,6 +45,10 @@ inside STEER. Every surface uses the same registry and tenant authorization.
 - Report implemented behavior and remaining dependencies, not generated-case
   counts as a percentage of platform completion.
 - Update this ledger and the implementation overview in the same increment.
+- The user's renewed continuous-loop instruction means proceed to the next safe
+  item without asking for another continue. The existing task heartbeat retains
+  this route across runs; stop for indispensable user-only input, not a completed
+  increment. Keep gate/spending/provider restrictions unchanged.
 
 ## Completed development increment: 0007
 
@@ -697,3 +701,23 @@ runtime composition, then source-derived gate waits/cursors and business tools.
 Live cluster ACLs/authentication, active-activity/fleet/server recovery, full
 operating screens and remaining services stay open. Default startup is unchanged.
 No gate, live provider, deployment, release or spending approval is inferred.
+
+## Completed development increment: 0040
+
+The optional scheduler is now composed into the identity runtime with explicit
+profile/factory pairing and exact organization/repository/item/limit checks.
+A managed client admits at most eight actual operations and confirms their
+completion before closing its owned connection. Both browser-only scheduling
+and MCP composition drain requests before closing identity/scheduler resources.
+
+Five new native groups cover admission, configuration, initialization/failure
+cleanup and request drain. Twelve actual Temporal integration groups now include
+a separate real scheduler connection whose closure is owned by the API runtime;
+the server and independent environment client remain usable. Evidence:
+intent/0040/EVIDENCE.md; guide: docs/MANAGED-SCHEDULER-RUNTIME.md.
+
+Next bounded increment: source-derived gate waits/cursors, followed by business
+tools and full operating screens under the same shared authorization contracts.
+The live cluster connection/security profile, complete OIDC-to-Temporal flow,
+remaining recovery/operational services and five R5 findings remain open.
+No gate, provider access, deployment, release or spending approval is inferred.

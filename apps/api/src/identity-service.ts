@@ -38,6 +38,7 @@ export function createIdentityService(configuration: BrowserSessionConfiguration
     ...(dependencies.now ? { now: dependencies.now } : {}),
   });
   const stopResources = sessions.shutdown.bind(sessions);
+  const drainBeforeResources = Boolean(mcp || dependencies.services?.reconciliationScheduler);
   let state: 'running' | 'draining' | 'stopped' | 'failed' = 'running';
   let activeRequests = 0; let shutdown: Promise<void> | undefined;
   let drained: (() => void) | undefined;
@@ -61,8 +62,10 @@ export function createIdentityService(configuration: BrowserSessionConfiguration
       const transport = mcp?.shutdown() ?? Promise.resolve();
       // Shared MCP queries may still need their read pool and fresh authorization after I/O.
       // With MCP enabled, close both transport admissions first, drain calls, then close pools.
-      // Preserve the existing eager resource-stop contract for the browser-only composition.
-      const resources = mcp ? Promise.allSettled([requests, transport]).then(stopResources) : Promise.resolve().then(stopResources);
+      // Scheduler commands also require their connection and fresh identity until the admitted call settles.
+      // Preserve the eager resource-stop contract only for the original browser-only composition.
+      const resources = drainBeforeResources
+        ? Promise.allSettled([requests, transport]).then(stopResources) : Promise.resolve().then(stopResources);
       shutdown = Promise.allSettled([requests, transport, resources]).then((results) => {
         drained = undefined;
         if (results.some((result) => result.status === 'rejected')) {

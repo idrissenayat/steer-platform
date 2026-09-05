@@ -26,6 +26,7 @@
   "gitPostgresActivityComposition": true,
   "separateProcessTimerRecoveryVerified": true,
   "canonicalSchedulingToolsVerified": true,
+  "managedSchedulerRuntimeVerified": true,
   "liveClusterAuthorizationVerified": false,
   "activeActivityCrashRecoveryVerified": false
 }

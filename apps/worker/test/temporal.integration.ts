@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { createHash } from 'node:crypto';
+import { createHash, generateKeyPairSync, randomBytes } from 'node:crypto';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -8,10 +8,12 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { setTimeout as delay } from 'node:timers/promises';
 import { TestWorkflowEnvironment } from '@temporalio/testing';
+import { Client, Connection } from '@temporalio/client';
 import { bundleWorkflowCode, DefaultLogger, Runtime, Worker } from '@temporalio/worker';
 import { createReconciliationWorker } from '../src/worker.ts';
-import { startReconciliation, createReconciliationSchedulerClient } from '../src/client.ts';
+import { startReconciliation, createReconciliationSchedulerClient, createManagedReconciliationScheduler } from '../src/client.ts';
 import { invokeTool, ToolError } from '@steer/tool-registry';
+import { createIdentityRuntime } from '../../api/src/runtime.ts';
 import { workflowId } from '../src/contracts.ts';
 import { testProjectedWorkflow } from './projection.integration.ts';
 
@@ -133,6 +135,32 @@ try {
     assert.equal(calls, before + 1);
   });
   await stopWorker();
+  await check('identity runtime owns a separate actual Temporal scheduler connection and closes it without disturbing the worker/server', async () => {
+    const connection = await Connection.connect({ address: env.address }); let closed = 0;
+    const managed = await createManagedReconciliationScheduler(new Client({ connection, namespace: 'default' }), {
+      namespace: 'default', taskQueue: queue, scope: scheduledScope, maxRounds: 1, minIntervalMs: 1000,
+    }, async () => { await connection.close(); closed++; });
+    const key = generateKeyPairSync('rsa', { modulusLength: 2048 }).privateKey.export({ type: 'pkcs8', format: 'pem' }).toString();
+    let runtime: Awaited<ReturnType<typeof createIdentityRuntime>> | undefined;
+    try {
+      runtime = await createIdentityRuntime({ version: 'steer-identity-runtime/v1',
+        browser: { issuer: 'https://id.example/realm', jwksUri: 'https://id.example/jwks', authorizationEndpoint: 'https://id.example/auth',
+          tokenEndpoint: 'https://id.example/token', redirectUri: 'https://steer.example/auth/callback', clientId: 'steer-web', audience: 'steer-api' },
+        github: { appId: '1', authorizationPath: 'access/authorization.json', binding: { organizationId: scope.organizationId,
+          installationId: 1, repositoryId: 1, owner: 'synthetic', repository: 'synthetic', branch: 'synthetic' } },
+        database: { host: '127.0.0.1', port: 5432, database: 'unused', transport: { kind: 'isolated-loopback-test' } },
+        sessionKeyId: 'synthetic', scheduling: { itemId: scheduledScope.itemId, maxRounds: 1, minIntervalMs: 1000 },
+      }, { browserClientSecret: 'synthetic-not-a-real-client-secret', githubPrivateKeyPem: key,
+        databasePassword: 'unused-synthetic-password', sessionKeys: { synthetic: randomBytes(32) } }, { createScheduler: async () => managed });
+      assert.equal((await managed.scheduler.inspect()).outcome, 'found');
+      assert.equal(runtime.status().database.connections, 0);
+      await runtime.shutdown(); assert.equal(closed, 1); assert.equal(managed.status().state, 'stopped');
+      await assert.rejects(managed.scheduler.inspect());
+      await assert.rejects(connection.workflowService.describeWorkflowExecution({ namespace: 'default', execution: { workflowId: managed.scheduler.workflowId } }));
+      // The environment owns a different connection: closing this one must not close the server.
+      assert.equal((await env.client.workflow.getHandle(managed.scheduler.workflowId).describe()).status.name, 'COMPLETED');
+    } finally { await runtime?.shutdown(); await managed.shutdown(); }
+  });
   console.log(`Temporal integration: ${passed} checks passed; actual local server, Git/PostgreSQL and recreated SDK workers; synthetic identities only.`);
 } finally {
   try { if (worker) { worker.shutdown(); await running; } }

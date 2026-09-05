@@ -12,9 +12,10 @@ adapts an already authorized Temporal Client plus namespace, taskQueue, scope,
 maxRounds and minIntervalMs. It validates the namespace matches the supplied
 client, copies/freeze-binds configuration and computes the existing escaped ID.
 The caller owns the connection lifetime and must drain tool requests before
-closing it. No new connection, credentials, environment loader or default CLI
-activation is added. The combined identity bootstrap does not yet compose this
-connection; explicit API/MCP ToolServices injection is the current integration seam.
+closing it. Increment 0040 adds createManagedReconciliationScheduler and explicit
+identity-runtime profile/factory ownership; see MANAGED-SCHEDULER-RUNTIME.md.
+No new default connection, credentials, environment loader or CLI activation
+is added. Direct API/MCP ToolServices injection remains available to trusted code.
 
 Only the adapter imports Temporal. The registry depends on its structural port;
 its schemas, grants, dispatch and errors are shared by internal calls, HTTP and
@@ -71,7 +72,7 @@ with a synthetic activity port; existing actual Git/Postgres/process recovery
 checks remain separate regression groups. These are not an all-in-one live
 OIDC-to-Temporal deployment test. See intent/0039/EVIDENCE.md.
 
-Next: trusted runtime connection ownership, source-derived gate waits/cursors
-and business tools. Multi-item scheduling, webhook/continuous scheduling,
+Next: source-derived gate waits/cursors and business tools. Multi-item scheduling,
+webhook/continuous scheduling,
 active-activity/fleet/server recovery, production cluster security/retention,
 full operating screens and formal gates remain open.

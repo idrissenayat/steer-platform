@@ -75,8 +75,8 @@ Increment 0037 adds actual Git/PostgreSQL activity composition and shared fresh
 authorization/lifecycle; see WORKER-PROJECTION-RUNTIME.md for its verified scope.
 Increment 0038 adds separate-process restart during durable waits; see
 WORKER-PROCESS-RECOVERY.md. Increment 0039 adds canonical authorized scheduling
-with fixed routing and explicit uncertainty. Next: compose trusted connection
-ownership and add source-derived
+with fixed routing and explicit uncertainty. Increment 0040 adds managed runtime
+connection ownership; see MANAGED-SCHEDULER-RUNTIME.md. Next: add source-derived
 gate waits/cursors and bounded long-lived scheduling. Real cluster TLS/identity,
 OTel, production retention and formal gates remain open.
 
