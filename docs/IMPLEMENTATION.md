@@ -286,6 +286,12 @@ The actual Next.js browser suite now uses this gateway. It does not start a
 public listener, load real secrets or complete lifecycle/ingress composition.
 See `docs/IDENTITY-GATEWAY.md`.
 
+Item `intent/0028` adds an explicit strict local profile/secret entry point that
+composes the real identity runtime and gateway with an owned loopback HTTPS
+listener. The browser flow uses that production-source listener, including
+observed connection refusal after shutdown. Real credential loading and public
+deployment remain disabled/separate. See `docs/LOCAL-IDENTITY-RUNTIME.md`.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.

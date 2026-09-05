@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { generateKeyPairSync, randomBytes } from 'node:crypto';
 import { test } from 'node:test';
-import { createIdentityRuntime } from '../src/runtime.ts';
+import { createIdentityRuntime, startLocalIdentityRuntime } from '../src/runtime.ts';
+import { createLocalTlsHarness, reserveLocalPort, localHttpsRequest } from './local-tls-harness.ts';
 
 const profile = { version: 'steer-identity-runtime/v1',
   browser: { issuer: 'https://id.example/realm', jwksUri: 'https://id.example/jwks',
@@ -43,4 +44,26 @@ test('runtime strictly rejects malformed profiles, secret injection and downstre
     { ...secrets, githubPrivateKeyPem: 'secret-invalid-key' }, { ...secrets, browserClientSecret: 'short' }, { ...secrets, extra: true }]) {
     await assert.rejects(createIdentityRuntime(profile, invalid), /^Error: Identity runtime configuration could not be initialized\.$/);
   }
+});
+
+test('explicit local bootstrap serves isolated HTTPS gateway with real lazy runtime and coordinated cleanup', async () => {
+  const tls = await createLocalTlsHarness(); const origin = `https://localhost:${await reserveLocalPort()}`;
+  let calls = 0;
+  const deny: typeof fetch = async () => { calls++; throw new Error('Provider access forbidden'); };
+  try {
+    const local = await startLocalIdentityRuntime({ version: 'steer-local-identity/v1', rendererOrigin: 'http://127.0.0.1:49001',
+      identity: { ...profile, browser: { ...profile.browser, redirectUri: `${origin}/auth/callback` } } },
+    { identity: secrets, tls: { key: tls.key, cert: tls.cert } }, { identity: deny, github: deny,
+      renderer: async () => new Response('<h1>Synthetic renderer</h1>', { headers: { 'content-type': 'text/html' } }) });
+    try {
+      assert.equal((await localHttpsRequest(origin, tls.cert)).status, 200);
+      assert.equal((await localHttpsRequest(origin, tls.cert, '/health/ready')).status, 503);
+      assert.equal((await localHttpsRequest(origin, tls.cert, '/v1/tools/session.context', { method: 'POST' })).status, 401);
+      assert.equal(local.status().identity.database.connections, 0); assert.equal(calls, 0);
+    } finally { await local.shutdown(); }
+    assert.equal(local.status().listener.state, 'stopped'); assert.equal(local.status().identity.state, 'stopped');
+    assert.equal(local.status().identity.database.closed, true);
+    await assert.rejects(startLocalIdentityRuntime({ version: 'steer-local-identity/v1', rendererOrigin: 'http://outside.example:3000', identity: profile },
+      { identity: secrets, tls: { key: tls.key, cert: tls.cert } }), /^Error: Local identity runtime could not be initialized\.$/);
+  } finally { await tls.close(); }
 });

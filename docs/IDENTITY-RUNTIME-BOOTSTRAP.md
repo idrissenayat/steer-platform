@@ -45,3 +45,10 @@ Before a real service is enabled: complete trusted listener/TLS/ingress and secr
 loading, approved membership/key bindings, supervision, transaction/network
 budgets, UI/accessibility verification and applicable gates. This module does not
 authorize any of those actions. Evidence: `intent/0025/EVIDENCE.md`.
+
+Increment 0028 adds a separate opt-in startLocalIdentityRuntime entry in this
+composition root: strict local profile plus separately supplied identity/TLS
+secrets, gateway and loopback HTTPS listener with coordinated shutdown.
+It derives the public origin from the validated callback and still loads no
+files/environment or real credentials. Default CLI behavior is unchanged.
+See `docs/LOCAL-IDENTITY-RUNTIME.md` and `intent/0028` for current evidence.

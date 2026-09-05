@@ -51,3 +51,6 @@ display, public TLS/ingress and secret approval, other browsers, manual speciali
 accessibility, full workspace parity and formal gates. Evidence: `intent/0026`.
 Shared routing/resource policy and newer verification: `docs/IDENTITY-GATEWAY.md`
 and `intent/0027`.
+Increment 0028 adds an opt-in local HTTPS runtime and moves the actual browser
+flow onto its production-source listener. It does not load real secrets or
+activate the default CLI. See `docs/LOCAL-IDENTITY-RUNTIME.md`.

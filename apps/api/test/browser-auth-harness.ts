@@ -10,6 +10,8 @@ import { chromium, type Browser } from 'playwright';
 import type { AuthorizationRecord } from '@steer/adapters/identity';
 import { createIdentityService } from '../src/identity-service.ts';
 import { createIdentityGateway } from '../src/identity-gateway.ts';
+import { startLocalIdentityListener } from '../src/identity-listener.ts';
+import { reserveLocalPort } from './local-tls-harness.ts';
 import { createGitAuthorizationHarness } from './git-authorization-harness.ts';
 import { createNextWebHarness } from './next-web-harness.ts';
 import type { SessionTestHarness } from './session-harness.ts';
@@ -20,6 +22,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
   let web: Awaited<ReturnType<typeof createNextWebHarness>> | undefined;
   let api: ReturnType<typeof createIdentityService> | undefined;
   let gateway: ReturnType<typeof createIdentityGateway> | undefined;
+  let applicationListener: Awaited<ReturnType<typeof startLocalIdentityListener>> | undefined;
   let origin = ''; let issuerOrigin = ''; let callbackUrl = ''; let callbackCrossSite = false; let callbackHasLoginCookie = false;
   let loginStatus = 0; let loginOriginMatches = false;
   let homeHasReferer = false;
@@ -40,13 +43,18 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
   const close = async () => {
     try { if (browser) await browser.close(); if (web) await web.close(); }
     finally {
-      await Promise.all(servers.map((server) => new Promise<void>((resolve, reject) => {
-        server.closeAllConnections(); server.close((error) => error ? reject(error) : resolve());
-      })));
+      try { await applicationListener?.shutdown(); }
+      finally {
+        await Promise.all(servers.map((server) => new Promise<void>((resolve, reject) => {
+          server.closeAllConnections(); server.close((error) => error ? reject(error) : resolve());
+        })));
+      }
     }
   };
   try {
-    const port = await startServer(tls.key, tls.certificate, async (request) => {
+    const port = await reserveLocalPort(); origin = `https://localhost:${port}`;
+    applicationListener = await startLocalIdentityListener({ publicOrigin: origin,
+      tls: { key: tls.key.toString('utf8'), cert: tls.certificate.toString('utf8') } }, { fetch: async (request) => {
       const url = new URL(request.url);
       if (url.pathname === '/' && request.method === 'GET') homeHasReferer = request.headers.has('referer');
       if (url.pathname === '/auth/callback') {
@@ -60,8 +68,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
       const response = gateway ? await gateway.fetch(request) : new Response('Synthetic service initializing.', { status: 503 });
       if (url.pathname === '/auth/login') { loginStatus = response.status; loginOriginMatches = request.headers.get('origin') === origin; }
       return response;
-    });
-    origin = `https://localhost:${port}`;
+    }, shutdown: async () => { await api?.shutdown(); } });
     const attackerPort = await startServer(tls.key, tls.certificate, () => html(
       `<form method="post" action="${origin}/auth/logout"><button>Cross-site sign out</button></form>`, true));
     const attackerOrigin = `https://127.0.0.1:${attackerPort}`;
@@ -234,6 +241,13 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         assert.equal((await tool()).status, 503);
         assert.throws(() => storage.freshStore(), /Synthetic runtime resources are closed/);
         assert.deepEqual(await storage.counts(), { transactions: 0, sessions: 0 });
+      });
+      await check('production-source HTTPS listener completes owned shutdown and rejects new browser connections', async () => {
+        assert.equal(applicationListener!.status().state, 'running');
+        const stopped = applicationListener!.shutdown(); assert.equal(applicationListener!.shutdown(), stopped);
+        await stopped;
+        assert.deepEqual(applicationListener!.status(), { state: 'stopped', activeRequests: 0, forcedConnections: false, listening: false });
+        await assert.rejects(page.goto(origin), /ERR_CONNECTION_REFUSED/);
       });
       console.log(`Browser authentication engine: Chromium ${browser.version()}; isolated profile, synthetic identities only.`);
       await context.close();

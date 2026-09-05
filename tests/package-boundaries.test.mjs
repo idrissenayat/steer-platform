@@ -11,7 +11,8 @@ const rules = {
   'packages/tool-registry': { folders: ['src'], packages: ['@steer/domain', 'zod'], builtins: [] },
   'packages/adapters': { folders: ['src'], packages: ['@steer/tool-registry', 'jose', 'zod'], builtins: ['node:crypto'] },
   'packages/data': { folders: ['src'], packages: ['@steer/tool-registry', 'drizzle-orm', 'pg', 'zod'], builtins: ['node:crypto'] },
-  'apps/api': { folders: ['src'], packages: ['@steer/adapters', '@steer/data', '@steer/tool-registry', '@hono/node-server', 'hono', 'zod'], builtins: [],
+  'apps/api': { folders: ['src'], packages: ['@steer/adapters', '@steer/data', '@steer/tool-registry', '@hono/node-server', 'hono', 'zod'], builtins: ['node:https'],
+    builtinEntryOnly: { 'node:https': 'src/identity-listener.ts' },
     entryOnly: { '@steer/data': 'src/runtime.ts', zod: 'src/runtime.ts' } },
   'apps/web': { folders: ['app'], packages: ['next', 'react', 'react-dom'], builtins: [] },
 };
@@ -41,7 +42,8 @@ function allowed(specifier, file, packageRoot, rule) {
     // Production code may not reach its own test fixtures via a relative path.
     return rule.folders.some((folder) => destination.startsWith(resolve(packageRoot, folder) + sep));
   }
-  if (specifier.startsWith('node:')) return rule.builtins.includes(specifier);
+  if (specifier.startsWith('node:')) return rule.builtins.includes(specifier) &&
+    (!rule.builtinEntryOnly?.[specifier] || file === resolve(packageRoot, rule.builtinEntryOnly[specifier]));
   const name = packageName(specifier);
   return rule.packages.includes(name) && (!rule.entryOnly?.[name] || file === resolve(packageRoot, rule.entryOnly[name]));
 }
@@ -100,5 +102,9 @@ test('API storage/configuration imports are restricted to the explicit compositi
     for (const file of ['src/app.ts', 'src/browser.ts', 'src/identity-service.ts', 'src/server.ts']) {
       assert.equal(allowed(specifier, resolve(base, file), base, rule), false);
     }
+  }
+  assert.equal(allowed('node:https', resolve(base, 'src/identity-listener.ts'), base, rule), true);
+  for (const file of ['src/app.ts', 'src/browser.ts', 'src/runtime.ts', 'src/identity-service.ts', 'src/server.ts']) {
+    assert.equal(allowed('node:https', resolve(base, file), base, rule), false);
   }
 });

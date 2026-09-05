@@ -53,3 +53,8 @@ authenticated workspace, real membership or gate acceptance is implied.
 
 Development artifacts and verification: `intent/0027/`.
 
+Increment 0028 now supplies the explicit local listener/profile/lifecycle
+composition described above, without activating public ingress or real secrets.
+The browser suite uses both production-source gateway and HTTPS listener.
+See `docs/LOCAL-IDENTITY-RUNTIME.md`; external renderer/process supervision and
+real secret-provider loading remain separate.

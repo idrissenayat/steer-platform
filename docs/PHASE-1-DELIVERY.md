@@ -449,3 +449,23 @@ then authenticated workspace/session UI. This gateway opens no listener, loads
 no secrets and grants no real account access. Public ingress, hydration, full
 product parity, remaining Phase 1 services, the five R5 findings and all gate,
 deployment, release and spending boundaries remain open/separate.
+
+## Completed development increment: 0028
+
+Added explicit local HTTPS runtime composition from a strict public profile and
+separate supplied secrets. The application origin derives from the validated
+identity callback; actual lazy identity runtime, native gateway and bounded
+loopback listener are connected without changing default startup or loading
+real credentials. Startup failures clean owned resources, not unrelated ports.
+
+TLS/header/request/socket limits and coordinated shutdown have actual socket
+evidence. A five-second forced disconnect does not falsely report stopped while
+application work remains outstanding. The full browser flow now uses the shared
+production-source listener and observes refused connections after it closes.
+Evidence: `intent/0028/EVIDENCE.md`; guide: `docs/LOCAL-IDENTITY-RUNTIME.md`.
+
+Next bounded increment: authenticated workspace/session UI, followed by trusted
+secret-provider loading and remaining Phase 1 stack composition. Real membership,
+public ingress, process supervision, manual accessibility, full product parity,
+the five R5 findings and all gate/deployment/release/spending boundaries remain
+explicitly separate. No user-only input is currently needed for isolated UI work.
