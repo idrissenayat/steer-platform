@@ -117,3 +117,28 @@ test('renderer admission shares bounded request leases and recovers after comple
   release(); assert.ok((await Promise.all(pending)).every((response) => response.status === 200));
   assert.equal((await gateway.fetch(request())).status, 200);
 });
+
+test('gateway projects only current verified display fields and strips spoofed browser view headers', async () => {
+  const view = { subject: 'synthetic-account', organizationId: 'synthetic-org', hats: ['product-lead'], expiresAt: new Date(Date.now() + 60000).toISOString() };
+  let calls = 0; let received: string | null = null; let result = Response.json(view);
+  const gateway = createIdentityGateway(configuration, { identity: { fetch: async (input) => {
+    calls++; assert.equal(input.url, `${configuration.publicOrigin}/auth/session`); assert.equal(input.method, 'POST');
+    assert.equal(input.headers.get('origin'), configuration.publicOrigin); assert.equal(input.headers.get('sec-fetch-site'), 'same-origin');
+    assert.equal(input.headers.get('cookie'), '__Host-steer-session=synthetic');
+    assert.equal(input.headers.get('x-steer-session-view'), null); assert.equal(input.body, null); return result;
+  } }, fetch: async (_input, init) => {
+    const headers = new Headers(init?.headers); received = headers.get('x-steer-session-view');
+    assert.equal(headers.get('cookie'), null); assert.equal(headers.get('authorization'), null); return page();
+  } });
+  const input = () => request('/', { headers: { cookie: '__Host-steer-session=synthetic', 'x-steer-session-view': 'spoofed-value' } });
+  assert.equal((await gateway.fetch(input())).status, 200);
+  assert.deepEqual(JSON.parse(decodeURIComponent(received!)), view); assert.equal(calls, 1);
+  for (const failure of [Response.json(view, { status: 401 }), Response.json({ ...view, accessToken: 'must-not-project' }),
+    Response.json({ ...view, expiresAt: '2000-01-01T00:00:00Z' }), new Response('malformed')]) {
+    result = failure; assert.equal((await gateway.fetch(input())).status, 200); assert.equal(received, null);
+  }
+  const before = calls;
+  await gateway.fetch(request('/', { headers: { 'x-steer-session-view': 'spoofed-value' } })); assert.equal(received, null); assert.equal(calls, before);
+  await gateway.fetch(request('/', { headers: { cookie: '__Host-steer-session=synthetic', authorization: 'Bearer synthetic' } }));
+  assert.equal(received, null); assert.equal(calls, before);
+});

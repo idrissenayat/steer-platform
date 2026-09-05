@@ -66,5 +66,10 @@ observed as a refused subsequent browser connection.
 Run pnpm test:auth:browser, then pnpm check; do not overlap Next.js builds.
 Evidence and development acceptance: intent/0028/. Remaining: real approved
 secret-provider configuration, renderer/process supervision, public ingress,
-authenticated workspace UI, full stack walking skeleton and applicable gates.
+full authenticated operating surfaces, stack walking skeleton and applicable gates.
 
+Increment 0029 supplies the first authenticated session display within Next.js,
+not the complete workspace. The private renderer now receives a bounded display
+projection from the gateway, still without cookies or tokens. Treat that account/
+organization data as private; keep it out of logs/analytics. Current contract:
+`docs/AUTHENTICATED-WORKSPACE.md`.

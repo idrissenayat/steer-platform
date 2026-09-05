@@ -1,9 +1,31 @@
 import { connection } from 'next/server';
-import { identityView } from './identity-view';
+import { headers } from 'next/headers';
+import { identityView, sessionView } from './identity-view';
 
 export default async function FoundationPage() {
   await connection();
   const configured = identityView(process.env.STEER_WEB_AUTH, process.env.STEER_WEB_AUTH_ORIGIN, process.env.STEER_WEB_IDENTITY_ISSUER);
+  const session = configured ? sessionView((await headers()).get('x-steer-session-view')) : null;
+  if (session) return (
+    <main className="access-shell workspace-shell">
+      <header className="access-brand"><span className="brand-mark" aria-hidden="true">S</span><span>STEER</span><span className="brand-caption">Human direction. Agent execution.</span></header>
+      <div className="workspace-heading"><div><div className="eyebrow">Session verified</div><h1>Your workspace.</h1><p className="lede">One place to frame intent, steer the work, and review the evidence.</p></div>
+        <form action="/auth/logout" method="post"><button className="access-secondary" type="submit">Sign out</button></form></div>
+      <section className="access-card workspace-session" aria-labelledby="session-title">
+        <div><span className="access-label">CURRENT ACCESS</span><h2 id="session-title">Your verified session</h2><p>This page reflects your current session and Git-backed workspace permissions.</p>
+          <a className="session-refresh" href="/">Refresh access</a></div>
+        <dl><div><dt>Organization</dt><dd data-testid="session-organization">{session.organizationId}</dd></div>
+          <div><dt>Account ID</dt><dd data-testid="session-subject">{session.subject}</dd></div>
+          <div><dt>Active hats</dt><dd>{session.hats.length ? session.hats.map((hat) => <span className="hat-label" key={hat}>{hat.split('-').map((word) => word[0]!.toUpperCase() + word.slice(1)).join(' ')}</span>) : 'No hats assigned'}</dd></div>
+          <div><dt>Session expires (UTC)</dt><dd><time dateTime={session.expiresAt}>{new Date(session.expiresAt).toISOString().replace('T', ' ').replace('.000Z', ' UTC')}</time></dd></div></dl>
+        <p className="access-hint session-snapshot">Checked for this page load. Refresh to recheck access. Every action is authorized again; this display is not a gate signature.</p>
+      </section>
+      <section className="workspace-surfaces" aria-labelledby="surfaces-title"><h2 id="surfaces-title">Your operating surfaces</h2><p className="access-hint">Session access is connected. These production work surfaces are still being built.</p>
+        <ul>{[['Intent backlog', 'Frame outcomes and boundaries before work is pulled.'], ['Flight board', 'Follow work through its lifecycle and evidence gates.'], ['Inbox', 'Review the decisions that need your attention.']].map(([name, description]) =>
+          <li key={name}><h3>{name}</h3><p>{description}</p><span>Not connected yet</span></li>)}</ul></section>
+      <footer className="access-footer"><span>Foundation preview · formal release gates remain open</span><a href="https://github.com/idrissenayat/steer-platform">Project repository</a></footer>
+    </main>
+  );
   return (
     <main className="access-shell">
       <header className="access-brand"><span className="brand-mark" aria-hidden="true">S</span><span>STEER</span><span className="brand-caption">Human direction. Agent execution.</span></header>

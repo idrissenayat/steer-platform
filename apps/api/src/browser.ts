@@ -2,9 +2,10 @@ import { Hono } from 'hono';
 import { secureHeaders } from 'hono/secure-headers';
 import { createBrowserSessionBroker, type BrowserSessionConfiguration, type BrowserSessionStore } from '@steer/adapters/browser-session';
 import { createOidcAuthenticator, type IdentityDependencies } from '@steer/adapters/identity';
-import { createOpenApiDocument } from '@steer/tool-registry';
+import { createOpenApiDocument, invokeTool, ToolError } from '@steer/tool-registry';
 import { createApi } from './app.ts';
 import { readRequestBody } from './request-body.ts';
+import { sessionViewSchema } from './session-view.ts';
 
 const failure = { error: { code: 'SIGN_IN_FAILED', message: 'The sign-in operation could not be completed.' } };
 const denied = { error: { code: 'FORBIDDEN', message: 'The request is not allowed.' } };
@@ -39,6 +40,10 @@ export function createBrowserOpenApiDocument() {
       description: 'Empty-body POST; no query or Authorization header. Redirects to the fixed issuer authorization endpoint.', responses } },
     '/auth/logout': { post: { operationId: 'browser.logout', security: [], parameters: [originParameter],
       description: 'Empty-body POST; no query or Authorization header. Deletes the supplied local session if present, clears cookies and redirects to the fixed app root. Not provider-wide logout.', responses } },
+    '/auth/session': { post: { operationId: 'browser.session', security: [{ browserSession: [] }], parameters: [originParameter],
+      description: 'Empty-body, same-origin current human-session display query. Revalidates current authority and the session.context tool grant. No caller-selected organization, bearer credentials or tokens in the result.',
+      responses: { '200': { description: 'Current subject, organization, hats and session expiry for display only.' },
+        '400': responses['400'], '401': { description: 'No current human session.' }, '403': responses['403'], '405': responses['405'] } } },
     '/auth/callback': { get: { operationId: 'browser.callback', security: [{ loginBinding: [] }],
       description: 'One-use browser-bound authorization-code response. Success redirects to the fixed app root. Errors clear only the login cookie and never reflect provider input.',
       parameters: ['code', 'state', 'iss', 'session_state'].map((name) => ({ name, in: 'query', required: name !== 'session_state', schema: { type: 'string' } })), responses } },
@@ -103,6 +108,18 @@ export function createBrowserApi(configuration: BrowserSessionConfiguration,
       for (const value of result.setCookies) c.header('Set-Cookie', value, { append: true });
       return c.redirect(`${origin}/`, 303);
     } catch { return c.json(failure, 400); }
+  });
+  app.all('/auth/session', async (c) => {
+    if (c.req.method !== 'POST') { c.header('Allow', 'POST'); return c.json(denied, 405); }
+    if (!sameOriginMutation(c.req.raw, origin) || new URL(c.req.url).search || c.req.raw.headers.has('authorization')) return c.json(denied, 403);
+    if (!await emptyBody(c.req.raw)) return c.json(denied, 400);
+    const principal = await broker.authenticate(c.req.header('cookie') ?? null);
+    if (!principal) return c.json({ error: { code: 'UNAUTHENTICATED', message: 'A current authenticated identity is required.' } }, 401);
+    try {
+      invokeTool('session.context', { organizationId: principal.organizationId }, { principal, now: dependencies.now?.() ?? new Date() });
+      return c.json(sessionViewSchema.parse({ subject: principal.subject, organizationId: principal.organizationId,
+        hats: principal.hats, expiresAt: principal.expiresAt }));
+    } catch (error) { return c.json(denied, error instanceof ToolError && error.code === 'UNAUTHENTICATED' ? 401 : 403); }
   });
   app.get('/openapi.json', (c) => c.json(createBrowserOpenApiDocument()));
   app.route('/', createApi({

@@ -469,3 +469,23 @@ secret-provider loading and remaining Phase 1 stack composition. Real membership
 public ingress, process supervision, manual accessibility, full product parity,
 the five R5 findings and all gate/deployment/release/spending boundaries remain
 explicitly separate. No user-only input is currently needed for isolated UI work.
+
+## Completed development increment: 0029
+
+The actual Next.js interface now shows verified human-session context after
+login: current account ID, organization, hats and expiry, plus native sign-out
+and refresh. A same-origin empty-body display query invokes the canonical
+session.context tool. The gateway constructs a strict private display header;
+browser-supplied identity headers and credentials never reach the renderer.
+
+Revocation and Git outage/moving-head/digest failures remove identity on reload;
+no cached context is used. The page is explicitly a snapshot, not a signature or
+live permission monitor. The three production operating surfaces are labeled
+not connected, without fabricated records or working-navigation claims.
+Evidence: `intent/0029/EVIDENCE.md`; guide: `docs/AUTHENTICATED-WORKSPACE.md`.
+
+Next bounded increment: trusted secret-provider loading, then authenticated
+business/data tools and remaining Phase 1 components/operating surfaces. Keep
+real account binding, public ingress, process supervision, full product parity,
+manual accessibility, the five R5 findings and all gate/deployment/release/spending
+boundaries explicit. Isolated implementation remains unblocked.

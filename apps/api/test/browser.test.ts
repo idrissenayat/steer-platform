@@ -16,7 +16,7 @@ const pair = (value: string) => value.split(';')[0]!;
 const mutation = { origin, 'sec-fetch-site': 'same-origin' };
 function fixture() {
   const transactions = new Map<string, LoginTransaction>(); const sessions = new Map<string, BrowserSession>();
-  let active = true; let time = Date.parse('2026-09-05T03:32:00Z');
+  let active = true; let hasContextGrant = true; let time = Date.parse('2026-09-05T03:32:00Z');
   let nonce = ''; let exchanges = 0; let access = ''; let failExchange = false; let failDelete = false;
   const store: BrowserSessionStore = {
     insertTransaction: async (key, value) => { if (transactions.has(key)) return false; transactions.set(key, value); return true; },
@@ -27,7 +27,7 @@ function fixture() {
   };
   const app = createBrowserApi(configuration, { store, now: () => new Date(time),
     resolveAuthorization: async () => ({ issuer: configuration.issuer, subject: 'human-1', organizationId: 'org-a',
-      type: 'human', hats: ['product-lead'], toolGrants: ['session.context'], active,
+      type: 'human', hats: ['product-lead'], toolGrants: hasContextGrant ? ['session.context'] : [], active,
       validAfter: new Date(time - 1000).toISOString(), expiresAt: new Date(time + 180000).toISOString() }),
     fetch: async (input) => {
       if (String(input) === configuration.jwksUri) return Response.json({ keys: [jwk] });
@@ -60,6 +60,7 @@ function fixture() {
   });
   return { request, begin, login, tool, transactions, sessions, store,
     stats: () => ({ exchanges, access }), revoke: () => { active = false; }, expire: () => { time += 180000; },
+    removeContextGrant: () => { hasContextGrant = false; },
     failExchange: () => { failExchange = true; }, failDelete: () => { failDelete = true; } };
 }
 
@@ -173,7 +174,7 @@ test('expired sessions and provider/storage exceptions fail closed without secre
 
 test('default API does not expose auth routes; composed readiness still does not claim real integration', async () => {
   const plain = createApi();
-  for (const path of ['/auth/login', '/auth/callback', '/auth/logout']) assert.equal((await plain.request(path, { method: 'POST' })).status, 404);
+  for (const path of ['/auth/login', '/auth/callback', '/auth/logout', '/auth/session']) assert.equal((await plain.request(path, { method: 'POST' })).status, 404);
   const f = fixture(); assert.equal((await f.request('/health/ready')).status, 503);
   const unknown = await f.request('/auth/not-a-route?secret=do-not-reflect');
   assert.equal(unknown.status, 404); secure(unknown); assert.ok(!(await unknown.text()).includes('do-not-reflect'));
@@ -186,10 +187,35 @@ test('browser OpenAPI adds cookie/route contracts without changing shared tool s
   assert.equal(base.paths['/auth/login'], undefined);
   assert.equal(base.components.securitySchemes.browserSession, undefined);
   assert.equal(browser.components.securitySchemes.browserSession.name, '__Host-steer-session');
-  for (const path of ['/auth/login', '/auth/logout']) assert.equal(browser.paths[path].post.parameters[0].name, 'Origin');
+  for (const path of ['/auth/login', '/auth/logout', '/auth/session']) assert.equal(browser.paths[path].post.parameters[0].name, 'Origin');
   assert.deepEqual(browser.paths['/auth/callback'].get.security, [{ loginBinding: [] }]);
   const tool = '/v1/tools/session.context';
   assert.deepEqual(browser.paths[tool].post.requestBody, base.paths[tool].post.requestBody);
   assert.deepEqual(browser.paths[tool].post.security, [{ bearerAuth: [] }, { browserSession: [] }]);
   assert.ok(!JSON.stringify(browser).includes(configuration.clientSecret));
+});
+
+test('session display query is current, cookie-only, empty-body and constrained by the shared tool grant', async () => {
+  const f = fixture(); const login = await f.login();
+  const read = (headers: Record<string, string> = {}, body?: string) => f.request('/auth/session', {
+    method: 'POST', headers: { ...mutation, cookie: login.sessionCookie, ...headers }, ...(body ? { body } : {}),
+  });
+  const response = await read(); secure(response); assert.equal(response.status, 200);
+  const value = await response.json();
+  assert.deepEqual(Object.keys(value).sort(), ['expiresAt', 'hats', 'organizationId', 'subject']);
+  assert.equal(value.subject, 'human-1'); assert.equal(value.organizationId, 'org-a'); assert.deepEqual(value.hats, ['product-lead']);
+  assert.equal(response.headers.getSetCookie().length, 0); assert.ok(!JSON.stringify(value).includes(f.stats().access));
+  assert.equal((await read({ origin: 'https://foreign.example' })).status, 403);
+  assert.equal((await read({ 'sec-fetch-site': 'cross-site' })).status, 403);
+  assert.equal((await read({ authorization: 'Bearer synthetic' })).status, 403);
+  assert.equal((await read({ authorization: '' })).status, 403);
+  assert.equal((await read({}, '{"organizationId":"foreign"}')).status, 400);
+  for (const method of ['GET', 'HEAD', 'PUT', 'OPTIONS']) assert.equal((await f.request('/auth/session', { method })).status, 405);
+  assert.equal((await f.request('/auth/session?organizationId=foreign', { method: 'POST', headers: mutation })).status, 403);
+  assert.equal((await read({ cookie: '' })).status, 401);
+  assert.equal((await read({ cookie: `${login.sessionCookie}; ${login.sessionCookie}` })).status, 401);
+  f.removeContextGrant(); assert.equal((await read()).status, 403);
+  f.revoke(); assert.equal((await read()).status, 401);
+  const g = fixture(); const current = await g.login(); g.expire();
+  assert.equal((await g.request('/auth/session', { method: 'POST', headers: { ...mutation, cookie: current.sessionCookie } })).status, 401);
 });

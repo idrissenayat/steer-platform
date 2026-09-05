@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFile } from 'node:fs/promises';
-import { identityView } from '../app/identity-view.ts';
+import { identityView, sessionView } from '../app/identity-view.ts';
 
 test('public identity view is explicitly enabled only for valid HTTPS configuration', () => {
   assert.deepEqual(identityView('enabled', 'https://steer.example', 'https://id.example/realm'), { origin: 'https://steer.example', issuerOrigin: 'https://id.example' });
@@ -17,4 +17,14 @@ test('sign-in page uses native fixed-path forms, with no browser credential or s
   assert.match(source, /action="\/auth\/login" method="post"/); assert.match(source, /action="\/auth\/logout" method="post"/);
   assert.match(source, /await connection\(\)/);
   assert.doesNotMatch(source, /use client|localStorage|sessionStorage|clientSecret|privateKey|NEXT_PUBLIC_|onSubmit/);
+});
+
+test('session display parser accepts only bounded unexpired display fields, never credentials', () => {
+  const now = Date.now(); const value = { subject: 'synthetic-account', organizationId: 'synthetic-org', hats: ['product-lead'], expiresAt: new Date(now + 60000).toISOString() };
+  const encode = (input) => encodeURIComponent(JSON.stringify(input));
+  assert.deepEqual(sessionView(encode(value), now), value);
+  for (const invalid of [{ ...value, accessToken: 'secret' }, { ...value, subject: '' }, { ...value, subject: 'x'.repeat(201) },
+    { ...value, hats: ['<script>'] }, { ...value, hats: Array(9).fill('product-lead') }, { ...value, expiresAt: 'invalid' },
+    { ...value, expiresAt: new Date(now).toISOString() }, [], null]) assert.equal(sessionView(encode(invalid), now), null);
+  for (const invalid of [null, '%malformed', 'x'.repeat(8193)]) assert.equal(sessionView(invalid, now), null);
 });

@@ -1,4 +1,5 @@
 import { createRequestBoundary } from './request-boundary.ts';
+import { sessionViewSchema } from './session-view.ts';
 
 const MAX_RENDER_BYTES = 1024 * 1024;
 const RENDER_TIMEOUT_MS = 5000;
@@ -6,7 +7,7 @@ const staticPath = /^\/_next\/static\/(?:[A-Za-z0-9_-]+\/)*[A-Za-z0-9_-][A-Za-z0
 const types: Record<string, string> = { css: 'text/css', js: 'application/javascript', woff: 'font/woff',
   woff2: 'font/woff2', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', svg: 'image/svg+xml', ico: 'image/x-icon' };
 
-/** Native SSR gateway. The renderer receives public paths only, never browser credentials. */
+/** Native SSR gateway. The renderer receives fixed paths and verified display data, never credentials. */
 export function createIdentityGateway(configuration: { publicOrigin: string; rendererOrigin: string; issuer: string },
   dependencies: { identity: { fetch(request: Request): Promise<Response> }; fetch?: typeof fetch }) {
   let publicOrigin: string; let rendererOrigin: string; let issuerOrigin: string;
@@ -38,6 +39,21 @@ export function createIdentityGateway(configuration: { publicOrigin: string; ren
     if (path !== '/' && !match) return fail(404);
     if (request.method !== 'GET') return fail(405);
     if (url.search || request.body !== null) return fail(400);
+    let viewHeader: string | undefined; let viewExpiry = 0;
+    if (path === '/' && !request.headers.has('authorization') &&
+        request.headers.get('cookie')?.split(';').some((part) => part.trim().startsWith('__Host-steer-session='))) {
+      try {
+        // Internal fixed-path query. Browser-supplied view/tenant/hat headers are never consumed.
+        const response = await identityFetch(new Request(`${publicOrigin}/auth/session`, { method: 'POST', signal: request.signal,
+          headers: { origin: publicOrigin, 'sec-fetch-site': 'same-origin', cookie: request.headers.get('cookie')! } }));
+        // This is the in-process identity handler's bounded JSON output, not a remote fetch.
+        const parsed = response.status === 200 ? sessionViewSchema.safeParse(await response.json()) : undefined;
+        if (parsed?.success) {
+          const encoded = encodeURIComponent(JSON.stringify(parsed.data)); const expiry = Date.parse(parsed.data.expiresAt);
+          if (encoded.length <= 8192 && expiry > Date.now()) { viewHeader = encoded; viewExpiry = expiry; }
+        }
+      } catch { /* Unverified, revoked or unavailable context renders the signed-out view, never a cached identity. */ }
+    }
     const controller = new AbortController();
     const abort = () => controller.abort(); request.signal.addEventListener('abort', abort, { once: true });
     if (request.signal.aborted) abort();
@@ -48,7 +64,7 @@ export function createIdentityGateway(configuration: { publicOrigin: string; ren
       // No spreading Request/headers: fixed authority, no query, cookies, bearer, Host or forwarded headers.
       const response = await transport(`${rendererOrigin}${path}`, { method: 'GET', credentials: 'omit',
         redirect: 'error', cache: 'no-store', referrerPolicy: 'no-referrer', signal: controller.signal,
-        headers: { accept: path === '/' ? 'text/html' : types[match![1]!]! } });
+        headers: { accept: path === '/' ? 'text/html' : types[match![1]!]!, ...(viewHeader ? { 'x-steer-session-view': viewHeader } : {}) } });
       const expectedType = path === '/' ? 'text/html' : types[match![1]!]!;
       const contentType = response.headers.get('content-type')?.split(';')[0]?.trim().toLowerCase();
       if (response.status !== 200 || response.redirected || contentType !== expectedType || !response.body) {
@@ -66,6 +82,7 @@ export function createIdentityGateway(configuration: { publicOrigin: string; ren
         if (value.byteLength) chunks.push(value);
       }
       if (controller.signal.aborted || performance.now() >= deadline) throw new Error();
+      if (viewHeader && viewExpiry <= Date.now()) throw new Error();
       const body = new Uint8Array(size); let offset = 0;
       for (const chunk of chunks) { body.set(chunk, offset); offset += chunk.byteLength; }
       return new Response(body, { headers: { 'content-type': expectedType + (path === '/' || match?.[1] === 'css' || match?.[1] === 'js' ? '; charset=utf-8' : ''),

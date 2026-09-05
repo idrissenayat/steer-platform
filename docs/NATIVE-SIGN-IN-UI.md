@@ -46,11 +46,17 @@ desktop/mobile, keyboard focus and automated axe checks are included. Optional
 `STEER_UI_SCREENSHOT_DIR` captures only the pre-login page; never use it for a
 credential-bearing provider screen. Reviewed snapshots: `artifacts/0026/`.
 
-Remaining: actual local listener/profile loading, authenticated workspace/session
-display, public TLS/ingress and secret approval, other browsers, manual specialist
-accessibility, full workspace parity and formal gates. Evidence: `intent/0026`.
+Remaining: trusted secret loading and real account binding, full operating
+surfaces, public TLS/ingress, other browsers, manual specialist accessibility and
+formal gates. Initial sign-in evidence: `intent/0026`; newer increments below.
 Shared routing/resource policy and newer verification: `docs/IDENTITY-GATEWAY.md`
 and `intent/0027`.
 Increment 0028 adds an opt-in local HTTPS runtime and moves the actual browser
 flow onto its production-source listener. It does not load real secrets or
 activate the default CLI. See `docs/LOCAL-IDENTITY-RUNTIME.md`.
+
+Increment 0029 adds an authenticated workspace session view after successful
+verification. It displays only current account ID, organization, hats and expiry
+through a private gateway-generated projection, never credentials. Failed or
+revoked verification restores the signed-out page. Full operating surfaces are
+explicitly not connected. See `docs/AUTHENTICATED-WORKSPACE.md` and `intent/0029`.

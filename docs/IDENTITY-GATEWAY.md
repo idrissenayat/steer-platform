@@ -17,7 +17,9 @@ start either process, load profiles/secrets or establish TLS.
 - /auth/, /v1/, /health/ and /openapi.json go to the identity service unchanged.
 - GET / and allowlisted /_next/static/ assets go to the fixed renderer.
 - Page/asset queries, other paths and non-GET rendering are rejected.
-- Renderer requests carry only a constructed Accept header. Browser cookies,
+- Anonymous/static renderer requests carry only a constructed Accept header.
+  Increment 0029 adds a strict, verified session display header for signed-in root
+  rendering only; browser-supplied versions of that header are discarded. Browser cookies,
   bearer/Host/forwarded/referrer headers, query strings and bodies never cross.
 - Redirects, non-200 upstream status, wrong MIME and failed responses produce
   generic errors; renderer response cookies and arbitrary headers are discarded.
@@ -58,3 +60,7 @@ composition described above, without activating public ingress or real secrets.
 The browser suite uses both production-source gateway and HTTPS listener.
 See `docs/LOCAL-IDENTITY-RUNTIME.md`; external renderer/process supervision and
 real secret-provider loading remain separate.
+
+The current authenticated display boundary, privacy/logging rules and refresh
+semantics are documented in `docs/AUTHENTICATED-WORKSPACE.md`. This projection
+does not grant authority, send credentials to Next.js or enable real user access.

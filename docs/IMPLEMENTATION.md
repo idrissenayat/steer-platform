@@ -292,6 +292,14 @@ listener. The browser flow uses that production-source listener, including
 observed connection refusal after shutdown. Real credential loading and public
 deployment remain disabled/separate. See `docs/LOCAL-IDENTITY-RUNTIME.md`.
 
+Item `intent/0029` adds the first authenticated workspace session view, not full
+product parity. A same-origin cookie query invokes the canonical session.context
+tool; a strict credential-free projection reaches the private Next.js renderer.
+Current account/organization/hats/expiry, refresh and local sign-out are real;
+the three operating surfaces are explicitly not connected. Browser revocation,
+source-failure, accessibility and visual checks are recorded. See
+`docs/AUTHENTICATED-WORKSPACE.md`.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.

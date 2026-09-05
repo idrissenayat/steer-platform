@@ -191,6 +191,30 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         assert.ok(!visible.cookie.includes('__Host-steer-')); assert.deepEqual(visible.local, []); assert.deepEqual(visible.session, []);
         assert.ok(storage.verifyCiphertext); await storage.verifyCiphertext();
       });
+      await check('authenticated Next.js workspace shows verified context with responsive, keyboard and accessibility checks', async () => {
+        assert.equal(await page.getByRole('heading', { name: 'Your workspace.', exact: true }).count(), 1);
+        assert.equal(await page.getByTestId('session-organization').textContent(), 'synthetic-org');
+        assert.equal(await page.getByTestId('session-subject').textContent(), deps.subject);
+        assert.equal(await page.getByText('Product Lead', { exact: true }).count(), 1);
+        assert.equal(await page.getByText('Not connected yet', { exact: true }).count(), 3);
+        const session = await storage.firstSession(); assert.ok(session);
+        assert.ok(!(await page.content()).includes(session.accessToken));
+        await page.keyboard.press('Tab');
+        assert.equal(await page.getByRole('button', { name: 'Sign out', exact: true }).evaluate((element) => element === document.activeElement), true);
+        const directory = process.env.STEER_WORKSPACE_SCREENSHOT_DIR;
+        if (directory) { await mkdir(directory, { recursive: true }); await page.screenshot({ path: join(directory, 'workspace-desktop.png'), fullPage: true }); }
+        await page.setViewportSize({ width: 390, height: 844 });
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+        if (directory) await page.screenshot({ path: join(directory, 'workspace-mobile.png'), fullPage: true });
+        await page.setViewportSize({ width: 1440, height: 1000 });
+        const axeSource = await readFile(new URL('../../../node_modules/axe-core/axe.min.js', import.meta.url), 'utf8');
+        await page.evaluate((source) => { eval(source); }, axeSource);
+        const violations = await page.evaluate(async () => {
+          const axe = (window as unknown as { axe: { run: (node: Document, options: unknown) => Promise<{ violations: { id: string; impact: string }[] }> } }).axe;
+          return (await axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] } })).violations.map(({ id, impact }) => ({ id, impact }));
+        });
+        assert.deepEqual(violations, []);
+      });
       await check('browser cross-site logout omits the Lax cookie and the API rejects the foreign Origin', async () => {
         await page.goto(attackerOrigin);
         const response = page.waitForResponse((value) => value.url() === `${origin}/auth/logout`);
@@ -205,12 +229,17 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         services.push(api);
         await page.reload(); assert.equal((await tool()).status, 200);
         await source.publish([{ ...grant, active: false }]); assert.equal((await tool()).status, 401);
+        await page.reload(); assert.equal(await page.getByRole('heading', { name: 'Welcome to STEER.' }).count(), 1);
+        assert.equal(await page.getByTestId('session-subject').count(), 0);
         await source.publish([grant]); assert.equal((await tool()).status, 200);
+        await page.reload(); assert.equal(await page.getByTestId('session-subject').textContent(), deps.subject);
       });
       await check('Git source outage, moving head and digest failure deny existing browser sessions without stale fallback', async () => {
         for (const fault of ['unavailable', 'moving-head', 'digest'] as const) {
           source.setFault(fault); assert.equal((await tool()).status, 401);
+          await page.reload(); assert.equal(await page.getByTestId('session-subject').count(), 0);
           source.setFault('none'); assert.equal((await tool()).status, 200);
+          await page.reload(); assert.equal(await page.getByTestId('session-subject').textContent(), deps.subject);
         }
       });
       await check('Git-committed missing, duplicate and cross-organization memberships fail closed', async () => {

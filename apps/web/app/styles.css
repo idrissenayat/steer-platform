@@ -140,10 +140,33 @@ h1 {
 .access-footer { display: flex; gap: 1rem; justify-content: space-between; color: var(--steer-muted); font-size: .8rem; }
 .access-footer a { color: #7c1943; text-underline-offset: .25rem; }
 button:focus-visible, .access-footer a:focus-visible { outline: .2rem solid var(--steer-focus); outline-offset: .3rem; }
+.workspace-heading { display: flex; justify-content: space-between; align-items: center; gap: 2rem; margin: 3.5rem 0 2rem; }
+.workspace-heading h1 { max-width: none; font-size: clamp(2.6rem, 5vw, 4.2rem); margin: 1rem 0; line-height: 1.05; }
+.workspace-heading form { min-width: 7rem; }
+.workspace-session { display: grid; grid-template-columns: 1fr 1.2fr; gap: 1rem 3rem; }
+.workspace-session h2 { font-size: 1.6rem; }
+.workspace-session dl { margin: 0; display: grid; gap: 1rem; }
+.workspace-session dt { color: var(--steer-muted); font-size: .8rem; margin-bottom: .35rem; }
+.workspace-session dd { margin: 0; font-size: .95rem; font-weight: 650; overflow-wrap: anywhere; }
+.hat-label { display: inline-block; margin: 0 .35rem .3rem 0; padding: .4rem .65rem; border-radius: 2rem; color: #7c1943; background: var(--steer-pink-soft); font-size: .8rem; }
+.session-refresh { display: inline-block; padding: .7rem 0; color: #7c1943; font-weight: 700; text-underline-offset: .25rem; }
+.session-refresh:focus-visible { outline: .2rem solid var(--steer-focus); outline-offset: .2rem; }
+.session-snapshot { grid-column: 1 / -1; margin-bottom: 0; padding-top: 1rem; border-top: 1px solid var(--steer-border); }
+.workspace-surfaces { margin: 2.5rem 0; }
+.workspace-surfaces > h2 { margin-bottom: .5rem; font-size: 1.4rem; }
+.workspace-surfaces > p { color: var(--steer-muted); }
+.workspace-surfaces ul { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.workspace-surfaces li { border: 1px solid var(--steer-border); border-radius: 1rem; background: #fffaf7; padding: 1.4rem; }
+.workspace-surfaces h3 { margin: 0 0 .8rem; font-size: 1rem; }
+.workspace-surfaces li p { color: var(--steer-muted); line-height: 1.6; font-size: .9rem; }
+.workspace-surfaces li > span { font-size: .75rem; color: #7c1943; font-weight: 750; }
 @media (max-width: 760px) {
   .access-grid { grid-template-columns: 1fr; padding: 2.5rem 0; gap: 2rem; }
   .brand-caption { display: none; }
   .access-intro h1 { font-size: 2.6rem; }
   .access-principles { display: none; }
   .access-footer { flex-direction: column; }
+  .workspace-heading { margin-top: 2.5rem; align-items: flex-start; flex-wrap: wrap; gap: .5rem; }
+  .workspace-heading .lede { margin-bottom: .5rem; }
+  .workspace-session, .workspace-surfaces ul { grid-template-columns: 1fr; }
 }
