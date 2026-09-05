@@ -484,6 +484,14 @@ route, provenance or history is inferred from prose. See `intent/0055/EVIDENCE.m
 and the authenticated Brief library guide. Governed business actions and trusted
 business-state/history prerequisites remain open, as do all five R5 findings.
 
+Item `intent/0056` addresses the exact R5-005 Unicode-phone counterexample with a
+portable Unicode 17 detector and a policy-bound offline graph correction. The
+unchanged frozen oracle must pass before the additional phone checks; original
+source/proof bytes remain intact. This is a candidate correction, not a new
+sanitizer attestation or formal finding closure. Remaining R5-001–004 fixes,
+independent review, protected incorporation and gates remain open. See
+`intent/0056/EVIDENCE.md`; no production route or analytics sink is enabled.
+
 ## Local commands
 
 ```sh

@@ -989,3 +989,19 @@ targeted M0 findings; do not mistake additional read-only UI for their closure.
 Automatic post-login link restoration, provenance/history, governed actions,
 qualified manual review and operational/pilot evidence remain open. No provider,
 signature, spending, production data, deployment or release authority is added.
+
+## Completed development increment: 0056 — targeted M0 correction
+
+R5-005 has a separate policy-bound Unicode-phone correction candidate, leaving
+the frozen send-back package unchanged. Complete synthetic privacy graphs
+reproduce the old acceptance and corrected rejection of the reported cases.
+The portable detector covers all Unicode 17 decimal digits; inspection copies
+do not replace signed source bytes. Verification: intent/0056/EVIDENCE.md.
+
+All five findings remain formally open. This is Builder-authored development
+evidence, not an independent Test Agent/Critic disposition or protected Exam.
+Next: R5-004 exact multi-line cost reconciliation, then the shared human-authority,
+lifecycle and migration corrections (R5-002/001/003). After the complete corrected
+package, follow the existing independent review/protected incorporation and
+revision-bound human ruling path. Do not restart a broad review cycle, request
+another human ruling prematurely, or enable governed writes/release/spending.

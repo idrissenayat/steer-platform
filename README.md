@@ -34,7 +34,8 @@ bounded consumer lifecycle (0047), nonce-controlled Next.js scripts (0048) and
 an authenticated read-only browser reference panel (0049) and source-faithful
 Brief document model (0050), authenticated exact-revision Brief reads (0051) and
 curated Brief discovery (0052), a trusted-scope rendered Brief library (0053)
-and exact-reference Brief navigation (0054), with review-ordered reading (0055), are
+and exact-reference Brief navigation (0054), with review-ordered reading (0055), and
+a Unicode-phone privacy correction candidate (0056), are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
 [provider evidence](docs/GITHUB-RUNTIME-APP.md).
@@ -48,9 +49,9 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | Item | Canonical artifacts | Platform implementation | Remaining evidence |
 |---|---|---|---|
 | 0001 · Flight Deck foundation | `intent/0001/README.md`, revised `BRIEF.md` and `SPEC.md`, App-authored v3.2 `EXAM.md`, Gate 1 `ARCHITECTURE.md`, and signed-snapshot `PLAN.md` | Phase 0 kit, fixture-backed UX/domain prototype, agent-first assurance and three bounded production-code increments | five R5 findings, protected incorporation and exact-revision reviews/rulings, Gate 2, remaining production integrations, walking skeleton, Gate 3 and pilot outcomes |
-| 0002 · Instrumentation and baselines | `intent/0002/README.md`, `BRIEF.md` | versioned content-free event schema, adapters, privacy validation, and both baseline computations are implemented | Product Lead-approved production window and representative figures |
-| 0003 · Full brief detail view | `intent/0003/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md` | rendered, deep-linkable, revision-safe detail panel and all four actions are implemented | 0002 production baseline and manual accessibility record |
-| 0004 · Learn STEER hub | `intent/0004/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md` | source-faithful reader, search, glossary, role orientation, agent slices, and corpus build guard are implemented | 0002 production baseline and manual accessibility record |
+| 0002 · Instrumentation and baselines | `intent/0002/README.md`, `BRIEF.md` | prototype event contract, adapters, privacy validation and baseline computations are implemented | production collection/composition, Product Lead-approved window and representative figures |
+| 0003 · Full brief detail view | `intent/0003/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md` | prototype detail panel and four actions; production authenticated read-only Brief library/navigation/order added in 0053–0055 | production provenance/history and governed actions, 0002 baseline and qualified manual accessibility record |
+| 0004 · Learn STEER hub | `intent/0004/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md` | prototype source-faithful reader, search, glossary, role orientation, agent slices and corpus build guard | production workspace port/composition, 0002 baseline and qualified manual accessibility record |
 | 0005 · Production workspace and web shell | `intent/0005/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md`, `PLAN.md` | pnpm/Turborepo boundary and visually verified Next.js production shell are implemented without changing the prototype | formal gate records; full stack lock, workers and service composition |
 | 0006 · Provider-free domain extraction | `intent/0006/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md`, `PLAN.md` | the existing domain is moved—not copied—into `@steer/domain`; stricter optional/index checks and all consumers are migrated | formal gate records; worker, data and provider integration remain |
 | 0007 · Shared tool registry and API foundation | `intent/0007/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | Hono, Zod contracts, tenant-scoped context query, generated OpenAPI and 15 focused tests | independent protected Exam, formal gates, actual identity/data/provider integration |
@@ -102,6 +103,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0053 · Authenticated Brief library | `intent/0053/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | trusted workspace discovery, exact-reference rendered side panel, inert Markdown, current access and keyboard/lifecycle cleanup; navigation added in 0054 | full intent detail/lifecycle, qualified manual review and formal gates |
 | 0054 · Exact-reference Brief navigation | `intent/0054/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | canonical metadata-only links, Back/Forward/reload with current scope/catalog checks, no stale/foreign fallback | judgment-order detail, trusted provenance/history, governed lifecycle and formal/manual evidence |
 | 0055 · Review-ordered Brief reading | `intent/0055/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | whole-section judgment order, source-faithful fallback for ambiguity, unknown content retention and inert rendering | trusted provenance/history, governed lifecycle, production baselines and formal/manual evidence |
+| 0056 · R5 Unicode-phone correction | `intent/0056/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | bounded Unicode 17 phone detector and policy-bound graph correction; reproduces frozen acceptance and corrected rejection | remaining four corrections, independent review, protected incorporation and formal gates |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier
