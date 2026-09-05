@@ -426,6 +426,12 @@ grants access; failures, scope changes and display lifecycle clear old reference
 Only keys/fingerprints are displayed, not invented intent states or approvals.
 See `docs/BROWSER-REFERENCES.md` and the increment's verification evidence.
 
+Item `intent/0050` adds a bounded source-faithful Brief document model. It preserves
+all sections and source offsets, explicitly reports structural omissions/ambiguity,
+and never interprets author/status metadata as verified authority. Actual kit and
+canonical source tests accompany it. Authenticated Brief read tools and rendered
+detail remain next; see `docs/BRIEF-DOCUMENT-MODEL.md`.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.

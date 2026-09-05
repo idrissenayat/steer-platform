@@ -885,3 +885,21 @@ Next: typed operating artifact models/read tools and the production intent backl
 detail, board and inbox. Canonical gate proof, five R5 findings, remaining services
 and formal/manual/operational requirements remain open. Continue safe increments
 without inferring signature, provider, spending, deployment or release authority.
+
+## Completed development increment: 0050
+
+Added a provider-free Brief document model preserving exact source bodies/offsets,
+unknown and duplicate sections, with explicit structural issues. Actual kit,
+canonical platform Brief and draft-author output are tested. No source instruction,
+author claim, status, metric or domain tag becomes verified authority by parsing.
+
+Seven native domain groups and the full repository check pass. Evidence:
+intent/0050/EVIDENCE.md; guide: docs/BRIEF-DOCUMENT-MODEL.md. This is
+preparation for authenticated reads, not completed intent backlog/detail parity.
+The reference panel remains a development diagnostic, not a manual originator
+workflow or replacement for agent-first authoring.
+
+Next: exact-revision authenticated Brief read tools and the rendered backlog/detail
+surface. Five R5 findings, canonical gate proof, remaining services and formal/
+manual/operational requirements remain open. Continue safe increments without
+new provider, signature, spending, deployment or release authority.
