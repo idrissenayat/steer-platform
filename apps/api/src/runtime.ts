@@ -5,6 +5,7 @@ import { createRuntimePool } from '@steer/data/runtime-pool';
 import { createIdentityService } from './identity-service.ts';
 import { createIdentityGateway } from './identity-gateway.ts';
 import { startLocalIdentityListener } from './identity-listener.ts';
+import { secretReferenceSchema, type SecretProvider } from '@steer/adapters/secrets';
 
 const text = z.string().min(1);
 const profileSchema = z.strictObject({
@@ -24,6 +25,29 @@ const secretsSchema = z.strictObject({ browserClientSecret: text, githubPrivateK
 
 const localProfileSchema = z.strictObject({ version: z.literal('steer-local-identity/v1'), identity: profileSchema, rendererOrigin: text });
 const localSecretsSchema = z.strictObject({ identity: secretsSchema, tls: z.strictObject({ key: text, cert: text }) });
+const encodedSecretsSchema = z.strictObject({ version: z.literal('steer-local-identity-secrets/v1'),
+  identity: secretsSchema.extend({ sessionKeys: z.record(z.string(), z.string().regex(/^[A-Za-z0-9+/]{43}=$/)).refine((value) => Object.keys(value).length >= 1 && Object.keys(value).length <= 4) }),
+  tls: z.strictObject({ key: text, cert: text }) });
+
+/** Explicit secret-provider input; no provider discovery, environment loading or real binding by default. */
+export async function startLocalIdentityFromSecretProvider(rawProfile: unknown, rawReference: unknown, provider: SecretProvider,
+  transports: { identity?: typeof fetch; github?: typeof fetch; renderer?: typeof fetch } = {}) {
+  let plaintext: Uint8Array | undefined;
+  const decodedKeys: Uint8Array[] = [];
+  try {
+    const profile = localProfileSchema.parse(rawProfile); const reference = secretReferenceSchema.parse(rawReference);
+    plaintext = await provider.read(reference);
+    if (!(plaintext instanceof Uint8Array) || !plaintext.byteLength || plaintext.byteLength > 32768) throw new Error();
+    const bundle = encodedSecretsSchema.parse(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(plaintext)));
+    const sessionKeys = Object.fromEntries(Object.entries(bundle.identity.sessionKeys).map(([id, encoded]) => {
+      const decoded = Uint8Array.from(atob(encoded), (character) => character.charCodeAt(0));
+      if (decoded.length !== 32 || btoa(String.fromCharCode(...decoded)) !== encoded) { decoded.fill(0); throw new Error(); }
+      decodedKeys.push(decoded); return [id, decoded];
+    }));
+    return await startLocalIdentityRuntime(profile, { identity: { ...bundle.identity, sessionKeys }, tls: bundle.tls }, transports);
+  } catch { throw new Error('Secret-backed local identity runtime could not be initialized.'); }
+  finally { if (plaintext instanceof Uint8Array) plaintext.fill(0); for (const key of decodedKeys) key.fill(0); }
+}
 
 /** Explicit opt-in local listener; not wired into default CLI or an environment/secret loader. */
 export async function startLocalIdentityRuntime(rawProfile: unknown, rawSecrets: unknown,

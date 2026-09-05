@@ -52,3 +52,9 @@ secrets, gateway and loopback HTTPS listener with coordinated shutdown.
 It derives the public origin from the validated callback and still loads no
 files/environment or real credentials. Default CLI behavior is unchanged.
 See `docs/LOCAL-IDENTITY-RUNTIME.md` and `intent/0028` for current evidence.
+
+Increment 0030 adds startLocalIdentityFromSecretProvider as a separate explicit
+entry, reading a supplied provider's pinned encrypted bundle and clearing its
+temporary byte/key inputs. Filesystem access stays in the dedicated adapter,
+not this API file. Base/default startup still does not discover secrets or enable
+real bindings. Contract and evidence: `docs/ENCRYPTED-SECRETS.md`, `intent/0030`.

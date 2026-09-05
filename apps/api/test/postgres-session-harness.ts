@@ -11,7 +11,10 @@ import { createPostgresBrowserSessionStore, sessionNamespace, type SessionIdenti
 import { createRuntimePool } from '@steer/data/runtime-pool';
 import type { BrowserSession, LoginTransaction } from '@steer/adapters/browser-session';
 import type { SessionTestHarness } from './session-harness.ts';
-import { createIdentityRuntime } from '../src/runtime.ts';
+import { createIdentityRuntime, startLocalIdentityFromSecretProvider } from '../src/runtime.ts';
+import { createEncryptedFileSecretProvider } from '@steer/adapters/secrets';
+import { createSecretFixture } from '../../../packages/adapters/test/secret-fixture.ts';
+import { reserveLocalPort, localHttpsRequest } from './local-tls-harness.ts';
 
 /** Two disposable services only; no externally supplied connection or credential. */
 export async function createPostgresSessionHarness(binding: SessionIdentityBinding): Promise<SessionTestHarness & { close(): Promise<void> }> {
@@ -96,6 +99,36 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
         runtimeClosed = true;
         runtimeShutdown ??= Promise.all(runtimePools.map((pool) => pool.shutdown())).then(() => {});
         return runtimeShutdown;
+      },
+      verifySecretBootstrap: async (configuration, tls) => {
+        const origin = `https://localhost:${await reserveLocalPort()}`;
+        const { clientSecret, ...browser } = configuration; const redirectUri = `${origin}/auth/callback`;
+        const secretFixture = await createSecretFixture(new TextEncoder().encode(JSON.stringify({ version: 'steer-local-identity-secrets/v1',
+          identity: { browserClientSecret: clientSecret, githubPrivateKeyPem: tls.key, databasePassword: password,
+            sessionKeys: { synthetic: encryptionKey.toString('base64') } }, tls })));
+        let secretBytes: Uint8Array | undefined; let providerCalls = 0;
+        const deny: typeof fetch = async () => { providerCalls++; throw new Error('Unexpected synthetic provider request'); };
+        try {
+          const provider = await createEncryptedFileSecretProvider(secretFixture, secretFixture.keyProvider);
+          const instance = await startLocalIdentityFromSecretProvider({ version: 'steer-local-identity/v1', rendererOrigin: 'http://127.0.0.1:49001', identity: {
+            version: 'steer-identity-runtime/v1', browser: { ...browser, redirectUri },
+            github: { appId: '1', authorizationPath: 'access/authorization.json', binding: { organizationId: 'synthetic-org', installationId: 1,
+              repositoryId: 1, owner: 'synthetic', repository: 'synthetic', branch: 'synthetic' } },
+            database: { host: '127.0.0.1', port: Number(mapping.split(':')[1]), database: 'steer_auth_test', transport: { kind: 'isolated-loopback-test' } }, sessionKeyId: 'synthetic',
+          } }, secretFixture.reference, { read: async (reference) => { secretBytes = await provider.read(reference); return secretBytes; } },
+          { identity: deny, github: deny, renderer: deny });
+          try {
+            assert.ok(secretBytes?.every((byte) => byte === 0));
+            const response = await localHttpsRequest(origin, tls.cert, '/auth/login', { method: 'POST', headers: { origin } });
+            assert.equal(response.status, 303); assert.equal(providerCalls, 0);
+            const localBinding = { ...binding, redirectUri }; const localNamespace = sessionNamespace(localBinding);
+            const rows = (await admin.query<{ key_hash: string }>('SELECT key_hash FROM steer_auth.login_transactions WHERE namespace=$1', [localNamespace])).rows;
+            assert.equal(rows.length, 1);
+            const verifier = createPostgresBrowserSessionStore(runtime(), { binding: localBinding, keyring: config.keyring });
+            assert.ok(await verifier.consumeTransaction(rows[0]!.key_hash));
+          } finally { await instance.shutdown(); }
+          assert.equal(instance.status().listener.state, 'stopped'); assert.equal(instance.status().identity.database.connections, 0);
+        } finally { await secretFixture.close(); }
       },
       wrongKeyStore: () => createPostgresBrowserSessionStore(runtime(), { binding,
         keyring: { currentKeyId: 'synthetic', keys: { synthetic: randomBytes(32) } } }),

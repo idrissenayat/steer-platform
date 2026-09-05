@@ -14,6 +14,7 @@ export interface SessionTestHarness {
   verifyCiphertext?: () => Promise<void>;
   shutdown?: () => Promise<void>;
   verifyRuntimeBootstrap?: (configuration: BrowserSessionConfiguration, privateKeyPem: string) => Promise<void>;
+  verifySecretBootstrap?: (configuration: BrowserSessionConfiguration, tls: { key: string; cert: string }) => Promise<void>;
 }
 
 /** Explicit provider-only test fixture; never exported by a production package. */

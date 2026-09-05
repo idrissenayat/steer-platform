@@ -19,10 +19,11 @@ second independent origin setting. The listener requires HTTPS localhost or
 Configure the separately supervised Next.js process with the same public
 origin/issuer view flags. The gateway forwards no browser credentials to it.
 
-The caller must provide approved secret values through an appropriate trusted
-provider. This increment implements no file/environment loading and accesses no
-existing secret file. It does not provision Keycloak, issue real memberships or
-start a renderer/production container. Tests use generated isolated credentials.
+The base entry accepts supplied secret values and performs no file/environment
+loading. Increment 0030 adds a separate explicit secret-provider entry that can
+load a pinned encrypted bundle; it performs no credential discovery and configures
+no existing secret file. Neither entry provisions Keycloak, issues real membership
+or starts a renderer/production container. Tests use generated isolated credentials.
 
 ## Transport and lifecycle
 
@@ -73,3 +74,8 @@ not the complete workspace. The private renderer now receives a bounded display
 projection from the gateway, still without cookies or tokens. Treat that account/
 organization data as private; keep it out of logs/analytics. Current contract:
 `docs/AUTHENTICATED-WORKSPACE.md`.
+
+Secret-backed entry, encrypted-file/key-unwrapping contract and operational
+limitations: `docs/ENCRYPTED-SECRETS.md` and `intent/0030`. A real KMS/provider
+binding remains explicit and unconfigured; no existing runtime App key is read
+by default or changed by this implementation.

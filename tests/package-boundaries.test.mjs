@@ -9,7 +9,8 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const rules = {
   'packages/domain': { folders: ['src'], packages: [], builtins: [] },
   'packages/tool-registry': { folders: ['src'], packages: ['@steer/domain', 'zod'], builtins: [] },
-  'packages/adapters': { folders: ['src'], packages: ['@steer/tool-registry', 'jose', 'zod'], builtins: ['node:crypto'] },
+  'packages/adapters': { folders: ['src'], packages: ['@steer/tool-registry', 'jose', 'zod'], builtins: ['node:crypto', 'node:fs', 'node:fs/promises', 'node:path'],
+    builtinEntryOnly: { 'node:fs': 'src/secrets/file.ts', 'node:fs/promises': 'src/secrets/file.ts', 'node:path': 'src/secrets/file.ts' } },
   'packages/data': { folders: ['src'], packages: ['@steer/tool-registry', 'drizzle-orm', 'pg', 'zod'], builtins: ['node:crypto'] },
   'apps/api': { folders: ['src'], packages: ['@steer/adapters', '@steer/data', '@steer/tool-registry', '@hono/node-server', 'hono', 'zod'], builtins: ['node:https'],
     builtinEntryOnly: { 'node:https': 'src/identity-listener.ts' },
@@ -106,5 +107,11 @@ test('API storage/configuration imports are restricted to the explicit compositi
   assert.equal(allowed('node:https', resolve(base, 'src/identity-listener.ts'), base, rule), true);
   for (const file of ['src/app.ts', 'src/browser.ts', 'src/runtime.ts', 'src/identity-service.ts', 'src/server.ts']) {
     assert.equal(allowed('node:https', resolve(base, file), base, rule), false);
+  }
+  const adapters = resolve(root, 'packages/adapters');
+  for (const specifier of ['node:fs', 'node:fs/promises', 'node:path']) {
+    assert.equal(allowed(specifier, resolve(adapters, 'src/secrets/file.ts'), adapters, rules['packages/adapters']), true);
+    assert.equal(allowed(specifier, resolve(adapters, 'src/identity/oidc.ts'), adapters, rules['packages/adapters']), false);
+    assert.equal(allowed(specifier, resolve(base, 'src/runtime.ts'), base, rule), false);
   }
 });

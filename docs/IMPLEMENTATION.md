@@ -300,13 +300,20 @@ the three operating surfaces are explicitly not connected. Browser revocation,
 source-failure, accessibility and visual checks are recorded. See
 `docs/AUTHENTICATED-WORKSPACE.md`.
 
+Item `intent/0030` adds encrypted secret-provider loading and a portable wrapped-
+data-key interface, with file/digest/permission and authenticated-encryption
+checks. Explicit local startup can consume a pinned encrypted credential bundle;
+actual isolated TLS/Postgres verification proves it works after input-buffer
+cleanup. No existing credential, KMS or public service was activated. See
+`docs/ENCRYPTED-SECRETS.md`.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.
 Still to be built or composed: authenticated business/data tools beyond session
 context, MCP v2 transport, full-repository projection replay, Temporal workers,
 version-pinned Mastra adapter, LiteLLM gateway, tenant-scoped evidence storage,
-production product analytics, a secret-manager seam, approved runtime/ingress
+production product analytics, an approved live secret-manager binding, runtime/ingress
 configuration, full authenticated workspace UI and the thirteen-case architecture walking
 skeleton. Existing increment evidence does not complete these remaining services.
 

@@ -489,3 +489,25 @@ business/data tools and remaining Phase 1 components/operating surfaces. Keep
 real account binding, public ingress, process supervision, full product parity,
 manual accessibility, the five R5 findings and all gate/deployment/release/spending
 boundaries explicit. Isolated implementation remains unblocked.
+
+## Completed development increment: 0030
+
+Added a secret-provider interface, scoped wrapped-data-key interface and pinned
+encrypted-file binding. Owner-only canonical roots/files, final no-follow reads,
+digest/metadata checks, bounded admission and AES-GCM authentication protect the
+selected bundle. The API's explicit secret-backed entry clears temporary input
+buffers; required runtime key copies remain usable. It discovers no credentials
+and does not load or change the existing runtime GitHub App key.
+
+Actual isolated HTTPS/Postgres verification created and independently decrypted
+a login transaction after input cleanup. Browser regression and filesystem/crypto
+failure tests passed. Evidence: `intent/0030/EVIDENCE.md`; guide:
+`docs/ENCRYPTED-SECRETS.md`. Live KMS/Vault binding and full memory-erasure/host-
+sandbox claims are explicitly outside this evidence.
+
+Next bounded increment: tenant-scoped authenticated read-model tools and
+repository projection ingestion, then the remaining Phase 1 stack and operating
+surfaces. Live secret/provider bindings, real account access, public ingress,
+process supervision, full product parity, manual accessibility, the five R5
+findings and all gate/deployment/release/spending boundaries remain separate.
+Isolated implementation remains unblocked.

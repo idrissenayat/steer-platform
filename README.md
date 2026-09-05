@@ -20,7 +20,8 @@ browser/bearer identity composition (0020), request resource boundaries (0021)
 runtime database resource limits (0022), failure/shutdown handling (0023) and
 identity service lifecycle composition (0024), explicit runtime bootstrap (0025)
 native Next.js sign-in surface (0026), bounded identity gateway (0027) and
-explicit local HTTPS runtime (0028) and authenticated workspace session view (0029) are
+explicit local HTTPS runtime (0028), authenticated workspace session view (0029)
+and encrypted secret-provider loading (0030) are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
 [provider evidence](docs/GITHUB-RUNTIME-APP.md).
@@ -62,6 +63,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0027 · Native identity gateway | `intent/0027/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | shared production-source routing, renderer credential isolation, resource limits and actual browser integration | trusted listener/profile/lifecycle composition, workspace UI, public ingress and formal gates |
 | 0028 · Explicit local HTTPS runtime | `intent/0028/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | opt-in profile/runtime/listener composition, real TLS/socket limits and coordinated shutdown in browser verification | real secret-provider loading, authenticated workspace UI, public ingress, process supervision and formal gates |
 | 0029 · Authenticated workspace session | `intent/0029/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | verified session/organization/hats, private credential-free display projection, native responsive UI and revocation/browser checks | secret loading, authenticated business tools/full operating surfaces, manual accessibility and formal gates |
+| 0030 · Encrypted secret loading | `intent/0030/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | pinned encrypted-file provider, scoped data-key unwrap seam, explicit local bootstrap and real storage proof after input cleanup | approved live KMS/secret binding, production supervision, business tools/full operating surfaces and formal gates |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier

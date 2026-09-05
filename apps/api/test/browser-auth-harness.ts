@@ -96,6 +96,11 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         await storage.verifyRuntimeBootstrap(configuration, tls.key.toString('utf8'));
         assert.deepEqual(await storage.counts(), { transactions: 0, sessions: 0 });
       });
+      await check('encrypted secret bundle starts real TLS/storage runtime and remains usable after input-buffer cleanup', async () => {
+        assert.ok(storage.verifySecretBootstrap);
+        await storage.verifySecretBootstrap(configuration, { key: tls.key.toString('utf8'), cert: tls.certificate.toString('utf8') });
+        assert.deepEqual(await storage.counts(), { transactions: 0, sessions: 0 });
+      });
       const grant: AuthorizationRecord = { issuer, subject: deps.subject, organizationId: 'synthetic-org', type: 'human',
         hats: ['product-lead'], toolGrants: ['session.context'], active: true,
         validAfter: new Date(0).toISOString(), expiresAt: new Date(Date.now() + 600000).toISOString() };
