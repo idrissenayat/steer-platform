@@ -1033,3 +1033,18 @@ Next: lifecycle/migration corrections and adoption of the explicit-time rule by
 every corrected public oracle. R5-002 remains partial until that integration is
 verified. All five findings remain formally open, with complete-package independent
 review/protected incorporation and revision-bound human rulings still required.
+
+## Completed development increment: 0059 — lifecycle event/history candidate
+
+The current event and every history entry now pass the same closed schema,
+complete provider binding, independently anchored record/evaluation-time checks,
+scope consistency and replay/order checks. The frozen ignored-history-proof
+counterexample is reproduced and blocked. Evidence: intent/0059/EVIDENCE.md.
+All 27 declared event types remain supported; no lifecycle effect is authorized.
+
+Next is the shared lifecycle/migration action contract and full graph composition,
+then remaining public-oracle timing integration. The per-finding correction
+ledger is docs/GATE-2-CORRECTIONS.md. All five findings remain formally open;
+independent complete-package review/protected incorporation and exact-revision
+rulings are still required. No protected file, provider, signature, spending,
+destructive real-data action, deployment or release authority changes.

@@ -508,6 +508,14 @@ selected anchor at recorded/evaluation time. Exact frozen counterexamples and al
 candidate oracles still need time-rule integration, followed by independent
 complete-package review. See `intent/0058/EVIDENCE.md`; no live route is enabled.
 
+Item `intent/0059` validates current and historical lifecycle events with the same
+closed schema and timed provider-proof checks. The exact ignored-history-proof
+counterexample is blocked; all 27 event types remain supported. This is zero-
+effect validation, not lifecycle disposition authority or history-completeness
+proof. Shared lifecycle/migration actions and graph composition are next. The
+current per-finding status is in `docs/GATE-2-CORRECTIONS.md`; all five findings
+remain formally open. See `intent/0059/EVIDENCE.md`.
+
 ## Local commands
 
 ```sh

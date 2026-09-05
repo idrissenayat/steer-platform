@@ -36,7 +36,7 @@ Brief document model (0050), authenticated exact-revision Brief reads (0051) and
 curated Brief discovery (0052), a trusted-scope rendered Brief library (0053)
 and exact-reference Brief navigation (0054), with review-ordered reading (0055), and
 Unicode-phone privacy (0056), multi-line cost (0057) and full human-authority
-(0058) correction candidates, are
+(0058) and closed lifecycle-event/history (0059) correction candidates, are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
 [provider evidence](docs/GITHUB-RUNTIME-APP.md).
@@ -107,6 +107,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0056 · R5 Unicode-phone correction | `intent/0056/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | bounded Unicode 17 phone detector and policy-bound graph correction; reproduces frozen acceptance and corrected rejection | remaining authority/lifecycle/migration corrections, independent review, protected incorporation and formal gates |
 | 0057 · R5 multi-line cost correction | `intent/0057/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | exact plural variance/successor lineage, reordered positives, missing/cross-line denials and aggregate-before-rounding | remaining authority/lifecycle/migration corrections, independent review, protected incorporation and formal gates |
 | 0058 · Full human-authority candidate | `intent/0058/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | complete provider payload binding, independent anchor and explicit record/evaluation-time verification | remaining all-public-oracle timing, lifecycle/migration corrections, independent/protected review and gates |
+| 0059 · Closed lifecycle event/history candidate | `intent/0059/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | uniform schema, proof binding, explicit times, scoped ordered history and replay checks | shared-action/effect-graph integration, migration and remaining public-oracle timing; see `docs/GATE-2-CORRECTIONS.md` |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier
