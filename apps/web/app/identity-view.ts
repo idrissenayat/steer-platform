@@ -10,6 +10,10 @@ export function identityView(enabled: string | undefined, origin: string | undef
 }
 
 export interface SessionView { subject: string; organizationId: string; hats: string[]; expiresAt: string }
+/** Fixed public repository display hint; API authorization remains independent. */
+export function repositoryView(value: string | null): string | null {
+  return value && /^[a-z][a-z0-9-]{0,31}:[A-Za-z0-9_-]{1,160}(?![\s\S])/.test(value) ? value : null;
+}
 /** Read only the private gateway's display header. This never grants a permission. */
 export function sessionView(encoded: string | null, now = Date.now()): SessionView | null {
   if (!encoded || encoded.length > 8192 || !Number.isFinite(now)) return null;

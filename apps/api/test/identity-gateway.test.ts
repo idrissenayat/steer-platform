@@ -15,6 +15,22 @@ test('gateway validates fixed HTTPS public/issuer and explicit loopback-only ren
     assert.throws(() => createIdentityGateway({ ...configuration, rendererOrigin }, { identity }));
   for (const issuer of ['http://identity.example', 'https://user:pass@identity.example', 'https://identity.example?a=1', 'https://identity.example/#x'])
     assert.throws(() => createIdentityGateway({ ...configuration, issuer }, { identity }));
+  for (const repository of ['', 'a/b', 'https://github.com/a/b', 'github:' + '1'.repeat(161), 'github:1\n'])
+    assert.throws(() => createIdentityGateway({ ...configuration, workspace: { organizationId: 'org', repository } }, { identity }));
+});
+
+test('fixed repository display is session-org-bound, copied at construction and never taken from browser headers', async () => {
+  const workspace = { organizationId: 'synthetic-org', repository: 'github:1' };
+  const view = { subject: 'account', organizationId: 'synthetic-org', hats: [], expiresAt: new Date(Date.now() + 60000).toISOString() };
+  let received: string | null = null; let valid = true;
+  const gateway = createIdentityGateway({ ...configuration, workspace }, { identity: { fetch: async () => Response.json(view, { status: valid ? 200 : 401 }) },
+    fetch: async (_input, init) => { received = new Headers(init?.headers).get('x-steer-repository-view'); return page(); } });
+  workspace.repository = 'github:999';
+  const input = () => request('/', { headers: { cookie: '__Host-steer-session=synthetic', 'x-steer-repository-view': 'github:attacker' } });
+  await gateway.fetch(input()); assert.equal(received, 'github:1');
+  valid = false; await gateway.fetch(input()); assert.equal(received, null);
+  valid = true; view.organizationId = 'foreign'; await gateway.fetch(input()); assert.equal(received, null);
+  await gateway.fetch(request('/', { headers: { 'x-steer-repository-view': 'github:attacker' } })); assert.equal(received, null);
 });
 
 test('renderer sees fixed path and generated CSP, never browser credentials or spoofed security headers', async () => {

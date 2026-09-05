@@ -15,8 +15,8 @@ const rules = {
   'apps/api': { folders: ['src'], packages: ['@steer/adapters', '@steer/data', '@steer/tool-registry', '@hono/node-server', '@modelcontextprotocol/server', 'hono', 'zod'], builtins: ['node:https'],
     builtinEntryOnly: { 'node:https': 'src/identity-listener.ts' },
     entryOnly: { '@steer/data': 'src/runtime.ts', zod: 'src/runtime.ts', '@modelcontextprotocol/server': 'src/mcp.ts' } },
-  'apps/web': { folders: ['app'], packages: ['next', 'react', 'react-dom', '@steer/tool-registry'], builtins: [],
-    specifiersOnly: { '@steer/tool-registry': ['@steer/tool-registry/projection-consumer'] } },
+  'apps/web': { folders: ['app'], packages: ['next', 'react', 'react-dom', 'react-markdown', '@steer/tool-registry'], builtins: [],
+    specifiersOnly: { '@steer/tool-registry': ['@steer/tool-registry/projection-consumer', '@steer/tool-registry/brief-contracts'] } },
   'apps/worker': { folders: ['src'], packages: ['@steer/adapters', '@steer/data', 'zod', '@temporalio/client', '@temporalio/worker', '@temporalio/workflow'], builtins: [],
     entryOnly: { '@steer/adapters': 'src/runtime.ts', '@steer/data': 'src/runtime.ts', zod: 'src/runtime.ts',
       '@temporalio/client': 'src/client.ts', '@temporalio/worker': 'src/worker.ts', '@temporalio/workflow': 'src/workflows.ts' } },
@@ -98,6 +98,7 @@ test('boundary detector rejects vendor-in-core, relative prototype escape and no
 test('browser imports only the portable consumer export, not the server registry or providers', () => {
   const base = resolve(root, 'apps/web'); const file = resolve(base, 'app/projection-panel.tsx'); const rule = rules['apps/web'];
   assert.equal(allowed('@steer/tool-registry/projection-consumer', file, base, rule), true);
+  assert.equal(allowed('@steer/tool-registry/brief-contracts', file, base, rule), true);
   for (const specifier of ['@steer/tool-registry', '@steer/tool-registry/browser-session', '@steer/data', '@steer/adapters', 'node:crypto']) {
     assert.equal(allowed(specifier, file, base, rule), false);
   }

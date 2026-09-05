@@ -8,9 +8,11 @@ const types: Record<string, string> = { css: 'text/css', js: 'application/javasc
   woff2: 'font/woff2', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', svg: 'image/svg+xml', ico: 'image/x-icon' };
 
 /** Native SSR gateway. The renderer receives fixed paths and verified display data, never credentials. */
-export function createIdentityGateway(configuration: { publicOrigin: string; rendererOrigin: string; issuer: string },
+export function createIdentityGateway(configuration: { publicOrigin: string; rendererOrigin: string; issuer: string;
+  workspace?: { organizationId: string; repository: string } },
   dependencies: { identity: { fetch(request: Request): Promise<Response> }; fetch?: typeof fetch }) {
   let publicOrigin: string; let rendererOrigin: string; let issuerOrigin: string;
+  let workspace: { organizationId: string; repository: string } | undefined;
   try {
     const publicUrl = new URL(configuration.publicOrigin); const renderer = new URL(configuration.rendererOrigin);
     const issuer = new URL(configuration.issuer);
@@ -20,6 +22,13 @@ export function createIdentityGateway(configuration: { publicOrigin: string; ren
         issuer.username || issuer.password || issuer.search || issuer.hash ||
         typeof dependencies.identity.fetch !== 'function') throw new Error();
     publicOrigin = publicUrl.origin; rendererOrigin = renderer.origin; issuerOrigin = issuer.origin;
+    if (configuration.workspace !== undefined) {
+      const value = configuration.workspace;
+      if (!value || Object.keys(value).sort().join(',') !== 'organizationId,repository' ||
+          typeof value.organizationId !== 'string' || !value.organizationId.length || value.organizationId.length > 200 ||
+          typeof value.repository !== 'string' || !/^[a-z][a-z0-9-]{0,31}:[A-Za-z0-9_-]{1,160}(?![\s\S])/.test(value.repository)) throw new Error();
+      workspace = { organizationId: value.organizationId, repository: value.repository };
+    }
   } catch { throw new Error('Invalid identity gateway configuration.'); }
   const transport = dependencies.fetch ?? globalThis.fetch;
   const identityFetch = dependencies.identity.fetch.bind(dependencies.identity);
@@ -39,7 +48,7 @@ export function createIdentityGateway(configuration: { publicOrigin: string; ren
     if (path !== '/' && !match) return fail(404);
     if (request.method !== 'GET') return fail(405);
     if (url.search || request.body !== null) return fail(400);
-    let viewHeader: string | undefined; let viewExpiry = 0;
+    let viewHeader: string | undefined; let repositoryHeader: string | undefined; let viewExpiry = 0;
     if (path === '/' && !request.headers.has('authorization') &&
         request.headers.get('cookie')?.split(';').some((part) => part.trim().startsWith('__Host-steer-session='))) {
       try {
@@ -50,7 +59,10 @@ export function createIdentityGateway(configuration: { publicOrigin: string; ren
         const parsed = response.status === 200 ? sessionViewSchema.safeParse(await response.json()) : undefined;
         if (parsed?.success) {
           const encoded = encodeURIComponent(JSON.stringify(parsed.data)); const expiry = Date.parse(parsed.data.expiresAt);
-          if (encoded.length <= 8192 && expiry > Date.now()) { viewHeader = encoded; viewExpiry = expiry; }
+          if (encoded.length <= 8192 && expiry > Date.now()) {
+            viewHeader = encoded; viewExpiry = expiry;
+            if (workspace?.organizationId === parsed.data.organizationId) repositoryHeader = workspace.repository;
+          }
         }
       } catch { /* Unverified, revoked or unavailable context renders the signed-out view, never a cached identity. */ }
     }
@@ -68,7 +80,8 @@ export function createIdentityGateway(configuration: { publicOrigin: string; ren
       // No spreading Request/headers: fixed authority, no query, cookies, bearer, Host or forwarded headers.
       const response = await transport(`${rendererOrigin}${path}`, { method: 'GET', credentials: 'omit',
         redirect: 'error', cache: 'no-store', referrerPolicy: 'no-referrer', signal: controller.signal,
-        headers: { accept: path === '/' ? 'text/html' : types[match![1]!]!, ...(nonce ? { 'content-security-policy': policy } : {}), ...(viewHeader ? { 'x-steer-session-view': viewHeader } : {}) } });
+        headers: { accept: path === '/' ? 'text/html' : types[match![1]!]!, ...(nonce ? { 'content-security-policy': policy } : {}),
+          ...(viewHeader ? { 'x-steer-session-view': viewHeader } : {}), ...(repositoryHeader ? { 'x-steer-repository-view': repositoryHeader } : {}) } });
       const expectedType = path === '/' ? 'text/html' : types[match![1]!]!;
       const contentType = response.headers.get('content-type')?.split(';')[0]?.trim().toLowerCase();
       if (response.status !== 200 || response.redirected || contentType !== expectedType || !response.body) {

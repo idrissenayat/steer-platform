@@ -63,3 +63,12 @@ accessibility or full product parity. See intent/0029. Next are trusted secret
 loading and the remaining authenticated business/data services and work surfaces.
 Real credentials, public deployment, spending and formal gates remain separate.
 
+## Read-only Brief library update (0053)
+
+When the existing read model is explicitly configured, the private gateway now
+binds the runtime-selected repository to the verified session organization.
+The workspace discovers permitted Briefs and renders their selected source
+revision in a read-only side panel. Manual reference inspection moves under
+Developer diagnostics. See AUTHENTICATED-BRIEF-LIBRARY.md for current behavior,
+verification and remaining intent-detail/lifecycle scope. This does not enable
+any live profile, provider permission, signature or release.

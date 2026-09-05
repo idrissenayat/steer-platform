@@ -121,7 +121,8 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         sessions: { store: storage.store, binding: { issuer, clientId: configuration.clientId, redirectUri: configuration.redirectUri }, shutdown: storage.shutdown } };
       api = createIdentityService(configuration, dependencies);
       let injectCspProbe = false;
-      const bindGateway = (rendererOrigin: string) => createIdentityGateway({ publicOrigin: origin, rendererOrigin, issuer },
+      const bindGateway = (rendererOrigin: string) => createIdentityGateway({ publicOrigin: origin, rendererOrigin, issuer,
+        workspace: { organizationId: projection.input.organizationId, repository: projection.input.repository } },
         { identity: { fetch: (request) => api!.fetch(request) }, fetch: async (input, init) => {
           const response = await fetch(input, init);
           if (!injectCspProbe || new URL(String(input)).pathname !== '/') return response;
@@ -340,7 +341,74 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         });
         assert.deepEqual(violations, []);
       });
+      await check('Brief library discovers without manual source entry and renders an inert revision-bound keyboard dialog', async () => {
+        let briefStage = 'catalog discovery';
+        try {
+        const library = page.getByRole('region', { name: 'Brief library' });
+        await page.waitForFunction(() => document.querySelector('[data-testid="brief-status"]')?.textContent?.startsWith('Choose a Brief'));
+        assert.equal(await library.locator('input').count(), 0);
+        assert.equal(await library.getByTestId('brief-catalog').locator('li').count(), 1);
+        const button = library.getByRole('button', { name: 'Read Workspace Brief', exact: true });
+        briefStage = 'selected source rendering';
+        await button.focus(); await page.keyboard.press('Enter');
+        const detail = page.getByRole('dialog', { name: 'Synthetic scoped outcome' }); await detail.waitFor();
+        assert.equal(await detail.getByText('Scoped projection test.', { exact: true }).count(), 1);
+        assert.equal(await detail.getByRole('heading', { name: 'Open questions', exact: true }).count(), 1);
+        assert.equal(await detail.locator('script, img, a[href]').count(), 0);
+        assert.equal(await page.evaluate(() => Boolean((window as unknown as { __steerBriefUnsafe?: boolean }).__steerBriefUnsafe)), false);
+        briefStage = 'dialog keyboard containment';
+        assert.equal(await detail.getByRole('button', { name: 'Close Brief' }).evaluate((element) => element === document.activeElement), true);
+        await page.keyboard.press('Shift+Tab');
+        assert.equal(await detail.evaluate((element) => element.contains(document.activeElement)), true);
+        briefStage = 'source disclosure and responsive layout';
+        await page.keyboard.press('Tab');
+        assert.equal(await detail.evaluate((element) => element.contains(document.activeElement)), true);
+        await detail.getByText('Source revision details', { exact: true }).click();
+        assert.ok((await detail.textContent())?.includes(projection.input.revision));
+        const directory = process.env.STEER_WORKSPACE_SCREENSHOT_DIR;
+        if (directory) await page.screenshot({ path: join(directory, 'brief-detail-desktop.png') });
+        await page.setViewportSize({ width: 390, height: 844 });
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+        assert.equal(await detail.evaluate((element) => element.scrollWidth <= element.clientWidth), true);
+        assert.equal(await detail.locator('.brief-detail-body').evaluate((element) => element.scrollWidth <= element.clientWidth), true);
+        if (directory) await page.screenshot({ path: join(directory, 'brief-detail-mobile.png') });
+        await detail.locator('.brief-detail-body').evaluate((element) => { element.scrollTop = element.scrollHeight; });
+        assert.equal(await detail.locator('.brief-source code').last().evaluate((element) => {
+          const body = element.closest('.brief-detail-body')!.getBoundingClientRect(); const target = element.getBoundingClientRect();
+          return target.top >= body.top && target.bottom <= body.bottom;
+        }), true);
+        if (directory) await page.screenshot({ path: join(directory, 'brief-source-mobile.png') });
+        const violations = await page.evaluate(async () => {
+          const axe = (window as unknown as { axe: { run: (node: Document, options: unknown) => Promise<{ violations: { id: string; impact: string }[] }> } }).axe;
+          return (await axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] } })).violations.map(({ id, impact }) => ({ id, impact }));
+        });
+        assert.deepEqual(violations, []);
+        briefStage = 'dialog dismissal and focus return';
+        await page.keyboard.press('Escape'); assert.equal(await detail.count(), 0);
+        assert.equal(await button.evaluate((element) => element === document.activeElement), true);
+        await page.setViewportSize({ width: 1440, height: 1000 });
+        await button.click(); await detail.waitFor(); await page.mouse.click(10, 500); assert.equal(await detail.count(), 0);
+        } catch {
+          console.error(`Brief UI check failed at ${briefStage}; response payloads omitted.`);
+          const directory = process.env.STEER_WORKSPACE_SCREENSHOT_DIR;
+          if (directory) await page.screenshot({ path: join(directory, 'brief-failure.png'), fullPage: true });
+          throw new Error('Synthetic Brief UI check failed.');
+        }
+      });
+      await check('Brief library clears a previously read source on committed permission denial and rechecks after refresh', async () => {
+        const library = page.getByRole('region', { name: 'Brief library' });
+        await source.publish([{ ...grant, toolGrants: ['session.context'] }]);
+        await library.getByRole('button', { name: 'Read Workspace Brief', exact: true }).click();
+        await page.waitForFunction(() => document.querySelector('[data-testid="brief-status"]')?.textContent?.startsWith('Brief access could not be verified.'));
+        assert.equal(await library.getByTestId('brief-catalog').locator('li').count(), 0);
+        assert.equal(await page.getByRole('dialog').count(), 0);
+        assert.equal(await page.getByText('Scoped projection test.', { exact: true }).count(), 0);
+        await source.publish([grant]); await library.getByRole('button', { name: 'Refresh Briefs' }).click();
+        await page.waitForFunction(() => document.querySelector('[data-testid="brief-status"]')?.textContent?.startsWith('Choose a Brief'));
+        assert.deepEqual(await page.evaluate(() => [Object.keys(localStorage), Object.keys(sessionStorage)]), [[], []]);
+      });
       await check('hydrated reference panel loads real data, clears on committed grant denial, and rejects foreign scope', async () => {
+        await page.getByText('Developer diagnostics', { exact: true }).click();
         const panel = page.getByRole('region', { name: 'Repository references' });
         const input = panel.getByLabel('Repository scope ID');
         await input.fill(projection.input.repository);
@@ -392,16 +460,22 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         try {
           let requests = 0; expiryPage.on('request', (request) => { if (new URL(request.url()).pathname.startsWith('/v1/tools/projection.')) requests++; });
           await expiryPage.clock.install(); await expiryPage.goto(origin);
+          await expiryPage.getByText('Developer diagnostics', { exact: true }).click();
           const expiryPanel = expiryPage.getByRole('region', { name: 'Repository references' });
           await expiryPanel.getByLabel('Repository scope ID').fill(projection.input.repository);
           await expiryPanel.getByRole('button', { name: 'Load references', exact: true }).click();
           await expiryPage.waitForFunction(() => document.querySelector('[data-testid="reference-status"]')?.textContent?.startsWith('References loaded.'));
+          await expiryPage.getByRole('button', { name: 'Read Workspace Brief', exact: true }).click();
+          await expiryPage.getByRole('dialog', { name: 'Synthetic scoped outcome' }).waitFor();
           const beforeExpiry = requests;
           await expiryPage.clock.fastForward(310000);
           assert.equal(await expiryPanel.getByTestId('reference-list').count(), 0);
           assert.equal(await expiryPanel.getByRole('button', { name: 'Load references', exact: true }).isDisabled(), true);
           assert.match((await expiryPanel.getByTestId('reference-status').textContent())!, /Session display expired/);
           assert.equal(requests, beforeExpiry, 'Display expiry must not poll or reload references');
+          assert.equal(await expiryPage.getByRole('dialog').count(), 0);
+          assert.equal(await expiryPage.getByTestId('brief-catalog').locator('li').count(), 0);
+          assert.equal(await expiryPage.getByRole('button', { name: 'Refresh Briefs' }).isDisabled(), true);
         } finally { await expiryPage.close(); }
       });
       await check('browser reads only its granted exact-revision projection ingested from actual synthetic Git through PostgreSQL', async () => {

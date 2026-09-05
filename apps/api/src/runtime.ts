@@ -107,7 +107,9 @@ export async function startLocalIdentityRuntime(rawProfile: unknown, rawSecrets:
     const profile = localProfileSchema.parse(rawProfile); const secrets = localSecretsSchema.parse(rawSecrets);
     const publicOrigin = new URL(profile.identity.browser.redirectUri).origin;
     runtime = await createIdentityRuntime(profile.identity, secrets.identity, transports);
-    const gateway = createIdentityGateway({ publicOrigin, rendererOrigin: profile.rendererOrigin, issuer: profile.identity.browser.issuer },
+    const gateway = createIdentityGateway({ publicOrigin, rendererOrigin: profile.rendererOrigin, issuer: profile.identity.browser.issuer,
+      ...(profile.identity.readModel ? { workspace: { organizationId: profile.identity.github.binding.organizationId,
+        repository: `github:${profile.identity.github.binding.repositoryId}` } } : {}) },
       { identity: runtime, ...(transports.renderer ? { fetch: transports.renderer } : {}) });
     const listener = await startLocalIdentityListener({ publicOrigin, tls: secrets.tls }, { fetch: gateway.fetch, shutdown: runtime.shutdown });
     const ownedRuntime = runtime;

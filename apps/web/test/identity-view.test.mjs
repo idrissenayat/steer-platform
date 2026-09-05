@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFile } from 'node:fs/promises';
-import { identityView, sessionView } from '../app/identity-view.ts';
+import { identityView, sessionView, repositoryView } from '../app/identity-view.ts';
 
 test('public identity view is explicitly enabled only for valid HTTPS configuration', () => {
   assert.deepEqual(identityView('enabled', 'https://steer.example', 'https://id.example/realm'), { origin: 'https://steer.example', issuerOrigin: 'https://id.example' });
@@ -27,4 +27,10 @@ test('session display parser accepts only bounded unexpired display fields, neve
     { ...value, hats: ['<script>'] }, { ...value, hats: Array(9).fill('product-lead') }, { ...value, expiresAt: 'invalid' },
     { ...value, expiresAt: new Date(now).toISOString() }, [], null]) assert.equal(sessionView(encode(invalid), now), null);
   for (const invalid of [null, '%malformed', 'x'.repeat(8193)]) assert.equal(sessionView(invalid, now), null);
+});
+
+test('repository display accepts only a bounded provider scope ID, not a path, URL or credential', () => {
+  assert.equal(repositoryView('github:1'), 'github:1');
+  for (const value of [null, '', 'https://github.com/a/b', 'a/b', 'github:1\n', 'github:' + '1'.repeat(161), 'Bearer secret'])
+    assert.equal(repositoryView(value), null);
 });

@@ -457,6 +457,17 @@ production product analytics, an approved live secret-manager binding, runtime/i
 configuration, full authenticated workspace UI and the thirteen-case architecture walking
 skeleton. Existing increment evidence does not complete these remaining services.
 
+Item `intent/0053` connects trusted runtime repository display context to a
+read-only Brief library in the authenticated Next.js workspace. Canonical
+portable contracts and bounded same-origin transport support discovery and
+exact-reference selection. A rendered side panel keeps source text inert,
+supports keyboard dismissal/focus return and clears content after failed access,
+page hiding/navigation or display expiry. The manual reference inspector now
+lives under Developer diagnostics. See `docs/AUTHENTICATED-BRIEF-LIBRARY.md`
+and `intent/0053/EVIDENCE.md` for verification and limitations. This is not full
+intent/0003 parity: deep links, judgment ordering, provenance/history, measured
+source exits, lifecycle/actions and manual accessibility review remain open.
+
 ## Local commands
 
 ```sh

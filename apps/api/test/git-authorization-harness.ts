@@ -18,7 +18,7 @@ export async function createGitAuthorizationHarness(temporary: string, record: A
   const authorizationPath = 'access/authorization.json';
   const artifactPath = 'BRIEF.md';
   const secondArtifactPath = 'SPEC.md';
-  await writeFile(join(directory, artifactPath), '# Brief: Synthetic scoped outcome\n\n## Problem\n\nScoped projection test.\n\n## Proposed outcome\n\nRead the exact source without invented authority.\n', { mode: 0o600 });
+  await writeFile(join(directory, artifactPath), '# Brief: Synthetic scoped outcome\n\n## Problem\n\nScoped projection test.\n\n## Proposed outcome\n\nRead the exact source without invented authority.\n\n## Open questions\n\n- Which outcome should we measure first?\n\n<script>window.__steerBriefUnsafe = true</script>\n\n![Synthetic remote image](https://outside.example/image.png)\n\n[Unsafe link](javascript:alert(1))\n', { mode: 0o600 });
   await writeFile(join(directory, secondArtifactPath), '# Synthetic specification\n\nPreserve trailing newline.\n', { mode: 0o600 });
   const publish = async (records: AuthorizationRecord[], organizationId = record.organizationId) => {
     await writeFile(join(directory, authorizationPath), JSON.stringify({ version: 'steer-authorization/v1', organizationId, records }), { mode: 0o600 });

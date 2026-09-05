@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "exports": { ".": "./src/index.ts", "./browser-session": "./src/browser-session.ts", "./gate-policy": "./src/gate-policy.ts", "./projection-consumer": "./src/projection-consumer.ts" },
+  "exports": { ".": "./src/index.ts", "./browser-session": "./src/browser-session.ts", "./gate-policy": "./src/gate-policy.ts", "./projection-consumer": "./src/projection-consumer.ts", "./brief-contracts": "./src/brief-contracts.ts" },
   "scripts": {
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",

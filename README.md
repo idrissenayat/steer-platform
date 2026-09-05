@@ -33,7 +33,7 @@ HTTP/MCP feed reads (0045), coherent reference snapshots/checkpoints (0046) and
 bounded consumer lifecycle (0047), nonce-controlled Next.js scripts (0048) and
 an authenticated read-only browser reference panel (0049) and source-faithful
 Brief document model (0050), authenticated exact-revision Brief reads (0051) and
-curated Brief discovery (0052) are
+curated Brief discovery (0052) and a trusted-scope rendered Brief library (0053) are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
 [provider evidence](docs/GITHUB-RUNTIME-APP.md).
@@ -95,9 +95,10 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0047 · Projection consumer lifecycle | `intent/0047/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | bounded snapshot/page application, reset/failure clearing, immutable views, truthful drain and actual MCP revocation proof | browser transport/UI, durable consumer storage, business models, canonical approval proof and formal gates |
 | 0048 · Nonce-controlled scripts | `intent/0048/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | fresh gateway nonce/CSP, credential-isolated Next.js bootstrap, real forged-HTML/handler denial and authentication regression | consumer browser transport/UI, script-sink audit, additional browsers/capacity, operating models and formal gates |
 | 0049 · Browser reference panel | `intent/0049/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | bounded same-origin read transport, real consumer UI, scope/error/lifecycle clearing and reference-only display | full business models/screens, canonical approval proofs, formal/manual and operational gates |
-| 0050 · Brief document model | `intent/0050/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | source-preserving kit section model, explicit ambiguity/omissions, actual-source tests and structural limits | authenticated Brief reads, rendered backlog/detail, full operating evidence and formal gates |
-| 0051 · Authenticated Brief reads | `intent/0051/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | exact revision/fingerprint, dual grants, source integrity and shared HTTP/MCP structural read | Brief catalog/detail UI, authoritative lifecycle, canonical proof and formal gates |
-| 0052 · Curated Brief catalog | `intent/0052/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | complete bounded curated metadata, current grants/RLS, source-key checks and actual catalog-to-Brief read | trusted workspace display binding, rendered catalog/detail, authoritative lifecycle and formal gates |
+| 0050 · Brief document model | `intent/0050/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | source-preserving kit section model, explicit ambiguity/omissions, actual-source tests and structural limits; reads/library added in 0051–0053 | full intent detail, operating evidence and formal gates |
+| 0051 · Authenticated Brief reads | `intent/0051/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | exact revision/fingerprint, dual grants, source integrity and shared HTTP/MCP structural read; catalog/library added in 0052–0053 | authoritative lifecycle, canonical proof and formal gates |
+| 0052 · Curated Brief catalog | `intent/0052/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | complete bounded curated metadata, current grants/RLS, source-key checks and actual catalog-to-Brief read; workspace/library added in 0053 | full intent-detail/lifecycle parity and formal gates |
+| 0053 · Authenticated Brief library | `intent/0053/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | trusted workspace discovery, exact-reference rendered side panel, inert Markdown, current access and keyboard/lifecycle cleanup | deep links, full intent detail/lifecycle, qualified manual review and formal gates |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier
