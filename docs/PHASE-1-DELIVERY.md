@@ -1199,3 +1199,24 @@ then migration compatibility/concurrency/checkpoints and the normative package.
 Resolve archival/current-authority semantics explicitly; never extend frozen key
 windows just to manufacture future positives. All five R5 findings remain open.
 No real audit, provider access, protected edit, signature, deployment or release.
+
+## Completed development increment: 0068 — source-faithful lifecycle retention
+
+Corrected earliest supersession/rebuild selection and replaced the frozen
+provenance item-closure surrogate with the exact accepted policy rule: later of
+retirement and every derived-record deletion over a closed inventory. A current
+provider-signed derived manifest is pinned by authority-signed state and included
+in the protected-action input digest. Frozen records/table/keys remain unchanged;
+the composed candidate policy digest changes explicitly.
+
+Tests cover all 16 current class outcomes, compound selection, complete
+parent-capped disposition/replay, matched hold histories and 0–128 derived-record
+completions with omission/substitution/time/signature denial. This is not complete
+future-expiry or live deletion evidence. See intent/0068/EVIDENCE.md for checks.
+
+Next: future-key/archival and reference-revocation completion, full raw-key and
+normative coverage, then migration compatibility/concurrency/checkpoints. Current
+trust windows must not be extended to fabricate a future positive. Nanosecond
+policy fidelity versus the current millisecond helper also remains to resolve.
+All five R5 findings and independent/protected review remain open. No provider
+mutation, protected edit, gate signature, deployment, release or spending.

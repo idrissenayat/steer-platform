@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createHash, createPrivateKey, sign } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { createLifecycleGraphVerifier, lifecycleBoundary, policyDigest } from '../intent/0061/lifecycle-graph.candidate.mjs';
 import { humanAuthorityBindingDigest } from '../intent/0058/human-authority.candidate.mjs';
 import { manifestBytes, manifestDigest } from '../intent/0060/protected-actions.candidate.mjs';
@@ -32,22 +33,36 @@ function fixture(options = {}) {
   const type = options.eventType ?? (raw ? 'corpus-sanitization-terminal' : 'record-superseded');
   function event(eventType, index, second) {
     const value = { ...JSON.parse(makeLifecycleEventBytes(eventType, index)), recordId: config.recordId, recordClass: config.recordClass, artifactRevision: config.artifactRevision,
-      policySha256: RETENTION_POLICY_SHA, occurredAt: at(second), ...(eventType === 'corpus-sanitization-terminal' ? { result: 'pass', sanitizerRevision: 'sanitizer-v1', inspectionRevision: 'inspector-v1' } : {}) };
+      policySha256: RETENTION_POLICY_SHA, occurredAt: at(second), ...(eventType === 'corpus-sanitization-terminal' ? { result: 'pass', sanitizerRevision: 'sanitizer-v1', inspectionRevision: 'inspector-v1' } : {}),
+      ...(eventType === 'run-terminal' ? { terminalStatus: 'failed' } : {}),
+      ...(eventType === 'derived-record-deleted' ? { derivedRecordId: `derived-${String(index).padStart(3, '0')}`, derivedRecordClass: 'RC-CORPUS-DERIVED-TEXT', parentCorpusId: 'corpusId-value', parentCorpusVersion: 'corpusVersion-value' } : {}) };
     edit(`event-${index}`, value);
     const payload = Object.fromEntries(Object.entries(value).filter(([key]) => !['providerProofBytes', 'providerProofDigest', 'recordDigest', 'signature'].includes(key)));
     const proof = seal(edit(`event-proof-${index}`, { providerRecordId: value.providerRecordId, eventId: value.eventId, eventBindingDigest: sha256(jcs(payload)), recordedAt: value.occurredAt }), 'provider');
     edit(`signed-event-proof-${index}`, proof);
     return jcs(seal({ ...value, providerProofBytes: jcs(proof), providerProofDigest: proof.recordDigest }, 'record'));
   }
-  const historyBytes = [event(options.historyType ?? 'record-committed', 1, -10)], eventBytes = event(type, 2, 0), trigger = JSON.parse(eventBytes);
+  const history = options.history ?? [{ type: options.historyType ?? 'record-committed', second: -10 }];
+  const historyBytes = history.map((entry, index) => event(entry.type, index + 1, entry.second));
+  const eventBytes = event(type, history.length + 1, 0);
+  // Explicit test expectation, not a call back into the verifier's selector.
+  const trigger = JSON.parse(options.triggerHistoryIndex === undefined ? eventBytes : historyBytes[options.triggerHistoryIndex]);
   const copies = ['a', 'b'].map((suffix, index) => ({ copyId: `copy-${index + 1}`, copyKind: raw ? 'temporary-working' : 'replica', provider: `fixture-provider-${suffix}`,
     providerBindingId: `fixture-provider-${suffix}-binding`, account: `fixture-account-${suffix}`, objectKey: `object-${index}`, versionId: 'version-1', keyId: `key-${index}`, sourceOriginal: false }));
   edit('copies', copies);
   const inventory = seal(edit('inventory', { kind: 'inventory', configDigest, inventoryId: 'inventory-1', source: 'authoritative-copy-inventory', copies, complete: true, recordedAt: at(1), validThrough: until }), options.inventoryDomain ?? 'provider');
+  const provenance = config.recordClass === 'RC-CORPUS-PROVENANCE';
+  const derived = provenance ? seal(edit('derived-inventory', { kind: 'derived-inventory', configDigest, source: 'authoritative-derived-record-manifest',
+    manifestId: 'derived-manifest-1', corpusId: 'corpusId-value', corpusVersion: 'corpusVersion-value', complete: true,
+    entries: [...historyBytes, eventBytes].map(JSON.parse).filter((event) => event.eventType === 'derived-record-deleted').map((event) => ({ derivedRecordId: event.derivedRecordId, derivedRecordClass: event.derivedRecordClass, deletionEventId: event.eventId })),
+    recordedAt: at(1), validThrough: until }), options.derivedDomain ?? 'provider') : null;
   const state = seal(edit('state', { kind: 'state', configDigest, source: 'authoritative-lifecycle-store', inventoryDigest: inventory.recordDigest,
-    historyDigest: sha256(jcs([...historyBytes, eventBytes])), historyComplete: true, holdState: 'none', referenceState: 'cleared', referenceRevocationDigest: null, parentExpiryAt: null, recordedAt: at(2), validThrough: until }), options.stateDomain ?? 'authority');
-  const graph = { version: 'steer-lifecycle-graph/v1', configDigest, policyDigest, eventBytes, historyBytes, inventoryBytes: jcs(inventory), stateBytes: jcs(state), referenceRevocationBytes: '', copies: [], aggregateBytes: '', tombstone: {} };
-  const tupleDigest = sha256(jcs(copies)), baseDigest = sha256(jcs({ configDigest, policyDigest, eventBytes, historyBytes, inventoryBytes: graph.inventoryBytes, stateBytes: graph.stateBytes, referenceRevocationBytes: '' }));
+    historyDigest: sha256(jcs([...historyBytes, eventBytes])), historyComplete: true, holdState: 'none', referenceState: 'cleared', referenceRevocationDigest: null, parentExpiryAt: null, recordedAt: at(2), validThrough: until,
+    ...(provenance ? { derivedInventoryDigest: derived.recordDigest } : {}) }), options.stateDomain ?? 'authority');
+  const graph = { version: 'steer-lifecycle-graph/v1', configDigest, policyDigest, eventBytes, historyBytes, inventoryBytes: jcs(inventory), stateBytes: jcs(state), referenceRevocationBytes: '', copies: [], aggregateBytes: '', tombstone: {},
+    ...(provenance ? { derivedInventoryBytes: jcs(derived) } : {}) };
+  const tupleDigest = sha256(jcs(copies)), baseDigest = sha256(jcs({ configDigest, policyDigest, eventBytes, historyBytes, inventoryBytes: graph.inventoryBytes, stateBytes: graph.stateBytes, referenceRevocationBytes: '',
+    ...(provenance ? { derivedInventoryBytes: graph.derivedInventoryBytes } : {}) }));
   function human(label, selected, conditions, method, isRaw, second) {
     const bundle = makeHumanAuthorityBundle(), prior = JSON.parse(bundle.authorityBytes);
     const humanInventory = seal({ inventoryId: `human-inventory-${label}`, organization: scope.organization, tenant: scope.tenant, item: scope.item,
@@ -217,4 +232,170 @@ test('calendar retention bounds, future scheduling, immutable retention and malf
   assert.equal(value.verifier.verify(value.bytes).state, 'blocked');
   denied(value, '2027-09-01T00:00:00Z');
   for (const field of ['casWinner', 'authorizationDecision', 'trustRegistryBytes', 'evaluationTime']) denied({ ...value, bytes: jcs({ ...value.graph, [field]: true }) });
+});
+
+// Expected boundaries come from the signed records policy, not the code under
+// test. The provenance rule explicitly corrects the frozen table surrogate.
+// Covering this inventory is not a future-key or disposition proof.
+const retentionCases = [
+  ['RC-AUTHORITATIVE-ARTIFACT', 'record-committed', null],
+  ['RC-DECISION-PROOF', 'item-closed', '2033-09-04T12:00:00Z'],
+  ['RC-LEGAL-SIGNED-LOG', 'item-closed', '2033-09-04T12:00:00Z'],
+  ['RC-RELEASE-MIGRATION', 'environment-retired', '2033-09-04T12:00:00Z'],
+  ['RC-REFERENCED-EVIDENCE', 'item-closed', '2029-09-04T12:00:00Z'],
+  ['RC-FAILED-RUN', 'run-terminal', '2026-12-03T12:00:00Z'],
+  ['RC-SECURITY-AUDIT', 'event-committed', '2027-09-04T12:00:00Z'],
+  ['RC-POSTHOG-RAW', 'event-committed', '2026-12-03T12:00:00Z'],
+  ['RC-REBUILDABLE', 'record-superseded', at(0)],
+  ['RC-DELETION-EVIDENCE', 'deletion-completed', '2033-09-04T12:00:00Z'],
+  ['RC-CORPUS-RAW-WORKING', 'corpus-sanitization-terminal', at(60)],
+  ['RC-CORPUS-PROVENANCE', 'derived-record-deleted', '2033-09-04T12:00:00Z'],
+  ['RC-CORPUS-SANITIZED', 'corpus-retired', '2027-09-04T12:00:00Z'],
+  ['RC-CORPUS-BASELINE', 'corpus-retired', '2029-09-04T12:00:00Z'],
+  ['RC-CORPUS-DERIVED-TEXT', 'run-terminal', '2026-09-19T12:00:00Z'],
+  ['RC-CORPUS-EXPORT', 'export-completed', '2026-09-19T12:00:00Z'],
+];
+
+test('0068: all sixteen pinned record classes derive their actual composed retention outcome', () => {
+  const source = readFileSync(new URL('../intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md', import.meta.url), 'utf8');
+  assert.equal(sha256(source), 'f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32');
+  const table = JSON.parse(readFileSync(new URL('../intent/0001/reviews/domain/round-3/remediation/LIFECYCLE-POLICY-TABLE.candidate.json', import.meta.url)));
+  assert.deepEqual(retentionCases.map(([id]) => id).sort(), table.classes.map((row) => row.classId).sort());
+  for (const [recordClass, eventType, boundaryAt] of retentionCases) {
+    const value = fixture({ recordClass, eventType,
+      historyType: recordClass === 'RC-CORPUS-PROVENANCE' ? 'corpus-retired' : 'originator-draft-saved',
+      edits: { state: (state) => { if (['RC-CORPUS-DERIVED-TEXT', 'RC-CORPUS-EXPORT'].includes(recordClass)) state.parentExpiryAt = '2026-09-19T12:00:00Z'; } } });
+    const result = value.verifier.verify(value.bytes, evaluation);
+    assert.equal(result.state, boundaryAt === null ? 'retained-immutable' : ['RC-REBUILDABLE', 'RC-CORPUS-RAW-WORKING'].includes(recordClass) ? 'validated-lifecycle-candidate' : 'scheduled', recordClass);
+    assert.equal(result.boundaryAt, boundaryAt, recordClass);
+    assert.deepEqual(result.effects, zeroEffects());
+  }
+});
+
+test('0068: earliest rebuildable trigger is bound into all copy and tombstone human decisions', () => {
+  for (const [historyType, eventType] of [['record-superseded', 'rebuild-requested'], ['rebuild-requested', 'record-superseded']]) {
+    for (const replay of [false, true]) {
+      const value = fixture({ historyType, eventType, triggerHistoryIndex: 0, replay });
+      const result = value.verifier.verify(value.bytes, evaluation);
+      assert.equal(result.state, 'validated-lifecycle-candidate'); assert.equal(result.boundaryAt, at(-10));
+      assert.equal(result.protectedActionCount, 3); assert.equal(result.replayCount, replay ? 3 : 0);
+      assert.deepEqual(result.effects, zeroEffects());
+    }
+    // Fully re-signed, internally coherent authority for the later trigger must
+    // not silently substitute for the required earliest trigger.
+    denied(fixture({ historyType, eventType }));
+  }
+});
+
+test('0068: corpus earlier/later rules require the correct history and reject ambiguous repetitions', () => {
+  for (const [recordClass, pairs, boundaryAt] of [
+    ['RC-CORPUS-PROVENANCE', [['corpus-retired', 'derived-record-deleted'], ['derived-record-deleted', 'corpus-retired']], '2033-09-04T12:00:00Z'],
+    ['RC-CORPUS-SANITIZED', [['corpus-version-superseded', 'corpus-retired'], ['corpus-retired', 'corpus-version-superseded']], '2027-09-04T11:59:50Z'],
+  ]) {
+    for (const [historyType, eventType] of pairs) {
+      const value = fixture({ recordClass, historyType, eventType });
+      const result = value.verifier.verify(value.bytes, evaluation);
+      assert.equal(result.state, 'scheduled'); assert.equal(result.boundaryAt, boundaryAt);
+      if (historyType !== 'derived-record-deleted') denied(fixture({ recordClass, eventType, history: [{ type: historyType, second: -20 }, { type: historyType, second: -10 }] }));
+    }
+  }
+  denied(fixture({ recordClass: 'RC-CORPUS-PROVENANCE', eventType: 'item-closed' }));
+  denied(fixture({ recordClass: 'RC-CORPUS-PROVENANCE', eventType: 'item-closed', historyType: 'corpus-retired', edits: { graph: (graph) => { delete graph.derivedInventoryBytes; } } }));
+  for (const eventType of ['corpus-version-superseded', 'corpus-retired']) {
+    const value = fixture({ recordClass: 'RC-CORPUS-SANITIZED', eventType });
+    assert.equal(value.verifier.verify(value.bytes, evaluation).boundaryAt, '2027-09-04T12:00:00Z');
+  }
+});
+
+test('0068: signed parent caps reach complete protected disposition, without extending the class maximum', () => {
+  for (const [recordClass, eventType, maximum] of [
+    ['RC-CORPUS-DERIVED-TEXT', 'run-terminal', '2026-12-03T12:00:00Z'],
+    ['RC-CORPUS-EXPORT', 'export-completed', '2026-10-04T12:00:00Z'],
+  ]) {
+    for (const replay of [false, true]) {
+      const value = fixture({ recordClass, eventType, replay, edits: { state: (state) => { state.parentExpiryAt = at(0); } } });
+      const result = value.verifier.verify(value.bytes, evaluation);
+      assert.equal(result.state, 'validated-lifecycle-candidate'); assert.equal(result.boundaryAt, at(0));
+      assert.equal(result.protectedActionCount, 3); assert.deepEqual(result.effects, zeroEffects());
+    }
+    const later = fixture({ recordClass, eventType, edits: { state: (state) => { state.parentExpiryAt = '2033-09-04T12:00:00Z'; } } });
+    assert.equal(later.verifier.verify(later.bytes, evaluation).boundaryAt, maximum);
+    for (const invalid of [null, '', 'not-a-date', 0, '2026-09-04T12:00:00+00:00'])
+      denied(fixture({ recordClass, eventType, edits: { state: (state) => { state.parentExpiryAt = invalid; } } }));
+    // A valid cap after the signed operation cannot authorize premature erasure.
+    denied(fixture({ recordClass, eventType, edits: { state: (state) => { state.parentExpiryAt = at(20); } } }));
+  }
+  denied(fixture({ edits: { state: (state) => { state.parentExpiryAt = at(0); } } }));
+});
+
+test('0068: actual matched hold histories retain or release safely and reject unmatched releases', () => {
+  const applied = [{ type: 'hold-applied', second: -20 }];
+  const released = [...applied, { type: 'hold-released', second: -10 }];
+  const holdEdits = { 'event-1': (event) => { event.holdId = 'hold-1'; }, 'event-2': (event) => { event.holdId = 'hold-1'; } };
+  for (const [history, holdState, expected] of [[applied, 'active', 'retained-on-hold'], [released, 'released', 'validated-lifecycle-candidate']]) {
+    const edits = { 'event-1': holdEdits['event-1'], ...(history.length === 2 ? { 'event-2': holdEdits['event-2'] } : {}), state: (state) => { state.holdState = holdState; } };
+    const value = fixture({ history, edits }), result = value.verifier.verify(value.bytes, evaluation);
+    assert.equal(result.state, expected); assert.deepEqual(result.effects, zeroEffects());
+  }
+  denied(fixture({ history: applied }));
+  denied(fixture({ history: [{ type: 'hold-released', second: -10 }], edits: { state: (state) => { state.holdState = 'released'; } } }));
+  denied(fixture({ history: released, edits: { ...holdEdits, 'event-2': (event) => { event.holdId = 'different-hold'; } } }));
+  const reference = fixture({ edits: { state: (state) => { state.referenceState = 'active'; } } });
+  assert.equal(reference.verifier.verify(reference.bytes, evaluation).state, 'retained-on-hold');
+});
+
+test('0068: provenance uses the maximum verified derived deletion, not an unrelated item closure', () => {
+  const recordClass = 'RC-CORPUS-PROVENANCE';
+  const history = [{ type: 'corpus-retired', second: -30 }, { type: 'derived-record-deleted', second: -20 }, { type: 'derived-record-deleted', second: -10 }];
+  const value = fixture({ recordClass, history, eventType: 'item-closed' });
+  const result = value.verifier.verify(value.bytes, evaluation);
+  assert.equal(result.state, 'scheduled'); assert.equal(result.boundaryAt, '2033-09-04T11:59:50Z'); assert.deepEqual(result.effects, zeroEffects());
+  // A signed complete empty manifest is distinct from a missing manifest. It
+  // attests no derivatives exist, so retirement is the only required trigger.
+  const empty = fixture({ recordClass, eventType: 'corpus-retired' });
+  assert.equal(empty.verifier.verify(empty.bytes, evaluation).boundaryAt, '2033-09-04T12:00:00Z');
+  const maximum = fixture({ recordClass, eventType: 'derived-record-deleted', history: [
+    { type: 'corpus-retired', second: -129 },
+    ...Array.from({ length: 127 }, (_, index) => ({ type: 'derived-record-deleted', second: index - 128 })),
+  ] });
+  assert.equal(JSON.parse(maximum.graph.derivedInventoryBytes).entries.length, 128);
+  assert.equal(maximum.verifier.verify(maximum.bytes, evaluation).state, 'scheduled');
+  denied(fixture({ recordClass, eventType: 'derived-record-deleted', history: [
+    { type: 'corpus-retired', second: -130 },
+    ...Array.from({ length: 128 }, (_, index) => ({ type: 'derived-record-deleted', second: index - 129 })),
+  ] }));
+});
+
+test('0068: provenance manifests are independently timed, closed, complete and exactly matched to every event', () => {
+  const defaults = { recordClass: 'RC-CORPUS-PROVENANCE', eventType: 'derived-record-deleted', history: [
+    { type: 'corpus-retired', second: -30 }, { type: 'derived-record-deleted', second: -20 },
+  ] };
+  const mutations = [
+    (record) => { record.complete = false; },
+    (record) => { record.source = 'caller-manifest'; },
+    (record) => { record.corpusId = 'other-corpus'; },
+    (record) => { record.corpusVersion = 'other-version'; },
+    (record) => { record.recordedAt = at(-1); },
+    (record) => { record.recordedAt = at(3); },
+    (record) => { record.validThrough = evaluation; },
+    (record) => { record.entries.pop(); },
+    (record) => { record.entries.push({ derivedRecordId: 'missing', derivedRecordClass: 'RC-CORPUS-EXPORT', deletionEventId: 'missing-event' }); },
+    (record) => { record.entries[1].derivedRecordId = record.entries[0].derivedRecordId; },
+    (record) => { record.entries[1].deletionEventId = record.entries[0].deletionEventId; },
+    (record) => { record.entries[0].derivedRecordClass = 'unknown-class'; },
+    (record) => { record.entries[0].derivedRecordClass = 'RC-CORPUS-EXPORT'; },
+    (record) => { record.entries[0].derivedRecordId = 'record-1'; },
+    (record) => { record.entries[0].unexpected = true; },
+    (record) => { record.entries.reverse(); },
+  ];
+  for (const mutate of mutations) denied(fixture({ ...defaults, edits: { 'derived-inventory': mutate } }));
+  denied(fixture({ ...defaults, derivedDomain: 'authority' }));
+  denied(fixture({ ...defaults, edits: { state: (state) => { state.derivedInventoryDigest = 'f'.repeat(64); } } }));
+  for (const field of ['parentCorpusId', 'parentCorpusVersion'])
+    denied(fixture({ ...defaults, edits: { 'event-2': (event) => { event[field] = 'substituted-parent'; } } }));
+  denied(fixture({ ...defaults, edits: { 'signed-event-proof-2': (proof) => { proof.signature.valueBase64 = Buffer.alloc(64).toString('base64'); } } }));
+  const value = fixture(defaults);
+  denied({ ...value, bytes: jcs({ ...value.graph, derivedInventoryBytes: value.graph.derivedInventoryBytes + ' ' }) });
+  const expired = '2027-09-01T00:00:00Z'; denied(value, expired);
+  denied(fixture({ edits: { graph: (graph) => { graph.derivedInventoryBytes = '{}'; } } }));
 });

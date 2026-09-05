@@ -43,11 +43,18 @@ proven by counting caller-supplied rows. Actual store integration is still neede
 
 ## Policy boundaries
 
-The pinned table selects the trigger, retention duration and parent cap. Calendar
+The pinned table selects retention duration and parent cap. Increment 0068
+corrects its provenance item-closure surrogate to the exact accepted policy:
+the later of retirement and the maximum verified derived-record deletion over
+a closed provider-signed manifest pinned by current authority-signed state.
+See `intent/0068/SPEC.md` for its closed schema and compatibility boundary.
+Other triggers follow the table; rebuildable records explicitly select the
+earliest supersession/rebuild request. Calendar
 years clamp leap day, days/seconds use exact UTC arithmetic, and malformed durations
 reject. Indefinite classes remain immutable; ordinary records before expiry are
-scheduled. Compound earlier/later rules select matching events; later requires
-both sides. Repeated same-type triggers are conservatively rejected rather than
+scheduled. Compound earlier/later rules select matching events; provenance
+requires retirement and every manifest-listed completion, not item closure.
+Repeated same-type triggers other than distinct derived completions are rejected rather than
 guessing which reopening/supersession is authoritative. Required parent expiry
 comes from signed state. Run-terminal status, environment retirement flags and
 sanitization terminal result must describe actual terminal conditions.
@@ -128,7 +135,7 @@ Tests establish two-provider, immediate-retention and raw-copy composed positive
 replay, hostile paths and calendar/scheduling boundaries. They do not establish
 every long-retention class at a future expiry: frozen event/human keys expire in
 2027, and invalid/expired evidence must deny. Future registry/retention coverage,
-compound/reference/parent positive evidence, live store/executor integration,
+reference-revocation completion, live store/executor integration,
 independent complete-package review and protected incorporation remain explicit
 obligations. The production protocol must maintain current source/hold state and
 atomic effects; a cached candidate descriptor is not a bearer capability.

@@ -40,7 +40,8 @@ Unicode-phone privacy (0056), multi-line cost (0057) and full human-authority
 (0060), composed lifecycle evidence (0061), composed migration evidence (0062)
 and explicit-time privacy/reconciliation (0063), remaining money (0064) and
 recovery (0065), original authorization (0066) and accessibility evidence (0067),
-with a checked public-oracle timing inventory
+with a checked public-oracle timing inventory and source-faithful lifecycle
+retention/derived-manifest corrections (0068)
 correction candidates, are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
@@ -121,6 +122,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0065 · Recovery time candidate | `intent/0065/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | complete timed recovery signatures, independent interval/inventory, one-hour ceiling, native journal times and strict byte encodings; unknown remains unknown | remaining public timing inventory, full normative/runtime recovery and independent/protected review |
 | 0066 · Original authorization time candidate | `intent/0066/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | ten signatures timed with current authority; independent observation; request digest checked before replay; no hypothetical write effects | accessibility/public timing inventory, full normative/runtime authorization and independent/protected review |
 | 0067 · Accessibility time and public inventory | `intent/0067/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md`, `PUBLIC-ORACLE-TIMING.json` | six timed signatures, full bounded synthetic matrix, row chronology and ten-oracle source/export inventory | full lifecycle/migration normative coverage, real/manual evidence, legacy trust semantics and independent/protected review |
+| 0068 · Source-faithful lifecycle retention | `intent/0068/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | earliest rebuildable trigger; closed derived inventory and verified provenance completions; all 16 current class outcomes and complete parent-capped actions | future retention/rotation, reference-revocation and full raw-key/normative coverage; independent/protected review |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier

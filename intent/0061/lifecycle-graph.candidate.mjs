@@ -14,7 +14,7 @@ const tableBytes = read('LIFECYCLE-POLICY-TABLE.candidate.json'), table = JSON.p
 const timed = createTimedRecordVerifier(registryBytes), rawSchema = compileOffline('RAW-POLICY-GRANT.schema.json');
 export const policyDigest = sha256(jcs({ version: 'steer-lifecycle-graph/v1', tableDigest: sha256(tableBytes),
   providerDigest: sha256(providerBytes), registryDigest: timed.registryDigest, humanPolicy, eventPolicy, manifestDigest,
-  rules: 'exact closed event/history, authoritative state/inventory, full human/raw proof, shared copy/tombstone actions, ordered provider receipts; zero execution', maxCopies: 32 }));
+  rules: 'exact closed event/history, authoritative state/inventory, earliest rebuildable trigger, provenance waits for closed derived manifest deletion events not item closure, full human/raw proof, shared copy/tombstone actions, ordered provider receipts; zero execution', maxCopies: 32, maxDerivedRecords: 128 }));
 const requireValue = (value) => { if (!value) throw new Error('LIFECYCLE_GRAPH_INVALID'); };
 const text = (value) => typeof value === 'string' && value.length > 0 && value.length <= 512 && !/[\u0000-\u001f*?]/u.test(value);
 const iso = (value) => new Date(value).toISOString().replace('.000Z', 'Z');
@@ -65,7 +65,8 @@ export function createLifecycleGraphVerifier(configBytes) {
         const now = time(evaluationTime);
         requireValue(typeof serialized === 'string' && serialized.length <= 16777216);
         const graph = parseCanonical(serialized);
-        requireValue(exactKeys(graph, ['version', 'policyDigest', 'configDigest', 'eventBytes', 'historyBytes', 'inventoryBytes', 'stateBytes', 'referenceRevocationBytes', 'copies', 'aggregateBytes', 'tombstone']) &&
+        const provenance = config.recordClass === 'RC-CORPUS-PROVENANCE';
+        requireValue(exactKeys(graph, ['version', 'policyDigest', 'configDigest', 'eventBytes', 'historyBytes', 'inventoryBytes', 'stateBytes', 'referenceRevocationBytes', 'copies', 'aggregateBytes', 'tombstone', ...(provenance ? ['derivedInventoryBytes'] : [])]) &&
           graph.version === 'steer-lifecycle-graph/v1' && graph.policyDigest === policyDigest && graph.configDigest === configDigest);
         const eventsResult = correctedLifecycleEventDecision(jcs({ version: 'steer-r5-001-events/v1', policyDigest: eventPolicy,
           scope: { organization: scope.organization, itemId: scope.item, environmentId: config.environmentId }, eventBytes: graph.eventBytes, historyBytes: graph.historyBytes, evaluationTime }));
@@ -89,7 +90,7 @@ export function createLifecycleGraphVerifier(configBytes) {
         }
         requireValue(equal(copies.map((copy) => copy.copyId), [...copyIds].sort()));
         const historyDigest = sha256(jcs([...graph.historyBytes, graph.eventBytes])), tupleDigest = sha256(jcs(copies));
-        const state = readProof(graph.stateBytes, 'authority', ['kind', 'configDigest', 'source', 'inventoryDigest', 'historyDigest', 'historyComplete', 'holdState', 'referenceState', 'referenceRevocationDigest', 'parentExpiryAt', 'validThrough']);
+        const state = readProof(graph.stateBytes, 'authority', ['kind', 'configDigest', 'source', 'inventoryDigest', 'historyDigest', 'historyComplete', 'holdState', 'referenceState', 'referenceRevocationDigest', 'parentExpiryAt', 'validThrough', ...(provenance ? ['derivedInventoryDigest'] : [])]);
         requireValue(state.kind === 'state' && state.source === 'authoritative-lifecycle-store' && state.inventoryDigest === inventory.recordDigest &&
           state.historyDigest === historyDigest && state.historyComplete === true && time(state.recordedAt) >= time(events.at(-1).occurredAt) &&
           time(state.recordedAt) >= time(inventory.recordedAt) && now - time(state.recordedAt) <= 300000 && now < time(state.validThrough));
@@ -101,11 +102,43 @@ export function createLifecycleGraphVerifier(configBytes) {
         }
         requireValue(holds.size === 0 || state.holdState === 'active');
         const compound = { 'record-superseded-or-rebuild-requested': ['record-superseded', 'rebuild-requested'],
-          'later-corpus-retired-or-derived-closed': ['corpus-retired', 'item-closed'], 'earlier-corpus-superseded-or-retired': ['corpus-version-superseded', 'corpus-retired'] };
-        const types = compound[row.trigger] ?? [row.trigger], triggers = events.filter((event) => types.includes(event.eventType));
-        requireValue(triggers.length > 0 && types.every((type) => triggers.filter((event) => event.eventType === type).length <= 1));
-        if (row.trigger.startsWith('later-')) requireValue(types.every((type) => triggers.some((event) => event.eventType === type)));
-        const trigger = row.trigger.startsWith('earlier-') ? triggers[0] : triggers.at(-1);
+          'earlier-corpus-superseded-or-retired': ['corpus-version-superseded', 'corpus-retired'] };
+        // 0068: the frozen table's item-closed surrogate contradicts the exact
+        // signed records policy. Preserve that table for review traceability,
+        // but require a current, closed manifest and every verified deletion.
+        const types = provenance ? ['corpus-retired', 'derived-record-deleted'] : compound[row.trigger] ?? [row.trigger];
+        const triggers = events.filter((event) => types.includes(event.eventType));
+        requireValue(triggers.length > 0);
+        if (provenance) {
+          const retirements = triggers.filter((event) => event.eventType === 'corpus-retired');
+          requireValue(retirements.length === 1);
+          const retired = retirements[0], deletions = triggers.filter((event) => event.eventType === 'derived-record-deleted');
+          const derived = readProof(graph.derivedInventoryBytes, 'provider', ['kind', 'configDigest', 'source', 'manifestId', 'corpusId', 'corpusVersion', 'entries', 'complete', 'validThrough']);
+          requireValue(derived.kind === 'derived-inventory' && derived.source === 'authoritative-derived-record-manifest' && text(derived.manifestId) &&
+            derived.complete === true && derived.recordDigest === state.derivedInventoryDigest && derived.corpusId === retired.corpusId &&
+            derived.corpusVersion === retired.corpusVersion && now - time(derived.recordedAt) <= 300000 && now < time(derived.validThrough) &&
+            time(derived.recordedAt) >= time(events.at(-1).occurredAt) && time(derived.recordedAt) <= time(state.recordedAt) &&
+            Array.isArray(derived.entries) && derived.entries.length <= 128 && deletions.length === derived.entries.length);
+          const ids = new Set(), completionIds = new Set();
+          for (const entry of derived.entries) {
+            requireValue(exactKeys(entry, ['derivedRecordId', 'derivedRecordClass', 'deletionEventId']) &&
+              Object.values(entry).every(text) && entry.derivedRecordId !== config.recordId &&
+              table.classes.some((item) => item.classId === entry.derivedRecordClass) &&
+              !ids.has(entry.derivedRecordId) && !completionIds.has(entry.deletionEventId));
+            ids.add(entry.derivedRecordId); completionIds.add(entry.deletionEventId);
+            const completion = deletions.find((event) => event.eventId === entry.deletionEventId);
+            requireValue(completion && completion.derivedRecordId === entry.derivedRecordId && completion.derivedRecordClass === entry.derivedRecordClass &&
+              completion.parentCorpusId === derived.corpusId && completion.parentCorpusVersion === derived.corpusVersion);
+          }
+          requireValue(equal(derived.entries.map((entry) => entry.derivedRecordId), [...ids].sort()));
+        } else {
+          requireValue(types.every((type) => triggers.filter((event) => event.eventType === type).length <= 1));
+          if (row.trigger.startsWith('later-')) requireValue(types.every((type) => triggers.some((event) => event.eventType === type)));
+        }
+        // The signed records policy says earliest supersession/rebuild request.
+        // Provenance instead selects the later retirement/final derived
+        // completion. Events were verified in time order.
+        const trigger = row.trigger.startsWith('earlier-') || row.trigger === 'record-superseded-or-rebuild-requested' ? triggers[0] : triggers.at(-1);
         for (const event of triggers) {
           if (event.eventType === 'run-terminal') requireValue(['completed', 'failed', 'cancelled', 'timed-out'].includes(event.terminalStatus));
           if (event.eventType === 'environment-retired') requireValue(event.trafficDisabled === true && event.credentialsRevoked === true);
@@ -124,7 +157,8 @@ export function createLifecycleGraphVerifier(configBytes) {
             time(reference.recordedAt) <= time(state.recordedAt));
         } else requireValue(graph.referenceRevocationBytes === '' && state.referenceRevocationDigest === null);
         requireValue(Array.isArray(graph.copies) && graph.copies.length === copies.length && new Set(graph.copies.map((entry) => entry.copyId)).size === copies.length);
-        const baseDigest = sha256(jcs({ configDigest, policyDigest, eventBytes: graph.eventBytes, historyBytes: graph.historyBytes, inventoryBytes: graph.inventoryBytes, stateBytes: graph.stateBytes, referenceRevocationBytes: graph.referenceRevocationBytes }));
+        const baseDigest = sha256(jcs({ configDigest, policyDigest, eventBytes: graph.eventBytes, historyBytes: graph.historyBytes, inventoryBytes: graph.inventoryBytes, stateBytes: graph.stateBytes, referenceRevocationBytes: graph.referenceRevocationBytes,
+          ...(provenance ? { derivedInventoryBytes: graph.derivedInventoryBytes } : {}) }));
         const usedAuthorities = new Set(), usedRequests = new Set(), usedIdempotency = new Set(), transactions = new Set();
         const humanProofs = new Set(), humanReservations = new Set(), humanKeys = new Set(), humanHeads = new Set();
         const credentialIds = new Set(), reservationIds = new Set(), actionHeads = new Set();

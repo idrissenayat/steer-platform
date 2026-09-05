@@ -588,6 +588,16 @@ source functions to real successor exports/tests and records preserved historica
 helpers separately. This completes the named inventory, not independent or full
 normative acceptance. See `intent/0067/SPEC.md` and `intent/0067/EVIDENCE.md`.
 
+Item `intent/0068` corrects two source-policy mismatches in 0061: rebuildable
+records select the earliest supersession/rebuild event, and provenance requires
+retirement plus every verified derived-record deletion, not item closure. A
+closed current provider-signed derived manifest is pinned by authority-signed
+state and the full action input. The candidate policy digest changes; old inputs
+are not silently upgraded. Tests exercise all 16 current class outcomes, complete
+parent-capped dispositions/replay, compound selection, hold histories and up to
+128 derived completions. This is not complete future-expiry disposition coverage.
+Frozen policy/table files are preserved. See `intent/0068/SPEC.md` and `EVIDENCE.md`.
+
 ## Local commands
 
 ```sh
