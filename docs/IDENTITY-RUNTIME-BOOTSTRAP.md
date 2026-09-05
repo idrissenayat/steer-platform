@@ -65,3 +65,8 @@ a second bounded lazy pool using steer_app, never the auth login/password by
 default. Fixed org/repository come from the existing GitHub binding. Both pools
 close on service shutdown or startup failure. No reader is enabled without the
 complete explicit pair. See `docs/ARTIFACT-PROJECTION-READS.md` and `intent/0031`.
+
+Increment 0032 adds a separate createProjectionRuntime entry with its own strict
+profile/secrets, explicit agent authenticator and steer_projector pool. It offers
+one bounded runOnce plus shutdown, not identity routes or automatic scheduling.
+See `docs/REPOSITORY-RECONCILIATION.md`; identity/default CLI startup is unchanged.

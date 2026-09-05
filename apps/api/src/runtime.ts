@@ -8,6 +8,10 @@ import { startLocalIdentityListener } from './identity-listener.ts';
 import { secretReferenceSchema, type SecretProvider } from '@steer/adapters/secrets';
 import { artifactProjectionInputSchema } from '@steer/tool-registry';
 import { createArtifactProjectionReader } from '@steer/data/artifact-reader';
+import { principalSchema } from '@steer/tool-registry';
+import { reconcileArtifacts } from '@steer/adapters/reconcile';
+import { ingestVerifiedArtifact, projectionKey } from '@steer/data/ingestion';
+import { readProjection } from '@steer/data';
 
 const text = z.string().min(1);
 const databaseSchema = z.strictObject({ host: text, port: z.number(), database: text,
@@ -26,6 +30,59 @@ const profileSchema = z.strictObject({
 });
 const secretsSchema = z.strictObject({ browserClientSecret: text, githubPrivateKeyPem: text,
   databasePassword: text, sessionKeys: z.record(z.string(), z.instanceof(Uint8Array)), readModelDatabasePassword: text.optional() });
+
+const projectionProfileSchema = z.strictObject({ version: z.literal('steer-projection-runtime/v1'),
+  github: profileSchema.shape.github.omit({ authorizationPath: true }), database: databaseSchema,
+  paths: z.array(artifactProjectionInputSchema.shape.path).min(1).max(100) });
+const projectionSecretsSchema = z.strictObject({ githubPrivateKeyPem: text, databasePassword: text });
+
+/** Explicit one-shot job composition; no HTTP dispatch, timer, automatic retry or agent impersonation. */
+export async function createProjectionRuntime(rawProfile: unknown, rawSecrets: unknown, dependencies: {
+  authenticate: () => Promise<unknown>; github?: typeof fetch;
+}) {
+  let pool: ReturnType<typeof createRuntimePool> | undefined;
+  try {
+    const profile = projectionProfileSchema.parse(rawProfile); const secrets = projectionSecretsSchema.parse(rawSecrets);
+    if (new Set(profile.paths).size !== profile.paths.length) throw new Error();
+    const reader = createGitHubReader(profile.github.binding, { appJwt: createAppJwtSigner(profile.github.appId, secrets.githubPrivateKeyPem),
+      ...(dependencies.github ? { fetch: dependencies.github } : {}) });
+    const ownedPool = createRuntimePool({ ...profile.database, user: 'steer_projector', password: secrets.databasePassword }); pool = ownedPool;
+    let stopping = false, active: Promise<Awaited<ReturnType<typeof reconcileArtifacts>>> | undefined, closing: Promise<void> | undefined;
+    let controller: AbortController | undefined;
+    const authorize = async () => {
+      const principal = principalSchema.parse(await dependencies.authenticate());
+      if (principal.type !== 'agent' || principal.hats.length || principal.organizationId !== profile.github.binding.organizationId ||
+          !principal.toolGrants.includes('projection.ingest') || Date.parse(principal.expiresAt) <= Date.now()) throw new Error('Projection identity is not authorized.');
+      return principal;
+    };
+    return {
+      runOnce() {
+        if (stopping || active) return Promise.reject(new Error('Projection runtime is not accepting work.'));
+        controller = new AbortController(); const signal = controller.signal;
+        active = (async () => {
+          let identity: Awaited<ReturnType<typeof authorize>>;
+          try { identity = await authorize(); } catch { throw new Error('Projection identity is not authorized.'); }
+          const current = async () => { const next = await authorize(); if (next.subject !== identity.subject) throw new Error('Projection identity changed.'); return next; };
+          return reconcileArtifacts(reader, profile.paths, {
+            currentRevision: async (repository, path) => (await readProjection(ownedPool, await current(), projectionKey(repository, path)))?.sourceRevision ?? null,
+            ingest: async (snapshot, expected) => ingestVerifiedArtifact(ownedPool, await current(), snapshot, expected),
+          }, signal);
+        })().finally(() => { active = undefined; controller = undefined; });
+        return active;
+      },
+      shutdown() {
+        if (!closing) { stopping = true; controller?.abort(); const pending = active;
+          closing = (async () => { try { await pending; } catch { /* Failure is reported to the run caller. */ } await ownedPool.shutdown(); })(); }
+        return closing;
+      },
+      status: () => ({ stopping, active: Boolean(active), database: ownedPool.status() }),
+    };
+  } catch {
+    try { if (pool) await pool.shutdown(); }
+    catch { throw new Error('Projection runtime cleanup could not be confirmed.'); }
+    throw new Error('Projection runtime configuration could not be initialized.');
+  }
+}
 
 const localProfileSchema = z.strictObject({ version: z.literal('steer-local-identity/v1'), identity: profileSchema, rendererOrigin: text });
 const localSecretsSchema = z.strictObject({ identity: secretsSchema, tls: z.strictObject({ key: text, cert: text }) });

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { generateKeyPairSync, randomBytes } from 'node:crypto';
 import { test } from 'node:test';
-import { createIdentityRuntime, startLocalIdentityRuntime, startLocalIdentityFromSecretProvider } from '../src/runtime.ts';
+import { createIdentityRuntime, createProjectionRuntime, startLocalIdentityRuntime, startLocalIdentityFromSecretProvider } from '../src/runtime.ts';
 import { createLocalTlsHarness, reserveLocalPort, localHttpsRequest } from './local-tls-harness.ts';
 import { createEncryptedFileSecretProvider } from '@steer/adapters/secrets';
 import { createSecretFixture } from '../../../packages/adapters/test/secret-fixture.ts';
@@ -115,4 +115,37 @@ test('read-model binding requires separate explicit credential and closes both b
   try { assert.equal(runtime.status().readModel?.connections, 0); assert.equal(runtime.status().readModel?.closed, false); }
   finally { await runtime.shutdown(); }
   assert.equal(runtime.status().database.closed, true); assert.equal(runtime.status().readModel?.closed, true);
+});
+
+const projectionProfile = { version: 'steer-projection-runtime/v1',
+  github: { appId: profile.github.appId, binding: profile.github.binding }, database: profile.database, paths: ['BRIEF.md'] };
+const projectionSecrets = { githubPrivateKeyPem: secrets.githubPrivateKeyPem, databasePassword: secrets.databasePassword };
+const projectionAgent = { subject: 'synthetic-projector', organizationId: 'synthetic', type: 'agent', hats: [], toolGrants: ['projection.ingest'],
+  expiresAt: new Date(Date.now() + 300000).toISOString() };
+
+test('projection runtime is lazy, explicit and rejects invalid agent authority before provider access', async () => {
+  let calls = 0;
+  for (const principal of [null, { ...projectionAgent, type: 'human' }, { ...projectionAgent, organizationId: 'foreign' },
+    { ...projectionAgent, toolGrants: [] }, { ...projectionAgent, expiresAt: new Date(0).toISOString() }]) {
+    const runtime = await createProjectionRuntime(projectionProfile, projectionSecrets, { authenticate: async () => principal,
+      github: async () => { calls++; throw new Error('private-provider-detail'); } });
+    assert.equal(runtime.status().database.connections, 0);
+    await assert.rejects(runtime.runOnce(), /identity is not authorized/); await runtime.shutdown();
+    assert.equal(runtime.status().database.closed, true);
+  }
+  assert.equal(calls, 0);
+  await assert.rejects(createProjectionRuntime({ ...projectionProfile, paths: ['x', 'x'] }, projectionSecrets, { authenticate: async () => projectionAgent }));
+});
+
+test('projection runtime refuses overlap and shutdown waits for actual pending source work', async () => {
+  let release!: () => void, entered!: () => void;
+  const blocked = new Promise<void>((resolve) => { release = resolve; }); const started = new Promise<void>((resolve) => { entered = resolve; });
+  const runtime = await createProjectionRuntime(projectionProfile, projectionSecrets, { authenticate: async () => projectionAgent,
+    github: async () => { entered(); await blocked; throw new Error('private-provider-detail'); } });
+  const run = runtime.runOnce(); const rejected = assert.rejects(run, (value: unknown) => value instanceof Error && !value.message.includes('private'));
+  await started; await assert.rejects(runtime.runOnce(), /not accepting work/);
+  let closed = false; const shutdown = runtime.shutdown().then(() => { closed = true; });
+  await new Promise((resolve) => setImmediate(resolve)); assert.equal(closed, false); assert.equal(runtime.status().active, true);
+  await assert.rejects(runtime.runOnce(), /not accepting work/); release(); await rejected; await shutdown;
+  assert.equal(runtime.status().active, false); assert.equal(runtime.status().database.closed, true);
 });

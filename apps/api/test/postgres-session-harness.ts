@@ -18,7 +18,7 @@ import { reserveLocalPort, localHttpsRequest } from './local-tls-harness.ts';
 import { createArtifactProjectionReader } from '@steer/data/artifact-reader';
 import { ingestVerifiedArtifact, projectionKey } from '@steer/data/ingestion';
 import { readProjection } from '@steer/data';
-import { reconcileArtifact } from '@steer/adapters/reconcile';
+import { reconcileArtifacts, type SnapshotProjectionSink, type ProjectionOutcome } from '@steer/adapters/reconcile';
 import type { Principal } from '@steer/tool-registry';
 
 /** Two disposable services only; no externally supplied connection or credential. */
@@ -79,17 +79,32 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
     const transactionKeys = async () => (await admin.query<{ key_hash: string }>(
       'SELECT key_hash FROM steer_auth.login_transactions WHERE namespace=$1', [namespace])).rows;
     return { kind: 'postgres', store, freshStore, close,
-      createProjectionFixture: async (reader, path) => {
+      createProjectionFixture: async (reader, paths) => {
         const projector = runtime('steer_projector'); const app = runtime('steer_app');
         const organizationId = reader.binding.organizationId; const repository = `github:${reader.binding.repositoryId}`;
         const principal: Principal = { subject: 'synthetic-projector', organizationId, type: 'agent', hats: [],
           toolGrants: ['projection.ingest'], expiresAt: new Date(Date.now() + 300000).toISOString() };
-        assert.equal(await reconcileArtifact(reader, path, {
-          currentRevision: async () => (await readProjection(projector, principal, projectionKey(repository, path)))?.sourceRevision ?? null,
+        const sink = (): SnapshotProjectionSink<ProjectionOutcome> => ({
+          currentRevision: async (_repository, path) => (await readProjection(projector, principal, projectionKey(repository, path)))?.sourceRevision ?? null,
           ingest: (snapshot, expected) => ingestVerifiedArtifact(projector, principal, snapshot, expected),
-        }), 'applied');
-        return { services: { artifactProjection: createArtifactProjectionReader(app, { organizationId, repository, paths: [path] }) },
-          input: { organizationId, repository, path, revision: await reader.readHead() } };
+        });
+        const first = await reconcileArtifacts(reader, paths, sink());
+        assert.equal(first.status, 'reconciled'); assert.ok(first.outcomes.every((item) => item.outcome === 'applied'));
+        const events = Number((await admin.query('SELECT count(*) AS count FROM steer.ingestion_events WHERE organization_id=$1', [organizationId])).rows[0].count);
+        assert.ok((await reconcileArtifacts(reader, paths, sink())).outcomes.every((item) => item.outcome === 'duplicate'));
+        const path = paths[0]!;
+        await admin.query('UPDATE steer.projection_records SET content_digest=$1 WHERE organization_id=$2 AND record_key=$3', ['0'.repeat(64), organizationId, projectionKey(repository, path)]);
+        const repaired = await reconcileArtifacts(reader, paths, sink());
+        assert.equal(repaired.outcomes.find((item) => item.path === path)?.outcome, 'repaired');
+        assert.equal(Number((await admin.query('SELECT count(*) AS count FROM steer.ingestion_events WHERE organization_id=$1', [organizationId])).rows[0].count), events);
+        const projectionReader = createArtifactProjectionReader(app, { organizationId, repository, paths });
+        for (const item of paths) {
+          const actual = await projectionReader.read({ organizationId, repository, path: item, revision: first.revision },
+            { ...principal, toolGrants: ['projection.artifact.read'] }) as { content: string };
+          assert.equal(actual.content, (await reader.readArtifact(item, first.revision)).content);
+        }
+        console.log('PASS pinned two-artifact Git manifest replays and repairs PostgreSQL without rewriting history');
+        return { services: { artifactProjection: projectionReader }, input: { organizationId, repository, path, revision: first.revision } };
       },
       verifyRuntimeBootstrap: async (configuration, privateKeyPem) => {
         const { clientSecret, ...browser } = configuration;

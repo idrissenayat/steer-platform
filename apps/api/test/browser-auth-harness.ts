@@ -106,7 +106,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         validAfter: new Date(0).toISOString(), expiresAt: new Date(Date.now() + 600000).toISOString() };
       const source = await createGitAuthorizationHarness(tls.temporary, grant);
       assert.ok(storage.createProjectionFixture);
-      const projection = await storage.createProjectionFixture(source.reader, source.artifactPath);
+      const projection = await storage.createProjectionFixture(source.reader, [source.artifactPath, source.secondArtifactPath]);
       assert.ok(storage.shutdown);
       const dependencies = { fetch: deps.fetch, reader: source.reader, authorizationPath: source.authorizationPath, services: projection.services,
         sessions: { store: storage.store, binding: { issuer, clientId: configuration.clientId, redirectUri: configuration.redirectUri }, shutdown: storage.shutdown } };

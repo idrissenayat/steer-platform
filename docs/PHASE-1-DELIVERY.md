@@ -530,3 +530,25 @@ then shared workflow transports and real operating surfaces. Real bindings,
 governed writes, public ingress/supervision, manual accessibility, the five R5
 findings and gate/deployment/release/spending boundaries remain separate.
 Isolated implementation remains unblocked.
+
+## Completed development increment: 0032
+
+Added explicit-manifest reconciliation for 1–100 paths, pinned to one Git revision
+with bounded staging and source hash/binding checks before writes. Per-record
+CAS and duplicate/repair behavior remain intact. Partial failures report only
+acknowledged progress; superseded manifests never claim successful convergence.
+An opt-in one-shot runtime composes the real reader/projector pool with a supplied
+current agent authenticator, overlap refusal and truthful shutdown.
+
+The isolated browser harness now replays two actual synthetic Git artifacts,
+repairs a corrupt PostgreSQL projection without changing event count and verifies
+both files byte-for-byte. Runtime lifecycle and source/failure checks pass.
+Evidence: `intent/0032/EVIDENCE.md`; guide: `docs/REPOSITORY-RECONCILIATION.md`.
+This is curated-manifest replay, not automatic whole-repository inventory,
+deletion/rollback policy, atomic publication or durable scheduling.
+
+Next bounded increment: revision-bound source inventory/manifest integration,
+then shared workflow transports and remaining operating surfaces. Live runtime
+authenticator/secret binding, production operations, the five R5 findings and
+all gate/deployment/release/spending boundaries remain separate. Safe isolated
+implementation remains unblocked.

@@ -22,7 +22,7 @@ identity service lifecycle composition (0024), explicit runtime bootstrap (0025)
 native Next.js sign-in surface (0026), bounded identity gateway (0027) and
 explicit local HTTPS runtime (0028), authenticated workspace session view (0029)
 encrypted secret-provider loading (0030) and authenticated artifact projection
-reads (0031) are
+reads (0031) and bounded manifest reconciliation (0032) are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
 [provider evidence](docs/GITHUB-RUNTIME-APP.md).
@@ -66,6 +66,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0029 · Authenticated workspace session | `intent/0029/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | verified session/organization/hats, private credential-free display projection, native responsive UI and revocation/browser checks | secret loading, authenticated business tools/full operating surfaces, manual accessibility and formal gates |
 | 0030 · Encrypted secret loading | `intent/0030/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | pinned encrypted-file provider, scoped data-key unwrap seam, explicit local bootstrap and real storage proof after input cleanup | approved live KMS/secret binding, production supervision, business tools/full operating surfaces and formal gates |
 | 0031 · Authenticated artifact reads | `intent/0031/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | exact-revision async registry tool, post-I/O authorization, read-only tenant adapter and actual synthetic Git/Postgres/browser proof | full repository/durable ingestion, production surfaces, approved runtime bindings and formal gates |
+| 0032 · Bounded manifest reconciliation | `intent/0032/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | one-revision staging, partial-failure recovery, explicit agent runtime and two-file Git/Postgres replay/repair | full inventory/removal policy, durable workers, live runtime bindings and formal gates |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier

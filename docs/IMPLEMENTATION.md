@@ -314,11 +314,19 @@ separate bounded read pool. Synthetic Git ingestion through actual PostgreSQL
 and the authenticated browser is verified; cached bytes are not Git authority.
 See `docs/ARTIFACT-PROJECTION-READS.md`.
 
+Item `intent/0032` adds revision-pinned, bounded explicit-manifest reconciliation,
+honest partial failures and an opt-in one-shot projector runtime. Fresh agent
+authority, overlap refusal and owned shutdown are tested. Two-artifact synthetic
+Git/Postgres replay and repair feed the authenticated browser fixture without
+rewriting history. This is not automatic whole-repository discovery or a durable
+worker. See `docs/REPOSITORY-RECONCILIATION.md`.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.
 Still to be built or composed: business tools beyond session context and curated
-artifact reads, MCP v2 transport, full-repository projection replay, Temporal workers,
+artifact reads, MCP v2 transport, source inventory/full-repository projection
+composition beyond explicit manifests, Temporal workers,
 version-pinned Mastra adapter, LiteLLM gateway, tenant-scoped evidence storage,
 production product analytics, an approved live secret-manager binding, runtime/ingress
 configuration, full authenticated workspace UI and the thirteen-case architecture walking
