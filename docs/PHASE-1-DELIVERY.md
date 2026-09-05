@@ -101,9 +101,9 @@ and three new real PostgreSQL checks (eleven database checks total).
 Authorization remains read-through to current Git, not the projection cache.
 
 Before live GitHub composition, user approval was requested for a separate
-read-only runtime App on `idrissenayat/steer-platform`. The installed Test
-Agent App must remain independent; its key has not been loaded or reused.
-While that decision is pending, provider-independent foundations can continue.
+read-only runtime App on `idrissenayat/steer-platform`. Approval has since been
+received and the App installed; see the provider checkpoint below. The Test
+Agent App remains independent; its key has not been loaded or reused.
 
 ## Completed development increment: 0012
 
@@ -115,10 +115,24 @@ See `intent/0012/EVIDENCE.md`; host Node was not replaced.
 
 Next integration: runtime GitHub App binding, local Keycloak/browser and
 authorized operating-repository membership composition, followed by durable
-ingestion and workflow transports. The separate runtime-App approval remains
-pending; do not repurpose the independent Test Agent key or enable live reads
-under that identity. No user decision has been inferred from an unanswered card.
+ingestion and workflow transports. The separate runtime App is installed, but
+its credential download requires user handoff; do not repurpose the independent
+Test Agent key or enable live reads under that identity.
 M2 remains partial until those identities and tenant data are wired end to end.
 Live Git writes remain blocked on M0 and applicable provider authorization. Remaining
 M1 work includes full stack lock and
 local service composition; the shell alone does not complete P1-01.
+
+## Provider checkpoint: runtime App installed, credential handoff blocked
+
+On 2026-09-05 UTC the user approved and GitHub confirmed installation of
+`steer-platform-runtime` (App `4836171`, installation `159172046`) on only
+`idrissenayat/steer-platform`, with Contents/Metadata read-only. Webhooks and
+user OAuth are disabled. The independent Test Agent App was untouched.
+
+GitHub created a runtime private key, but Chrome blocked the download. The
+user must complete the download and provide its local path; no key contents
+should be pasted into chat. No runtime credential has been retrieved or used,
+and no signed API evidence exists yet. Details and recovery boundaries are in
+`docs/GITHUB-RUNTIME-APP.md`. Pause the implementation loop at this user-only
+handoff without repeating unchanged requests or mutating work while waiting.
