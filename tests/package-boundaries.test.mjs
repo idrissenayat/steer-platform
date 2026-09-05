@@ -12,9 +12,9 @@ const rules = {
   'packages/adapters': { folders: ['src'], packages: ['@steer/tool-registry', 'jose', 'zod'], builtins: ['node:crypto', 'node:fs', 'node:fs/promises', 'node:path'],
     builtinEntryOnly: { 'node:fs': 'src/secrets/file.ts', 'node:fs/promises': 'src/secrets/file.ts', 'node:path': 'src/secrets/file.ts' } },
   'packages/data': { folders: ['src'], packages: ['@steer/tool-registry', 'drizzle-orm', 'pg', 'zod'], builtins: ['node:crypto'] },
-  'apps/api': { folders: ['src'], packages: ['@steer/adapters', '@steer/data', '@steer/tool-registry', '@hono/node-server', 'hono', 'zod'], builtins: ['node:https'],
+  'apps/api': { folders: ['src'], packages: ['@steer/adapters', '@steer/data', '@steer/tool-registry', '@hono/node-server', '@modelcontextprotocol/server', 'hono', 'zod'], builtins: ['node:https'],
     builtinEntryOnly: { 'node:https': 'src/identity-listener.ts' },
-    entryOnly: { '@steer/data': 'src/runtime.ts', zod: 'src/runtime.ts' } },
+    entryOnly: { '@steer/data': 'src/runtime.ts', zod: 'src/runtime.ts', '@modelcontextprotocol/server': 'src/mcp.ts' } },
   'apps/web': { folders: ['app'], packages: ['next', 'react', 'react-dom'], builtins: [] },
 };
 const packageName = (specifier) => specifier.startsWith('@') ? specifier.split('/').slice(0, 2).join('/') : specifier.split('/')[0];
@@ -105,6 +105,8 @@ test('API storage/configuration imports are restricted to the explicit compositi
     }
   }
   assert.equal(allowed('node:https', resolve(base, 'src/identity-listener.ts'), base, rule), true);
+  assert.equal(allowed('@modelcontextprotocol/server', resolve(base, 'src/mcp.ts'), base, rule), true);
+  for (const file of ['src/app.ts', 'src/browser.ts', 'src/runtime.ts']) assert.equal(allowed('@modelcontextprotocol/server', resolve(base, file), base, rule), false);
   for (const file of ['src/app.ts', 'src/browser.ts', 'src/runtime.ts', 'src/identity-service.ts', 'src/server.ts']) {
     assert.equal(allowed('node:https', resolve(base, file), base, rule), false);
   }

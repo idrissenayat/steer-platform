@@ -572,3 +572,22 @@ reconciliation orchestration and remaining operating surfaces. Large-inventory
 partitioning, source-removal/rollback policy and actual runtime bindings remain
 explicit gaps. The five R5 findings and all gate/deployment/release/spending
 boundaries remain separate; safe isolated implementation remains unblocked.
+
+## Completed development increment: 0034
+
+Added official MCP TypeScript SDK v2 Streamable HTTP over the canonical registry,
+with protocol 2026-07-28, bearer-only current Git-backed OIDC authority and strict
+origin/method/body/admission limits. Schema/result parity, post-I/O revocation and
+actual tool-drain behavior are verified. SDK imports remain outside the registry
+and limited to the API transport adapter; package/protocol pins are recorded.
+
+An official client crosses actual isolated HTTPS/Keycloak/Git, matches the HTTP
+tool result and observes committed grant revocation/restoration. The browser suite
+now passes 24 counted groups plus its inventory fixture checkpoint. Evidence:
+`intent/0034/EVIDENCE.md`; guide: `docs/MCP-TRANSPORT.md`.
+
+Next bounded increment: combined runtime MCP mounting/lifecycle, then Temporal
+workflow foundation and durable reconciliation orchestration. OAuth onboarding,
+real runtime bindings, large-inventory/removal/rollback policy, full operating
+surfaces and the five R5 findings remain open. No default activation, spending,
+deployment, release or gate approval. Safe isolated implementation continues.

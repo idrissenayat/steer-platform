@@ -12,6 +12,7 @@ import { createOidcApi } from '../src/identity.ts';
 import { testKeycloakHumanFlow } from './keycloak-human.integration.ts';
 import { createPostgresSessionHarness } from './postgres-session-harness.ts';
 import { createBrowserAuthHarness } from './browser-auth-harness.ts';
+import { testMcpKeycloak } from './mcp-keycloak.integration.ts';
 
 // Deliberately separate from normal tests: requires Docker and OpenSSL, never real credentials.
 const image = 'quay.io/keycloak/keycloak@sha256:ff4257d0d64efbe99ed1ddfaf07765cc3c36dc7518bf8324d41961327f441c54';
@@ -193,6 +194,8 @@ try {
     assert.equal((await call('synthetic-org')).status, 401);
     assert.equal((await api.request('/health/ready')).status, 503);
   });
+  await testMcpKeycloak({ configuration: config, bearer, grant: { ...grant, active: true, toolGrants: ['session.context'] },
+    providerFetch: scopedFetch, temporary, key: await readFile(join(temporary, 'tls.key'), 'utf8'), cert: certificate.toString(), check });
   const humanDependencies = { issuer, clientSecret: humanClientSecret, subject: humanSubject,
     username: 'synthetic-human', password: humanPassword, fetch: scopedFetch, check };
   const createSessions = async (binding: { issuer: string; clientId: string; redirectUri: string }) => {

@@ -1,0 +1,23 @@
+{
+  "version": "steer-component-stack-lock/v1",
+  "component": "mcp",
+  "status": "development-verified-not-release-approved",
+  "verifiedNode": "24.20.0",
+  "packages": {
+    "@modelcontextprotocol/server": "2.0.0",
+    "@modelcontextprotocol/core": "2.0.0",
+    "@modelcontextprotocol/client": "2.0.0"
+  },
+  "integrityLock": "pnpm-lock.yaml",
+  "protocol": "2026-07-28",
+  "transport": "streamable-http",
+  "serving": "stateless-json-terminal-results",
+  "legacy": "reject",
+  "authentication": "explicit-bearer-oidc-current-git-grants",
+  "endpoint": "POST /mcp",
+  "actualConcurrentRequests": 8,
+  "bodyBytes": 16384,
+  "bodyDeadlineMilliseconds": 5000,
+  "subscriptions": false,
+  "defaultRuntimeActivation": false
+}
