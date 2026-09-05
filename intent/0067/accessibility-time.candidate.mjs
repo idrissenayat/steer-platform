@@ -8,7 +8,7 @@ const registryBytes = jcs(JSON.parse(read('TRUST-REGISTRY.candidate.json'))), ti
 const manifestBytes = read('ACCESSIBILITY-MATRIX-MANIFEST.candidate.json'), manifest = JSON.parse(manifestBytes);
 const surfaces = manifest.routes.reduce((sum, route) => sum + route.states.length, 0) + manifest.stories.length * manifest.storyStates.length;
 const rowLimit = surfaces * manifest.scenarios.length * manifest.environments.reduce((sum, environment) => sum + manifest.viewports.filter((viewport) => viewport.class === environment.viewportClass).length, 0);
-export const policyDigest = sha256(jcs({ version: 'steer-accessibility-time/v1', registryDigest: timed.registryDigest,
+export const policyDigest = sha256(jcs({ version: 'steer-accessibility-time/v1', registryDigest: timed.registryDigest, timePolicyDigest: timed.timePolicyDigest,
   manifestDigest: sha256(manifestBytes), rowLimit, rowCharacterLimit: 16384, totalCharacterLimit: 536870912,
   rules: 'six explicit-time signatures before rows; independent provider proof binds summary/batch and their identity/qualification/assignment references; qualification/assignment observed-as-of provider time, never inferred issuance; every row within qualified assigned window and before summary; exact original matrix required; candidate only, no human audit completion' }));
 const requireValue = (value) => { if (!value) throw new Error('ACCESSIBILITY_TIME_INVALID'); };

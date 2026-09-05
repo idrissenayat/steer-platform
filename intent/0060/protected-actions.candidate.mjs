@@ -1,6 +1,7 @@
 // Offline successor contract. No credentials, providers, stores or effect executors.
 import { exactKeys, hex, jcs, parseCanonical, sha256, strictTime, zeroEffects } from '../0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
 import { createTimedRecordVerifier } from '../0058/record-verifier.candidate.mjs';
+import { timePolicyDigest } from '../0069/exact-time.candidate.mjs';
 
 const copyKeys = ['objectId', 'recordClass', 'copyId', 'copyKind', 'providerBindingId', 'account', 'objectKey', 'versionId', 'keyId', 'inventoryDigest', 'tupleDigest'];
 const migrationKeys = ['database', 'schema', 'schemaFrom', 'schemaTo', 'oldAppVersion', 'newAppVersion', 'batch', 'checkpoint', 'executionId', 'planDigest'];
@@ -12,7 +13,7 @@ const actions = [
   rule('lifecycle.commit-tombstone', 'lifecycle.tombstone.authorize', 'lifecycle-worker', 'lifecycle-executor', ['objectId', 'recordClass', 'inventoryDigest', 'tupleDigest', 'aggregateReceiptDigest', 'path']),
   ...['expand', 'backfill', 'contract'].map((phase) => rule(`migration.${phase}`, `migration.${phase}.authorize`, 'schema-migration-runner', 'schema-migration-runner', migrationKeys)),
 ];
-export const manifestBytes = jcs({ version: 'steer-protected-actions/v1', denyByDefault: true, actions,
+export const manifestBytes = jcs({ version: 'steer-protected-actions/v1', denyByDefault: true, actions, timePolicyDigest,
   maxCredentialLifetimeSeconds: 300, maxEvidenceAgeSeconds: 300, maxGrants: 128,
   contract: 'one verifier for all seven actions; exact independently installed grants; zero effects' });
 export const manifestDigest = sha256(manifestBytes);

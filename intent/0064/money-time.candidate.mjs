@@ -6,7 +6,7 @@ import { createTimedRecordVerifier } from '../0058/record-verifier.candidate.mjs
 
 const registryBytes = jcs(JSON.parse(readFileSync(new URL('../0001/reviews/domain/round-3/remediation/TRUST-REGISTRY.candidate.json', import.meta.url), 'utf8')));
 const timed = createTimedRecordVerifier(registryBytes);
-export const policyDigest = sha256(jcs({ version: 'steer-money-time/v1', registryDigest: timed.registryDigest,
+export const policyDigest = sha256(jcs({ version: 'steer-money-time/v1', registryDigest: timed.registryDigest, timePolicyDigest: timed.timePolicyDigest,
   kinds: ['spend', 'cost-forecast', 'cost-invoice', 'cost-aggregate'], observationDomain: 'verifier', arrayLimit: 64, recordLimit: 16384,
   freshnessMs: 300000, rules: 'complete exact-byte observation at decision; native event time or explicit observed-as-of; trusted evaluation; current spend/forecast grants; current spend replay/head/reservation; mandatory frozen semantics; audit-only no execution authority' }));
 const requireValue = (value) => { if (!value) throw new Error('MONEY_TIME_INVALID'); };

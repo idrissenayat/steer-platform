@@ -16,6 +16,13 @@ metadata/canonical base64 and actual Ed25519 signature. Return the record and th
 independently selected public-key digest; errors are fixed and content-free.
 Registry and record limits are 65,536 UTF-16 code units; at most 128 anchors.
 
+Increment 0069 supplies exact BigInt nanosecond parsing for this shared verifier:
+whole seconds or exactly nine fractional digits, Z only. The selected key's
+half-open windows are never rounded. timePolicyDigest is exposed and bound by
+the affected candidate policies. This does not itself change this human
+successor's remaining whole-second business/schema checks or grant archival
+validity to expired keys. See `intent/0069/SPEC.md`.
+
 The caller must derive the record timestamp from the appropriate signed field,
 not a separate user claim. Evaluation time comes from the trusted decision
 service; the offline tests explicitly supply it. Neither helper authorizes an

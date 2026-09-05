@@ -598,6 +598,14 @@ parent-capped dispositions/replay, compound selection, hold histories and up to
 128 derived completions. This is not complete future-expiry disposition coverage.
 Frozen policy/table files are preserved. See `intent/0068/SPEC.md` and `EVIDENCE.md`.
 
+Item `intent/0069` adds exact BigInt nanosecond instants, formatting and retention
+arithmetic. The shared signature verifier uses precise half-open key windows;
+0061's boundary helper preserves fractions across calendar years and parent caps.
+All affected candidate policies bind the explicit time contract. Whole-second
+compatibility remains, and legacy business/event guards still reject fractional
+graphs without rounding. This is not full graph-level nanosecond support or
+permission to validate expired historical keys. See `intent/0069/SPEC.md`.
+
 ## Local commands
 
 ```sh

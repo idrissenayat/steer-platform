@@ -8,7 +8,7 @@ import { correctedCostDecision, correctionPolicyDigest as costPolicy } from '../
 const registryBytes = jcs(JSON.parse(readFileSync(new URL('../0001/reviews/domain/round-3/remediation/TRUST-REGISTRY.candidate.json', import.meta.url), 'utf8')));
 const timed = createTimedRecordVerifier(registryBytes);
 export const policyDigest = sha256(jcs({ version: 'steer-privacy-cost-time/v1', privacyPolicy, costPolicy,
-  registryDigest: timed.registryDigest, observationDomain: 'verifier', arrayLimit: 64, recordLimit: 16384,
+  registryDigest: timed.registryDigest, timePolicyDigest: timed.timePolicyDigest, observationDomain: 'verifier', arrayLimit: 64, recordLimit: 16384,
   rules: 'exact correction bytes and complete ordered record inventory; independent observation at graph decision; native signed time when present, otherwise observed-as-of, never inferred issuance; explicit trusted evaluation time; original checks mandatory; zero execution' }));
 const requireValue = (value) => { if (!value) throw new Error('TIME_EVIDENCE_INVALID'); };
 const time = (value) => { const result = strictTime(value); requireValue(result !== null); return result; };

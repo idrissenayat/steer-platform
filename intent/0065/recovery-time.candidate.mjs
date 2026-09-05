@@ -5,7 +5,7 @@ import { exactKeys, jcs, parseCanonical, sha256, strictTime, zeroEffects } from 
 import { createTimedRecordVerifier } from '../0058/record-verifier.candidate.mjs';
 const registryBytes = jcs(JSON.parse(readFileSync(new URL('../0001/reviews/domain/round-3/remediation/TRUST-REGISTRY.candidate.json', import.meta.url), 'utf8')));
 const timed = createTimedRecordVerifier(registryBytes);
-export const policyDigest = sha256(jcs({ version: 'steer-recovery-time/v1', registryDigest: timed.registryDigest,
+export const policyDigest = sha256(jcs({ version: 'steer-recovery-time/v1', registryDigest: timed.registryDigest, timePolicyDigest: timed.timePolicyDigest,
   observerDomain: 'provider-a', rowLimit: 4, recordLimit: 65536, rtoLimitMs: 3600000,
   rules: 'exact observation and complete inventory; timed identity and every supplied signature; native journal timestamps after identity verification and no later than recovery finish; independently attested recovery duration; no inferred issuance; original recovery semantics mandatory; pre-ack remains unknown; no execution' }));
 const requireValue = (value) => { if (!value) throw new Error('RECOVERY_TIME_INVALID'); };

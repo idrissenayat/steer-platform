@@ -8,7 +8,7 @@ const schema = compileOffline('LIFECYCLE-EVENT.schema.json');
 const registryBytes = jcs(JSON.parse(readFileSync(new URL('../0001/reviews/domain/round-3/remediation/TRUST-REGISTRY.candidate.json', import.meta.url), 'utf8')));
 const verifier = createTimedRecordVerifier(registryBytes);
 export const correctionPolicyBytes = jcs({ version: 'steer-r5-001-events/v1', finding: 'PREFLIGHT-R3-R5-001',
-  registryDigest: verifier.registryDigest, contract: 'closed current and prior lifecycle events with complete provider proof binding',
+  registryDigest: verifier.registryDigest, timePolicyDigest: verifier.timePolicyDigest, contract: 'closed current and prior lifecycle events with complete provider proof binding',
   times: 'strictly increasing; recordedAt equals occurredAt; key valid at event and evaluation time',
   scope: 'same organization/item/environment; does not authorize a record disposition', historyLimit: 128, recordLimit: 65536, envelopeLimit: 8388608,
 });

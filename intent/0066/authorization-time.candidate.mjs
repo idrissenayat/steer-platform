@@ -15,7 +15,7 @@ const records = [
 const immutableFields = ['requestId', 'action', 'organization', 'tenant', 'repositoryId', 'installationId', 'item', 'path', 'targetExamRevision', 'targetExamSha256',
   'authorizationPolicyPath', 'authorizationPolicyDigest', 'actorSubject', 'actorRole', 'principal', 'provider', 'upstreamPrincipal', 'upstreamCredentialId',
   'upstreamCredentialDigest', 'idempotencyKey', 'casHead', 'requestedAt'];
-export const policyDigest = sha256(jcs({ version: 'steer-authorization-time/v1', registryDigest: timed.registryDigest,
+export const policyDigest = sha256(jcs({ version: 'steer-authorization-time/v1', registryDigest: timed.registryDigest, timePolicyDigest: timed.timePolicyDigest,
   observationDomain: 'verifier', recordLimit: 16384, snapshotAgeMs: 300000, records, immutableFields,
   rules: 'complete exact-byte independent observation; explicit native/as-of/evaluation times and current expiry; immutable request hash checked before replay; original manifest/authority semantics; zero effects, no write authority' }));
 const requireValue = (value) => { if (!value) throw new Error('AUTHORIZATION_TIME_INVALID'); };

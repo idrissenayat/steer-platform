@@ -231,6 +231,9 @@ test('calendar retention bounds, future scheduling, immutable retention and malf
   for (const bytes of [value.bytes + ' ', '{}', 'x'.repeat(16777217)]) denied({ ...value, bytes });
   assert.equal(value.verifier.verify(value.bytes).state, 'blocked');
   denied(value, '2027-09-01T00:00:00Z');
+  // Exact key/calendar primitives do not silently enable fractional signed
+  // graphs through the legacy whole-second event and business schemas.
+  denied(value, '2026-09-04T12:00:50.000000001Z');
   for (const field of ['casWinner', 'authorizationDecision', 'trustRegistryBytes', 'evaluationTime']) denied({ ...value, bytes: jcs({ ...value.graph, [field]: true }) });
 });
 

@@ -7,35 +7,24 @@ import { createTimedRecordVerifier } from '../0058/record-verifier.candidate.mjs
 import { correctedHumanAuthorityDecision, correctionPolicyDigest as humanPolicy } from '../0058/human-authority.candidate.mjs';
 import { correctedLifecycleEventDecision, correctionPolicyDigest as eventPolicy } from '../0059/lifecycle-events.candidate.mjs';
 import { createProtectedActionVerifier, manifestDigest } from '../0060/protected-actions.candidate.mjs';
+import { exactRetentionBoundary, timePolicyDigest } from '../0069/exact-time.candidate.mjs';
 const read = (name) => readFileSync(new URL(`../0001/reviews/domain/round-3/remediation/${name}`, import.meta.url), 'utf8').trimEnd();
 const registryBytes = jcs(JSON.parse(read('TRUST-REGISTRY.candidate.json'))), registry = parseCanonical(registryBytes);
 const providerBytes = read('PROVIDER-KEY-REGISTRY.candidate.json'), providers = JSON.parse(providerBytes).bindings;
 const tableBytes = read('LIFECYCLE-POLICY-TABLE.candidate.json'), table = JSON.parse(tableBytes);
 const timed = createTimedRecordVerifier(registryBytes), rawSchema = compileOffline('RAW-POLICY-GRANT.schema.json');
 export const policyDigest = sha256(jcs({ version: 'steer-lifecycle-graph/v1', tableDigest: sha256(tableBytes),
-  providerDigest: sha256(providerBytes), registryDigest: timed.registryDigest, humanPolicy, eventPolicy, manifestDigest,
+  providerDigest: sha256(providerBytes), registryDigest: timed.registryDigest, humanPolicy, eventPolicy, manifestDigest, timePolicyDigest,
   rules: 'exact closed event/history, authoritative state/inventory, earliest rebuildable trigger, provenance waits for closed derived manifest deletion events not item closure, full human/raw proof, shared copy/tombstone actions, ordered provider receipts; zero execution', maxCopies: 32, maxDerivedRecords: 128 }));
 const requireValue = (value) => { if (!value) throw new Error('LIFECYCLE_GRAPH_INVALID'); };
 const text = (value) => typeof value === 'string' && value.length > 0 && value.length <= 512 && !/[\u0000-\u001f*?]/u.test(value);
-const iso = (value) => new Date(value).toISOString().replace('.000Z', 'Z');
 const time = (value) => { const result = strictTime(value); requireValue(result !== null); return result; };
 const equal = (a, b) => jcs(a) === jcs(b);
 const signed = ['recordDigest', 'signature'];
 const copyFields = ['copyId', 'copyKind', 'provider', 'providerBindingId', 'account', 'objectKey', 'versionId', 'keyId', 'sourceOriginal'];
 
 export function lifecycleBoundary(triggerAt, duration, parentExpiryAt = null) {
-  const trigger = time(triggerAt); let boundary;
-  if (duration === 'indefinite') return null;
-  if (duration === 'immediate') boundary = trigger;
-  else if (/^P[1-9][0-9]*D$/.test(duration)) boundary = trigger + Number(duration.slice(1, -1)) * 86400000;
-  else if (/^PT[1-9][0-9]*S$/.test(duration)) boundary = trigger + Number(duration.slice(2, -1)) * 1000;
-  else {
-    requireValue(/^P[1-9][0-9]*Y$/.test(duration)); const date = new Date(trigger), month = date.getUTCMonth(), day = date.getUTCDate();
-    date.setUTCDate(1); date.setUTCFullYear(date.getUTCFullYear() + Number(duration.slice(1, -1)));
-    date.setUTCMonth(month); date.setUTCDate(Math.min(day, new Date(Date.UTC(date.getUTCFullYear(), month + 1, 0)).getUTCDate())); boundary = date.getTime();
-  }
-  if (parentExpiryAt !== null) boundary = Math.min(boundary, time(parentExpiryAt));
-  requireValue(Number.isSafeInteger(boundary)); return iso(boundary);
+  return exactRetentionBoundary(triggerAt, duration, parentExpiryAt);
 }
 
 // Trusted reference selection is outside the request; never install this from a

@@ -9,7 +9,7 @@ const read = (name) => readFileSync(new URL(`../0001/reviews/domain/round-3/reme
 const registryBytes = jcs(JSON.parse(read('TRUST-REGISTRY.candidate.json'))), registry = parseCanonical(registryBytes);
 const providerBytes = read('PROVIDER-KEY-REGISTRY.candidate.json'), providers = JSON.parse(providerBytes).bindings;
 const timed = createTimedRecordVerifier(registryBytes);
-export const policyDigest = sha256(jcs({ version: 'steer-migration-graph/v1', manifestDigest, humanPolicy, registryDigest: timed.registryDigest,
+export const policyDigest = sha256(jcs({ version: 'steer-migration-graph/v1', manifestDigest, humanPolicy, registryDigest: timed.registryDigest, timePolicyDigest: timed.timePolicyDigest,
   providerDigest: sha256(providerBytes), model: 'bounded add/copy/drop-column; exact six-source preservation; supplied backup/restore bytes; shared authorization; zero effects' }));
 const ensure = (value) => { if (!value) throw new Error('MIGRATION_GRAPH_INVALID'); };
 const text = (value) => typeof value === 'string' && value.length > 0 && value.length <= 512 && value.trim() === value && !/[\u0000-\u001f\u007f*?]/u.test(value);

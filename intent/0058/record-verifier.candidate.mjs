@@ -1,6 +1,7 @@
 // Offline candidate verifier. Trust is supplied by composition, never by a request.
 import { createPublicKey, verify } from 'node:crypto';
-import { exactKeys, jcs, parseCanonical, sha256, strictTime } from '../0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
+import { exactKeys, jcs, parseCanonical, sha256 } from '../0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
+import { exactInstant as strictTime, timePolicyDigest } from '../0069/exact-time.candidate.mjs';
 
 export function createTimedRecordVerifier(trustedRegistryBytes) {
   const invalid = () => { throw new Error('TRUST_CONFIGURATION_INVALID'); };
@@ -22,6 +23,7 @@ export function createTimedRecordVerifier(trustedRegistryBytes) {
   });
   return Object.freeze({
     registryDigest: sha256(trustedRegistryBytes),
+    timePolicyDigest,
     verifyBytes(serialized, context) {
       try {
       const fail = () => { throw new Error('TIMED_RECORD_INVALID'); };

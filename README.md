@@ -41,7 +41,7 @@ Unicode-phone privacy (0056), multi-line cost (0057) and full human-authority
 and explicit-time privacy/reconciliation (0063), remaining money (0064) and
 recovery (0065), original authorization (0066) and accessibility evidence (0067),
 with a checked public-oracle timing inventory and source-faithful lifecycle
-retention/derived-manifest corrections (0068)
+retention/derived-manifest corrections (0068), plus exact time primitives (0069),
 correction candidates, are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
@@ -123,6 +123,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0066 · Original authorization time candidate | `intent/0066/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | ten signatures timed with current authority; independent observation; request digest checked before replay; no hypothetical write effects | accessibility/public timing inventory, full normative/runtime authorization and independent/protected review |
 | 0067 · Accessibility time and public inventory | `intent/0067/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md`, `PUBLIC-ORACLE-TIMING.json` | six timed signatures, full bounded synthetic matrix, row chronology and ten-oracle source/export inventory | full lifecycle/migration normative coverage, real/manual evidence, legacy trust semantics and independent/protected review |
 | 0068 · Source-faithful lifecycle retention | `intent/0068/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | earliest rebuildable trigger; closed derived inventory and verified provenance completions; all 16 current class outcomes and complete parent-capped actions | future retention/rotation, reference-revocation and full raw-key/normative coverage; independent/protected review |
+| 0069 · Exact assurance time | `intent/0069/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | BigInt nanosecond key windows and retention arithmetic; explicit time-policy bindings; no rounding or relaxed expiry | successor business/event schema adoption, archival/future-key coverage and independent/protected review |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier

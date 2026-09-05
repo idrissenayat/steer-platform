@@ -1220,3 +1220,22 @@ trust windows must not be extended to fabricate a future positive. Nanosecond
 policy fidelity versus the current millisecond helper also remains to resolve.
 All five R5 findings and independent/protected review remain open. No provider
 mutation, protected edit, gate signature, deployment, release or spending.
+
+## Completed development increment: 0069 — exact assurance time primitives
+
+Added strict whole-second/nine-digit UTC parsing, BigInt nanosecond formatting
+and calendar retention arithmetic with exact parent caps. The shared signature
+verifier checks activation, expiry and revocation at individual nanoseconds;
+the public lifecycle boundary helper uses the same exact arithmetic. All affected
+candidate policies bind the new time contract. Frozen files/windows are unchanged.
+
+Tests cover 2,001 deterministic round trips, pre-epoch and four-digit-year limits,
+leap-day clamps, individual-nanosecond key windows, invalid encodings, overflow
+and continued denial of expired historical keys. Legacy composed graphs still
+reject fractional inputs through their existing schema/business guards; this is
+a precision foundation, not complete fractional-time or archival enablement.
+
+Next: explicit successor event/business time schemas, archival/future-retention
+and reference-revocation completion, full raw-key/grant coverage, then migration
+and normative evidence. All five R5 findings and independent/protected review
+remain open; no real provider effects, gate signature, deployment or spending.

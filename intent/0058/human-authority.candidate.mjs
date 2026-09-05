@@ -16,7 +16,7 @@ export function humanAuthorityBindingDigest(authority) {
   return sha256(jcs(Object.fromEntries(Object.entries(authority).filter(([field]) => !excluded.has(field)))));
 }
 export const correctionPolicyBytes = jcs({ version: 'steer-r5-002-human/v1', finding: 'PREFLIGHT-R3-R5-002',
-  registryDigest: verifier.registryDigest, binding: 'all canonical authority fields except providerProofDigest, recordDigest, signature',
+  registryDigest: verifier.registryDigest, timePolicyDigest: verifier.timePolicyDigest, binding: 'all canonical authority fields except providerProofDigest, recordDigest, signature',
   providerTime: 'recordedAt equals decidedAt; verify key at recordedAt and evaluationTime',
   supportingTime: 'identity verifiedAt; inventory capturedAt; replay/head snapshotAt; reservation recordedAt; qualification/assignment as of decidedAt',
   envelopeLimit: 1048576, recordLimit: 65536,
