@@ -492,6 +492,14 @@ sanitizer attestation or formal finding closure. Remaining R5-001–004 fixes,
 independent review, protected incorporation and gates remain open. See
 `intent/0056/EVIDENCE.md`; no production route or analytics sink is enabled.
 
+Item `intent/0057` adds the R5-004 multi-line cost correction candidate. Every
+ledger/usage/invoice line requires exactly one signed variance/successor pair;
+all amount/time/reference checks precede the original complete cost verification
+and final aggregate. Array ordering does not confer meaning or allow omissions.
+No spending or production route is enabled. R5-004/005 have test-backed candidates;
+all five findings remain formally open. R5-002/001/003 corrections and independent
+complete-package review are next. See `intent/0057/EVIDENCE.md`.
+
 ## Local commands
 
 ```sh

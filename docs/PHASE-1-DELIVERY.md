@@ -1005,3 +1005,18 @@ lifecycle and migration corrections (R5-002/001/003). After the complete correct
 package, follow the existing independent review/protected incorporation and
 revision-bound human ruling path. Do not restart a broad review cycle, request
 another human ruling prematurely, or enable governed writes/release/spending.
+
+## Completed development increment: 0057 — targeted M0 correction
+
+R5-004 now has an explicit plural-evidence cost correction candidate. Every
+ledger line must have one variance/successor pair, with unique IDs/digests and
+exact usage/invoice/ledger bindings. Actual amounts and ordered timestamps are
+checked before the unchanged full cost verification and final aggregate. The
+original two-line omission is reproduced; reordered and hostile cases are tested.
+Verification: intent/0057/EVIDENCE.md. No spending or production behavior enabled.
+
+R5-004/005 have development candidates only; all five findings remain formally
+open. Next: R5-002 complete human/provider authority, then R5-001 lifecycle and
+R5-003 migration composition. Independent complete-package review, protected
+incorporation and exact-revision rulings remain required. Frozen history and
+protected Exams are unchanged; no signature, deployment or release is authorized.
