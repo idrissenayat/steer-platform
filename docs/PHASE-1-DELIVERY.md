@@ -1271,3 +1271,21 @@ Next remains retention/rotation/reference and full raw-grant coverage, auxiliary
 event-time semantics, other public precision paths and migration/normative
 evidence. No frozen record or key window changed; independent/protected review
 and all five R5 findings remain open. No provider effects, approval or spending.
+
+## Completed development increment: 0072 — three-key raw lifecycle evidence
+
+Expanded raw synthetic evidence to three distinct key tuples across two provider
+bindings. Three copy actions plus separate tombstone traverse the actual composed
+path in first/replay modes and all six copy orders. Every human/shared proof slot
+is tested per copy, along with substitutions, missing/partial receipts, aggregate
+omissions and a one-nanosecond deadline miss for each key. No verifier/runtime
+cardinality rule changes and no real provider effect is claimed.
+
+Next raw work is the explicit pre-terminal grant protocol in intent/0072/PLAN.md.
+Current approval follows terminal/state and binds post-terminal graph bytes; an
+earlier validFrom does not satisfy pre-terminal signing. The successor must bind
+only facts available before terminal, then validate actual state and derive
+per-copy one-use actions without new per-object human decisions. Keep batch
+consumption/replay and separate tombstone evidence explicit. Retention/rotation/
+reference, other precision paths and migration/normative evidence also remain.
+All five R5 findings stay open; no protected edit, provider effects, gate or spending.

@@ -620,6 +620,14 @@ for replay detection without rewriting signed bytes. All 200 ranked type/UUID
 pairings and full equal-time hold composition are tested. Ordinary signatures,
 provider proof and full action checks are not bypassed. See `intent/0071/SPEC.md`.
 
+Item `intent/0072` expands the raw composed fixture to three distinct key tuples
+across two providers, four complete actions and all six copy-envelope orders.
+Every copy's human/shared proof omissions, transplants, partial receipts and
+one-nanosecond deadline violation deny. This is synthetic coverage, not actual
+erasure or a production rule to create more copies. The current post-terminal
+human approval is not the policy's pre-terminal raw grant; the next protocol is
+specified in `intent/0072/PLAN.md`. That gap and formal review remain open.
+
 ## Local commands
 
 ```sh

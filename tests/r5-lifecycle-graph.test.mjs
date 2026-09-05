@@ -49,7 +49,7 @@ function fixture(options = {}) {
   const eventBytes = event(type, history.length + 1, 0);
   // Explicit test expectation, not a call back into the verifier's selector.
   const trigger = JSON.parse(options.triggerHistoryIndex === undefined ? eventBytes : historyBytes[options.triggerHistoryIndex]);
-  const copies = ['a', 'b'].map((suffix, index) => ({ copyId: `copy-${index + 1}`, copyKind: raw ? 'temporary-working' : 'replica', provider: `fixture-provider-${suffix}`,
+  const copies = (raw ? ['a', 'b', 'a'] : ['a', 'b']).map((suffix, index) => ({ copyId: `copy-${index + 1}`, copyKind: raw ? 'temporary-working' : 'replica', provider: `fixture-provider-${suffix}`,
     providerBindingId: `fixture-provider-${suffix}-binding`, account: `fixture-account-${suffix}`, objectKey: `object-${index}`, versionId: 'version-1', keyId: `key-${index}`, sourceOriginal: false }));
   edit('copies', copies);
   const inventory = seal(edit('inventory', { kind: 'inventory', configDigest, inventoryId: 'inventory-1', source: 'authoritative-copy-inventory', copies, complete: true, recordedAt: at(1), validThrough: until }), options.inventoryDomain ?? 'provider');
@@ -139,11 +139,12 @@ function fixture(options = {}) {
 }
 const denied = (value, now = evaluation) => assert.deepEqual(value.verifier.verify(value.bytes, now), { state: 'blocked', firstError: 'LIFECYCLE_GRAPH_INVALID', effects: zeroEffects() });
 
-test('composed lifecycle validates both providers and all three protected operations, including exact replay', () => {
+test('composed lifecycle validates both providers, every copy and the separate tombstone, including exact replay', () => {
   for (const recordClass of ['RC-REBUILDABLE', 'RC-CORPUS-RAW-WORKING']) for (const replay of [false, true]) {
     const value = fixture({ recordClass, replay }), before = value.bytes, result = value.verifier.verify(value.bytes, evaluation);
     assert.equal(result.state, 'validated-lifecycle-candidate', JSON.stringify({ recordClass, replay, result }));
-    assert.equal(result.copyCount, 2); assert.equal(result.protectedActionCount, 3); assert.equal(result.replayCount, replay ? 3 : 0);
+    const count = recordClass === 'RC-CORPUS-RAW-WORKING' ? 3 : 2;
+    assert.equal(result.copyCount, count); assert.equal(result.protectedActionCount, count + 1); assert.equal(result.replayCount, replay ? count + 1 : 0);
     assert.deepEqual(result.effects, zeroEffects()); assert.equal(value.bytes, before);
   }
   const reordered = fixture({ edits: { graph: (graph) => { graph.copies.reverse(); } } });
@@ -245,7 +246,8 @@ test('0070: complete lifecycle, human and shared action paths preserve nanosecon
       const value = fixture({ recordClass, replay, ...options }), before = value.bytes;
       const result = value.verifier.verify(value.bytes, value.evaluationTime);
       assert.equal(result.state, 'validated-lifecycle-candidate', JSON.stringify({ recordClass, replay, options, result }));
-      assert.equal(result.protectedActionCount, 3); assert.equal(result.replayCount, replay ? 3 : 0);
+      const actions = recordClass === 'RC-CORPUS-RAW-WORKING' ? 4 : 3;
+      assert.equal(result.protectedActionCount, actions); assert.equal(result.replayCount, replay ? actions : 0);
       assert.deepEqual(result.effects, zeroEffects()); assert.equal(value.bytes, before);
     }
   }
@@ -294,6 +296,61 @@ test('0071: signed equal-time holds are enforced before disposition, not merely 
   denied(fixture({ history: [{ type: 'hold-released', second: 0 }, { type: 'hold-applied', second: 0 }], edits: {
     'event-1': (event) => { event.holdId = 'same-hold'; }, 'event-2': (event) => { event.holdId = 'same-hold'; }, state: (state) => { state.holdState = 'released'; },
   } }));
+});
+
+test('0072: raw evidence covers three independent key tuples and four complete actions across every copy order', () => {
+  const recordClass = 'RC-CORPUS-RAW-WORKING';
+  const permutations = [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]];
+  for (const replay of [false, true]) {
+    let expectedDigest;
+    for (const order of permutations) {
+      const value = fixture({ recordClass, replay, edits: { graph: (graph) => { graph.copies = order.map((index) => graph.copies[index]); } } });
+      const inventory = JSON.parse(value.graph.inventoryBytes).copies;
+      assert.equal(inventory.length, 3); assert.equal(new Set(inventory.map((copy) => copy.providerBindingId)).size, 2);
+      assert.equal(new Set(inventory.map((copy) => jcs([copy.providerBindingId, copy.account, copy.keyId]))).size, 3);
+      assert.ok(inventory.every((copy) => !copy.sourceOriginal && copy.copyKind === 'temporary-working'));
+      const result = value.verifier.verify(value.bytes, evaluation);
+      assert.equal(result.state, 'validated-lifecycle-candidate'); assert.equal(result.copyCount, 3);
+      assert.equal(result.protectedActionCount, 4); assert.equal(result.replayCount, replay ? 4 : 0);
+      assert.deepEqual(result.effects, zeroEffects());
+      expectedDigest ??= result.evidenceDigest; assert.equal(result.evidenceDigest, expectedDigest);
+    }
+  }
+});
+
+test('0072: no raw key tuple can bypass any human/shared proof, grant or provider resource binding', () => {
+  const recordClass = 'RC-CORPUS-RAW-WORKING';
+  for (const label of ['copy-1', 'copy-2', 'copy-3']) {
+    for (const kind of ['request', 'upstream', 'downstream', 'delegation', 'assignment', 'authority', 'resources', 'replay', 'head', 'reservation'])
+      denied(fixture({ recordClass, edits: { [`${label}:action-bundle`]: (bundle) => { delete bundle[`${kind}Bytes`]; } } }));
+    for (const field of ['authorityBytes', 'providerProofBytes', 'identityEvidenceBytes', 'qualificationEvidenceBytes', 'assignmentEvidenceBytes', 'inventoryBytes', 'replayLedgerBytes', 'casHeadBytes', 'casReservationBytes'])
+      denied(fixture({ recordClass, edits: { [`${label}:human-bundle`]: (bundle) => { delete bundle[field]; } } }));
+    denied(fixture({ recordClass, edits: { [`${label}:resources`]: (record) => { record.resources.keyId = 'substituted-key'; } } }));
+    denied(fixture({ recordClass, edits: { [`${label}:raw`]: (grant) => { grant.receiptRequired = false; } } }));
+    denied(fixture({ recordClass, replay: true, edits: { [`${label}:replay`]: (record) => { record.resultDigest = 'f'.repeat(64); } } }));
+  }
+  for (const field of ['rawGrantBytes', 'humanBundleBytes', 'actionBundleBytes', 'receiptBytes'])
+    denied(fixture({ recordClass, edits: { graph: (graph) => { graph.copies[2][field] = graph.copies[0][field]; } } }));
+  denied(fixture({ recordClass, edits: { copies: (copies) => { copies[2].objectKey = copies[0].objectKey; } } }));
+});
+
+test('0072: all three raw receipts must complete on time before a complete aggregate and separate tombstone', () => {
+  const recordClass = 'RC-CORPUS-RAW-WORKING';
+  const options = { recordClass, nanoseconds: 1, offset: 41, evaluationTime: '2026-09-04T12:01:30.000000001Z' };
+  const onTime = fixture(options); assert.equal(onTime.verifier.verify(onTime.bytes, onTime.evaluationTime).protectedActionCount, 4);
+  for (const label of ['copy-1', 'copy-2', 'copy-3']) {
+    const late = fixture({ ...options, edits: { [`${label}:receipt`]: (receipt) => { receipt.recordedAt = formatExactInstant(exactInstant(receipt.recordedAt) + 1n); } } });
+    denied(late, late.evaluationTime);
+    denied(fixture({ recordClass, edits: { [`${label}:receipt`]: (receipt) => { receipt.status = 'partial'; } } }));
+  }
+  for (const mutate of [
+    (graph) => { graph.copies.pop(); },
+    (graph) => { delete graph.copies[2].receiptBytes; },
+    (graph) => { graph.tombstone = {}; },
+  ]) denied(fixture({ recordClass, edits: { graph: mutate } }));
+  denied(fixture({ recordClass, edits: { aggregate: (record) => { record.receiptDigests.pop(); } } }));
+  denied(fixture({ recordClass, edits: { aggregate: (record) => { record.allCopiesGone = false; } } }));
+  denied(fixture({ recordClass, edits: { 'copy-3:receipt': (record) => { record.transactionId = 'transaction-copy-1'; } } }));
 });
 
 // Expected boundaries come from the signed records policy, not the code under

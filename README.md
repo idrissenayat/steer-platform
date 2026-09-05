@@ -42,7 +42,8 @@ and explicit-time privacy/reconciliation (0063), remaining money (0064) and
 recovery (0065), original authorization (0066) and accessibility evidence (0067),
 with a checked public-oracle timing inventory and source-faithful lifecycle
 retention/derived-manifest corrections (0068), exact time primitives (0069) and
-precise lifecycle composition (0070) and policy-ranked event ordering (0071),
+precise lifecycle composition (0070), policy-ranked event ordering (0071) and
+three-key raw lifecycle evidence (0072),
 correction candidates, are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
@@ -127,6 +128,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0069 · Exact assurance time | `intent/0069/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | BigInt nanosecond key windows and retention arithmetic; explicit time-policy bindings; no rounding or relaxed expiry | successor business/event schema adoption, archival/future-key coverage and independent/protected review |
 | 0070 · Exact lifecycle composition | `intent/0070/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | explicit closed precision schemas, complete human/event/action/lifecycle nanosecond checks, deadline/cap and earliest-expiry regressions | other public time paths, full raw-grant/retention/reference/migration coverage and independent/protected review |
 | 0071 · Ranked lifecycle ordering | `intent/0071/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | policy-ranked equal-time events, UUID-case replay protection, full hold composition and 200 pairings | unranked ties/auxiliary times, retention/rotation/reference/raw/migration coverage and independent/protected review |
+| 0072 · Three-key raw evidence | `intent/0072/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | three key tuples/two providers, four complete actions, permutations, per-copy proof omissions and exact deadlines | pre-terminal raw-grant/batch-consumption protocol, retention/rotation/reference/migration and independent/protected review |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier
