@@ -61,6 +61,12 @@ server-side query/lock/idle transaction limits; assembled HTTP and Chromium
 harnesses now use it. See `DATABASE-RUNTIME-LIMITS.md` for exact defaults and
 remaining active-network, transaction/shutdown and production TLS evidence.
 
+Increment 0024 wraps that composition in `createIdentityService`, which validates
+the exact managed issuer/client/callback binding and tracks actual request and
+resource shutdown. The browser harness now uses this factory. See
+`IDENTITY-SERVICE-LIFECYCLE.md`; it is still not a public bootstrap or readiness
+approval, and it does not load real credentials automatically.
+
 The page that submits the native sign-in form must allow the exact configured
 IdP origin as well as self in CSP `form-action`; Chromium also checks the
 authorization redirect against that policy. Keep the issuer allowlist fixed

@@ -8,14 +8,14 @@ import { promisify } from 'node:util';
 import { getRequestListener } from '@hono/node-server';
 import { chromium, type Browser } from 'playwright';
 import type { AuthorizationRecord } from '@steer/adapters/identity';
-import { createGitBackedBrowserApi } from '../src/git-browser.ts';
+import { createIdentityService } from '../src/identity-service.ts';
 import { createGitAuthorizationHarness } from './git-authorization-harness.ts';
 import type { SessionTestHarness } from './session-harness.ts';
 
 /** Disposable Chromium/HTTPS fixture. No user's browser profile or OS trust changes. */
 export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: Buffer; temporary: string }) {
   const servers: Server[] = []; let browser: Browser | undefined;
-  let api: ReturnType<typeof createGitBackedBrowserApi> | undefined;
+  let api: ReturnType<typeof createIdentityService> | undefined;
   let origin = ''; let issuerOrigin = ''; let callbackUrl = ''; let callbackCrossSite = false; let callbackHasLoginCookie = false;
   let loginStatus = 0; let loginOriginMatches = false;
   let homeHasReferer = false;
@@ -83,8 +83,11 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         hats: ['product-lead'], toolGrants: ['session.context'], active: true,
         validAfter: new Date(0).toISOString(), expiresAt: new Date(Date.now() + 600000).toISOString() };
       const source = await createGitAuthorizationHarness(tls.temporary, grant);
-      const dependencies = { store: storage.store, fetch: deps.fetch, reader: source.reader, authorizationPath: source.authorizationPath };
-      api = createGitBackedBrowserApi(configuration, dependencies);
+      assert.ok(storage.shutdown);
+      const dependencies = { fetch: deps.fetch, reader: source.reader, authorizationPath: source.authorizationPath,
+        sessions: { store: storage.store, binding: { issuer, clientId: configuration.clientId, redirectUri: configuration.redirectUri }, shutdown: storage.shutdown } };
+      api = createIdentityService(configuration, dependencies);
+      const services = [api];
       const spki = createHash('sha256').update(new X509Certificate(tls.certificate).publicKey.export({ type: 'spki', format: 'der' })).digest('base64');
       // Test-only exception for this run's key, not blanket TLS-error suppression.
       browser = await chromium.launch({ headless: true, chromiumSandbox: true,
@@ -146,7 +149,8 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         await page.goto(origin); assert.equal((await tool()).status, 200);
       });
       await check('browser session recovers after reconstruction and observes Git-committed membership revocation', async () => {
-        api = createGitBackedBrowserApi(configuration, { ...dependencies, store: storage.freshStore() });
+        api = createIdentityService(configuration, { ...dependencies, sessions: { ...dependencies.sessions, store: storage.freshStore() } });
+        services.push(api);
         await page.reload(); assert.equal((await tool()).status, 200);
         await source.publish([{ ...grant, active: false }]); assert.equal((await tool()).status, 401);
         await source.publish([grant]); assert.equal((await tool()).status, 200);
@@ -178,6 +182,13 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         await page.waitForURL(`${origin}/`, { waitUntil: 'load' }); assert.equal((await tool()).status, 401);
         assert.equal((await storage.counts()).sessions, 0);
         assert.equal((await context.cookies(origin)).filter((cookie) => cookie.name.startsWith('__Host-steer-')).length, 0);
+      });
+      await check('composed identity services stop admission and confirm request/resource shutdown in the actual browser', async () => {
+        await Promise.all(services.map((service) => service.shutdown()));
+        for (const service of services) assert.deepEqual(service.status(), { state: 'stopped', activeRequests: 0 });
+        assert.equal((await tool()).status, 503);
+        assert.throws(() => storage.freshStore(), /Synthetic runtime resources are closed/);
+        assert.deepEqual(await storage.counts(), { transactions: 0, sessions: 0 });
       });
       console.log(`Browser authentication engine: Chromium ${browser.version()}; isolated profile, synthetic identities only.`);
       await context.close();

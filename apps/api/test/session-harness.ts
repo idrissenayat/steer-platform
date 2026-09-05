@@ -12,6 +12,7 @@ export interface SessionTestHarness {
   abandonTransactions(): Promise<void>;
   corruptVerifier(): Promise<void>;
   verifyCiphertext?: () => Promise<void>;
+  shutdown?: () => Promise<void>;
 }
 
 /** Explicit provider-only test fixture; never exported by a production package. */

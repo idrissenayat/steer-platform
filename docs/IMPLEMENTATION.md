@@ -259,6 +259,12 @@ drops the acknowledgement of an actually committed synthetic row; no automatic
 retry occurs. This is database lifecycle evidence, not complete service wiring
 or proactive detection of every stalled network connection.
 
+Item `intent/0024` composes the Git-backed identity API with managed session
+resources and explicit request/resource shutdown state. A closed pool alone
+cannot report a stopped service while requests remain active. The Chromium
+integration now uses this service without adding a database import to the API
+layer. Details: `docs/IDENTITY-SERVICE-LIFECYCLE.md`; runtime bootstrap is separate.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.

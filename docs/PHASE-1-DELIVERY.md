@@ -367,3 +367,23 @@ The pool shutdown grace is not a universal network deadline; production TLS,
 total transaction budgets, real approved membership/key bindings and public
 ingress remain separate prerequisites. Preserve the five R5 findings and all
 independent-review, gate, deployment, release and spending boundaries.
+
+## Completed development increment: 0024
+
+Composed the verified Git-backed identity API with exact managed session-resource
+binding and explicit running/draining/stopped/failed state. Shutdown closes new
+admission immediately and waits for both actual request work and owned resource
+cleanup. Failure stays closed and sanitized; repeated calls share completion.
+No dependency boundary, public startup or readiness approval was changed.
+
+The actual Chromium/Keycloak/Git/Postgres harness now uses the service factory,
+including reconstructed instances and final resource shutdown. Unit tests cover
+binding mismatch, delayed requests/resources and failure/idempotence. Evidence:
+`intent/0024/EVIDENCE.md`; guide: `docs/IDENTITY-SERVICE-LIFECYCLE.md`.
+
+Next bounded increment: validated runtime bootstrap/configuration and local
+production UI wiring. Keep credentials, approved real membership/TLS/ingress,
+supervision and total transaction/network budgets explicit. Buffered test flows
+do not complete production UI/streaming/manual-accessibility evidence. The five
+R5 findings and all independent-review, gate, deployment, release and spending
+boundaries remain unchanged.

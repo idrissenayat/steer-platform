@@ -17,7 +17,8 @@ session storage (0015), explicit browser HTTP composition (0016) and real
 Keycloak human-code contract verification (0017) and assembled encrypted-session
 integration (0018), Chromium authentication verification (0019) and Git-backed
 browser/bearer identity composition (0020), request resource boundaries (0021)
-runtime database resource limits (0022), and failure/shutdown handling (0023) are
+runtime database resource limits (0022), failure/shutdown handling (0023) and
+identity service lifecycle composition (0024) are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
 [provider evidence](docs/GITHUB-RUNTIME-APP.md).
@@ -53,6 +54,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0021 · Request resource boundary | `intent/0021/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | bounded admission/body reads and local HTTP parser/receive/socket limits; overload, slow-stream and raw-socket checks | fleet ingress/capacity, database deadlines, approved runtime settings and formal gates |
 | 0022 · Database resource limits | `intent/0022/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | strict runtime pool, bounded acquisition and server query/lock/idle cancellation with recovery; assembled auth uses the pool | active-network/transaction budgets, runtime/TLS/shutdown configuration and formal gates |
 | 0023 · Database failure/shutdown | `intent/0023/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | active lease errors, graceful/forced drain and actual lost-COMMIT-acknowledgement test with no replay | service lifecycle composition, active-network detection, total transaction budgets, real TLS/bindings and formal gates |
+| 0024 · Identity service lifecycle | `intent/0024/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | exact managed-resource binding, closed admission and truthful request/resource drain; real browser service shutdown | runtime bootstrap, real configuration/TLS, production UI, supervision and formal gates |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier

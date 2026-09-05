@@ -20,6 +20,8 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
   const name = `steer-0018-${randomUUID()}`; const password = randomBytes(24).toString('hex');
   const encryptionKey = randomBytes(32); const namespace = sessionNamespace(binding);
   const pools: { end(): Promise<void> }[] = []; let containerId: string | undefined; let closed = false;
+  const runtimePools: ReturnType<typeof createRuntimePool>[] = [];
+  let runtimeClosed = false; let runtimeShutdown: Promise<void> | undefined;
   const close = async () => {
     if (closed) return;
     try { await Promise.all(pools.map((pool) => pool.end())); }
@@ -58,15 +60,21 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
     assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 4);
     const config = { binding, keyring: { currentKeyId: 'synthetic', keys: { synthetic: encryptionKey } } };
     const runtime = () => {
+      if (runtimeClosed) throw new Error('Synthetic runtime resources are closed.');
       const pool = createRuntimePool({ host: '127.0.0.1', port: Number(mapping.split(':')[1]),
         user: 'steer_auth_runtime', password, database: 'steer_auth_test', transport: { kind: 'isolated-loopback-test' } });
-      pools.push(pool); return pool;
+      pools.push(pool); runtimePools.push(pool); return pool;
     };
     const freshStore = () => createPostgresBrowserSessionStore(runtime(), config);
     const store = freshStore();
     const transactionKeys = async () => (await admin.query<{ key_hash: string }>(
       'SELECT key_hash FROM steer_auth.login_transactions WHERE namespace=$1', [namespace])).rows;
     return { kind: 'postgres', store, freshStore, close,
+      shutdown: () => {
+        runtimeClosed = true;
+        runtimeShutdown ??= Promise.all(runtimePools.map((pool) => pool.shutdown())).then(() => {});
+        return runtimeShutdown;
+      },
       wrongKeyStore: () => createPostgresBrowserSessionStore(runtime(), { binding,
         keyring: { currentKeyId: 'synthetic', keys: { synthetic: randomBytes(32) } } }),
       counts: async () => ({
