@@ -1067,3 +1067,21 @@ effect authority from a returned descriptor or caller-provided context.
 Remaining public-oracle timing, independent complete-package review/protected
 incorporation and exact-revision rulings follow. All five findings remain open;
 no protected edit, provider access, destructive action, spend or release authorized.
+
+## Completed development increment: 0061 — composed lifecycle candidate
+
+The lifecycle graph now consumes the actual 0059 event/history, 0058 full human
+and 0060 shared-action verifiers for every copy and the final tombstone. Current
+independent inventory/state assertions, hold conflicts, exact receipts, complete
+aggregation and unique authority/credential/CAS/transaction lineage are checked.
+Raw erasure finishes by the 60-second deadline; later audit can validate on-time
+receipts. Two-provider immediate/raw first-execution and replay cases pass with
+zero effects. Evidence: intent/0061/EVIDENCE.md; boundaries: intent/0061/SPEC.md.
+
+Next: migration plan/before-after truth/action composition. Remaining public-
+oracle timing and full lifecycle retention/compound/reference/parent/registry
+coverage follow before complete-package independent review and protected
+incorporation. Frozen keys cannot prove future-expiry coverage, and candidate
+validation is not a live deletion/migration worker. All five findings remain
+formally open. No new human ruling, protected edit, credential access, destructive
+data action, spending, deployment or release is authorized by this increment.

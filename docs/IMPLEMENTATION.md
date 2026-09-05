@@ -525,6 +525,14 @@ The full lifecycle/migration graph must still consume it and validate the actual
 human/raw/plan evidence and exact inputs before effect-specific processing.
 No production route or atomic execution is enabled. See `intent/0060/EVIDENCE.md`.
 
+Item `intent/0061` composes the actual 0058/0059/0060 verifiers into a closed
+lifecycle evidence graph. Every provider copy and final tombstone require their
+own human and shared authorization. Exact inventory/hold state, copy receipts,
+aggregate and tombstone proof are checked with explicit times; raw erasure must
+finish within 60 seconds, not begin after that deadline. Tested two-provider
+immediate/raw positives and replay return zero effects. This is not execution
+or full future-retention coverage. See `intent/0061/EVIDENCE.md` for boundaries.
+
 ## Local commands
 
 ```sh
