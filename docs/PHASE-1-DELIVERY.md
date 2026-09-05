@@ -1085,3 +1085,21 @@ incorporation. Frozen keys cannot prove future-expiry coverage, and candidate
 validation is not a live deletion/migration worker. All five findings remain
 formally open. No new human ruling, protected edit, credential access, destructive
 data action, spending, deployment or release is authorized by this increment.
+
+## Completed development increment: 0062 — composed migration candidate
+
+Expand, backfill and contract now consume 0060 shared authorization in a closed
+migration graph. Approved plan/starting-state pins, supplied before/after bytes,
+backup/rehearsal/rollback proof and full contract cleanup authority precede exact
+provider/journal/result checks. A bounded add/copy/drop-column model verifies
+actual rows and byte-identical preservation of six governance sources. First,
+replay, interruption and rollback cases pass without execution or journal writes.
+Evidence: intent/0062/EVIDENCE.md; model/coverage boundaries: intent/0062/SPEC.md.
+
+Next: remaining public-oracle timing, starting with privacy/cost candidates, then
+complete lifecycle/migration normative coverage. Actual old/new/concurrent app
+compatibility, multi-batch checkpoints, crash cuts, future retention registries
+and live atomic dispatch are not established by this bounded model. Complete-
+package independent review/protected incorporation and exact-revision rulings
+remain required. All five findings remain formally open; no real migration,
+protected edit, provider access, spending, deployment or release is authorized.

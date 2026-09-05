@@ -7,15 +7,15 @@ independent Critic verdict, protected Exam incorporation or a human signature.
 | Finding | Candidate work available | Required remaining work |
 |---|---|---|
 | R5-001 lifecycle | 0059 event/history + 0058 human + 0060 shared actions composed in 0061 for every copy and tombstone; exact inventory/state/receipts and raw deadline | Finish complete retention matrix, compound/reference/parent positive and future-registry coverage; independent complete-package review/protected incorporation; no live execution claimed |
-| R5-002 full authority/time | 0058 human/time verifier; 0059 events, 0060 shared-action records and 0061 lifecycle inventory/state/receipts consume explicit times | Apply recorded/evaluation-time rule to remaining corrected public oracles; complete-package independent review |
-| R5-003 migration | 0060 declares all three migration actions and binds trusted target/implementation/policy/exact resources and authoritative replay/CAS in the shared verifier | Complete graph consumption with actual plan and before/after truth bytes; verify denied effects and live execution boundaries |
+| R5-002 full authority/time | 0058 human/time verifier; 0059 events, 0060 shared actions, 0061 lifecycle and 0062 migration proof records consume explicit times | Apply recorded/evaluation-time rule to remaining corrected public oracles; complete-package independent review |
+| R5-003 migration | 0062 composes all three shared actions with approved plan/before-state pins, actual bounded data/source bytes, backup/restoration, full contract cleanup, provider/journal/result and replay/CAS | Complete old/new/concurrent compatibility, multi-batch/checkpoint/crash-cut matrix and normative inventory; independent/protected review; no live runner claimed |
 | R5-004 reconciliation | 0057 exact plural variance/successor lineage, reordered positives, hostile negatives and aggregate-before-rounding | Remaining provider-time integration under R5-002; independent complete-package review and protected incorporation |
 | R5-005 Unicode phone | 0056 pinned Unicode 17 detector and policy-bound privacy graph correction, exact old/new counterexamples | Remaining provider-time integration under R5-002; independent complete-package review and protected incorporation |
 
-Next bounded work is migration graph composition using the 0060 shared action
-contract and actual before/after truth bytes, followed by remaining public-oracle
-timing and full lifecycle matrix/registry coverage. 0061 is a composed development
-candidate, not a claim that every long-retention class has passed at future expiry.
+Next bounded work is remaining public-oracle timing, beginning with the privacy
+and cost correction consumers, then full lifecycle/migration matrix coverage and
+the complete normative inventory. 0061/0062 are composed development candidates,
+not proof of future retention-key coverage, live compatibility or atomic execution.
 Preserve the frozen send-back package. Do not request a new qualified-human ruling
 until the complete corrected candidate is independently accepted and incorporated
 through the protected Exam path. Do not claim the five findings closed because
@@ -26,4 +26,4 @@ production/provider mutation, deletion, release, deployment, protected edit or
 signature is authorized by this ledger. No credential handoff is pending here.
 
 Sources: intent/0001/reviews/domain/round-3/remediation/CYCLE-DISPOSITION.md,
-preflight-critic-r5.json in that same frozen directory, and intent/0056–0061.
+preflight-critic-r5.json in that same frozen directory, and intent/0056–0062.

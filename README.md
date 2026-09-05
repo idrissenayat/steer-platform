@@ -37,7 +37,8 @@ curated Brief discovery (0052), a trusted-scope rendered Brief library (0053)
 and exact-reference Brief navigation (0054), with review-ordered reading (0055), and
 Unicode-phone privacy (0056), multi-line cost (0057) and full human-authority
 (0058), closed lifecycle-event/history (0059) and shared protected-action
-(0060) and composed lifecycle evidence (0061) correction candidates, are
+(0060), composed lifecycle evidence (0061) and composed migration evidence (0062)
+correction candidates, are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
 [provider evidence](docs/GITHUB-RUNTIME-APP.md).
@@ -111,6 +112,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0059 · Closed lifecycle event/history candidate | `intent/0059/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | uniform schema, proof binding, explicit times, scoped ordered history and replay checks | shared-action/effect-graph integration, migration and remaining public-oracle timing; see `docs/GATE-2-CORRECTIONS.md` |
 | 0060 · Shared protected-action candidate | `intent/0060/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | one zero-effect verifier for Exam, lifecycle and migration actions with exact trusted scope and ten timed proof records | full graph consumption, live atomic enforcement and independent/protected review |
 | 0061 · Composed lifecycle candidate | `intent/0061/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | full human/event/shared-action checks on every copy and tombstone, authoritative inventory/holds, exact receipts and raw deadline | full retention matrix/registry coverage, migration, remaining timing and independent/protected review |
+| 0062 · Composed migration candidate | `intent/0062/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | approved plan/state, actual bounded transformation and preserved source bytes, backup/restore, full cleanup and shared authorization | full compatibility/concurrency/checkpoint matrix, remaining timing, live atomic execution and independent/protected review |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier

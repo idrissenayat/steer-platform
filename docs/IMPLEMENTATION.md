@@ -533,6 +533,15 @@ finish within 60 seconds, not begin after that deadline. Tested two-provider
 immediate/raw positives and replay return zero effects. This is not execution
 or full future-retention coverage. See `intent/0061/EVIDENCE.md` for boundaries.
 
+Item `intent/0062` composes migration plan/state, backup/rehearsal/rollback proofs
+and actual shared authorization for expand, backfill and contract. The bounded
+model compares supplied post-data against the approved transformation, preserves
+six governance-source payloads byte-for-byte, and requires full human cleanup
+evidence for contract. Provider snapshots, authoritative journal and final result
+bind the same request and exact replay result. Tests cover all three phases,
+replay, interruptions and rollback with zero execution effects. This is not a
+live SQL runner or full compatibility/concurrency matrix. See `intent/0062/EVIDENCE.md`.
+
 ## Local commands
 
 ```sh
