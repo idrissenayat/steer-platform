@@ -407,6 +407,60 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         await page.waitForFunction(() => document.querySelector('[data-testid="brief-status"]')?.textContent?.startsWith('Choose a Brief'));
         assert.deepEqual(await page.evaluate(() => [Object.keys(localStorage), Object.keys(sessionStorage)]), [[], []]);
       });
+      let savedBriefLink = '';
+      await check('exact Brief links survive Back, Forward and reload while each restored view rechecks current access', async () => {
+        const library = page.getByRole('region', { name: 'Brief library' });
+        const detail = page.getByRole('dialog', { name: 'Synthetic scoped outcome' });
+        let catalogs = 0; let reads = 0;
+        const observe = (request: import('playwright').Request) => {
+          const path = new URL(request.url()).pathname;
+          if (path === '/v1/tools/intent.brief.catalog') catalogs++;
+          if (path === '/v1/tools/intent.brief.read') reads++;
+        };
+        page.on('request', observe);
+        try {
+          await library.getByRole('button', { name: 'Read Workspace Brief', exact: true }).click(); await detail.waitFor();
+          savedBriefLink = page.url(); const location = new URL(savedBriefLink);
+          assert.equal(location.search, '');
+          const params = new URLSearchParams(location.hash.slice(1));
+          assert.deepEqual([...params.keys()], ['brief', 'organization', 'repository', 'path', 'revision', 'digest']);
+          assert.equal(params.get('brief'), 'v1'); assert.equal(params.get('organization'), projection.input.organizationId);
+          assert.equal(params.get('repository'), projection.input.repository); assert.equal(params.get('path'), projection.input.path);
+          assert.equal(params.get('revision'), projection.input.revision); assert.match(params.get('digest')!, /^[a-f0-9]{64}$/);
+          await page.goBack();
+          await page.waitForFunction(() => document.querySelector('[data-testid="brief-status"]')?.textContent?.startsWith('Choose a Brief'));
+          assert.equal(await detail.count(), 0); const before = { catalogs, reads };
+          await page.goForward(); await detail.waitFor();
+          assert.equal(catalogs - before.catalogs, 1, 'popstate/hashchange must not duplicate discovery');
+          assert.equal(reads - before.reads, 1); assert.equal(page.url(), savedBriefLink);
+          await page.reload(); await detail.waitFor(); assert.equal(page.url(), savedBriefLink);
+          await page.keyboard.press('Escape'); assert.equal(new URL(page.url()).hash, '');
+          assert.equal(await library.getByRole('button', { name: 'Read Workspace Brief', exact: true }).evaluate((element) => element === document.activeElement), true);
+        } finally { page.off('request', observe); }
+      });
+      await check('foreign, stale and malformed Brief links never substitute content or authorize a source read', async () => {
+        let reads = 0;
+        const observe = (request: import('playwright').Request) => { if (new URL(request.url()).pathname === '/v1/tools/intent.brief.read') reads++; };
+        page.on('request', observe);
+        try {
+          for (const [field, value] of [['organization', 'foreign-org'], ['repository', 'github:foreign'], ['revision', '0'.repeat(40)], ['digest', '0'.repeat(64)]]) {
+            const url = new URL(savedBriefLink); const params = new URLSearchParams(url.hash.slice(1)); params.set(field!, value!);
+            await page.goto(`${origin}/#${params.toString()}`);
+            await page.waitForFunction(() => document.querySelector('[data-testid="brief-status"]')?.textContent?.startsWith('This linked revision is not available'));
+            assert.equal(await page.getByRole('dialog').count(), 0);
+          }
+          await page.goto(`${savedBriefLink}&path=BRIEF.md`);
+          await page.waitForFunction(() => document.querySelector('[data-testid="brief-status"]')?.textContent?.startsWith('This Brief link is invalid'));
+          assert.equal(await page.getByRole('dialog').count(), 0); assert.equal(reads, 0);
+        } finally { page.off('request', observe); }
+      });
+      await check('a saved Brief link cannot bypass committed permission revocation', async () => {
+        await source.publish([{ ...grant, toolGrants: ['session.context'] }]); await page.goto(savedBriefLink);
+        await page.waitForFunction(() => document.querySelector('[data-testid="brief-status"]')?.textContent?.startsWith('Brief access could not be verified.'));
+        assert.equal(await page.getByRole('dialog').count(), 0); assert.equal(await page.getByTestId('brief-catalog').locator('li').count(), 0);
+        await source.publish([grant]); await page.goto(origin);
+        await page.waitForFunction(() => document.querySelector('[data-testid="brief-status"]')?.textContent?.startsWith('Choose a Brief'));
+      });
       await check('hydrated reference panel loads real data, clears on committed grant denial, and rejects foreign scope', async () => {
         await page.getByText('Developer diagnostics', { exact: true }).click();
         const panel = page.getByRole('region', { name: 'Repository references' });
@@ -432,6 +486,8 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
         if (directory) await page.screenshot({ path: join(directory, 'references-mobile.png'), fullPage: true });
         await page.setViewportSize({ width: 1440, height: 1000 });
+        // Navigation tests reload the document; reinstall the test-only audit engine.
+        await page.evaluate((source) => { eval(source); }, await readFile(new URL('../../../node_modules/axe-core/axe.min.js', import.meta.url), 'utf8'));
         const violations = await page.evaluate(async () => {
           const axe = (window as unknown as { axe: { run: (node: Document, options: unknown) => Promise<{ violations: { id: string; impact: string }[] }> } }).axe;
           return (await axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] } })).violations.map(({ id, impact }) => ({ id, impact }));

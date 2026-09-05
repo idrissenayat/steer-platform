@@ -468,6 +468,14 @@ and `intent/0053/EVIDENCE.md` for verification and limitations. This is not full
 intent/0003 parity: deep links, judgment ordering, provenance/history, measured
 source exits, lifecycle/actions and manual accessibility review remain open.
 
+Item `intent/0054` adds exact-reference Brief locations and native browser history.
+Back/Forward/reload discover current permitted references and read only the same
+scope/path/revision/fingerprint. Invalid/foreign/stale links do not issue a detail
+read or select a substitute. Closing returns to the root without following an
+untrusted previous history entry. Reference metadata can persist in a user-copied
+URL/history; source bodies and credentials are never stored there. See
+`intent/0054/EVIDENCE.md` and `docs/AUTHENTICATED-BRIEF-LIBRARY.md`.
+
 ## Local commands
 
 ```sh

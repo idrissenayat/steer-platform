@@ -34,10 +34,26 @@ focus containment, Escape, outside-click dismissal and return to the trigger.
 Revision/fingerprint are available under Source revision details. Structural
 notes do not imply semantic completeness, provenance or approval.
 
+## Exact-reference navigation (0054)
+
+Opening a Brief updates the address bar with a canonical fragment containing
+organization/repository/path/revision/fingerprint, not source content or authority.
+Browser Back, Forward and reload rediscover current permitted references and read
+only the exact match. Foreign, malformed or stale links never silently open a
+newer/different source. Close/Escape/backdrop replaces the current Brief location
+with the library root; it never follows an unknown previous page out of STEER.
+
+Reference metadata can persist in browser history or a user-copied link. The
+source body remains memory-only; there is no application local/session storage,
+automatic clipboard write or external sharing. Fragments are not sent as HTTP
+request/referrer data. A link never grants permission. This is an authenticated
+workspace link; automatic return-to-link after a new provider sign-in is not
+implemented. Sign in, then reopen the link if necessary.
+
 No result means that selected projected revision is unavailable, not permission
 to fall back to another source. Failed access or invalid output clears retained
 content; page hiding/navigation and display expiry also clear it. Expiry disables
-controls until access is refreshed. Data is memory-only, without polling/retries.
+controls until access is refreshed. Source bodies are memory-only, without polling/retries.
 
 ## Boundaries and next work
 
@@ -48,11 +64,11 @@ schema and selected tuple. Neither establishes that Git has remained unchanged.
 
 No lifecycle state, human signature, title/outcome for unloaded cards, provenance
 or metrics are invented. Pull/decline/merge/questions are not connected. Exact
-reference deep links, judgment-order presentation, history/provenance, source
-exits/instrumentation, lifecycle actions and qualified manual accessibility
+reference navigation is implemented in 0054; judgment-order presentation,
+history/provenance, source exits/instrumentation, lifecycle actions and qualified manual accessibility
 review remain open under intent/0003 and Phase 1. Five R5 Gate 2 findings remain
 open; no protected Exam, gate, spending, release or deployment authority changes.
 
-Implementation and evidence: intent/0053. Related: BRIEF-CATALOG.md,
+Implementation and evidence: intent/0053 and intent/0054. Related: BRIEF-CATALOG.md,
 AUTHENTICATED-BRIEF-READS.md, AUTHENTICATED-WORKSPACE.md,
 PHASE-1-DELIVERY.md and the original intent/0003/SPEC.md.
