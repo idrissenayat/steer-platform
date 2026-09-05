@@ -10,8 +10,11 @@ item one, are the framework's pilot evidence.
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono
 API/shared tool registry (0007), OIDC adapter/API composition (0008), and
-PostgreSQL/Drizzle tenant foundations (0009) are
-implemented development increments.
+PostgreSQL/Drizzle tenant foundations (0009), verified Git reads and ingestion
+(0010/0011), native Node/package checks (0012), and a real local Keycloak
+contract harness (0013) are implemented development increments. The separate
+runtime GitHub App has passed a live read-only artifact check; see
+[provider evidence](docs/GITHUB-RUNTIME-APP.md).
 Gate 2 remains open: the latest round-three R5 review returned three blockers
 and two majors. Candidate implementation is not live-provider or release
 authorization. Start the API with `pnpm dev:api`; it exposes OpenAPI and health
@@ -30,9 +33,10 @@ routes but rejects tool requests until real identity integration is built.
 | 0007 · Shared tool registry and API foundation | `intent/0007/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | Hono, Zod contracts, tenant-scoped context query, generated OpenAPI and 15 focused tests | independent protected Exam, formal gates, actual identity/data/provider integration |
 | 0008 · Normalized OIDC adapter | `intent/0008/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | signed access-token verification, current-grant/revocation checks and API composition; eleven new tests | independent protected Exam, formal gates, real Keycloak/browser login and trusted grant projection |
 | 0009 · Tenant data foundation | `intent/0009/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | Drizzle migrations, two forced-RLS tables, app/projector privileges, safe tenant transactions; five unit and eight PostgreSQL checks | independent protected Exam, formal gates, Git ingestion/replay, trusted grant projection and production composition |
-| 0010 · Revision-bound Git reads | `intent/0010/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | scoped read-only GitHub adapter, exact artifact integrity, current Git authorization; thirteen new tests | independent protected Exam, formal gates, live runtime App binding and ingestion/reconciliation |
+| 0010 · Revision-bound Git reads | `intent/0010/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | scoped read-only GitHub adapter, exact artifact integrity, current Git authorization; thirteen new tests and live runtime App read verification | independent protected Exam, formal gates and full ingestion/reconciliation composition |
 | 0011 · Verified-artifact ingestion | `intent/0011/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | atomic idempotent ingestion, CAS, source-based repair; four unit and three PostgreSQL checks | independent protected Exam, formal gates, durable consumers and full-repository replay |
 | 0012 · Native runtime and package seams | `intent/0012/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | domain native import fix, package-boundary tests, full repository verified on Node 24.20.0 | independent protected Exam, formal gates, full service/stack lock and live integration |
+| 0013 · Real Keycloak contract | `intent/0013/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | six real-provider check groups for scoped TLS, agent claims/JWKS, revocation, tenant/hat/client/audience denial and shared API grants | human browser login, trusted real membership, persistent identity composition and formal gates |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier

@@ -143,3 +143,18 @@ repeating the App/key approval request. Exact provider evidence and remaining
 integration limits are in `docs/GITHUB-RUNTIME-APP.md`. Local Keycloak/browser,
 authoritative membership-source configuration and durable ingestion remain
 unfinished; CLI startup is still deny-all. No gate or deployment is approved.
+
+## Completed development increment: 0013
+
+The selected Keycloak image is pinned by digest and exercised in a disposable,
+non-root, loopback-HTTPS container. Six real-provider check groups pass under
+Node 24.20.0: discovery and scoped TLS trust, agent claims/JWKS, audience/client
+denial, current revocation, tenant/hat denial, and Hono tool authorization.
+The root suite also passes; the harness cleaned up its own synthetic resources.
+See `intent/0013/EVIDENCE.md` and `pnpm test:identity:integration`.
+
+This resolves the service-account/provider-contract verification gap. Remaining
+M2 work includes human browser authorization-code/PKCE login, safe server-side
+session/refresh/logout handling and trusted Git membership configuration. Test
+realm grants are not production authority. Continue from those concrete gaps,
+preserving the current fail-closed API until complete composition is verified.

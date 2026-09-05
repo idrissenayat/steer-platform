@@ -60,6 +60,13 @@ pass under isolated Node 24.20.0; local `.node-version` records that version.
 This closes the prior local runtime-verification gap, not the remaining
 provider/gate integration requirements.
 
+Item `intent/0013` verifies the selected Keycloak 26.7.3 service-account profile
+against real local HTTPS/JWKS and the shared Hono boundary. Six integration
+check groups pass with synthetic identities and scoped certificate trust;
+`pnpm test:identity:integration` reruns the disposable harness. No production
+HTTPS rule was relaxed. Human login and Git-backed real membership remain
+unconnected; the CLI stays deny-all and readiness remains 503.
+
 ## Implemented prototype and kit behavior
 
 - deterministic artifact-chain projection and dropped-event reconciliation;
