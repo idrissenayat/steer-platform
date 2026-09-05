@@ -7,14 +7,14 @@ independent Critic verdict, protected Exam incorporation or a human signature.
 | Finding | Candidate work available | Required remaining work |
 |---|---|---|
 | R5-001 lifecycle | 0059 event/history + 0058 human + 0060 shared actions composed in 0061 for every copy and tombstone; exact inventory/state/receipts and raw deadline | Finish complete retention matrix, compound/reference/parent positive and future-registry coverage; independent complete-package review/protected incorporation; no live execution claimed |
-| R5-002 full authority/time | 0058 human/time verifier; 0059 events, 0060 shared actions, 0061 lifecycle, 0062 migration, 0063 privacy/plural-cost, 0064 remaining cost/spend and 0065 recovery composition consume explicit times | Complete direct authorization/accessibility and remaining public-oracle inventory; review observed-as-of handling of legacy untimed records and complete runtime semantics; complete-package independent review |
+| R5-002 full authority/time | 0058 human/time verifier; 0059 events, 0060 shared actions, 0061 lifecycle, 0062 migration, 0063 privacy/plural-cost, 0064 remaining cost/spend, 0065 recovery and 0066 original authorization composition consume explicit times | Complete accessibility and remaining public-oracle inventory; review observed-as-of handling of legacy untimed records and complete runtime semantics; complete-package independent review |
 | R5-003 migration | 0062 composes all three shared actions with approved plan/before-state pins, actual bounded data/source bytes, backup/restoration, full contract cleanup, provider/journal/result and replay/CAS | Complete old/new/concurrent compatibility, multi-batch/checkpoint/crash-cut matrix and normative inventory; independent/protected review; no live runner claimed |
 | R5-004 reconciliation | 0057 exact plural lineage and aggregate-before-rounding; 0063 explicit-time composition of every line/provider proof and exact independent observation | Independent review of complete package and legacy observation semantics; protected incorporation; no spending authorization |
 | R5-005 Unicode phone | 0056 pinned Unicode 17 graph correction; 0063 explicit-time composition, exact observation and current source/use expiry | Independent review of complete package and legacy observation semantics; protected incorporation; no production corpus use |
 
-Next bounded work is direct authorization/accessibility and the full public-oracle
+Next bounded work is accessibility and the full public-oracle
 timing inventory, then lifecycle/migration matrix coverage and complete normative
-inventory. 0061–0065 are composed development candidates,
+inventory. 0061–0066 are composed development candidates,
 not proof of future retention-key coverage, live compatibility or atomic execution.
 Preserve the frozen send-back package. Do not request a new qualified-human ruling
 until the complete corrected candidate is independently accepted and incorporated
@@ -26,4 +26,4 @@ production/provider mutation, deletion, release, deployment, protected edit or
 signature is authorized by this ledger. No credential handoff is pending here.
 
 Sources: intent/0001/reviews/domain/round-3/remediation/CYCLE-DISPOSITION.md,
-preflight-critic-r5.json in that same frozen directory, and intent/0056–0065.
+preflight-critic-r5.json in that same frozen directory, and intent/0056–0066.

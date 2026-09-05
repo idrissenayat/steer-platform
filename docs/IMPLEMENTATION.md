@@ -571,6 +571,14 @@ strict encoded-byte validation preserves binary Git objects. Pre-ack outcomes
 remain unknown and every result has zero effects/execution authority. The bounded
 model is not a real restore service. See `intent/0065/SPEC.md` and `EVIDENCE.md`.
 
+Item `intent/0066` covers the original public authorization oracle with all ten
+signatures timed, current credential/assignment/authority/store bounds and exact
+independent observation. It recomputes the immutable request digest before
+replay, closing an old early-return gap. It deliberately returns zero effects
+instead of the old model's hypothetical write counters. This is an audit, not a
+Git capability or a replacement for 0060's shared contract. See
+`intent/0066/SPEC.md` and `intent/0066/EVIDENCE.md`.
+
 ## Local commands
 
 ```sh

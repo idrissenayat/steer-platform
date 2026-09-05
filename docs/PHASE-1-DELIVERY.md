@@ -1162,3 +1162,21 @@ Next: direct authorization/accessibility and remaining public-oracle timing
 inventory, followed by full lifecycle/migration normative coverage and complete-
 package independent/protected review. All five R5 findings remain formally open.
 No spending, provider access, protected edit, signature, deployment or release.
+
+## Completed development increment: 0066 — original authorization time composition
+
+The original public authorization contract now checks all ten source signatures
+with explicit times and current credential/authority/store bounds. Independent
+observation binds exact bundle and complete inventory. The immutable request
+digest is derived before both first and replay paths; agreeing replay claims
+cannot hide a fabricated request digest. Audit results use VERIFIED, zero effects
+and executionAuthorized false instead of hypothetical provider/Git write counts.
+
+All 32 original cases, ten signature slots on both paths, pre-key counterexamples,
+coherent replay-digest substitution and currentness/input bounds are tested.
+Evidence: intent/0066/EVIDENCE.md. No actual authorization or provider write occurs.
+
+Next: accessibility and full public-oracle timing inventory, then complete
+lifecycle/migration normative coverage and independent/protected review. The
+separate shared-action contract remains in 0060. All five R5 findings stay open;
+no spending, provider access, protected edit, signature, deployment or release.
