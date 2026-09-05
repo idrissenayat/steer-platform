@@ -9,6 +9,7 @@ import { secretReferenceSchema, type SecretProvider } from '@steer/adapters/secr
 import { artifactProjectionInputSchema, reconciliationScopeSchema, type ReconciliationScheduler } from '@steer/tool-registry';
 import { createArtifactProjectionReader } from '@steer/data/artifact-reader';
 import { createProjectionChangeReader } from '@steer/data/projection-changes';
+import { createProjectionSnapshotReader } from '@steer/data/projection-snapshot';
 import { createProjectionJob } from '@steer/adapters/projection-job';
 import { ingestVerifiedArtifact, projectionKey } from '@steer/data/ingestion';
 import { readProjection } from '@steer/data';
@@ -150,6 +151,9 @@ export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unk
     const projectionChanges = readPool && profile.readModel?.changes ? createProjectionChangeReader(readPool, {
       organizationId: profile.github.binding.organizationId, repository: `github:${profile.github.binding.repositoryId}`,
     }) : undefined;
+    const projectionSnapshot = readPool && profile.readModel?.changes ? createProjectionSnapshotReader(readPool, {
+      organizationId: profile.github.binding.organizationId, repository: `github:${profile.github.binding.repositoryId}`,
+    }) : undefined;
     const binding = { issuer: profile.browser.issuer, clientId: profile.browser.clientId, redirectUri: profile.browser.redirectUri };
     const store = createPostgresBrowserSessionStore(pool, { binding,
       keyring: { currentKeyId: profile.sessionKeyId, keys: secrets.sessionKeys } });
@@ -169,6 +173,7 @@ export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unk
       ...((artifactProjection || managedScheduler) ? { services: {
         ...(artifactProjection ? { artifactProjection } : {}), ...(managedScheduler ? { reconciliationScheduler: managedScheduler.scheduler } : {}),
         ...(projectionChanges ? { projectionChanges } : {}),
+        ...(projectionSnapshot ? { projectionSnapshot } : {}),
       } } : {}),
       ...(transports.identity ? { fetch: transports.identity } : {}),
     });

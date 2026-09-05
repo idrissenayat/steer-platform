@@ -17,6 +17,7 @@ import { createSecretFixture } from '../../../packages/adapters/test/secret-fixt
 import { reserveLocalPort, localHttpsRequest } from './local-tls-harness.ts';
 import { createArtifactProjectionReader } from '@steer/data/artifact-reader';
 import { createProjectionChangeReader } from '@steer/data/projection-changes';
+import { createProjectionSnapshotReader } from '@steer/data/projection-snapshot';
 import { ingestVerifiedArtifact, projectionKey } from '@steer/data/ingestion';
 import { readProjection } from '@steer/data';
 import { reconcileRepository, type SnapshotProjectionSink, type ProjectionOutcome } from '@steer/adapters/reconcile';
@@ -108,7 +109,8 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
           assert.equal(actual.content, (await reader.readArtifact(item, first.revision)).content);
         }
         console.log('PASS revision-bound Git inventory selects two artifacts, then replays and repairs PostgreSQL without rewriting history');
-        return { services: { artifactProjection: projectionReader, projectionChanges: createProjectionChangeReader(app, { organizationId, repository }) }, input: { organizationId, repository, path, revision: first.revision } };
+        return { services: { artifactProjection: projectionReader, projectionChanges: createProjectionChangeReader(app, { organizationId, repository }),
+          projectionSnapshot: createProjectionSnapshotReader(app, { organizationId, repository }) }, input: { organizationId, repository, path, revision: first.revision } };
       },
       verifyRuntimeBootstrap: async (configuration, privateKeyPem) => {
         const { clientSecret, ...browser } = configuration;

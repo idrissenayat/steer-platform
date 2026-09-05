@@ -7,7 +7,7 @@ import { createApi } from '../src/app.ts';
 
 const origin = 'https://steer.test', now = new Date('2026-09-05T10:00:00Z');
 const principal = { subject: 'synthetic-agent', organizationId: 'org-a', type: 'agent', hats: [],
-  toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'workflow.reconciliation.start', 'workflow.reconciliation.status'], expiresAt: new Date(now.getTime() + 300000).toISOString() };
+  toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'workflow.reconciliation.start', 'workflow.reconciliation.status'], expiresAt: new Date(now.getTime() + 300000).toISOString() };
 const input = { organizationId: 'org-a', repository: 'github:1', path: 'BRIEF.md', revision: 'a'.repeat(40) };
 const output = { ...input, kind: 'projection', content: 'synthetic artifact', blobSha: 'b'.repeat(40), contentDigest: 'c'.repeat(64) };
 const scope = { organizationId: 'org-a', repository: 'github:1', paths: ['BRIEF.md'] };
@@ -32,7 +32,7 @@ test('official MCP v2 client lists canonical schemas and calls the same tools as
       projectionChanges: { scope, read: async () => ({ events: [], cursor: null, hasMore: false, snapshotRequired: true }) }, reconciliationScheduler: {
       scope: schedulingScope, workflowId: receipt.workflowId, limits: { maxRounds: 2, minIntervalMs: 1000 },
       start: async () => ({ ...receipt, outcome: 'started' }), inspect: async () => ({ ...receipt, outcome: 'found', state: 'RUNNING' }),
-    } } };
+    }, projectionSnapshot: { scope, read: async () => ({ records: [], cursor: null }) } } };
   const endpoint = createMcpEndpoint(origin, dependencies); const client = await connect(endpoint);
   try {
     const discovered = await client.listTools(); assert.equal(discovered.tools.length, describeTools().length);
@@ -46,6 +46,7 @@ test('official MCP v2 client lists canonical schemas and calls the same tools as
     const api = createApi(dependencies);
     for (const [name, args] of [['session.context', { organizationId: 'org-a' }], ['projection.artifact.read', input],
       ['projection.changes.read', { organizationId: scope.organizationId, repository: scope.repository, cursor: null, limit: 100 }],
+      ['projection.snapshot.read', { organizationId: scope.organizationId, repository: scope.repository }],
       ['workflow.reconciliation.start', { ...schedulingScope, rounds: 1, intervalMs: 1000 }], ['workflow.reconciliation.status', schedulingScope]] as const) {
       const result = await client.callTool({ name, arguments: args }); assert.ok(!result.isError);
       const http = await api.request(`/v1/tools/${name}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(args) });

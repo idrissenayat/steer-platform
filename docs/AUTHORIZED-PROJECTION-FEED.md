@@ -57,3 +57,7 @@ verification, operating screens and operational reset/retention policy remain
 open. Derived projection references cannot satisfy a gate or override current Git
 authority. The five R5 findings and formal gate/live-access/spending boundaries
 are unchanged.
+
+Increment 0046 adds a separate projection.snapshot.read tool with an atomic
+reference inventory/checkpoint and its own grant. See docs/PROJECTION-SNAPSHOT.md.
+Consumer lifecycle and streaming UI remain unimplemented.

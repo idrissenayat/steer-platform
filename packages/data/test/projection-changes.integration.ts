@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 import type { Pool } from 'pg';
-import type { Principal } from '@steer/tool-registry';
+import { projectionSnapshotPageSchema, ProjectionSnapshotTooLargeError, type Principal } from '@steer/tool-registry';
+import { createProjectionSnapshotReader } from '../src/projection-snapshot.ts';
 import { withTenant } from '../src/index.ts';
 import { ingestVerifiedArtifact } from '../src/ingestion.ts';
 import { createProjectionChangeReader, ProjectionCursorResetRequiredError } from '../src/projection-changes.ts';
@@ -15,10 +16,16 @@ export async function testProjectionChanges({ admin, app, projector, connect, ch
   const agent: Principal = { ...identity, subject: 'synthetic-projector', type: 'agent', toolGrants: ['projection.ingest'] };
   const scope = { organizationId: identity.organizationId, repository: 'github:44' };
   const reader = createProjectionChangeReader(app, scope);
+  const snapshotIdentity = { ...identity, toolGrants: ['projection.snapshot.read'] };
+  const snapshotReader = createProjectionSnapshotReader(app, scope);
+  const snapshot = async () => projectionSnapshotPageSchema.parse(await snapshotReader.read(snapshotIdentity));
   const source = (path: string, content = path) => ({ ...scope, path, revision: 'a'.repeat(40), content,
     contentDigest: createHash('sha256').update(content).digest('hex'),
     blobSha: createHash('sha1').update(`blob ${Buffer.byteLength(content)}\0`).update(content).digest('hex') });
   const page = (cursor: Parameters<typeof reader.read>[0]['cursor'] = null, limit = 100) => reader.read({ cursor, limit }, identity);
+  await check('empty repository snapshot is complete without fabricating a change-stream generation', async () => {
+    assert.deepEqual(await snapshot(), { records: [], cursor: null });
+  });
   await check('projection feed pages exact committed references, duplicates stay silent and repairs append atomically', async () => {
     assert.deepEqual(await page(), { events: [], cursor: null, hasMore: false, snapshotRequired: true });
     for (const path of ['items/a.md', 'items/b.md', 'items/c.md']) assert.equal(await ingestVerifiedArtifact(projector, agent, source(path), null), 'applied');
@@ -34,6 +41,9 @@ export async function testProjectionChanges({ admin, app, projector, connect, ch
     assert.equal(await ingestVerifiedArtifact(projector, agent, source('items/a.md'), 'a'.repeat(40)), 'repaired');
     assert.deepEqual((await page(second.cursor)).events.map((event) => event.position), ['4', '5']);
     assert.equal(JSON.stringify(await page()).includes('content"'), false);
+    const state = await snapshot(); assert.equal(state.records.length, 3);
+    assert.deepEqual(state.cursor, (await page()).cursor);
+    assert.deepEqual(state.records.map((record) => record.recordKey), [...new Set((await page()).events.map((event) => event.recordKey))].sort());
   });
   await check('stream lock prevents later commit overtaking, and rollback consumes no visible cursor position', async () => {
     const before = (await page()).cursor!;
@@ -61,9 +71,13 @@ export async function testProjectionChanges({ admin, app, projector, connect, ch
       }
       assert.equal(blocked, true, 'Later transaction must wait on the stream lock');
       assert.deepEqual((await page(before)).events, []);
+      const state = await snapshot(); assert.deepEqual(state.cursor, before);
+      assert.equal(state.records.some((record) => record.recordKey.startsWith('concurrent-')), false);
     } finally { unblock(); await Promise.all([first, ...(second ? [second] : [])]); }
     const committed = await page(before);
     assert.deepEqual(committed.events.map((event) => event.recordKey), ['concurrent-first', 'concurrent-second']);
+    const state = await snapshot(); assert.deepEqual(state.cursor, committed.cursor);
+    assert.equal(state.records.filter((record) => record.recordKey.startsWith('concurrent-')).length, 2);
     await assert.rejects(withTenant(projector, agent, async (client) => {
       await client.query('INSERT INTO steer.projection_records VALUES ($1,$2,$3,$4,$5,$6)', [scope.organizationId, 'rollback', scope.repository, 'a'.repeat(40), 'b'.repeat(64), {}]);
       throw new Error('synthetic rollback');
@@ -76,6 +90,8 @@ export async function testProjectionChanges({ admin, app, projector, connect, ch
     const cursor = (await page()).cursor!;
     await assert.rejects(page({ ...cursor, repository: 'github:foreign' }), /not allowed/);
     await assert.rejects(createProjectionChangeReader(projector, scope).read({ cursor: null, limit: 1 }, identity), /Unsafe projection reader/);
+    await assert.rejects(createProjectionSnapshotReader(projector, scope).read(snapshotIdentity), /Unsafe projection reader/);
+    assert.deepEqual(projectionSnapshotPageSchema.parse(await createProjectionSnapshotReader(app, { ...scope, organizationId: 'org-other' }).read({ ...snapshotIdentity, organizationId: 'org-other' })).records, []);
     assert.deepEqual((await createProjectionChangeReader(app, { ...scope, organizationId: 'org-other' }).read({ cursor: null, limit: 100 }, { ...identity, organizationId: 'org-other' })).events, []);
     assert.deepEqual((await createProjectionChangeReader(app, { ...scope, repository: 'github:other' }).read({ cursor: null, limit: 100 }, identity)).events, []);
     for (const table of ['projection_changes', 'projection_streams']) {
@@ -97,5 +113,14 @@ export async function testProjectionChanges({ admin, app, projector, connect, ch
     // Test-only loss, restricted to a single event in this run's tmpfs database.
     await admin.query('DELETE FROM steer.projection_changes WHERE organization_id=$1 AND repository=$2 AND position=1', [scope.organizationId, scope.repository]);
     await assert.rejects(page(), ProjectionCursorResetRequiredError);
+    // A complete coherent snapshot can establish a new checkpoint beyond lost history.
+    assert.deepEqual((await page((await snapshot()).cursor)).events, []);
+  });
+  await check('oversized repository snapshot fails instead of silently truncating its reference inventory', async () => {
+    const repository = 'github:oversized';
+    await withTenant(projector, agent, (client) => client.query(`INSERT INTO steer.projection_records
+      SELECT $1, 'oversized-' || n, $2, $3, $4, '{}'::jsonb FROM generate_series(1,1001) n`,
+    [scope.organizationId, repository, 'a'.repeat(40), 'b'.repeat(64)]));
+    await assert.rejects(createProjectionSnapshotReader(app, { ...scope, repository }).read(snapshotIdentity), ProjectionSnapshotTooLargeError);
   });
 }

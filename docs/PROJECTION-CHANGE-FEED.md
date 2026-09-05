@@ -60,3 +60,7 @@ provider, gate, deployment, release and spending boundaries are unchanged.
 Increment 0045 adds opt-in shared HTTP/MCP reads and moves cursor/page schemas to
 the registry. See docs/AUTHORIZED-PROJECTION-FEED.md. Snapshot/SSE composition
 and canonical gate authority remain outside the feed.
+
+Increment 0046 provides a coherent bounded reference snapshot/checkpoint through
+a separate authorized tool; see docs/PROJECTION-SNAPSHOT.md. The client lifecycle,
+SSE transport and operational reset/retention controls remain separate work.

@@ -27,3 +27,17 @@ export interface ProjectionChangeReader {
 export class ProjectionCursorResetRequiredError extends Error {
   constructor() { super('Projection cursor requires a fresh snapshot.'); this.name = 'ProjectionCursorResetRequiredError'; }
 }
+
+export const projectionSnapshotInputSchema = projectionChangeScopeSchema;
+export const projectionSnapshotPageSchema = z.strictObject({ records: z.array(z.strictObject({
+  recordKey: z.string().min(1).max(500), sourceRevision: z.string().regex(/^[a-f0-9]{40}$/), contentDigest: z.string().regex(/^[a-f0-9]{64}$/),
+})).max(1000), cursor: projectionCursorSchema.nullable() });
+export const projectionSnapshotOutputSchema = projectionSnapshotPageSchema.extend({ ...projectionChangeScopeSchema.shape, outcome: z.literal('snapshot') });
+export type ProjectionSnapshotResult = z.infer<typeof projectionSnapshotOutputSchema>;
+export interface ProjectionSnapshotReader {
+  readonly scope: Readonly<z.infer<typeof projectionChangeScopeSchema>>;
+  read(principal: Principal): Promise<unknown>;
+}
+export class ProjectionSnapshotTooLargeError extends Error {
+  constructor() { super('Projection snapshot exceeds the configured delivery bound.'); this.name = 'ProjectionSnapshotTooLargeError'; }
+}

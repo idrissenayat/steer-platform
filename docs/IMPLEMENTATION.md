@@ -400,6 +400,13 @@ read pool. Actual browser/Keycloak/Git/PostgreSQL paging and grant-revocation
 checks pass; no initial snapshot or feed UI is claimed. See
 `docs/AUTHORIZED-PROJECTION-FEED.md`.
 
+Item `intent/0046` adds a complete bounded reference snapshot and its matching
+change cursor in one PostgreSQL statement, with a shared authorized HTTP/MCP
+query. Actual concurrency checks verify projection commits and checkpoint move
+together; inventories above 1000 records fail instead of truncating. This is a
+derived reference view, not full business/UI parity or current Git authority.
+See `docs/PROJECTION-SNAPSHOT.md`.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.

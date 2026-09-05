@@ -812,3 +812,21 @@ a coherent snapshot; no streaming UI or canonical approval authority is claimed.
 Next: initial snapshot/checkpoint consistency for these consumers, authenticated
 gate source/proof verification and business screens/tools. Keep the five R5
 findings and all gate, provider, deployment and spending boundaries unchanged.
+
+## Completed development increment: 0046
+
+Added an authorized complete reference snapshot with an atomic change checkpoint.
+One SQL statement sees projection state and stream cursor together. A bound of
+1000 records is enforced without silent truncation. Empty/no-stream scopes keep
+a null cursor; consumers must resnapshot when a generation first appears.
+
+Three native registry groups, one native data group and actual PostgreSQL
+snapshot/commit-order/capacity checks pass. The database suite now has 33 groups.
+Browser/MCP snapshot/resume evidence is in intent/0046/EVIDENCE.md; guide:
+docs/PROJECTION-SNAPSHOT.md. Both readers reuse the opt-in read pool with separate
+explicit grants. No new live runtime profile or UI is claimed.
+
+Next: consumer lifecycle and authenticated operating surfaces/business models,
+alongside canonical gate source/proof verification and remaining services.
+The five R5 findings and formal/manual/qualified evidence remain open. Continue
+authorized implementation without inferring gate, provider or spending authority.

@@ -1,7 +1,9 @@
 import { roles } from '@steer/domain/types';
 import { z } from 'zod';
 import { projectionChangesInputSchema, projectionChangePageSchema, projectionChangesOutputSchema,
-  ProjectionCursorResetRequiredError, type ProjectionChangeReader, type ProjectionChangesResult } from './projection-changes.ts';
+  ProjectionCursorResetRequiredError, projectionSnapshotInputSchema, projectionSnapshotPageSchema, projectionSnapshotOutputSchema,
+  ProjectionSnapshotTooLargeError, type ProjectionSnapshotReader, type ProjectionSnapshotResult,
+  type ProjectionChangeReader, type ProjectionChangesResult } from './projection-changes.ts';
 export * from './projection-changes.ts';
 
 const identifier = z.string().min(1).max(200);
@@ -83,7 +85,7 @@ export interface ReconciliationScheduler {
   start(input: ReconciliationStart): Promise<unknown>;
   inspect(): Promise<unknown>;
 }
-export interface ToolServices { artifactProjection?: ArtifactProjectionReader; reconciliationScheduler?: ReconciliationScheduler; projectionChanges?: ProjectionChangeReader }
+export interface ToolServices { artifactProjection?: ArtifactProjectionReader; reconciliationScheduler?: ReconciliationScheduler; projectionChanges?: ProjectionChangeReader; projectionSnapshot?: ProjectionSnapshotReader }
 
 const contextInput = z.strictObject({ organizationId: identifier });
 const contextOutput = principalSchema.omit({ expiresAt: true });
@@ -254,14 +256,39 @@ const changesQuery = {
   },
 };
 
+const snapshotAuthorization = defineQuery({ name: 'projection.snapshot.read', description: 'Authorize a complete bounded reference snapshot.',
+  input: projectionSnapshotInputSchema, output: principalSchema, handler: (_input, principal) => principal });
+const snapshotQuery = {
+  name: 'projection.snapshot.read', description: 'Read up to 1000 derived repository references and their atomic change cursor; not content or Git/gate authority.',
+  kind: 'query' as const, scope: 'organization' as const, authorization: 'explicit-tool-grant' as const,
+  input: projectionSnapshotInputSchema, output: projectionSnapshotOutputSchema,
+  async invoke(raw: unknown, context: InvocationContext): Promise<ProjectionSnapshotResult> {
+    const initial = snapshotAuthorization.invoke(raw, context); const input = projectionSnapshotInputSchema.parse(raw);
+    const reader = context.services?.projectionSnapshot;
+    if (!reader || !context.revalidate) throw new ToolError('UNAVAILABLE');
+    if (reader.scope.organizationId !== input.organizationId || reader.scope.repository !== input.repository) throw new ToolError('FORBIDDEN');
+    const principal = await freshToolPrincipal(snapshotAuthorization, input, initial, context);
+    let result: unknown; let tooLarge = false;
+    try { result = await reader.read(principal); }
+    catch (error) { if (error instanceof ProjectionSnapshotTooLargeError) tooLarge = true; else throw new ToolError('INTERNAL_ERROR'); }
+    await freshToolPrincipal(snapshotAuthorization, input, initial, context);
+    if (tooLarge) throw new ToolError('UNAVAILABLE');
+    const parsed = projectionSnapshotPageSchema.safeParse(result);
+    if (!parsed.success || new Set(parsed.data.records.map((record) => record.recordKey)).size !== parsed.data.records.length ||
+      (parsed.data.cursor && (parsed.data.cursor.organizationId !== input.organizationId || parsed.data.cursor.repository !== input.repository))) throw new ToolError('INTERNAL_ERROR');
+    return { ...input, ...parsed.data, outcome: 'snapshot' };
+  },
+};
+
 // Frozen definitions are the common source for discovery, dispatch and HTTP contracts.
-const definitions = Object.freeze([Object.freeze(contextQuery), Object.freeze(projectionQuery), Object.freeze(reconciliationStart), Object.freeze(reconciliationStatus), Object.freeze(changesQuery)]);
+const definitions = Object.freeze([Object.freeze(contextQuery), Object.freeze(projectionQuery), Object.freeze(reconciliationStart), Object.freeze(reconciliationStatus), Object.freeze(changesQuery), Object.freeze(snapshotQuery)]);
 export function invokeTool(name: 'session.context', input: unknown, context: InvocationContext): z.output<typeof contextOutput>;
 export function invokeTool(name: 'projection.artifact.read', input: unknown, context: InvocationContext): Promise<ArtifactProjection | null>;
 export function invokeTool(name: 'workflow.reconciliation.start', input: unknown, context: InvocationContext): Promise<ReconciliationStartResult>;
 export function invokeTool(name: 'workflow.reconciliation.status', input: unknown, context: InvocationContext): Promise<ReconciliationStatusResult>;
 export function invokeTool(name: 'projection.changes.read', input: unknown, context: InvocationContext): Promise<ProjectionChangesResult>;
-export function invokeTool(name: string, input: unknown, context: InvocationContext): z.output<typeof contextOutput> | Promise<ArtifactProjection | null | ReconciliationStartResult | ReconciliationStatusResult | ProjectionChangesResult>;
+export function invokeTool(name: 'projection.snapshot.read', input: unknown, context: InvocationContext): Promise<ProjectionSnapshotResult>;
+export function invokeTool(name: string, input: unknown, context: InvocationContext): z.output<typeof contextOutput> | Promise<ArtifactProjection | null | ReconciliationStartResult | ReconciliationStatusResult | ProjectionChangesResult | ProjectionSnapshotResult>;
 export function invokeTool(name: string, input: unknown, context: InvocationContext) {
   const definition = definitions.find((tool) => tool.name === name);
   if (!definition) throw new ToolError('TOOL_NOT_FOUND');
