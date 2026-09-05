@@ -56,6 +56,11 @@ bounded body reads inside the browser/tool routes. See `API-RESOURCE-LIMITS.md`
 for exact defaults and the local CLI socket checks. Those checks do not replace
 trusted public ingress, distributed limits or database execution deadlines.
 
+Increment 0022 adds a strict runtime database pool with bounded acquisition and
+server-side query/lock/idle transaction limits; assembled HTTP and Chromium
+harnesses now use it. See `DATABASE-RUNTIME-LIMITS.md` for exact defaults and
+remaining active-network, transaction/shutdown and production TLS evidence.
+
 The page that submits the native sign-in form must allow the exact configured
 IdP origin as well as self in CSP `form-action`; Chromium also checks the
 authorization redirect against that policy. Keep the issuer allowlist fixed

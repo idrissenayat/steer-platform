@@ -24,7 +24,7 @@ test('tenant context is transaction-local and the connection is released after c
   };
   const pool = { connect: async () => client } as unknown as Pool;
   assert.equal(await withTenant(pool, principal, async () => 'value', () => now), 'value');
-  assert.deepEqual(calls[3], ["SELECT set_config('steer.organization_id', $1, true)", ['org-a']]);
+  assert.deepEqual(calls[4], ["SELECT set_config('steer.organization_id', $1, true)", ['org-a']]);
   assert.deepEqual(calls.slice(-3), [['COMMIT', undefined], ["SELECT set_config('steer.organization_id', '', false)", undefined], ['release', false]]);
 });
 

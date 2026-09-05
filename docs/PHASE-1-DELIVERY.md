@@ -325,3 +325,25 @@ configuration, then production UI composition. Per-process limits are not fleet
 ingress, capacity/load validation or cancellation of backend work. Preserve the
 five R5 findings and all real-access, independent review, gate, deployment,
 release and spending boundaries. No production activation has occurred.
+
+## Completed development increment: 0022
+
+Added a strict bounded runtime database pool: explicit role/transport, eight
+connections, 32 pending acquisitions, two-second acquisition wait and server-side
+statement/lock/idle transaction limits. Fixed startup options prevent ambient
+PGOPTIONS from overriding the policy. Tenant and authentication helpers reapply
+limits on entry without weakening RLS, role checks or confirmed-commit handling.
+Pool drain is shared across repeated shutdown calls; closed admission is not
+misreported as a completed drain.
+
+Isolated PostgreSQL checks exercise exhausted capacity and recovery, real query
+and lock cancellation, contaminated-client reset and idle-transaction termination.
+The assembled identity harness now uses the production pool. Exact outcomes and
+regressions: `intent/0022/EVIDENCE.md`; limits: `docs/DATABASE-RUNTIME-LIMITS.md`.
+
+Next bounded increment: trusted service/runtime composition and explicit active
+connection failure/shutdown handling. Server SQL limits are not total transaction
+or active-network deadlines, and loopback testing is not production TLS evidence.
+Continue safe local implementation without opening real membership/public access
+or spending. Five R5 findings, protected review/signatures and all formal gates
+remain distinct and unresolved.

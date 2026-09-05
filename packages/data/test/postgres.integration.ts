@@ -11,6 +11,7 @@ import { withTenant, readProjection } from '../src/index.ts';
 import { ingestVerifiedArtifact, projectionKey } from '../src/ingestion.ts';
 import type { Principal } from '@steer/tool-registry';
 import { testBrowserSessionStorage } from './session-storage.integration.ts';
+import { testRuntimePool } from './runtime-pool.integration.ts';
 
 const exec = promisify(execFile);
 const docker = async (...args: string[]) => (await exec('docker', args, { timeout: 30000 })).stdout.trim();
@@ -146,6 +147,7 @@ try {
   });
   await testBrowserSessionStorage({ admin, app, projector, connect, check,
     connection: { host: '127.0.0.1', port, user: 'steer_auth_runtime', password, database: 'steer_test' } });
+  await testRuntimePool({ admin, check, host: '127.0.0.1', port, password, database: 'steer_test' });
   console.log(`PostgreSQL integration: ${passed} checks passed; server ${(await admin.query('SHOW server_version')).rows[0].server_version}`);
 } finally {
   await Promise.all(pools.map((pool) => pool.end()));

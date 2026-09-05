@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
-import type { Pool } from 'pg';
+import type { DatabasePool } from './runtime-pool.ts';
 import { principalSchema, type Principal } from '@steer/tool-registry';
 import { withTenant } from './index.ts';
 
@@ -18,7 +18,7 @@ const digest = (value: string) => createHash('sha256').update(value).digest('hex
 export const projectionKey = (repository: string, path: string) => `artifact:${digest(JSON.stringify([repository, path]))}`;
 
 /** Caller must obtain snapshots from its verified source adapter; this is not a write API. */
-export async function ingestVerifiedArtifact(pool: Pool, rawPrincipal: Principal, rawSnapshot: VerifiedSourceSnapshot, expectedRevision: string | null): Promise<IngestionResult> {
+export async function ingestVerifiedArtifact(pool: DatabasePool, rawPrincipal: Principal, rawSnapshot: VerifiedSourceSnapshot, expectedRevision: string | null): Promise<IngestionResult> {
   const identity = principalSchema.parse(rawPrincipal);
   const source = sourceSchema.parse(rawSnapshot);
   const expected = revisionSchema.nullable().parse(expectedRevision);

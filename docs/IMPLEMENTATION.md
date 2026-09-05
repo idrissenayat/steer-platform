@@ -246,6 +246,13 @@ concurrency lease until it settles; overload and stalled streams fail safely.
 Limits and production gaps are recorded in `docs/API-RESOURCE-LIMITS.md`. This
 does not provide distributed abuse prevention or database execution deadlines.
 
+Item `intent/0022` adds strict runtime database transport/role configuration,
+bounded connections and queued acquisitions, and server-side query/lock/idle
+transaction limits. Real PostgreSQL tests prove cancellation and recovery;
+assembled browser/provider authentication now uses the bounded pool. See
+`docs/DATABASE-RUNTIME-LIMITS.md` for the remaining network, total-transaction,
+shutdown and production TLS boundaries.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.

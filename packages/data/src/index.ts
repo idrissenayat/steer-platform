@@ -1,11 +1,12 @@
-import type { Pool, PoolClient } from 'pg';
+import type { PoolClient } from 'pg';
+import { applyRuntimeQueryLimits, type DatabasePool } from './runtime-pool.ts';
 import { and, eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { principalSchema, type Principal } from '@steer/tool-registry';
 import { projectionRecords } from './schema.ts';
 
 /** Internal boundary only: callbacks are trusted code, never caller-supplied SQL. */
-export async function withTenant<T>(pool: Pool, rawPrincipal: Principal, operation: (client: PoolClient) => Promise<T>, clock = () => new Date()): Promise<T> {
+export async function withTenant<T>(pool: DatabasePool, rawPrincipal: Principal, operation: (client: PoolClient) => Promise<T>, clock = () => new Date()): Promise<T> {
   const now = clock();
   const parsed = principalSchema.safeParse(rawPrincipal);
   if (!parsed.success || !Number.isFinite(now.getTime()) || Date.parse(parsed.data.expiresAt) <= now.getTime()) {
@@ -14,6 +15,7 @@ export async function withTenant<T>(pool: Pool, rawPrincipal: Principal, operati
   const client = await pool.connect();
   let broken = false;
   try {
+    await applyRuntimeQueryLimits(client);
     // Scrub any prior session-level setting before opening our transaction.
     await client.query("SELECT set_config('steer.organization_id', '', false)");
     await client.query('BEGIN');
@@ -49,7 +51,7 @@ export async function withTenant<T>(pool: Pool, rawPrincipal: Principal, operati
 }
 
 /** Read only a rebuildable record; no status, grant or signature authority is created. */
-export function readProjection(pool: Pool, principal: Principal, recordKey: string) {
+export function readProjection(pool: DatabasePool, principal: Principal, recordKey: string) {
   if (!recordKey || recordKey.length > 500) throw new Error('Invalid projection key.');
   return withTenant(pool, principal, async (client) => {
     const rows = await drizzle(client).select().from(projectionRecords).where(and(

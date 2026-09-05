@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
-import type { Pool, PoolClient } from 'pg';
+import type { PoolClient } from 'pg';
+import { applyRuntimeQueryLimits, type DatabasePool } from './runtime-pool.ts';
 import { z } from 'zod';
 import { transactionSchema, sessionSchema, type BrowserSessionStore,
   type BrowserSession, type LoginTransaction } from '@steer/tool-registry/browser-session';
@@ -23,9 +24,10 @@ export function sessionNamespace(binding: SessionIdentityBinding): string {
 }
 
 /** Dedicated role and pre-auth namespace; not a business tenant or SQL sandbox. */
-async function withNamespace<T>(pool: Pool, namespace: string, run: (client: PoolClient) => Promise<T>): Promise<T> {
+async function withNamespace<T>(pool: DatabasePool, namespace: string, run: (client: PoolClient) => Promise<T>): Promise<T> {
   const client = await pool.connect(); let broken = false;
   try {
+    await applyRuntimeQueryLimits(client);
     await client.query("SELECT set_config('steer.auth_namespace', '', false)");
     await client.query('BEGIN');
     const role = (await client.query(`SELECT r.rolname, session_user AS login_role,
@@ -47,7 +49,7 @@ async function withNamespace<T>(pool: Pool, namespace: string, run: (client: Poo
   } finally { client.release(broken); }
 }
 
-export function createPostgresBrowserSessionStore(pool: Pool, config: {
+export function createPostgresBrowserSessionStore(pool: DatabasePool, config: {
   binding: SessionIdentityBinding; keyring: SessionKeyring; maxEntriesPerKind?: number; now?: () => Date;
 }): BrowserSessionStore {
   const namespace = sessionNamespace(config.binding); const cipher = createSessionCipher(config.keyring);

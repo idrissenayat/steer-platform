@@ -35,5 +35,9 @@ headers or silently add a distributed cache contrary to the architecture trigger
 The current response handlers are buffered; future SSE/streaming needs its own
 connection/backpressure budget and cancellation lifecycle before being enabled.
 
+Increment 0022 supplies bounded database acquisition plus server-side statement,
+lock and idle-transaction limits; see `DATABASE-RUNTIME-LIMITS.md`. Active network
+failure and total transaction/shutdown budgets still require separate proof.
+
 Evidence: `intent/0021/EVIDENCE.md`. These defaults authorize no deployment,
 spending, actual membership, provider writes or gate decision.

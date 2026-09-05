@@ -8,6 +8,7 @@ import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { createPostgresBrowserSessionStore, sessionNamespace, type SessionIdentityBinding } from '@steer/data/browser-session';
+import { createRuntimePool } from '@steer/data/runtime-pool';
 import type { BrowserSession, LoginTransaction } from '@steer/adapters/browser-session';
 import type { SessionTestHarness } from './session-harness.ts';
 
@@ -18,7 +19,7 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
   const docker = async (...args: string[]) => (await exec('docker', args, { timeout: 30000 })).stdout.trim();
   const name = `steer-0018-${randomUUID()}`; const password = randomBytes(24).toString('hex');
   const encryptionKey = randomBytes(32); const namespace = sessionNamespace(binding);
-  const pools: Pool[] = []; let containerId: string | undefined; let closed = false;
+  const pools: { end(): Promise<void> }[] = []; let containerId: string | undefined; let closed = false;
   const close = async () => {
     if (closed) return;
     try { await Promise.all(pools.map((pool) => pool.end())); }
@@ -56,12 +57,17 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
     await migrate(drizzle(admin), { migrationsFolder });
     assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 4);
     const config = { binding, keyring: { currentKeyId: 'synthetic', keys: { synthetic: encryptionKey } } };
-    const freshStore = () => createPostgresBrowserSessionStore(connect('steer_auth_runtime'), config);
+    const runtime = () => {
+      const pool = createRuntimePool({ host: '127.0.0.1', port: Number(mapping.split(':')[1]),
+        user: 'steer_auth_runtime', password, database: 'steer_auth_test', transport: { kind: 'isolated-loopback-test' } });
+      pools.push(pool); return pool;
+    };
+    const freshStore = () => createPostgresBrowserSessionStore(runtime(), config);
     const store = freshStore();
     const transactionKeys = async () => (await admin.query<{ key_hash: string }>(
       'SELECT key_hash FROM steer_auth.login_transactions WHERE namespace=$1', [namespace])).rows;
     return { kind: 'postgres', store, freshStore, close,
-      wrongKeyStore: () => createPostgresBrowserSessionStore(connect('steer_auth_runtime'), { binding,
+      wrongKeyStore: () => createPostgresBrowserSessionStore(runtime(), { binding,
         keyring: { currentKeyId: 'synthetic', keys: { synthetic: randomBytes(32) } } }),
       counts: async () => ({
         transactions: (await admin.query('SELECT count(*)::int AS count FROM steer_auth.login_transactions WHERE namespace=$1', [namespace])).rows[0].count,
