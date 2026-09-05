@@ -759,3 +759,21 @@ cursors and public gate-watch composition. Structural record matching does not
 close policy, provider proof or Gate 2. Business tools/screens and remaining
 services stay open. Continue authorized implementation; no new provider access,
 protected edits, gate signature, deployment, release or spending is authorized.
+
+## Completed development increment: 0043
+
+Added an internal strict policy evaluator for normalized target, signature,
+prerequisite, Critic/build and independent domain-assurance facts. It checks
+human hats, exact target scope, seat order, chronology, complete exception links,
+specialist coverage and regulated separation. Commercial closed Gate 3 needs
+sessions distinct from every Gate 2 session and authenticated after the Critic.
+
+Eight new native groups pass; repository checks and frozen installation pass.
+Every result explicitly requires source verification. This unmounted precheck
+does not authenticate signers, verify provider records or approve any gate.
+Evidence: intent/0043/EVIDENCE.md; guide: docs/GATE-POLICY-EVALUATION.md.
+
+Next: authenticated source/proof normalization and verification, complete event
+cursors and public watch composition. Business tools/screens and remaining
+services still need implementation. Five R5 findings remain open; live authority,
+signed/protected artifacts and deployment/spending restrictions are unchanged.

@@ -381,6 +381,11 @@ provenance. Actual Git/Temporal record commit and revocation/recreation tests pa
 Record provenance is not signer/decision-policy verification; see
 `docs/GIT-GATE-OBSERVATION.md` for that explicit boundary.
 
+Item `intent/0043` adds strict internal gate-policy evaluation of normalized
+facts, including complete human seats, session/chronology and independent domain
+assurance. Every result still requires source verification. It is not a signing
+tool or authenticated canonical verifier; see `docs/GATE-POLICY-EVALUATION.md`.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.

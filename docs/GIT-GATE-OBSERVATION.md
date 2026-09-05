@@ -66,6 +66,8 @@ invalidates that target. A separate Git-committed observer revocation denies a
 later round after restart. No real signature or GitHub credentials are involved.
 See intent/0042/EVIDENCE.md for final command results.
 
-Next: canonical signer and decision-policy verification, then complete event
+Increment 0043 adds an unmounted normalized-fact policy precheck; see
+docs/GATE-POLICY-EVALUATION.md. It does not upgrade this observer's result.
+Next: authenticated canonical source/proof verification, then complete event
 cursors/public gate-watch composition and business tools/screens. The five R5
 findings and live provider/deployment/release/spending restrictions remain.
