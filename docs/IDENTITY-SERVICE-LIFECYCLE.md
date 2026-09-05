@@ -5,10 +5,11 @@ with explicitly owned session resources. Pass fixed browser/reader/path settings
 and a managed resource containing the store, exact issuer/client/callback binding,
 and an awaitable shutdown function. Binding mismatch fails construction.
 
-The API deliberately does not import `@steer/data` or read secrets/configuration
-from the environment. Runtime bootstrap owns resource creation, identity binding,
-listener/TLS configuration and cleanup if construction fails. Production bootstrap
-is still separate work; the loopback harness supplies synthetic owned resources.
+The service layer deliberately does not import `@steer/data` or read configuration
+from the environment. The dedicated `runtime.ts` composition root now assembles
+actual resources from explicit profile/secret inputs; see
+`IDENTITY-RUNTIME-BOOTSTRAP.md`. Listener/TLS configuration and secret loading
+remain separate work; the loopback harness supplies synthetic owned resources.
 Do not use the test-owned memory store or Git fixture as a runtime fallback.
 
 | State | Meaning |

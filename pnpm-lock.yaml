@@ -60,16 +60,19 @@ importers:
       '@steer/adapters':
         specifier: workspace:*
         version: link:../../packages/adapters
+      '@steer/data':
+        specifier: workspace:*
+        version: link:../../packages/data
       '@steer/tool-registry':
         specifier: workspace:*
         version: link:../../packages/tool-registry
       hono:
         specifier: 4.13.5
         version: 4.13.5
+      zod:
+        specifier: 4.5.4
+        version: 4.5.4
     devDependencies:
-      '@steer/data':
-        specifier: workspace:*
-        version: link:../../packages/data
       '@types/node':
         specifier: 25.0.3
         version: 25.0.3

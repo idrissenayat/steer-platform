@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
-import type { BrowserSessionStore, BrowserSession, LoginTransaction } from '@steer/adapters/browser-session';
+import type { BrowserSessionStore, BrowserSession, LoginTransaction, BrowserSessionConfiguration } from '@steer/adapters/browser-session';
 
 export interface SessionTestHarness {
   kind: 'memory' | 'postgres';
@@ -13,6 +13,7 @@ export interface SessionTestHarness {
   corruptVerifier(): Promise<void>;
   verifyCiphertext?: () => Promise<void>;
   shutdown?: () => Promise<void>;
+  verifyRuntimeBootstrap?: (configuration: BrowserSessionConfiguration, privateKeyPem: string) => Promise<void>;
 }
 
 /** Explicit provider-only test fixture; never exported by a production package. */

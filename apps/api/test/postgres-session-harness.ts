@@ -11,6 +11,7 @@ import { createPostgresBrowserSessionStore, sessionNamespace, type SessionIdenti
 import { createRuntimePool } from '@steer/data/runtime-pool';
 import type { BrowserSession, LoginTransaction } from '@steer/adapters/browser-session';
 import type { SessionTestHarness } from './session-harness.ts';
+import { createIdentityRuntime } from '../src/runtime.ts';
 
 /** Two disposable services only; no externally supplied connection or credential. */
 export async function createPostgresSessionHarness(binding: SessionIdentityBinding): Promise<SessionTestHarness & { close(): Promise<void> }> {
@@ -70,6 +71,27 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
     const transactionKeys = async () => (await admin.query<{ key_hash: string }>(
       'SELECT key_hash FROM steer_auth.login_transactions WHERE namespace=$1', [namespace])).rows;
     return { kind: 'postgres', store, freshStore, close,
+      verifyRuntimeBootstrap: async (configuration, privateKeyPem) => {
+        const { clientSecret, ...browser } = configuration;
+        let providerCalls = 0;
+        const denyTransport: typeof fetch = async () => { providerCalls++; throw new Error('Unexpected synthetic provider request.'); };
+        const instance = await createIdentityRuntime({ version: 'steer-identity-runtime/v1', browser,
+          github: { appId: '1', authorizationPath: 'access/authorization.json', binding: {
+            organizationId: 'synthetic-org', installationId: 1, repositoryId: 1, owner: 'synthetic', repository: 'synthetic', branch: 'synthetic' } },
+          database: { host: '127.0.0.1', port: Number(mapping.split(':')[1]), database: 'steer_auth_test', transport: { kind: 'isolated-loopback-test' } },
+          sessionKeyId: 'synthetic',
+        }, { browserClientSecret: clientSecret, githubPrivateKeyPem: privateKeyPem, databasePassword: password,
+          sessionKeys: { synthetic: encryptionKey } }, { identity: denyTransport, github: denyTransport });
+        try {
+          const origin = new URL(configuration.redirectUri).origin;
+          const response = await instance.fetch(new Request(`${origin}/auth/login`, { method: 'POST', headers: { origin } }));
+          assert.equal(response.status, 303); assert.equal(providerCalls, 0);
+          assert.ok(response.headers.getSetCookie()[0]?.startsWith('__Host-steer-login='));
+          const rows = await transactionKeys(); assert.equal(rows.length, 1);
+          assert.ok(await store.consumeTransaction(rows[0]!.key_hash));
+        } finally { await instance.shutdown(); }
+        assert.equal(instance.status().state, 'stopped'); assert.equal(instance.status().database.connections, 0);
+      },
       shutdown: () => {
         runtimeClosed = true;
         runtimeShutdown ??= Promise.all(runtimePools.map((pool) => pool.shutdown())).then(() => {});

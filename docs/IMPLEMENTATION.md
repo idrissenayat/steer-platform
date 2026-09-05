@@ -262,8 +262,15 @@ or proactive detection of every stalled network connection.
 Item `intent/0024` composes the Git-backed identity API with managed session
 resources and explicit request/resource shutdown state. A closed pool alone
 cannot report a stopped service while requests remain active. The Chromium
-integration now uses this service without adding a database import to the API
-layer. Details: `docs/IDENTITY-SERVICE-LIFECYCLE.md`; runtime bootstrap is separate.
+integration uses this service without adding database imports to route/service
+logic. Details: `docs/IDENTITY-SERVICE-LIFECYCLE.md`; bootstrap follows in 0025.
+
+Item `intent/0025` adds actual runtime assembly from separate strict profile and
+secret inputs. The composition root alone may import the data adapter and Zod;
+routes/services retain their prior dependency restrictions. The bootstrap is
+lazy and opens no listener or real provider connection automatically. A synthetic
+PostgreSQL login transaction proves real storage wiring. Details and remaining
+listener/secret-loading requirements: `docs/IDENTITY-RUNTIME-BOOTSTRAP.md`.
 
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,

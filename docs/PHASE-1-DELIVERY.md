@@ -387,3 +387,24 @@ supervision and total transaction/network budgets explicit. Buffered test flows
 do not complete production UI/streaming/manual-accessibility evidence. The five
 R5 findings and all independent-review, gate, deployment, release and spending
 boundaries remain unchanged.
+
+## Completed development increment: 0025
+
+Added explicit actual identity runtime bootstrap from separate strict public
+profile and secret objects. The API composition root assembles the real restricted
+GitHub adapter, bounded auth pool, encrypted store and service lifecycle. Startup
+is lazy/no-network and does not read secrets, open a listener or approve readiness.
+
+The API declares data/Zod dependencies only for `src/runtime.ts`; exact-file
+controls reject those imports from route/service/default startup files. This
+implements the existing architecture split without editing signed snapshots,
+upgrading dependency versions or adding age-policy exemptions. A bootstrap
+integration creates and verifies a real encrypted synthetic login transaction
+while rejecting provider network access. Evidence: `intent/0025/EVIDENCE.md`;
+guide: `docs/IDENTITY-RUNTIME-BOOTSTRAP.md`.
+
+Next bounded increment: local production UI sign-in wiring and trusted
+listener/profile loading. Real credentials/membership, public TLS/ingress,
+supervision and total transaction/network budgets remain explicit prerequisites.
+The five R5 findings and independent-review, gate, deployment, release and
+spending boundaries remain unchanged.

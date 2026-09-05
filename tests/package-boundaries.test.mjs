@@ -11,7 +11,8 @@ const rules = {
   'packages/tool-registry': { folders: ['src'], packages: ['@steer/domain', 'zod'], builtins: [] },
   'packages/adapters': { folders: ['src'], packages: ['@steer/tool-registry', 'jose', 'zod'], builtins: ['node:crypto'] },
   'packages/data': { folders: ['src'], packages: ['@steer/tool-registry', 'drizzle-orm', 'pg', 'zod'], builtins: ['node:crypto'] },
-  'apps/api': { folders: ['src'], packages: ['@steer/adapters', '@steer/tool-registry', '@hono/node-server', 'hono'], builtins: [] },
+  'apps/api': { folders: ['src'], packages: ['@steer/adapters', '@steer/data', '@steer/tool-registry', '@hono/node-server', 'hono', 'zod'], builtins: [],
+    entryOnly: { '@steer/data': 'src/runtime.ts', zod: 'src/runtime.ts' } },
   'apps/web': { folders: ['app'], packages: ['next', 'react', 'react-dom'], builtins: [] },
 };
 const packageName = (specifier) => specifier.startsWith('@') ? specifier.split('/').slice(0, 2).join('/') : specifier.split('/')[0];
@@ -41,7 +42,8 @@ function allowed(specifier, file, packageRoot, rule) {
     return rule.folders.some((folder) => destination.startsWith(resolve(packageRoot, folder) + sep));
   }
   if (specifier.startsWith('node:')) return rule.builtins.includes(specifier);
-  return rule.packages.includes(packageName(specifier));
+  const name = packageName(specifier);
+  return rule.packages.includes(name) && (!rule.entryOnly?.[name] || file === resolve(packageRoot, rule.entryOnly[name]));
 }
 async function files(folder) {
   const result = [];
@@ -89,4 +91,14 @@ test('every provider-free domain module imports under native Node without bundle
   const domain = resolve(root, 'packages/domain/src');
   for (const file of await files(domain)) await import(pathToFileURL(file).href);
   console.log(`Native domain module checks executed on ${process.version}`);
+});
+
+test('API storage/configuration imports are restricted to the explicit composition root', () => {
+  const base = resolve(root, 'apps/api'); const rule = rules['apps/api'];
+  for (const specifier of ['@steer/data', '@steer/data/runtime-pool', 'zod']) {
+    assert.equal(allowed(specifier, resolve(base, 'src/runtime.ts'), base, rule), true);
+    for (const file of ['src/app.ts', 'src/browser.ts', 'src/identity-service.ts', 'src/server.ts']) {
+      assert.equal(allowed(specifier, resolve(base, file), base, rule), false);
+    }
+  }
 });

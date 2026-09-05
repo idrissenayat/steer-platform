@@ -79,6 +79,11 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         redirectUri: `${origin}/auth/callback`, clientId: 'steer-test-web', clientSecret: deps.clientSecret, audience: 'steer-api' };
       const storage = await deps.createSessions({ issuer, clientId: configuration.clientId, redirectUri: configuration.redirectUri });
       assert.equal(storage.kind, 'postgres');
+      await check('explicit runtime bootstrap composes real encrypted storage without implicit provider access', async () => {
+        assert.ok(storage.verifyRuntimeBootstrap);
+        await storage.verifyRuntimeBootstrap(configuration, tls.key.toString('utf8'));
+        assert.deepEqual(await storage.counts(), { transactions: 0, sessions: 0 });
+      });
       const grant: AuthorizationRecord = { issuer, subject: deps.subject, organizationId: 'synthetic-org', type: 'human',
         hats: ['product-lead'], toolGrants: ['session.context'], active: true,
         validAfter: new Date(0).toISOString(), expiresAt: new Date(Date.now() + 600000).toISOString() };
