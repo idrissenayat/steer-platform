@@ -158,3 +158,18 @@ M2 work includes human browser authorization-code/PKCE login, safe server-side
 session/refresh/logout handling and trusted Git membership configuration. Test
 realm grants are not production authority. Continue from those concrete gaps,
 preserving the current fail-closed API until complete composition is verified.
+
+## Completed development increment: 0014
+
+Added the server-side human code/PKCE broker with one-use browser-bound login
+transactions, validated ID/access-token pairing, host-only secure cookies,
+short-lived server sessions and current-grant/local-logout enforcement.
+Eleven new tests pass; root checks pass on Node 24.20.0. No live browser route,
+real human identity or persistent session store has been enabled.
+
+Next: implement bounded encrypted server session/transaction storage with
+cross-process atomic consumption, then same-origin POST start/logout and GET
+callback routes with secure cookie/error/CSRF handling. Verify against a local
+Keycloak authorization-code client before exposing login in Next.js. Continue
+trusted membership configuration separately; never promote test grants to real
+authority. Refresh-token rotation and provider-wide logout are still open.

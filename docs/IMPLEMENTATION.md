@@ -67,6 +67,13 @@ check groups pass with synthetic identities and scoped certificate trust;
 HTTPS rule was relaxed. Human login and Git-backed real membership remain
 unconnected; the CLI stays deny-all and readiness remains 503.
 
+Item `intent/0014` adds the server-side browser sign-in adapter: confidential
+authorization-code/S256 PKCE, browser-bound one-use transactions, ID/access
+token pairing, opaque secure cookies, short-lived sessions, fresh grants and
+local logout. Eleven synthetic cryptographic/concurrency tests pass. No HTTP
+route or durable session store is enabled. Refresh and provider-wide logout
+remain deferred; see the item's Evidence for the required route/storage controls.
+
 ## Implemented prototype and kit behavior
 
 - deterministic artifact-chain projection and dropped-event reconciliation;
