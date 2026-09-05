@@ -614,6 +614,12 @@ by instant, not lexical order. Frozen files/keys remain unchanged. This does not
 enable fractional business evidence in all other audit/migration paths or close
 full raw-grant/retention requirements. See `intent/0070/SPEC.md` and `EVIDENCE.md`.
 
+Item `intent/0071` replaces blanket equal-time rejection with the signed policy's
+ranked event order. Unranked ties remain denied. UUID identity is case-insensitive
+for replay detection without rewriting signed bytes. All 200 ranked type/UUID
+pairings and full equal-time hold composition are tested. Ordinary signatures,
+provider proof and full action checks are not bypassed. See `intent/0071/SPEC.md`.
+
 ## Local commands
 
 ```sh

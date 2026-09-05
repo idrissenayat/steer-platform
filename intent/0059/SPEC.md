@@ -10,8 +10,9 @@ Enforce 8,388,608 UTF-16 units per envelope, 65,536 per serialized event and at
 most 128 history events. No truncated-history fallback. Require explicit strict
 evaluationTime; there is no wall-clock or fixed-time default.
 
-For each history entry and then the current event, use the unchanged closed
-LIFECYCLE-EVENT schema, including event-type required fields. Verify its ordinary
+For each history entry and then the current event, use the explicit 0070 precision
+successor of the closed LIFECYCLE-EVENT schema, including event-type required
+fields; the frozen schema file stays unchanged. Verify its ordinary
 signature at occurredAt/evaluationTime using the 0058 timed verifier. Verify its
 provider proof at recordedAt/evaluationTime against the independent trusted
 registry. Both timestamps must be canonical and recordedAt must equal occurredAt.
@@ -22,7 +23,10 @@ provider digest, and SHA-256 of the complete canonical event payload excluding
 only providerProofBytes, providerProofDigest, recordDigest and signature. No
 omitted historical proof, malformed schema or surrogate trigger is accepted.
 
-Require strictly increasing timestamps and unique event IDs/digests and provider
+Require exact instant/rank/UUID order under 0071. At equal instants only the ten
+policy-ranked event types are accepted in increasing rank/UUID order; unranked
+ties deny. Event UUID replay identity ignores hex letter case, without changing
+signed bytes. Require unique event IDs/digests and provider
 record IDs/digests across history and current event. Checks apply uniformly; no
 special less-strict history branch. Return only current event ID/digest, verified
 history count, policy digest and zero effects; all errors are fixed and omit

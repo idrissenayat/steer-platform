@@ -1255,3 +1255,19 @@ archival/future-retention, reference revocation, raw three-key inventory or the
 raw grant's pre-terminal authorization/composition requirements. Those are next
 alongside the remaining migration/normative package, before independent review.
 All five R5 findings remain open; no provider effects, gate, deployment or spending.
+
+## Completed development increment: 0071 — policy-ranked event ordering
+
+Added exact instant/rank/UUID ordering for the policy's ten ranked equal-time
+event types, with no sorting or rewriting of signed history. Unranked ties stay
+denied. UUID letter-case aliases no longer evade event replay identity. The
+event policy digest binds the mapping and comparison contract.
+
+All 200 ranked pairings, tied full sequences, signature/schema/provider failures,
+UUID aliases, bounds and complete lifecycle hold behavior are tested. Full checks
+pass with 121 root controls and 88 prototype tests; see intent/0071/EVIDENCE.md.
+
+Next remains retention/rotation/reference and full raw-grant coverage, auxiliary
+event-time semantics, other public precision paths and migration/normative
+evidence. No frozen record or key window changed; independent/protected review
+and all five R5 findings remain open. No provider effects, approval or spending.

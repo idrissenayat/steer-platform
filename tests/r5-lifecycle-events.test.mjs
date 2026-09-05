@@ -6,6 +6,7 @@ import { correctedLifecycleEventDecision as corrected, correctionPolicyDigest } 
 import { makeLifecycleEventBytes, mutateLifecycleEventBytes, makeLifecycleGraph } from '../intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs';
 import { lifecycleEventDecision as frozen, LIFECYCLE_EVENT_EXTRAS } from '../intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs';
 import { jcs, sha256, sealRecord, zeroEffects } from '../intent/0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
+import { lifecycleEventFollows, eventOrderPolicyDigest } from '../intent/0071/event-order.candidate.mjs';
 
 const context = (eventBytes, historyBytes = []) => ({ version: 'steer-r5-001-events/v1', policyDigest: correctionPolicyDigest,
   scope: { organization: 'steer-platform', itemId: '0001-flight-deck-foundation', environmentId: null }, eventBytes, historyBytes, evaluationTime: '2026-09-04T13:00:00Z' });
@@ -66,4 +67,58 @@ test('event/proof reuse, time reversal, expired evaluation and envelope bounds c
     { evaluationTime: 'invalid' }, { extra: true }, { policyDigest: '0'.repeat(64) }, { historyBytes: Array(129).fill(first) }, { eventBytes: 'x'.repeat(65537) }])
     assert.equal(corrected(jcs({ ...context(current), ...patch })).state, 'blocked-policy-conflict');
   for (const value of [null, {}, current, envelope(current) + ' ', 'x'.repeat(8388609)]) assert.equal(corrected(value).state, 'blocked-policy-conflict');
+});
+
+const ranked = [['hold-applied', 10], ['hold-released', 10], ['record-superseded', 15], ['corpus-version-superseded', 15],
+  ['corpus-retired', 15], ['environment-retired', 15], ['expiry-due', 20], ['deletion-requested', 30], ['deletion-completed', 40], ['tombstone-committed', 50]];
+const tiedAt = '2026-09-04T12:00:00.123456789Z';
+const tied = (type, index, patch = {}, proofPatch = {}) => signedEvent(makeLifecycleEventBytes(type, index), { occurredAt: tiedAt, ...patch }, proofPatch);
+
+test('0071: all 200 signed equal-time rank/UUID pairings follow the policy tuple, never caller array order', () => {
+  for (const [leftType, leftRank] of ranked) for (const [rightType, rightRank] of ranked) for (const ascendingId of [true, false]) {
+    const left = tied(leftType, ascendingId ? 1 : 2), right = tied(rightType, ascendingId ? 2 : 1);
+    const expected = rightRank > leftRank || (rightRank === leftRank && ascendingId);
+    const result = corrected(envelope(right, [left]));
+    assert.equal(result.state, expected ? 'validated-trigger' : 'blocked-policy-conflict', `${leftType}/${rightType}/${ascendingId}`);
+    assert.deepEqual(result.effects, zeroEffects());
+  }
+  const timeline = ranked.map(([type], index) => tied(type, index + 1));
+  assert.equal(corrected(envelope(timeline.at(-1), timeline.slice(0, -1))).verifiedHistoryCount, 9);
+  assert.match(eventOrderPolicyDigest, /^[0-9a-f]{64}$/);
+});
+
+test('0071: ties never waive exact signatures, closed schemas, provider proofs or UUID replay checks', () => {
+  const first = tied('hold-applied', 1), next = tied('expiry-due', 2);
+  for (const prior of [tied('hold-applied', 1, { ordinal: 0 }), tied('hold-applied', 1, {}, { eventBindingDigest: 'f'.repeat(64) }),
+    tied('hold-applied', 1, {}, { recordedAt: '2026-09-04T12:00:00.123456788Z' }), tied('hold-applied', 1, { organization: 'foreign' })])
+    assert.equal(corrected(envelope(next, [prior])).state, 'blocked-policy-conflict');
+  const corrupted = JSON.parse(first); corrupted.signature.valueBase64 = Buffer.alloc(64).toString('base64');
+  assert.equal(corrected(envelope(next, [jcs(corrupted)])).state, 'blocked-policy-conflict');
+  const id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const lower = tied('hold-applied', 1, { eventId: id });
+  for (const occurredAt of [tiedAt, '2026-09-04T12:00:00.123456790Z']) {
+    const upper = tied('expiry-due', 2, { eventId: id.toUpperCase(), occurredAt });
+    assert.equal(corrected(envelope(upper, [lower])).firstError, 'EVENT_REPLAY');
+  }
+  const original = [...schemaSafeTypes()];
+  for (const type of original.filter((type) => !ranked.some(([name]) => name === type))) {
+    assert.equal(corrected(envelope(tied(type, 2), [first])).firstError, 'EVENT_ORDER_INVALID', type);
+    assert.equal(corrected(envelope(next, [tied(type, 1)])).firstError, 'EVENT_ORDER_INVALID', type);
+  }
+});
+function schemaSafeTypes() { return Object.keys(LIFECYCLE_EVENT_EXTRAS); }
+
+test('0071: exact instants precede rank, mixed zero fractions compare equally and capacity remains bounded', () => {
+  const earlier = tied('tombstone-committed', 1), later = tied('hold-applied', 2, { occurredAt: '2026-09-04T12:00:00.123456790Z' });
+  assert.equal(corrected(envelope(later, [earlier])).state, 'validated-trigger');
+  assert.equal(corrected(envelope(earlier, [later])).firstError, 'EVENT_ORDER_INVALID');
+  const zero = tied('hold-applied', 1, { occurredAt: '2026-09-04T12:00:00Z' });
+  assert.equal(corrected(envelope(tied('expiry-due', 2, { occurredAt: '2026-09-04T12:00:00.000000000Z' }), [zero])).state, 'validated-trigger');
+  const maximum = Array.from({ length: 129 }, (_, index) => tied('hold-applied', index + 1));
+  assert.equal(corrected(envelope(maximum.at(-1), maximum.slice(0, -1))).verifiedHistoryCount, 128);
+  assert.equal(corrected(envelope(tied('expiry-due', 130), maximum)).firstError, 'EVENT_ENVELOPE_INVALID');
+  for (const bad of [undefined, {}, { eventId: 'bad', eventType: 'hold-applied', occurredAt: tiedAt }]) {
+    assert.equal(lifecycleEventFollows(null, bad), false);
+    assert.equal(lifecycleEventFollows(bad, JSON.parse(later)), false);
+  }
 });

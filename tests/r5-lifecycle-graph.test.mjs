@@ -281,6 +281,21 @@ test('0070: fractional event, inventory, identity and receipt mutations cannot u
   }
 });
 
+test('0071: signed equal-time holds are enforced before disposition, not merely accepted by the event oracle', () => {
+  const history = [{ type: 'hold-applied', second: 0 }, { type: 'hold-released', second: 0 }];
+  const value = fixture({ history, edits: { 'event-1': (event) => { event.holdId = 'same-hold'; }, 'event-2': (event) => { event.holdId = 'same-hold'; }, state: (state) => { state.holdState = 'released'; } } });
+  const result = value.verifier.verify(value.bytes, evaluation);
+  assert.equal(result.state, 'validated-lifecycle-candidate'); assert.equal(result.protectedActionCount, 3); assert.deepEqual(result.effects, zeroEffects());
+  const active = fixture({ history: history.slice(0, 1), edits: { state: (state) => { state.holdState = 'active'; } } });
+  assert.equal(active.verifier.verify(active.bytes, evaluation).state, 'retained-on-hold');
+  denied(fixture({ history: history.slice(0, 1) }));
+  // Releasing before applying is invalid even if UUID order is syntactically
+  // increasing: the full lifecycle hold-state check must still reject it.
+  denied(fixture({ history: [{ type: 'hold-released', second: 0 }, { type: 'hold-applied', second: 0 }], edits: {
+    'event-1': (event) => { event.holdId = 'same-hold'; }, 'event-2': (event) => { event.holdId = 'same-hold'; }, state: (state) => { state.holdState = 'released'; },
+  } }));
+});
+
 // Expected boundaries come from the signed records policy, not the code under
 // test. The provenance rule explicitly corrects the frozen table surrogate.
 // Covering this inventory is not a future-key or disposition proof.
