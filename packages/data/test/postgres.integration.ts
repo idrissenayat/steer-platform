@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { randomBytes, randomUUID } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -8,6 +8,7 @@ import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { withTenant, readProjection } from '../src/index.ts';
+import { ingestVerifiedArtifact, projectionKey } from '../src/ingestion.ts';
 import type { Principal } from '@steer/tool-registry';
 
 const exec = promisify(execFile);
@@ -107,6 +108,40 @@ try {
   await check('privileged role and expired identity cannot enter runtime tenant helper', async () => {
     await assert.rejects(withTenant(admin, identity('org-a'), async () => null), /Unsafe runtime database role/);
     await assert.rejects(withTenant(app, { ...identity('org-a'), expiresAt: new Date(0).toISOString() }, async () => null), /current tenant identity/);
+  });
+  const agent: Principal = { ...identity('org-ingest'), subject: 'synthetic-projector', type: 'agent', toolGrants: ['projection.ingest'] };
+  const snapshot = (revision: string, content: string) => ({
+    organizationId: 'org-ingest', repository: 'github:2', path: 'items/1/BRIEF.md', revision,
+    content, contentDigest: createHash('sha256').update(content).digest('hex'),
+    blobSha: createHash('sha1').update(`blob ${Buffer.byteLength(content)}\0`).update(content).digest('hex'),
+  });
+  const first = snapshot('a'.repeat(40), 'first immutable source');
+  const second = snapshot('b'.repeat(40), 'second immutable source');
+  const key = projectionKey(first.repository, first.path);
+  const eventCount = async () => withTenant(projector, agent, async (client) => (await client.query('SELECT count(*)::int AS count FROM steer.ingestion_events')).rows[0].count);
+  await check('concurrent duplicate ingestion appends once and older replay cannot regress a newer projection', async () => {
+    const results = await Promise.all([ingestVerifiedArtifact(projector, agent, first, null), ingestVerifiedArtifact(projector, agent, first, null)]);
+    assert.deepEqual(results.sort(), ['applied', 'duplicate']); assert.equal(await eventCount(), 1);
+    assert.equal(await ingestVerifiedArtifact(projector, agent, second, first.revision), 'applied');
+    assert.equal(await ingestVerifiedArtifact(projector, agent, first, null), 'superseded');
+    assert.equal((await readProjection(app, identity('org-ingest'), key))?.sourceRevision, second.revision);
+    assert.equal(await eventCount(), 2);
+  });
+  await check('CAS rejection and conflicting immutable bytes leave event log and projection unchanged', async () => {
+    await assert.rejects(ingestVerifiedArtifact(projector, agent, snapshot('c'.repeat(40), 'third'), first.revision), /revision changed/);
+    await assert.rejects(ingestVerifiedArtifact(projector, agent, snapshot(second.revision, 'conflicting bytes'), second.revision), /Conflicting immutable/);
+    assert.equal(await eventCount(), 2);
+    assert.equal((await readProjection(app, identity('org-ingest'), key))?.sourceRevision, second.revision);
+  });
+  await check('corrupted and lost synthetic projections rebuild from verified source without rewriting history', async () => {
+    await admin.query("UPDATE steer.projection_records SET value='null' WHERE organization_id='org-ingest'");
+    assert.equal(await ingestVerifiedArtifact(projector, agent, second, second.revision), 'repaired');
+    const before = await readProjection(app, identity('org-ingest'), key);
+    // This is exclusively this run's disposable synthetic database, never an operational deletion.
+    await admin.query("DELETE FROM steer.projection_records WHERE organization_id='org-ingest'");
+    assert.equal(await ingestVerifiedArtifact(projector, agent, second, null), 'repaired');
+    assert.deepEqual(await readProjection(app, identity('org-ingest'), key), before);
+    assert.equal(await eventCount(), 2);
   });
   console.log(`PostgreSQL integration: ${passed} checks passed; server ${(await admin.query('SHOW server_version')).rows[0].server_version}`);
 } finally {

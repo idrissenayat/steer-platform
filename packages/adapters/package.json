@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "exports": { "./identity": "./src/identity/oidc.ts", "./github": "./src/code-host/github.ts", "./authorization": "./src/identity/authorization.ts" },
+  "exports": { "./identity": "./src/identity/oidc.ts", "./github": "./src/code-host/github.ts", "./authorization": "./src/identity/authorization.ts", "./reconcile": "./src/code-host/reconcile.ts" },
   "scripts": {
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",

@@ -83,7 +83,7 @@ rollback and concurrent callers. The run-owned synthetic database was removed.
 See `intent/0009/EVIDENCE.md`; `pnpm test:data:integration` reruns that harness.
 No production database or authoritative Git record was changed.
 
-## Current increment: 0010
+## Completed development increment: 0010
 
 Implemented a read-only GitHub App adapter and current Git authorization
 resolver. Reads restrict installation credentials to one numeric repository
@@ -91,9 +91,22 @@ ID and contents-read, pin artifacts to commits, validate Git blob/SHA-256
 digests and reject changed heads. Thirteen new tests pass, with no real App
 credentials accessed. Test Agent identity remains separate from runtime.
 
-Next increment: idempotent ingestion/reconciliation of verified source
-snapshots, followed by local Keycloak/browser composition. Authorization will
-remain read-through to current Git authority, not trust a stale projection.
+## Current increment: 0011
+
+Implemented single-artifact ingestion/reconciliation. Deterministic source
+keys, per-source transaction serialization, expected-revision CAS, exact
+duplicate refusal and source-based projection repair pass four new unit tests
+and three new real PostgreSQL checks (eleven database checks total).
+`intent/0011/EVIDENCE.md` records the implementation and its limits.
+Authorization remains read-through to current Git, not the projection cache.
+
+Before live GitHub composition, user approval was requested for a separate
+read-only runtime App on `idrissenayat/steer-platform`. The installed Test
+Agent App must remain independent; its key has not been loaded or reused.
+While that decision is pending, provider-independent foundations can continue.
+
+Next increments: remaining package-boundary/runtime checks, local Keycloak
+and browser composition, then durable ingestion and workflow transports.
 M2 remains partial until those identities and tenant data are wired end to end.
 Live Git writes remain blocked on M0 and applicable provider authorization. Remaining
 M1 work includes full stack lock, provider-free package-boundary checks, and

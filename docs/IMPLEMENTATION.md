@@ -44,6 +44,11 @@ authorization resolver. Thirteen tests verify restricted token scope,
 commit/tree/blob integrity, source encoding, path modes and freshness denial.
 Only isolated provider responses were used; live App configuration is pending.
 
+Item `intent/0011` adds atomic, idempotent ingestion and a single-artifact
+reconciler. Four new unit tests and three new real PostgreSQL checks pass for
+duplicates, CAS conflicts, stale delivery and source-based repair. Full-repo
+replay, durable scheduling/webhooks and live provider composition remain open.
+
 ## Implemented prototype and kit behavior
 
 - deterministic artifact-chain projection and dropped-event reconciliation;

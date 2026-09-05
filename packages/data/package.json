@@ -1,11 +1,11 @@
 {
   "name": "@steer/data", "version": "0.1.0", "private": true, "type": "module",
-  "exports": { ".": "./src/index.ts", "./schema": "./src/schema.ts" },
+  "exports": { ".": "./src/index.ts", "./schema": "./src/schema.ts", "./ingestion": "./src/ingestion.ts" },
   "scripts": {
     "build": "tsc --noEmit", "typecheck": "tsc --noEmit", "test": "node --test test/*.test.ts",
     "test:integration": "node test/postgres.integration.ts",
     "db:generate": "drizzle-kit generate"
   },
-  "dependencies": { "@steer/tool-registry": "workspace:*", "drizzle-orm": "0.45.2", "pg": "8.23.0" },
+  "dependencies": { "@steer/tool-registry": "workspace:*", "drizzle-orm": "0.45.2", "pg": "8.23.0", "zod": "4.5.4" },
   "devDependencies": { "@types/node": "25.0.3", "@types/pg": "8.23.1", "typescript": "7.0.2", "drizzle-kit": "0.31.10" }
 }
