@@ -3,7 +3,8 @@
 This engineering profile supplements the normalized OIDC adapter; it does not
 replace the Gate 1-bound architecture or authorize a provider deployment.
 Development evidence is in `intent/0013`, `intent/0014`, `intent/0016` and
-`intent/0017`. Encrypted session persistence is covered separately by `0015`.
+`intent/0017`. Encrypted persistence is covered by `0015` and assembled
+provider/Postgres behavior by `0018`.
 
 ## Required human-client settings
 
@@ -57,8 +58,16 @@ generated credentials only. TLS trust is scoped to its exact origin/certificate.
 The HTTP driver submits the actual Keycloak form and validates the callback,
 broker exchange, tool context, negative policies and local logout. It does not
 run a browser engine or verify SameSite/host-cookie/TLS/navigation behavior in
-Chrome/WebKit/Firefox. Those checks and combined encrypted-storage composition
-remain required. No production identities, grants or signatures are implied.
+Chrome/WebKit/Firefox. Those browser checks remain required.
+
+Run `npm exec --yes --package=node@24.20.0 -- pnpm test:auth:integration` for the
+assembled provider/Postgres harness. It adds a separate disposable database and
+generated encryption key, applies the real migrations and exercises independent
+app/store instances, exactly-once callback exchange, ciphertext inspection,
+wrong-key denial and logout across instances. This mode has no Map fallback.
+Both modes retain synthetic grants and in-process Hono request handling, not a
+real runtime membership source or public ingress. No production identities,
+grants or signatures are implied.
 
 References: [Keycloak subject mapper at 26.7.3](https://github.com/keycloak/keycloak/blob/26.7.3/services/src/main/java/org/keycloak/protocol/oidc/mappers/SubMapper.java),
 [Keycloak OIDC flows](https://www.keycloak.org/securing-apps/oidc-layers).

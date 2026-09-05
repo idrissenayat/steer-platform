@@ -99,6 +99,14 @@ human-flow check groups. This is a scoped HTTPS form driver, not browser-engine
 evidence. See `docs/KEYCLOAK-IDENTITY-PROFILE.md` for the required profile and
 remaining combined-storage, browser, membership and runtime prerequisites.
 
+Item `intent/0018` assembles the real Keycloak HTTP flow with encrypted PostgreSQL
+sessions in a separate opt-in harness (`pnpm test:auth:integration`). Thirteen
+provider/storage groups cover the existing real-provider checks plus ciphertext
+inspection, independent app/store reconstruction and wrong-key denial. Concurrent
+callbacks across two app instances produce one exchange; logout denies both
+instances. Only test/dev dependencies were added. Browser-engine/real-ingress
+behavior, authoritative membership and operational configuration remain open.
+
 ## Implemented prototype and kit behavior
 
 - deterministic artifact-chain projection and dropped-event reconciliation;

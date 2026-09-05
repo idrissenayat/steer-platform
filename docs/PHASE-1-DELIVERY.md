@@ -230,10 +230,32 @@ PKCE/client-secret denial. Root Node 24 checks pass. Only synthetic resources
 were used and cleaned up. Evidence: `intent/0017/EVIDENCE.md`; reusable binding
 requirements: `docs/KEYCLOAK-IDENTITY-PROFILE.md`.
 
-Next bounded increment: assemble the real provider routes with encrypted
-Postgres storage in an isolated local harness, then verify actual browser cookie,
-TLS/navigation behavior and trusted Git-backed membership configuration. The
+The assembled provider/Postgres flow was subsequently verified in 0018 below.
+Next: actual browser cookie, TLS/navigation behavior and trusted Git-backed
+membership configuration. The
 current form driver is not a browser-engine pass and its Map/grant fixtures
 must not become runtime fallbacks. Public activation remains closed pending
 those prerequisites, ingress limits and approved runtime settings. M0's five
 R5 findings, independent reviews and all gate/release/spending boundaries remain.
+
+## Completed development increment: 0018
+
+Added an explicit combined authentication harness with real local Keycloak and
+the production encrypted PostgreSQL store. The provider fixture's storage is
+now selectable only by explicit test mode: provider-only Maps versus an isolated
+database with real migrations and a separate auth runtime role. Durable mode
+never falls back to Maps and no production dependencies/startup were changed.
+
+Thirteen combined check groups pass. Two app/store instances race one actual
+callback with exactly one provider exchange; persisted ciphertext excludes token,
+subject and organization plaintext. Correct-key reconstructed instances recover
+the session, wrong-key instances deny, and local logout invalidates both original
+and reconstructed apps. The twelve provider-only groups and full root checks
+also pass. Evidence: `intent/0018/EVIDENCE.md`; command: `pnpm test:auth:integration`.
+
+Next bounded increment: real browser cookie/TLS/navigation validation against
+the assembled local services, followed by trusted Git-derived membership/runtime
+composition and ingress resource limits. App-object reconstruction in this test
+is not a browser pass or an OS-process restart. Current grant records remain
+synthetic, public startup remains closed, and M0/Gate 2, independent signatures,
+deployment, release and spending authorization remain separate and unresolved.

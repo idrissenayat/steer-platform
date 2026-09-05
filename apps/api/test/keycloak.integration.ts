@@ -10,10 +10,13 @@ import { promisify } from 'node:util';
 import { createOidcAuthenticator, type AuthorizationRecord } from '@steer/adapters/identity';
 import { createOidcApi } from '../src/identity.ts';
 import { testKeycloakHumanFlow } from './keycloak-human.integration.ts';
+import { createPostgresSessionHarness } from './postgres-session-harness.ts';
 
 // Deliberately separate from normal tests: requires Docker and OpenSSL, never real credentials.
 const image = 'quay.io/keycloak/keycloak@sha256:ff4257d0d64efbe99ed1ddfaf07765cc3c36dc7518bf8324d41961327f441c54';
 const exec = promisify(execFile);
+const durable = process.argv.slice(2).includes('--durable');
+assert.ok(process.argv.slice(2).every((argument) => argument === '--durable'), 'Unknown integration argument');
 const docker = async (...args: string[]) => (await exec('docker', args, { timeout: 30000 })).stdout.trim();
 const name = `steer-0013-${randomUUID()}`;
 const temporary = await mkdtemp(join(tmpdir(), 'steer-0013-'));
@@ -23,6 +26,7 @@ const humanSubject = randomUUID();
 const humanPassword = randomBytes(32).toString('hex');
 const humanClientSecret = randomBytes(32).toString('hex');
 let containerId: string | undefined;
+let closeSessions: (() => Promise<void>) | undefined;
 let passed = 0;
 let stage = 'disposable service initialization';
 const check = async (label: string, run: () => Promise<void>) => { stage = label; await run(); passed++; console.log(`PASS ${label}`); };
@@ -185,18 +189,26 @@ try {
     assert.equal((await api.request('/health/ready')).status, 503);
   });
   await testKeycloakHumanFlow({ issuer, clientSecret: humanClientSecret, subject: humanSubject,
-    username: 'synthetic-human', password: humanPassword, fetch: scopedFetch, check });
+    username: 'synthetic-human', password: humanPassword, fetch: scopedFetch, check,
+    ...(durable ? { createSessions: async (binding: { issuer: string; clientId: string; redirectUri: string }) => {
+      stage = 'disposable encrypted authentication database initialization';
+      const storage = await createPostgresSessionHarness(binding); closeSessions = storage.close; return storage;
+    } } : {}) });
   console.log(`Keycloak integration: ${passed} checks passed; server 26.7.3; no real user or provider credentials used.`);
 } catch {
   // Do not echo token responses, realm secrets or child-process arguments on failure.
   console.error(`Keycloak integration failed at ${stage}. Credentials and response payloads are intentionally omitted.`);
   process.exitCode = 1;
 } finally {
-  if (containerId && /^[a-f0-9]{64}$/.test(containerId)) {
-    assert.equal(await docker('inspect', '--format', '{{index .Config.Labels "steer.integration"}}', containerId), '0013');
-    await docker('stop', '--time', '5', containerId);
+  try {
+    if (closeSessions) await closeSessions();
+  } finally {
+    if (containerId && /^[a-f0-9]{64}$/.test(containerId)) {
+      assert.equal(await docker('inspect', '--format', '{{index .Config.Labels "steer.integration"}}', containerId), '0013');
+      await docker('stop', '--time', '5', containerId);
+    }
+    // temporary is the exact mkdtemp result owned solely by this harness invocation.
+    await rm(temporary, { recursive: true, force: true });
+    console.log('Removed only this run\'s synthetic Keycloak container, data and generated TLS/test credentials.');
   }
-  // temporary is the exact mkdtemp result owned solely by this harness invocation.
-  await rm(temporary, { recursive: true, force: true });
-  console.log('Removed only this run\'s synthetic Keycloak container, data and generated TLS/test credentials.');
 }

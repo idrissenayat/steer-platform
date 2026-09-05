@@ -43,6 +43,11 @@ Cold expired rows remain until a later insert or an approved operational purge;
 expiry immediately denies authentication regardless. See `intent/0015/SPEC.md`
 for boundaries, capacity/keyring configuration and remaining operational work.
 
+From the workspace root, `pnpm test:auth:integration` combines this production
+store with the real disposable Keycloak human-code/HTTP flow. See `intent/0018`
+for exactly-once callback, ciphertext, app/store reconstruction and logout
+evidence. It never selects an existing database or real encryption key.
+
 Later increments must connect the authoritative Git ingestion, reconciliation,
 grant-freshness checks, rebuild/replay, operational queues and API tools. This
 package alone does not establish any of those workflows or gate authority.

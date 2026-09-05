@@ -37,7 +37,8 @@ function allowed(specifier, file, packageRoot, rule) {
   if (specifier === null) return false;
   if (specifier.startsWith('.')) {
     const destination = resolve(dirname(file), specifier);
-    return destination.startsWith(packageRoot + sep);
+    // Production code may not reach its own test fixtures via a relative path.
+    return rule.folders.some((folder) => destination.startsWith(resolve(packageRoot, folder) + sep));
   }
   if (specifier.startsWith('node:')) return rule.builtins.includes(specifier);
   return rule.packages.includes(packageName(specifier));
@@ -77,7 +78,7 @@ test('boundary detector rejects vendor-in-core, relative prototype escape and no
   const base = resolve(root, 'packages/tool-registry');
   const file = resolve(base, 'src/index.ts');
   const rule = rules['packages/tool-registry'];
-  for (const source of ['import pg from "pg";', 'export * from "jose";', 'import x from "../../../src/fixtures";', 'const x = import(provider);', 'const x = require(provider);']) {
+  for (const source of ['import pg from "pg";', 'export * from "jose";', 'import x from "../../../src/fixtures";', 'import x from "../test/session-harness.ts";', 'const x = import(provider);', 'const x = require(provider);']) {
     const found = imports(source); assert.ok(found.length);
     assert.ok(found.some((specifier) => !allowed(specifier, file, base, rule)), source);
   }
