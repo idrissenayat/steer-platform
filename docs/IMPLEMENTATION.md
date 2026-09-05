@@ -279,6 +279,13 @@ Next.js rendering now participates in the browser authentication harness, with
 responsive/keyboard/automated accessibility checks and reviewed screenshots.
 See `docs/NATIVE-SIGN-IN-UI.md`; full product UI and real listener remain separate.
 
+Item `intent/0027` promotes native root/static and identity routing into shared
+API production source. Fixed origins, credential-free renderer requests, bounded
+responses/deadlines and existing admission controls replace the test-only proxy.
+The actual Next.js browser suite now uses this gateway. It does not start a
+public listener, load real secrets or complete lifecycle/ingress composition.
+See `docs/IDENTITY-GATEWAY.md`.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.
@@ -286,7 +293,7 @@ Still to be built or composed: authenticated business/data tools beyond session
 context, MCP v2 transport, full-repository projection replay, Temporal workers,
 version-pinned Mastra adapter, LiteLLM gateway, tenant-scoped evidence storage,
 production product analytics, a secret-manager seam, approved runtime/ingress
-configuration, production sign-in UI and the thirteen-case architecture walking
+configuration, full authenticated workspace UI and the thirteen-case architecture walking
 skeleton. Existing increment evidence does not complete these remaining services.
 
 ## Local commands

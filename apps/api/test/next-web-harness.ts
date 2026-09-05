@@ -31,17 +31,6 @@ export async function createNextWebHarness(origin: string, issuer: string, enabl
       await delay(100);
     }
     if (!ready || startedError) throw new Error('Synthetic Next.js startup failed. Build the web app first.');
-    return { close, async page(request: Request): Promise<Response> {
-      const path = new URL(request.url).pathname;
-      if (request.method !== 'GET' || (path !== '/' && !path.startsWith('/_next/static/'))) return new Response('Not found', { status: 404 });
-      // No cookies, auth, host or callback query is forwarded to the separate renderer.
-      const response = await fetch(`${base}${path}`, { signal: AbortSignal.timeout(5000), redirect: 'error' });
-      return new Response(response.body, { status: response.status, headers: {
-        'content-type': response.headers.get('content-type') ?? 'application/octet-stream', 'cache-control': 'no-store',
-        'referrer-policy': 'same-origin', 'x-content-type-options': 'nosniff',
-        // Native-form SSR proof: intentionally disable scripts, permit only same-origin CSS and the fixed IdP form destination.
-        'content-security-policy': `default-src 'none'; style-src 'self'; connect-src 'self'; form-action 'self' ${new URL(issuer).origin}; base-uri 'none'; frame-ancestors 'none'`,
-      } });
-    } };
+    return { close, rendererOrigin: base };
   } catch { await close(); throw new Error('Synthetic Next.js fixture initialization failed.'); }
 }

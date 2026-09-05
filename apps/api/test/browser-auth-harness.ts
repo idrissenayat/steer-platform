@@ -9,6 +9,7 @@ import { getRequestListener } from '@hono/node-server';
 import { chromium, type Browser } from 'playwright';
 import type { AuthorizationRecord } from '@steer/adapters/identity';
 import { createIdentityService } from '../src/identity-service.ts';
+import { createIdentityGateway } from '../src/identity-gateway.ts';
 import { createGitAuthorizationHarness } from './git-authorization-harness.ts';
 import { createNextWebHarness } from './next-web-harness.ts';
 import type { SessionTestHarness } from './session-harness.ts';
@@ -18,6 +19,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
   const servers: Server[] = []; let browser: Browser | undefined;
   let web: Awaited<ReturnType<typeof createNextWebHarness>> | undefined;
   let api: ReturnType<typeof createIdentityService> | undefined;
+  let gateway: ReturnType<typeof createIdentityGateway> | undefined;
   let origin = ''; let issuerOrigin = ''; let callbackUrl = ''; let callbackCrossSite = false; let callbackHasLoginCookie = false;
   let loginStatus = 0; let loginOriginMatches = false;
   let homeHasReferer = false;
@@ -46,8 +48,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
   try {
     const port = await startServer(tls.key, tls.certificate, async (request) => {
       const url = new URL(request.url);
-      if (url.pathname === '/' && request.method === 'GET') { homeHasReferer = request.headers.has('referer'); return web ? web.page(request) : html(pageHtml); }
-      if (url.pathname.startsWith('/_next/static/') && web) return web.page(request);
+      if (url.pathname === '/' && request.method === 'GET') homeHasReferer = request.headers.has('referer');
       if (url.pathname === '/auth/callback') {
         callbackUrl = request.url; callbackCrossSite = request.headers.get('sec-fetch-site') === 'cross-site';
         callbackHasLoginCookie = /(?:^|;\s*)__Host-steer-login=/.test(request.headers.get('cookie') ?? '');
@@ -56,7 +57,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         cookie: /(?:^|;\s*)__Host-steer-session=/.test(request.headers.get('cookie') ?? ''),
         crossSite: request.headers.get('sec-fetch-site') === 'cross-site',
       };
-      const response = api ? await api.fetch(request) : new Response('Synthetic service initializing.', { status: 503 });
+      const response = gateway ? await gateway.fetch(request) : new Response('Synthetic service initializing.', { status: 503 });
       if (url.pathname === '/auth/login') { loginStatus = response.status; loginOriginMatches = request.headers.get('origin') === origin; }
       return response;
     });
@@ -96,6 +97,9 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
       const dependencies = { fetch: deps.fetch, reader: source.reader, authorizationPath: source.authorizationPath,
         sessions: { store: storage.store, binding: { issuer, clientId: configuration.clientId, redirectUri: configuration.redirectUri }, shutdown: storage.shutdown } };
       api = createIdentityService(configuration, dependencies);
+      const bindGateway = (rendererOrigin: string) => createIdentityGateway({ publicOrigin: origin, rendererOrigin, issuer },
+        { identity: { fetch: (request) => api!.fetch(request) } });
+      gateway = bindGateway(web.rendererOrigin);
       const services = [api];
       const spki = createHash('sha256').update(new X509Certificate(tls.certificate).publicKey.export({ type: 'spki', format: 'der' })).digest('base64');
       // Test-only exception for this run's key, not blanket TLS-error suppression.
@@ -137,10 +141,10 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         const enabledWeb = web!;
         const disabledWeb = await createNextWebHarness(origin, issuer, false);
         try {
-          web = disabledWeb; await page.goto(origin);
+          web = disabledWeb; gateway = bindGateway(web.rendererOrigin); await page.goto(origin);
           assert.equal(await page.getByRole('button', { name: 'Sign in', exact: true }).isDisabled(), true);
           assert.equal(await page.locator('form').count(), 0);
-        } finally { web = enabledWeb; await disabledWeb.close(); }
+        } finally { web = enabledWeb; gateway = bindGateway(web.rendererOrigin); await disabledWeb.close(); }
         await page.goto(origin);
         const axeSource = await readFile(new URL('../../../node_modules/axe-core/axe.min.js', import.meta.url), 'utf8');
         await page.evaluate((source) => { eval(source); }, axeSource);

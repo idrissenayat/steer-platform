@@ -429,3 +429,23 @@ authenticated workspace/session UI. This native SSR proof does not cover client
 hydration, other browsers, manual accessibility, real membership/public TLS or
 full product parity. Preserve the five R5 findings and all independent-review,
 gate, deployment, release and spending boundaries.
+
+## Completed development increment: 0027
+
+Promoted native UI/API routing from test-only code into a shared identity gateway
+in API production source. Canonical HTTPS/public and fixed loopback renderer
+origins, explicit path/method routing and credential-free renderer requests now
+share bounded admission, one-MiB response limits and five-second renderer aborts.
+Response headers are constructed, not copied from Next.js. Auth authority and
+callback security policies remain exclusively in the identity service.
+
+The real Next.js/Keycloak/Git/Postgres browser harness uses this gateway rather
+than a duplicate page proxy. Focused tests include actual renderer sockets for
+slow headers/body, redirects, client abort and credential isolation. Evidence:
+`intent/0027/EVIDENCE.md`; guide: `docs/IDENTITY-GATEWAY.md`.
+
+Next bounded increment: trusted local listener/profile/lifecycle composition,
+then authenticated workspace/session UI. This gateway opens no listener, loads
+no secrets and grants no real account access. Public ingress, hydration, full
+product parity, remaining Phase 1 services, the five R5 findings and all gate,
+deployment, release and spending boundaries remain open/separate.

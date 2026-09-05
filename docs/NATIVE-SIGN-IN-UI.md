@@ -35,8 +35,9 @@ Form CSP must allow self and the exact configured IdP destination.
 `pnpm test:auth:browser` now builds the Next.js app before starting the isolated
 test servers. Do not run another Next.js build concurrently against that output.
 It starts actual production Next.js rendering on loopback; the owned HTTPS
-gateway sends only root/static-asset requests to it, with no cookie/auth/query
-forwarding. Page scripts are deliberately disabled by the test CSP, while the
+gateway now uses the shared production-source factory from increment 0027, not
+a second test-only proxy. It sends only root/static-asset requests to the renderer,
+with no cookie/auth/query forwarding. Page scripts are disabled by its CSP, while the
 native forms complete the real Keycloak/Git-fixture/encrypted-Postgres flow.
 
 This verifies native SSR behavior, not client hydration, a production nonce
@@ -48,3 +49,5 @@ credential-bearing provider screen. Reviewed snapshots: `artifacts/0026/`.
 Remaining: actual local listener/profile loading, authenticated workspace/session
 display, public TLS/ingress and secret approval, other browsers, manual specialist
 accessibility, full workspace parity and formal gates. Evidence: `intent/0026`.
+Shared routing/resource policy and newer verification: `docs/IDENTITY-GATEWAY.md`
+and `intent/0027`.
