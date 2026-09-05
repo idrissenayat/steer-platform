@@ -1,0 +1,22 @@
+{
+  "name": "@steer/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/*.test.ts",
+    "test:integration": "node test/temporal.integration.ts"
+  },
+  "dependencies": {
+    "@temporalio/client": "1.23.0",
+    "@temporalio/worker": "1.23.0",
+    "@temporalio/workflow": "1.23.0"
+  },
+  "devDependencies": {
+    "@temporalio/testing": "1.23.0",
+    "@types/node": "25.0.3",
+    "typescript": "7.0.2"
+  }
+}

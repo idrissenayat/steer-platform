@@ -23,7 +23,8 @@ native Next.js sign-in surface (0026), bounded identity gateway (0027) and
 explicit local HTTPS runtime (0028), authenticated workspace session view (0029)
 encrypted secret-provider loading (0030) and authenticated artifact projection
 reads (0031), bounded manifest reconciliation (0032) and revision-bound source
-inventory (0033), shared MCP transport (0034) and combined MCP runtime (0035) are
+inventory (0033), shared MCP transport (0034), combined MCP runtime (0035) and
+Temporal workflow foundation (0036) are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
 [provider evidence](docs/GITHUB-RUNTIME-APP.md).
@@ -71,6 +72,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0033 · Revision-bound source inventory | `intent/0033/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | bounded complete tree selection, descriptor-bound reconciliation and runtime selector configuration with actual synthetic Git/Postgres/browser proof | large inventories, removal/rollback policy, durable workers, live bindings and formal gates |
 | 0034 · Shared MCP transport | `intent/0034/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | official v2 client/server, canonical tool parity, scoped stateless endpoint and actual TLS/Keycloak/Git revocation proof | combined runtime mounting, OAuth onboarding, durable workflows, real bindings and formal gates |
 | 0035 · Combined MCP runtime | `intent/0035/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | opt-in shared gateway/service, independent client allowlist and coordinated shared-resource drain | OAuth onboarding, durable workflows, real bindings and formal gates |
+| 0036 · Temporal workflow foundation | `intent/0036/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | pinned worker package, scoped durable timers and actual worker-recreation/history-replay proof | Git/Postgres composition, process/fleet recovery, gate waits, production bindings and formal gates |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier

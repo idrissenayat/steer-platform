@@ -611,3 +611,26 @@ orchestration. OAuth onboarding, real runtime bindings, remaining agent/model
 services, large-inventory/removal/rollback policy, full operating surfaces and
 the five R5 findings remain open. No gate, deployment, release or spending
 approval is inferred. Safe isolated implementation remains unblocked.
+
+## Completed development increment: 0036
+
+Added apps/worker with exact Temporal 1.23.0 SDK pins, deterministic scoped
+workflow IDs, bounded durable reconciliation rounds, fixed activity-port binding
+and content-free receipts. Client duplicate policies and actual workflow-ID
+validation prevent accidental duplicate/bypass starts. SDK imports stay at the
+worker edges; deterministic contracts import no runtime or vendor dependencies.
+
+Actual checksum-verified CLI 1.8.3 / Server 1.31.2 tests preserve the same execution
+across SDK worker recreation, resume its timer and replay history without repeating
+completed activities. Five integration groups cover recovery/replay, tenant/ID
+denial, non-retried sanitized failure and timer cancellation. Four native worker
+groups cover contract, scope, receipt and overlap bounds. The activity port is
+synthetic, not actual Git/PostgreSQL or process-crash recovery evidence.
+Guide: `docs/TEMPORAL-WORKFLOWS.md`; evidence: `intent/0036/EVIDENCE.md`.
+
+Next bounded increment: bind actual Git/Postgres reconciliation to the worker
+with fresh authority and idempotent recovery, then process restart and source-
+derived gate waits/cursors. Automatic retries remain disabled until that recovery
+contract is verified. Cluster TLS/identity, task-queue authorization, OTel,
+production retention, remaining services/surfaces and five R5 findings remain
+open. No gate, provider, deployment, release or spending approval is inferred.

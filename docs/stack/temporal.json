@@ -1,0 +1,26 @@
+{
+  "version": "steer-component-stack-lock/v1",
+  "component": "temporal",
+  "status": "development-verified-not-release-approved",
+  "verifiedNode": "24.20.0",
+  "packages": {
+    "@temporalio/client": "1.23.0",
+    "@temporalio/worker": "1.23.0",
+    "@temporalio/workflow": "1.23.0",
+    "@temporalio/testing": "1.23.0"
+  },
+  "integrityLock": "pnpm-lock.yaml",
+  "testCli": "1.8.3",
+  "testServer": "1.31.2",
+  "verifiedTestPlatform": "darwin-arm64",
+  "testArchiveSha256": {
+    "darwin-arm64": "77c5bef1753ddfcdcaced2a2d44207aeced1c776e7bcbf94520c7911bd0c4080",
+    "darwin-amd64": "0eed9a02008ba0d1c5417fc1aa706c9016166eae7216ae161ad95eccc6a775ca",
+    "linux-arm64": "5972ce781d7f28644b353e4177007e7da8e48a316b8458267054b24de2308e09",
+    "linux-amd64": "6f0afac1e9ddea71f480c43a49f5db5167a244c21db923707f069a79bcabdfea"
+  },
+  "workflowContract": "steer-reconcile/v1",
+  "activityMaximumAttempts": 1,
+  "defaultRuntimeActivation": false,
+  "productionClusterBinding": false
+}

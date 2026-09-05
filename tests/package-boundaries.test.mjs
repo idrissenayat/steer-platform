@@ -16,6 +16,8 @@ const rules = {
     builtinEntryOnly: { 'node:https': 'src/identity-listener.ts' },
     entryOnly: { '@steer/data': 'src/runtime.ts', zod: 'src/runtime.ts', '@modelcontextprotocol/server': 'src/mcp.ts' } },
   'apps/web': { folders: ['app'], packages: ['next', 'react', 'react-dom'], builtins: [] },
+  'apps/worker': { folders: ['src'], packages: ['@temporalio/client', '@temporalio/worker', '@temporalio/workflow'], builtins: [],
+    entryOnly: { '@temporalio/client': 'src/client.ts', '@temporalio/worker': 'src/worker.ts', '@temporalio/workflow': 'src/workflows.ts' } },
 };
 const packageName = (specifier) => specifier.startsWith('@') ? specifier.split('/').slice(0, 2).join('/') : specifier.split('/')[0];
 function imports(source) {
@@ -94,6 +96,16 @@ test('every provider-free domain module imports under native Node without bundle
   const domain = resolve(root, 'packages/domain/src');
   for (const file of await files(domain)) await import(pathToFileURL(file).href);
   console.log(`Native domain module checks executed on ${process.version}`);
+});
+
+test('Temporal SDK imports stay at worker edges and deterministic workflow contracts have no runtime dependencies', async () => {
+  const base = resolve(root, 'apps/worker'); const rule = rules['apps/worker'];
+  for (const [specifier, entry] of Object.entries(rule.entryOnly)) {
+    assert.equal(allowed(specifier, resolve(base, entry), base, rule), true);
+    for (const other of ['src/activities.ts', 'src/contracts.ts']) assert.equal(allowed(specifier, resolve(base, other), base, rule), false);
+  }
+  assert.deepEqual(imports(await readFile(resolve(base, 'src/contracts.ts'), 'utf8')), []);
+  assert.deepEqual(imports(await readFile(resolve(base, 'src/workflows.ts'), 'utf8')), ['@temporalio/workflow', './contracts.ts']);
 });
 
 test('API storage/configuration imports are restricted to the explicit composition root', () => {

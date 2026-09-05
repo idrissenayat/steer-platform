@@ -337,12 +337,20 @@ Item `intent/0035` adds opt-in combined MCP runtime/gateway mounting, an explici
 separate client allowlist and shared-resource shutdown coordination. See
 `docs/COMBINED-MCP-RUNTIME.md` for configuration and evidence boundaries.
 
+Item `intent/0036` adds the signed architecture's worker package with pinned
+Temporal SDKs, deterministic tenant/repository/item IDs, bounded durable timers,
+fixed activity binding and minimal history receipts. Actual local-server testing
+recreates worker instances and replays history without repeating acknowledged
+activities. The activity backend is synthetic; actual projection composition
+remains next. See `docs/TEMPORAL-WORKFLOWS.md`.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.
 Still to be built or composed: business tools beyond session context and curated
 artifact reads, MCP OAuth onboarding, large-repository inventory/partitioning and
-source-removal/rollback policy beyond bounded discovery, Temporal workers,
+source-removal/rollback policy beyond bounded discovery, Temporal projection/gate
+composition and process/fleet recovery,
 version-pinned Mastra adapter, LiteLLM gateway, tenant-scoped evidence storage,
 production product analytics, an approved live secret-manager binding, runtime/ingress
 configuration, full authenticated workspace UI and the thirteen-case architecture walking
