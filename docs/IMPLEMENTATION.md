@@ -82,6 +82,15 @@ PostgreSQL checks pass. Browser routes remain disabled; real runtime database,
 key-provider configuration, trusted membership and human-code integration are
 not supplied by this increment. No operational purge/deployment is authorized.
 
+Item `intent/0016` adds explicitly composed Hono browser routes and cookie
+authentication through the existing tool boundary. Fixed HTTPS origin,
+same-origin POST/Fetch-Metadata checks, one-use callback handling, secure
+separate cookies, fixed redirects and generic no-store/no-referrer responses
+are covered by nine new tests using signed synthetic provider tokens. The
+composed OpenAPI extends the registry descriptions without duplicating schemas.
+The default CLI still exposes no auth routes. Real browser/Keycloak human-code
+verification, trusted runtime wiring and ingress limits remain unfinished.
+
 ## Implemented prototype and kit behavior
 
 - deterministic artifact-chain projection and dropped-event reconciliation;

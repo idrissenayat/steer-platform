@@ -189,8 +189,29 @@ namespace/role isolation, concurrent capacity, expiry, tampering and key rotatio
 Only disposable synthetic container data is reclaimed. Root checks also pass
 on Node 24.20.0. Evidence: `intent/0015/EVIDENCE.md`.
 
-Next bounded increment: same-origin browser login/callback/logout route
-composition with generic errors, no-store responses and CSRF protections, then
-a real local Keycloak human authorization-code flow. Keep startup deny-all until
+Route composition was subsequently implemented in 0016 below. Next: a real
+local Keycloak human authorization-code flow. Keep startup deny-all until
 trusted membership and approved server secrets/database configuration are wired.
 Gate 2, spending, deployment and release remain separate and open.
+
+## Completed development increment: 0016
+
+Implemented the explicitly composed browser HTTP boundary: same-origin POST
+login/logout, GET one-use callback, fixed redirects, separate secure cookies,
+generic errors and no-store/no-referrer responses. Cookie-authenticated tool
+requests get independent Origin/Fetch-Metadata checks and the same current-grant
+registry boundary. Mixed cookie/bearer credentials deny. Composed OpenAPI now
+describes the routes/cookies without duplicating tool schemas.
+
+Nine new signed-token HTTP tests pass, including HEAD/no-side-effect behavior,
+CSRF/logout denial, body/query/origin checks, replay, token non-disclosure,
+revocation and documentation parity. Full root checks pass on Node 24.20.0.
+Default CLI remains deny-all and does not expose auth routes; this is synthetic
+HTTP evidence, not a real browser/provider-flow pass. See `intent/0016/EVIDENCE.md`.
+
+Next bounded increment: verify a local Keycloak human authorization-code/PKCE
+flow using disposable identities and the real browser route composition,
+then connect encrypted storage and authoritative membership configuration.
+Public activation additionally requires ingress resource/rate limits and
+approved database/key-provider settings. Refresh/provider logout, M0 findings,
+all formal gates and deployment/spending authorization remain open.
