@@ -16,7 +16,7 @@ contract harness (0013), browser-session broker (0014) and encrypted durable
 session storage (0015), explicit browser HTTP composition (0016) and real
 Keycloak human-code contract verification (0017) and assembled encrypted-session
 integration (0018), Chromium authentication verification (0019) and Git-backed
-browser/bearer identity composition (0020) are
+browser/bearer identity composition (0020) and request resource boundaries (0021) are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
 [provider evidence](docs/GITHUB-RUNTIME-APP.md).
@@ -49,6 +49,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0018 · Assembled identity/storage | `intent/0018/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | real provider code exchange into encrypted Postgres, callback race, separate app/store reconstruction, wrong-key denial and cross-instance logout | actual browser-engine/ingress behavior, authoritative membership, approved runtime settings and formal gates |
 | 0019 · Chromium authentication | `intent/0019/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | real HTTPS browser forms, cross-site callback, cookie/CSRF/referrer checks, reconstruction and logout against Keycloak/Postgres | other browsers, production UI/ingress, authoritative membership, approved runtime settings and formal gates |
 | 0020 · Git-backed identity composition | `intent/0020/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | fixed-source browser/bearer authority, synthetic Git commit revocation and fail-closed source/document checks through Chromium/Keycloak/Postgres | real approved membership source, ingress/runtime settings, production UI and formal gates |
+| 0021 · Request resource boundary | `intent/0021/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | bounded admission/body reads and local HTTP parser/receive/socket limits; overload, slow-stream and raw-socket checks | fleet ingress/capacity, database deadlines, approved runtime settings and formal gates |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier

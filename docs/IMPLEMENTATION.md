@@ -240,6 +240,12 @@ integrity failures and missing/duplicate/cross-organization records deny without
 stale fallback. The new factory cannot accept a substitute grant resolver.
 This is synthetic membership evidence, not configuration of real access.
 
+Item `intent/0021` adds per-instance admission, bounded body consumption and
+explicit local HTTP parser/receive/socket limits. Actual work retains its
+concurrency lease until it settles; overload and stalled streams fail safely.
+Limits and production gaps are recorded in `docs/API-RESOURCE-LIMITS.md`. This
+does not provide distributed abuse prevention or database execution deadlines.
+
 The foundation already includes the pnpm/Turborepo workspace, Next.js shell,
 provider-free domain, stateless tool API, normalized OIDC/browser authentication,
 read-only GitHub adapter, Postgres/Drizzle/RLS ingestion and encrypted sessions.

@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { secureHeaders } from 'hono/secure-headers';
 import { createOpenApiDocument, invokeTool, ToolError } from '@steer/tool-registry';
+import { readRequestBody, RequestBodyError } from './request-body.ts';
 
 export interface ApiDependencies {
   /** Must verify the identity independently (issuer, audience, signature, expiry and grants). */
@@ -12,28 +13,9 @@ const error = (code: string, message: string) => ({ error: { code, message } });
 
 /** Read the stream with an actual byte bound, even if Content-Length is absent or false. */
 async function readBody(request: Request): Promise<string | null> {
-  if (!request.body) return '';
-  const reader = request.body.getReader();
-  const chunks: Uint8Array[] = [];
-  let length = 0;
   try {
-    while (true) {
-      const next = await reader.read();
-      if (next.done) break;
-      length += next.value.byteLength;
-      if (length > maxBodyBytes) {
-        await reader.cancel();
-        return null;
-      }
-      chunks.push(next.value);
-    }
-    const bytes = new Uint8Array(length);
-    let offset = 0;
-    for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
-    return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
-  } finally {
-    reader.releaseLock();
-  }
+    return new TextDecoder('utf-8', { fatal: true }).decode(await readRequestBody(request, maxBodyBytes));
+  } catch (cause) { if (cause instanceof RequestBodyError && cause.reason === 'size') return null; throw cause; }
 }
 
 export function createApi(dependencies: ApiDependencies = {}) {
@@ -61,7 +43,8 @@ export function createApi(dependencies: ApiDependencies = {}) {
       body = await readBody(c.req.raw);
       if (body === null) return c.json(error('PAYLOAD_TOO_LARGE', 'Request body exceeds 16 KiB.'), 413);
       input = JSON.parse(body);
-    } catch {
+    } catch (cause) {
+      if (cause instanceof RequestBodyError) return c.json(error('REQUEST_TIMEOUT', 'Request body was not completed.'), 408);
       return c.json(error('INVALID_JSON', 'A valid UTF-8 JSON body is required.'), 400);
     }
     return c.json(invokeTool(c.req.param('name'), input, { principal, now: now() }));

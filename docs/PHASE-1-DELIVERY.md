@@ -304,3 +304,24 @@ Do not mistake the synthetic local Git reader for a live membership deployment,
 or the separately verified runtime App read for authorization to write grants.
 Default public startup/readiness remains closed. M0/Gate 2's five findings,
 independent reviews and deployment/release/spending boundaries are unchanged.
+
+## Completed development increment: 0021
+
+Added fixed-size per-process admission (concurrency and global token bucket),
+URL/header bounds, actual-byte/chunk/body-read deadlines and explicit loopback
+HTTP parser/receive/socket settings. No per-client map or forwarded-header
+identity is introduced. Work keeps its concurrency lease until it actually
+settles; rejection cannot hide ongoing provider/DB work behind a response timeout.
+
+Focused tests cover overload/release, refill/bad clocks, malformed startup limits,
+oversized requests, disconnect/stalled cancellation and endless empty chunks.
+A spawned actual Node HTTP server verifies oversized raw headers and incomplete
+headers are rejected while startup stays unready and unauthenticated. The real
+Chromium identity/Git/session flow and root suite are rechecked. Exact evidence:
+`intent/0021/EVIDENCE.md`; operational limits: `docs/API-RESOURCE-LIMITS.md`.
+
+Next bounded increment: database/pool execution deadlines and trusted runtime
+configuration, then production UI composition. Per-process limits are not fleet
+ingress, capacity/load validation or cancellation of backend work. Preserve the
+five R5 findings and all real-access, independent review, gate, deployment,
+release and spending boundaries. No production activation has occurred.

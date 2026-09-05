@@ -51,6 +51,11 @@ and the real membership source before activation. Do not infer origin from
 untrusted forwarding headers. No real secrets or deployment recipe are supplied
 by the synthetic harness.
 
+Increment 0021 installs per-instance admission around Git-backed composition and
+bounded body reads inside the browser/tool routes. See `API-RESOURCE-LIMITS.md`
+for exact defaults and the local CLI socket checks. Those checks do not replace
+trusted public ingress, distributed limits or database execution deadlines.
+
 The page that submits the native sign-in form must allow the exact configured
 IdP origin as well as self in CSP `form-action`; Chromium also checks the
 authorization redirect against that policy. Keep the issuer allowlist fixed

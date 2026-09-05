@@ -4,6 +4,7 @@ import { createBrowserSessionBroker, type BrowserSessionConfiguration, type Brow
 import { createOidcAuthenticator, type IdentityDependencies } from '@steer/adapters/identity';
 import { createOpenApiDocument } from '@steer/tool-registry';
 import { createApi } from './app.ts';
+import { readRequestBody } from './request-body.ts';
 
 const failure = { error: { code: 'SIGN_IN_FAILED', message: 'The sign-in operation could not be completed.' } };
 const denied = { error: { code: 'FORBIDDEN', message: 'The request is not allowed.' } };
@@ -46,15 +47,7 @@ export function createBrowserOpenApiDocument() {
 
 /** No user input is accepted by login/logout; bound actual bytes, not Content-Length. */
 async function emptyBody(request: Request): Promise<boolean> {
-  if (!request.body) return true;
-  const reader = request.body.getReader();
-  try {
-    while (true) {
-      const next = await reader.read();
-      if (next.done) return true;
-      if (next.value.byteLength) { await reader.cancel(); return false; }
-    }
-  } finally { reader.releaseLock(); }
+  try { await readRequestBody(request, 0); return true; } catch { return false; }
 }
 
 /** Explicit composition only. CLI startup never installs these routes by default. */
