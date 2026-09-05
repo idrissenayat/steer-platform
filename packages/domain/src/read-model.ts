@@ -9,8 +9,8 @@ import type {
   RiskDomain,
   Role,
   WorkItemChain,
-} from "./types";
-import { agingBandStatus } from "./sizing";
+} from "./types.ts";
+import { agingBandStatus } from "./sizing.ts";
 
 const defaultClosedDomains = new Set<RiskDomain>([
   "accessibility",

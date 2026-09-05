@@ -1,4 +1,4 @@
-import type { ProjectionEvent, WorkItemChain } from "./types";
+import type { ProjectionEvent, WorkItemChain } from "./types.ts";
 
 export function replayEvents(events: ProjectionEvent[]): WorkItemChain[] {
   const latest = new Map<string, WorkItemChain>();

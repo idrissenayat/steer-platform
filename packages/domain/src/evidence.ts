@@ -1,4 +1,4 @@
-import type { WorkItemChain } from "./types";
+import type { WorkItemChain } from "./types.ts";
 
 export interface EvidenceLine {
   id: string;

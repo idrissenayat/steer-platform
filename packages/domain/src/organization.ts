@@ -1,4 +1,4 @@
-import type { RiskDomain, Role } from "./types";
+import type { RiskDomain, Role } from "./types.ts";
 
 export type OperatingProfile = "commercial" | "regulated";
 export type TeamMode = "solo" | "team";

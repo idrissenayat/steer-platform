@@ -91,7 +91,7 @@ ID and contents-read, pin artifacts to commits, validate Git blob/SHA-256
 digests and reject changed heads. Thirteen new tests pass, with no real App
 credentials accessed. Test Agent identity remains separate from runtime.
 
-## Current increment: 0011
+## Completed development increment: 0011
 
 Implemented single-artifact ingestion/reconciliation. Deterministic source
 keys, per-source transaction serialization, expected-revision CAS, exact
@@ -105,9 +105,20 @@ read-only runtime App on `idrissenayat/steer-platform`. The installed Test
 Agent App must remain independent; its key has not been loaded or reused.
 While that decision is pending, provider-independent foundations can continue.
 
-Next increments: remaining package-boundary/runtime checks, local Keycloak
-and browser composition, then durable ingestion and workflow transports.
+## Completed development increment: 0012
+
+Fixed bundler-only domain imports and added AST package-boundary/native-import
+tests. The full repository check passed under isolated Node 24.20.0, including
+all package tests and builds. `.node-version` records the verified local patch.
+All eleven PostgreSQL integration checks also passed under that Node version.
+See `intent/0012/EVIDENCE.md`; host Node was not replaced.
+
+Next integration: runtime GitHub App binding, local Keycloak/browser and
+authorized operating-repository membership composition, followed by durable
+ingestion and workflow transports. The separate runtime-App approval remains
+pending; do not repurpose the independent Test Agent key or enable live reads
+under that identity. No user decision has been inferred from an unanswered card.
 M2 remains partial until those identities and tenant data are wired end to end.
 Live Git writes remain blocked on M0 and applicable provider authorization. Remaining
-M1 work includes full stack lock, provider-free package-boundary checks, and
+M1 work includes full stack lock and
 local service composition; the shell alone does not complete P1-01.

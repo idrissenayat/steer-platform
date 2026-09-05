@@ -1,5 +1,5 @@
-import type { DetailActionEvent } from "./intent-detail";
-import type { HubEvent } from "./learn";
+import type { DetailActionEvent } from "./intent-detail.ts";
+import type { HubEvent } from "./learn.ts";
 
 export const instrumentationSchemaVersion = "1.0.0" as const;
 

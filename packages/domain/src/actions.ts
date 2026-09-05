@@ -1,12 +1,12 @@
-import { evaluateSignerPolicy } from "./organization";
-import { buildReadModel, artifactRevisionForGate, evidenceIsFresh, requiredRoles, requiresSpecialist } from "./read-model";
+import { evaluateSignerPolicy } from "./organization.ts";
+import { buildReadModel, artifactRevisionForGate, evidenceIsFresh, requiredRoles, requiresSpecialist } from "./read-model.ts";
 import type {
   FlightStage,
   Gate,
   GateAction,
   IdentityContext,
   WorkItemChain,
-} from "./types";
+} from "./types.ts";
 
 export type GateActionResult =
   | { ok: true; chain: WorkItemChain[]; item: WorkItemChain }

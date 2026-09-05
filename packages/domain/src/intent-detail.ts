@@ -1,4 +1,4 @@
-import { pullDisposition, type ProjectedIntent } from "./intent-backlog";
+import { pullDisposition, type ProjectedIntent } from "./intent-backlog.ts";
 
 export type DetailAction = "pull" | "decline" | "merge" | "send-back";
 

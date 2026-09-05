@@ -1,4 +1,4 @@
-import type { RiskDomain } from "./types";
+import type { RiskDomain } from "./types.ts";
 
 export type IntentStatus = "candidate" | "declined" | "expired" | "pulled";
 

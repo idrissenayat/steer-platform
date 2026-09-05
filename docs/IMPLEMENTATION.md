@@ -49,6 +49,12 @@ reconciler. Four new unit tests and three new real PostgreSQL checks pass for
 duplicates, CAS conflicts, stale delivery and source-based repair. Full-repo
 replay, durable scheduling/webhooks and live provider composition remain open.
 
+Item `intent/0012` corrects domain imports for native Node and adds structural
+package-boundary/native-import checks. The complete repository suite and builds
+pass under isolated Node 24.20.0; local `.node-version` records that version.
+This closes the prior local runtime-verification gap, not the remaining
+provider/gate integration requirements.
+
 ## Implemented prototype and kit behavior
 
 - deterministic artifact-chain projection and dropped-event reconciliation;
