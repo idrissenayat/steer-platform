@@ -9,7 +9,8 @@ item one, are the framework's pilot evidence.
 
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono
-API/shared tool registry (0007), and OIDC adapter/API composition (0008) are
+API/shared tool registry (0007), OIDC adapter/API composition (0008), and
+PostgreSQL/Drizzle tenant foundations (0009) are
 implemented development increments.
 Gate 2 remains open: the latest round-three R5 review returned three blockers
 and two majors. Candidate implementation is not live-provider or release
@@ -28,6 +29,7 @@ routes but rejects tool requests until real identity integration is built.
 | 0006 · Provider-free domain extraction | `intent/0006/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md`, `PLAN.md` | the existing domain is moved—not copied—into `@steer/domain`; stricter optional/index checks and all consumers are migrated | formal gate records; worker, data and provider integration remain |
 | 0007 · Shared tool registry and API foundation | `intent/0007/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | Hono, Zod contracts, tenant-scoped context query, generated OpenAPI and 15 focused tests | independent protected Exam, formal gates, actual identity/data/provider integration |
 | 0008 · Normalized OIDC adapter | `intent/0008/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | signed access-token verification, current-grant/revocation checks and API composition; eleven new tests | independent protected Exam, formal gates, real Keycloak/browser login and trusted grant projection |
+| 0009 · Tenant data foundation | `intent/0009/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | Drizzle migrations, two forced-RLS tables, app/projector privileges, safe tenant transactions; five unit and eight PostgreSQL checks | independent protected Exam, formal gates, Git ingestion/replay, trusted grant projection and production composition |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier

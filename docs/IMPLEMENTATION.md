@@ -33,6 +33,12 @@ identities deny without waiting for token expiry. Eleven new tests pass,
 including cryptographic API integration. Actual Keycloak login and the trusted
 grant projection are not connected; CLI startup remains deny-all.
 
+Item `intent/0009` adds Drizzle schema/migrations, forced organization RLS and
+separate runtime privileges for the ingestion log and projection records.
+Tenant context is transaction-local and scrubbed around pool reuse. Five unit
+tests and eight real PostgreSQL checks pass. This is local synthetic database
+evidence, not a provider-connected read model or production migration.
+
 ## Implemented prototype and kit behavior
 
 - deterministic artifact-chain projection and dropped-event reconciliation;

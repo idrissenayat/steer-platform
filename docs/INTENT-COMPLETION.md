@@ -76,6 +76,11 @@ composition seam with eleven new tests. Identity-provider configuration,
 browser login, trusted grant projection and tenant database integration still
 remain. No gate or production identity claim follows from isolated JWT tests.
 
+Item 0009 adds real PostgreSQL/Drizzle tenant foundations: two forced-RLS tables,
+separate app/projector roles and safe pooled tenant transactions. Five unit
+checks and eight real local database checks pass. Git ingestion/replay and the
+authoritative-source/freshness checks remain unimplemented integrations.
+
 That statement covers the requested feature artifacts in the present
 prototype, not the newly adopted production architecture. The thirteen-case
 walking-skeleton exam must pass before the Phase 1 foundation can be marked

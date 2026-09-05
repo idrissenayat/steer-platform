@@ -46,7 +46,7 @@ inside STEER. Every surface uses the same registry and tenant authorization.
   counts as a percentage of platform completion.
 - Update this ledger and the implementation overview in the same increment.
 
-## Current increment: 0007
+## Completed development increment: 0007
 
 Implemented and verified the shared tool boundary before adding stateful providers. The service
 exposes liveness, an explicitly incomplete readiness response, generated
@@ -59,7 +59,7 @@ Verification: frozen install, root `pnpm check`, 15 new focused tests and
 loopback HTTP smoke checks passed. Details and runtime limitations are in
 `intent/0007/EVIDENCE.md`. No visible UI change is claimed for this backend slice.
 
-## Current increment: 0008
+## Completed development increment: 0008
 
 Implemented the normalized Keycloak-compatible OIDC adapter and API composition
 boundary. Eleven new tests cover actual JWT signatures, claims/time validation,
@@ -73,6 +73,19 @@ needed. A task heartbeat resumes bounded work and candidate-branch pushes;
 existing gate, spending and provider boundaries still apply. No repeated
 unchanged blocker notifications or broad Critic loops are intended.
 
-Next increment: M2 local tenant-data integration and RLS verification. Remaining
+## Current increment: 0009
+
+Implemented the first two Drizzle/PostgreSQL tables, forced organization RLS,
+separate app/projector grants, transaction-local tenant handling and typed
+projection reads. Five unit checks and eight real PostgreSQL 16.14 integration
+checks passed, including contaminated-pool reuse, cross-tenant write denial,
+rollback and concurrent callers. The run-owned synthetic database was removed.
+See `intent/0009/EVIDENCE.md`; `pnpm test:data:integration` reruns that harness.
+No production database or authoritative Git record was changed.
+
+Next increment: Git-backed ingestion/reconciliation and a freshness-checked
+authorization projection, followed by local Keycloak/browser composition.
+M2 remains partial until those identities and tenant data are wired end to end.
+Live Git writes remain blocked on M0 and applicable provider authorization. Remaining
 M1 work includes full stack lock, provider-free package-boundary checks, and
 local service composition; the shell alone does not complete P1-01.

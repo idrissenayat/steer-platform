@@ -18,6 +18,7 @@
     "test:controls": "node --test tests/*.test.mjs",
     "test:watch": "vitest",
     "test:workspace": "turbo run test --filter='./apps/*' --filter='./packages/*'",
+    "test:data:integration": "pnpm --filter @steer/data test:integration",
     "typecheck": "pnpm typecheck:prototype && turbo run typecheck --filter='./apps/*' --filter='./packages/*'",
     "typecheck:prototype": "tsc --noEmit",
     "kit:check": "node scripts/validate-kit.mjs",
