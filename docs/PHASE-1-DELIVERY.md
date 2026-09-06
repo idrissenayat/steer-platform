@@ -2131,3 +2131,28 @@ immediate timing and unsupported future profiles need distinct treatment. This
 readiness surface is not a live API, approval or mutation capability. All five
 formal findings stay open. No protected edit, provider operation, deletion,
 deployment, release, spending or signature is authorized. The loop remains active.
+
+## Completed development increment: 0113 — indefinite-retention safeguards
+
+Four frozen authoritative-artifact labels explicitly alias one commit-time input,
+not four expiry instants. The closed adapter supplies available signed event,
+inventory and state evidence with empty effect slots. Indefinite retention returns
+retained-immutable with a null expiry and zero effects. Held state and injected
+disposition records cannot make it deletable; the latter are not accepted or
+validated as legitimate actions. Missing evidence, genuinely signed semantic errors,
+invented expiry and invalid nested provider proof deny. Complete verifiers and the
+readiness class admission remain unchanged.
+
+Twenty focused groups pass, including six new groups. Full repository checks pass
+381 root controls, prototype checks and 95 kit artifacts; unchanged package tasks
+are cached. Fresh reports match 381 passed / 3,655 uncovered (quick) and 397 passed /
+3,639 uncovered (full), with zero failures. A separate three-group integration run
+re-executes the full synthetic matrix and matches its snapshot. See
+intent/0113/EVIDENCE.md and SOURCE-MAP.json for alias and synthetic-evidence limits.
+
+Next are twenty-four lifecycle coordinates across six classes, then remaining
+migration/schema and GAP-01–06/M1–M8 work as recorded in intent/0113/PLAN.md.
+Raw deadlines, immediate triggers and future retention profiles need distinct
+semantics; no real immutable-store guarantee follows from these development tests.
+All five formal findings remain open. No protected edit, real provider operation,
+deletion, gate approval, deployment, release or spending is authorized.

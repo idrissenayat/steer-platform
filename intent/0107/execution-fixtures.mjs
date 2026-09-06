@@ -605,3 +605,31 @@ export function lifecycleReadinessExecutionCase(classId, point, variant = 'posit
   return { configBytes: value.configBytes, runtimeBytes: value.runtimeBytes, boundaryAt: value.boundaryAt, classId, point, variant, head, bytes, verifier,
     fullVerifier: value.verifier, evaluationTime, input: jcs({ configBytes: value.configBytes, runtimeBytes: value.runtimeBytes ?? null, bytes, evaluatedAt: evaluationTime }) };
 }
+
+export function immutableRetentionExecutionCase(boundary, variant = 'positive') {
+  if (!['before', 'at', 'after', 'complete'].includes(boundary) || !['positive', 'active-hold', 'effects-injected', 'missing-state', 'missing-inventory',
+    'wrong-parent', 'future-state', 'wrong-history', 'wrong-trigger', 'proposed-expiry', 'bad-event-proof'].includes(variant)) throw new Error('UNKNOWN_IMMUTABLE_RETENTION_CASE');
+  const sourceTime = '2026-09-04T12:00:00Z';
+  const options = { fixtureEpoch: Date.parse(sourceTime), recordClass: 'RC-AUTHORITATIVE-ARTIFACT',
+    eventType: variant === 'wrong-trigger' ? 'item-closed' : 'record-committed', historyType: 'originator-draft-saved', evaluationTime: sourceTime,
+    edits: { inventory: (record) => { record.recordedAt = sourceTime; }, state: (record) => {
+      record.recordedAt = variant === 'future-state' ? '2026-09-04T12:00:00.000000001Z' : sourceTime;
+      if (variant === 'active-hold') record.holdState = 'active';
+      if (variant === 'wrong-parent') record.parentExpiryAt = sourceTime;
+      if (variant === 'wrong-history') record.historyDigest = 'f'.repeat(64);
+    }, graph: (graph) => {
+      // An indefinite policy never consumes effect evidence. The ordinary
+      // control supplies empty effect slots, not receipts from the future.
+      if (variant !== 'effects-injected') { graph.copies = []; graph.aggregateBytes = ''; graph.tombstone = {}; }
+      if (variant === 'missing-state') graph.stateBytes = '';
+      if (variant === 'missing-inventory') graph.inventoryBytes = '';
+      if (variant === 'proposed-expiry') graph.expiresAt = sourceTime;
+      if (variant === 'bad-event-proof') {
+        const event = JSON.parse(graph.eventBytes), proof = JSON.parse(event.providerProofBytes); proof.signature.valueBase64 = 'A'.repeat(86) + '==';
+        graph.eventBytes = jcs(originalSeal({ ...event, providerProofBytes: jcs(proof) }, 'record'));
+        const state = JSON.parse(graph.stateBytes); state.historyDigest = sha256(jcs([...graph.historyBytes, graph.eventBytes])); graph.stateBytes = jcs(originalSeal(state, 'authority'));
+      }
+    } } };
+  const value = fixture(options);
+  return { ...value, boundary, variant, input: jcs({ configBytes: value.configBytes, bytes: value.bytes, evaluatedAt: value.evaluationTime }) };
+}

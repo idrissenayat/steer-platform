@@ -1,0 +1,13 @@
+{
+  "version": "steer-immutable-retention-map/v1",
+  "sourcePins": "intent/0098/SOURCE-PINS.json",
+  "classId": "RC-AUTHORITATIVE-ARTIFACT",
+  "labels": ["before", "at", "after", "complete"],
+  "uniquePositiveInputs": 1,
+  "observedAt": "2026-09-04T12:00:00Z",
+  "triggerAt": "2026-09-04T12:00:00Z",
+  "boundaryAt": null,
+  "expectedState": "retained-immutable",
+  "reconciliation": "The frozen source maps all four labels to the same commit-time observation because retention is indefinite. Preserve and execute every declared ID, but explicitly report one unique positive input, not four elapsed-time boundaries. Corrected schema-valid event/history and inventory/state are available at the exact source instant. Empty effect slots supply no future receipts; injected complete-format effect evidence is ignored under the indefinite policy and is never asserted valid or executed. An authoritative held-state claim conservatively retains without proving a new qualified hold decision.",
+  "limitations": "No live immutable storage, legal permanence, deletion authority, future observation or formal acceptance is claimed. Other six lifecycle classes and remaining matrices remain uncovered."
+}

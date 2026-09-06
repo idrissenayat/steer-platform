@@ -18,6 +18,7 @@ import { specialLifecycleExecutionHook } from '../0109/execution-hooks.mjs';
 import { shortRetentionExecutionHook } from '../0110/execution-hooks.mjs';
 import { longRetentionExecutionHook } from '../0111/execution-hooks.mjs';
 import { lifecycleReadinessExecutionHook } from '../0112/execution-hooks.mjs';
+import { immutableRetentionExecutionHook } from '../0113/execution-hooks.mjs';
 const registry = jcs(JSON.parse(readFileSync(new URL('../0001/reviews/domain/round-3/remediation/TRUST-REGISTRY.candidate.json', import.meta.url), 'utf8')));
 const events = createLifecycleEventVerifier(registry), now = '2026-09-04T13:00:00Z';
 const eventEnvelope = (eventBytes, historyBytes = []) => jcs({ version: 'steer-r5-001-events/v1', policyDigest: events.policyDigest,
@@ -62,5 +63,5 @@ export function executionHook(caseItem) {
       for (const text of ['A+' + '٤'.repeat(7), '+' + '٤'.repeat(7) + 'Z', '界+' + '४'.repeat(7), '+' + '४'.repeat(7) + '界'])
         check(text, () => ({ hit: inspectPrivacyPhoneText(text) === 'phone' }), { hit: false });
     } };
-  return recoveryHumanExecutionHook(caseItem) ?? authorizationMoneyPrivacyExecutionHook(caseItem) ?? detectorMultilineExecutionHook(caseItem) ?? trustDomainExecutionHook(caseItem) ?? schemaExecutionHook(caseItem) ?? sharedActionExecutionHook(caseItem) ?? migrationGraphExecutionHook(caseItem) ?? lifecycleGraphExecutionHook(caseItem) ?? lifecycleNegativeExecutionHook(caseItem) ?? specialLifecycleExecutionHook(caseItem) ?? shortRetentionExecutionHook(caseItem) ?? longRetentionExecutionHook(caseItem) ?? lifecycleReadinessExecutionHook(caseItem);
+  return recoveryHumanExecutionHook(caseItem) ?? authorizationMoneyPrivacyExecutionHook(caseItem) ?? detectorMultilineExecutionHook(caseItem) ?? trustDomainExecutionHook(caseItem) ?? schemaExecutionHook(caseItem) ?? sharedActionExecutionHook(caseItem) ?? migrationGraphExecutionHook(caseItem) ?? lifecycleGraphExecutionHook(caseItem) ?? lifecycleNegativeExecutionHook(caseItem) ?? specialLifecycleExecutionHook(caseItem) ?? shortRetentionExecutionHook(caseItem) ?? longRetentionExecutionHook(caseItem) ?? lifecycleReadinessExecutionHook(caseItem) ?? immutableRetentionExecutionHook(caseItem);
 }

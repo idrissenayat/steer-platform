@@ -995,6 +995,16 @@ map and twenty-eight remain. This is an offline candidate, not a live API or mut
 capability. See `intent/0112/EVIDENCE.md`, `SOURCE-MAP.json` and `PLAN.md`; all formal
 findings remain open and no actual quarantine or deletion is claimed.
 
+Item `intent/0113` reconciles indefinite authoritative-artifact retention. All four
+source labels share one commit-time observation, explicitly not four distinct expiry
+scenarios. Valid available event/inventory/state evidence returns retained-immutable
+with no future effect input. Held state or injected disposition records cannot turn
+that into deletion; invalid proofs and invented expiry deny. Full profile records
+397 passed / 3,639 uncovered; quick 381 passed / 3,655 uncovered. Forty lifecycle
+source IDs map, with twenty-four uncovered. See `intent/0113/EVIDENCE.md`,
+`SOURCE-MAP.json` and `PLAN.md`; no live immutable-storage enforcement or formal
+finding closure is claimed.
+
 ## Local commands
 
 ```sh

@@ -97,7 +97,7 @@ test('0112: authoritative held/reference-active states retain conservatively and
 });
 
 test('0112: closed configuration rejects unsupported classes, old current profiles and request-supplied policy or effect fields', () => {
-  assert.deepEqual(Object.keys(fixtures).sort(), ['lifecycleGraphExecutionCase', 'lifecycleGraphVariants', 'lifecycleNegativeExecutionCase', 'lifecycleReadinessExecutionCase', 'longRetentionExecutionCase', 'shortRetentionExecutionCase', 'specialLifecycleExecutionCase']);
+  assert.deepEqual(Object.keys(fixtures).sort(), ['immutableRetentionExecutionCase', 'lifecycleGraphExecutionCase', 'lifecycleGraphVariants', 'lifecycleNegativeExecutionCase', 'lifecycleReadinessExecutionCase', 'longRetentionExecutionCase', 'shortRetentionExecutionCase', 'specialLifecycleExecutionCase']);
   const original = make('RC-FAILED-RUN', 'at'), current = make('RC-SECURITY-AUDIT', 'at');
   for (const classId of ['RC-AUTHORITATIVE-ARTIFACT', 'RC-CORPUS-RAW-WORKING', 'RC-REBUILDABLE'])
     assert.throws(() => createLifecycleReadinessVerifier(jcs({ ...JSON.parse(original.configBytes), recordClass: classId })), /CONFIGURATION_INVALID/);
@@ -114,9 +114,9 @@ test('0112: existing mapped observations remain byte-for-byte stable while eight
   const report = runCorrectedCoverage(), prior = JSON.parse(readFileSync(new URL('../intent/0111/QUICK-EXECUTION-REPORT.json', import.meta.url)));
   for (const old of prior.executions) { const row = report.executions.find((entry) => entry.id === old.id);
     assert.equal(row.observationsDigest, old.observationsDigest, old.id); assert.equal(row.observationCount, old.observationCount); assert.equal(row.status, old.status); }
-  assert.equal(report.executed, 377); assert.equal(report.passed, 377); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3659);
-  assert.deepEqual(report.families['LIFECYCLE-GRAPH'], { required: 64, executed: 36, passed: 36, failed: 0, uncovered: 28 });
+  assert.equal(report.executed, 381); assert.equal(report.passed, 381); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3655);
+  assert.deepEqual(report.families['LIFECYCLE-GRAPH'], { required: 64, executed: 40, passed: 40, failed: 0, uncovered: 24 });
   assert.equal(report.families.MIGRATION.executed, 0);
   for (const flag of ['completeCoverage', 'normativeAcceptanceComplete', 'independentAcceptance', 'executionAuthorized', 'liveProviderUsed']) assert.equal(report[flag], false);
-  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0112/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
+  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0113/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
 });
