@@ -14,6 +14,7 @@ import { createRawTerminalVerifier, policyDigest as terminalPolicy } from '../in
 import { policyDigest as historicalPolicy } from '../intent/0078/historical-events.candidate.mjs';
 import { createMixedHistoryVerifier } from '../intent/0081/mixed-history.candidate.mjs';
 import { createQualifiedHistoryVerifier } from '../intent/0083/qualified-history.candidate.mjs';
+import { createArchivedOwnerVerifier, policyDigest as archivedOwnerPolicy } from '../intent/0084/archived-owner.candidate.mjs';
 import { makeHumanAuthorityBundle, makeLifecycleEventBytes, makeLifecycleGraph } from '../intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs';
 import { lifecycleGraphDecision as frozen } from '../intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs';
 import { jcs, sha256, TRUST_REGISTRY, TARGET_REVISION, TARGET_EXAM_SHA, AUTHORIZATION_POLICY_PATH, AUTHORIZATION_POLICY_SHA, AUTHORIZATION_POLICY_BYTES, RETENTION_POLICY_SHA, zeroEffects } from '../intent/0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
@@ -87,11 +88,13 @@ function fixture(options = {}) {
   const raw = config.recordClass === 'RC-CORPUS-RAW-WORKING';
   const continuation = raw && (chained || Array.isArray(completedCopies));
   const type = options.eventType ?? (raw ? 'corpus-sanitization-terminal' : 'record-superseded');
-  const qualifiedDecisions = [], knownHolds = new Map(); let hadHold = false;
+  const qualifiedDecisions = [], archivedDecisions = [], knownHolds = new Map(); let hadHold = false;
   const qualifiedSelector = { organization: scope.organization, itemId: scope.item, environmentId: config.environmentId,
     recordId: config.recordId, recordClass: config.recordClass, artifactRevision: config.artifactRevision };
   const qualifiedSelectorDigest = sha256(jcs(qualifiedSelector));
-  function qualifiedOwner(event, index, second, bindingDigest) {
+  function qualifiedOwner(event, index, second, bindingDigest, current = true) {
+    const at = (seconds) => formatExactInstant(BigInt(current ? currentEpoch : epoch) * 1000000n + BigInt(seconds) * 1000000000n);
+    const seal = current ? runtimeSeal : originalSeal, until = at(second + 150);
     const bundle = makeHumanAuthorityBundle(), id = `qualified-${index}`, prior = knownHolds.get(event.holdId);
     const emit = (field, value, domain) => { const signed = seal(edit(`${id}:${field}`, value), domain); bundle[field] = jcs(signed); return signed; };
     const identity = emit('identityEvidenceBytes', { ...JSON.parse(bundle.identityEvidenceBytes), evidenceId: `${id}-identity`, verifiedAt: at(second - 3) }, 'provider');
@@ -106,7 +109,7 @@ function fixture(options = {}) {
       decisionKind: event.eventType, eventId: event.eventId, eventBindingDigest: bindingDigest, previousHoldEventDigest: prior?.recordDigest ?? null,
       holdState: knownHolds.size ? 'active' : hadHold ? 'released' : 'none', conditions: [`event:${bindingDigest}`, `selector:${qualifiedSelectorDigest}`, `previous-hold:${prior?.recordDigest ?? 'none'}`],
       safeguards: ['exact-record-scope', 'independent-provider-proof', 'current-qualified-owner', 'revision-bound-decision'],
-      providerTrustAnchorDigest: sha256(JSON.parse(trustedRegistryBytes).bindings.find((key) => key.keyId === 'human-provider-key-current').publicKeyHex),
+      providerTrustAnchorDigest: sha256((current ? JSON.parse(trustedRegistryBytes) : TRUST_REGISTRY).bindings.find((key) => key.keyId === (current ? 'human-provider-key-current' : 'human-provider-key-v1')).publicKeyHex),
       idempotencyKey: `${id}-idem`, casHead: sha256(`${id}-head`), validFrom: at(second - 5), expiresAt: until };
     for (const field of ['copyInventoryDigest', 'referenceState', 'allowedCopyProviders', 'sourceOriginalExcluded', 'deadlineSeconds', 'eraseMethod', 'terminalEventId']) delete authority[field];
     edit(`${id}:authority`, authority);
@@ -118,15 +121,15 @@ function fixture(options = {}) {
       idempotencyKey: `${id}-unused`, snapshotAt: at(second - 2), validThrough: until }, 'replay-authority');
     emit('casReservationBytes', { ...JSON.parse(bundle.casReservationBytes), reservationId: `${id}-reservation`, headId: head.headId, expectedHead: authority.casHead,
       idempotencyKey: authority.idempotencyKey, requestDigest: signedAuthority.recordDigest, authorityDigest: signedAuthority.recordDigest, recordedAt: at(second - 1), validThrough: until }, 'cas-authority');
-    bundle.evaluationTime = evaluatedAt; edit(`${id}:bundle`, bundle);
-    qualifiedDecisions.push({ eventId: event.eventId, humanBundleBytes: jcs(bundle) });
+    bundle.evaluationTime = current ? evaluatedAt : at(second + 10); edit(`${id}:bundle`, bundle);
+    (current ? qualifiedDecisions : archivedDecisions).push({ eventId: event.eventId, humanBundleBytes: jcs(bundle) });
   }
   function event(eventType, index, second, current = false) {
     const value = { ...JSON.parse(makeLifecycleEventBytes(eventType, index)), recordId: config.recordId, recordClass: config.recordClass, artifactRevision: config.artifactRevision,
       policySha256: RETENTION_POLICY_SHA, occurredAt: options.runtimeYear && !current ? formatExactInstant(BigInt(epoch) * 1000000n + BigInt(second) * 1000000000n) : at(second), ...(eventType === 'corpus-sanitization-terminal' ? { result: 'pass', sanitizerRevision: 'sanitizer-v1', inspectionRevision: 'inspector-v1' } : {}),
       ...(eventType === 'run-terminal' ? { terminalStatus: 'failed' } : {}),
       ...(eventType === 'derived-record-deleted' ? { derivedRecordId: `derived-${String(index).padStart(3, '0')}`, derivedRecordClass: 'RC-CORPUS-DERIVED-TEXT', parentCorpusId: 'corpusId-value', parentCorpusVersion: 'corpusVersion-value' } : {}) };
-    const qualified = current && options.qualifiedDecisions && ['hold-applied', 'hold-released'].includes(eventType);
+    const qualified = (current ? options.qualifiedDecisions : options.archivedOwners) && ['hold-applied', 'hold-released'].includes(eventType);
     if (qualified) {
       value.actorId = 'human:records-owner'; value.actorAuthority = 'privacy-legal-records-owner';
       value[eventType === 'hold-applied' ? 'reasonAuthority' : 'releaseAuthority'] = `qualified-${index}`;
@@ -134,7 +137,7 @@ function fixture(options = {}) {
     }
     edit(`event-${index}`, value);
     const payload = Object.fromEntries(Object.entries(value).filter(([key]) => !['providerProofBytes', 'providerProofDigest', 'recordDigest', 'signature'].includes(key)));
-    if (qualified) qualifiedOwner(value, index, second, sha256(jcs(payload)));
+    if (qualified) qualifiedOwner(value, index, second, sha256(jcs(payload)), current);
     const eventSeal = current ? seal : originalSeal;
     const proof = eventSeal(edit(`event-proof-${index}`, { providerRecordId: value.providerRecordId, eventId: value.eventId, eventBindingDigest: sha256(jcs(payload)), recordedAt: value.occurredAt }), 'provider');
     edit(`signed-event-proof-${index}`, proof);
@@ -148,7 +151,7 @@ function fixture(options = {}) {
   let eventBytes = event(type, history.length + 1, 0);
   // Explicit test expectation, not a call back into the verifier's selector.
   const trigger = JSON.parse(options.triggerHistoryIndex === undefined ? eventBytes : historyBytes[options.triggerHistoryIndex]);
-  let runtimeBytes, historicalEvidenceBytes, trustedRegistryBytes = jcs(TRUST_REGISTRY);
+  let runtimeBytes, historicalEvidenceBytes, archivedOwnerBytes, trustedRegistryBytes = jcs(TRUST_REGISTRY);
   if (options.runtimeYear) {
     const registry = structuredClone(TRUST_REGISTRY);
     for (const key of TRUST_REGISTRY.bindings) registry.bindings.push({ ...key, keyId: `${key.domain}-key-current`,
@@ -177,8 +180,30 @@ function fixture(options = {}) {
       attestationDigest: attestation.recordDigest, retainedBytesDigest: historyDigest, complete: true, recordedAt: at(-1) }), 'provider');
     historicalEvidenceBytes = jcs(edit('historical-envelope', { version: 'steer-historical-events/v1', policyDigest: historicalPolicy, eventBytes, historyBytes,
       attestationBytes: jcs(attestation), retentionReceiptBytes: jcs(receipt) }));
-    runtimeBytes = jcs(edit('runtime', { version: options.qualifiedDecisions ? 'steer-lifecycle-runtime/v3' : Array.isArray(options.currentHistory) ? 'steer-lifecycle-runtime/v2' : 'steer-lifecycle-runtime/v1', currentRegistryBytes: trustedRegistryBytes,
-      currentProviderRegistryBytes: jcs(providers), historicalContextBytes: archiveBytes }));
+    let archivedOwnerContextBytes;
+    if (options.archivedOwners) {
+      const decisions = edit('archived-decisions', archivedDecisions), decisionBytes = jcs(decisions), decisionBytesDigest = sha256(decisionBytes);
+      const ownerContext = edit('archived-owner-context', { version: 'steer-archived-owner-context/v1', historicalContextDigest: sha256(archiveBytes), decisionBytesDigest,
+        archiveReference: { ...archive.archiveReference, path: 'evidence/owner-decisions.json' } });
+      archivedOwnerContextBytes = jcs(ownerContext);
+      const recordFields = ['authorityBytes', 'providerProofBytes', 'identityEvidenceBytes', 'qualificationEvidenceBytes', 'assignmentEvidenceBytes',
+        'inventoryBytes', 'replayLedgerBytes', 'casHeadBytes', 'casReservationBytes'];
+      const rows = decisions.map((entry) => { const bundle = JSON.parse(entry.humanBundleBytes), event = allBytes.map(JSON.parse).find((event) => event.eventId === entry.eventId); return {
+        eventId: entry.eventId, eventDigest: event?.recordDigest ?? 'f'.repeat(64), observedAt: bundle.evaluationTime, bundleBytesDigest: sha256(entry.humanBundleBytes),
+        records: recordFields.map((field) => ({ field, recordDigest: JSON.parse(bundle[field] ?? '{}').recordDigest ?? 'f'.repeat(64), bytesDigest: sha256(bundle[field] ?? '{}') })),
+      }; });
+      const ownerCommon = { configDigest: sha256(archivedOwnerContextBytes), policyDigest: archivedOwnerPolicy, registryDigest: sha256(trustedRegistryBytes),
+        historyDigest, decisionBytesDigest, inventoryDigest: sha256(jcs(rows)), archiveReference: ownerContext.archiveReference, observedAt: archive.observedAt,
+        decisionCount: decisions.length, validThrough: until };
+      const ownerAttestation = seal(edit('owner-attestation', { ...ownerCommon, kind: 'archived-owner-attestation', source: 'authoritative-owner-history-revalidator',
+        decision: 'historical-owner-records-verified', recordedAt: at(-2) }), 'authority');
+      const ownerReceipt = seal(edit('owner-retention', { ...ownerCommon, kind: 'archived-owner-retention', source: 'authoritative-archive-store',
+        attestationDigest: ownerAttestation.recordDigest, retainedBytesDigest: decisionBytesDigest, complete: true, recordedAt: at(-1) }), 'provider');
+      archivedOwnerBytes = jcs(edit('archived-owner-envelope', { version: 'steer-archived-owner/v1', policyDigest: archivedOwnerPolicy,
+        archivedEvidenceBytes: historicalEvidenceBytes, decisionBytes, attestationBytes: jcs(ownerAttestation), retentionReceiptBytes: jcs(ownerReceipt) }));
+    }
+    runtimeBytes = jcs(edit('runtime', { version: options.archivedOwners ? 'steer-lifecycle-runtime/v4' : options.qualifiedDecisions ? 'steer-lifecycle-runtime/v3' : Array.isArray(options.currentHistory) ? 'steer-lifecycle-runtime/v2' : 'steer-lifecycle-runtime/v1', currentRegistryBytes: trustedRegistryBytes,
+      currentProviderRegistryBytes: jcs(providers), historicalContextBytes: archiveBytes, ...(options.archivedOwners ? { archivedOwnerContextBytes } : {}) }));
     if (Array.isArray(options.currentHistory)) {
       const combined = [...allBytes, ...options.currentHistory.map((entry, index) => event(entry.type, allBytes.length + index + 1, entry.second, true))];
       edit('combined-history', combined); historyBytes = combined.slice(0, -1); eventBytes = combined.at(-1);
@@ -204,7 +229,8 @@ function fixture(options = {}) {
   const state = seal(edit('state', { kind: 'state', configDigest, source: 'authoritative-lifecycle-store', inventoryDigest: inventory.recordDigest,
     historyDigest: sha256(jcs([...historyBytes, eventBytes])), historyComplete: true, holdState: 'none', referenceState: 'cleared', referenceRevocationDigest: null, parentExpiryAt: null, recordedAt: at(2), validThrough: until,
     ...(provenance ? { derivedInventoryDigest: derived.recordDigest } : {}) }), options.stateDomain ?? 'authority');
-  const graph = { version: runtimeBytes ? options.qualifiedDecisions ? 'steer-lifecycle-graph/current-v3' : Array.isArray(options.currentHistory) ? 'steer-lifecycle-graph/current-v2' : 'steer-lifecycle-graph/current-v1' : chained ? 'steer-lifecycle-graph/raw-v4' : continuation ? 'steer-lifecycle-graph/raw-v3' : raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1', configDigest, policyDigest, eventBytes, historyBytes, inventoryBytes: jcs(inventory), stateBytes: jcs(state), referenceRevocationBytes: '', copies: [], aggregateBytes: '', tombstone: {},
+  const graph = { version: runtimeBytes ? options.archivedOwners ? 'steer-lifecycle-graph/current-v4' : options.qualifiedDecisions ? 'steer-lifecycle-graph/current-v3' : Array.isArray(options.currentHistory) ? 'steer-lifecycle-graph/current-v2' : 'steer-lifecycle-graph/current-v1' : chained ? 'steer-lifecycle-graph/raw-v4' : continuation ? 'steer-lifecycle-graph/raw-v3' : raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1', configDigest, policyDigest, eventBytes, historyBytes, inventoryBytes: jcs(inventory), stateBytes: jcs(state), referenceRevocationBytes: '', copies: [], aggregateBytes: '', tombstone: {},
+    ...(options.archivedOwners ? { archivedOwnerBytes } : {}),
     ...(options.qualifiedDecisions ? { qualifiedDecisionBytes: jcs(edit('qualified-proofs', qualifiedDecisions)) } : {}),
     ...(runtimeBytes ? { historicalEvidenceBytes } : {}),
     ...(provenance ? { derivedInventoryBytes: jcs(derived) } : {}) };
@@ -248,7 +274,7 @@ function fixture(options = {}) {
   }
   const baseDigest = sha256(jcs({ configDigest, policyDigest, eventBytes, historyBytes, inventoryBytes: graph.inventoryBytes, stateBytes: graph.stateBytes, referenceRevocationBytes: '',
     ...(provenance ? { derivedInventoryBytes: graph.derivedInventoryBytes } : {}), ...(raw ? { rawGrantBindingDigest } : {}), ...(runtimeBytes ? { historicalEvidenceBytes } : {}),
-    ...(options.qualifiedDecisions ? { qualifiedDecisionBytes: graph.qualifiedDecisionBytes } : {}) }));
+    ...(options.qualifiedDecisions ? { qualifiedDecisionBytes: graph.qualifiedDecisionBytes } : {}), ...(options.archivedOwners ? { archivedOwnerBytes } : {}) }));
   const plannedRequests = new Map();
   function action(label, grant, authority, second) {
     const recoveringCopy = continuation && label !== 'tombstone';
@@ -1283,11 +1309,153 @@ function qualifiedFixture(edits = {}, options = {}) {
   return fixture({ ...qualifiedOptions, ...options, edits: { state: (state) => { state.holdState = 'released'; }, ...edits } });
 }
 function inspectQualified(value) {
-  const verifier = createQualifiedHistoryVerifier(JSON.parse(value.runtimeBytes).historicalContextBytes);
-  const envelope = { version: 'steer-qualified-history/v1', policyDigest: verifier.policyDigest, archivedEvidenceBytes: value.graph.historicalEvidenceBytes,
-    eventBytes: value.graph.eventBytes, historyBytes: value.graph.historyBytes, qualifiedDecisionBytes: value.graph.qualifiedDecisionBytes };
+  const runtime = JSON.parse(value.runtimeBytes), archival = runtime.version === 'steer-lifecycle-runtime/v4';
+  const verifier = createQualifiedHistoryVerifier(runtime.historicalContextBytes, runtime.archivedOwnerContextBytes);
+  const envelope = { version: archival ? 'steer-qualified-history/v2' : 'steer-qualified-history/v1', policyDigest: verifier.policyDigest, archivedEvidenceBytes: value.graph.historicalEvidenceBytes,
+    eventBytes: value.graph.eventBytes, historyBytes: value.graph.historyBytes, qualifiedDecisionBytes: value.graph.qualifiedDecisionBytes,
+    ...(archival ? { archivedOwnerBytes: value.graph.archivedOwnerBytes } : {}) };
   return { verifier, envelope, result: verifier.verify(jcs(envelope), value.evaluationTime) };
 }
+const archiveHoldHistory = [{ type: 'record-committed', second: -30 }, { type: 'hold-applied', second: -20 }, { type: 'hold-released', second: -10 }];
+function archivedFixture(edits = {}, options = {}) {
+  return qualifiedFixture(edits, { archivedOwners: true, history: archiveHoldHistory, currentHistory: [], ...options });
+}
+function inspectArchived(value) {
+  const runtime = JSON.parse(value.runtimeBytes), verifier = createArchivedOwnerVerifier(runtime.historicalContextBytes, runtime.archivedOwnerContextBytes);
+  return { verifier, result: verifier.verify(value.graph.archivedOwnerBytes, value.evaluationTime) };
+}
+test('0084: complete historical owner records and fresh independent retention compose with current lifecycle authority', () => {
+  for (const options of futureCases) for (const replay of [false, true]) {
+    const value = archivedFixture({}, { ...options, replay });
+    const records = inspectArchived(value).result;
+    assert.equal(records.state, 'verified-archived-owner-records'); assert.equal(records.decisions.length, 2);
+    assert.equal(records.factOnly, true); assert.equal(records.executionAuthorized, false); assert.deepEqual(records.effects, zeroEffects());
+    const history = inspectQualified(value).result;
+    assert.equal(history.state, 'verified-qualified-history'); assert.equal(history.archivedDecisionCount, 2);
+    const result = value.verifier.verify(value.bytes, value.evaluationTime);
+    assert.equal(result.state, 'validated-lifecycle-candidate'); assert.equal(result.replayCount, replay ? 3 : 0);
+    assert.equal(result.executionAuthorized, false); assert.deepEqual(result.effects, zeroEffects());
+  }
+  const mixed = archivedFixture({}, { currentHistory: holdSuffix });
+  assert.equal(inspectQualified(mixed).result.qualifiedDecisionCount, 4);
+  assert.equal(mixed.verifier.verify(mixed.bytes, mixed.evaluationTime).state, 'validated-lifecycle-candidate');
+  const crossing = archivedFixture({}, { history: archiveHoldHistory.slice(0, 2), currentHistory: [holdSuffix[1]] });
+  assert.equal(inspectQualified(crossing).result.archivedDecisionCount, 1);
+  assert.equal(crossing.verifier.verify(crossing.bytes, crossing.evaluationTime).state, 'validated-lifecycle-candidate');
+  const spaced = archivedFixture({}, { history: [{ type: 'record-committed', second: -2000 }, { type: 'hold-applied', second: -1000 }, { type: 'hold-released', second: -10 }] });
+  assert.equal(spaced.verifier.verify(spaced.bytes, spaced.evaluationTime).state, 'validated-lifecycle-candidate');
+});
+
+test('0084: every original signed owner record is required and reverified, not replaced by current attestation', () => {
+  for (const index of [2, 3]) for (const field of ['authorityBytes', 'providerProofBytes', 'identityEvidenceBytes', 'qualificationEvidenceBytes',
+    'assignmentEvidenceBytes', 'inventoryBytes', 'replayLedgerBytes', 'casHeadBytes', 'casReservationBytes']) for (const forge of [false, true]) {
+    const value = archivedFixture({ [`qualified-${index}:bundle`]: (bundle) => {
+      if (!forge) bundle[field] = '{}';
+      else { const record = JSON.parse(bundle[field]); record.signature.valueBase64 = Buffer.alloc(64).toString('base64'); bundle[field] = jcs(record); }
+    } });
+    assert.equal(inspectArchived(value).result.state, 'blocked'); denied(value, value.evaluationTime);
+  }
+});
+
+test('0084: exact archive pins, complete ordered owner rows and full event bindings are mandatory', () => {
+  for (const mutate of [(rows) => rows.pop(), (rows) => rows.reverse(), (rows) => rows.push(rows[0]),
+    (rows) => { rows[0].eventId = rows[1].eventId; }, (rows) => { rows[0].extra = true; }]) {
+    const value = archivedFixture({ 'archived-decisions': mutate }); denied(value, value.evaluationTime);
+  }
+  const pin = archivedFixture({ 'archived-owner-context': (record) => { record.decisionBytesDigest = 'f'.repeat(64); } }); denied(pin, pin.evaluationTime);
+  for (const [name, field, replacement] of [
+    ['event-2', 'actorId', 'human:other'], ['event-3', 'actorAuthority', 'other-hat'], ['event-3', 'releaseAuthority', 'other-authority'],
+    ['qualified-3:authority', 'previousHoldEventDigest', 'f'.repeat(64)], ['qualified-2:authority', 'eventBindingDigest', 'f'.repeat(64)],
+    ['qualified-3:authority', 'safeguards', []], ['qualified-2:authority', 'conditions', []],
+  ]) {
+    const value = archivedFixture({ [name]: (record) => { record[field] = replacement; } }); denied(value, value.evaluationTime);
+  }
+  for (const mutate of [(record) => { record.historicalContextDigest = 'f'.repeat(64); },
+    (record) => { record.archiveReference.revision = 'f'.repeat(40); }, (record) => { record.archiveReference.path = '../owners.json'; },
+    (record) => { record.extra = true; }])
+    assert.throws(() => archivedFixture({ 'archived-owner-context': mutate }), /LIFECYCLE_RUNTIME_CONFIGURATION_INVALID/);
+});
+
+test('0084: per-decision original observation cannot precede its event, exceed the archive or revive expired authority', () => {
+  for (const observed of ['2026-09-04T11:59:39.999999999Z', '2026-09-04T12:00:50.000000001Z', '2033-09-04T12:00:50Z']) {
+    const value = archivedFixture({ 'qualified-2:bundle': (bundle) => { bundle.evaluationTime = observed; } }); denied(value, value.evaluationTime);
+  }
+  for (const [name, field, replacement] of [
+    ['qualified-2:authority', 'expiresAt', '2026-09-04T11:59:50Z'],
+    ['qualified-3:authority', 'decidedAt', '2026-09-04T11:59:39Z'],
+    ['qualified-2:casReservationBytes', 'recordedAt', '2026-09-04T11:59:40.000000001Z'],
+    ['qualified-3:assignmentEvidenceBytes', 'status', 'revoked'],
+  ]) {
+    const value = archivedFixture({ [name]: (record) => { record[field] = replacement; } }); denied(value, value.evaluationTime);
+  }
+  const value = archivedFixture(), check = inspectArchived(value);
+  assert.equal(check.verifier.verify(value.graph.archivedOwnerBytes).state, 'blocked');
+});
+
+test('0084: revocation known now denies every old owner role without renewing expired historical keys', () => {
+  for (const domain of ['authority', 'human-provider', 'provider', 'assignment', 'record', 'replay-authority', 'cas-authority']) {
+    const value = archivedFixture({ 'runtime-registry': (registry) => {
+      registry.bindings.find((key) => key.keyId === `${domain}-key-v1`).revokedAt = '2028-01-01T00:00:00Z';
+    } }); denied(value, value.evaluationTime);
+  }
+  for (const field of ['notAfter', 'publicKeyHex']) assert.throws(() => archivedFixture({ 'runtime-registry': (registry) => {
+    registry.bindings.find((key) => key.keyId === 'human-provider-key-v1')[field] = field === 'notAfter' ? '2040-01-01T00:00:00Z' : 'f'.repeat(64);
+  } }), /LIFECYCLE_RUNTIME_CONFIGURATION_INVALID/);
+  assert.throws(() => archivedFixture({ 'runtime-registry': (registry) => {
+    registry.bindings.find((key) => key.keyId === 'human-provider-key-current').publicKeyHex = registry.bindings.find((key) => key.keyId === 'authority-key-current').publicKeyHex;
+  } }), /LIFECYCLE_RUNTIME_CONFIGURATION_INVALID/);
+});
+
+test('0084: fresh independent archive witnesses bind retained bytes and must be available before current state', () => {
+  for (const [name, field, replacement] of [
+    ['owner-attestation', 'decision', 'authorized'], ['owner-attestation', 'source', 'caller'], ['owner-attestation', 'inventoryDigest', 'f'.repeat(64)],
+    ['owner-attestation', 'historyDigest', 'f'.repeat(64)], ['owner-attestation', 'decisionCount', 1], ['owner-attestation', 'validThrough', '2033-09-04T12:00:50Z'],
+    ['owner-retention', 'attestationDigest', 'f'.repeat(64)], ['owner-retention', 'retainedBytesDigest', 'f'.repeat(64)], ['owner-retention', 'complete', false],
+    ['owner-retention', 'recordedAt', '2033-09-04T11:59:57Z'], ['owner-retention', 'validThrough', '2033-09-04T12:02:31Z'],
+  ]) {
+    const value = archivedFixture({ [name]: (record) => { record[field] = replacement; } }); denied(value, value.evaluationTime);
+  }
+  for (const field of ['attestationBytes', 'retentionReceiptBytes']) for (const corrupt of [false, true]) {
+    const value = archivedFixture({ 'archived-owner-envelope': (envelope) => {
+      if (!corrupt) envelope[field] = '{}';
+      else { const record = JSON.parse(envelope[field]); record.signature.valueBase64 = Buffer.alloc(64).toString('base64'); envelope[field] = jcs(record); }
+    } }); denied(value, value.evaluationTime);
+  }
+  const wrongRole = archivedFixture({ 'archived-owner-envelope': (envelope) => { envelope.retentionReceiptBytes = jcs(runtimeSeal(JSON.parse(envelope.retentionReceiptBytes), 'authority')); } });
+  assert.equal(inspectArchived(wrongRole).result.state, 'blocked');
+  const late = archivedFixture({ 'owner-attestation': (record) => { record.recordedAt = '2033-09-04T12:00:03Z'; },
+    'owner-retention': (record) => { record.recordedAt = '2033-09-04T12:00:04Z'; } });
+  assert.equal(inspectArchived(late).result.state, 'verified-archived-owner-records'); denied(late, late.evaluationTime);
+});
+
+test('0084: archived decisions cannot authorize or impersonate current holds, copies or tombstones', () => {
+  for (const label of ['copy-1', 'copy-2', 'tombstone']) {
+    const reused = archivedFixture({ [`${label}:human`]: (record) => { record.providerRecordId = 'qualified-2-provider'; } }); denied(reused, reused.evaluationTime);
+    const substituted = archivedFixture({ graph: (graph) => {
+      const archived = JSON.parse(JSON.parse(graph.archivedOwnerBytes).decisionBytes)[0].humanBundleBytes;
+      (label === 'tombstone' ? graph.tombstone : graph.copies.find((copy) => copy.copyId === label)).humanBundleBytes = archived;
+    } }); denied(substituted, substituted.evaluationTime);
+  }
+  const reused = archivedFixture({ 'qualified-5:authority': (record) => { record.providerRecordId = 'qualified-2-provider'; } }, { currentHistory: holdSuffix });
+  denied(reused, reused.evaluationTime);
+  const injected = archivedFixture({ graph: (graph) => { graph.qualifiedDecisionBytes = JSON.parse(graph.archivedOwnerBytes).decisionBytes; } }); denied(injected, injected.evaluationTime);
+});
+
+test('0084: archival runtime and envelope are closed, pinned, bounded and cannot downgrade to current-only', () => {
+  const value = archivedFixture(), check = inspectArchived(value), old = qualifiedFixture();
+  assert.notEqual(value.verifier.policyDigest, old.verifier.policyDigest);
+  denied({ ...value, verifier: old.verifier }, value.evaluationTime); denied({ ...old, verifier: value.verifier }, old.evaluationTime);
+  for (const mutate of [(envelope) => { envelope.extra = true; }, (envelope) => { envelope.policyDigest = 'f'.repeat(64); },
+    (envelope) => { envelope.decisionBytes += ' '; }, (envelope) => { envelope.decisionBytes = ' '.repeat(12582913); },
+    (envelope) => { envelope.archivedEvidenceBytes = '{}'; }]) {
+    const envelope = JSON.parse(value.graph.archivedOwnerBytes); mutate(envelope);
+    assert.equal(check.verifier.verify(jcs(envelope), value.evaluationTime).state, 'blocked');
+  }
+  assert.equal(check.verifier.verify(' '.repeat(16777217), value.evaluationTime).state, 'blocked');
+  const missing = archivedFixture({ graph: (graph) => { delete graph.archivedOwnerBytes; } }); denied(missing, missing.evaluationTime);
+  const extra = qualifiedFixture({ graph: (graph) => { graph.archivedOwnerBytes = value.graph.archivedOwnerBytes; } }); denied(extra, extra.evaluationTime);
+});
+
 test('0083: full qualified owner decisions bind mixed hold history and every future disposition step', () => {
   for (const options of futureCases) for (const replay of [false, true]) {
     const value = qualifiedFixture({}, { ...options, replay });

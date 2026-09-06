@@ -724,6 +724,15 @@ offline candidates, not live owner decisions or Gate 2 closure. Qualified archiv
 proof is next under `intent/0083/PLAN.md`, followed by reference evidence and the
 remaining normative coverage.
 
+Item `intent/0084` adds current-v4 with full original-era owner records verified
+at their separately retained observation times, current revocation checks and
+fresh independent archive retention. The exact qualified event/selector/hold
+binding is shared across eras, and archived decisions remain unusable as current
+copy/tombstone permission. Full checks pass with 207 root controls and 88 prototype
+tests. The original-era limit, live archive integration and all five R5 findings
+remain explicit. Reference revocation/retained verification is next under
+`intent/0084/PLAN.md`; no human ruling, live effect or gate closure is claimed.
+
 ## Local commands
 
 ```sh

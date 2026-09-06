@@ -52,7 +52,7 @@ function createComposedLifecycleVerifier(configBytes, runtime) {
   const providers = runtime?.providers ?? originalDependencies.providers;
   const timed = runtime ? createTimedRecordVerifier(registryBytes) : originalDependencies.timed;
   const humanPolicy = runtime?.human.policyDigest ?? originalDependencies.humanPolicy;
-  const currentVersion = runtime?.qualified ? 'steer-lifecycle-graph/current-v3' : runtime?.mixed ? 'steer-lifecycle-graph/current-v2' : 'steer-lifecycle-graph/current-v1';
+  const currentVersion = runtime?.archival ? 'steer-lifecycle-graph/current-v4' : runtime?.qualified ? 'steer-lifecycle-graph/current-v3' : runtime?.mixed ? 'steer-lifecycle-graph/current-v2' : 'steer-lifecycle-graph/current-v1';
   const policyDigest = runtime ? sha256(jcs({ version: currentVersion, originalPolicyDigest: originalDependencies.policyDigest,
     runtimePolicyDigest: runtime.policyDigest, runtimeConfigDigest: runtime.configDigest })) : originalDependencies.policyDigest;
   let config, row;
@@ -87,16 +87,17 @@ function createComposedLifecycleVerifier(configBytes, runtime) {
         const provenance = config.recordClass === 'RC-CORPUS-PROVENANCE';
         const chained = raw && graph.version === 'steer-lifecycle-graph/raw-v4';
         const continuation = chained || raw && graph.version === 'steer-lifecycle-graph/raw-v3';
-        requireValue(exactKeys(graph, ['version', 'policyDigest', 'configDigest', 'eventBytes', 'historyBytes', 'inventoryBytes', 'stateBytes', 'referenceRevocationBytes', 'copies', 'aggregateBytes', 'tombstone', ...(provenance ? ['derivedInventoryBytes'] : []), ...(raw ? ['rawPolicyBytes', 'rawBatchBytes'] : []), ...(continuation ? ['continuationBytes'] : []), ...(runtime ? ['historicalEvidenceBytes'] : []), ...(runtime?.qualified ? ['qualifiedDecisionBytes'] : [])]) &&
+        requireValue(exactKeys(graph, ['version', 'policyDigest', 'configDigest', 'eventBytes', 'historyBytes', 'inventoryBytes', 'stateBytes', 'referenceRevocationBytes', 'copies', 'aggregateBytes', 'tombstone', ...(provenance ? ['derivedInventoryBytes'] : []), ...(raw ? ['rawPolicyBytes', 'rawBatchBytes'] : []), ...(continuation ? ['continuationBytes'] : []), ...(runtime ? ['historicalEvidenceBytes'] : []), ...(runtime?.qualified ? ['qualifiedDecisionBytes'] : []), ...(runtime?.archival ? ['archivedOwnerBytes'] : [])]) &&
           (continuation || graph.version === (runtime ? currentVersion : raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1')) && graph.policyDigest === policyDigest && graph.configDigest === configDigest);
-        let qualifiedApprovals = [];
+        let qualifiedApprovals = [], archivedOwnerRetainedAt = null;
         if (runtime) {
           requireValue(runtime.historicalContext.scope.organization === scope.organization && runtime.historicalContext.scope.itemId === scope.item);
-          const result = runtime.history.verify(runtime.mixed ? jcs({ version: runtime.qualified ? 'steer-qualified-history/v1' : 'steer-mixed-history/v1', policyDigest: runtime.history.policyDigest,
+          const result = runtime.history.verify(runtime.mixed ? jcs({ version: runtime.archival ? 'steer-qualified-history/v2' : runtime.qualified ? 'steer-qualified-history/v1' : 'steer-mixed-history/v1', policyDigest: runtime.history.policyDigest,
             archivedEvidenceBytes: graph.historicalEvidenceBytes, eventBytes: graph.eventBytes, historyBytes: graph.historyBytes,
-            ...(runtime.qualified ? { qualifiedDecisionBytes: graph.qualifiedDecisionBytes } : {}) }) : graph.historicalEvidenceBytes, evaluationTime);
+            ...(runtime.qualified ? { qualifiedDecisionBytes: graph.qualifiedDecisionBytes } : {}), ...(runtime.archival ? { archivedOwnerBytes: graph.archivedOwnerBytes } : {}) }) : graph.historicalEvidenceBytes, evaluationTime);
           requireValue(result.state === (runtime.qualified ? 'verified-qualified-history' : runtime.mixed ? 'verified-mixed-history' : 'verified-historical-events'));
           if (runtime.qualified) qualifiedApprovals = result.qualifiedApprovals;
+          if (runtime.archival) archivedOwnerRetainedAt = result.archivedOwnerRetainedAt;
           if (!runtime.mixed) {
             const archived = parseCanonical(graph.historicalEvidenceBytes);
             requireValue(archived.eventBytes === graph.eventBytes && equal(archived.historyBytes, graph.historyBytes));
@@ -132,6 +133,7 @@ function createComposedLifecycleVerifier(configBytes, runtime) {
         if (runtime) {
           const archived = parseCanonical(graph.historicalEvidenceBytes), retained = parseCanonical(archived.retentionReceiptBytes);
           requireValue(time(retained.recordedAt) <= time(state.recordedAt));
+          if (runtime.archival) requireValue(time(archivedOwnerRetainedAt) <= time(state.recordedAt));
         }
         requireValue(['none', 'released', 'active'].includes(state.holdState) && ['cleared', 'active'].includes(state.referenceState));
         const holds = new Set();
@@ -206,7 +208,8 @@ function createComposedLifecycleVerifier(configBytes, runtime) {
         }
         const baseDigest = sha256(jcs({ configDigest, policyDigest, eventBytes: graph.eventBytes, historyBytes: graph.historyBytes, inventoryBytes: graph.inventoryBytes, stateBytes: graph.stateBytes, referenceRevocationBytes: graph.referenceRevocationBytes,
           ...(provenance ? { derivedInventoryBytes: graph.derivedInventoryBytes } : {}), ...(raw ? { rawGrantBindingDigest: rawEvidence.batchBindingDigest } : {}),
-          ...(runtime ? { historicalEvidenceBytes: graph.historicalEvidenceBytes } : {}), ...(runtime?.qualified ? { qualifiedDecisionBytes: graph.qualifiedDecisionBytes } : {}) }));
+          ...(runtime ? { historicalEvidenceBytes: graph.historicalEvidenceBytes } : {}), ...(runtime?.qualified ? { qualifiedDecisionBytes: graph.qualifiedDecisionBytes } : {}),
+          ...(runtime?.archival ? { archivedOwnerBytes: graph.archivedOwnerBytes } : {}) }));
         const usedAuthorities = new Set(), usedRequests = new Set(), usedIdempotency = new Set(), transactions = new Set();
         const humanProofs = new Set(), humanReservations = new Set(), humanKeys = new Set(), humanHeads = new Set();
         const credentialIds = new Set(), reservationIds = new Set(), actionHeads = new Set();

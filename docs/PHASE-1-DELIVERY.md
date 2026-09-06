@@ -1491,3 +1491,23 @@ blocked. That archival proof is next under intent/0083/PLAN.md, followed by exac
 reference revocation/retained verification and remaining normative coverage.
 All five formal R5 findings remain open; no signature, live mutation, gate approval,
 deployment or spending is authorized.
+
+## Completed development increment: 0084 — archived qualified-owner evidence
+
+Current-v4 composes the complete original owner bundle for every archived hold
+decision with current independent revalidation/retention witnesses. Each decision
+uses its own retained original observation, not a new or backdated approval.
+Original signatures and current known revocations are checked; old keys are not
+renewed. The same event/actor/selector/predecessor/chronology checks and unique
+decision identities cover archived and current holds and later approvals.
+
+Eight new groups and full checks pass: 207 root controls, 88 prototype tests and
+76 lifecycle tests. See intent/0084/EVIDENCE.md for synthetic/cached limits.
+Archive retention must be available before current state; current copy/tombstone
+approval remains independently mandatory. Frozen artifacts remain unchanged.
+
+Next is exact reference revocation/retained-verification evidence under
+intent/0084/PLAN.md, followed by remaining source/class/normative and migration
+coverage. This version covers the original pinned trust era, not every successor
+era or a live archive integration. All five formal R5 findings remain open. No
+actual human signature, provider mutation, gate approval, deployment or spending.
