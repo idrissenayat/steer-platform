@@ -11,6 +11,7 @@ import { createMigrationChainVerifier, policyDigest as chainPolicyDigest } from 
 import { createMigrationCheckpointVerifier, policyDigest as checkpointPolicyDigest } from '../intent/0093/migration-checkpoint.candidate.mjs';
 import { createMigrationChainObservationVerifier, policyDigest as observationPolicyDigest } from '../intent/0094/current-chain.candidate.mjs';
 import { createMigrationCheckpointSequenceVerifier, policyDigest as sequencePolicyDigest } from '../intent/0095/checkpoint-sequence.candidate.mjs';
+import { createLatestMigrationCheckpointVerifier, policyDigest as latestCheckpointPolicyDigest } from '../intent/0096/latest-checkpoint.candidate.mjs';
 import { createCurrentMigrationObservationVerifier } from '../intent/0094/migration-observation.candidate.mjs';
 import { humanAuthorityBindingDigest } from '../intent/0058/human-authority.candidate.mjs';
 import { manifestBytes, manifestDigest } from '../intent/0060/protected-actions.candidate.mjs';
@@ -248,6 +249,123 @@ function sequenceDenied(value, now = value.evaluationTime) {
   assert.deepEqual(value.verifier.verify(value.bytes, now), { state: 'blocked', firstError: 'MIGRATION_CHECKPOINT_SEQUENCE_INVALID', executionAuthorized: false,
     resumeAuthorized: false, effects: zeroEffects(), journalEffects: 0 });
 }
+
+function latestCheckpointFixture(options = {}, edits = {}) {
+  const sequence = options.sequence ?? sequenceFixture({ replay: options.replay, successorTuple: options.successorTuple });
+  const edit = (label, value) => { edits[label]?.(value); return value; };
+  const context = edit('context', { version: 'steer-latest-migration-checkpoint-context/v1', sequenceContextBytes: sequence.contextBytes,
+    queryId: 'latest-checkpoint-query-1', nonce: sha256('trusted-query-challenge-1'), requestedAt: at(164) });
+  const contextBytes = jcs(context), configDigest = sha256(contextBytes), queryDigest = sha256(jcs({ configDigest, policyDigest: latestCheckpointPolicyDigest }));
+  const tail = JSON.parse(JSON.parse(sequence.bytes).checkpoints.at(-1)), current = JSON.parse(tail.currentStoreBytes), headState = JSON.parse(current.headBytes), retention = JSON.parse(tail.retentionBytes);
+  const inventory = JSON.parse(sequence.contextBytes), slot = JSON.parse(inventory.checkpointContextBytes[0]);
+  const emit = (label, kind, source, domain, second, fields) => seal(edit(label, { kind, source, configDigest, queryDigest, queryId: context.queryId,
+    nonce: context.nonce, recordedAt: at(second), validThrough: at(180), ...fields }), options.domains?.[label] ?? domain);
+  const request = emit('request', 'migration-checkpoint-query', 'authoritative-migration-checkpoint-query', 'record', 164,
+    { chainConfigDigest: sha256(slot.chainContextBytes), headId: slot.headId, storeId: slot.storeId, objectKey: slot.objectKey, mode: 'latest-canonical-head' });
+  const headKeys = ['headId', 'head', 'previousHead', 'sequence', 'checkpointDigest', 'retentionDigest', 'status'];
+  const head = emit('head', 'migration-checkpoint-latest-head', 'authoritative-migration-checkpoint-cas', 'cas-authority', 165,
+    { requestRecordDigest: request.recordDigest, ...Object.fromEntries(headKeys.filter((key) => key !== 'status').map((key) => [key, headState[key]])), status: 'committed' });
+  const object = emit('object', 'migration-checkpoint-object-read', 'authoritative-migration-checkpoint-storage', 'provider', 166,
+    { requestRecordDigest: request.recordDigest, headRecordDigest: head.recordDigest, storeId: slot.storeId, objectKey: slot.objectKey, objectVersion: retention.objectVersion,
+      checkpointDigest: head.checkpointDigest, retentionDigest: head.retentionDigest, retainedBytesDigest: sha256(tail.chainBytes), complete: true });
+  const confirmation = emit('confirmation', 'migration-checkpoint-head-confirmation', 'authoritative-migration-checkpoint-cas', 'cas-authority', 167,
+    { requestRecordDigest: request.recordDigest, headRecordDigest: head.recordDigest, objectRecordDigest: object.recordDigest, ...Object.fromEntries(headKeys.map((key) => [key, head[key]])) });
+  const audit = emit('audit', 'migration-checkpoint-latest-audit', 'independent-migration-checkpoint-observer', 'verifier', 168,
+    { requestRecordDigest: request.recordDigest, headRecordDigest: head.recordDigest, objectRecordDigest: object.recordDigest, confirmationDigest: confirmation.recordDigest, outcome: 'verified' });
+  const envelope = edit('envelope', { version: 'steer-latest-migration-checkpoint/v1', configDigest, policyDigest: latestCheckpointPolicyDigest,
+    sequenceBytes: sequence.bytes, retainedChainBytes: tail.chainBytes, requestBytes: jcs(request), headBytes: jcs(head), objectBytes: jcs(object), confirmationBytes: jcs(confirmation), auditBytes: jcs(audit) });
+  return { sequence, contextBytes, envelope, bytes: jcs(envelope), evaluationTime: at(170), verifier: createLatestMigrationCheckpointVerifier(contextBytes) };
+}
+function latestCheckpointDenied(value, now = value.evaluationTime) {
+  assert.deepEqual(value.verifier.verify(value.bytes, now), { state: 'blocked', firstError: 'LATEST_MIGRATION_CHECKPOINT_INVALID', executionAuthorized: false,
+    resumeAuthorized: false, effects: zeroEffects(), journalEffects: 0 });
+}
+
+test('0096: fresh query, exact object and stable head confirmation verify without performing a store query or another effect', () => {
+  for (const successorTuple of [false, true]) for (const replay of [false, true]) {
+    const value = latestCheckpointFixture({ successorTuple, replay }), bytes = value.bytes, result = value.verifier.verify(bytes, value.evaluationTime);
+    assert.equal(result.state, 'verified-latest-migration-checkpoint-evidence'); assert.equal(result.completedStepCount, 4); assert.equal(result.status, 'complete');
+    assert.equal(result.headObservationVerified, true); assert.equal(result.liveStoreQueried, false); assert.equal(result.executionAuthorized, false); assert.equal(result.resumeAuthorized, false);
+    assert.equal(result.decision, 'REPLAY_NOOP'); assert.equal(result.observedAt, at(167)); assert.equal(result.evaluatedAt, at(170));
+    assert.equal(result.sequenceDigest, sha256(value.sequence.bytes)); assert.equal(result.checkpointCount, 2); assert.deepEqual(result.effects, zeroEffects());
+    assert.equal(result.journalEffects, 0); assert.equal(value.bytes, bytes); assert.deepEqual(value.verifier.verify(bytes, value.evaluationTime), result);
+  }
+});
+
+test('0096: an internally valid older sequence is rejected when the canonical head reports its successor', () => {
+  const complete = sequenceFixture(), contextBytes = jcs({ ...complete.context, checkpointContextBytes: complete.context.checkpointContextBytes.slice(0, 1) });
+  const bytes = jcs({ ...complete.envelope, configDigest: sha256(contextBytes), checkpoints: complete.envelope.checkpoints.slice(0, 1) });
+  const sequence = { contextBytes, bytes }, selected = createMigrationCheckpointSequenceVerifier(contextBytes).verify(bytes, at(170));
+  assert.equal(selected.state, 'verified-migration-checkpoint-sequence'); assert.equal(selected.status, 'pending');
+  const current = latestCheckpointFixture({ sequence });
+  assert.equal(current.verifier.verify(current.bytes, at(170)).status, 'pending');
+  const newer = JSON.parse(JSON.parse(complete.second.envelope.currentStoreBytes).headBytes);
+  latestCheckpointDenied(latestCheckpointFixture({ sequence }, { head: (record) => {
+    for (const field of ['head', 'previousHead', 'sequence', 'checkpointDigest', 'retentionDigest']) record[field] = newer[field];
+  } }));
+});
+
+test('0096: all five query/readback sources require complete signatures, correct domains and the trusted nonce', () => {
+  for (const label of ['request', 'head', 'object', 'confirmation', 'audit']) {
+    for (const forge of [false, true]) latestCheckpointDenied(latestCheckpointFixture({}, { envelope: (envelope) => {
+      const field = `${label}Bytes`; if (!forge) envelope[field] = '{}';
+      else { const record = JSON.parse(envelope[field]); record.signature.valueBase64 = Buffer.alloc(64).toString('base64'); envelope[field] = jcs(record); }
+    } }));
+    latestCheckpointDenied(latestCheckpointFixture({ domains: { [label]: label === 'object' ? 'record' : 'provider' } }));
+    for (const field of ['nonce', 'queryId', 'queryDigest', 'configDigest', 'source']) latestCheckpointDenied(latestCheckpointFixture({}, {
+      [label]: (record) => { record[field] = field.endsWith('Digest') || field === 'nonce' ? 'f'.repeat(64) : 'other'; },
+    }));
+  }
+});
+
+test('0096: canonical scope and retained bytes cannot be replaced by matching-looking digest claims', () => {
+  for (const [label, field, replacement] of [
+    ['request', 'chainConfigDigest', 'f'.repeat(64)], ['request', 'headId', 'other'], ['request', 'storeId', 'other'], ['request', 'objectKey', 'other'], ['request', 'mode', 'selected-checkpoint'],
+    ['head', 'headId', 'other'], ['head', 'sequence', 5], ['head', 'checkpointDigest', 'f'.repeat(64)], ['head', 'retentionDigest', 'f'.repeat(64)],
+    ['object', 'storeId', 'other'], ['object', 'objectKey', 'other'], ['object', 'objectVersion', 'version-1'], ['object', 'retainedBytesDigest', 'f'.repeat(64)], ['object', 'complete', false],
+  ]) latestCheckpointDenied(latestCheckpointFixture({}, { [label]: (record) => { record[field] = replacement; } }));
+  latestCheckpointDenied(latestCheckpointFixture({}, { envelope: (envelope) => {
+    envelope.retainedChainBytes += '\n'; const object = JSON.parse(envelope.objectBytes);
+    object.retainedBytesDigest = sha256(envelope.retainedChainBytes); envelope.objectBytes = jcs(seal(object, 'provider'));
+  } }));
+  latestCheckpointDenied(latestCheckpointFixture({}, { envelope: (envelope) => {
+    const sequence = JSON.parse(envelope.sequenceBytes), tail = JSON.parse(sequence.checkpoints.at(-1)); tail.checkpointBytes = '{}';
+    sequence.checkpoints[sequence.checkpoints.length - 1] = jcs(tail); envelope.sequenceBytes = jcs(sequence);
+  } }));
+});
+
+test('0096: changes during object read, unknown commit state and unverified crash cuts fail closed', () => {
+  for (const [label, field, replacement] of [
+    ['head', 'status', 'pending'], ['head', 'status', 'unknown'], ['confirmation', 'status', 'unknown'],
+    ['confirmation', 'head', 'f'.repeat(64)], ['confirmation', 'sequence', 7], ['confirmation', 'checkpointDigest', 'f'.repeat(64)],
+    ['confirmation', 'retentionDigest', 'f'.repeat(64)], ['audit', 'outcome', 'acknowledgment-lost'], ['audit', 'outcome', 'pre-commit'],
+    ['head', 'requestRecordDigest', 'f'.repeat(64)], ['object', 'headRecordDigest', 'f'.repeat(64)],
+    ['confirmation', 'objectRecordDigest', 'f'.repeat(64)], ['confirmation', 'headRecordDigest', 'f'.repeat(64)], ['audit', 'confirmationDigest', 'f'.repeat(64)],
+  ]) latestCheckpointDenied(latestCheckpointFixture({}, { [label]: (record) => { record[field] = replacement; } }));
+});
+
+test('0096: exact query chronology and current expiration cannot be refreshed by a new observation label', () => {
+  for (const [label, field, replacement] of [
+    ['request', 'recordedAt', at(163)], ['head', 'recordedAt', '2026-09-04T12:02:43.999999999Z'],
+    ['object', 'recordedAt', '2026-09-04T12:02:44.999999999Z'], ['confirmation', 'recordedAt', '2026-09-04T12:02:45.999999999Z'],
+    ['audit', 'recordedAt', '2026-09-04T12:02:46.999999999Z'], ['audit', 'validThrough', at(170)], ['request', 'validThrough', at(465)],
+    ['confirmation', 'validThrough', at(181)],
+  ]) latestCheckpointDenied(latestCheckpointFixture({}, { [label]: (record) => { record[field] = replacement; } }));
+  const value = latestCheckpointFixture();
+  for (const now of [undefined, null, at(167), at(180), at(465), '2026-09-04T12:02:50.000Z']) assert.equal(value.verifier.verify(value.bytes, now).state, 'blocked');
+  latestCheckpointDenied(latestCheckpointFixture({}, { context: (context) => { context.requestedAt = at(160); }, request: (record) => { record.recordedAt = at(160); } }));
+});
+
+test('0096: closed context, envelope and factory-selected challenge prevent caller trust substitution', () => {
+  for (const mutate of [(context) => { context.extra = true; }, (context) => { context.sequenceContextBytes = '{}'; },
+    (context) => { context.nonce = '*'; }, (context) => { context.queryId = ''; }, (context) => { context.requestedAt = '2026-09-04T12:02:44.000Z'; }])
+    assert.throws(() => latestCheckpointFixture({}, { context: mutate }), /LATEST_MIGRATION_CHECKPOINT_CONFIGURATION_INVALID/);
+  assert.throws(() => createLatestMigrationCheckpointVerifier('x'.repeat(16777217)), /LATEST_MIGRATION_CHECKPOINT_CONFIGURATION_INVALID/);
+  for (const mutate of [(input) => { input.extra = true; }, (input) => { input.policyDigest = sequencePolicyDigest; },
+    (input) => { input.configDigest = 'f'.repeat(64); }, (input) => { input.version = 'steer-latest-migration-checkpoint/v0'; }]) latestCheckpointDenied(latestCheckpointFixture({}, { envelope: mutate }));
+  const value = latestCheckpointFixture(), other = JSON.parse(value.contextBytes); other.nonce = sha256('different-trusted-challenge');
+  assert.equal(createLatestMigrationCheckpointVerifier(jcs(other)).verify(value.bytes, at(170)).state, 'blocked');
+});
 
 test('0095: successive checkpoint heads extend an exact retained prefix with effect-free lost-acknowledgment readback', () => {
   for (const successorTuple of [false, true]) for (const replay of [false, true]) {

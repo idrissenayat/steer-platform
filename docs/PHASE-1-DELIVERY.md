@@ -1741,3 +1741,23 @@ but internally valid supplied sequence cannot stand in for the latest retained
 state. Real storage/restart, crash-cut and normative/source/class/trust-era
 coverage remain open. No live provider mutation, migration, signature, release,
 deployment or spending occurred. The authorized implementation loop remains active.
+
+## Completed development increment: 0096 — latest checkpoint observation evidence
+
+Full checkpoint sequences are now checked against fresh query-bound canonical
+head, exact retained object, unchanged head confirmation and independent audit
+records. An internally valid stale sequence fails when the signed source reports
+its successor. Changed readback state, unknown/pre-commit outcomes, expired proof
+and substituted challenges deny without another effect or resume authority.
+
+Seven new groups and final full checks pass: 285 root controls, 88 prototype tests
+and all 51 migration groups. See intent/0096/EVIDENCE.md for synthetic/cached
+limits. No real store query, migration, gate signature or deployment occurred.
+Frozen artifacts are unchanged; all five formal R5 findings remain open.
+
+Next under intent/0096/PLAN.md is a finite reconciliation of the frozen findings'
+remaining source/class/trust-era and migration/recovery crash-cut requirements.
+Map implemented entry points and tests, explicitly mark unsupported cells, and
+order remaining integration work before selecting further code changes. Do not
+equate accumulated verifier/test counts with complete Phase 1 or Gate 2. No
+provider mutation, cleanup, release, deployment or spending is authorized.

@@ -831,6 +831,14 @@ private verifier. This is effect-free offline verification, not authoritative
 latest-head discovery, a durable runtime or resume authority. See
 `intent/0095/EVIDENCE.md` and `PLAN.md` for checks and the remaining scope.
 
+Item `intent/0096` checks a full checkpoint sequence against five query-bound
+source records: request, canonical head, exact retained object, unchanged head
+confirmation and independent audit. Stale sequences, changed source heads and
+unknown commit outcomes deny. The result is explicitly evidence-only, as of the
+confirmation instant, with no live store query or resume authority. Existing
+checkpoint APIs are unchanged. See `intent/0096/EVIDENCE.md` and `PLAN.md` for
+checks and the next finite normative-gap reconciliation before further changes.
+
 ## Local commands
 
 ```sh
