@@ -1529,3 +1529,21 @@ event/history/lifecycle composition under intent/0085/PLAN.md. This profile alon
 does not admit referenced objects to the current runtime, prove retention or
 permit deletion. All five formal R5 findings remain open. No real signature,
 provider mutation, gate approval, deployment or spending is authorized.
+
+## Completed development increment: 0086 — retained reference content
+
+The content verifier requires exact pinned version/reference manifests and actual
+matching verification records, with independent current inventory, verification
+and retention attestations. Complete ordered cardinality, physical uniqueness,
+source/target/version hashes, current key validity and observation chronology are
+checked. Bounds use UTF-8 bytes; the 128-reference limit has positive/negative tests.
+
+Seven focused groups and full checks pass: 220 root controls and 88 prototype
+tests. See intent/0086/EVIDENCE.md for synthetic/cached limits. Content integrity
+does not claim actual discovery of a real repository or a live retained archive.
+
+Next is the qualified reference event and separate exact-set removal evidence,
+then full history/state/copy/tombstone composition under intent/0086/PLAN.md.
+The current runtime still excludes referenced-evidence disposition. No real owner
+signature, reference mutation, erasure, provider access, deployment or spending is
+authorized. All five formal R5 findings remain open.

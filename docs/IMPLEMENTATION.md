@@ -741,6 +741,15 @@ mandatory. Full checks pass with 213 root controls and 88 prototype tests. Exact
 reference contents, retained verification and full lifecycle admission are next
 under `intent/0085/PLAN.md`, not implied by this profile's ALLOW. R5 remains open.
 
+Item `intent/0086` verifies complete supplied reference/version manifests and
+matching verification bytes under exact trusted content pins. Independent current
+inventory, verification and retention attestations bind counts, content digests,
+source observations and the selected archive. UTF-8 bounds and exact expiry apply.
+Full checks pass with 220 root controls and 88 prototype tests. This proves the
+offline content contract, not live discovery or actual reference removal. Qualified
+revocation/event/completion and full lifecycle admission are next under
+`intent/0086/PLAN.md`; all five formal R5 findings remain open.
+
 ## Local commands
 
 ```sh

@@ -42,12 +42,16 @@ across eras; archived facts do not revive current disposition authority.
 hold/reference state and bound inventory/bundle/tombstone identifiers. It does
 not yet prove actual reference content or admit that class to current lifecycle.
 
-Next bounded work is exact reference-revocation/retained-verification content and
-full event/history composition, followed by
+0086 verifies exact reference/verification bytes and independent current source
+completeness/retention attestations. It remains fact-only and does not prove that
+the reference set was actually revoked or admit referenced objects to erasure.
+
+Next bounded work is qualified reference event/removal and full lifecycle/history
+composition, followed by
 remaining classes and migration compatibility/concurrency/checkpoint coverage and complete
 normative inventory. Do not extend frozen key windows merely to make historical
 or future-retention tests pass; resolve archival versus current authority explicitly.
-0061–0085 are development candidates and verification increments,
+0061–0086 are development candidates and verification increments,
 not proof of complete retention-key coverage, live compatibility or atomic execution.
 Preserve the frozen send-back package. Do not request a new qualified-human ruling
 until the complete corrected candidate is independently accepted and incorporated
@@ -59,4 +63,4 @@ production/provider mutation, deletion, release, deployment, protected edit or
 signature is authorized by this ledger. No credential handoff is pending here.
 
 Sources: intent/0001/reviews/domain/round-3/remediation/CYCLE-DISPOSITION.md,
-preflight-critic-r5.json in that same frozen directory, and intent/0056–0085.
+preflight-critic-r5.json in that same frozen directory, and intent/0056–0086.
