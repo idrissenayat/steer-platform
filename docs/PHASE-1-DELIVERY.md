@@ -1472,3 +1472,22 @@ history under intent/0082/PLAN.md. A verified owner record is not yet a verified
 event mutation or permission to erase. Qualified archival proof, reference
 revocation/retained-verification, other normative coverage and all five formal
 R5 findings remain open. No signature, live effect or gate approval is claimed.
+
+## Completed development increment: 0083 — qualified hold-event history
+
+Current-v3 now verifies every current hold decision with the complete qualified
+owner profile and binds exact actor/hat, event, selector, preceding hold and
+approval-before-commit timing. Ordered proof mappings are closed and bounded;
+human decision identities cannot be reused by later copy or tombstone approvals.
+The qualified evidence is included in the full graph input digest.
+
+Seven new focused groups and full checks pass: 199 root controls, 88 prototype
+tests and 68 lifecycle tests. See intent/0083/EVIDENCE.md for synthetic/cached
+evidence limits. Original profiles and protected artifacts remain unchanged.
+
+Historical applications can restrict disposition and receive a new current
+qualified release. Historical releases without qualified archival evidence remain
+blocked. That archival proof is next under intent/0083/PLAN.md, followed by exact
+reference revocation/retained verification and remaining normative coverage.
+All five formal R5 findings remain open; no signature, live mutation, gate approval,
+deployment or spending is authorized.

@@ -52,7 +52,8 @@ function createComposedLifecycleVerifier(configBytes, runtime) {
   const providers = runtime?.providers ?? originalDependencies.providers;
   const timed = runtime ? createTimedRecordVerifier(registryBytes) : originalDependencies.timed;
   const humanPolicy = runtime?.human.policyDigest ?? originalDependencies.humanPolicy;
-  const policyDigest = runtime ? sha256(jcs({ version: runtime.mixed ? 'steer-lifecycle-graph/current-v2' : 'steer-lifecycle-graph/current-v1', originalPolicyDigest: originalDependencies.policyDigest,
+  const currentVersion = runtime?.qualified ? 'steer-lifecycle-graph/current-v3' : runtime?.mixed ? 'steer-lifecycle-graph/current-v2' : 'steer-lifecycle-graph/current-v1';
+  const policyDigest = runtime ? sha256(jcs({ version: currentVersion, originalPolicyDigest: originalDependencies.policyDigest,
     runtimePolicyDigest: runtime.policyDigest, runtimeConfigDigest: runtime.configDigest })) : originalDependencies.policyDigest;
   let config, row;
   try {
@@ -86,13 +87,16 @@ function createComposedLifecycleVerifier(configBytes, runtime) {
         const provenance = config.recordClass === 'RC-CORPUS-PROVENANCE';
         const chained = raw && graph.version === 'steer-lifecycle-graph/raw-v4';
         const continuation = chained || raw && graph.version === 'steer-lifecycle-graph/raw-v3';
-        requireValue(exactKeys(graph, ['version', 'policyDigest', 'configDigest', 'eventBytes', 'historyBytes', 'inventoryBytes', 'stateBytes', 'referenceRevocationBytes', 'copies', 'aggregateBytes', 'tombstone', ...(provenance ? ['derivedInventoryBytes'] : []), ...(raw ? ['rawPolicyBytes', 'rawBatchBytes'] : []), ...(continuation ? ['continuationBytes'] : []), ...(runtime ? ['historicalEvidenceBytes'] : [])]) &&
-          (continuation || graph.version === (runtime ? runtime.mixed ? 'steer-lifecycle-graph/current-v2' : 'steer-lifecycle-graph/current-v1' : raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1')) && graph.policyDigest === policyDigest && graph.configDigest === configDigest);
+        requireValue(exactKeys(graph, ['version', 'policyDigest', 'configDigest', 'eventBytes', 'historyBytes', 'inventoryBytes', 'stateBytes', 'referenceRevocationBytes', 'copies', 'aggregateBytes', 'tombstone', ...(provenance ? ['derivedInventoryBytes'] : []), ...(raw ? ['rawPolicyBytes', 'rawBatchBytes'] : []), ...(continuation ? ['continuationBytes'] : []), ...(runtime ? ['historicalEvidenceBytes'] : []), ...(runtime?.qualified ? ['qualifiedDecisionBytes'] : [])]) &&
+          (continuation || graph.version === (runtime ? currentVersion : raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1')) && graph.policyDigest === policyDigest && graph.configDigest === configDigest);
+        let qualifiedApprovals = [];
         if (runtime) {
           requireValue(runtime.historicalContext.scope.organization === scope.organization && runtime.historicalContext.scope.itemId === scope.item);
-          const result = runtime.history.verify(runtime.mixed ? jcs({ version: 'steer-mixed-history/v1', policyDigest: runtime.history.policyDigest,
-            archivedEvidenceBytes: graph.historicalEvidenceBytes, eventBytes: graph.eventBytes, historyBytes: graph.historyBytes }) : graph.historicalEvidenceBytes, evaluationTime);
-          requireValue(result.state === (runtime.mixed ? 'verified-mixed-history' : 'verified-historical-events'));
+          const result = runtime.history.verify(runtime.mixed ? jcs({ version: runtime.qualified ? 'steer-qualified-history/v1' : 'steer-mixed-history/v1', policyDigest: runtime.history.policyDigest,
+            archivedEvidenceBytes: graph.historicalEvidenceBytes, eventBytes: graph.eventBytes, historyBytes: graph.historyBytes,
+            ...(runtime.qualified ? { qualifiedDecisionBytes: graph.qualifiedDecisionBytes } : {}) }) : graph.historicalEvidenceBytes, evaluationTime);
+          requireValue(result.state === (runtime.qualified ? 'verified-qualified-history' : runtime.mixed ? 'verified-mixed-history' : 'verified-historical-events'));
+          if (runtime.qualified) qualifiedApprovals = result.qualifiedApprovals;
           if (!runtime.mixed) {
             const archived = parseCanonical(graph.historicalEvidenceBytes);
             requireValue(archived.eventBytes === graph.eventBytes && equal(archived.historyBytes, graph.historyBytes));
@@ -202,11 +206,15 @@ function createComposedLifecycleVerifier(configBytes, runtime) {
         }
         const baseDigest = sha256(jcs({ configDigest, policyDigest, eventBytes: graph.eventBytes, historyBytes: graph.historyBytes, inventoryBytes: graph.inventoryBytes, stateBytes: graph.stateBytes, referenceRevocationBytes: graph.referenceRevocationBytes,
           ...(provenance ? { derivedInventoryBytes: graph.derivedInventoryBytes } : {}), ...(raw ? { rawGrantBindingDigest: rawEvidence.batchBindingDigest } : {}),
-          ...(runtime ? { historicalEvidenceBytes: graph.historicalEvidenceBytes } : {}) }));
+          ...(runtime ? { historicalEvidenceBytes: graph.historicalEvidenceBytes } : {}), ...(runtime?.qualified ? { qualifiedDecisionBytes: graph.qualifiedDecisionBytes } : {}) }));
         const usedAuthorities = new Set(), usedRequests = new Set(), usedIdempotency = new Set(), transactions = new Set();
         const humanProofs = new Set(), humanReservations = new Set(), humanKeys = new Set(), humanHeads = new Set();
         const credentialIds = new Set(), reservationIds = new Set(), actionHeads = new Set();
         const unique = (set, value) => { requireValue(!set.has(value)); set.add(value); };
+        for (const approval of qualifiedApprovals) {
+          unique(usedAuthorities, approval.authorityId); unique(humanProofs, approval.providerRecordId); unique(humanKeys, approval.idempotencyKey);
+          unique(humanReservations, approval.reservationId); unique(humanHeads, approval.headPair);
+        }
         if (raw) {
           const enrollment = parseCanonical(parseCanonical(graph.rawPolicyBytes).humanBundleBytes);
           unique(usedAuthorities, rawAuthority.authorityId); unique(humanProofs, rawAuthority.providerRecordId); unique(humanKeys, rawAuthority.idempotencyKey);

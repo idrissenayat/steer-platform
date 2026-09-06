@@ -713,6 +713,17 @@ keys and 300-second freshness are explicit. The original disposition profile/pin
 stay unchanged. Actual lifecycle-event binding is next under `intent/0082/PLAN.md`;
 this is not a human signature or a completed hold mutation.
 
+Item `intent/0083` binds that qualified profile to every current hold event under
+an explicit runtime/current-v3 contract. Exact event, actor/hat, selector, prior
+hold and before-commit reservation relationships are checked; decision identities
+cannot be reused across holds and subsequent copy/tombstone approvals. The full
+graph binds the qualified evidence bytes. Historical applications remain
+restrictive facts; historical releases without qualified archival proof deny.
+All checks pass, including 199 root controls and 88 prototype tests. These are
+offline candidates, not live owner decisions or Gate 2 closure. Qualified archival
+proof is next under `intent/0083/PLAN.md`, followed by reference evidence and the
+remaining normative coverage.
+
 ## Local commands
 
 ```sh

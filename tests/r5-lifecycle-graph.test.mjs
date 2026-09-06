@@ -13,6 +13,7 @@ import { policyDigest as chainPolicy } from '../intent/0076/raw-checkpoint-chain
 import { createRawTerminalVerifier, policyDigest as terminalPolicy } from '../intent/0077/raw-terminal.candidate.mjs';
 import { policyDigest as historicalPolicy } from '../intent/0078/historical-events.candidate.mjs';
 import { createMixedHistoryVerifier } from '../intent/0081/mixed-history.candidate.mjs';
+import { createQualifiedHistoryVerifier } from '../intent/0083/qualified-history.candidate.mjs';
 import { makeHumanAuthorityBundle, makeLifecycleEventBytes, makeLifecycleGraph } from '../intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs';
 import { lifecycleGraphDecision as frozen } from '../intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs';
 import { jcs, sha256, TRUST_REGISTRY, TARGET_REVISION, TARGET_EXAM_SHA, AUTHORIZATION_POLICY_PATH, AUTHORIZATION_POLICY_SHA, AUTHORIZATION_POLICY_BYTES, RETENTION_POLICY_SHA, zeroEffects } from '../intent/0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
@@ -86,17 +87,61 @@ function fixture(options = {}) {
   const raw = config.recordClass === 'RC-CORPUS-RAW-WORKING';
   const continuation = raw && (chained || Array.isArray(completedCopies));
   const type = options.eventType ?? (raw ? 'corpus-sanitization-terminal' : 'record-superseded');
+  const qualifiedDecisions = [], knownHolds = new Map(); let hadHold = false;
+  const qualifiedSelector = { organization: scope.organization, itemId: scope.item, environmentId: config.environmentId,
+    recordId: config.recordId, recordClass: config.recordClass, artifactRevision: config.artifactRevision };
+  const qualifiedSelectorDigest = sha256(jcs(qualifiedSelector));
+  function qualifiedOwner(event, index, second, bindingDigest) {
+    const bundle = makeHumanAuthorityBundle(), id = `qualified-${index}`, prior = knownHolds.get(event.holdId);
+    const emit = (field, value, domain) => { const signed = seal(edit(`${id}:${field}`, value), domain); bundle[field] = jcs(signed); return signed; };
+    const identity = emit('identityEvidenceBytes', { ...JSON.parse(bundle.identityEvidenceBytes), evidenceId: `${id}-identity`, verifiedAt: at(second - 3) }, 'provider');
+    const qualification = emit('qualificationEvidenceBytes', { ...JSON.parse(bundle.qualificationEvidenceBytes), evidenceId: `${id}-qualification`, validThrough: until }, 'provider');
+    const assignment = emit('assignmentEvidenceBytes', { ...JSON.parse(bundle.assignmentEvidenceBytes), assignmentId: `${id}-assignment`, validThrough: until }, 'assignment');
+    const inventory = emit('inventoryBytes', { inventoryId: `${id}-selector`, organization: scope.organization, tenant: scope.tenant, item: scope.item,
+      items: [{ recordId: config.recordId, recordClass: config.recordClass, artifactRevision: config.artifactRevision, selectorDigest: qualifiedSelectorDigest }], capturedAt: at(second - 4) }, 'record');
+    const authority = { ...JSON.parse(bundle.authorityBytes), version: 'steer-qualified-lifecycle-decision/v1', authorityType: 'qualified-lifecycle-decision',
+      authorityId: id, sessionId: `${id}-session`, providerRecordId: `${id}-provider`, authenticatedAt: at(second - 3), decidedAt: at(second - 2),
+      identityEvidenceDigest: identity.recordDigest, qualificationEvidenceDigest: qualification.recordDigest, qualificationValidThrough: qualification.validThrough,
+      assignmentEvidenceDigest: assignment.recordDigest, assignmentValidThrough: assignment.validThrough, selectorInventoryDigest: inventory.recordDigest,
+      decisionKind: event.eventType, eventId: event.eventId, eventBindingDigest: bindingDigest, previousHoldEventDigest: prior?.recordDigest ?? null,
+      holdState: knownHolds.size ? 'active' : hadHold ? 'released' : 'none', conditions: [`event:${bindingDigest}`, `selector:${qualifiedSelectorDigest}`, `previous-hold:${prior?.recordDigest ?? 'none'}`],
+      safeguards: ['exact-record-scope', 'independent-provider-proof', 'current-qualified-owner', 'revision-bound-decision'],
+      providerTrustAnchorDigest: sha256(JSON.parse(trustedRegistryBytes).bindings.find((key) => key.keyId === 'human-provider-key-current').publicKeyHex),
+      idempotencyKey: `${id}-idem`, casHead: sha256(`${id}-head`), validFrom: at(second - 5), expiresAt: until };
+    for (const field of ['copyInventoryDigest', 'referenceState', 'allowedCopyProviders', 'sourceOriginalExcluded', 'deadlineSeconds', 'eraseMethod', 'terminalEventId']) delete authority[field];
+    edit(`${id}:authority`, authority);
+    const provider = emit('providerProofBytes', { ...JSON.parse(bundle.providerProofBytes), providerRecordId: authority.providerRecordId,
+      authorityBindingDigest: humanAuthorityBindingDigest(authority), recordedAt: authority.decidedAt }, 'human-provider');
+    const signedAuthority = emit('authorityBytes', { ...authority, providerProofDigest: provider.recordDigest }, 'authority');
+    const head = emit('casHeadBytes', { ...JSON.parse(bundle.casHeadBytes), headId: `${id}-head`, head: authority.casHead, snapshotAt: at(second - 2), validThrough: until }, 'cas-authority');
+    emit('replayLedgerBytes', { ...JSON.parse(bundle.replayLedgerBytes), ledgerId: `${id}-ledger`, headId: head.headId,
+      idempotencyKey: `${id}-unused`, snapshotAt: at(second - 2), validThrough: until }, 'replay-authority');
+    emit('casReservationBytes', { ...JSON.parse(bundle.casReservationBytes), reservationId: `${id}-reservation`, headId: head.headId, expectedHead: authority.casHead,
+      idempotencyKey: authority.idempotencyKey, requestDigest: signedAuthority.recordDigest, authorityDigest: signedAuthority.recordDigest, recordedAt: at(second - 1), validThrough: until }, 'cas-authority');
+    bundle.evaluationTime = evaluatedAt; edit(`${id}:bundle`, bundle);
+    qualifiedDecisions.push({ eventId: event.eventId, humanBundleBytes: jcs(bundle) });
+  }
   function event(eventType, index, second, current = false) {
     const value = { ...JSON.parse(makeLifecycleEventBytes(eventType, index)), recordId: config.recordId, recordClass: config.recordClass, artifactRevision: config.artifactRevision,
       policySha256: RETENTION_POLICY_SHA, occurredAt: options.runtimeYear && !current ? formatExactInstant(BigInt(epoch) * 1000000n + BigInt(second) * 1000000000n) : at(second), ...(eventType === 'corpus-sanitization-terminal' ? { result: 'pass', sanitizerRevision: 'sanitizer-v1', inspectionRevision: 'inspector-v1' } : {}),
       ...(eventType === 'run-terminal' ? { terminalStatus: 'failed' } : {}),
       ...(eventType === 'derived-record-deleted' ? { derivedRecordId: `derived-${String(index).padStart(3, '0')}`, derivedRecordClass: 'RC-CORPUS-DERIVED-TEXT', parentCorpusId: 'corpusId-value', parentCorpusVersion: 'corpusVersion-value' } : {}) };
+    const qualified = current && options.qualifiedDecisions && ['hold-applied', 'hold-released'].includes(eventType);
+    if (qualified) {
+      value.actorId = 'human:records-owner'; value.actorAuthority = 'privacy-legal-records-owner';
+      value[eventType === 'hold-applied' ? 'reasonAuthority' : 'releaseAuthority'] = `qualified-${index}`;
+      if (eventType === 'hold-applied') value.selectorsSha256 = qualifiedSelectorDigest;
+    }
     edit(`event-${index}`, value);
     const payload = Object.fromEntries(Object.entries(value).filter(([key]) => !['providerProofBytes', 'providerProofDigest', 'recordDigest', 'signature'].includes(key)));
+    if (qualified) qualifiedOwner(value, index, second, sha256(jcs(payload)));
     const eventSeal = current ? seal : originalSeal;
     const proof = eventSeal(edit(`event-proof-${index}`, { providerRecordId: value.providerRecordId, eventId: value.eventId, eventBindingDigest: sha256(jcs(payload)), recordedAt: value.occurredAt }), 'provider');
     edit(`signed-event-proof-${index}`, proof);
-    return jcs(eventSeal({ ...value, providerProofBytes: jcs(proof), providerProofDigest: proof.recordDigest }, 'record'));
+    const signed = eventSeal({ ...value, providerProofBytes: jcs(proof), providerProofDigest: proof.recordDigest }, 'record');
+    if (eventType === 'hold-applied') { knownHolds.set(value.holdId, signed); hadHold = true; }
+    if (eventType === 'hold-released') knownHolds.delete(value.holdId);
+    return jcs(signed);
   }
   const history = options.history ?? [{ type: options.historyType ?? 'record-committed', second: -10 }];
   let historyBytes = history.map((entry, index) => event(entry.type, index + 1, entry.second));
@@ -132,7 +177,7 @@ function fixture(options = {}) {
       attestationDigest: attestation.recordDigest, retainedBytesDigest: historyDigest, complete: true, recordedAt: at(-1) }), 'provider');
     historicalEvidenceBytes = jcs(edit('historical-envelope', { version: 'steer-historical-events/v1', policyDigest: historicalPolicy, eventBytes, historyBytes,
       attestationBytes: jcs(attestation), retentionReceiptBytes: jcs(receipt) }));
-    runtimeBytes = jcs(edit('runtime', { version: Array.isArray(options.currentHistory) ? 'steer-lifecycle-runtime/v2' : 'steer-lifecycle-runtime/v1', currentRegistryBytes: trustedRegistryBytes,
+    runtimeBytes = jcs(edit('runtime', { version: options.qualifiedDecisions ? 'steer-lifecycle-runtime/v3' : Array.isArray(options.currentHistory) ? 'steer-lifecycle-runtime/v2' : 'steer-lifecycle-runtime/v1', currentRegistryBytes: trustedRegistryBytes,
       currentProviderRegistryBytes: jcs(providers), historicalContextBytes: archiveBytes }));
     if (Array.isArray(options.currentHistory)) {
       const combined = [...allBytes, ...options.currentHistory.map((entry, index) => event(entry.type, allBytes.length + index + 1, entry.second, true))];
@@ -159,7 +204,8 @@ function fixture(options = {}) {
   const state = seal(edit('state', { kind: 'state', configDigest, source: 'authoritative-lifecycle-store', inventoryDigest: inventory.recordDigest,
     historyDigest: sha256(jcs([...historyBytes, eventBytes])), historyComplete: true, holdState: 'none', referenceState: 'cleared', referenceRevocationDigest: null, parentExpiryAt: null, recordedAt: at(2), validThrough: until,
     ...(provenance ? { derivedInventoryDigest: derived.recordDigest } : {}) }), options.stateDomain ?? 'authority');
-  const graph = { version: runtimeBytes ? Array.isArray(options.currentHistory) ? 'steer-lifecycle-graph/current-v2' : 'steer-lifecycle-graph/current-v1' : chained ? 'steer-lifecycle-graph/raw-v4' : continuation ? 'steer-lifecycle-graph/raw-v3' : raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1', configDigest, policyDigest, eventBytes, historyBytes, inventoryBytes: jcs(inventory), stateBytes: jcs(state), referenceRevocationBytes: '', copies: [], aggregateBytes: '', tombstone: {},
+  const graph = { version: runtimeBytes ? options.qualifiedDecisions ? 'steer-lifecycle-graph/current-v3' : Array.isArray(options.currentHistory) ? 'steer-lifecycle-graph/current-v2' : 'steer-lifecycle-graph/current-v1' : chained ? 'steer-lifecycle-graph/raw-v4' : continuation ? 'steer-lifecycle-graph/raw-v3' : raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1', configDigest, policyDigest, eventBytes, historyBytes, inventoryBytes: jcs(inventory), stateBytes: jcs(state), referenceRevocationBytes: '', copies: [], aggregateBytes: '', tombstone: {},
+    ...(options.qualifiedDecisions ? { qualifiedDecisionBytes: jcs(edit('qualified-proofs', qualifiedDecisions)) } : {}),
     ...(runtimeBytes ? { historicalEvidenceBytes } : {}),
     ...(provenance ? { derivedInventoryBytes: jcs(derived) } : {}) };
   const tupleDigest = sha256(jcs(copies));
@@ -201,7 +247,8 @@ function fixture(options = {}) {
       preparationBytes: jcs(preparation), humanBundleBytes: rawFull.bytes, rawGrantBytes: jcs(grant) }));
   }
   const baseDigest = sha256(jcs({ configDigest, policyDigest, eventBytes, historyBytes, inventoryBytes: graph.inventoryBytes, stateBytes: graph.stateBytes, referenceRevocationBytes: '',
-    ...(provenance ? { derivedInventoryBytes: graph.derivedInventoryBytes } : {}), ...(raw ? { rawGrantBindingDigest } : {}), ...(runtimeBytes ? { historicalEvidenceBytes } : {}) }));
+    ...(provenance ? { derivedInventoryBytes: graph.derivedInventoryBytes } : {}), ...(raw ? { rawGrantBindingDigest } : {}), ...(runtimeBytes ? { historicalEvidenceBytes } : {}),
+    ...(options.qualifiedDecisions ? { qualifiedDecisionBytes: graph.qualifiedDecisionBytes } : {}) }));
   const plannedRequests = new Map();
   function action(label, grant, authority, second) {
     const recoveringCopy = continuation && label !== 'tombstone';
@@ -1231,6 +1278,119 @@ test('0080: exact selected provider keys and available-before-state archive proo
 });
 
 const holdSuffix = [{ type: 'hold-applied', second: -10 }, { type: 'hold-released', second: -5 }];
+const qualifiedOptions = { ...futureCases[2], qualifiedDecisions: true, currentHistory: holdSuffix };
+function qualifiedFixture(edits = {}, options = {}) {
+  return fixture({ ...qualifiedOptions, ...options, edits: { state: (state) => { state.holdState = 'released'; }, ...edits } });
+}
+function inspectQualified(value) {
+  const verifier = createQualifiedHistoryVerifier(JSON.parse(value.runtimeBytes).historicalContextBytes);
+  const envelope = { version: 'steer-qualified-history/v1', policyDigest: verifier.policyDigest, archivedEvidenceBytes: value.graph.historicalEvidenceBytes,
+    eventBytes: value.graph.eventBytes, historyBytes: value.graph.historyBytes, qualifiedDecisionBytes: value.graph.qualifiedDecisionBytes };
+  return { verifier, envelope, result: verifier.verify(jcs(envelope), value.evaluationTime) };
+}
+test('0083: full qualified owner decisions bind mixed hold history and every future disposition step', () => {
+  for (const options of futureCases) for (const replay of [false, true]) {
+    const value = qualifiedFixture({}, { ...options, replay });
+    const history = inspectQualified(value).result;
+    assert.equal(history.state, 'verified-qualified-history'); assert.equal(history.qualifiedDecisionCount, 2);
+    assert.equal(history.factOnly, true); assert.equal(history.executionAuthorized, false); assert.deepEqual(history.effects, zeroEffects());
+    const result = value.verifier.verify(value.bytes, value.evaluationTime);
+    assert.equal(result.state, 'validated-lifecycle-candidate'); assert.equal(result.replayCount, replay ? 3 : 0);
+    assert.equal(result.executionAuthorized, false); assert.deepEqual(result.effects, zeroEffects());
+  }
+  const empty = fixture({ ...futureCases[2], qualifiedDecisions: true, currentHistory: [] });
+  assert.equal(inspectQualified(empty).result.qualifiedDecisionCount, 0);
+  assert.equal(empty.verifier.verify(empty.bytes, empty.evaluationTime).state, 'validated-lifecycle-candidate');
+});
+
+test('0083: each current hold needs all nine current qualified proof records and an exact ordered mapping', () => {
+  for (const index of [3, 4]) for (const field of ['authorityBytes', 'providerProofBytes', 'identityEvidenceBytes', 'qualificationEvidenceBytes',
+    'assignmentEvidenceBytes', 'inventoryBytes', 'replayLedgerBytes', 'casHeadBytes', 'casReservationBytes']) {
+    const value = qualifiedFixture({ [`qualified-${index}:bundle`]: (bundle) => { bundle[field] = '{}'; } });
+    denied(value, value.evaluationTime);
+  }
+  for (const mutate of [(rows) => rows.pop(), (rows) => rows.reverse(), (rows) => rows.push(rows[0]),
+    (rows) => { rows[0].eventId = rows[1].eventId; }, (rows) => { rows[0].extra = true; }]) {
+    const value = qualifiedFixture({ 'qualified-proofs': mutate }); denied(value, value.evaluationTime);
+  }
+  const missing = qualifiedFixture({ graph: (graph) => { delete graph.qualifiedDecisionBytes; } }); denied(missing, missing.evaluationTime);
+});
+
+test('0083: independently signed actor, event, selector and predecessor substitutions fail closed', () => {
+  const mutations = [
+    ['event-3', 'actorId', 'human:other'], ['event-3', 'actorAuthority', 'other-hat'], ['event-3', 'reasonAuthority', 'other-owner-record'],
+    ['event-3', 'selectorsSha256', 'f'.repeat(64)], ['event-4', 'releaseAuthority', 'other-owner-record'], ['event-4', 'holdId', 'other-hold'],
+    ['qualified-3:authority', 'eventBindingDigest', 'f'.repeat(64)], ['qualified-3:authority', 'eventId', '00000000-0000-4000-8000-000000000099'],
+    ['qualified-4:authority', 'previousHoldEventDigest', 'f'.repeat(64)], ['qualified-4:authority', 'holdState', 'none'],
+    ['qualified-3:authority', 'conditions', []], ['qualified-4:authority', 'safeguards', []],
+  ];
+  for (const [name, field, replacement] of mutations) {
+    const value = qualifiedFixture({ [name]: (record) => { record[field] = replacement; } }); denied(value, value.evaluationTime);
+  }
+  for (const field of ['recordId', 'recordClass', 'artifactRevision', 'selectorDigest']) {
+    const value = qualifiedFixture({ 'qualified-4:inventoryBytes': (record) => { record.items[0][field] = field.endsWith('Digest') ? 'f'.repeat(64) : field === 'artifactRevision' ? 'f'.repeat(40) : 'other'; } });
+    denied(value, value.evaluationTime);
+  }
+});
+
+test('0083: approval must precede event commitment, follow the prior hold and remain currently valid', () => {
+  for (const [name, field, replacement] of [
+    ['qualified-3:casReservationBytes', 'recordedAt', '2033-09-04T11:59:50.000000001Z'],
+    ['qualified-4:authority', 'decidedAt', '2033-09-04T11:59:49Z'],
+    ['qualified-3:authority', 'expiresAt', '2033-09-04T12:00:50Z'],
+    ['qualified-4:identityEvidenceBytes', 'verifiedAt', '2033-09-04T11:55:49Z'],
+  ]) {
+    const value = qualifiedFixture({ [name]: (record) => { record[field] = replacement; } }); denied(value, value.evaluationTime);
+  }
+  const value = qualifiedFixture(), check = inspectQualified(value);
+  assert.equal(check.verifier.verify(jcs(check.envelope)).state, 'blocked');
+  assert.equal(check.verifier.verify(jcs(check.envelope), '2033-09-04T12:00:51Z').state, 'blocked');
+});
+
+test('0083: qualified approvals cannot reuse other hold or copy/tombstone authority identities', () => {
+  for (const [field, replacement] of [['authorityId', 'qualified-3'], ['providerRecordId', 'qualified-3-provider'], ['idempotencyKey', 'qualified-3-idem']]) {
+    const value = qualifiedFixture({ 'qualified-4:authority': (record) => { record[field] = replacement; },
+      ...(field === 'authorityId' ? { 'event-4': (record) => { record.releaseAuthority = replacement; } } : {}) }); denied(value, value.evaluationTime);
+  }
+  const reservation = qualifiedFixture({ 'qualified-4:casReservationBytes': (record) => { record.reservationId = 'qualified-3-reservation'; } }); denied(reservation, reservation.evaluationTime);
+  const head = qualifiedFixture({
+    'qualified-4:authority': (record) => { record.casHead = sha256('qualified-3-head'); },
+    'qualified-4:casHeadBytes': (record) => { record.headId = 'qualified-3-head'; },
+  }); denied(head, head.evaluationTime);
+  for (const label of ['copy-1', 'copy-2', 'tombstone']) for (const [field, replacement] of [['authorityId', 'qualified-3'], ['providerRecordId', 'qualified-3-provider'], ['idempotencyKey', 'qualified-3-idem']]) {
+    const value = qualifiedFixture({ [`${label}:human`]: (record) => { record[field] = replacement; } }); denied(value, value.evaluationTime);
+  }
+  for (const label of ['copy-1', 'copy-2', 'tombstone']) {
+    const value = qualifiedFixture({ [`${label}:human-bundle`]: (bundle) => {
+      const reservation = JSON.parse(bundle.casReservationBytes); reservation.reservationId = 'qualified-3-reservation';
+      bundle.casReservationBytes = jcs(runtimeSeal(reservation, 'cas-authority'));
+    } }); denied(value, value.evaluationTime);
+  }
+});
+
+test('0083: restrictive historical applications survive, while unqualified archived releases remain blocked', () => {
+  const historicalApply = qualifiedFixture({}, { history: [{ type: 'record-committed', second: -20 }, { type: 'hold-applied', second: -10 }], currentHistory: [holdSuffix[1]] });
+  assert.equal(inspectQualified(historicalApply).result.qualifiedDecisionCount, 1);
+  assert.equal(historicalApply.verifier.verify(historicalApply.bytes, historicalApply.evaluationTime).state, 'validated-lifecycle-candidate');
+  const historicalRelease = qualifiedFixture({}, { history: [{ type: 'record-committed', second: -30 }, { type: 'hold-applied', second: -20 }, { type: 'hold-released', second: -10 }], currentHistory: [] });
+  denied(historicalRelease, historicalRelease.evaluationTime);
+  const active = qualifiedFixture({ state: (state) => { state.holdState = 'active'; } }, { currentHistory: [holdSuffix[0]] });
+  assert.equal(active.verifier.verify(active.bytes, active.evaluationTime).state, 'retained-on-hold');
+});
+
+test('0083: explicit version, policy and byte bounds prevent downgrade or proof injection', () => {
+  const value = qualifiedFixture(), old = fixture({ ...qualifiedOptions, qualifiedDecisions: false, edits: { state: (state) => { state.holdState = 'released'; } } });
+  assert.notEqual(value.verifier.policyDigest, old.verifier.policyDigest);
+  denied({ ...value, verifier: old.verifier }, value.evaluationTime); denied({ ...old, verifier: value.verifier }, old.evaluationTime);
+  const check = inspectQualified(value);
+  for (const mutate of [(envelope) => { envelope.extra = true; }, (envelope) => { envelope.policyDigest = 'f'.repeat(64); },
+    (envelope) => { envelope.qualifiedDecisionBytes += ' '; }, (envelope) => { envelope.qualifiedDecisionBytes = ' '.repeat(12582913); },
+    (envelope) => { envelope.qualifiedDecisionBytes = jcs(Array.from({ length: 129 }, () => ({}))); }]) {
+    const envelope = structuredClone(check.envelope); mutate(envelope);
+    assert.equal(check.verifier.verify(jcs(envelope), value.evaluationTime).state, 'blocked');
+  }
+});
+
 test('0081: mixed-era history composes exact archived facts and current hold/release events into full future disposition', () => {
   for (const options of futureCases) for (const replay of [false, true]) {
     const value = fixture({ ...options, replay, currentHistory: holdSuffix, edits: { state: (state) => { state.holdState = 'released'; } } });
