@@ -35,7 +35,7 @@ export function runCorrectedCoverage() {
     runnerDigest: digest(readFileSync(new URL('./execution-ledger.mjs', import.meta.url))),
     hooksDigest: digest(readFileSync(new URL('./execution-hooks.mjs', import.meta.url))),
     supplementalHookSources: ['intent/0099/execution-hooks.mjs', 'intent/0099/execution-fixtures.mjs', 'intent/0100/execution-hooks.mjs', 'intent/0100/execution-fixtures.mjs',
-      'intent/0101/execution-hooks.mjs', 'intent/0101/execution-fixtures.mjs'].map((path) => ({
+      'intent/0101/execution-hooks.mjs', 'intent/0101/execution-fixtures.mjs', 'intent/0102/execution-hooks.mjs'].map((path) => ({
       path, digest: digest(readFileSync(new URL('../../' + path, import.meta.url))) })),
     required: catalog.cases.length, executed: executions.length, passed: executions.length - failed, failed, uncovered: uncovered.length,
     uncoveredIdsDigest: digest(jcs(uncovered)), executionsDigest: digest(jcs(executions)), families, executions,

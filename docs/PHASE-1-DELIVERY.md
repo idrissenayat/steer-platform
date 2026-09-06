@@ -1869,3 +1869,24 @@ from corrected semantic and qualified manual evidence. Then reconcile the four
 remaining R5 IDs, 94 lifecycle graph cases and 3,614 migration cases. The finite
 assurance packages and M1–M8 milestones remain separate. No provider mutation,
 cleanup, release, deployment, spending or signature is authorized.
+
+## Completed development increment: 0102 — public signing capability boundaries
+
+The ledger adds all 17 exact private-domain signing requests. Every hook proves
+ordinary-record signing works, then observes the actual private-domain rejection
+without a signed record. Tests also prove an ordinary signature cannot impersonate
+any declared independent domain. This is retained API behavior, not cryptanalysis,
+live key custody or provider access.
+
+Four new groups and final full checks pass: 318 root controls and 88 prototype
+tests. A fresh run matches the snapshot: 293 passed, zero failed and 3,743 unmapped
+IDs of 4,036. See intent/0102/EVIDENCE.md for synthetic/cached limits and the
+separate actual 16.25-second positive accessibility benchmark. That benchmark
+is neither a ledger mapping nor manual evidence. All 15 schema and 16 accessibility
+IDs remain unmapped; protected artifacts and all five formal findings are unchanged.
+
+Next under intent/0102/PLAN.md is explicit old-versus-corrected schema reconciliation,
+then streamed accessibility execution evidence. Preserve exact consumed rows and
+complete controls without treating metadata or cached reports as execution.
+Remaining R5/lifecycle/migration mappings, GAP-01–06 and M1–M8 remain open. No
+provider mutation, cleanup, release, deployment, spending or signature is authorized.

@@ -882,6 +882,14 @@ classification is not corpus acceptance. The snapshot has 276 passed, zero faile
 and 3,760 unmapped IDs. See `intent/0101/EVIDENCE.md` and `PLAN.md`. All five formal
 findings remain open; actual counterexample execution is not independent closure.
 
+Item `intent/0102` maps 17 exact private-domain signing requests with actual public
+ordinary-record positive controls. Private requests fail without returning a
+record, and ordinary signatures cannot verify under those domains. This is a
+retained capability boundary, not cryptanalysis or live key custody. The snapshot
+has 293 passed, zero failed and 3,743 unmapped IDs. All schema and accessibility
+IDs stay unmapped pending source-version reconciliation and actual streamed-input
+seals. See `intent/0102/EVIDENCE.md` and `PLAN.md`; formal findings remain open.
+
 ## Local commands
 
 ```sh
