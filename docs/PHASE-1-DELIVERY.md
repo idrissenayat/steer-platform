@@ -1628,3 +1628,27 @@ supportedReaders/supportedWriters metadata is not that behavioral proof. The
 protected EXAM A10.3 and section 9 migration requirements remain authoritative;
 no live runner, destructive cleanup, signature, release, deployment or spending
 is authorized. The existing implementation heartbeat remains active.
+
+## Completed development increment: 0091 — executable migration compatibility
+
+The full exact migration graph now composes with a source-pinned executable
+dual-column shim model for both declared version pairs. Every row in both actual
+supplied states runs 24 read/write permutations and both competing snapshot
+winner orders, including stale rejection, replay/key drift and retry. The model
+rejects stale mirrored values and contract data loss that the single-step signed
+transformation could otherwise accept. No client behavior is inferred from a label.
+
+All 19 migration groups pass, including seven new groups and 6,656 scenarios at
+128 rows. Final full checks pass with 253 root controls and 88 prototype tests;
+see intent/0091/EVIDENCE.md for synthetic/cached limits. This is not live app or
+database concurrency, durable CAS, a migration runner or an independent review.
+Frozen artifacts remain unchanged; all five formal R5 findings remain open.
+
+Next under intent/0091/PLAN.md is ordered multi-step/batch/checkpoint composition:
+exact predecessor after-truth to successor before-truth, approved closed inventory,
+unique action identities, interrupted/resumed and replayed steps. Resolve schema
+semantics explicitly: the current single-step profile requires different from/to
+schema versions, which cannot represent same-schema backfill batches unchanged.
+Use a distinct profile for that capability rather than weakening existing pins.
+No signature, real cleanup, provider mutation, release, deployment or spending is
+authorized. Remaining source/class/trust-era/normative and live coverage is open.

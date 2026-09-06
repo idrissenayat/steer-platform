@@ -785,6 +785,16 @@ approval pins remain required; outputs explicitly deny execution. Behavioral
 compatibility/concurrency/checkpoint evidence remains open. See
 `intent/0090/EVIDENCE.md` and `intent/0090/PLAN.md`.
 
+Item `intent/0091` composes complete exact migration verification with a pinned
+executable dual-column compatibility model for both declared version pairs.
+Every row of both supplied states runs 24 old/new read/write orders and both
+competing-snapshot winner orders, including stale rejection, exact/key-drift
+replay and fresh retry. Stale mirrors and contract loss are rejected even when
+the original exact transform passes. All 128 rows are exercised at the bound.
+This is synchronous in-memory client behavior, not real application or database
+concurrency. Outputs explicitly retain `liveCompatibilityVerified=false` and
+zero execution. See `intent/0091/EVIDENCE.md` and `intent/0091/PLAN.md`.
+
 ## Local commands
 
 ```sh
