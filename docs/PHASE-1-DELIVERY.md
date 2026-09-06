@@ -25,8 +25,8 @@ The current code audit, bounded effort ranges, next demo and separate waiting
 dependencies are in `docs/FIRST-USABLE-DELIVERY.md`. This orders safe development;
 it does not defer signed requirements or waive any of the five R5 findings.
 Stateless authoring can proceed while Gate 2 continues to block live writes.
-The next selected increment is 0121 Brief preview, followed by production
-authoring/correction UI. The unimplemented retirement-archive prerequisite remains
+This route began with 0121 Brief preview and 0122 guided authoring/correction UI.
+Next is exact-content confirmation and disabled save orchestration. The unimplemented retirement-archive prerequisite remains
 tracked in `intent/0120/PLAN.md`, not silently marked complete or renumbered.
 
 | Milestone | Deliverable and acceptance evidence | Dependency / current state |
@@ -2410,3 +2410,32 @@ Retirement archival work remains in 0120/PLAN; prioritization is not signed scop
 deferral. The active loop follows this journey order without another generic
 continue. Live writes, provider access changes, gate signatures and release remain
 separately gated; no new human-only blocker exists for local UI development.
+
+## Completed development increment: 0122 — guided authoring/correction UI
+
+The production authenticated workspace now exposes one question at a time, prior
+answer correction and an inert rendered Brief through the 0121 tool. It preserves
+pink/orange design tokens, checks exact response identity/content fingerprints and
+clears stale or private unsaved state on edits, denial, navigation and expiry.
+No model, save, confirmation or signature is enabled. This follows the signed
+interview direction but does not complete model-backed/scoped-agent authoring.
+
+All 39 isolated browser integration checks pass with actual Next.js, Chromium,
+Keycloak, encrypted PostgreSQL sessions and local Git grants. The run covers new
+keyboard/correction, revocation and expiry behavior, mobile overflow and automated
+accessibility checks. Visual evidence is retained under `intent/0122/browser`.
+Two failed attempts exposed a duplicate DOM ID; a later failure exposed test-only
+axe state lost on reload. Both are corrected without relaxed assertions. See the
+full history and boundaries in `intent/0122/EVIDENCE.md`.
+
+Final `pnpm check` passes all 437 root controls, 88 prototype tests, package tests,
+typechecks and builds. No protected source or R5 mapping changed. All five formal
+findings remain open. The first local guided-preview demo is now development-
+verified; real membership, the model conversation and the five-step journey are not.
+
+Next: exact-content confirmation and disabled save/idempotency/CAS orchestration,
+then the Git write adapter with action-time authorization. The existing loop stays
+active. No new user-only input is needed for that local contract work. Live writes,
+new provider permissions, gate signatures, deployment and spending stay gated.
+Outstanding archival/provenance work remains in 0120/PLAN; no signed requirement
+or acceptance finding has been deferred or waived by this execution priority.

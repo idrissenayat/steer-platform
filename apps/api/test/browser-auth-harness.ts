@@ -109,7 +109,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         assert.deepEqual(await storage.counts(), { transactions: 0, sessions: 0 });
       });
       const grant: AuthorizationRecord = { issuer, subject: deps.subject, organizationId: 'synthetic-org', type: 'human',
-        hats: ['product-lead'], toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'intent.brief.read', 'intent.brief.catalog'], active: true,
+        hats: ['product-lead'], toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'intent.brief.read', 'intent.brief.catalog', 'intent.brief.preview'], active: true,
         validAfter: new Date(0).toISOString(), expiresAt: new Date(Date.now() + 600000).toISOString() };
       const source = await createGitAuthorizationHarness(tls.temporary, grant);
       assert.ok(storage.createProjectionFixture);
@@ -341,6 +341,79 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         });
         assert.deepEqual(violations, []);
       });
+      await check('production authoring previews incomplete facts, corrects exact bytes and keeps source links inert', async () => {
+        let authorStage = 'initial answer'; let previewStatus: number | null = null;
+        const observePreview = (response: import('playwright').Response) => { if (new URL(response.url()).pathname === '/v1/tools/intent.brief.preview') previewStatus = response.status(); };
+        page.on('response', observePreview);
+        try {
+        const author = page.getByRole('region', { name: 'Start with your intent.' });
+        assert.deepEqual(await author.evaluate((element) => {
+          const ids = [...element.querySelectorAll('[id]')].map((node) => node.id);
+          return ids.filter((id, index) => ids.indexOf(id) !== index);
+        }), []);
+        await author.getByLabel('Working title', { exact: true }).fill('A clearer intake');
+        authorStage = 'keyboard preview';
+        await author.getByRole('button', { name: 'Preview Brief', exact: true }).focus(); await page.keyboard.press('Enter');
+        await page.waitForFunction(() => document.querySelector('[data-testid="author-status"]')?.textContent?.startsWith('Preview ready.'));
+        authorStage = 'preview focus and missing fields';
+        assert.equal(await author.getByRole('heading', { name: 'Your draft preview' }).evaluate((element) => element === document.activeElement), true);
+        assert.equal(await author.getByRole('heading', { name: 'Still to clarify' }).count(), 1);
+        const firstDigest = await author.getByTestId('author-digest').textContent();
+        authorStage = 'correction focus';
+        await author.getByRole('button', { name: 'Correct the facts' }).click();
+        assert.equal(await author.getByLabel('What is happening now?', { exact: true }).evaluate((element) => element === document.activeElement), true);
+        await author.getByLabel('What is happening now?', { exact: true }).fill('Requests are duplicated. [Source](https://outside.invalid)');
+        assert.equal(await author.getByTestId('author-digest').count(), 0);
+        await author.getByRole('button', { name: 'Next question', exact: true }).click();
+        await author.getByLabel('What should become true?', { exact: true }).fill('Every request is entered once.');
+        await author.getByRole('button', { name: 'Next question', exact: true }).click();
+        await author.getByLabel('Who is affected?', { exact: true }).fill('Coordinators');
+        await author.getByRole('button', { name: 'Next question', exact: true }).click();
+        await author.getByLabel('Which systems are involved?', { exact: true }).fill('Unverified intake system');
+        await author.getByRole('button', { name: 'Next question', exact: true }).click();
+        await author.getByLabel('How will you know it worked?', { exact: true }).fill('Count duplicates');
+        authorStage = 'corrected preview';
+        await author.getByRole('button', { name: 'Preview Brief', exact: true }).click();
+        await page.waitForFunction(() => document.querySelector('[data-testid="author-status"]')?.textContent?.startsWith('Preview ready.'));
+        assert.notEqual(await author.getByTestId('author-digest').textContent(), firstDigest);
+        assert.equal(await author.getByRole('heading', { name: 'Still to clarify' }).count(), 0);
+        assert.equal(await author.getByRole('link').count(), 0);
+        assert.equal(await author.getByText('Not saved · Not confirmed · Not signed', { exact: true }).count(), 1);
+        authorStage = 'screenshots and mobile';
+        const directory = process.env.STEER_WORKSPACE_SCREENSHOT_DIR;
+        if (directory) await author.screenshot({ path: join(directory, 'author-desktop.png') });
+        await page.setViewportSize({ width: 390, height: 844 });
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+        if (directory) await author.screenshot({ path: join(directory, 'author-mobile.png') });
+        await page.setViewportSize({ width: 1440, height: 1000 });
+        authorStage = 'accessibility and storage';
+        const violations = await page.evaluate(async () => {
+          const axe = (window as unknown as { axe: { run: (node: Document, options: unknown) => Promise<{ violations: { id: string }[] }> } }).axe;
+          return (await axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] } })).violations.map(({ id }) => id);
+        });
+        assert.deepEqual(violations, []);
+        assert.deepEqual(await page.evaluate(() => ({ local: Object.keys(localStorage), session: Object.keys(sessionStorage) })), { local: [], session: [] });
+        } catch {
+          console.error(`Author UI check failed at ${authorStage}; preview HTTP status ${previewStatus ?? 'not observed'}. Payloads omitted.`);
+          const directory = process.env.STEER_WORKSPACE_SCREENSHOT_DIR;
+          if (directory) await page.screenshot({ path: join(directory, 'author-failure.png'), fullPage: true });
+          throw new Error('Synthetic author UI check failed.');
+        } finally { page.off('response', observePreview); }
+      });
+      await check('authoring discards drafts after committed grant denial and navigation without automatic submission', async () => {
+        const author = page.getByRole('region', { name: 'Start with your intent.' });
+        await source.publish([{ ...grant, toolGrants: grant.toolGrants.filter((name) => name !== 'intent.brief.preview') }]);
+        await author.getByRole('button', { name: 'Preview Brief', exact: true }).click();
+        await page.waitForFunction(() => document.querySelector('[data-testid="author-status"]')?.textContent?.startsWith('Draft preview could not be verified.'));
+        assert.equal(await author.getByTestId('author-digest').count(), 0);
+        assert.equal(await author.getByLabel('Working title', { exact: true }).inputValue(), '');
+        await source.publish([grant]);
+        await author.getByLabel('Working title', { exact: true }).fill('Private unsaved draft');
+        await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pagehide')));
+        assert.equal(await author.getByLabel('Working title', { exact: true }).inputValue(), '');
+        await page.reload();
+        assert.equal(await author.getByLabel('Working title', { exact: true }).inputValue(), '');
+      });
       await check('Brief library discovers without manual source entry and renders an inert revision-bound keyboard dialog', async () => {
         let briefStage = 'catalog discovery';
         try {
@@ -383,6 +456,9 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           return target.top >= body.top && target.bottom <= body.bottom;
         }), true);
         if (directory) await page.screenshot({ path: join(directory, 'brief-source-mobile.png') });
+        // Earlier navigation checks replace the document, including injected test tooling.
+        const briefAxeSource = await readFile(new URL('../../../node_modules/axe-core/axe.min.js', import.meta.url), 'utf8');
+        await page.evaluate((source) => { eval(source); }, briefAxeSource);
         const violations = await page.evaluate(async () => {
           const axe = (window as unknown as { axe: { run: (node: Document, options: unknown) => Promise<{ violations: { id: string; impact: string }[] }> } }).axe;
           return (await axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] } })).violations.map(({ id, impact }) => ({ id, impact }));
@@ -521,6 +597,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         try {
           let requests = 0; expiryPage.on('request', (request) => { if (new URL(request.url()).pathname.startsWith('/v1/tools/projection.')) requests++; });
           await expiryPage.clock.install(); await expiryPage.goto(origin);
+          await expiryPage.getByLabel('Working title', { exact: true }).fill('Unsaved expiry check');
           await expiryPage.getByText('Developer diagnostics', { exact: true }).click();
           const expiryPanel = expiryPage.getByRole('region', { name: 'Repository references' });
           await expiryPanel.getByLabel('Repository scope ID').fill(projection.input.repository);
@@ -537,6 +614,8 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           assert.equal(await expiryPage.getByRole('dialog').count(), 0);
           assert.equal(await expiryPage.getByTestId('brief-catalog').locator('li').count(), 0);
           assert.equal(await expiryPage.getByRole('button', { name: 'Refresh Briefs' }).isDisabled(), true);
+          assert.equal(await expiryPage.getByLabel('Working title', { exact: true }).inputValue(), '');
+          assert.equal(await expiryPage.getByRole('button', { name: 'Preview Brief', exact: true }).isDisabled(), true);
         } finally { await expiryPage.close(); }
       });
       await check('browser reads only its granted exact-revision projection ingested from actual synthetic Git through PostgreSQL', async () => {

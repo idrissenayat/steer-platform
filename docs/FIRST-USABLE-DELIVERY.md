@@ -98,6 +98,17 @@ demo additionally needs approved runtime configuration; no live writes are neede
 
 ### Assurance obligations and waiting dependencies
 
+0122 development update: the near-term guided preview screen is implemented and
+has passed the 39-check isolated browser integration, including its new correction,
+revocation and expiry checks. It uses deterministic prompts, not the model-backed
+agent conversation. Saved artifacts, confirmation, real membership and the complete
+five-step journey remain unproved. See `intent/0122/EVIDENCE.md`; this does not
+change the broader effort envelope or remove the excluded agent/model integration.
+
+The next bounded slice is exact-content confirmation and disabled save orchestration,
+followed by the Git write adapter. Keep machine drafting/context resolution visible
+as remaining work; do not relabel this interview preview as full agent-first delivery.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

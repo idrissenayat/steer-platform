@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { briefDocumentSchema } from './brief-document.ts';
+export { briefPreviewInputSchema, briefPreviewOutputSchema, type BriefPreview } from './brief-preview.ts';
 
 // Portable wire contracts. No registry handlers or provider implementations enter this graph.
 const identifier = z.string().min(1).max(200);

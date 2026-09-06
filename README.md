@@ -9,8 +9,12 @@ item one, are the framework's pilot evidence.
 
 Immediate priority: [the first usable journey](docs/FIRST-USABLE-DELIVERY.md),
 with a current code audit, bounded forecast and separate gate/provider waits.
-Item [0121](intent/0121/README.md) adds authenticated stateless Brief preview;
-production authoring UI follows. Preview is not a Git save or gate signature.
+Item [0121](intent/0121/README.md) adds authenticated stateless Brief preview.
+Preview is not a Git save or gate signature.
+
+Item [0122](intent/0122/README.md) now supplies that guided production preview UI,
+verified with synthetic identities in an isolated browser. It is not yet the
+model-backed agent conversation or the complete writing/decision journey.
 
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono

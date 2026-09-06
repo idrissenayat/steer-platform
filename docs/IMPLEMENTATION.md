@@ -1082,8 +1082,6 @@ retirement archive and parent/lifecycle integration under `intent/0120/PLAN.md`.
 No new catalog credit or live retirement/deletion is claimed; all five findings
 remain open.
 
-## Local commands
-
 Item `intent/0121` advances the first usable journey with a stateless authenticated
 Brief-preview query. It reuses the domain template, binds the authenticated human,
 reports missing facts and hashes exact content, with fresh grant checks before
@@ -1092,6 +1090,18 @@ access. The production authoring UI, confirmation and Git write contracts remain
 next. `docs/FIRST-USABLE-DELIVERY.md` contains the audited journey, effort ranges,
 near-term preview demo and separate gate/provider waits. Existing archival and
 other Phase 1 obligations remain due; no finding or signed scope is waived.
+
+Item `intent/0122` connects 0121 to a production Next.js interview preview: one
+question at a time, prior-answer correction, inert rendered content and exact
+fingerprint checks. Editing discards stale previews; page hiding, navigation,
+expiry and denied access clear unsaved private content. The same server-side
+authorization applies and no browser grant is inferred. All 39 isolated Chromium/
+Keycloak/encrypted-session/local-Git integration checks pass, including desktop,
+mobile, keyboard and automated accessibility observations. This is deterministic
+preview, not model-backed conversation, confirmation, Git saving or a gate approval.
+See `intent/0122/EVIDENCE.md` and the first-journey plan for remaining requirements.
+
+## Local commands
 
 ```sh
 pnpm install
