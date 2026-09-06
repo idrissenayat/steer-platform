@@ -89,5 +89,5 @@ test('0108: exactly 27 negative IDs have fresh execution seals without claiming 
   assert.equal(report.families['LIFECYCLE-GRAPH'].executed, 52); assert.equal(report.families.MIGRATION.executed, 0); assert.equal(report.families.R5.passed, 9);
   for (const row of report.executions.filter((entry) => entry.id.startsWith('LIFECYCLE-GRAPH-NEGATIVE:') && mapping.rows.some((source) => source.mapped && entry.id.endsWith(':' + source.kind)))) assert.equal(row.observationCount, 2);
   for (const flag of ['completeCoverage', 'normativeAcceptanceComplete', 'independentAcceptance', 'executionAuthorized', 'liveProviderUsed']) assert.equal(report[flag], false);
-  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0116/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
+  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0117/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
 });

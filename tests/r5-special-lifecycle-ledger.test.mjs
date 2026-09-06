@@ -61,7 +61,7 @@ test('0109: malformed legacy placement is explicitly promoted into the real raw 
   assert.equal(old.recordClass, 'RC-FAILED-RUN'); assert.ok(Array.isArray(JSON.parse(old.rawGrantBytes[0])));
   const entry = map.rows.find((row) => row.kind === 'malformed-raw-grant'); assert.equal(entry.legacyClass, 'RC-FAILED-RUN'); assert.equal(entry.correctedClass, 'RC-CORPUS-RAW-WORKING');
   assert.ok(entry.limitation.includes('semantic promotion'));
-  assert.deepEqual(Object.keys(fixtures).sort(), ['immediateLifecycleExecutionCase', 'immutableRetentionExecutionCase', 'lifecycleGraphExecutionCase', 'lifecycleGraphVariants', 'lifecycleNegativeExecutionCase', 'lifecycleReadinessExecutionCase', 'longRetentionExecutionCase', 'rawDeadlineExecutionCase', 'releaseLifecycleExecutionCase', 'shortRetentionExecutionCase', 'specialLifecycleExecutionCase']);
+  assert.deepEqual(Object.keys(fixtures).sort(), ['immediateLifecycleExecutionCase', 'immutableRetentionExecutionCase', 'lifecycleGraphExecutionCase', 'lifecycleGraphVariants', 'lifecycleNegativeExecutionCase', 'lifecycleReadinessExecutionCase', 'longRetentionExecutionCase', 'provenanceChildDispositionExecutionCase', 'rawDeadlineExecutionCase', 'releaseLifecycleExecutionCase', 'shortRetentionExecutionCase', 'specialLifecycleExecutionCase']);
   assert.throws(() => fixtures.specialLifecycleExecutionCase('arbitrary'), /UNKNOWN_SPECIAL_LIFECYCLE_CASE/);
   assert.throws(() => fixtures.specialLifecycleExecutionCase('reference-missing', 'arbitrary'), /UNKNOWN_SPECIAL_LIFECYCLE_CASE/);
   assert.equal(specialLifecycleExecutionHook({ family: 'unknown' }), null);
@@ -74,5 +74,5 @@ test('0109: all 30 lifecycle negatives have exact execution seals without claimi
   for (const kind of kinds) assert.equal(report.executions.find((row) => row.id === `LIFECYCLE-GRAPH-NEGATIVE:${kind}`).observationCount, 3);
   assert.equal(report.families['LIFECYCLE-GRAPH'].executed, 52); assert.equal(report.families.MIGRATION.executed, 0);
   for (const flag of ['completeCoverage', 'normativeAcceptanceComplete', 'independentAcceptance', 'executionAuthorized', 'liveProviderUsed']) assert.equal(report[flag], false);
-  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0116/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
+  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0117/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
 });

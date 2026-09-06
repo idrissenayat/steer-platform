@@ -1039,6 +1039,17 @@ copy/action/provider/aggregate/tombstone proof. See `intent/0116/EVIDENCE.md` an
 `SOURCE-MAP.json`; this is not a live traffic/credential check or actual retirement.
 All five formal findings remain open.
 
+Item `intent/0117` supplies a fact-only original-era derived-child disposition
+verifier, a prerequisite to future corpus-provenance composition. It retrieves no
+provider data: supplied aggregate receipt bytes must match the parent event digest
+and a fully verified child graph including every copy and final tombstone. Wrong
+parent/class/source/chronology, incomplete proof, borrowed receipts and cross-child
+physical-object or one-use credential reuse deny. Success does not authorize action
+or assert live deletion. Parent complete manifest/history and fresh future archive
+verification remain required. This component adds no catalog credit; all five R5
+findings and the twelve remaining lifecycle coordinates stay open. See
+`intent/0117/PLAN.md` and `EVIDENCE.md` for the next composition and verification.
+
 ## Local commands
 
 ```sh

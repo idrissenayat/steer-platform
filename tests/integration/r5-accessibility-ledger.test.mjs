@@ -32,5 +32,5 @@ test('0104 full: preflight denials do not claim row consumption, and row failure
 });
 
 test('0104 full: saved full report exactly matches a fresh execution, never imported as proof', () => {
-  assert.deepEqual(JSON.parse(readFileSync(new URL('../../intent/0116/FULL-EXECUTION-REPORT.json', import.meta.url))), report);
+  assert.deepEqual(JSON.parse(readFileSync(new URL('../../intent/0117/FULL-EXECUTION-REPORT.json', import.meta.url))), report);
 });

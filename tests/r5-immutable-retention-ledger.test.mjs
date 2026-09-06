@@ -66,7 +66,7 @@ test('0113: exact selector maps four IDs with eleven observations each and never
     assert.equal(observations.length, 11); assert.throws(() => hook.run(() => { throw new Error('ASSERTION_FAILED'); }), /ASSERTION_FAILED/);
   }
   assert.throws(() => make('unknown'), /UNKNOWN_IMMUTABLE_RETENTION_CASE/); assert.throws(() => make('at', 'caller-mutation'), /UNKNOWN_IMMUTABLE_RETENTION_CASE/);
-  assert.deepEqual(Object.keys(fixtures).sort(), ['immediateLifecycleExecutionCase', 'immutableRetentionExecutionCase', 'lifecycleGraphExecutionCase', 'lifecycleGraphVariants', 'lifecycleNegativeExecutionCase', 'lifecycleReadinessExecutionCase', 'longRetentionExecutionCase', 'rawDeadlineExecutionCase', 'releaseLifecycleExecutionCase', 'shortRetentionExecutionCase', 'specialLifecycleExecutionCase']);
+  assert.deepEqual(Object.keys(fixtures).sort(), ['immediateLifecycleExecutionCase', 'immutableRetentionExecutionCase', 'lifecycleGraphExecutionCase', 'lifecycleGraphVariants', 'lifecycleNegativeExecutionCase', 'lifecycleReadinessExecutionCase', 'longRetentionExecutionCase', 'provenanceChildDispositionExecutionCase', 'rawDeadlineExecutionCase', 'releaseLifecycleExecutionCase', 'shortRetentionExecutionCase', 'specialLifecycleExecutionCase']);
 });
 
 test('0113: fresh report credits the four declared immutable aliases without claiming unique time boundaries or formal closure', () => {
@@ -76,5 +76,5 @@ test('0113: fresh report credits the four declared immutable aliases without cla
   assert.equal(rows.length, 4); assert.equal(new Set(rows.map((row) => row.observationsDigest)).size, 1);
   for (const flag of ['completeCoverage', 'normativeAcceptanceComplete', 'independentAcceptance', 'executionAuthorized', 'liveProviderUsed']) assert.equal(report[flag], false);
   assert.equal(report.families.MIGRATION.executed, 0);
-  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0116/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
+  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0117/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
 });

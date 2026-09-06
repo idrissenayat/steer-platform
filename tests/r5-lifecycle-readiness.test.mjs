@@ -97,7 +97,7 @@ test('0112: authoritative held/reference-active states retain conservatively and
 });
 
 test('0112: closed configuration rejects unsupported classes, old current profiles and request-supplied policy or effect fields', () => {
-  assert.deepEqual(Object.keys(fixtures).sort(), ['immediateLifecycleExecutionCase', 'immutableRetentionExecutionCase', 'lifecycleGraphExecutionCase', 'lifecycleGraphVariants', 'lifecycleNegativeExecutionCase', 'lifecycleReadinessExecutionCase', 'longRetentionExecutionCase', 'rawDeadlineExecutionCase', 'releaseLifecycleExecutionCase', 'shortRetentionExecutionCase', 'specialLifecycleExecutionCase']);
+  assert.deepEqual(Object.keys(fixtures).sort(), ['immediateLifecycleExecutionCase', 'immutableRetentionExecutionCase', 'lifecycleGraphExecutionCase', 'lifecycleGraphVariants', 'lifecycleNegativeExecutionCase', 'lifecycleReadinessExecutionCase', 'longRetentionExecutionCase', 'provenanceChildDispositionExecutionCase', 'rawDeadlineExecutionCase', 'releaseLifecycleExecutionCase', 'shortRetentionExecutionCase', 'specialLifecycleExecutionCase']);
   const original = make('RC-FAILED-RUN', 'at'), current = make('RC-SECURITY-AUDIT', 'at');
   for (const classId of ['RC-AUTHORITATIVE-ARTIFACT', 'RC-CORPUS-RAW-WORKING', 'RC-REBUILDABLE'])
     assert.throws(() => createLifecycleReadinessVerifier(jcs({ ...JSON.parse(original.configBytes), recordClass: classId })), /CONFIGURATION_INVALID/);
@@ -118,5 +118,5 @@ test('0112: existing mapped observations remain byte-for-byte stable while eight
   assert.deepEqual(report.families['LIFECYCLE-GRAPH'], { required: 64, executed: 52, passed: 52, failed: 0, uncovered: 12 });
   assert.equal(report.families.MIGRATION.executed, 0);
   for (const flag of ['completeCoverage', 'normativeAcceptanceComplete', 'independentAcceptance', 'executionAuthorized', 'liveProviderUsed']) assert.equal(report[flag], false);
-  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0116/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
+  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0117/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
 });

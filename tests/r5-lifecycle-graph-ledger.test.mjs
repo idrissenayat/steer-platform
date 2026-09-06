@@ -56,7 +56,7 @@ test('0107: malformed event semantics can carry genuine signatures and rebuilt h
 });
 
 test('0107: every copy and the tombstone require complete action, human and provider proofs with zero effects', () => {
-  assert.deepEqual(Object.keys(fixtures).sort(), ['immediateLifecycleExecutionCase', 'immutableRetentionExecutionCase', 'lifecycleGraphExecutionCase', 'lifecycleGraphVariants', 'lifecycleNegativeExecutionCase', 'lifecycleReadinessExecutionCase', 'longRetentionExecutionCase', 'rawDeadlineExecutionCase', 'releaseLifecycleExecutionCase', 'shortRetentionExecutionCase', 'specialLifecycleExecutionCase']);
+  assert.deepEqual(Object.keys(fixtures).sort(), ['immediateLifecycleExecutionCase', 'immutableRetentionExecutionCase', 'lifecycleGraphExecutionCase', 'lifecycleGraphVariants', 'lifecycleNegativeExecutionCase', 'lifecycleReadinessExecutionCase', 'longRetentionExecutionCase', 'provenanceChildDispositionExecutionCase', 'rawDeadlineExecutionCase', 'releaseLifecycleExecutionCase', 'shortRetentionExecutionCase', 'specialLifecycleExecutionCase']);
   assert.throws(() => fixtures.lifecycleGraphExecutionCase('arbitrary'), /UNKNOWN_LIFECYCLE_GRAPH_VARIANT/);
   const variants = fixtures.lifecycleGraphVariants(); assert.equal(variants[0], 'positive'); assert.equal(new Set(variants).size, variants.length);
   for (const label of ['copy-1', 'copy-2', 'tombstone']) assert.equal(variants.filter((kind) => kind.startsWith(`omit:${label}:`)).length, 10);
@@ -74,5 +74,5 @@ test('0107: all nine R5 IDs execute once without closing the five findings or cr
   assert.equal(row.observationCount, fixtures.lifecycleGraphVariants().length + 3); assert.equal(row.status, 'passed');
   assert.equal(report.families['LIFECYCLE-GRAPH'].executed, 52); assert.equal(report.families.MIGRATION.executed, 0);
   for (const flag of ['completeCoverage', 'normativeAcceptanceComplete', 'independentAcceptance', 'executionAuthorized', 'liveProviderUsed']) assert.equal(report[flag], false);
-  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0116/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
+  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0117/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
 });

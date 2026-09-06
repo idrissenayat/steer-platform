@@ -233,6 +233,7 @@ function fixture(options = {}) {
     ...(provenance ? { derivedInventoryBytes: jcs(derived) } : {}) };
   const tupleDigest = sha256(jcs(copies));
   function human(label, selected, conditions, method, isRaw, second) {
+    if (options.proofNamespace) label = `${options.proofNamespace}:${label}`;
     const bundle = makeHumanAuthorityBundle(), prior = JSON.parse(bundle.authorityBytes);
     const humanInventory = seal({ inventoryId: `human-inventory-${label}`, organization: scope.organization, tenant: scope.tenant, item: scope.item,
       items: selected.map((copy) => ({ copyId: copy.copyId, provider: copy.provider, objectDigest: sha256(jcs(copy)) })),
@@ -274,6 +275,7 @@ function fixture(options = {}) {
     ...(options.qualifiedDecisions ? { qualifiedDecisionBytes: graph.qualifiedDecisionBytes } : {}), ...(options.archivedOwners ? { archivedOwnerBytes } : {}) }));
   const plannedRequests = new Map();
   function action(label, grant, authority, second) {
+    const id = options.proofNamespace ? `${options.proofNamespace}:${label}` : label;
     const recoveringCopy = continuation && label !== 'tombstone';
     const replayed = label === 'tombstone' ? (options.tombstoneReplay ?? options.replay) : recoveringCopy ? completedCopies.includes(label) : (options.replayCopies ? options.replayCopies.includes(label) : options.replay);
     const firstCompleted = chained ? options.checkpoints.findIndex((ids) => ids.includes(label)) : -1;
@@ -282,14 +284,14 @@ function fixture(options = {}) {
       manifestDigest: options.referenceRuntime ? referenceActionManifestDigest : manifestDigest, trustRegistryBytes: trustedRegistryBytes, target: structuredClone(target), scope: structuredClone(scope), grants: [structuredClone(grant)] };
     edit(`${label}:context`, context);
     const contextDigest = sha256(jcs(context)), definition = JSON.parse(options.referenceRuntime ? referenceActionManifestBytes : manifestBytes).actions.find((entry) => entry.action === grant.action);
-    const operation = { requestId: `request-${label}`, grantId: grant.grantId, idempotencyKey: `idem-${label}`, casHead: 'a'.repeat(64), requestedAt: at(second) };
+    const operation = { requestId: `request-${id}`, grantId: grant.grantId, idempotencyKey: `idem-${id}`, casHead: 'a'.repeat(64), requestedAt: at(second) };
     edit(`${label}:operation`, operation);
     const operationDigest = sha256(jcs({ contextDigest, operation })), records = {};
     const emit = (kind, values, domain, recordedAt = at(second - 4)) => records[kind] = (kind === 'resources' && options.oldProviderResources?.includes(label) ? originalSeal : seal)(edit(`${label}:${kind}`, { kind, contextDigest, operationDigest, recordedAt, validThrough: until, ...values }), domain);
     const selectorsDigest = sha256(jcs({ scope, target, grant }));
-    const up = emit('upstream', { credentialId: `up-${label}`, principal: definition.upstreamPrincipal, subject: grant.upstreamSubject, provider: 'steer-identity', action: definition.upstreamAction,
+    const up = emit('upstream', { credentialId: `up-${id}`, principal: definition.upstreamPrincipal, subject: grant.upstreamSubject, provider: 'steer-identity', action: definition.upstreamAction,
       oneUse: true, lastUsedAt: at(second - 1), selectorsDigest }, 'upstream');
-    const down = emit('downstream', { credentialId: `down-${label}`, principal: definition.principal, subject: grant.actorSubject, provider: grant.provider, action: grant.action,
+    const down = emit('downstream', { credentialId: `down-${id}`, principal: definition.principal, subject: grant.actorSubject, provider: grant.provider, action: grant.action,
       oneUse: true, lastUsedAt: at(second - 1), selectorsDigest }, 'downstream');
     const delegation = emit('delegation', { delegationId: `delegation-${label}`, issuerPrincipal: up.principal, issuerSubject: up.subject, recipientPrincipal: down.principal, recipientSubject: down.subject,
       upstreamDigest: up.recordDigest, downstreamDigest: down.recordDigest }, 'delegation', at(second - 3));
@@ -301,12 +303,12 @@ function fixture(options = {}) {
       assignmentDigest: assignment.recordDigest, authorityDigest: auth.recordDigest, resourcesDigest: resources.recordDigest }, 'record', at(second));
     plannedRequests.set(label, structuredClone(request));
     const receipt = (options.oldProviderReceipts?.includes(label) ? originalSeal : seal)(edit(`${label}:receipt`, { kind: 'receipt', configDigest, contextDigest, inputDigest: baseDigest, requestDigest: request.recordDigest,
-      resourcesDigest: sha256(jcs(grant.resources)), authorityDigest: authority.recordDigest, action: grant.action, transactionId: `transaction-${label}`,
+      resourcesDigest: sha256(jcs(grant.resources)), authorityDigest: authority.recordDigest, action: grant.action, transactionId: `transaction-${id}`,
       effect: grant.action === 'lifecycle.crypto-erase' ? 'crypto-erased' : grant.action === 'lifecycle.commit-tombstone' ? 'tombstone-committed' : 'deleted', status: 'terminal-success', recordedAt: at(second + receiptDelay) }), grant.resourceDomain);
-    const replay = emit('replay', { ledgerId: `replay-${label}`, source: 'authoritative-replay-store', requestDigest: request.recordDigest, idempotencyKey: operation.idempotencyKey,
-      status: replayed ? 'committed' : 'unused', resultDigest: replayed ? receipt.recordDigest : null, headId: `head-${label}` }, 'replay-authority', at(second + (recoveringCopy ? (replayed ? 8 : 10) + recoveryShift : replayed ? 5 : 1)));
-    const head = emit('head', { headId: `head-${label}`, source: 'authoritative-cas-store', requestDigest: request.recordDigest, head: operation.casHead, previousHead: '9'.repeat(64), sequence: 4 }, 'cas-authority', at(second + (recoveringCopy ? (replayed ? 8 : 10) + recoveryShift : 1)));
-    emit('reservation', { reservationId: `reserve-${label}`, source: 'authoritative-cas-store', requestDigest: request.recordDigest, headId: head.headId,
+    const replay = emit('replay', { ledgerId: `replay-${id}`, source: 'authoritative-replay-store', requestDigest: request.recordDigest, idempotencyKey: operation.idempotencyKey,
+      status: replayed ? 'committed' : 'unused', resultDigest: replayed ? receipt.recordDigest : null, headId: `head-${id}` }, 'replay-authority', at(second + (recoveringCopy ? (replayed ? 8 : 10) + recoveryShift : replayed ? 5 : 1)));
+    const head = emit('head', { headId: `head-${id}`, source: 'authoritative-cas-store', requestDigest: request.recordDigest, head: operation.casHead, previousHead: '9'.repeat(64), sequence: 4 }, 'cas-authority', at(second + (recoveringCopy ? (replayed ? 8 : 10) + recoveryShift : 1)));
+    emit('reservation', { reservationId: `reserve-${id}`, source: 'authoritative-cas-store', requestDigest: request.recordDigest, headId: head.headId,
       headDigest: head.recordDigest, replayDigest: replay.recordDigest, expectedHead: head.head, idempotencyKey: operation.idempotencyKey, winner: !replayed,
       status: replayed ? 'already-committed' : 'reserved' }, 'cas-authority', at(second + (recoveringCopy ? (replayed ? 9 : 10) + recoveryShift : replayed ? 6 : 2)));
     const bundle = { version: 'steer-protected-action-bundle/v1', contextDigest, ...Object.fromEntries(Object.entries(records).map(([kind, record]) => [`${kind}Bytes`, jcs(record)])) };
@@ -743,4 +745,19 @@ export function releaseLifecycleExecutionCase(point, variant = 'positive') {
   const bytes = jcs(head);
   return { configBytes: value.configBytes, runtimeBytes: value.runtimeBytes, verifier, fullVerifier, point, variant, boundaryAt, head, bytes, evaluationTime,
     input: jcs({ configBytes: value.configBytes, runtimeBytes: value.runtimeBytes, bytes, evaluatedAt: evaluationTime }) };
+}
+
+export function provenanceChildDispositionExecutionCase(index, variant = 'positive') {
+  if (![1, 2].includes(index) || !['positive', 'replay', 'missing-receipt', 'partial-receipt', 'wrong-copy', 'shared-objects', 'shared-credentials'].includes(variant)) throw new Error('UNKNOWN_PROVENANCE_CHILD_CASE');
+  const options = { fixtureEpoch: Date.parse('2026-09-04T11:59:54Z'), recordClass: index === 1 ? 'RC-CORPUS-DERIVED-TEXT' : 'RC-CORPUS-EXPORT',
+    eventType: index === 1 ? 'run-terminal' : 'export-completed', triggerSecond: -100, history: [{ type: 'originator-draft-saved', second: -200 }],
+    tickNanoseconds: 100000000, horizon: 1500, evaluationTime: '2026-09-04T12:00:02Z', replay: variant === 'replay', proofNamespace: variant === 'shared-credentials' ? 'shared' : `child-${index}`, edits: {
+      config: record => { record.recordId = `derived-00${index}`; record.artifactRevision = String(index).repeat(40); },
+      copies: copies => { for (const copy of copies) copy.objectKey = `${variant === 'shared-objects' ? 'shared' : `derived-${index}`}/${copy.objectKey}`; },
+      state: record => { record.parentExpiryAt = '2026-09-04T11:59:54Z'; },
+      'copy-1:receipt': record => { if (variant === 'partial-receipt') record.status = 'partial'; },
+      graph: graph => { if (variant === 'missing-receipt') graph.copies[0].receiptBytes = '';
+        if (variant === 'wrong-copy') { const inventory = JSON.parse(graph.inventoryBytes); inventory.copies[0].objectKey = 'other-object'; graph.inventoryBytes = jcs(originalSeal(inventory, 'provider')); } },
+    } };
+  return fixture(options);
 }

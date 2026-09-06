@@ -27,6 +27,10 @@ two omitted-action reproductions through the complete shared permission stack.
 `intent/0114` maps four raw-corpus coordinates using the signed maximum receipt deadline, not a minimum wait; exact deadline and signed +1ns/+1s late controls are paired.
 `intent/0115` maps four rebuildable coordinates with a distinct immediate read-only profile, available pre-trigger history and unchanged full disposition controls.
 `intent/0116` maps four release-record coordinates through a release-only current-v6 profile with exact environment/retirement selection and archived release-rails proof.
+`intent/0117` adds a separate original-era derived-child evidence verifier: actual
+aggregate bytes, complete child graphs and exact parent deletion-event binding.
+It resolves a component prerequisite only, without a new catalog hook or case credit.
+Complete parent manifest/history and fresh future archive composition remain open.
 Full snapshot: 4,036 required IDs, 409 passed, 3,627 unmapped. Quick explicitly
 leaves the 16 heavy cases unexecuted (393 passed / 3,643 uncovered). The require-complete command
 exits 2 and explains its deferred-full preflight; GAP-01 is not complete. Some hooks intentionally

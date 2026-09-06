@@ -2248,3 +2248,29 @@ receipt-digest-only limitation must be resolved before claiming complete disposi
 All five formal findings, normative/live work, GAP-01–06, independent/protected
 review and M1–M8 remain open. No protected edit, provider operation, deletion,
 signature, release, deployment or spending is authorized. The loop remains active.
+
+## Completed development increment: 0117 — retained derived-child evidence
+
+A fact-only original-era component now verifies actual aggregate receipt bytes
+and full child disposition graphs against their exact parent deletion events.
+It checks each copy, human authority, protected action, provider receipt and final
+tombstone, and requires tombstone completion before the named parent event.
+Signed wrong parent/class/source/chronology denies. Missing/digest-only/partial/
+borrowed evidence denies, as does sharing physical objects or one-use credentials
+across otherwise independently valid child graphs.
+
+Eight new groups and eight prior release-profile groups pass. Repository checks
+pass 411 root controls, 88 prototype tests, 95 kit artifacts, security/typecheck/
+build checks; unchanged package tasks are cached. The separate three-group full
+integration run passes. All 393 quick and 409 full prior mapped observation seals,
+counts and outcomes are unchanged. Fresh reports remain quick 393 passed / 3,643
+uncovered and full 409 passed / 3,627 uncovered, both zero failures.
+
+This component has no ledger hook and adds no case credit. See intent/0117/EVIDENCE.md
+and PLAN.md. Next is complete parent manifest/history binding and fresh future
+archive revalidation of these exact child evidence bytes before admitting a future
+provenance profile. The component cannot turn original-era proof into future trust.
+Twelve lifecycle, 3,614 migration and one schema coordinate remain unmapped. All
+five formal R5 findings, normative/live integration and independent/protected
+review remain open. No provider operation, actual deletion, gate signature,
+release, deployment or spending is authorized. The implementation loop stays active.

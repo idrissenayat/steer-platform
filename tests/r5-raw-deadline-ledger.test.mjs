@@ -77,7 +77,7 @@ test('0114: closed selectors execute four source coordinates with paired deadlin
     assert.equal(count, row.coordinate.boundary === 'complete' ? 13 : 16); assert.throws(() => hook.run(() => { throw new Error('ASSERTION_FAILED'); }), /ASSERTION_FAILED/);
   }
   assert.throws(() => make('terminal'), /UNKNOWN_RAW_DEADLINE_CASE/); assert.throws(() => make('at', 'caller-mutation'), /UNKNOWN_RAW_DEADLINE_CASE/);
-  assert.deepEqual(Object.keys(fixtures).sort(), ['immediateLifecycleExecutionCase', 'immutableRetentionExecutionCase', 'lifecycleGraphExecutionCase', 'lifecycleGraphVariants', 'lifecycleNegativeExecutionCase', 'lifecycleReadinessExecutionCase', 'longRetentionExecutionCase', 'rawDeadlineExecutionCase', 'releaseLifecycleExecutionCase', 'shortRetentionExecutionCase', 'specialLifecycleExecutionCase']);
+  assert.deepEqual(Object.keys(fixtures).sort(), ['immediateLifecycleExecutionCase', 'immutableRetentionExecutionCase', 'lifecycleGraphExecutionCase', 'lifecycleGraphVariants', 'lifecycleNegativeExecutionCase', 'lifecycleReadinessExecutionCase', 'longRetentionExecutionCase', 'provenanceChildDispositionExecutionCase', 'rawDeadlineExecutionCase', 'releaseLifecycleExecutionCase', 'shortRetentionExecutionCase', 'specialLifecycleExecutionCase']);
 });
 
 test('0114: fresh report maps four raw deadline coordinates while preserving all previous observation seals and formal boundaries', () => {
@@ -88,5 +88,5 @@ test('0114: fresh report maps four raw deadline coordinates while preserving all
   for (const old of prior.executions) { const row = current.get(old.id); for (const field of ['observationsDigest', 'observationCount', 'status']) assert.equal(row[field], old[field], `${old.id}:${field}`); }
   for (const flag of ['completeCoverage', 'normativeAcceptanceComplete', 'independentAcceptance', 'executionAuthorized', 'liveProviderUsed']) assert.equal(report[flag], false);
   assert.equal(report.families.MIGRATION.executed, 0);
-  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0116/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
+  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0117/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
 });
