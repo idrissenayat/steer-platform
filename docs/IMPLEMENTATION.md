@@ -750,6 +750,14 @@ offline content contract, not live discovery or actual reference removal. Qualif
 revocation/event/completion and full lifecycle admission are next under
 `intent/0086/PLAN.md`; all five formal R5 findings remain open.
 
+Item `intent/0087` composes the full qualified reference owner with retained content
+and the exact current event. Approval follows verified retention; the reservation
+precedes commitment. Every exact reference then requires a current signed removal
+receipt and independently completed cleared state. Full checks pass with 227 root
+controls and 88 prototype tests. No removal is performed by the verifier, and no
+erasure grant is emitted. Full lifecycle/history/copy/tombstone admission is next
+under `intent/0087/PLAN.md`; all five formal R5 findings remain open.
+
 ## Local commands
 
 ```sh

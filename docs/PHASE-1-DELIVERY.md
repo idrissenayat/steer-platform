@@ -1547,3 +1547,22 @@ then full history/state/copy/tombstone composition under intent/0086/PLAN.md.
 The current runtime still excludes referenced-evidence disposition. No real owner
 signature, reference mutation, erasure, provider access, deployment or spending is
 authorized. All five formal R5 findings remain open.
+
+## Completed development increment: 0087 — qualified reference revocation evidence
+
+The reference verifier now consumes complete retained content, all nine qualified
+owner proofs and the actual typed event with independent provider binding. Exact
+actor/hat, selector, content/tombstone identities and approval-before-commit timing
+are enforced. Authorization is followed by exact per-reference removal receipts
+and independent cleared-state completion; missing or partial removal denies.
+
+Seven new groups and full checks pass: 14 reference test groups, 227 root controls
+and 88 prototype tests. See intent/0087/EVIDENCE.md for synthetic/cached boundaries.
+No reference was actually removed or owner signature created; all outputs remain
+fact-only with zero effects and separate current action authority required.
+
+Next is full referenced-evidence lifecycle admission under intent/0087/PLAN.md:
+exact history/state/completion binding, retention and holds, complete copy/version
+inventory, separately authorized tombstone and cross-decision replay guards.
+All five R5 findings remain open; no protected edit, signature, provider mutation,
+release, deployment or spending is authorized.
