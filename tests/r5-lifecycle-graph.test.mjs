@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createHash, createPrivateKey, sign } from 'node:crypto';
+import { createHash, createPrivateKey, createPublicKey, sign } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { createLifecycleGraphVerifier, lifecycleBoundary, policyDigest } from '../intent/0061/lifecycle-graph.candidate.mjs';
+import { createLifecycleGraphVerifier, createCurrentLifecycleGraphVerifier, lifecycleBoundary, policyDigest } from '../intent/0061/lifecycle-graph.candidate.mjs';
 import { humanAuthorityBindingDigest } from '../intent/0058/human-authority.candidate.mjs';
 import { manifestBytes, manifestDigest } from '../intent/0060/protected-actions.candidate.mjs';
 import { exactInstant, formatExactInstant } from '../intent/0069/exact-time.candidate.mjs';
@@ -11,6 +11,7 @@ import { policyDigest as rawBatchPolicy } from '../intent/0074/raw-batch.candida
 import { policyDigest as checkpointPolicy } from '../intent/0075/raw-checkpoint.candidate.mjs';
 import { policyDigest as chainPolicy } from '../intent/0076/raw-checkpoint-chain.candidate.mjs';
 import { createRawTerminalVerifier, policyDigest as terminalPolicy } from '../intent/0077/raw-terminal.candidate.mjs';
+import { policyDigest as historicalPolicy } from '../intent/0078/historical-events.candidate.mjs';
 import { makeHumanAuthorityBundle, makeLifecycleEventBytes, makeLifecycleGraph } from '../intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs';
 import { lifecycleGraphDecision as frozen } from '../intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs';
 import { jcs, sha256, TRUST_REGISTRY, TARGET_REVISION, TARGET_EXAM_SHA, AUTHORIZATION_POLICY_PATH, AUTHORIZATION_POLICY_SHA, AUTHORIZATION_POLICY_BYTES, RETENTION_POLICY_SHA, zeroEffects } from '../intent/0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
@@ -52,13 +53,27 @@ function seal(input, domain) {
   const payload = Object.fromEntries(Object.entries(input).filter(([key]) => !['recordDigest', 'signature'].includes(key))), digest = sha256(jcs(payload));
   return { ...payload, recordDigest: digest, signature: { algorithm: 'Ed25519', keyId: `${domain}-key-v1`, signedDigest: digest, valueBase64: sign(null, Buffer.from(digest), keys.get(domain)).toString('base64') } };
 }
+const originalSeal = seal;
+const runtimeKeys = new Map();
+function runtimeKey(domain) {
+  if (!runtimeKeys.has(domain)) runtimeKeys.set(domain, createPrivateKey({ key: Buffer.concat([Buffer.from('302e020100300506032b657004220420', 'hex'),
+    createHash('sha256').update(`steer-0080-${domain}`).digest()]), format: 'der', type: 'pkcs8' }));
+  return runtimeKeys.get(domain);
+}
+function runtimeSeal(input, domain) {
+  const payload = Object.fromEntries(Object.entries(input).filter(([key]) => !['recordDigest', 'signature'].includes(key))), digest = sha256(jcs(payload));
+  return { ...payload, recordDigest: digest, signature: { algorithm: 'Ed25519', keyId: `${domain}-key-current`, signedDigest: digest,
+    valueBase64: sign(null, Buffer.from(digest), runtimeKey(domain)).toString('base64') } };
+}
 const scope = { organization: 'steer-platform', tenant: 'steer-platform', repositoryId: 'steer-platform', installationId: 'fixture-installation', item: '0001-flight-deck-foundation' };
 const target = { examRevision: TARGET_REVISION, examDigest: TARGET_EXAM_SHA, implementationRevision: 'e'.repeat(40), authorizationPolicyPath: AUTHORIZATION_POLICY_PATH,
   authorizationPolicyRevision: TARGET_REVISION, authorizationPolicyDigest: AUTHORIZATION_POLICY_SHA, authorizationPolicyBytes: AUTHORIZATION_POLICY_BYTES };
 
 // All keys and signing helpers are synthetic and private to this test file.
 function fixture(options = {}) {
-  const at = (seconds) => formatExactInstant(BigInt(epoch) * 1000000n + BigInt(seconds) * BigInt(options.tickNanoseconds ?? 1000000000) + BigInt(options.nanoseconds ?? 0));
+  const currentEpoch = options.runtimeYear ? Date.parse(options.runtimeEpoch ?? `${options.runtimeYear}-09-04T12:00:00Z`) : epoch;
+  const at = (seconds) => formatExactInstant(BigInt(currentEpoch) * 1000000n + BigInt(seconds) * BigInt(options.tickNanoseconds ?? 1000000000) + BigInt(options.nanoseconds ?? 0));
+  const seal = options.runtimeYear ? runtimeSeal : originalSeal;
   const chained = Array.isArray(options.checkpoints), lastStep = chained ? Math.max(0, options.checkpoints.length - 1) : 0, recoveryShift = 8 * lastStep;
   const completedCopies = chained ? options.checkpoints.at(-1) ?? [] : options.continueCopies;
   const evaluatedAt = options.evaluationTime ?? at(50 + recoveryShift), until = at(options.horizon ?? 150 + recoveryShift), offset = options.offset ?? 0;
@@ -72,20 +87,54 @@ function fixture(options = {}) {
   const type = options.eventType ?? (raw ? 'corpus-sanitization-terminal' : 'record-superseded');
   function event(eventType, index, second) {
     const value = { ...JSON.parse(makeLifecycleEventBytes(eventType, index)), recordId: config.recordId, recordClass: config.recordClass, artifactRevision: config.artifactRevision,
-      policySha256: RETENTION_POLICY_SHA, occurredAt: at(second), ...(eventType === 'corpus-sanitization-terminal' ? { result: 'pass', sanitizerRevision: 'sanitizer-v1', inspectionRevision: 'inspector-v1' } : {}),
+      policySha256: RETENTION_POLICY_SHA, occurredAt: options.runtimeYear ? formatExactInstant(BigInt(epoch) * 1000000n + BigInt(second) * 1000000000n) : at(second), ...(eventType === 'corpus-sanitization-terminal' ? { result: 'pass', sanitizerRevision: 'sanitizer-v1', inspectionRevision: 'inspector-v1' } : {}),
       ...(eventType === 'run-terminal' ? { terminalStatus: 'failed' } : {}),
       ...(eventType === 'derived-record-deleted' ? { derivedRecordId: `derived-${String(index).padStart(3, '0')}`, derivedRecordClass: 'RC-CORPUS-DERIVED-TEXT', parentCorpusId: 'corpusId-value', parentCorpusVersion: 'corpusVersion-value' } : {}) };
     edit(`event-${index}`, value);
     const payload = Object.fromEntries(Object.entries(value).filter(([key]) => !['providerProofBytes', 'providerProofDigest', 'recordDigest', 'signature'].includes(key)));
-    const proof = seal(edit(`event-proof-${index}`, { providerRecordId: value.providerRecordId, eventId: value.eventId, eventBindingDigest: sha256(jcs(payload)), recordedAt: value.occurredAt }), 'provider');
+    const proof = originalSeal(edit(`event-proof-${index}`, { providerRecordId: value.providerRecordId, eventId: value.eventId, eventBindingDigest: sha256(jcs(payload)), recordedAt: value.occurredAt }), 'provider');
     edit(`signed-event-proof-${index}`, proof);
-    return jcs(seal({ ...value, providerProofBytes: jcs(proof), providerProofDigest: proof.recordDigest }, 'record'));
+    return jcs(originalSeal({ ...value, providerProofBytes: jcs(proof), providerProofDigest: proof.recordDigest }, 'record'));
   }
   const history = options.history ?? [{ type: options.historyType ?? 'record-committed', second: -10 }];
   const historyBytes = history.map((entry, index) => event(entry.type, index + 1, entry.second));
   const eventBytes = event(type, history.length + 1, 0);
   // Explicit test expectation, not a call back into the verifier's selector.
   const trigger = JSON.parse(options.triggerHistoryIndex === undefined ? eventBytes : historyBytes[options.triggerHistoryIndex]);
+  let runtimeBytes, historicalEvidenceBytes, trustedRegistryBytes = jcs(TRUST_REGISTRY);
+  if (options.runtimeYear) {
+    const registry = structuredClone(TRUST_REGISTRY);
+    for (const key of TRUST_REGISTRY.bindings) registry.bindings.push({ ...key, keyId: `${key.domain}-key-current`,
+      publicKeyHex: createPublicKey(runtimeKey(key.domain)).export({ format: 'der', type: 'spki' }).subarray(-32).toString('hex'),
+      notBefore: `${options.runtimeYear}-01-01T00:00:00Z`, notAfter: `${options.runtimeYear + 1}-01-01T00:00:00Z`, revokedAt: null });
+    edit('runtime-registry', registry); trustedRegistryBytes = jcs(registry);
+    const providers = JSON.parse(readFileSync(new URL('../intent/0001/reviews/domain/round-3/remediation/PROVIDER-KEY-REGISTRY.candidate.json', import.meta.url), 'utf8'));
+    for (const binding of providers.bindings) {
+      const key = registry.bindings.find((entry) => entry.keyId === `${binding.domain}-key-current`);
+      for (const field of ['keyId', 'algorithm', 'publicKeyHex', 'notBefore', 'notAfter', 'revokedAt']) binding[field] = key[field];
+    }
+    edit('runtime-providers', providers);
+    const allBytes = [...historyBytes, eventBytes], historyDigest = sha256(jcs(allBytes));
+    const archive = edit('historical-context', { version: 'steer-historical-event-context/v1', scope: { organization: scope.organization, itemId: scope.item, environmentId: config.environmentId },
+      recordId: config.recordId, recordClass: config.recordClass, artifactRevision: config.artifactRevision,
+      archiveReference: { repositoryId: config.repositoryId, revision: 'd'.repeat(40), path: 'evidence/history.json' }, historyDigest,
+      observedAt: '2026-09-04T12:00:50Z', currentRegistryBytes: trustedRegistryBytes });
+    const archiveBytes = jcs(archive), inventory = allBytes.map((bytes) => { const event = JSON.parse(bytes), provider = JSON.parse(event.providerProofBytes); return {
+      eventId: event.eventId, bytesDigest: sha256(bytes), recordDigest: event.recordDigest, providerBytesDigest: sha256(event.providerProofBytes), providerDigest: provider.recordDigest, occurredAt: event.occurredAt,
+    }; });
+    const common = { configDigest: sha256(archiveBytes), policyDigest: historicalPolicy, registryDigest: sha256(trustedRegistryBytes), historyDigest,
+      inventoryDigest: sha256(jcs(inventory)), archiveReference: archive.archiveReference, observedAt: archive.observedAt, recordCount: allBytes.length, validThrough: until };
+    const attestation = seal(edit('historical-attestation', { ...common, kind: 'historical-event-attestation', source: 'authoritative-history-revalidator',
+      decision: 'historical-facts-verified', recordedAt: at(-2) }), 'authority');
+    const receipt = seal(edit('historical-receipt', { ...common, kind: 'historical-event-retention', source: 'authoritative-archive-store',
+      attestationDigest: attestation.recordDigest, retainedBytesDigest: historyDigest, complete: true, recordedAt: at(-1) }), 'provider');
+    historicalEvidenceBytes = jcs(edit('historical-envelope', { version: 'steer-historical-events/v1', policyDigest: historicalPolicy, eventBytes, historyBytes,
+      attestationBytes: jcs(attestation), retentionReceiptBytes: jcs(receipt) }));
+    runtimeBytes = jcs(edit('runtime', { version: 'steer-lifecycle-runtime/v1', currentRegistryBytes: trustedRegistryBytes,
+      currentProviderRegistryBytes: jcs(providers), historicalContextBytes: archiveBytes }));
+  }
+  const selectedVerifier = runtimeBytes ? createCurrentLifecycleGraphVerifier(configBytes, runtimeBytes) : createLifecycleGraphVerifier(configBytes);
+  const policyDigest = selectedVerifier.policyDigest;
   const copies = (raw ? ['a', 'b', 'a'] : ['a', 'b']).map((suffix, index) => ({ copyId: `copy-${index + 1}`, copyKind: raw ? 'temporary-working' : 'replica', provider: `fixture-provider-${suffix}`,
     providerBindingId: `fixture-provider-${suffix}-binding`, account: `fixture-account-${suffix}`, objectKey: `object-${index}`, versionId: 'version-1', keyId: `key-${index}`, sourceOriginal: false }));
   edit('copies', copies);
@@ -104,7 +153,8 @@ function fixture(options = {}) {
   const state = seal(edit('state', { kind: 'state', configDigest, source: 'authoritative-lifecycle-store', inventoryDigest: inventory.recordDigest,
     historyDigest: sha256(jcs([...historyBytes, eventBytes])), historyComplete: true, holdState: 'none', referenceState: 'cleared', referenceRevocationDigest: null, parentExpiryAt: null, recordedAt: at(2), validThrough: until,
     ...(provenance ? { derivedInventoryDigest: derived.recordDigest } : {}) }), options.stateDomain ?? 'authority');
-  const graph = { version: chained ? 'steer-lifecycle-graph/raw-v4' : continuation ? 'steer-lifecycle-graph/raw-v3' : raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1', configDigest, policyDigest, eventBytes, historyBytes, inventoryBytes: jcs(inventory), stateBytes: jcs(state), referenceRevocationBytes: '', copies: [], aggregateBytes: '', tombstone: {},
+  const graph = { version: runtimeBytes ? 'steer-lifecycle-graph/current-v1' : chained ? 'steer-lifecycle-graph/raw-v4' : continuation ? 'steer-lifecycle-graph/raw-v3' : raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1', configDigest, policyDigest, eventBytes, historyBytes, inventoryBytes: jcs(inventory), stateBytes: jcs(state), referenceRevocationBytes: '', copies: [], aggregateBytes: '', tombstone: {},
+    ...(runtimeBytes ? { historicalEvidenceBytes } : {}),
     ...(provenance ? { derivedInventoryBytes: jcs(derived) } : {}) };
   const tupleDigest = sha256(jcs(copies));
   function human(label, selected, conditions, method, isRaw, second) {
@@ -113,9 +163,16 @@ function fixture(options = {}) {
       items: selected.map((copy) => ({ copyId: copy.copyId, provider: copy.provider, objectDigest: sha256(jcs(copy)) })),
       ...(isRaw ? { preparationDigest: preparation.recordDigest } : { lifecycleInventoryDigest: inventory.recordDigest }), tupleDigest, capturedAt: at(isRaw ? -19 : 2) }, 'record');
     const identity = seal({ ...JSON.parse(bundle.identityEvidenceBytes), verifiedAt: at(second - 1) }, 'provider');
+    if (runtimeBytes) {
+      bundle.qualificationEvidenceBytes = jcs(seal(JSON.parse(bundle.qualificationEvidenceBytes), 'provider'));
+      bundle.assignmentEvidenceBytes = jcs(seal(JSON.parse(bundle.assignmentEvidenceBytes), 'assignment'));
+    }
     let authority = edit(`${label}:human`, { ...prior, authorityId: `human-${label}`, authorityType: isRaw ? 'raw-policy-grant' : 'disposition-authorization',
       identityEvidenceDigest: identity.recordDigest, copyInventoryDigest: humanInventory.recordDigest, conditions, allowedCopyProviders: [...new Set(selected.map((copy) => copy.provider))].sort(),
       eraseMethod: method, terminalEventId: trigger.eventId, authenticatedAt: at(second - 1), decidedAt: at(second), idempotencyKey: `human-idem-${label}`, providerRecordId: `human-provider-${label}`,
+      ...(runtimeBytes ? { qualificationEvidenceDigest: JSON.parse(bundle.qualificationEvidenceBytes).recordDigest,
+        assignmentEvidenceDigest: JSON.parse(bundle.assignmentEvidenceBytes).recordDigest,
+        providerTrustAnchorDigest: sha256(JSON.parse(trustedRegistryBytes).bindings.find((key) => key.keyId === 'human-provider-key-current').publicKeyHex) } : {}),
       ...(isRaw ? { validFrom: at(-15), expiresAt: rawUntil } : {}) });
     const proof = seal({ ...JSON.parse(bundle.providerProofBytes), providerRecordId: authority.providerRecordId, authorityBindingDigest: humanAuthorityBindingDigest(authority), recordedAt: authority.decidedAt }, 'human-provider');
     authority = seal({ ...authority, providerProofDigest: proof.recordDigest }, 'authority');
@@ -138,20 +195,20 @@ function fixture(options = {}) {
       preparationBytes: jcs(preparation), humanBundleBytes: rawFull.bytes, rawGrantBytes: jcs(grant) }));
   }
   const baseDigest = sha256(jcs({ configDigest, policyDigest, eventBytes, historyBytes, inventoryBytes: graph.inventoryBytes, stateBytes: graph.stateBytes, referenceRevocationBytes: '',
-    ...(provenance ? { derivedInventoryBytes: graph.derivedInventoryBytes } : {}), ...(raw ? { rawGrantBindingDigest } : {}) }));
+    ...(provenance ? { derivedInventoryBytes: graph.derivedInventoryBytes } : {}), ...(raw ? { rawGrantBindingDigest } : {}), ...(runtimeBytes ? { historicalEvidenceBytes } : {}) }));
   const plannedRequests = new Map();
   function action(label, grant, authority, second) {
     const recoveringCopy = continuation && label !== 'tombstone';
     const replayed = label === 'tombstone' ? (options.tombstoneReplay ?? options.replay) : recoveringCopy ? completedCopies.includes(label) : (options.replayCopies ? options.replayCopies.includes(label) : options.replay);
     const firstCompleted = chained ? options.checkpoints.findIndex((ids) => ids.includes(label)) : -1;
     const receiptDelay = recoveringCopy ? (chained && firstCompleted >= 0 ? 4 + 8 * firstCompleted : replayed ? 4 : 11 + recoveryShift) : 4;
-    const context = { version: 'steer-protected-action-context/v1', manifestDigest, trustRegistryBytes: jcs(TRUST_REGISTRY), target: structuredClone(target), scope: structuredClone(scope), grants: [structuredClone(grant)] };
+    const context = { version: 'steer-protected-action-context/v1', manifestDigest, trustRegistryBytes: trustedRegistryBytes, target: structuredClone(target), scope: structuredClone(scope), grants: [structuredClone(grant)] };
     edit(`${label}:context`, context);
     const contextDigest = sha256(jcs(context)), definition = JSON.parse(manifestBytes).actions.find((entry) => entry.action === grant.action);
     const operation = { requestId: `request-${label}`, grantId: grant.grantId, idempotencyKey: `idem-${label}`, casHead: 'a'.repeat(64), requestedAt: at(second) };
     edit(`${label}:operation`, operation);
     const operationDigest = sha256(jcs({ contextDigest, operation })), records = {};
-    const emit = (kind, values, domain, recordedAt = at(second - 4)) => records[kind] = seal(edit(`${label}:${kind}`, { kind, contextDigest, operationDigest, recordedAt, validThrough: until, ...values }), domain);
+    const emit = (kind, values, domain, recordedAt = at(second - 4)) => records[kind] = (kind === 'resources' && options.oldProviderResources?.includes(label) ? originalSeal : seal)(edit(`${label}:${kind}`, { kind, contextDigest, operationDigest, recordedAt, validThrough: until, ...values }), domain);
     const selectorsDigest = sha256(jcs({ scope, target, grant }));
     const up = emit('upstream', { credentialId: `up-${label}`, principal: definition.upstreamPrincipal, subject: grant.upstreamSubject, provider: 'steer-identity', action: definition.upstreamAction,
       oneUse: true, lastUsedAt: at(second - 1), selectorsDigest }, 'upstream');
@@ -166,7 +223,7 @@ function fixture(options = {}) {
     const request = emit('request', { operation, upstreamDigest: up.recordDigest, downstreamDigest: down.recordDigest, delegationDigest: delegation.recordDigest,
       assignmentDigest: assignment.recordDigest, authorityDigest: auth.recordDigest, resourcesDigest: resources.recordDigest }, 'record', at(second));
     plannedRequests.set(label, structuredClone(request));
-    const receipt = seal(edit(`${label}:receipt`, { kind: 'receipt', configDigest, contextDigest, inputDigest: baseDigest, requestDigest: request.recordDigest,
+    const receipt = (options.oldProviderReceipts?.includes(label) ? originalSeal : seal)(edit(`${label}:receipt`, { kind: 'receipt', configDigest, contextDigest, inputDigest: baseDigest, requestDigest: request.recordDigest,
       resourcesDigest: sha256(jcs(grant.resources)), authorityDigest: authority.recordDigest, action: grant.action, transactionId: `transaction-${label}`,
       effect: grant.action === 'lifecycle.crypto-erase' ? 'crypto-erased' : grant.action === 'lifecycle.commit-tombstone' ? 'tombstone-committed' : 'deleted', status: 'terminal-success', recordedAt: at(second + receiptDelay) }), grant.resourceDomain);
     const replay = emit('replay', { ledgerId: `replay-${label}`, source: 'authoritative-replay-store', requestDigest: request.recordDigest, idempotencyKey: operation.idempotencyKey,
@@ -261,9 +318,9 @@ function fixture(options = {}) {
     provider: 'fixture-provider-a', resourceDomain: 'provider-a', resources: { objectId: config.recordId, recordClass: config.recordClass, inventoryDigest: inventory.recordDigest,
       tupleDigest, aggregateReceiptDigest: aggregate.recordDigest, path: config.tombstonePath }, authorityEvidenceDigest: full.authority.recordDigest, inputDigest: baseDigest };
   graph.tombstone = { humanBundleBytes: full.bytes, ...action('tombstone', grant, full.authority, (continuation ? 38 + recoveryShift : 35) + offset) };
-  edit('graph', graph); return { graph, config, configBytes, evaluationTime: evaluatedAt, bytes: jcs(graph), verifier: createLifecycleGraphVerifier(configBytes) };
+  edit('graph', graph); return { graph, config, configBytes, runtimeBytes, evaluationTime: evaluatedAt, bytes: jcs(graph), verifier: selectedVerifier };
 }
-const denied = (value, now = evaluation) => assert.deepEqual(value.verifier.verify(value.bytes, now), { state: 'blocked', firstError: 'LIFECYCLE_GRAPH_INVALID', effects: zeroEffects() });
+const denied = (value, now = evaluation) => assert.deepEqual(value.verifier.verify(value.bytes, now), { state: 'blocked', firstError: 'LIFECYCLE_GRAPH_INVALID', effects: zeroEffects(), ...(value.runtimeBytes ? { executionAuthorized: false } : {}) });
 
 test('composed lifecycle validates both providers, every copy and the separate tombstone, including exact replay', () => {
   for (const recordClass of ['RC-REBUILDABLE', 'RC-CORPUS-RAW-WORKING']) for (const replay of [false, true]) {
@@ -1070,6 +1127,101 @@ test('0077: malformed, forged, wrong-domain and oversized terminal evidence fail
     (input) => { input.graphBytes = ' '.repeat(16777217); },
   ]) terminalDenied(terminalFixture({ edits: { envelope: mutate } }));
   const value = terminalFixture(); terminalDenied({ ...value, terminalBytes: ' '.repeat(25165825) });
+});
+
+const futureCases = [
+  { runtimeYear: 2027, recordClass: 'RC-SECURITY-AUDIT', eventType: 'event-committed' },
+  { runtimeYear: 2029, recordClass: 'RC-CORPUS-BASELINE', eventType: 'corpus-retired' },
+  { runtimeYear: 2033, recordClass: 'RC-DECISION-PROOF', eventType: 'item-closed' },
+  { runtimeYear: 2033, recordClass: 'RC-LEGAL-SIGNED-LOG', eventType: 'item-closed' },
+];
+test('0080: full one-, three- and seven-year lifecycle evidence composes historical facts with current human/actions/providers', () => {
+  for (const options of futureCases) for (const replay of [false, true]) {
+    const value = fixture({ ...options, replay }), result = value.verifier.verify(value.bytes, value.evaluationTime);
+    assert.equal(result.state, 'validated-lifecycle-candidate', `${options.recordClass}/${replay}`);
+    assert.equal(result.boundaryAt, `${options.runtimeYear}-09-04T12:00:00Z`);
+    assert.equal(result.copyCount, 2); assert.equal(result.protectedActionCount, 3); assert.equal(result.replayCount, replay ? 3 : 0);
+    assert.equal(result.executionAuthorized, false); assert.deepEqual(result.effects, zeroEffects());
+    assert.equal(result.historicalEvidenceDigest, sha256(value.graph.historicalEvidenceBytes));
+    assert.equal(createLifecycleGraphVerifier(value.configBytes).verify(value.bytes, value.evaluationTime).state, 'blocked');
+  }
+});
+
+test('0080: exact retention boundary still schedules before expiry and cannot admit premature disposition', () => {
+  for (const options of futureCases) {
+    const before = fixture({ ...options, runtimeEpoch: `${options.runtimeYear}-09-04T11:59:00Z`,
+      evaluationTime: `${options.runtimeYear}-09-04T11:59:59.999999999Z` });
+    assert.equal(before.verifier.verify(before.bytes, before.evaluationTime).state, 'scheduled');
+    const exact = fixture({ ...options, runtimeEpoch: `${options.runtimeYear}-09-04T11:59:00Z`,
+      evaluationTime: `${options.runtimeYear}-09-04T12:00:00Z` });
+    denied(exact, exact.evaluationTime); // Existing receipts are before the boundary.
+    const premature = fixture({ ...options, edits: { 'copy-1:operation': (operation) => { operation.requestedAt = `${options.runtimeYear}-09-04T11:59:59.999999999Z`; } } });
+    denied(premature, premature.evaluationTime);
+  }
+});
+
+test('0080: every current copy and separate tombstone retains full human/action/receipt proof requirements', () => {
+  for (const label of ['copy-1', 'copy-2', 'tombstone']) {
+    for (const mutate of [
+      (entry) => { entry.humanBundleBytes = '{}'; }, (entry) => { entry.actionBundleBytes = '{}'; }, (entry) => { entry.receiptBytes = '{}'; },
+    ]) {
+      const value = fixture({ ...futureCases[2], edits: { graph: (graph) => { mutate(label === 'tombstone' ? graph.tombstone : graph.copies.find((entry) => entry.copyId === label)); } } });
+      denied(value, value.evaluationTime);
+    }
+    const value = fixture({ ...futureCases[2], edits: { [`${label}:reservation`]: (record) => { record.winner = false; } } }); denied(value, value.evaluationTime);
+  }
+  for (const [name, field, replacement] of [['inventory', 'complete', false], ['state', 'historyComplete', false], ['aggregate', 'allCopiesGone', false],
+    ['copy-1:resources', 'provider', 'other-provider'], ['copy-1:receipt', 'requestDigest', 'f'.repeat(64)], ['tombstone:human', 'conditions', []]]) {
+    const value = fixture({ ...futureCases[2], edits: { [name]: (record) => { record[field] = replacement; } } }); denied(value, value.evaluationTime);
+  }
+});
+
+test('0080: historical facts cannot suppress current holds, active references or expired current authority', () => {
+  for (const field of ['holdState', 'referenceState']) {
+    const value = fixture({ ...futureCases[2], edits: { state: (state) => { state[field] = 'active'; } } });
+    const result = value.verifier.verify(value.bytes, value.evaluationTime); assert.equal(result.state, 'retained-on-hold'); assert.deepEqual(result.effects, zeroEffects());
+  }
+  for (const name of ['copy-1:human', 'copy-2:human', 'tombstone:human']) {
+    const value = fixture({ ...futureCases[2], edits: { [name]: (authority) => { authority.expiresAt = '2033-09-04T12:00:50Z'; } } }); denied(value, value.evaluationTime);
+  }
+  const value = fixture(futureCases[2]); denied(value, '2033-09-04T12:02:30Z');
+});
+
+test('0080: archive byte/record/scope bindings and current witnesses are mandatory in the actual graph path', () => {
+  for (const [name, field, replacement] of [['historical-attestation', 'historyDigest', 'f'.repeat(64)], ['historical-receipt', 'complete', false],
+    ['historical-receipt', 'retainedBytesDigest', 'f'.repeat(64)], ['historical-envelope', 'historyBytes', []],
+    ['historical-attestation', 'validThrough', '2033-09-04T12:00:50Z']]) {
+    const value = fixture({ ...futureCases[2], edits: { [name]: (record) => { record[field] = replacement; } } }); denied(value, value.evaluationTime);
+  }
+  const value = fixture({ ...futureCases[2], edits: { graph: (graph) => { delete graph.historicalEvidenceBytes; } } }); denied(value, value.evaluationTime);
+  for (const domain of ['record', 'provider']) {
+    const revoked = fixture({ ...futureCases[2], edits: { 'runtime-registry': (registry) => {
+      registry.bindings.find((key) => key.keyId === `${domain}-key-v1`).revokedAt = '2028-01-01T00:00:00Z';
+    } } }); denied(revoked, revoked.evaluationTime);
+  }
+});
+
+test('0080: independently selected runtime cannot change provider identities, mismatch archives or extend old keys', () => {
+  for (const [field, replacement] of [['account', 'other'], ['provider', 'other'], ['tenant', 'other'], ['proofIssuer', 'other'], ['publicKeyHex', 'f'.repeat(64)]])
+    assert.throws(() => fixture({ ...futureCases[2], edits: { 'runtime-providers': (providers) => { providers.bindings[0][field] = replacement; } } }), /LIFECYCLE_RUNTIME_CONFIGURATION_INVALID/);
+  assert.throws(() => fixture({ ...futureCases[2], edits: { 'runtime-providers': (providers) => { providers.bindings.pop(); } } }), /LIFECYCLE_RUNTIME_CONFIGURATION_INVALID/);
+  assert.throws(() => fixture({ ...futureCases[2], edits: { 'runtime-registry': (registry) => { registry.bindings[0].notAfter = '2040-01-01T00:00:00Z'; } } }), /LIFECYCLE_RUNTIME_CONFIGURATION_INVALID/);
+  assert.throws(() => fixture({ ...futureCases[2], edits: { 'historical-context': (context) => { context.recordId = 'other'; } } }), /LIFECYCLE_CONFIGURATION_INVALID/);
+  assert.throws(() => fixture({ ...futureCases[2], edits: { runtime: (runtime) => { runtime.extra = true; } } }), /LIFECYCLE_RUNTIME_CONFIGURATION_INVALID/);
+  assert.throws(() => fixture({ runtimeYear: 2033, recordClass: 'RC-CORPUS-RAW-WORKING' }), /LIFECYCLE_CONFIGURATION_INVALID/);
+  assert.throws(() => fixture({ runtimeYear: 2029, recordClass: 'RC-REFERENCED-EVIDENCE', eventType: 'item-closed' }), /LIFECYCLE_CONFIGURATION_INVALID/);
+  const value = fixture({ ...futureCases[2], edits: { graph: (graph) => { graph.runtimeBytes = '{}'; } } }); denied(value, value.evaluationTime);
+});
+
+test('0080: exact selected provider keys and available-before-state archive proofs cannot be substituted', () => {
+  for (const label of ['copy-1', 'copy-2', 'tombstone']) for (const field of ['oldProviderResources', 'oldProviderReceipts']) {
+    const value = fixture({ ...futureCases[2], [field]: [label] }); denied(value, value.evaluationTime);
+  }
+  const late = fixture({ ...futureCases[2], edits: {
+    'historical-attestation': (record) => { record.recordedAt = '2033-09-04T12:00:20Z'; },
+    'historical-receipt': (record) => { record.recordedAt = '2033-09-04T12:00:21Z'; },
+  } }); denied(late, late.evaluationTime);
+  const release = fixture({ ...futureCases[2], edits: { state: (state) => { state.holdState = 'released'; } } }); denied(release, release.evaluationTime);
 });
 
 test('0068: provenance manifests are independently timed, closed, complete and exactly matched to every event', () => {

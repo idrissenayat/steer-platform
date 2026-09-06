@@ -12,6 +12,7 @@ import { createRawPreterminalVerifier, policyDigest as rawPolicyDigest } from '.
 import { verifyRawBatchEvidence, policyDigest as rawBatchPolicyDigest } from '../0074/raw-batch.candidate.mjs';
 import { verifyRawCheckpointEvidence } from '../0075/raw-checkpoint.candidate.mjs';
 import { verifyRawCheckpointChain, policyDigest as rawChainPolicyDigest } from '../0076/raw-checkpoint-chain.candidate.mjs';
+import { createLifecycleRuntime } from '../0080/lifecycle-runtime.candidate.mjs';
 const read = (name) => readFileSync(new URL(`../0001/reviews/domain/round-3/remediation/${name}`, import.meta.url), 'utf8').trimEnd();
 const registryBytes = jcs(JSON.parse(read('TRUST-REGISTRY.candidate.json'))), registry = parseCanonical(registryBytes);
 const providerBytes = read('PROVIDER-KEY-REGISTRY.candidate.json'), providers = JSON.parse(providerBytes).bindings;
@@ -26,6 +27,7 @@ const time = (value) => { const result = strictTime(value); requireValue(result 
 const equal = (a, b) => jcs(a) === jcs(b);
 const signed = ['recordDigest', 'signature'];
 const copyFields = ['copyId', 'copyKind', 'provider', 'providerBindingId', 'account', 'objectKey', 'versionId', 'keyId', 'sourceOriginal'];
+const originalDependencies = { registryBytes, registry, providers, timed, humanPolicy, policyDigest };
 
 export function lifecycleBoundary(triggerAt, duration, parentExpiryAt = null) {
   return exactRetentionBoundary(triggerAt, duration, parentExpiryAt);
@@ -34,6 +36,24 @@ export function lifecycleBoundary(triggerAt, duration, parentExpiryAt = null) {
 // Trusted reference selection is outside the request; never install this from a
 // tool argument. Policy/registry/Exam pins remain the frozen candidate pins.
 export function createLifecycleGraphVerifier(configBytes) {
+  return createComposedLifecycleVerifier(configBytes, null);
+}
+
+export function createCurrentLifecycleGraphVerifier(configBytes, trustedRuntimeBytes) {
+  const verifier = createComposedLifecycleVerifier(configBytes, createLifecycleRuntime(trustedRuntimeBytes));
+  return Object.freeze({ configDigest: verifier.configDigest, policyDigest: verifier.policyDigest,
+    verify(serialized, evaluationTime) { return { ...verifier.verify(serialized, evaluationTime), executionAuthorized: false }; },
+  });
+}
+
+function createComposedLifecycleVerifier(configBytes, runtime) {
+  const registryBytes = runtime?.registryBytes ?? originalDependencies.registryBytes;
+  const registry = runtime?.registry ?? originalDependencies.registry;
+  const providers = runtime?.providers ?? originalDependencies.providers;
+  const timed = runtime ? createTimedRecordVerifier(registryBytes) : originalDependencies.timed;
+  const humanPolicy = runtime?.human.policyDigest ?? originalDependencies.humanPolicy;
+  const policyDigest = runtime ? sha256(jcs({ version: 'steer-lifecycle-graph/current-v1', originalPolicyDigest: originalDependencies.policyDigest,
+    runtimePolicyDigest: runtime.policyDigest, runtimeConfigDigest: runtime.configDigest })) : originalDependencies.policyDigest;
   let config, row;
   try {
     requireValue(typeof configBytes === 'string' && configBytes.length <= 16384); config = parseCanonical(configBytes);
@@ -45,6 +65,9 @@ export function createLifecycleGraphVerifier(configBytes) {
       !config.tombstonePath.split('/').some((part) => ['', '.', '..'].includes(part)));
     row = table.classes.find((entry) => entry.classId === config.recordClass);
     requireValue(row && providers.some((binding) => binding.providerBindingId === config.tombstoneProviderBindingId) && table.policySha256 === RETENTION_POLICY_SHA);
+    if (runtime) requireValue(runtime.supportedClasses.includes(config.recordClass) &&
+      ['recordId', 'recordClass', 'artifactRevision', 'environmentId'].every((field) =>
+        config[field] === (field === 'environmentId' ? runtime.historicalContext.scope.environmentId : runtime.historicalContext[field])));
   } catch { throw new Error('LIFECYCLE_CONFIGURATION_INVALID'); }
   const configDigest = sha256(configBytes), raw = config.recordClass === 'RC-CORPUS-RAW-WORKING';
   const rawVerifier = raw ? createRawPreterminalVerifier(jcs({ version: 'steer-raw-preparation-context/v1', lifecycleConfigDigest: configDigest,
@@ -63,11 +86,19 @@ export function createLifecycleGraphVerifier(configBytes) {
         const provenance = config.recordClass === 'RC-CORPUS-PROVENANCE';
         const chained = raw && graph.version === 'steer-lifecycle-graph/raw-v4';
         const continuation = chained || raw && graph.version === 'steer-lifecycle-graph/raw-v3';
-        requireValue(exactKeys(graph, ['version', 'policyDigest', 'configDigest', 'eventBytes', 'historyBytes', 'inventoryBytes', 'stateBytes', 'referenceRevocationBytes', 'copies', 'aggregateBytes', 'tombstone', ...(provenance ? ['derivedInventoryBytes'] : []), ...(raw ? ['rawPolicyBytes', 'rawBatchBytes'] : []), ...(continuation ? ['continuationBytes'] : [])]) &&
-          (continuation || graph.version === (raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1')) && graph.policyDigest === policyDigest && graph.configDigest === configDigest);
-        const eventsResult = correctedLifecycleEventDecision(jcs({ version: 'steer-r5-001-events/v1', policyDigest: eventPolicy,
-          scope: { organization: scope.organization, itemId: scope.item, environmentId: config.environmentId }, eventBytes: graph.eventBytes, historyBytes: graph.historyBytes, evaluationTime }));
-        requireValue(eventsResult.state === 'validated-trigger');
+        requireValue(exactKeys(graph, ['version', 'policyDigest', 'configDigest', 'eventBytes', 'historyBytes', 'inventoryBytes', 'stateBytes', 'referenceRevocationBytes', 'copies', 'aggregateBytes', 'tombstone', ...(provenance ? ['derivedInventoryBytes'] : []), ...(raw ? ['rawPolicyBytes', 'rawBatchBytes'] : []), ...(continuation ? ['continuationBytes'] : []), ...(runtime ? ['historicalEvidenceBytes'] : [])]) &&
+          (continuation || graph.version === (runtime ? 'steer-lifecycle-graph/current-v1' : raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1')) && graph.policyDigest === policyDigest && graph.configDigest === configDigest);
+        if (runtime) {
+          requireValue(runtime.historicalContext.scope.organization === scope.organization && runtime.historicalContext.scope.itemId === scope.item);
+          const result = runtime.history.verify(graph.historicalEvidenceBytes, evaluationTime);
+          requireValue(result.state === 'verified-historical-events');
+          const archived = parseCanonical(graph.historicalEvidenceBytes);
+          requireValue(archived.eventBytes === graph.eventBytes && equal(archived.historyBytes, graph.historyBytes));
+        } else {
+          const eventsResult = correctedLifecycleEventDecision(jcs({ version: 'steer-r5-001-events/v1', policyDigest: eventPolicy,
+            scope: { organization: scope.organization, itemId: scope.item, environmentId: config.environmentId }, eventBytes: graph.eventBytes, historyBytes: graph.historyBytes, evaluationTime }));
+          requireValue(eventsResult.state === 'validated-trigger');
+        }
         const events = [...graph.historyBytes, graph.eventBytes].map(parseCanonical);
         requireValue(events.every((event) => event.recordId === config.recordId && event.recordClass === config.recordClass &&
           event.artifactRevision === config.artifactRevision && event.policySha256 === RETENTION_POLICY_SHA));
@@ -91,6 +122,10 @@ export function createLifecycleGraphVerifier(configBytes) {
         requireValue(state.kind === 'state' && state.source === 'authoritative-lifecycle-store' && state.inventoryDigest === inventory.recordDigest &&
           state.historyDigest === historyDigest && state.historyComplete === true && time(state.recordedAt) >= time(events.at(-1).occurredAt) &&
           time(state.recordedAt) >= time(inventory.recordedAt) && now - time(state.recordedAt) <= 300000000000n && now < time(state.validThrough));
+        if (runtime) {
+          const archived = parseCanonical(graph.historicalEvidenceBytes), retained = parseCanonical(archived.retentionReceiptBytes);
+          requireValue(time(retained.recordedAt) <= time(state.recordedAt));
+        }
         requireValue(['none', 'released', 'active'].includes(state.holdState) && ['cleared', 'active'].includes(state.referenceState));
         const holds = new Set();
         for (const event of events) {
@@ -98,6 +133,7 @@ export function createLifecycleGraphVerifier(configBytes) {
           if (event.eventType === 'hold-released') { requireValue(holds.has(event.holdId)); holds.delete(event.holdId); }
         }
         requireValue(holds.size === 0 || state.holdState === 'active');
+        if (runtime && state.holdState !== 'active') requireValue(state.holdState === (events.some((event) => event.eventType === 'hold-applied') ? 'released' : 'none'));
         const compound = { 'record-superseded-or-rebuild-requested': ['record-superseded', 'rebuild-requested'],
           'earlier-corpus-superseded-or-retired': ['corpus-version-superseded', 'corpus-retired'] };
         // 0068: the frozen table's item-closed surrogate contradicts the exact
@@ -162,7 +198,8 @@ export function createLifecycleGraphVerifier(configBytes) {
           rawAuthority = parseCanonical(parseCanonical(rawInput.humanBundleBytes).authorityBytes);
         }
         const baseDigest = sha256(jcs({ configDigest, policyDigest, eventBytes: graph.eventBytes, historyBytes: graph.historyBytes, inventoryBytes: graph.inventoryBytes, stateBytes: graph.stateBytes, referenceRevocationBytes: graph.referenceRevocationBytes,
-          ...(provenance ? { derivedInventoryBytes: graph.derivedInventoryBytes } : {}), ...(raw ? { rawGrantBindingDigest: rawEvidence.batchBindingDigest } : {}) }));
+          ...(provenance ? { derivedInventoryBytes: graph.derivedInventoryBytes } : {}), ...(raw ? { rawGrantBindingDigest: rawEvidence.batchBindingDigest } : {}),
+          ...(runtime ? { historicalEvidenceBytes: graph.historicalEvidenceBytes } : {}) }));
         const usedAuthorities = new Set(), usedRequests = new Set(), usedIdempotency = new Set(), transactions = new Set();
         const humanProofs = new Set(), humanReservations = new Set(), humanKeys = new Set(), humanHeads = new Set();
         const credentialIds = new Set(), reservationIds = new Set(), actionHeads = new Set();
@@ -180,7 +217,8 @@ export function createLifecycleGraphVerifier(configBytes) {
         };
         const human = (bytes, selected, conditions, method, authorityType) => {
           requireValue(typeof bytes === 'string' && bytes.length <= 1048576); const bundle = parseCanonical(bytes);
-          requireValue(bundle.evaluationTime === evaluationTime && correctedHumanAuthorityDecision(jcs({ version: 'steer-r5-002-human/v1', policyDigest: humanPolicy, bundleBytes: bytes })).decision === 'ALLOW');
+          const humanEnvelope = jcs({ version: 'steer-r5-002-human/v1', policyDigest: humanPolicy, bundleBytes: bytes });
+          requireValue(bundle.evaluationTime === evaluationTime && (runtime ? runtime.human.verify(humanEnvelope, evaluationTime) : correctedHumanAuthorityDecision(humanEnvelope)).decision === 'ALLOW');
           const authority = parseCanonical(bundle.authorityBytes), humanInventory = parseCanonical(bundle.inventoryBytes);
           requireValue(authority.terminalEventId === trigger.eventId && authority.authorityType === authorityType && authority.eraseMethod === method &&
             equal(authority.conditions, conditions) && equal(authority.safeguards, ['network-denied', 'encrypted', 'complete-inventory', 'provider-receipt']) &&
@@ -198,13 +236,14 @@ export function createLifecycleGraphVerifier(configBytes) {
           const context = actionContext(grant), result = createProtectedActionVerifier(jcs(context)).verify(entry.actionBundleBytes, evaluationTime);
           requireValue(['AUTHORIZED_CANDIDATE', 'REPLAY_NOOP'].includes(result.decision));
           const bundle = parseCanonical(entry.actionBundleBytes), request = parseCanonical(bundle.requestBytes), operation = request.operation;
+          requireValue(parseCanonical(bundle.resourcesBytes).signature.keyId === binding.keyId);
           for (const key of ['upstreamBytes', 'downstreamBytes']) unique(credentialIds, parseCanonical(bundle[key]).credentialId);
           unique(reservationIds, parseCanonical(bundle.reservationBytes).reservationId);
           const actionHead = parseCanonical(bundle.headBytes); unique(actionHeads, jcs([actionHead.headId, actionHead.head]));
           requireValue(!usedRequests.has(result.requestDigest) && !usedIdempotency.has(operation.idempotencyKey) && time(operation.requestedAt) >= earliest &&
             time(operation.requestedAt) >= time(authority.decidedAt)); usedRequests.add(result.requestDigest); usedIdempotency.add(operation.idempotencyKey);
           const receipt = readProof(entry.receiptBytes, binding.domain, ['kind', 'configDigest', 'contextDigest', 'inputDigest', 'requestDigest', 'resourcesDigest', 'authorityDigest', 'action', 'transactionId', 'effect', 'status']);
-          requireValue(receipt.kind === 'receipt' && receipt.contextDigest === result.contextDigest && receipt.inputDigest === grant.inputDigest &&
+          requireValue(receipt.signature.keyId === binding.keyId && receipt.kind === 'receipt' && receipt.contextDigest === result.contextDigest && receipt.inputDigest === grant.inputDigest &&
             receipt.requestDigest === result.requestDigest && receipt.resourcesDigest === result.resourcesDigest && receipt.authorityDigest === authority.recordDigest &&
             receipt.action === grant.action && receipt.effect === (grant.action === 'lifecycle.crypto-erase' ? 'crypto-erased' : grant.action === 'lifecycle.commit-tombstone' ? 'tombstone-committed' : 'deleted') &&
             receipt.status === 'terminal-success' && text(receipt.transactionId) && !transactions.has(receipt.transactionId) &&
@@ -269,6 +308,7 @@ export function createLifecycleGraphVerifier(configBytes) {
         const checked = verifyAction(tombstone, grant, binding, authority, time(aggregate.recordedAt)); if (checked.replay) replayCount++;
         return { state: 'validated-lifecycle-candidate', firstError: null, effects: zeroEffects(), configDigest, policyDigest, boundaryAt,
           copyCount: copies.length, protectedActionCount: copies.length + 1, replayCount,
+          ...(runtime ? { executionAuthorized: false, runtimeConfigDigest: runtime.configDigest, historicalEvidenceDigest: sha256(graph.historicalEvidenceBytes) } : {}),
           ...(raw ? { rawBatchMode: batchEvidence.mode, rawBatchPlanDigest: batchEvidence.planDigest, rawBatchReservationDigest: batchEvidence.reservationDigest,
             rawGrantDigest: rawAuthority.recordDigest, executionAuthorized: false } : {}),
           ...(continuation ? { rawCheckpointDigest: checkpointEvidence.checkpointDigest, completedBeforeContinuation: checkpointEvidence.completedCopyIds.length } : {}),

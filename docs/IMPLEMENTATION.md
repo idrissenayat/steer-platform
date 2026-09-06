@@ -687,6 +687,16 @@ registries deny. Future tests exercise fresh synthetic authority, not new real h
 signatures. Full lifecycle composition is next under `intent/0079/PLAN.md`; no gate
 or runtime trust publication is claimed.
 
+Item `intent/0080` composes full future-retention evidence for security-audit,
+corpus-baseline, decision-proof and legal-signed-log classes through an explicit
+current-v1 graph. Complete historical facts coexist with fresh current inventories,
+state, human approvals, shared protected actions and exact selected-provider
+resource/receipt keys. Copy aggregate and separate tombstone proof remain required.
+Archive proof must precede state; current holds, expiry and unsupported releases
+cannot be bypassed. This is offline full evidence, not live erasure. Mixed-era
+history, referenced objects and other classes remain closed on this new path;
+see `intent/0080/PLAN.md`. All five R5 findings remain open.
+
 ## Local commands
 
 ```sh

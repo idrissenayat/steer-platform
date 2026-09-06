@@ -1416,3 +1416,22 @@ Next is full historical/current lifecycle composition under intent/0079/PLAN.md,
 followed by exact reference-revocation/verification-bundle and remaining normative
 coverage. No new trust is deployed, no live erasure is performed, and all five
 formal R5 findings remain open pending independent/protected review.
+
+## Completed development increment: 0080 — full future lifecycle composition
+
+An explicit current-v1 graph now composes full historical evidence with fresh
+current inventory/state, human authority, shared actions and exact selected-provider
+resource/receipt keys. Four supported classes cover one-/three-/seven-year periods;
+every copy, aggregate and separately authorized tombstone is checked. Old key
+windows stay unchanged, archive proof precedes state, and current holds/expiry
+remain enforced. Raw and referenced objects cannot enter this new path.
+
+Seven new focused groups and full checks pass: 178 root controls, 88 prototype
+tests and 55 lifecycle tests. See intent/0080/EVIDENCE.md for the corrected output
+expectations, extra selector/chronology controls and synthetic/cached limitations.
+
+Next is mixed-era event history under intent/0080/PLAN.md, then full reference
+revocation/retained-verification and remaining record-class/normative coverage.
+This is complete offline evidence for the admitted scenarios, not an actual
+deletion, live trust rollout or archive integration. All five R5 findings remain
+open pending independent/protected review; no gate or spending is authorized.
