@@ -758,6 +758,14 @@ controls and 88 prototype tests. No removal is performed by the verifier, and no
 erasure grant is emitted. Full lifecycle/history/copy/tombstone admission is next
 under `intent/0087/PLAN.md`; all five formal R5 findings remain open.
 
+Item `intent/0088` adds a separately selected reference-action profile to the same
+shared authorization body. Copy resources explicitly bind objectSha256; tombstone
+resources bind tombstoneRecordId and verificationBundleDigest. Exact target,
+provider resources, credentials, delegation, assignment, authority and replay/CAS
+remain mandatory; original seven-action output/pins stay unchanged. Full checks
+pass with 232 root controls and 88 prototype tests. Full referenced-evidence
+lifecycle admission is next under `intent/0088/PLAN.md`; R5 remains formally open.
+
 ## Local commands
 
 ```sh

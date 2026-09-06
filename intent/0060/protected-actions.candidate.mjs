@@ -17,6 +17,14 @@ export const manifestBytes = jcs({ version: 'steer-protected-actions/v1', denyBy
   maxCredentialLifetimeSeconds: 300, maxEvidenceAgeSeconds: 300, maxGrants: 128,
   contract: 'one verifier for all seven actions; exact independently installed grants and nanosecond comparisons; zero effects' });
 export const manifestDigest = sha256(manifestBytes);
+const referenceActions = [
+  rule('lifecycle.delete-copy', 'lifecycle.disposition.authorize', 'lifecycle-worker', 'lifecycle-executor', [...copyKeys, 'objectSha256']),
+  rule('lifecycle.commit-tombstone', 'lifecycle.tombstone.authorize', 'lifecycle-worker', 'lifecycle-executor',
+    ['objectId', 'recordClass', 'inventoryDigest', 'tupleDigest', 'aggregateReceiptDigest', 'path', 'tombstoneRecordId', 'verificationBundleDigest']),
+];
+export const referenceManifestBytes = jcs({ ...parseCanonical(manifestBytes), version: 'steer-protected-reference-actions/v1', actions: referenceActions,
+  contract: 'same complete shared verifier; referenced-evidence delete with exact object hash; tombstone with exact record identity and retained verification digest; no execution' });
+export const referenceManifestDigest = sha256(referenceManifestBytes);
 const common = ['kind', 'contextDigest', 'operationDigest', 'recordedAt', 'validThrough'];
 const signed = ['recordDigest', 'signature'];
 const recordFields = {
@@ -42,12 +50,23 @@ const deny = () => ({ decision: 'DENY', firstError: 'PROTECTED_ACTION_INVALID', 
 // Only trusted composition installs this immutable context. It must not originate
 // from the action envelope, an agent tool argument, or an unverified graph.
 export function createProtectedActionVerifier(trustedContextBytes) {
+  return createSelectedProtectedActionVerifier(trustedContextBytes, manifestDigest, actions, 'steer-protected-action-context/v1');
+}
+
+export function createReferenceProtectedActionVerifier(trustedContextBytes) {
+  const verifier = createSelectedProtectedActionVerifier(trustedContextBytes, referenceManifestDigest, referenceActions, 'steer-protected-reference-context/v1');
+  return Object.freeze({ ...verifier,
+    verify(serialized, evaluationTime) { return { ...verifier.verify(serialized, evaluationTime), executionAuthorized: false }; },
+  });
+}
+
+function createSelectedProtectedActionVerifier(trustedContextBytes, manifestDigest, actions, contextVersion) {
   let context, verifier;
   try {
     requireValue(typeof trustedContextBytes === 'string' && trustedContextBytes.length <= 1048576);
     context = parseCanonical(trustedContextBytes);
     requireValue(exactKeys(context, ['version', 'manifestDigest', 'trustRegistryBytes', 'target', 'scope', 'grants']) &&
-      context.version === 'steer-protected-action-context/v1' && context.manifestDigest === manifestDigest);
+      context.version === contextVersion && context.manifestDigest === manifestDigest);
     const target = context.target;
     requireValue(exactKeys(target, ['examRevision', 'examDigest', 'implementationRevision', 'authorizationPolicyPath', 'authorizationPolicyRevision', 'authorizationPolicyDigest', 'authorizationPolicyBytes']) &&
       ['examRevision', 'implementationRevision', 'authorizationPolicyRevision'].every((key) => hex(target[key], 40)) &&
@@ -58,6 +77,7 @@ export function createProtectedActionVerifier(trustedContextBytes) {
     requireValue(exactKeys(context.scope, ['organization', 'tenant', 'repositoryId', 'installationId', 'item']) && Object.values(context.scope).every(text));
     verifier = createTimedRecordVerifier(context.trustRegistryBytes);
     const registry = parseCanonical(context.trustRegistryBytes);
+    if (contextVersion === 'steer-protected-reference-context/v1') requireValue(new Set(registry.bindings.map((key) => key.publicKeyHex)).size === registry.bindings.length);
     requireValue(Array.isArray(context.grants) && context.grants.length > 0 && context.grants.length <= 128);
     const ids = new Set();
     for (const grant of context.grants) {
@@ -68,6 +88,12 @@ export function createProtectedActionVerifier(trustedContextBytes) {
       const action = actions.find((entry) => entry.action === grant.action);
       requireValue(action && exactKeys(grant.resources, action.resourceKeys) && Object.values(grant.resources).every(text));
       for (const [key, value] of Object.entries(grant.resources)) if (key.endsWith('Digest')) requireValue(hex(value, 64));
+      if (contextVersion === 'steer-protected-reference-context/v1') {
+        requireValue(grant.resources.recordClass === 'RC-REFERENCED-EVIDENCE');
+        if (grant.action === 'lifecycle.delete-copy') requireValue(hex(grant.resources.objectSha256, 64));
+        if (grant.action === 'lifecycle.commit-tombstone') requireValue(!grant.resources.path.startsWith('/') &&
+          grant.resources.path.split('/').every((part) => !['', '.', '..'].includes(part)));
+      }
       // Resource assertions must come from an independently selected provider,
       // never from the ordinary request, runner, credential or authority domain.
       requireValue(/^provider(?:-[a-z0-9-]+)?$/.test(grant.resourceDomain) && registry.bindings.some((binding) => binding.domain === grant.resourceDomain));

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createHash, createPrivateKey, sign } from 'node:crypto';
 import { createProtectedActionVerifier, manifestBytes, manifestDigest } from '../intent/0060/protected-actions.candidate.mjs';
+import { createReferenceProtectedActionVerifier, manifestBytes as referenceManifestBytes, manifestDigest as referenceManifestDigest } from '../intent/0088/reference-actions.candidate.mjs';
 import { jcs, sha256, TRUST_REGISTRY, TARGET_REVISION, TARGET_EXAM_SHA, AUTHORIZATION_POLICY_BYTES, AUTHORIZATION_POLICY_PATH, AUTHORIZATION_POLICY_SHA, zeroEffects } from '../intent/0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
 import { authorizationDecision } from '../intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs';
 import { makeAuthorizationBundle } from '../intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs';
@@ -18,21 +19,23 @@ const definitions = JSON.parse(manifestBytes).actions;
 const at = (second) => `2026-09-04T12:00:${String(second).padStart(2, '0')}Z`;
 const until = '2026-09-04T12:03:00Z';
 const evaluation = at(40);
-function trustedContext() {
-  return { version: 'steer-protected-action-context/v1', manifestDigest, trustRegistryBytes: jcs(TRUST_REGISTRY),
+function trustedContext(reference = false) {
+  const selected = reference ? JSON.parse(referenceManifestBytes).actions : definitions;
+  return { version: reference ? 'steer-protected-reference-context/v1' : 'steer-protected-action-context/v1', manifestDigest: reference ? referenceManifestDigest : manifestDigest, trustRegistryBytes: jcs(TRUST_REGISTRY),
     target: { examRevision: TARGET_REVISION, examDigest: TARGET_EXAM_SHA, implementationRevision: 'e'.repeat(40),
       authorizationPolicyPath: AUTHORIZATION_POLICY_PATH, authorizationPolicyRevision: TARGET_REVISION,
       authorizationPolicyDigest: AUTHORIZATION_POLICY_SHA, authorizationPolicyBytes: AUTHORIZATION_POLICY_BYTES },
     scope: { organization: 'steer-platform', tenant: 'steer-platform', repositoryId: 'steer-platform', installationId: 'fixture-installation', item: '0001' },
-    grants: definitions.map((action, index) => ({ grantId: `grant-${index}`, action: action.action, actorSubject: `service:${action.principal}`, upstreamSubject: 'authority:scoped-fixture',
-      provider: index === 0 ? 'github' : 'fixture-provider-a', resourceDomain: 'provider-a', authorityEvidenceDigest: sha256(`authority-${index}`), inputDigest: sha256(`input-${index}`),
-      resources: Object.fromEntries(action.resourceKeys.map((key) => [key, key.endsWith('Digest') ? sha256(key) : key === 'path' ? 'intent/0001/EXAM.md' : `exact-${key}`])),
+    grants: selected.map((action, index) => ({ grantId: `grant-${index}`, action: action.action, actorSubject: `service:${action.principal}`, upstreamSubject: 'authority:scoped-fixture',
+      provider: !reference && index === 0 ? 'github' : 'fixture-provider-a', resourceDomain: 'provider-a', authorityEvidenceDigest: sha256(`authority-${index}`), inputDigest: sha256(`input-${index}`),
+      resources: Object.fromEntries(action.resourceKeys.map((key) => [key, key.endsWith('Digest') || key === 'objectSha256' ? sha256(key) :
+        reference && key === 'recordClass' ? 'RC-REFERENCED-EVIDENCE' : key === 'path' ? reference ? 'evidence/tombstone.json' : 'intent/0001/EXAM.md' : `exact-${key}`])),
     })),
   };
 }
 function fixture(index = 1, edits = {}, options = {}) {
-  const context = options.context ?? trustedContext(), contextBytes = jcs(context), contextDigest = sha256(contextBytes);
-  const grant = context.grants[index], action = definitions.find((entry) => entry.action === grant.action);
+  const context = options.context ?? trustedContext(options.reference), contextBytes = jcs(context), contextDigest = sha256(contextBytes);
+  const grant = context.grants[index], action = (options.reference ? JSON.parse(referenceManifestBytes).actions : definitions).find((entry) => entry.action === grant.action);
   const operation = { requestId: 'operation-1', grantId: grant.grantId, idempotencyKey: 'idempotency-1', casHead: 'a'.repeat(64), requestedAt: at(30), ...options.operation };
   const operationDigest = sha256(jcs({ contextDigest, operation })), records = {};
   const emit = (kind, fields, domain, recordedAt = at(10)) => {
@@ -61,12 +64,80 @@ function fixture(index = 1, edits = {}, options = {}) {
     headDigest: head.recordDigest, replayDigest: replay.recordDigest, expectedHead: head.head, idempotencyKey: operation.idempotencyKey,
     winner: !options.replay, status: options.replay ? 'already-committed' : 'reserved' }, 'cas-authority', at(32));
   const bundle = { version: 'steer-protected-action-bundle/v1', contextDigest, ...Object.fromEntries(Object.entries(records).map(([kind, record]) => [`${kind}Bytes`, jcs(record)])) };
-  return { context, contextBytes, bundle, records, bytes: jcs(bundle), verifier: createProtectedActionVerifier(contextBytes) };
+  return { context, contextBytes, bundle, records, bytes: jcs(bundle), reference: !!options.reference,
+    verifier: (options.reference ? createReferenceProtectedActionVerifier : createProtectedActionVerifier)(contextBytes) };
 }
 const rejected = (value, expectedVerifier = value.verifier, now = evaluation) => {
   const result = expectedVerifier.verify(value.bytes, now);
-  assert.deepEqual(result, { decision: 'DENY', firstError: 'PROTECTED_ACTION_INVALID', effects: zeroEffects() });
+  assert.deepEqual(result, { decision: 'DENY', firstError: 'PROTECTED_ACTION_INVALID', effects: zeroEffects(), ...(value.reference ? { executionAuthorized: false } : {}) });
 };
+
+test('0088: exact referenced copy and named tombstone actions use the complete shared verifier', () => {
+  assert.deepEqual(JSON.parse(referenceManifestBytes).actions.map((entry) => entry.action), ['lifecycle.delete-copy', 'lifecycle.commit-tombstone']);
+  for (const index of [0, 1]) for (const replay of [false, true]) {
+    const value = fixture(index, {}, { reference: true, replay }), result = value.verifier.verify(value.bytes, evaluation);
+    assert.equal(result.decision, replay ? 'REPLAY_NOOP' : 'AUTHORIZED_CANDIDATE');
+    assert.equal(result.executionAuthorized, false); assert.deepEqual(result.effects, zeroEffects());
+    assert.equal(result.requestDigest, value.records.request.recordDigest);
+    assert.equal(result.resourcesDigest, sha256(jcs(value.context.grants[index].resources)));
+  }
+});
+
+test('0088: every shared credential, delegation, authority, resource and replay/CAS record remains required', () => {
+  for (const index of [0, 1]) {
+    const value = fixture(index, {}, { reference: true });
+    for (const kind of Object.keys(value.records)) for (const corrupt of [false, true]) {
+      const bundle = structuredClone(value.bundle);
+      if (!corrupt) delete bundle[`${kind}Bytes`];
+      else { const record = JSON.parse(bundle[`${kind}Bytes`]); record.signature.valueBase64 = Buffer.alloc(64).toString('base64'); bundle[`${kind}Bytes`] = jcs(record); }
+      rejected({ ...value, bytes: jcs(bundle) });
+    }
+    rejected(fixture(index, { assignment: (record) => { record.actorRole = 'builder'; } }, { reference: true }));
+    rejected(fixture(index, { authority: (record) => { record.authorityEvidenceDigest = 'f'.repeat(64); } }, { reference: true }));
+    rejected(fixture(index, { reservation: (record) => { record.winner = false; } }, { reference: true }));
+  }
+});
+
+test('0088: reference resources require exact content hash and tombstone identity/bundle fields', () => {
+  for (const [index, field] of [[0, 'objectSha256'], [1, 'tombstoneRecordId'], [1, 'verificationBundleDigest']]) {
+    const context = trustedContext(true); delete context.grants[index].resources[field];
+    assert.throws(() => createReferenceProtectedActionVerifier(jcs(context)), /PROTECTED_ACTION_CONFIGURATION_INVALID/);
+    rejected(fixture(index, { resources: (record) => { record.resources[field] = field === 'tombstoneRecordId' ? 'different' : 'f'.repeat(64); } }, { reference: true }));
+  }
+  for (const [index, field, replacement] of [[0, 'objectSha256', 'bad'], [0, 'recordClass', 'RC-REBUILDABLE'],
+    [1, 'path', '../tombstone.json'], [1, 'path', '/tombstone.json'], [1, 'tombstoneRecordId', '*'], [1, 'verificationBundleDigest', 'bad']]) {
+    const context = trustedContext(true); context.grants[index].resources[field] = replacement;
+    assert.throws(() => createReferenceProtectedActionVerifier(jcs(context)), /PROTECTED_ACTION_CONFIGURATION_INVALID/);
+  }
+  const extra = trustedContext(true); extra.grants[0].resources.extra = 'other';
+  assert.throws(() => createReferenceProtectedActionVerifier(jcs(extra)), /PROTECTED_ACTION_CONFIGURATION_INVALID/);
+});
+
+test('0088: trusted reference profile cannot downgrade to original context or add unlisted operations', () => {
+  assert.notEqual(referenceManifestDigest, manifestDigest);
+  assert.throws(() => createProtectedActionVerifier(jcs(trustedContext(true))), /PROTECTED_ACTION_CONFIGURATION_INVALID/);
+  assert.throws(() => createReferenceProtectedActionVerifier(jcs(trustedContext())), /PROTECTED_ACTION_CONFIGURATION_INVALID/);
+  const context = trustedContext(true); context.grants.push(trustedContext().grants[2]);
+  assert.throws(() => createReferenceProtectedActionVerifier(jcs(context)), /PROTECTED_ACTION_CONFIGURATION_INVALID/);
+  const value = fixture(0, {}, { reference: true }), old = fixture();
+  rejected({ ...value, bytes: old.bytes }); rejected({ ...old, bytes: value.bytes });
+  const replaced = trustedContext(true); replaced.manifestDigest = manifestDigest;
+  assert.throws(() => createReferenceProtectedActionVerifier(jcs(replaced)), /PROTECTED_ACTION_CONFIGURATION_INVALID/);
+});
+
+test('0088: current provider independence and exact expiry remain mandatory for reference actions', () => {
+  const alias = trustedContext(true), registry = JSON.parse(alias.trustRegistryBytes);
+  registry.bindings.find((entry) => entry.domain === 'provider-a').publicKeyHex = registry.bindings.find((entry) => entry.domain === 'authority').publicKeyHex;
+  alias.trustRegistryBytes = jcs(registry);
+  assert.throws(() => createReferenceProtectedActionVerifier(jcs(alias)), /PROTECTED_ACTION_CONFIGURATION_INVALID/);
+  for (const index of [0, 1]) {
+    rejected(fixture(index, {}, { reference: true, domains: { resources: 'authority' } }));
+    const value = fixture(index, { resources: (record) => { record.validThrough = '2026-09-04T12:00:50Z'; } }, { reference: true });
+    assert.equal(value.verifier.verify(value.bytes, '2026-09-04T12:00:49.999999999Z').decision, 'AUTHORIZED_CANDIDATE');
+    rejected(value, value.verifier, '2026-09-04T12:00:50Z');
+    assert.equal(value.verifier.verify(value.bytes).decision, 'DENY');
+  }
+});
 
 test('0070: every shared action uses exact lifetime limits and earliest-expiry ordering', () => {
   for (let index = 0; index < definitions.length; index++) {

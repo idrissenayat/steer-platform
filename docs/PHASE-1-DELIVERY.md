@@ -1566,3 +1566,22 @@ exact history/state/completion binding, retention and holds, complete copy/versi
 inventory, separately authorized tombstone and cross-decision replay guards.
 All five R5 findings remain open; no protected edit, signature, provider mutation,
 release, deployment or spending is authorized.
+
+## Completed development increment: 0088 — exact reference-action resources
+
+Integration identified a prerequisite: generic copy/tombstone selectors did not
+explicitly carry the copy content hash or chosen tombstone record identity.
+A separate reference-only profile now adds those fields and the retained bundle
+digest through the same complete protected-action verifier, without changing the
+original seven-action contract. Provider observations must match every new field.
+
+Five new groups and full checks pass: 12 shared-action groups, 232 root controls
+and 88 prototype tests. See intent/0088/EVIDENCE.md for synthetic/cached boundaries.
+Only reference delete-copy and commit-tombstone are enumerated; wrong classes,
+paths, key aliases, missing proofs and profile downgrades deny with zero effects.
+
+Next is the full referenced-evidence lifecycle runtime under intent/0088/PLAN.md,
+including exact copy/version hashes, history/state/revocation binding, retention,
+holds, separately authorized named tombstone and cross-decision identity guards.
+All five formal R5 findings remain open. No action, signature, protected edit,
+provider mutation, release, deployment or spending is authorized.
