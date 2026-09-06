@@ -220,6 +220,12 @@ policy facts in that test remain synthetic. Full governed-source gate compositio
 real authority/receipt bindings and commercial compatibility remain before live
 writer enablement. No UI change is claimed; see `intent/0138/EVIDENCE.md`.
 
+0139 development update: exact canonical gate/artifact sources now join verification
+of every recorded signer, without allowing a passing first signer to conceal a bad
+second one. The collector preserves non-approval decisions and requires downstream
+policy verification and current signer revalidation. Real attestor bindings and
+existing commercial compatibility remain open; see `intent/0139/EVIDENCE.md`.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

@@ -2733,3 +2733,20 @@ gate decision is enabled or converted. Complete whole-gate governed source/polic
 composition and real approved bindings, then writer configuration, destination/head
 discovery, save/status UI, board and decision review. All five R5 findings, 0124/0120,
 independent protected review and signed Phase 1 obligations remain due.
+
+## Completed development increment: 0139 — Canonical gate and complete signer set
+
+The actual gate source collector now composes with every actual signer verifier,
+matching the complete ordered canonical roster and collecting unchanged gate/artifact
+sources again afterward. One actor/expiry/deadline envelope guards all reads and
+drains pending work. Nine focused groups pass, including native Git, forged second
+proofs and a real stalled read. A reproduced early ownership-release bug after
+child timeout is corrected by closing/draining failed collections. Full checks
+pass: 437 root controls, 186 adapter tests and all package checks/builds. Exact
+verification timing and boundaries are recorded in `intent/0139/EVIDENCE.md`.
+
+Full gate policy/prerequisite/Critic/domain sources, approved trust/fact selection,
+simultaneous current signer validity and real attestor/commercial compatibility
+remain unfinished. No gate or live writer is enabled. Complete those dependencies,
+then approved runtime and destination/head/save UI, board and decision review.
+All five R5 findings, 0124/0120 and signed Phase 1 requirements remain due.

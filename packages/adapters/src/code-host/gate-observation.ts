@@ -9,6 +9,7 @@ const path = artifactProjectionInputSchema.shape.path;
 const configurationSchema = z.strictObject({ scope: reconciliationScopeSchema, gate: z.union([z.literal(1), z.literal(2), z.literal(3)]),
   artifactRevision: sha, artifactPaths: z.array(path).min(1).max(10), recordPath: path, recordItem: z.string().min(1).max(200),
 }).refine((value) => new Set(value.artifactPaths).size === value.artifactPaths.length && !value.artifactPaths.includes(value.recordPath));
+export { configurationSchema as gitGateSourceConfigurationSchema };
 // Format/provenance only. These fields do NOT verify a human, qualified hat or signature policy.
 const recordSchema = z.object({ version: z.literal('steer-gate-signature/v1'), organization: z.string(), productHome: z.string(), item: z.string(),
   gate: z.union([z.literal(1), z.literal(2), z.literal(3)]), artifactRevision: sha, decision: z.string().min(1).max(64),

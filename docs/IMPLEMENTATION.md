@@ -1212,6 +1212,13 @@ signatures cover current revocation, expiry and source integrity. Full gate-sour
 composition, real attestor bindings and existing commercial compatibility remain;
 no professional designation, gate, live writer or frontend feature is enabled.
 
+Item `intent/0139` adds complete canonical signer-set collection through the actual
+gate, provider, identity and specialist readers. It matches the roster before signer
+lookups and recollects exact record/artifact sources afterward, with one bounded
+actor/expiry/ownership envelope. Native Git and real signatures cover partial and
+forged rosters. Full policy sources and simultaneous current signer revalidation
+remain due; no live approval, writer or frontend feature is installed.
+
 ## Local commands
 
 ```sh

@@ -36,6 +36,7 @@ const configurationSchema = briefSaveScopeSchema.omit({ path: true }).extend({ t
 const inputSchema = z.strictObject({ sourceRevision: sha, proofPath: path, proofDigest: digest, expected: gateProviderExpectedSchema });
 const signerInputSchema = inputSchema.extend({ authorizationRevision: sha });
 const identityInputSchema = signerInputSchema.extend({ identityProofPath: path });
+export { configurationSchema as gitProviderSourceConfigurationSchema, identityInputSchema as gitSignerIdentityInputSchema };
 type Attestation = NonNullable<ReturnType<typeof verifyGateProviderAttestation>>;
 type SourceReference = Readonly<{ path: string; revision: string; contentDigest: string; blobSha: string }>;
 type SignerAuthorization = Readonly<{ issuer: string; subject: string; hat: string;

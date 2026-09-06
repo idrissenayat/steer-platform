@@ -83,6 +83,10 @@ Item [0138](intent/0138/README.md) verifies scoped specialist qualifications wit
 the identity/provider proofs and Git role grants. Verified domains feed the policy
 signature; real authority bindings and complete gate/source verification remain due.
 
+Item [0139](intent/0139/README.md) joins canonical gate/artifact sources with actual
+verification of every recorded signer. Whole-gate policy/evidence verification and
+current signer revalidation remain required; no live gate or writer is enabled.
+
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono
 API/shared tool registry (0007), OIDC adapter/API composition (0008), and
