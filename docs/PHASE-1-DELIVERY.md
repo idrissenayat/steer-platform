@@ -2699,3 +2699,20 @@ provider compatibility remains due; no approval is converted or crypto-migrated.
 Complete these authority dependencies, approved runtime binding, destination/head
 discovery and save/status UI, then the board and revision-bound review. All five
 R5 findings, 0124/0120, independent review and signed Phase 1 duties remain due.
+
+## Completed development increment: 0137 — Source-backed signer identity assertions
+
+A dedicated Git reader mode now verifies identity-service signatures bound by the
+gate-provider proof's exact identity digest, issuer, human, session and timestamps.
+It retains both actual hat-source checks and final head/agent/key/grant validity.
+Focused suites pass 32 groups, including two real ephemeral signatures and native
+Git history/revocation. Full repository verification passes: 437 root controls,
+164 adapter tests and all package checks/builds. Exact evidence and limits are
+recorded in `intent/0137/EVIDENCE.md`.
+
+This is development-profile verification, not approved live identity attestation,
+receipt issuance, specialist qualification or full gate authority. Existing
+commercial signatures are not converted. Complete those bindings and qualified
+policy/source prerequisites, then approved writer configuration, destination/head
+discovery and save/status UI, board and decision review. All five R5 findings,
+0124/0120, independent protected review and signed Phase 1 obligations remain due.

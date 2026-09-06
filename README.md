@@ -75,6 +75,10 @@ Item [0136](intent/0136/README.md) checks historical and current gate-signer hat
 against exact Git authorization bytes and the signed provider digest. Identity,
 qualification and complete gate verification remain due; no live write is enabled.
 
+Item [0137](intent/0137/README.md) verifies signed identity/session assertions bound
+to gate records and exact Git sources. Actual attestor binding, existing commercial
+approval compatibility, qualification and full gate composition remain due.
+
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono
 API/shared tool registry (0007), OIDC adapter/API composition (0008), and

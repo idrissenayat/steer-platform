@@ -1198,6 +1198,13 @@ nanosecond grant windows are checked, with current revocation and actual Git-his
 tests. Identity/session evidence, specialist qualification, commercial provider
 compatibility and full gate policy remain unfinished. No real writer is enabled.
 
+Item `intent/0137` adds signed identity/session assertion verification and an explicit
+Git-backed reader mode that joins it with the gate proof and both hat sources.
+Two real test signatures, native Git and source/time/revocation negatives are
+verified without accessing real credentials. Actual receipt issuance/attestor
+binding, existing commercial provider compatibility and full qualified gate
+composition remain unfinished; no production authority or frontend change occurs.
+
 ## Local commands
 
 ```sh

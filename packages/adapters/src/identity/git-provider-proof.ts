@@ -6,25 +6,37 @@ import { gateProviderExpectedSchema, verifyGateProviderAttestation } from './gat
 import { authorizationDocumentSchema } from './authorization.ts';
 import { authorizationRecordSchema } from './oidc.ts';
 import { parseUtcInstant } from '@steer/tool-registry/gate-policy';
+import { verifyGateIdentityAttestation } from './gate-identity-proof.ts';
 
 const sha = z.string().length(40).regex(/^[a-f0-9]{40}$/), digest = z.string().length(64).regex(/^[a-f0-9]{64}$/);
 const path = artifactProjectionInputSchema.shape.path;
 const configurationSchema = briefSaveScopeSchema.omit({ path: true }).extend({ trustPath: path, trustDigest: digest,
   proofPaths: z.array(path).min(1).max(100).refine((paths) => new Set(paths).size === paths.length),
   signerAuthorization: z.strictObject({ path, issuer: authorizationRecordSchema.shape.issuer }).optional(),
+  signerIdentity: z.strictObject({ trustPath: path, trustDigest: digest,
+    proofPaths: z.array(path).min(1).max(100).refine((paths) => new Set(paths).size === paths.length) }).optional(),
 }).refine((value) => !value.proofPaths.includes(value.trustPath) && (!value.signerAuthorization ||
-  (value.signerAuthorization.path !== value.trustPath && !value.proofPaths.includes(value.signerAuthorization.path))));
+  (value.signerAuthorization.path !== value.trustPath && !value.proofPaths.includes(value.signerAuthorization.path))))
+  .refine((value) => {
+    if (!value.signerIdentity) return true;
+    const paths = [value.trustPath, ...value.proofPaths, value.signerAuthorization?.path,
+      value.signerIdentity.trustPath, ...value.signerIdentity.proofPaths];
+    return Boolean(value.signerAuthorization) && new Set(paths).size === paths.length;
+  });
 const inputSchema = z.strictObject({ sourceRevision: sha, proofPath: path, proofDigest: digest, expected: gateProviderExpectedSchema });
 const signerInputSchema = inputSchema.extend({ authorizationRevision: sha });
+const identityInputSchema = signerInputSchema.extend({ identityProofPath: path });
 type Attestation = NonNullable<ReturnType<typeof verifyGateProviderAttestation>>;
 type SourceReference = Readonly<{ path: string; revision: string; contentDigest: string; blobSha: string }>;
 type SignerAuthorization = Readonly<{ issuer: string; subject: string; hat: string;
   historicalSource: SourceReference; currentSource: SourceReference;
   historicalHatVerified: true; currentHatVerified: true;
   identityEvidenceVerificationRequired: true; qualificationVerificationRequired: true }>;
+type SignerIdentity = Readonly<{ trustSource: SourceReference; proofSource: SourceReference;
+  attestation: NonNullable<ReturnType<typeof verifyGateIdentityAttestation>> }>;
 type Observation = Readonly<{ kind: 'git-provider-proof-observation'; organizationId: string; repository: string; branch: string;
   sourceRevision: string; trustSource: SourceReference; proofSource: SourceReference; attestation: Attestation;
-  signerAuthorization?: SignerAuthorization; gateVerified: false; writeAuthorized: false }>;
+  signerAuthorization?: SignerAuthorization; signerIdentity?: SignerIdentity; gateVerified: false; writeAuthorized: false }>;
 
 /** Authenticated read-through composition only. The trust pin must be selected
  * by an authorized bootstrap outside this module; Git existence is not approval.
@@ -39,12 +51,14 @@ export function createGitProviderProofReader(reader: ArtifactReader, rawConfigur
   const clock = dependencies.now ?? (() => new Date());
   const failure = () => new Error('Provider proof source could not be verified.');
   let active: Promise<Observation> | undefined, stopping = false, shutdown: Promise<void> | undefined;
-  async function verify(rawInput: unknown, verifySigner: boolean): Promise<Observation> {
+  async function verify(rawInput: unknown, verifySigner: boolean, verifyIdentity = false): Promise<Observation> {
       if (stopping || active) throw failure();
-      const parsed = (verifySigner ? signerInputSchema : inputSchema).safeParse(rawInput); if (!parsed.success) throw failure();
+      const parsed = (verifyIdentity ? identityInputSchema : verifySigner ? signerInputSchema : inputSchema).safeParse(rawInput); if (!parsed.success) throw failure();
       const input = parsed.data;
       const authorizationRevision = 'authorizationRevision' in input ? sha.parse(input.authorizationRevision) : undefined;
       if (verifySigner && (!config.signerAuthorization || !authorizationRevision)) throw failure();
+      const identityProofPath = 'identityProofPath' in input ? path.parse(input.identityProofPath) : undefined;
+      if (verifyIdentity && (!verifySigner || !config.signerIdentity || !identityProofPath || !config.signerIdentity.proofPaths.includes(identityProofPath))) throw failure();
       if (input.expected.organizationId !== config.organizationId || input.expected.repository !== config.repository ||
         !config.proofPaths.includes(input.proofPath)) throw failure();
       let started: number;
@@ -101,6 +115,8 @@ export function createGitProviderProofReader(reader: ArtifactReader, rawConfigur
           const historical = verifySigner ? await read(config.signerAuthorization!.path,
             input.expected.authorizationEvidenceDigest, 512 * 1024, authorizationRevision!) : undefined;
           const currentGrant = verifySigner ? await read(config.signerAuthorization!.path, undefined, 512 * 1024) : undefined;
+          const identityTrust = verifyIdentity ? await read(config.signerIdentity!.trustPath, config.signerIdentity!.trustDigest, 16384) : undefined;
+          const identityProof = verifyIdentity ? await read(identityProofPath!, input.expected.identityEvidenceDigest, 65536) : undefined;
           const current = await authenticate();
           if (current.subject !== initial.subject || sha.parse(await reader.readHead()) !== input.sourceRevision) throw failure();
           const finished = time();
@@ -121,10 +137,32 @@ export function createGitProviderProofReader(reader: ArtifactReader, rawConfigur
           const finalTime = time();
           if (currentGrant) verifyHat(currentGrant.content, new Date(finalTime).toISOString(), new Date(finalTime).toISOString());
           if (Math.min(Date.parse(initial.expiresAt), Date.parse(current.expiresAt)) <= finalTime) throw failure();
+          let signerIdentity: SignerIdentity | undefined;
+          if (identityTrust && identityProof) {
+            const claims = attestation.claims;
+            const identity = verifyGateIdentityAttestation(JSON.parse(identityProof.content), JSON.parse(identityTrust.content), {
+              organizationId: claims.organizationId, repository: claims.repository, identityIssuer: config.signerAuthorization!.issuer,
+              subject: claims.subject, sessionId: claims.sessionId, authenticatedAt: claims.authenticatedAt, signedAt: claims.signedAt,
+              identityEvidenceDigest: claims.identityEvidenceDigest, providerRecordedAt: claims.recordedAt,
+            }, new Date(finalTime).toISOString());
+            if (!identity || identity.trustDigest !== identityTrust.reference.contentDigest || identity.proofDigest !== identityProof.reference.contentDigest) throw failure();
+            signerIdentity = Object.freeze({ trustSource: identityTrust.reference, proofSource: identityProof.reference, attestation: identity });
+          }
+          const completedAt = time();
+          if (Math.min(Date.parse(initial.expiresAt), Date.parse(current.expiresAt)) <= completedAt) throw failure();
+          if (currentGrant) verifyHat(currentGrant.content, new Date(completedAt).toISOString(), new Date(completedAt).toISOString());
+          // Cryptographic/schema work must not carry an observation past a key
+          // expiry or revocation that arrived after the first evaluation clock.
+          for (const source of [trust, ...(identityTrust ? [identityTrust] : [])]) {
+            const selected = JSON.parse(source.content), at = parseUtcInstant(new Date(completedAt).toISOString())!;
+            const until = parseUtcInstant(selected.notAfter), revoked = selected.revokedAt === null ? null : parseUtcInstant(selected.revokedAt);
+            if (until === null || until <= at || (selected.revokedAt !== null && (revoked === null || revoked <= at))) throw failure();
+          }
           return Object.freeze({ kind: 'git-provider-proof-observation', organizationId: config.organizationId,
             repository: config.repository, branch: config.branch, sourceRevision: input.sourceRevision,
             trustSource: trust.reference, proofSource: proof.reference, attestation,
-            ...(signerAuthorization ? { signerAuthorization } : {}), gateVerified: false, writeAuthorized: false });
+            ...(signerAuthorization ? { signerAuthorization } : {}), ...(signerIdentity ? { signerIdentity } : {}),
+            gateVerified: false, writeAuthorized: false });
         } catch { throw failure(); }
       })().finally(() => { active = undefined; });
       active = work;
@@ -140,6 +178,11 @@ export function createGitProviderProofReader(reader: ArtifactReader, rawConfigur
       const observation = await verify(rawInput, true);
       if (!observation.signerAuthorization) throw failure();
       return observation as Observation & { signerAuthorization: SignerAuthorization };
+    },
+    async verifySignerIdentity(rawInput: unknown): Promise<Observation & { signerAuthorization: SignerAuthorization; signerIdentity: SignerIdentity }> {
+      const observation = await verify(rawInput, true, true);
+      if (!observation.signerAuthorization || !observation.signerIdentity) throw failure();
+      return observation as Observation & { signerAuthorization: SignerAuthorization; signerIdentity: SignerIdentity };
     },
     shutdown() {
       if (!shutdown) { stopping = true; const pending = active; shutdown = (async () => { try { await pending; } catch { /* Caller gets denial. */ } })(); }

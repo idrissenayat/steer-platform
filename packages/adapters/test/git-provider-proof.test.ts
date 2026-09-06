@@ -9,6 +9,7 @@ import { briefWriteAuthoritySchema } from '@steer/tool-registry';
 import { createGitProviderProofReader } from '../src/identity/git-provider-proof.ts';
 import type { ArtifactReader } from '../src/code-host/github.ts';
 import { providerProofFixture } from './gate-proof-fixture.ts';
+import { identityProofFixture } from './gate-identity-fixture.ts';
 
 const head = 'b'.repeat(40), hash = (text: string) => createHash('sha256').update(text).digest('hex');
 function fixture() {
@@ -62,6 +63,24 @@ function signerFixture() {
   const configuration = { ...f.config, signerAuthorization: { path: authorizationPath, issuer: grant.issuer } };
   return { ...f, authorizationRevision, authorizationPath, grant, document, history, pin, configuration,
     signerInput: { ...f.input, authorizationRevision }, signer: () => f.create(configuration) };
+}
+
+function signerIdentityFixture() {
+  const f = signerFixture(), identity = identityProofFixture(f.proof);
+  const trustPath = 'organization/identity-trust.json', proofPath = 'evidence/identity-proof.json';
+  f.sources.set(trustPath, JSON.stringify(identity.trust));
+  const seal = (envelope: unknown = identity.encode()) => {
+    f.sources.set(proofPath, JSON.stringify(envelope));
+    f.proof.expected.identityEvidenceDigest = hash(f.sources.get(proofPath)!);
+    f.proof.payload.identityEvidenceDigest = f.proof.expected.identityEvidenceDigest;
+    f.sources.set(f.input.proofPath, JSON.stringify(f.proof.encode()));
+    f.input.proofDigest = hash(f.sources.get(f.input.proofPath)!);
+  };
+  seal();
+  const configuration = { ...f.configuration, signerIdentity: { trustPath, trustDigest: hash(f.sources.get(trustPath)!), proofPaths: [proofPath] } };
+  return { ...f, identity, trustPath, proofPath, seal, identityConfiguration: configuration,
+    identityInput: () => ({ ...f.signerInput, proofDigest: f.input.proofDigest, identityProofPath: proofPath }),
+    identityReader: () => f.create(configuration) };
 }
 
 test('read-through proof composition verifies exact source bytes and the real provider signature without granting authority', async () => {
@@ -274,8 +293,8 @@ test('provider-only and signer observations share single-flight ownership and dr
   await assert.rejects(service.verifySigner(f.signerInput), failure); assert.equal(service.status().active, false);
 });
 
-test('native Git history supplies exact old and current grant bytes and a later revocation is observed', async (t) => {
-  const f = signerFixture(), directory = mkdtempSync(join(tmpdir(), 'steer-0136-'));
+test('native Git history supplies old/current grants, both signed proofs and a later revocation', async (t) => {
+  const f = signerIdentityFixture(), directory = mkdtempSync(join(tmpdir(), 'steer-0137-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   const git = (...args: string[]) => execFileSync('git', args, { cwd: directory, encoding: 'utf8', maxBuffer: 1024 * 1024 }).trim();
   const put = (path: string, content: string) => { const file = join(directory, path); mkdirSync(dirname(file), { recursive: true }); writeFileSync(file, content); };
@@ -292,14 +311,135 @@ test('native Git history supplies exact old and current grant bytes and a later 
     return { organizationId: 'synthetic', repositoryId: 1, path, revision, content,
       contentDigest: hash(content), blobSha: git('rev-parse', `${revision}:${path}`) };
   };
-  const service = f.signer(), input = { ...f.signerInput, sourceRevision: currentRevision, authorizationRevision: historicalRevision };
-  const observation = await service.verifySigner(input);
+  const service = f.identityReader(), input = { ...f.identityInput(), sourceRevision: currentRevision, authorizationRevision: historicalRevision };
+  const observation = await service.verifySignerIdentity(input);
   assert.equal(observation.signerAuthorization.historicalSource.revision, historicalRevision);
   assert.equal(observation.signerAuthorization.currentSource.revision, currentRevision);
   assert.notEqual(observation.signerAuthorization.historicalSource.contentDigest, observation.signerAuthorization.currentSource.contentDigest);
+  assert.equal(observation.signerIdentity.proofSource.revision, currentRevision);
+  assert.equal(observation.signerIdentity.attestation.claims.sessionId, observation.attestation.claims.sessionId);
   put(f.authorizationPath, JSON.stringify({ ...f.document, records: [{ ...f.grant, active: false }] }));
   git('add', '.'); git('-c', 'commit.gpgsign=false', 'commit', '-qm', 'Revoke role');
-  await assert.rejects(service.verifySigner(input), failure); // Stale current head.
-  await assert.rejects(service.verifySigner({ ...input, sourceRevision: git('rev-parse', 'HEAD') }), failure); // Fresh revocation.
+  await assert.rejects(service.verifySignerIdentity(input), failure); // Stale current head.
+  await assert.rejects(service.verifySignerIdentity({ ...input, sourceRevision: git('rev-parse', 'HEAD') }), failure); // Fresh revocation.
   await service.shutdown();
+});
+
+test('identity composition verifies both real signatures, exact issuer/session and both hat sources without granting a gate', async () => {
+  const f = signerIdentityFixture(), service = f.identityReader(), result = await service.verifySignerIdentity(f.identityInput());
+  assert.equal(result.signerIdentity.attestation.claims.subject, result.attestation.claims.subject);
+  assert.equal(result.signerIdentity.attestation.claims.identityIssuer, result.signerAuthorization.issuer);
+  assert.equal(result.signerIdentity.proofSource.contentDigest, result.attestation.claims.identityEvidenceDigest);
+  assert.equal(result.signerIdentity.trustSource.contentDigest, f.identityConfiguration.signerIdentity.trustDigest);
+  assert.equal(result.signerIdentity.attestation.claims.sessionId, result.attestation.claims.sessionId);
+  assert.equal(result.gateVerified, false); assert.equal(result.writeAuthorized, false);
+  assert.equal(briefWriteAuthoritySchema.safeParse(result).success, false);
+  for (const value of [result.signerIdentity, result.signerIdentity.proofSource, result.signerIdentity.trustSource, result.signerIdentity.attestation]) assert.ok(Object.isFrozen(value));
+  assert.deepEqual(f.state.paths, [f.config.trustPath, f.input.proofPath, f.authorizationPath, f.authorizationPath, f.trustPath, f.proofPath]);
+  const original = await service.verifySigner({ ...f.signerInput, proofDigest: f.input.proofDigest });
+  assert.equal(original.signerIdentity, undefined); assert.equal(original.signerAuthorization.identityEvidenceVerificationRequired, true);
+  await service.shutdown();
+});
+
+test('identity source scope requires explicit noncolliding trust and proof paths without caller-configured access', async () => {
+  const f = signerIdentityFixture(); await assert.rejects(f.signer().verifySignerIdentity(f.identityInput()), failure);
+  for (const change of [{ identityProofPath: 'private/token.json' }, { identityProofPath: f.input.proofPath },
+    { identityTrust: f.identity.trust }, { identityIssuer: 'https://foreign.invalid' }]) {
+    await assert.rejects(f.identityReader().verifySignerIdentity({ ...f.identityInput(), ...change }), failure);
+  }
+  for (const signerIdentity of [{ ...f.identityConfiguration.signerIdentity, trustPath: f.authorizationPath },
+    { ...f.identityConfiguration.signerIdentity, proofPaths: [f.trustPath] },
+    { ...f.identityConfiguration.signerIdentity, proofPaths: [f.input.proofPath] },
+    { ...f.identityConfiguration.signerIdentity, proofPaths: [] }]) assert.throws(() => f.create({ ...f.identityConfiguration, signerIdentity }));
+  assert.throws(() => f.create({ ...f.identityConfiguration, signerAuthorization: undefined }));
+  assert.equal(f.state.authCalls, 0); assert.deepEqual(f.state.paths, []);
+});
+
+test('a gate provider cannot launder a wrong identity session, issuer, human or authentication instant through its signed digest', async () => {
+  for (const change of [{ subject: 'another-human' }, { sessionId: 'another-session' }, { type: 'agent' },
+    { identityIssuer: 'https://foreign.synthetic.invalid' }, { authenticatedAt: '2026-09-06T12:00:00.100000001Z' },
+    { authenticationExpiresAt: '2026-09-06T12:00:00.200000000Z' }]) {
+    const f = signerIdentityFixture(); Object.assign(f.identity.payload, change); f.seal();
+    await assert.rejects(f.identityReader().verifySignerIdentity(f.identityInput()), failure);
+  }
+  const f = signerIdentityFixture(), proof = f.identity.encode(); proof.signatureBase64 = Buffer.alloc(64).toString('base64'); f.seal(proof);
+  await assert.rejects(f.identityReader().verifySignerIdentity(f.identityInput()), failure);
+});
+
+test('identity trust changes and freshly pinned revoked or wrong keys cannot reuse a successful observation', async () => {
+  for (const change of [{ revokedAt: '2026-09-06T12:00:00.399999999Z' }, { publicKeyHex: 'f'.repeat(64) },
+    { notBefore: '2026-09-06T12:00:00.100000001Z' }, { notAfter: '2026-09-06T12:00:00.400Z' }]) {
+    const f = signerIdentityFixture(), service = f.identityReader(); await service.verifySignerIdentity(f.identityInput());
+    f.sources.set(f.trustPath, JSON.stringify({ ...f.identity.trust, ...change }));
+    await assert.rejects(service.verifySignerIdentity(f.identityInput()), failure);
+    const repinned = f.create({ ...f.identityConfiguration, signerIdentity: {
+      ...f.identityConfiguration.signerIdentity, trustDigest: hash(f.sources.get(f.trustPath)!) } });
+    await assert.rejects(repinned.verifySignerIdentity(f.identityInput()), failure);
+  }
+});
+
+test('identity source hashes, coordinates, exact serialization and source bounds remain mandatory', async () => {
+  for (const change of [{ revision: 'c'.repeat(40) }, { organizationId: 'foreign' }, { path: 'another.json' },
+    { blobSha: 'f'.repeat(40) }, { contentDigest: 'f'.repeat(64) }]) {
+    const f = signerIdentityFixture(), read = f.reader.readArtifact;
+    f.reader.readArtifact = async (...args) => ({ ...await read(...args), ...(args[0] === f.proofPath ? change : {}) });
+    await assert.rejects(f.identityReader().verifySignerIdentity(f.identityInput()), failure);
+  }
+  for (const mode of ['pretty', 'oversized', 'utf8']) {
+    const f = signerIdentityFixture(), content = mode === 'pretty' ? JSON.stringify(f.identity.encode(), null, 2) : mode === 'oversized' ? 'x'.repeat(65537) : '\ud800';
+    f.sources.set(f.proofPath, content);
+    f.proof.expected.identityEvidenceDigest = hash(content); f.proof.payload.identityEvidenceDigest = hash(content);
+    f.sources.set(f.input.proofPath, JSON.stringify(f.proof.encode())); f.input.proofDigest = hash(f.sources.get(f.input.proofPath)!);
+    await assert.rejects(f.identityReader().verifySignerIdentity(f.identityInput()), failure);
+  }
+  const missing = signerIdentityFixture(); missing.sources.delete(missing.proofPath);
+  await assert.rejects(missing.identityReader().verifySignerIdentity(missing.identityInput()), failure);
+});
+
+test('identity evidence cannot bypass final source head, current service identity or clock checks', async () => {
+  for (const mode of ['head', 'identity', 'clock', 'deadline'] as const) {
+    const f = signerIdentityFixture(), read = f.reader.readArtifact;
+    f.reader.readArtifact = async (...args) => {
+      const result = await read(...args);
+      if (args[0] === f.proofPath) {
+        if (mode === 'head') f.state.head = 'c'.repeat(40);
+        if (mode === 'identity') f.state.afterIdentity = null;
+        if (mode === 'clock') f.state.time--;
+        if (mode === 'deadline') f.state.time += 15000;
+      } return result;
+    };
+    await assert.rejects(f.identityReader().verifySignerIdentity(f.identityInput()), failure);
+  }
+});
+
+test('pending identity evidence shares ownership with both older methods and expired continuation cannot authenticate again', async () => {
+  const f = signerIdentityFixture(), read = f.reader.readArtifact; let release!: () => void, entered!: () => void;
+  const wait = new Promise<void>((resolve) => { release = resolve; }), entry = new Promise<void>((resolve) => { entered = resolve; });
+  f.reader.readArtifact = async (...args) => { if (args[0] === f.proofPath) { entered(); await wait; } return read(...args); };
+  const service = f.identityReader(), pending = service.verifySignerIdentity(f.identityInput()); await entry;
+  await assert.rejects(service.verify(f.input), failure);
+  await assert.rejects(service.verifySigner(f.signerInput), failure);
+  let stopped = false; const stopping = service.shutdown().then(() => { stopped = true; });
+  await Promise.resolve(); assert.equal(stopped, false);
+  f.state.time += 15000; release(); await assert.rejects(pending, failure); await stopping;
+  assert.equal(f.state.authCalls, 1); assert.equal(service.status().active, false);
+  await assert.rejects(service.verifySignerIdentity(f.identityInput()), failure);
+});
+
+test('key and grant validity are rechecked when the completion clock advances during cryptographic work', async () => {
+  for (const mode of ['provider-key', 'identity-key', 'grant'] as const) {
+    const f = signerIdentityFixture(), edge = '2026-09-06T12:00:00.400000001Z';
+    if (mode === 'provider-key') {
+      f.sources.set(f.config.trustPath, JSON.stringify({ ...f.proof.trust, notAfter: edge }));
+      f.identityConfiguration.trustDigest = hash(f.sources.get(f.config.trustPath)!);
+    } else if (mode === 'identity-key') {
+      f.sources.set(f.trustPath, JSON.stringify({ ...f.identity.trust, notAfter: edge }));
+      f.identityConfiguration.signerIdentity.trustDigest = hash(f.sources.get(f.trustPath)!);
+    } else f.sources.set(f.authorizationPath, JSON.stringify({ ...f.document, records: [{ ...f.grant, expiresAt: edge }] }));
+    const base = f.state.time; let reads = 0;
+    // The 22nd observation is completion, after both cryptographic verifications.
+    Object.defineProperty(f.state, 'time', { get: () => base + (++reads >= 22 ? 1 : 0) });
+    await assert.rejects(f.identityReader().verifySignerIdentity(f.identityInput()), failure);
+    assert.equal(reads, 22); assert.equal(f.state.authCalls, 2);
+  }
 });

@@ -206,6 +206,13 @@ This removes a source-verification gap for signed-envelope development, not the
 remaining identity/session, specialist, existing-provider and full gate composition.
 No runtime/UI change is claimed; see `intent/0136/EVIDENCE.md`.
 
+0137 development update: a dedicated reader mode now verifies the signed identity/
+session evidence referenced by the gate proof and joins it with historical/current
+Git hats. Native Git and real ephemeral signatures exercise the composition. This
+does not create an approved real identity attestor, issue receipts or convert the
+existing commercial approval format. Qualification/full gate and runtime/UI/board/
+review remain unfinished. See `intent/0137/EVIDENCE.md` for exact scope.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |
