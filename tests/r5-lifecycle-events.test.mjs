@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { createHash, createPrivateKey, sign } from 'node:crypto';
-import { correctedLifecycleEventDecision as corrected, correctionPolicyDigest } from '../intent/0059/lifecycle-events.candidate.mjs';
+import { correctedLifecycleEventDecision as corrected, correctionPolicyDigest, createLifecycleEventVerifier } from '../intent/0059/lifecycle-events.candidate.mjs';
 import { makeLifecycleEventBytes, mutateLifecycleEventBytes, makeLifecycleGraph } from '../intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs';
 import { lifecycleEventDecision as frozen, LIFECYCLE_EVENT_EXTRAS } from '../intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs';
 import { jcs, sha256, sealRecord, zeroEffects } from '../intent/0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
@@ -11,6 +11,27 @@ import { lifecycleEventFollows, eventOrderPolicyDigest } from '../intent/0071/ev
 const context = (eventBytes, historyBytes = []) => ({ version: 'steer-r5-001-events/v1', policyDigest: correctionPolicyDigest,
   scope: { organization: 'steer-platform', itemId: '0001-flight-deck-foundation', environmentId: null }, eventBytes, historyBytes, evaluationTime: '2026-09-04T13:00:00Z' });
 const envelope = (eventBytes, historyBytes = []) => jcs(context(eventBytes, historyBytes));
+test('0081: current event factory preserves original policy/output but requires a trusted matching clock', () => {
+  const registry = JSON.parse(readFileSync(new URL('../intent/0001/reviews/domain/round-3/remediation/TRUST-REGISTRY.candidate.json', import.meta.url)));
+  const verifier = createLifecycleEventVerifier(jcs(registry)), bytes = envelope(makeLifecycleEventBytes('record-committed', 1));
+  assert.equal(verifier.policyDigest, correctionPolicyDigest);
+  assert.deepEqual(verifier.verify(bytes, '2026-09-04T13:00:00Z'), { ...corrected(bytes), executionAuthorized: false });
+  for (const clock of [undefined, null, 'invalid', '2026-09-04T12:00:00Z', '2027-09-01T00:00:00Z'])
+    assert.equal(verifier.verify(bytes, clock).state, 'blocked-policy-conflict');
+  registry.bindings[0].notAfter = '2040-01-01T00:00:00Z';
+  assert.throws(() => createLifecycleEventVerifier(jcs(registry)), /CURRENT_EVENT_CONFIGURATION_INVALID/);
+});
+
+test('0081: a valid event signature cannot also supply independent provider evidence through a role alias', () => {
+  const registry = JSON.parse(readFileSync(new URL('../intent/0001/reviews/domain/round-3/remediation/TRUST-REGISTRY.candidate.json', import.meta.url)));
+  registry.bindings.push({ ...registry.bindings.find((key) => key.domain === 'record'), domain: 'provider', keyId: 'provider-alias' });
+  const verifier = createLifecycleEventVerifier(jcs(registry)), event = JSON.parse(makeLifecycleEventBytes('record-committed', 1));
+  const payload = Object.fromEntries(Object.entries(event).filter(([field]) => !['providerProofBytes', 'providerProofDigest', 'recordDigest', 'signature'].includes(field)));
+  const proof = sealRecord({ providerRecordId: event.providerRecordId, eventId: event.eventId, eventBindingDigest: sha256(jcs(payload)), recordedAt: event.occurredAt });
+  proof.signature.keyId = 'provider-alias'; event.providerProofBytes = jcs(proof); event.providerProofDigest = proof.recordDigest;
+  const bytes = jcs({ ...context(jcs(sealRecord(event))), policyDigest: verifier.policyDigest });
+  assert.equal(verifier.verify(bytes, '2026-09-04T13:00:00Z').firstError, 'EVENT_PROVIDER_INDEPENDENCE_INVALID');
+});
 // Private synthetic provider signer. Ordinary-event signer is the frozen test-only capability.
 const key = createPrivateKey({ key: Buffer.concat([Buffer.from('302e020100300506032b657004220420', 'hex'), createHash('sha256').update('steer-r3-r1-provider').digest()]), format: 'der', type: 'pkcs8' });
 function signedEvent(bytes, patch = {}, proofPatch = {}) {

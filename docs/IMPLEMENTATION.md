@@ -697,6 +697,14 @@ cannot be bypassed. This is offline full evidence, not live erasure. Mixed-era
 history, referenced objects and other classes remain closed on this new path;
 see `intent/0080/PLAN.md`. All five R5 findings remain open.
 
+Item `intent/0081` adds current-v2 lifecycle history: an exact verified archive
+prefix plus every current-key suffix event, with global ordering/identity and full
+hold/release checks. Current event verification shares the original schema/body
+while requiring trusted current registry/clock selection. Mixed runtime keys are
+unique, and event/provider roles cannot alias one key. The four-class limit stays
+explicit; full referenced-object evidence is next under `intent/0081/PLAN.md`.
+This is not a live feed, key deployment, provider effect or independent gate ruling.
+
 ## Local commands
 
 ```sh

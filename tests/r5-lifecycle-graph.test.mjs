@@ -12,6 +12,7 @@ import { policyDigest as checkpointPolicy } from '../intent/0075/raw-checkpoint.
 import { policyDigest as chainPolicy } from '../intent/0076/raw-checkpoint-chain.candidate.mjs';
 import { createRawTerminalVerifier, policyDigest as terminalPolicy } from '../intent/0077/raw-terminal.candidate.mjs';
 import { policyDigest as historicalPolicy } from '../intent/0078/historical-events.candidate.mjs';
+import { createMixedHistoryVerifier } from '../intent/0081/mixed-history.candidate.mjs';
 import { makeHumanAuthorityBundle, makeLifecycleEventBytes, makeLifecycleGraph } from '../intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs';
 import { lifecycleGraphDecision as frozen } from '../intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs';
 import { jcs, sha256, TRUST_REGISTRY, TARGET_REVISION, TARGET_EXAM_SHA, AUTHORIZATION_POLICY_PATH, AUTHORIZATION_POLICY_SHA, AUTHORIZATION_POLICY_BYTES, RETENTION_POLICY_SHA, zeroEffects } from '../intent/0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
@@ -85,20 +86,21 @@ function fixture(options = {}) {
   const raw = config.recordClass === 'RC-CORPUS-RAW-WORKING';
   const continuation = raw && (chained || Array.isArray(completedCopies));
   const type = options.eventType ?? (raw ? 'corpus-sanitization-terminal' : 'record-superseded');
-  function event(eventType, index, second) {
+  function event(eventType, index, second, current = false) {
     const value = { ...JSON.parse(makeLifecycleEventBytes(eventType, index)), recordId: config.recordId, recordClass: config.recordClass, artifactRevision: config.artifactRevision,
-      policySha256: RETENTION_POLICY_SHA, occurredAt: options.runtimeYear ? formatExactInstant(BigInt(epoch) * 1000000n + BigInt(second) * 1000000000n) : at(second), ...(eventType === 'corpus-sanitization-terminal' ? { result: 'pass', sanitizerRevision: 'sanitizer-v1', inspectionRevision: 'inspector-v1' } : {}),
+      policySha256: RETENTION_POLICY_SHA, occurredAt: options.runtimeYear && !current ? formatExactInstant(BigInt(epoch) * 1000000n + BigInt(second) * 1000000000n) : at(second), ...(eventType === 'corpus-sanitization-terminal' ? { result: 'pass', sanitizerRevision: 'sanitizer-v1', inspectionRevision: 'inspector-v1' } : {}),
       ...(eventType === 'run-terminal' ? { terminalStatus: 'failed' } : {}),
       ...(eventType === 'derived-record-deleted' ? { derivedRecordId: `derived-${String(index).padStart(3, '0')}`, derivedRecordClass: 'RC-CORPUS-DERIVED-TEXT', parentCorpusId: 'corpusId-value', parentCorpusVersion: 'corpusVersion-value' } : {}) };
     edit(`event-${index}`, value);
     const payload = Object.fromEntries(Object.entries(value).filter(([key]) => !['providerProofBytes', 'providerProofDigest', 'recordDigest', 'signature'].includes(key)));
-    const proof = originalSeal(edit(`event-proof-${index}`, { providerRecordId: value.providerRecordId, eventId: value.eventId, eventBindingDigest: sha256(jcs(payload)), recordedAt: value.occurredAt }), 'provider');
+    const eventSeal = current ? seal : originalSeal;
+    const proof = eventSeal(edit(`event-proof-${index}`, { providerRecordId: value.providerRecordId, eventId: value.eventId, eventBindingDigest: sha256(jcs(payload)), recordedAt: value.occurredAt }), 'provider');
     edit(`signed-event-proof-${index}`, proof);
-    return jcs(originalSeal({ ...value, providerProofBytes: jcs(proof), providerProofDigest: proof.recordDigest }, 'record'));
+    return jcs(eventSeal({ ...value, providerProofBytes: jcs(proof), providerProofDigest: proof.recordDigest }, 'record'));
   }
   const history = options.history ?? [{ type: options.historyType ?? 'record-committed', second: -10 }];
-  const historyBytes = history.map((entry, index) => event(entry.type, index + 1, entry.second));
-  const eventBytes = event(type, history.length + 1, 0);
+  let historyBytes = history.map((entry, index) => event(entry.type, index + 1, entry.second));
+  let eventBytes = event(type, history.length + 1, 0);
   // Explicit test expectation, not a call back into the verifier's selector.
   const trigger = JSON.parse(options.triggerHistoryIndex === undefined ? eventBytes : historyBytes[options.triggerHistoryIndex]);
   let runtimeBytes, historicalEvidenceBytes, trustedRegistryBytes = jcs(TRUST_REGISTRY);
@@ -130,8 +132,12 @@ function fixture(options = {}) {
       attestationDigest: attestation.recordDigest, retainedBytesDigest: historyDigest, complete: true, recordedAt: at(-1) }), 'provider');
     historicalEvidenceBytes = jcs(edit('historical-envelope', { version: 'steer-historical-events/v1', policyDigest: historicalPolicy, eventBytes, historyBytes,
       attestationBytes: jcs(attestation), retentionReceiptBytes: jcs(receipt) }));
-    runtimeBytes = jcs(edit('runtime', { version: 'steer-lifecycle-runtime/v1', currentRegistryBytes: trustedRegistryBytes,
+    runtimeBytes = jcs(edit('runtime', { version: Array.isArray(options.currentHistory) ? 'steer-lifecycle-runtime/v2' : 'steer-lifecycle-runtime/v1', currentRegistryBytes: trustedRegistryBytes,
       currentProviderRegistryBytes: jcs(providers), historicalContextBytes: archiveBytes }));
+    if (Array.isArray(options.currentHistory)) {
+      const combined = [...allBytes, ...options.currentHistory.map((entry, index) => event(entry.type, allBytes.length + index + 1, entry.second, true))];
+      edit('combined-history', combined); historyBytes = combined.slice(0, -1); eventBytes = combined.at(-1);
+    }
   }
   const selectedVerifier = runtimeBytes ? createCurrentLifecycleGraphVerifier(configBytes, runtimeBytes) : createLifecycleGraphVerifier(configBytes);
   const policyDigest = selectedVerifier.policyDigest;
@@ -153,7 +159,7 @@ function fixture(options = {}) {
   const state = seal(edit('state', { kind: 'state', configDigest, source: 'authoritative-lifecycle-store', inventoryDigest: inventory.recordDigest,
     historyDigest: sha256(jcs([...historyBytes, eventBytes])), historyComplete: true, holdState: 'none', referenceState: 'cleared', referenceRevocationDigest: null, parentExpiryAt: null, recordedAt: at(2), validThrough: until,
     ...(provenance ? { derivedInventoryDigest: derived.recordDigest } : {}) }), options.stateDomain ?? 'authority');
-  const graph = { version: runtimeBytes ? 'steer-lifecycle-graph/current-v1' : chained ? 'steer-lifecycle-graph/raw-v4' : continuation ? 'steer-lifecycle-graph/raw-v3' : raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1', configDigest, policyDigest, eventBytes, historyBytes, inventoryBytes: jcs(inventory), stateBytes: jcs(state), referenceRevocationBytes: '', copies: [], aggregateBytes: '', tombstone: {},
+  const graph = { version: runtimeBytes ? Array.isArray(options.currentHistory) ? 'steer-lifecycle-graph/current-v2' : 'steer-lifecycle-graph/current-v1' : chained ? 'steer-lifecycle-graph/raw-v4' : continuation ? 'steer-lifecycle-graph/raw-v3' : raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1', configDigest, policyDigest, eventBytes, historyBytes, inventoryBytes: jcs(inventory), stateBytes: jcs(state), referenceRevocationBytes: '', copies: [], aggregateBytes: '', tombstone: {},
     ...(runtimeBytes ? { historicalEvidenceBytes } : {}),
     ...(provenance ? { derivedInventoryBytes: jcs(derived) } : {}) };
   const tupleDigest = sha256(jcs(copies));
@@ -1222,6 +1228,90 @@ test('0080: exact selected provider keys and available-before-state archive proo
     'historical-receipt': (record) => { record.recordedAt = '2033-09-04T12:00:21Z'; },
   } }); denied(late, late.evaluationTime);
   const release = fixture({ ...futureCases[2], edits: { state: (state) => { state.holdState = 'released'; } } }); denied(release, release.evaluationTime);
+});
+
+const holdSuffix = [{ type: 'hold-applied', second: -10 }, { type: 'hold-released', second: -5 }];
+test('0081: mixed-era history composes exact archived facts and current hold/release events into full future disposition', () => {
+  for (const options of futureCases) for (const replay of [false, true]) {
+    const value = fixture({ ...options, replay, currentHistory: holdSuffix, edits: { state: (state) => { state.holdState = 'released'; } } });
+    const result = value.verifier.verify(value.bytes, value.evaluationTime);
+    assert.equal(result.state, 'validated-lifecycle-candidate'); assert.equal(result.replayCount, replay ? 3 : 0);
+    assert.equal(result.executionAuthorized, false); assert.deepEqual(result.effects, zeroEffects());
+    const archived = JSON.parse(value.graph.historicalEvidenceBytes);
+    assert.equal(archived.historyBytes.length + 1, 2); assert.equal(value.graph.historyBytes.length + 1, 4);
+  }
+  const empty = fixture({ ...futureCases[2], currentHistory: [] });
+  assert.equal(empty.verifier.verify(empty.bytes, empty.evaluationTime).state, 'validated-lifecycle-candidate');
+});
+
+test('0081: active and unmatched current holds cannot disappear behind archived history', () => {
+  const active = fixture({ ...futureCases[2], currentHistory: [holdSuffix[0]], edits: { state: (state) => { state.holdState = 'active'; } } });
+  assert.equal(active.verifier.verify(active.bytes, active.evaluationTime).state, 'retained-on-hold');
+  const concealed = fixture({ ...futureCases[2], currentHistory: [holdSuffix[0]] }); denied(concealed, concealed.evaluationTime);
+  const orphan = fixture({ ...futureCases[2], currentHistory: [holdSuffix[1]], edits: { state: (state) => { state.holdState = 'released'; } } }); denied(orphan, orphan.evaluationTime);
+  const mismatched = fixture({ ...futureCases[2], currentHistory: holdSuffix, edits: { state: (state) => { state.holdState = 'released'; },
+    'event-4': (event) => { event.holdId = 'different'; } } }); denied(mismatched, mismatched.evaluationTime);
+});
+
+test('0081: global ordering, prefix preservation and identity uniqueness reject cross-era substitution', () => {
+  for (const mutate of [
+    (all) => { all.shift(); }, (all) => { [all[0], all[1]] = [all[1], all[0]]; },
+    (all) => { all[2] = all[0]; }, (all) => { all.reverse(); },
+  ]) {
+    const value = fixture({ ...futureCases[2], currentHistory: holdSuffix, edits: { 'combined-history': mutate, state: (state) => { state.holdState = 'released'; } } });
+    denied(value, value.evaluationTime);
+  }
+  for (const [field, replacement] of [['eventId', '00000000-0000-4000-8000-000000000001'], ['providerRecordId', 'provider-event-1'],
+    ['recordId', 'other'], ['recordClass', 'RC-REBUILDABLE'], ['artifactRevision', 'f'.repeat(40)], ['policySha256', 'f'.repeat(64)], ['organization', 'other']]) {
+    const value = fixture({ ...futureCases[2], currentHistory: holdSuffix, edits: { state: (state) => { state.holdState = 'released'; }, 'event-3': (event) => { event[field] = replacement; } } });
+    denied(value, value.evaluationTime);
+  }
+  const reversal = fixture({ ...futureCases[2], currentHistory: [{ type: 'hold-applied', second: -5 }, { type: 'hold-released', second: -10 }],
+    edits: { state: (state) => { state.holdState = 'released'; } } }); denied(reversal, reversal.evaluationTime);
+});
+
+test('0081: every current suffix provider proof, current key window and state chronology remains mandatory', () => {
+  for (const index of [3, 4]) {
+    const value = fixture({ ...futureCases[2], currentHistory: holdSuffix, edits: { state: (state) => { state.holdState = 'released'; },
+      [`signed-event-proof-${index}`]: (proof) => { proof.signature.valueBase64 = Buffer.alloc(64).toString('base64'); } } }); denied(value, value.evaluationTime);
+  }
+  for (const domain of ['record', 'provider']) {
+    const value = fixture({ ...futureCases[2], currentHistory: holdSuffix, edits: { state: (state) => { state.holdState = 'released'; },
+      'runtime-registry': (registry) => { registry.bindings.find((key) => key.keyId === `${domain}-key-current`).revokedAt = '2033-09-04T12:00:50Z'; } } }); denied(value, value.evaluationTime);
+  }
+  const lateState = fixture({ ...futureCases[2], currentHistory: [{ type: 'hold-applied', second: 3 }], edits: { state: (state) => { state.holdState = 'active'; } } }); denied(lateState, lateState.evaluationTime);
+});
+
+test('0081: mixed history is bounded across both eras and remains fact-only outside the lifecycle', () => {
+  const inspect = (value) => {
+    const selected = createMixedHistoryVerifier(JSON.parse(value.runtimeBytes).historicalContextBytes);
+    const bytes = jcs({ version: 'steer-mixed-history/v1', policyDigest: selected.policyDigest, archivedEvidenceBytes: value.graph.historicalEvidenceBytes,
+      eventBytes: value.graph.eventBytes, historyBytes: value.graph.historyBytes });
+    return { selected, bytes, result: selected.verify(bytes, value.evaluationTime) };
+  };
+  const source = fixture({ ...futureCases[2], currentHistory: holdSuffix, edits: { state: (state) => { state.holdState = 'released'; } } });
+  const result = inspect(source).result;
+  assert.equal(result.state, 'verified-mixed-history'); assert.equal(result.archivedEventCount, 2); assert.equal(result.currentEventCount, 2);
+  assert.equal(result.factOnly, true); assert.equal(result.currentActionAuthorityRequired, true); assert.equal(result.executionAuthorized, false); assert.deepEqual(result.effects, zeroEffects());
+  const maximum = fixture({ ...futureCases[2], currentHistory: Array.from({ length: 127 }, (_, index) => ({ type: 'record-committed', second: index - 127 })) });
+  assert.equal(inspect(maximum).result.currentEventCount, 127);
+  const excess = fixture({ ...futureCases[2], currentHistory: Array.from({ length: 128 }, (_, index) => ({ type: 'record-committed', second: index - 128 })) });
+  denied(excess, excess.evaluationTime);
+  const check = inspect(source); assert.equal(check.selected.verify(' '.repeat(16777217), source.evaluationTime).state, 'blocked');
+  assert.equal(check.selected.verify(check.bytes).state, 'blocked');
+});
+
+test('0081: old current-v1 graphs do not silently accept the mixed-history contract', () => {
+  const mixed = fixture({ ...futureCases[2], currentHistory: [] }), old = fixture(futureCases[2]);
+  assert.notEqual(mixed.verifier.policyDigest, old.verifier.policyDigest);
+  denied({ ...mixed, verifier: old.verifier }, mixed.evaluationTime);
+  denied({ ...old, verifier: mixed.verifier }, old.evaluationTime);
+  const bad = fixture({ ...futureCases[2], currentHistory: [], edits: { graph: (graph) => { graph.version = 'steer-lifecycle-graph/current-v1'; } } }); denied(bad, bad.evaluationTime);
+  for (const [destination, source] of [['provider-key-current', 'record-key-current'], ['authority-key-current', 'record-key-current'],
+    ['record-key-current', 'record-key-v1'], ['provider-a-key-current', 'provider-b-key-current']])
+    assert.throws(() => fixture({ ...futureCases[2], currentHistory: [], edits: { 'runtime-registry': (registry) => {
+      registry.bindings.find((key) => key.keyId === destination).publicKeyHex = registry.bindings.find((key) => key.keyId === source).publicKeyHex;
+    } } }), /LIFECYCLE_RUNTIME_CONFIGURATION_INVALID/);
 });
 
 test('0068: provenance manifests are independently timed, closed, complete and exactly matched to every event', () => {

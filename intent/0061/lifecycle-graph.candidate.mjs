@@ -52,7 +52,7 @@ function createComposedLifecycleVerifier(configBytes, runtime) {
   const providers = runtime?.providers ?? originalDependencies.providers;
   const timed = runtime ? createTimedRecordVerifier(registryBytes) : originalDependencies.timed;
   const humanPolicy = runtime?.human.policyDigest ?? originalDependencies.humanPolicy;
-  const policyDigest = runtime ? sha256(jcs({ version: 'steer-lifecycle-graph/current-v1', originalPolicyDigest: originalDependencies.policyDigest,
+  const policyDigest = runtime ? sha256(jcs({ version: runtime.mixed ? 'steer-lifecycle-graph/current-v2' : 'steer-lifecycle-graph/current-v1', originalPolicyDigest: originalDependencies.policyDigest,
     runtimePolicyDigest: runtime.policyDigest, runtimeConfigDigest: runtime.configDigest })) : originalDependencies.policyDigest;
   let config, row;
   try {
@@ -87,13 +87,16 @@ function createComposedLifecycleVerifier(configBytes, runtime) {
         const chained = raw && graph.version === 'steer-lifecycle-graph/raw-v4';
         const continuation = chained || raw && graph.version === 'steer-lifecycle-graph/raw-v3';
         requireValue(exactKeys(graph, ['version', 'policyDigest', 'configDigest', 'eventBytes', 'historyBytes', 'inventoryBytes', 'stateBytes', 'referenceRevocationBytes', 'copies', 'aggregateBytes', 'tombstone', ...(provenance ? ['derivedInventoryBytes'] : []), ...(raw ? ['rawPolicyBytes', 'rawBatchBytes'] : []), ...(continuation ? ['continuationBytes'] : []), ...(runtime ? ['historicalEvidenceBytes'] : [])]) &&
-          (continuation || graph.version === (runtime ? 'steer-lifecycle-graph/current-v1' : raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1')) && graph.policyDigest === policyDigest && graph.configDigest === configDigest);
+          (continuation || graph.version === (runtime ? runtime.mixed ? 'steer-lifecycle-graph/current-v2' : 'steer-lifecycle-graph/current-v1' : raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1')) && graph.policyDigest === policyDigest && graph.configDigest === configDigest);
         if (runtime) {
           requireValue(runtime.historicalContext.scope.organization === scope.organization && runtime.historicalContext.scope.itemId === scope.item);
-          const result = runtime.history.verify(graph.historicalEvidenceBytes, evaluationTime);
-          requireValue(result.state === 'verified-historical-events');
-          const archived = parseCanonical(graph.historicalEvidenceBytes);
-          requireValue(archived.eventBytes === graph.eventBytes && equal(archived.historyBytes, graph.historyBytes));
+          const result = runtime.history.verify(runtime.mixed ? jcs({ version: 'steer-mixed-history/v1', policyDigest: runtime.history.policyDigest,
+            archivedEvidenceBytes: graph.historicalEvidenceBytes, eventBytes: graph.eventBytes, historyBytes: graph.historyBytes }) : graph.historicalEvidenceBytes, evaluationTime);
+          requireValue(result.state === (runtime.mixed ? 'verified-mixed-history' : 'verified-historical-events'));
+          if (!runtime.mixed) {
+            const archived = parseCanonical(graph.historicalEvidenceBytes);
+            requireValue(archived.eventBytes === graph.eventBytes && equal(archived.historyBytes, graph.historyBytes));
+          }
         } else {
           const eventsResult = correctedLifecycleEventDecision(jcs({ version: 'steer-r5-001-events/v1', policyDigest: eventPolicy,
             scope: { organization: scope.organization, itemId: scope.item, environmentId: config.environmentId }, eventBytes: graph.eventBytes, historyBytes: graph.historyBytes, evaluationTime }));

@@ -47,7 +47,8 @@ three-key raw lifecycle evidence (0072), pre-terminal raw grant eligibility (007
 raw grant/batch lifecycle integration (0074), single-checkpoint raw recovery (0075)
 bounded repeated-checkpoint chains (0076), terminal consumption readback (0077)
 fact-only historical-event revalidation (0078), current-registry human authority (0079)
-and full future-retention composition for four supported classes (0080),
+full future-retention composition for four supported classes (0080)
+and mixed-era lifecycle history (0081),
 correction candidates, are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
@@ -141,6 +142,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0078 · Historical event revalidation | `intent/0078/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | complete original historical facts with fresh independent current archive attestations; unchanged old keys and current revocation denial | current human/action and full future lifecycle composition, reference evidence, runtime trust/archive integration and independent/protected review |
 | 0079 · Current human authority | `intent/0079/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | all nine fresh human proofs under trusted current keys and explicit clock; unchanged default policy/output and old key windows | full historical/current lifecycle composition, reference evidence, runtime trust integration and independent/protected review |
 | 0080 · Future lifecycle composition | `intent/0080/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | full one-/three-/seven-year first/replay evidence for four classes; historical facts plus fresh current human/actions and exact selected provider receipts | mixed-era history, reference evidence, remaining classes/normative coverage, runtime integration and independent/protected review |
+| 0081 · Mixed-era history | `intent/0081/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | exact archived prefix/current suffix, global order/identity, combined holds and independent current keys in full lifecycle | complete reference evidence, remaining classes/normative coverage, runtime integration and independent/protected review |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier

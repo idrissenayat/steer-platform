@@ -1435,3 +1435,22 @@ revocation/retained-verification and remaining record-class/normative coverage.
 This is complete offline evidence for the admitted scenarios, not an actual
 deletion, live trust rollout or archive integration. All five R5 findings remain
 open pending independent/protected review; no gate or spending is authorized.
+
+## Completed development increment: 0081 — mixed-era lifecycle history
+
+Current-v2 verifies the exact archived prefix and every current-key suffix event,
+with global ordering, event/provider identity uniqueness and combined hold/release
+state processing. Current event verification preserves the original API/policy.
+Mixed runtime keys cannot alias or relabel historical material; event/provider
+signatures must use independent keys.
+
+Full checks pass with 186 root controls and 88 prototype tests. Eight new groups
+cover mixed first/replay histories, holds, suffix proofs, bounds, versions, key
+independence and original compatibility. See intent/0081/EVIDENCE.md; these are
+synthetic assertions, not a live feed, current trust publication or human approval.
+
+Next is full qualified-owner binding for current hold/release events, then exact
+reference inventory/revocation and retained verification bundles under
+intent/0081/PLAN.md. A provider-bound hold event alone is not claimed as that
+qualified-owner evidence. Other classes, normative coverage and all five formal
+R5 findings remain open pending independent/protected review.

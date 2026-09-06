@@ -17,11 +17,39 @@ export const correctionPolicyBytes = jcs({ version: 'steer-r5-001-events/v1', fi
 export const correctionPolicyDigest = sha256(correctionPolicyBytes);
 const blocked = (firstError) => ({ state: 'blocked-policy-conflict', firstError, effects: zeroEffects() });
 export function correctedLifecycleEventDecision(serialized) {
+  return verifyLifecycleEvents(serialized, verifier, correctionPolicyDigest);
+}
+
+export function createLifecycleEventVerifier(trustedRegistryBytes) {
+  let selected;
+  try {
+    selected = createTimedRecordVerifier(trustedRegistryBytes);
+    const registry = parseCanonical(trustedRegistryBytes);
+    for (const original of parseCanonical(registryBytes).bindings) {
+      const matches = registry.bindings.filter((key) => key.domain === original.domain && key.keyId === original.keyId);
+      if (matches.length !== 1 || ['algorithm', 'publicKeyHex', 'notBefore', 'notAfter'].some((field) => matches[0][field] !== original[field]) ||
+          (original.revokedAt !== null && (matches[0].revokedAt === null || strictTime(matches[0].revokedAt) > strictTime(original.revokedAt))))
+        throw new Error('CURRENT_EVENT_TRUST_INVALID');
+    }
+  } catch { throw new Error('CURRENT_EVENT_CONFIGURATION_INVALID'); }
+  const policyBytes = jcs({ ...parseCanonical(correctionPolicyBytes), registryDigest: selected.registryDigest }), policyDigest = sha256(policyBytes);
+  return Object.freeze({ policyBytes, policyDigest,
+    verify(serialized, evaluationTime) {
+      try {
+        if (strictTime(evaluationTime) === null || typeof serialized !== 'string' || serialized.length > 8388608 ||
+            parseCanonical(serialized).evaluationTime !== evaluationTime) throw new Error('CLOCK_INVALID');
+        return { ...verifyLifecycleEvents(serialized, selected, policyDigest), executionAuthorized: false };
+      } catch { return { ...blocked('EVENT_CURRENT_CLOCK_INVALID'), executionAuthorized: false }; }
+    },
+  });
+}
+
+function verifyLifecycleEvents(serialized, verifier, expectedPolicyDigest) {
   try {
     if (typeof serialized !== 'string' || serialized.length > 8388608) return blocked('EVENT_ENVELOPE_INVALID');
     const envelope = parseCanonical(serialized);
     if (!exactKeys(envelope, ['version', 'policyDigest', 'scope', 'eventBytes', 'historyBytes', 'evaluationTime']) ||
-        envelope.version !== 'steer-r5-001-events/v1' || envelope.policyDigest !== correctionPolicyDigest ||
+        envelope.version !== 'steer-r5-001-events/v1' || envelope.policyDigest !== expectedPolicyDigest ||
         !exactKeys(envelope.scope, ['organization', 'itemId', 'environmentId']) ||
         typeof envelope.scope.organization !== 'string' || !envelope.scope.organization || envelope.scope.organization.length > 256 ||
         ['itemId', 'environmentId'].some((field) => envelope.scope[field] !== null &&
@@ -37,9 +65,10 @@ export function correctedLifecycleEventDecision(serialized) {
       if (Object.keys(envelope.scope).some((field) => event[field] !== envelope.scope[field])) return blocked('EVENT_SCOPE_INVALID');
       const at = strictTime(event.occurredAt);
       if (at === null || !lifecycleEventFollows(prior, event)) return blocked('EVENT_ORDER_INVALID');
-      verifier.verifyBytes(bytes, { domain: 'record', recordedAt: event.occurredAt, evaluatedAt: envelope.evaluationTime });
+      const eventChecked = verifier.verifyBytes(bytes, { domain: 'record', recordedAt: event.occurredAt, evaluatedAt: envelope.evaluationTime });
       const rawProof = parseCanonical(event.providerProofBytes);
-      const { record: proof } = verifier.verifyBytes(event.providerProofBytes, { domain: 'provider', recordedAt: rawProof.recordedAt, evaluatedAt: envelope.evaluationTime });
+      const { record: proof, anchorDigest } = verifier.verifyBytes(event.providerProofBytes, { domain: 'provider', recordedAt: rawProof.recordedAt, evaluatedAt: envelope.evaluationTime });
+      if (anchorDigest === eventChecked.anchorDigest) return blocked('EVENT_PROVIDER_INDEPENDENCE_INVALID');
       if (!exactKeys(proof, ['providerRecordId', 'eventId', 'eventBindingDigest', 'recordedAt', 'recordDigest', 'signature'])) return blocked('EVENT_PROOF_SCHEMA_INVALID');
       const payload = Object.fromEntries(Object.entries(event).filter(([field]) => !['providerProofDigest', 'providerProofBytes', 'recordDigest', 'signature'].includes(field)));
       if (proof.eventId !== event.eventId || proof.providerRecordId !== event.providerRecordId || proof.recordedAt !== event.occurredAt ||
@@ -49,6 +78,6 @@ export function correctedLifecycleEventDecision(serialized) {
       prior = event; current = event;
     }
     return { state: 'validated-trigger', firstError: null, effects: zeroEffects(), eventId: current.eventId, eventDigest: current.recordDigest,
-      verifiedHistoryCount: envelope.historyBytes.length, correctionPolicyDigest };
+      verifiedHistoryCount: envelope.historyBytes.length, correctionPolicyDigest: expectedPolicyDigest };
   } catch { return blocked('EVENT_TIMED_EVIDENCE_INVALID'); }
 }
