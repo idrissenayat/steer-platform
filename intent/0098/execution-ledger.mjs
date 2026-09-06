@@ -53,7 +53,8 @@ function run(profile) {
     supplementalHookSources: ['intent/0099/execution-hooks.mjs', 'intent/0099/execution-fixtures.mjs', 'intent/0100/execution-hooks.mjs', 'intent/0100/execution-fixtures.mjs',
       'intent/0101/execution-hooks.mjs', 'intent/0101/execution-fixtures.mjs', 'intent/0102/execution-hooks.mjs', 'intent/0103/execution-hooks.mjs',
       'intent/0104/execution-hooks.mjs', 'intent/0104/stream-seal.mjs', 'intent/0104/execution-prerequisites.mjs',
-      'intent/0105/execution-hooks.mjs', 'intent/0105/execution-fixtures.mjs', 'intent/0106/execution-hooks.mjs', 'intent/0106/execution-fixtures.mjs'].map((path) => ({
+      'intent/0105/execution-hooks.mjs', 'intent/0105/execution-fixtures.mjs', 'intent/0106/execution-hooks.mjs', 'intent/0106/execution-fixtures.mjs',
+      'intent/0107/execution-hooks.mjs', 'intent/0107/execution-fixtures.mjs'].map((path) => ({
       path, digest: digest(readFileSync(new URL('../../' + path, import.meta.url))) })),
     required: catalog.cases.length, executed: executions.length, passed: executions.length - failed, failed, uncovered: uncovered.length,
     uncoveredIdsDigest: digest(jcs(uncovered)), executionsDigest: digest(jcs(executions)), families, executions,
@@ -65,7 +66,7 @@ function run(profile) {
       'Streamed observations seal actual consumed row prefixes; only exhausted positive execution proves the full stream. Negative cases require a passed full positive from this same run.',
       'Privacy graph hooks now include 0063 independent time observation; later trust eras and remaining global time requirements still need reconciliation.',
       'Legacy baseline calls inside a counterexample hook are not credited as corrected coverage.',
-      'Omitted-action R5 hooks execute the complete shared proof stack; the separate migration R5 hook executes a full staged graph, not its compatibility matrix. The lifecycle surrogate-trigger graph counterexample remains unmapped.',
+      'Omitted-action R5 hooks execute the shared proof stack; separate graph hooks execute a full staged migration graph and original-era failed-run lifecycle graph, not their remaining matrices or live stores.',
       'Non-phone detector IDs execute the unchanged classifier retained by the corrected graph; they do not claim newly corrected detector behavior or corpus acceptance.',
       'Schema IDs cover the selected structural formats and precision successor only, not signature validity, corrected graph adequacy or future profiles; the obsolete migration schema stays unmapped.',
       'The source catalog is the frozen declaration plus nine R5 reproductions, not every additional normative clause or variation.',

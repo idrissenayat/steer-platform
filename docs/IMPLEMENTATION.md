@@ -931,6 +931,16 @@ count as one R5 ID, not migration matrix coverage. Full profile now records
 lifecycle graph reproduction remains unmapped. No database/store or migration
 effect is executed. See `intent/0106/EVIDENCE.md` and `PLAN.md`.
 
+Item `intent/0107` maps the final R5 surrogate-trigger reproduction through a full
+same-class failed-run lifecycle graph. The original graph/event disagreement is
+preserved; a valid closed event and full history reach the synthetic 90-day boundary
+with both copy paths and a separate human/action/provider tombstone path. Missing
+event/action proofs, drift, holds and invalid human/provider lineage deny. All nine
+R5 reproductions are mapped, but the five formal findings stay open. Full profile
+records 327 passed / 3,709 uncovered; quick 311 passed / 3,725 uncovered. Remaining
+matrix/schema, live integration and independent/protected evidence are separate.
+See `intent/0107/EVIDENCE.md` and `PLAN.md`. No real retention/deletion is claimed.
+
 ## Local commands
 
 ```sh

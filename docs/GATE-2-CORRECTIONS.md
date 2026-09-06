@@ -16,17 +16,18 @@ complete timed R5-004 counterexample; `intent/0102` maps the public signing boun
 `intent/0103` reconciles schemas with structural-only scope; `intent/0104` adds
 actual streamed accessibility execution in full profile; `intent/0105` maps the
 two omitted-action reproductions through the complete shared permission stack.
-`intent/0106` maps the complete staged migration graph counterexample.
-Full snapshot: 4,036 required IDs, 326 passed, 3,710 unmapped. Quick explicitly
-leaves the 16 heavy cases unexecuted (310 passed / 3,726 uncovered). The require-complete command
+`intent/0106` maps the complete staged migration graph counterexample;
+`intent/0107` maps the complete original-era failed-run lifecycle counterexample.
+Full snapshot: 4,036 required IDs, 327 passed, 3,709 unmapped. Quick explicitly
+leaves the 16 heavy cases unexecuted (311 passed / 3,725 uncovered). The require-complete command
 exits 2 and explains its deferred-full preflight; GAP-01 is not complete. Some hooks intentionally
 cover only a narrower correction/classifier scope and do not certify the entire
 public oracle. No formal finding is closed by this count.
 
-Eight of nine R5 reproductions now have mapped development executions. The full
-lifecycle surrogate-trigger reproduction remains unmapped, together with 94
-lifecycle graph, 3,614 migration and one obsolete schema case. The complete
-migration hook does not execute the concurrency/compatibility matrix or a live store.
+All nine R5 reproductions now have mapped development executions. Still unmapped:
+94 lifecycle graph, 3,614 migration and one obsolete schema case. The complete
+graph hooks do not execute every matrix coordinate, future key era or a live store.
+The five formal findings remain open regardless of the reproduction count.
 
 | Finding | Candidate work available | Required remaining work |
 |---|---|---|

@@ -76,13 +76,13 @@ test('0105: closed deterministic fixtures keep installed context separate and ex
 });
 
 test('0105: two case IDs are credited once and a fresh quick execution matches the current snapshot', () => {
-  const report = runCorrectedCoverage(); assert.equal(report.executed, 310); assert.equal(report.passed, 310); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3726);
-  assert.equal(report.families.R5.executed, 8); assert.equal(report.families.R5.uncovered, 1);
+  const report = runCorrectedCoverage(); assert.equal(report.executed, 311); assert.equal(report.passed, 311); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3725);
+  assert.equal(report.families.R5.executed, 9); assert.equal(report.families.R5.uncovered, 0);
   for (const [id] of groups) {
     const matches = report.executions.filter((row) => row.id === id); assert.equal(matches.length, 1); assert.equal(matches[0].status, 'passed');
     assert.ok(matches[0].observationCount > 150); assert.ok(matches[0].scope.includes('not full lifecycle/migration graph'));
   }
   assert.equal(report.families.MIGRATION.executed, 0); assert.equal(report.families['LIFECYCLE-GRAPH'].executed, 0);
   for (const key of ['completeCoverage', 'normativeAcceptanceComplete', 'independentAcceptance', 'executionAuthorized', 'liveProviderUsed']) assert.equal(report[key], false);
-  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0106/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
+  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0107/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
 });

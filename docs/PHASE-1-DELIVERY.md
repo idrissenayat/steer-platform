@@ -1983,3 +1983,26 @@ reproduction with a complete corrected control, then 94 lifecycle graph,
 3,614 migration and one obsolete schema case. GAP-01–06 and M1–M8 remain separate.
 No protected edit, provider mutation, cleanup, release, deployment, spending or
 signature is authorized.
+
+## Completed development increment: 0107 — complete lifecycle counterexample
+
+The final R5 reproduction now runs through the complete same-class failed-run
+lifecycle graph. The old graph/event disagreement is preserved; a schema-valid
+terminal event and full history reach the simulated 90-day boundary with both
+copy paths and a separate human/action/provider tombstone path. Event omissions,
+current/prior proof corruption, policy/history drift, active hold and every action
+proof omission deny. Its 64 observations count once, not as matrix coverage.
+
+Five new groups and final full checks pass: 344 root controls and 88 prototype
+tests. Fresh quick execution matches 311 passed / 3,725 uncovered; full matches
+327 passed / 3,709 uncovered, both with zero failures. The separate three-group
+full integration rerun again consumed the matrix and matched the full snapshot.
+See intent/0107/EVIDENCE.md for synthetic/cached limits. The September-to-December
+clock is simulated, not a real retention observation or deletion.
+
+All nine R5 reproductions now have mapped development executions, but all five
+formal findings remain open. Next under intent/0107/PLAN.md are 94 lifecycle graph
+cases, 3,614 migration cases and one obsolete schema case. Do not credit unsupported
+classes/dimensions through generic rejection or alias distinct migration interleavings.
+GAP-01–06 and M1–M8 remain separate. No protected edit, provider mutation, cleanup,
+release, deployment, spending or signature is authorized.

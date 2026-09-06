@@ -82,7 +82,7 @@ test('0103: structural evidence remains distinct from complete semantic coverage
   assert.equal(schemaExecutionHook({ family: 'unknown', id: 'unknown' }), null);
   assert.throws(() => schemaExecutionInputs('MIGRATION-EVIDENCE'), /UNMAPPED_SCHEMA_CASE/);
   assert.throws(() => schemaExecutionHook(rows[0]).run(() => { throw new Error('ASSERTION_FAILED'); }), /ASSERTION_FAILED/);
-  const report = runCorrectedCoverage(); assert.equal(report.executed, 310); assert.equal(report.uncovered, 3726);
+  const report = runCorrectedCoverage(); assert.equal(report.executed, 311); assert.equal(report.uncovered, 3725);
   assert.equal(report.families.SCHEMA.executed, 14); assert.equal(report.families.SCHEMA.uncovered, 1); assert.equal(report.families.ACCESSIBILITY.uncovered, 16);
   assert.ok(report.limitations.some((value) => value.includes('obsolete migration schema')));
   assert.equal(report.normativeAcceptanceComplete, false); assert.equal(report.completeCoverage, false);

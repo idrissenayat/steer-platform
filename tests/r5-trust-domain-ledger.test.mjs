@@ -38,7 +38,7 @@ test('0102: public boundary hooks neither swallow assertion failures nor claim u
 
 test('0102: exact source and observation seals retain narrow capability scope with schema and accessibility still uncovered', () => {
   const report = runCorrectedCoverage(), executions = report.executions.filter((row) => row.id.startsWith('TRUST-DOMAIN-FORGERY:'));
-  assert.equal(report.executed, 310); assert.equal(report.passed, 310); assert.equal(report.uncovered, 3726);
+  assert.equal(report.executed, 311); assert.equal(report.passed, 311); assert.equal(report.uncovered, 3725);
   assert.deepEqual(executions.map((row) => row.id), rows.map((row) => row.id));
   for (const row of executions) {
     assert.equal(row.status, 'passed'); assert.equal(row.observationCount, 2);
