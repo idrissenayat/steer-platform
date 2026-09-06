@@ -20,6 +20,15 @@ inside STEER. Every surface uses the same registry and tenant authorization.
 
 ## Delivery sequence
 
+Execution priority as of 2026-09-06: finish the first usable journey above.
+The current code audit, bounded effort ranges, next demo and separate waiting
+dependencies are in `docs/FIRST-USABLE-DELIVERY.md`. This orders safe development;
+it does not defer signed requirements or waive any of the five R5 findings.
+Stateless authoring can proceed while Gate 2 continues to block live writes.
+The next selected increment is 0121 Brief preview, followed by production
+authoring/correction UI. The unimplemented retirement-archive prerequisite remains
+tracked in `intent/0120/PLAN.md`, not silently marked complete or renumbered.
+
 | Milestone | Deliverable and acceptance evidence | Dependency / current state |
 |---|---|---|
 | M0 — Close the five Gate 2 findings | Fix R5-001 through R5-005 with regression tests; independent review; protected incorporation and revision-bound approvals. Preserve review history. | Open, gates live writes and release. No further broad remediation loop is assumed. |
@@ -2374,3 +2383,30 @@ local archive prerequisite is unblocked. Twelve lifecycle, 3,614 migration and o
 schema coordinate, all five formal R5 findings and normative/live/independent/
 protected review remain open. Provider operations, actual retirement/deletion,
 signatures, release, deployment and spending remain gated. The loop stays active.
+
+## Completed development increment: 0121 — first-journey Brief preview
+
+At the safe boundary after 0120, the first usable journey became the explicit
+development priority. `docs/FIRST-USABLE-DELIVERY.md` now separates audited code,
+remaining work, engineering ranges and independent/gate/provider waiting time.
+Its 68–132 focused-hour envelope is for the bounded journey only, not complete
+Phase 1, all R5 remediation, release readiness or elapsed calendar delivery.
+
+The shared registry now exposes `intent.brief.preview`: a bounded, explicitly
+granted human-only query using the existing template, exact content SHA-256 and
+missing-field output. Current identity and grants are checked before and after
+computation. All responses remain unsaved, unconfirmed and non-authorizing.
+HTTP/MCP parity is verified; no model or provider is used and no UI is claimed.
+
+Verification: 54 registry groups, five MCP groups and full `pnpm check` pass,
+including 437 root controls and 88 prototype tests. See `intent/0121/EVIDENCE.md`
+for commands, cache boundaries and limitations. Protected artifacts are unchanged.
+No R5 catalog credit is added. Five formal findings remain open.
+
+Next is the production authoring/correction UI with browser/keyboard verification,
+estimated 4–8 focused engineering hours within the authoring work package. The demo
+must show missing facts and unsaved draft correction, not fabricated Git success.
+Retirement archival work remains in 0120/PLAN; prioritization is not signed scope
+deferral. The active loop follows this journey order without another generic
+continue. Live writes, provider access changes, gate signatures and release remain
+separately gated; no new human-only blocker exists for local UI development.

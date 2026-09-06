@@ -1084,6 +1084,15 @@ remain open.
 
 ## Local commands
 
+Item `intent/0121` advances the first usable journey with a stateless authenticated
+Brief-preview query. It reuses the domain template, binds the authenticated human,
+reports missing facts and hashes exact content, with fresh grant checks before
+and after computation. It saves/signs nothing, calls no model and grants no real
+access. The production authoring UI, confirmation and Git write contracts remain
+next. `docs/FIRST-USABLE-DELIVERY.md` contains the audited journey, effort ranges,
+near-term preview demo and separate gate/provider waits. Existing archival and
+other Phase 1 obligations remain due; no finding or signed scope is waived.
+
 ```sh
 pnpm install
 pnpm check

@@ -26,6 +26,25 @@ const toolError = (result: Awaited<ReturnType<Client['callTool']>>) => {
   return JSON.parse((first as { text: string }).text).error.code;
 };
 
+test('human Brief preview has HTTP/MCP parity without enabling default access or agent confirmation', async () => {
+  let actor = { ...principal, type: 'human', toolGrants: ['intent.brief.preview'] };
+  const dependencies = { authenticate: async () => actor, now: () => now };
+  const endpoint = createMcpEndpoint(origin, dependencies); const client = await connect(endpoint);
+  const args = { organizationId: 'org-a', draft: { title: 'Draft only', problem: 'A supplied problem', outcome: '',
+    users: [], systems: [], constraints: [], openQuestions: [], successMeasure: '' } };
+  const request = { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(args) };
+  try {
+    const result = await client.callTool({ name: 'intent.brief.preview', arguments: args }); assert.ok(!result.isError);
+    const response = await createApi(dependencies).request('/v1/tools/intent.brief.preview', request);
+    assert.equal(response.status, 200); assert.equal(response.headers.get('cache-control'), 'no-store');
+    const body = await response.json(); assert.deepEqual((result.structuredContent as { result: unknown }).result, body);
+    assert.equal(body.saved, false); assert.equal(body.confirmed, false); assert.equal(body.executionAuthorized, false);
+    assert.equal((await createApi().request('/v1/tools/intent.brief.preview', request)).status, 401);
+    actor = { ...actor, type: 'agent' };
+    assert.equal(toolError(await client.callTool({ name: 'intent.brief.preview', arguments: args })), 'FORBIDDEN');
+  } finally { await client.close(); await endpoint.shutdown(); }
+});
+
 test('official MCP v2 client lists canonical schemas and calls the same tools as HTTP', async () => {
   const schedulingScope = { organizationId: 'org-a', repository: 'github:1', itemId: 'intent/0001' };
   const receipt = { workflowId: 'steer-reconcile/v1/org-a/github%3A1/intent%2F0001', runId: '00000000-0000-4000-8000-000000000039' };

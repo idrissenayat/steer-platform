@@ -7,6 +7,11 @@ item one, are the framework's pilot evidence.
 
 ## Current delivery
 
+Immediate priority: [the first usable journey](docs/FIRST-USABLE-DELIVERY.md),
+with a current code audit, bounded forecast and separate gate/provider waits.
+Item [0121](intent/0121/README.md) adds authenticated stateless Brief preview;
+production authoring UI follows. Preview is not a Git save or gate signature.
+
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono
 API/shared tool registry (0007), OIDC adapter/API composition (0008), and
