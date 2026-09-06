@@ -3,6 +3,7 @@
 import { createHash, createPrivateKey, createPublicKey, sign } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { createLifecycleGraphVerifier, createCurrentLifecycleGraphVerifier, createLifecycleReadinessVerifier, createCurrentLifecycleReadinessVerifier, lifecycleBoundary, policyDigest } from '../0061/lifecycle-graph.candidate.mjs';
+import { createImmediateLifecycleReadinessVerifier } from '../0115/lifecycle-immediate.candidate.mjs';
 import { humanAuthorityBindingDigest } from '../0058/human-authority.candidate.mjs';
 import { manifestBytes, manifestDigest } from '../0060/protected-actions.candidate.mjs';
 import { exactInstant, formatExactInstant } from '../0069/exact-time.candidate.mjs';
@@ -663,4 +664,44 @@ export function rawDeadlineExecutionCase(boundary, variant = 'positive') {
   }
   const value = fixture(options);
   return { ...value, boundary, boundaryAt, variant, input: jcs({ configBytes: value.configBytes, bytes: value.bytes, evaluatedAt: evaluationTime }) };
+}
+
+export function immediateLifecycleExecutionCase(point, variant = 'positive') {
+  const points = { before: -1, at: 0, after: 1, complete: 6 };
+  const variants = ['positive', 'rebuild-trigger', 'earliest-superseded', 'earliest-rebuild', 'future-trigger', 'missing-state', 'missing-inventory',
+    'bad-history', 'incomplete-history', 'stale-inventory', 'future-state', 'wrong-provider', 'wrong-target', 'wrong-policy', 'extra-field',
+    'active-hold', 'reference-active', 'full-positive', 'full-replay', 'full-missing-receipt'];
+  if (!Object.hasOwn(points, point) || !variants.includes(variant) || variant.startsWith('full-') && point !== 'complete' ||
+    ['earliest-superseded', 'earliest-rebuild'].includes(variant) && point === 'before') throw new Error('UNKNOWN_IMMEDIATE_LIFECYCLE_CASE');
+  const epoch = Date.parse('2026-09-04T12:00:00Z'), at = (s) => formatExactInstant(BigInt(epoch) * 1000000n + BigInt(s) * 1000000000n);
+  const full = variant.startsWith('full-'), before = point === 'before', evaluationTime = at(points[point]);
+  const options = { fixtureEpoch: epoch, recordClass: 'RC-REBUILDABLE', tickNanoseconds: 100000000, horizon: 1500, evaluationTime,
+    eventType: before && variant !== 'future-trigger' ? 'record-committed' : variant === 'rebuild-trigger' || variant === 'earliest-superseded' ? 'rebuild-requested' : 'record-superseded',
+    triggerSecond: before && variant !== 'future-trigger' ? -100 : 0,
+    history: [{ type: variant === 'earliest-superseded' ? 'record-superseded' : variant === 'earliest-rebuild' ? 'rebuild-requested' : 'originator-draft-saved', second: -200 }],
+    replay: variant === 'full-replay', edits: {
+      'event-2': (record) => { if (variant === 'future-trigger') record.occurredAt = formatExactInstant(exactInstant(evaluationTime) + 1n); },
+      inventory: (record) => { if (!full) record.recordedAt = at(before ? -1 : 0); if (variant === 'stale-inventory') record.recordedAt = at(-601);
+        if (variant === 'wrong-provider') record.copies[0].provider = 'unbound-provider'; },
+      state: (record) => { if (!full) record.recordedAt = at(before ? -1 : 0);
+        if (variant === 'future-state') record.recordedAt = formatExactInstant(exactInstant(evaluationTime) + 1n);
+        if (variant === 'incomplete-history') record.historyComplete = false;
+        if (variant === 'active-hold') record.holdState = 'active'; if (variant === 'reference-active') record.referenceState = 'active'; },
+      graph: (graph) => { if (variant === 'full-missing-receipt') graph.copies[0].receiptBytes = '';
+        if (variant === 'missing-state') graph.stateBytes = ''; if (variant === 'missing-inventory') graph.inventoryBytes = '';
+        if (variant === 'bad-history') { const prior = JSON.parse(graph.historyBytes[0]); prior.signature.valueBase64 = 'A'.repeat(86) + '=='; graph.historyBytes[0] = jcs(prior);
+          graph.stateBytes = jcs(originalSeal({ ...JSON.parse(graph.stateBytes), historyDigest: sha256(jcs([...graph.historyBytes, graph.eventBytes])) }, 'authority')); }
+      } } };
+  const value = fixture(options);
+  if (full) return { ...value, point, variant, input: jcs({ configBytes: value.configBytes, bytes: value.bytes, evaluatedAt: evaluationTime }) };
+  const verifier = createImmediateLifecycleReadinessVerifier(value.configBytes), graph = value.graph;
+  const head = { version: 'steer-immediate-readiness/v1', policyDigest: verifier.policyDigest, dispositionPolicyDigest: value.verifier.policyDigest,
+    target: Object.fromEntries(['examRevision', 'examDigest', 'implementationRevision', 'authorizationPolicyPath', 'authorizationPolicyRevision', 'authorizationPolicyDigest'].map((field) => [field, target[field]])),
+    ...Object.fromEntries(['configDigest', 'eventBytes', 'historyBytes', 'inventoryBytes', 'stateBytes'].map((field) => [field, graph[field]])) };
+  if (variant === 'wrong-target') head.target.implementationRevision = 'f'.repeat(40);
+  if (variant === 'wrong-policy') head.policyDigest = value.verifier.policyDigest;
+  if (variant === 'extra-field') head.executionAuthorized = true;
+  const bytes = jcs(head);
+  return { configBytes: value.configBytes, point, variant, head, bytes, verifier, fullVerifier: value.verifier, evaluationTime,
+    input: jcs({ configBytes: value.configBytes, bytes, evaluatedAt: evaluationTime }) };
 }

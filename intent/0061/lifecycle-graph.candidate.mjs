@@ -53,6 +53,9 @@ const readinessOriginalClasses = ['RC-FAILED-RUN', 'RC-POSTHOG-RAW', 'RC-CORPUS-
 export function createLifecycleReadinessVerifier(configBytes) {
   return createComposedLifecycleVerifier(configBytes, null, true);
 }
+export function createImmediateLifecycleReadinessVerifier(configBytes) {
+  return createComposedLifecycleVerifier(configBytes, null, 'immediate');
+}
 export function createCurrentLifecycleReadinessVerifier(configBytes, trustedRuntimeBytes) {
   const runtime = createLifecycleRuntime(trustedRuntimeBytes);
   if (!runtime.archival) throw new Error('LIFECYCLE_READINESS_CONFIGURATION_INVALID');
@@ -60,6 +63,7 @@ export function createCurrentLifecycleReadinessVerifier(configBytes, trustedRunt
 }
 
 function createComposedLifecycleVerifier(configBytes, runtime, readiness = false) {
+  const immediate = readiness === 'immediate';
   const registryBytes = runtime?.registryBytes ?? originalDependencies.registryBytes;
   const registry = runtime?.registry ?? originalDependencies.registry;
   const providers = runtime?.providers ?? originalDependencies.providers;
@@ -79,7 +83,7 @@ function createComposedLifecycleVerifier(configBytes, runtime, readiness = false
       !config.tombstonePath.split('/').some((part) => ['', '.', '..'].includes(part)));
     row = table.classes.find((entry) => entry.classId === config.recordClass);
     requireValue(row && providers.some((binding) => binding.providerBindingId === config.tombstoneProviderBindingId) && table.policySha256 === RETENTION_POLICY_SHA);
-    if (readiness && !runtime) requireValue(readinessOriginalClasses.includes(config.recordClass));
+    if (readiness && !runtime) requireValue(immediate ? config.recordClass === 'RC-REBUILDABLE' : readinessOriginalClasses.includes(config.recordClass));
     if (runtime) requireValue(runtime.supportedClasses.includes(config.recordClass) &&
       ['recordId', 'recordClass', 'artifactRevision', 'environmentId'].every((field) =>
         config[field] === (field === 'environmentId' ? runtime.historicalContext.scope.environmentId : runtime.historicalContext[field])));
@@ -96,7 +100,10 @@ function createComposedLifecycleVerifier(configBytes, runtime, readiness = false
       authorizationPolicyPath: AUTHORIZATION_POLICY_PATH, authorizationPolicyRevision: TARGET_REVISION, authorizationPolicyDigest: AUTHORIZATION_POLICY_SHA, authorizationPolicyBytes: AUTHORIZATION_POLICY_BYTES }, scope, grants: [grant] });
   const readinessTarget = { examRevision: TARGET_REVISION, examDigest: TARGET_EXAM_SHA, implementationRevision: config.implementationRevision,
     authorizationPolicyPath: AUTHORIZATION_POLICY_PATH, authorizationPolicyRevision: TARGET_REVISION, authorizationPolicyDigest: AUTHORIZATION_POLICY_SHA };
-  const readinessPolicyDigest = sha256(jcs({ version: 'steer-lifecycle-readiness/v1', dispositionPolicyDigest: policyDigest, target: readinessTarget,
+  const readinessVersion = immediate ? 'steer-immediate-readiness/v1' : 'steer-lifecycle-readiness/v1';
+  const readinessPolicyDigest = sha256(jcs(immediate ? { version: readinessVersion, dispositionPolicyDigest: policyDigest, target: readinessTarget,
+    rules: 'closed rebuildable head-only evidence; verified complete available history and fresh state/inventory; absent trigger means waiting-for-trigger with null expiry; earliest observed supersession/rebuild gives pending disposition; known providers; no future event, quarantine, deletion, clearance or execution authority',
+    originalClasses: ['RC-REBUILDABLE'], currentProfile: 'original-only' } : { version: readinessVersion, dispositionPolicyDigest: policyDigest, target: readinessTarget,
     rules: 'closed head-only evidence; same verified event/history/inventory/state/retention prefix; known copy providers; no action, human disposition, reference removal, receipt or tombstone acceptance; no quarantine, deletion or execution authority',
     originalClasses: readinessOriginalClasses, currentProfile: 'archival-v4-or-reference-v5-only' }));
   const publicPolicyDigest = readiness ? readinessPolicyDigest : policyDigest;
@@ -111,7 +118,7 @@ function createComposedLifecycleVerifier(configBytes, runtime, readiness = false
         requireValue(typeof serialized === 'string' && serialized.length <= 16777216);
         const envelope = parseCanonical(serialized);
         if (readiness) requireValue(exactKeys(envelope, ['version', 'policyDigest', 'dispositionPolicyDigest', 'target', ...headFields]) &&
-          envelope.version === 'steer-lifecycle-readiness/v1' && envelope.policyDigest === readinessPolicyDigest && envelope.dispositionPolicyDigest === policyDigest && equal(envelope.target, readinessTarget));
+          envelope.version === readinessVersion && envelope.policyDigest === readinessPolicyDigest && envelope.dispositionPolicyDigest === policyDigest && equal(envelope.target, readinessTarget));
         const graph = readiness ? { ...Object.fromEntries(headFields.map((field) => [field, envelope[field]])),
           version: runtime ? currentVersion : 'steer-lifecycle-graph/v1', policyDigest, referenceRevocationBytes: '', copies: [], aggregateBytes: '', tombstone: {} } : envelope;
         const provenance = config.recordClass === 'RC-CORPUS-PROVENANCE';
@@ -183,7 +190,7 @@ function createComposedLifecycleVerifier(configBytes, runtime, readiness = false
         // but require a current, closed manifest and every verified deletion.
         const types = provenance ? ['corpus-retired', 'derived-record-deleted'] : compound[row.trigger] ?? [row.trigger];
         const triggers = events.filter((event) => types.includes(event.eventType));
-        requireValue(triggers.length > 0);
+        requireValue(triggers.length > 0 || immediate);
         if (provenance) {
           const retirements = triggers.filter((event) => event.eventType === 'corpus-retired');
           requireValue(retirements.length === 1);
@@ -220,7 +227,7 @@ function createComposedLifecycleVerifier(configBytes, runtime, readiness = false
           if (event.eventType === 'corpus-sanitization-terminal') requireValue(['pass', 'fail', 'cancelled'].includes(event.result));
         }
         requireValue(row.parentCap ? state.parentExpiryAt !== null : state.parentExpiryAt === null);
-        const boundaryAt = lifecycleBoundary(trigger.occurredAt, row.duration, state.parentExpiryAt);
+        const boundaryAt = trigger ? lifecycleBoundary(trigger.occurredAt, row.duration, state.parentExpiryAt) : null;
         if (readiness) {
           // Age eligibility is not permission to mutate these objects. Still
           // reject inventory selectors that do not belong to the trusted binding.
@@ -233,13 +240,13 @@ function createComposedLifecycleVerifier(configBytes, runtime, readiness = false
           requireValue(runtime?.reference ? state.referenceRevocationDigest === null || hex(state.referenceRevocationDigest, 64) : state.referenceRevocationDigest === null);
           const held = state.holdState === 'active' || state.referenceState !== 'cleared';
           const eligible = !held && boundaryAt !== null && now >= time(boundaryAt);
-          return { state: held ? 'retained-on-hold' : eligible ? 'eligible-pending-disposition-evidence' : 'waiting-retention', firstError: null,
+          return { state: held ? 'retained-on-hold' : immediate && !trigger ? 'waiting-for-trigger' : eligible ? 'eligible-pending-disposition-evidence' : 'waiting-retention', firstError: null,
             ...readinessLimits, retentionEligible: eligible, boundaryAt, evaluatedAt: evaluationTime, configDigest, policyDigest: readinessPolicyDigest,
             dispositionPolicyDigest: policyDigest, targetDigest: sha256(jcs(readinessTarget)), inputDigest: sha256(jcs({ bytes: serialized, evaluatedAt: evaluationTime })),
             recordId: config.recordId, recordClass: config.recordClass, artifactRevision: config.artifactRevision,
             inventoryDigest: inventory.recordDigest, stateDigest: state.recordDigest, historyDigest,
             ...(runtime ? { runtimeConfigDigest: runtime.configDigest, historicalEvidenceDigest: sha256(graph.historicalEvidenceBytes) } : {}),
-            requires: [...(runtime?.reference ? ['reference-clearance'] : []), 'human-disposition-authority', 'protected-actions', 'provider-receipts', 'aggregate', 'tombstone'] };
+            requires: [...(immediate && !trigger ? ['observed-trigger'] : []), ...(runtime?.reference ? ['reference-clearance'] : []), 'human-disposition-authority', 'protected-actions', 'provider-receipts', 'aggregate', 'tombstone'] };
         }
         if (boundaryAt === null) return { state: 'retained-immutable', firstError: null, effects: zeroEffects(), boundaryAt };
         if (state.holdState === 'active' || state.referenceState !== 'cleared') return { state: 'retained-on-hold', firstError: null, effects: zeroEffects(), boundaryAt };

@@ -2184,3 +2184,34 @@ Raw terminal/grant variants, live stores/races, GAP-01–06 and M1–M8 remain s
 work. No actual erasure, quarantine or publication is claimed. All five formal
 findings remain open; no protected edit, provider operation, deletion, gate,
 release, deployment or spending is authorized. The implementation loop stays active.
+
+## Completed development increment: 0115 — immediate lifecycle readiness
+
+A separately pinned original-era RC-REBUILDABLE head-only profile now reports
+waiting-for-trigger with null expiry when available complete signed history has
+no supersession/rebuild event. After an observed event, the earliest qualifying
+trigger yields pending disposition. Both trigger orderings are verified. Future
+events at +1ns, stale/future/incomplete heads, missing/corrupt proofs, unbound
+providers, wrong pins and cross-format inputs deny. Held/reference-active state
+never conveys mutation or clearance authority.
+
+Full +6-second two-copy disposition and committed replay remain separate; missing
+receipts still block completion. Complete factories cannot select the read-only
+mode through extra arguments. Every prior mapped observation seal/count/outcome
+remains unchanged despite the shared implementation extension. Twenty-two focused
+groups pass, including eight new groups. Final repository checks pass 395 root
+controls, prototype tests, kit/security/typecheck/build checks; unchanged package
+tasks are cached. A separate full integration process passes all three groups.
+
+Fresh quick execution matches 389 passed / 3,647 uncovered; full matches 405 passed /
+3,631 uncovered, both zero failures. See intent/0115/EVIDENCE.md and SOURCE-MAP.json
+for exact pre-trigger/source reconciliation and synthetic-evidence limits.
+
+Sixteen lifecycle coordinates remain across four future-retention classes, plus
+3,614 migration and one obsolete schema case. Next under intent/0115/PLAN.md are
+explicit current-era profiles with actual environment-retirement, final-tombstone,
+complete derived inventory and sanitized key/residual-copy erasure semantics.
+This is not a live projection, deletion transaction or quarantine service. All five
+formal findings, normative/live work, GAP-01–06, independent/protected review and
+M1–M8 remain open. No protected edit, provider operation, deletion, signature,
+release, deployment or spending is authorized. The loop remains active.

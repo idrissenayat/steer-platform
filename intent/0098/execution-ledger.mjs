@@ -59,7 +59,8 @@ function run(profile) {
       'intent/0110/execution-hooks.mjs', 'intent/0110/SOURCE-MAP.json', 'intent/0111/execution-hooks.mjs', 'intent/0111/SOURCE-MAP.json',
       'intent/0112/lifecycle-readiness.candidate.mjs', 'intent/0112/execution-hooks.mjs', 'intent/0112/SOURCE-MAP.json', 'intent/0061/lifecycle-graph.candidate.mjs',
       'intent/0113/execution-hooks.mjs', 'intent/0113/SOURCE-MAP.json',
-      'intent/0114/execution-hooks.mjs', 'intent/0114/SOURCE-MAP.json'].map((path) => ({
+      'intent/0114/execution-hooks.mjs', 'intent/0114/SOURCE-MAP.json',
+      'intent/0115/execution-hooks.mjs', 'intent/0115/SOURCE-MAP.json', 'intent/0115/lifecycle-immediate.candidate.mjs'].map((path) => ({
       path, digest: digest(readFileSync(new URL('../../' + path, import.meta.url))) })),
     required: catalog.cases.length, executed: executions.length, passed: executions.length - failed, failed, uncovered: uncovered.length,
     uncoveredIdsDigest: digest(jcs(uncovered)), executionsDigest: digest(jcs(executions)), families, executions,

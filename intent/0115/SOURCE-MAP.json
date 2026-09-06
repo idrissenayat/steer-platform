@@ -1,0 +1,11 @@
+{
+  "classId": "RC-REBUILDABLE",
+  "sourceTriggerAt": "2026-09-04T12:00:00Z",
+  "observations": {"before": "2026-09-04T11:59:59Z", "at": "2026-09-04T12:00:00Z", "after": "2026-09-04T12:00:01Z", "complete": "2026-09-04T12:00:06Z"},
+  "preTriggerReconciliation": "The frozen before fixture supplies a trigger in the future. The new pre-trigger head instead contains available originator-draft-saved and record-committed history, a complete signed current state/inventory, no observed supersession or rebuild event, null expiry and waiting-for-trigger. It neither schedules from that future trigger nor claims that a known trigger was absent.",
+  "atAfterReconciliation": "Immediate expiry makes a record pending disposition after the earliest observed supersession/rebuild. Head-only readiness is not physical deletion or quarantine; full human/action/provider/aggregate/tombstone evidence is still required separately.",
+  "complete": "Full two-copy proof graph at source +6 seconds, exact committed replay, and missing receipt control retain the original complete verifier and policy. Both orderings of the two observed trigger types are checked in the read-only profile.",
+  "profile": "steer-immediate-readiness/v1; original-era RC-REBUILDABLE only, distinct from existing retention readiness and all full/current envelopes",
+  "limits": "Synthetic development evidence, not a live state projection, real deletion or read-revocation transaction, qualified hold review, independent or protected acceptance. Missing future history cannot be inferred from an untrusted assertion; the complete-history/state proof is mandatory.",
+  "remainingLifecycleClasses": ["RC-RELEASE-MIGRATION", "RC-DELETION-EVIDENCE", "RC-CORPUS-PROVENANCE", "RC-CORPUS-SANITIZED"]
+}

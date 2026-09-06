@@ -79,16 +79,16 @@ test('0111: complete current copy and reference paths bind post-boundary receipt
 });
 
 test('0111: closed adapters do not admit unsupported classes, arbitrary mutation or pending-state coordinates', () => {
-  assert.deepEqual(Object.keys(fixtures).sort(), ['immutableRetentionExecutionCase', 'lifecycleGraphExecutionCase', 'lifecycleGraphVariants', 'lifecycleNegativeExecutionCase', 'lifecycleReadinessExecutionCase', 'longRetentionExecutionCase', 'rawDeadlineExecutionCase', 'shortRetentionExecutionCase', 'specialLifecycleExecutionCase']);
+  assert.deepEqual(Object.keys(fixtures).sort(), ['immediateLifecycleExecutionCase', 'immutableRetentionExecutionCase', 'lifecycleGraphExecutionCase', 'lifecycleGraphVariants', 'lifecycleNegativeExecutionCase', 'lifecycleReadinessExecutionCase', 'longRetentionExecutionCase', 'rawDeadlineExecutionCase', 'shortRetentionExecutionCase', 'specialLifecycleExecutionCase']);
   for (const args of [['RC-SECURITY-AUDIT', 'at'], ['RC-SECURITY-AUDIT', 'after'], ['RC-CORPUS-SANITIZED', 'complete'], ['RC-LEGAL-SIGNED-LOG', 'complete', 'missing-reference'], ['RC-REFERENCED-EVIDENCE', 'complete', 'arbitrary']])
     assert.throws(() => make(...args), /UNKNOWN_LONG_RETENTION_CASE/);
   for (const row of loadRequiredCases().cases.filter((row) => row.family === 'LIFECYCLE-GRAPH' && ['at', 'after'].includes(row.coordinate.boundary))) assert.equal(longRetentionExecutionHook(row), null);
 });
 
 test('0111: fresh report maps eighteen boundary coordinates but preserves remaining normative and independent gaps', () => {
-  const report = runCorrectedCoverage(); assert.equal(report.passed, 385); assert.equal(report.executed, 385); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3651);
-  assert.deepEqual(report.families['LIFECYCLE-GRAPH'], { required: 64, executed: 44, passed: 44, failed: 0, uncovered: 20 });
+  const report = runCorrectedCoverage(); assert.equal(report.passed, 389); assert.equal(report.executed, 389); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3647);
+  assert.deepEqual(report.families['LIFECYCLE-GRAPH'], { required: 64, executed: 48, passed: 48, failed: 0, uncovered: 16 });
   assert.equal(report.families.MIGRATION.executed, 0); assert.equal(report.families['LIFECYCLE-GRAPH-NEGATIVE'].passed, 30);
   for (const flag of ['completeCoverage', 'normativeAcceptanceComplete', 'independentAcceptance', 'executionAuthorized', 'liveProviderUsed']) assert.equal(report[flag], false);
-  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0114/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
+  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0115/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
 });

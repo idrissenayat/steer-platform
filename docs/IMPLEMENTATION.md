@@ -1016,6 +1016,17 @@ pins are unchanged. See `intent/0114/EVIDENCE.md` and `SOURCE-MAP.json`; this pr
 offline evidence behavior, not real erasure, operational quarantine or all normative
 terminal/grant/crash requirements. All five formal findings remain open.
 
+Item `intent/0115` adds a distinct head-only RC-REBUILDABLE immediate profile.
+Available complete signed history without a supersession/rebuild event returns
+waiting-for-trigger with null expiry; earliest observed trigger returns pending
+disposition. Future events, incomplete/stale heads, unbound provider selectors and
+format interchange deny. Held/reference-active state remains non-mutable. The
+original complete and retention-readiness policy/observation behavior is preserved;
+full +6s disposal/replay controls remain separate. Four source observations map,
+leaving sixteen lifecycle coordinates. See `intent/0115/SOURCE-MAP.json` and
+`EVIDENCE.md`; no live projection, instantaneous deletion, reference clearance,
+quarantine or execution authority is claimed. All formal findings remain open.
+
 ## Local commands
 
 ```sh
