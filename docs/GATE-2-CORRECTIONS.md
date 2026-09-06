@@ -9,6 +9,12 @@ The current finite remaining-work map is `intent/0097/GAP-INVENTORY.json` and
 with an actual corrected declared-versus-executed ledger. Source and test-pointer
 checks are not a substitute for that ledger or independent acceptance.
 
+`intent/0098` now provides the initial actual runner and snapshot for GAP-01:
+4,036 required IDs, 63 passing mapped executions, 3,973 unmapped here. The
+require-complete command exits 2; GAP-01 is not complete. Some hooks intentionally
+cover only a narrower correction/classifier scope and do not certify the entire
+public oracle. No formal finding is closed by this count.
+
 | Finding | Candidate work available | Required remaining work |
 |---|---|---|
 | R5-001 lifecycle | 0059/0058/0060 composed in 0061; 0068 retention; 0070/0071 precision/ordering; 0072–0077 raw grant/batch/checkpoint/terminal evidence; 0078–0084 four-class future/mixed history and qualified current/archival hold evidence; 0085–0089 full referenced-evidence candidate composition | Real store/transport/trust integration; remaining class/trust-era coverage, unranked ties/auxiliary times and normative matrix; independent/protected review |

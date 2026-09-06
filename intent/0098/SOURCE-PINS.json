@@ -1,0 +1,46 @@
+{
+  "version": "steer-corrected-coverage-sources/v1",
+  "baselineRevision": "8b821096985e84310094c2300fc09250ac86c4ad",
+  "sources": [
+    {
+      "path": "intent/0001/reviews/domain/round-3/remediation/NORMATIVE-EXECUTION-INVENTORY.candidate.json",
+      "sha256": "0794ec26daa67daeab22e047e77f89d1c84f1444fc597c9bfdff587495c44e21"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-3/remediation/preflight-critic-r5.json",
+      "sha256": "7a05ed7a4186d1eb82e6a360307b837f972ad422d316aa4629033fa9ff7acfdb"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-3/remediation/LIFECYCLE-POLICY-TABLE.candidate.json",
+      "sha256": "29dbe694ff5f85ccd24dea0617067da36586a63998f162cc2a48a8189679f566"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-3/remediation/PRIVACY-DETECTOR-CASES.candidate.json",
+      "sha256": "18b539671c6f27213681c5d0f36d2f4c11d447b06e637cdd7e1bf2f24c78d3c0"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-3/remediation/schemas/LIFECYCLE-EVENT.schema.json",
+      "sha256": "d71299d3e8af363172994c607c4b44fb6dba54b47bed34c95498b50fc4949b3f"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-3/remediation/validate-remediation.mjs",
+      "sha256": "76857e98f1bc14800a9f26f0ca39f2658e1f1ad51210f0f164552b92f8c1b122"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs",
+      "sha256": "5a3d97672c931a07791d26a9a63ff2fec02176724c1749eedeef0909ebb62681"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs",
+      "sha256": "3f38ff88dcc82016f9728fdc1ef6b4390db69e03ee221ef5bc4457f3f07fcccc"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs",
+      "sha256": "7526a0edf0679a42766795649ecec1c392932bdc04d7fc46774ecbbe7a992a4f"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-3/remediation/TRUST-REGISTRY.candidate.json",
+      "sha256": "6f76d689361ee84e59691c0d03d1dd823565ffdd075b3a9f5c723594e74d6a66"
+    }
+  ]
+}

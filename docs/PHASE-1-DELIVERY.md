@@ -1783,3 +1783,23 @@ then complete mapped migration, lifecycle and trust/time coverage; GAP-05 covers
 isolated runtime/recovery integration; GAP-06 is the independent/protected path.
 These packages do not replace the remaining M1–M8 platform milestones. No frozen
 edit, provider mutation, cleanup, release, deployment or spending is authorized.
+
+## Completed development increment: 0098 — corrected execution ledger foundation
+
+The catalog independently retains all 4,027 frozen declaration IDs and nine R5
+counterexamples, including singular major-finding records. Trusted hooks invoke
+corrected code and seal actual input/output/assertion observations. The snapshot
+has 63 passing mapped executions and 3,973 IDs not yet mapped into this runner;
+that is not a count of missing features. Complete-coverage mode exits 2 as intended.
+
+Six new tests and final full checks pass: 296 root controls and 88 prototype
+tests. A fresh run exactly matches the saved report. See intent/0098/EVIDENCE.md
+and EXECUTION-REPORT.json for synthetic/cached limits. No frozen files or formal
+finding/gate state changed. GAP-01 remains open.
+
+Next under intent/0098/PLAN.md is mapping existing corrected recovery and complete
+human-authority fixtures to exact required IDs, retaining proper unknown recovery
+outcomes and positive controls. Then connect the remaining domains without
+crediting labels or arbitrary denials as semantic execution. The finite GAP-01–06
+plan and M1–M8 platform milestones remain. No provider mutation, cleanup, release,
+deployment, spending or signature is authorized.

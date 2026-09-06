@@ -1,0 +1,739 @@
+{
+  "version": "steer-corrected-execution-ledger/v1",
+  "baselineRevision": "8b821096985e84310094c2300fc09250ac86c4ad",
+  "catalogDigest": "873ffe9cfadaa9455120265b593fe60644a56651db04a50d7242e9da8dd61f4a",
+  "sourcePinsDigest": "2fbe6cfba44fb2dccb5730a5e8b72d8812ab87eaca838d678c53df47bff18903",
+  "runnerDigest": "58dc27c939c9dc1d5f3ab81c9e86799051fb66f4541abef832d9a9cd06aef455",
+  "hooksDigest": "7f6a7595b352672ff429c77e7e3c91e4e649a6d3feedcc27c964848a25188a5b",
+  "required": 4036,
+  "executed": 63,
+  "passed": 63,
+  "failed": 0,
+  "uncovered": 3973,
+  "uncoveredIdsDigest": "6d096a53fbc57003903c787637a55e7bc0018252c275c8ee71d95e746dd44b87",
+  "executionsDigest": "250ac16c51f90dd6ea3f4e1440f93912bc63d15cefa0466d03929905f1c44463",
+  "families": {
+    "TRUST-DOMAIN-FORGERY": {
+      "required": 17,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 17
+    },
+    "AUTHORIZATION": {
+      "required": 32,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 32
+    },
+    "PRIVACY-GRAPH": {
+      "required": 19,
+      "executed": 19,
+      "passed": 19,
+      "failed": 0,
+      "uncovered": 0
+    },
+    "PRIVACY-IDENTIFIER": {
+      "required": 14,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 14
+    },
+    "PRIVACY-DETECTOR": {
+      "required": 70,
+      "executed": 10,
+      "passed": 10,
+      "failed": 0,
+      "uncovered": 60
+    },
+    "ACCESSIBILITY": {
+      "required": 16,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 16
+    },
+    "LIFECYCLE": {
+      "required": 27,
+      "executed": 27,
+      "passed": 27,
+      "failed": 0,
+      "uncovered": 0
+    },
+    "LIFECYCLE-NEGATIVE": {
+      "required": 5,
+      "executed": 5,
+      "passed": 5,
+      "failed": 0,
+      "uncovered": 0
+    },
+    "LIFECYCLE-GRAPH": {
+      "required": 64,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 64
+    },
+    "LIFECYCLE-GRAPH-NEGATIVE": {
+      "required": 30,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 30
+    },
+    "HUMAN-AUTHORITY": {
+      "required": 17,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 17
+    },
+    "MIGRATION": {
+      "required": 3600,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 3600
+    },
+    "MIGRATION-FAILURE": {
+      "required": 8,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 8
+    },
+    "MIGRATION-TRANSPLANT": {
+      "required": 6,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 6
+    },
+    "RECOVERY-CUT": {
+      "required": 8,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 8
+    },
+    "RECOVERY-CORRUPTION": {
+      "required": 25,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 25
+    },
+    "SPEND": {
+      "required": 20,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 20
+    },
+    "COST": {
+      "required": 34,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 34
+    },
+    "SCHEMA": {
+      "required": 15,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 15
+    },
+    "R5": {
+      "required": 9,
+      "executed": 2,
+      "passed": 2,
+      "failed": 0,
+      "uncovered": 7
+    }
+  },
+  "executions": [
+    {
+      "id": "PRIVACY-GRAPH:positive",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "b298beab9072c1f53e364f894366720da4f5ac7113a9647e53b4ffa6dc09d81f"
+    },
+    {
+      "id": "PRIVACY-GRAPH:empty",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "3454cd532133c6241f8337d5e44ce67a2ccbb39d9d0dbc6608a7226f34597016"
+    },
+    {
+      "id": "PRIVACY-GRAPH:prompt-missing",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "f736fdc87829a7446dfb1fcf382f3b9a7de03e4e97618293946a81c01921f502"
+    },
+    {
+      "id": "PRIVACY-GRAPH:identifier",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "1455fdd2185504e8492ddd70ed7433c9673f6297dc4c89421e346b0b67fb07fd"
+    },
+    {
+      "id": "PRIVACY-GRAPH:receipt-missing",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "5c694ed92e2458bdd221f99ec7d8579a0fec91eb22b29d63c71955837d9fde82"
+    },
+    {
+      "id": "PRIVACY-GRAPH:destination",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "02e6143388b206cdf492c46b1ac52118f3880dbdab2856b0bbbf8e0eb8a3f96e"
+    },
+    {
+      "id": "PRIVACY-GRAPH:detector-drift",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "21fa3080e65af679891b38d5a3f2d6f169847588fa1f8ba5d5c91cb5dbefdcb0"
+    },
+    {
+      "id": "PRIVACY-GRAPH:linkage",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "9ac801ff17ec34e6a08cecee3002044555fc9cd8952594d2cee4ccc4cc7d2451"
+    },
+    {
+      "id": "PRIVACY-GRAPH:derivative-missing",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "f93fb21d53dc7e0ffec1c3b13beefc9f5b021a390d14849990d156913d7f6ff1"
+    },
+    {
+      "id": "PRIVACY-GRAPH:wrong-source-authority",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "c9132880644100bf40610c9b0d5f93c5b3d6ff30095a6f14ab82eefbbfe1cc5f"
+    },
+    {
+      "id": "PRIVACY-GRAPH:expired-use",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "2462e908167a2994a0e8073eebee26c0f29597bda11f4bcdacc74ac04159e39f"
+    },
+    {
+      "id": "PRIVACY-GRAPH:allowed-derivatives-empty",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "825e23fb8759e884720207de57d331173d6d95a0881bb66892e1ccd3260bee96"
+    },
+    {
+      "id": "PRIVACY-GRAPH:raw-authority-missing",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "d75498e932b523c807a2cff378d29652a45ef69ceb1435fc589e1fd8d2fd0257"
+    },
+    {
+      "id": "PRIVACY-GRAPH:encrypted-key-missing",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "20f18119144573457eab13842e2328e09d52f1dace1233177cad30915bcbb8cb"
+    },
+    {
+      "id": "PRIVACY-GRAPH:sanitizer-substitution",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "a97f9a49d6b47b8a1bcbd71dccdc4def638d251b72e9d722025869e9d103452a"
+    },
+    {
+      "id": "PRIVACY-GRAPH:linkage-trial-substitution",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "dc3c54e80debcb03e56c7700866178f1c043d7a354ab0bf6f47ee5769977ebf7"
+    },
+    {
+      "id": "PRIVACY-GRAPH:policy-substitution",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "7cf059bdb6603e3d666cf46169182e06b578144e5eb8421480fe4a0306740531"
+    },
+    {
+      "id": "PRIVACY-GRAPH:policy-bytes-missing",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "1cc349015b906b2ea0dd2785d7a657ade953ce5b88d3fe0be0149b6ad65dea70"
+    },
+    {
+      "id": "PRIVACY-GRAPH:k-below-five",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "21a59739948c53de481cac3d41d17b68758d7f4c33853b5da04fb1af91bfb5fa"
+    },
+    {
+      "id": "PRIVACY-DETECTOR:phone:plain-positive",
+      "executor": "packages/domain/src/privacy-phone.ts#inspectPrivacyPhoneText",
+      "implementationDigest": "b0125fcca43c97c24354591991b533e83444b33c44b6c51e4d1c8c0b63846d0e",
+      "scope": "pure phone classification only, not full corpus acceptance",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "c0dca19e0277c70fdc9763d1171a36488f32f987695955cddc272b7168613f6f"
+    },
+    {
+      "id": "PRIVACY-DETECTOR:phone:evasion-positive",
+      "executor": "packages/domain/src/privacy-phone.ts#inspectPrivacyPhoneText",
+      "implementationDigest": "b0125fcca43c97c24354591991b533e83444b33c44b6c51e4d1c8c0b63846d0e",
+      "scope": "pure phone classification only, not full corpus acceptance",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "bcaf906eddab43d5c0ffc8b9fb691dee778b46fd16c9032ee12fabd89c6454b2"
+    },
+    {
+      "id": "PRIVACY-DETECTOR:phone:digit-only-evasion-positive",
+      "executor": "packages/domain/src/privacy-phone.ts#inspectPrivacyPhoneText",
+      "implementationDigest": "b0125fcca43c97c24354591991b533e83444b33c44b6c51e4d1c8c0b63846d0e",
+      "scope": "pure phone classification only, not full corpus acceptance",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "65a1c1ff9ed71dc63673cac1aa6776b0a76e466942ba65d3376f92124330a7f0"
+    },
+    {
+      "id": "PRIVACY-DETECTOR:phone:country-code-evasion-positive",
+      "executor": "packages/domain/src/privacy-phone.ts#inspectPrivacyPhoneText",
+      "implementationDigest": "b0125fcca43c97c24354591991b533e83444b33c44b6c51e4d1c8c0b63846d0e",
+      "scope": "pure phone classification only, not full corpus acceptance",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "d229a9781d0b14099014a3445ec886e7cb172394c52faee29f240ffa1a5dae9b"
+    },
+    {
+      "id": "PRIVACY-DETECTOR:phone:uk-plus-country-code-evasion-positive",
+      "executor": "packages/domain/src/privacy-phone.ts#inspectPrivacyPhoneText",
+      "implementationDigest": "b0125fcca43c97c24354591991b533e83444b33c44b6c51e4d1c8c0b63846d0e",
+      "scope": "pure phone classification only, not full corpus acceptance",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "952219ea35739ce6c8e361eb5d36686004420a542aa222d7062a60216a2d6382"
+    },
+    {
+      "id": "PRIVACY-DETECTOR:phone:uk-00-country-code-evasion-positive",
+      "executor": "packages/domain/src/privacy-phone.ts#inspectPrivacyPhoneText",
+      "implementationDigest": "b0125fcca43c97c24354591991b533e83444b33c44b6c51e4d1c8c0b63846d0e",
+      "scope": "pure phone classification only, not full corpus acceptance",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "d2819be6bb1c303aa2310c2996bfc3cfc06b513260fba4fc9891eb36ec106383"
+    },
+    {
+      "id": "PRIVACY-DETECTOR:phone:extension-evasion-positive",
+      "executor": "packages/domain/src/privacy-phone.ts#inspectPrivacyPhoneText",
+      "implementationDigest": "b0125fcca43c97c24354591991b533e83444b33c44b6c51e4d1c8c0b63846d0e",
+      "scope": "pure phone classification only, not full corpus acceptance",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "5b052a2ba9c38e7ba8397d8d90c32e4b58c8e9d1057b2cc89a010bb89d7735bb"
+    },
+    {
+      "id": "PRIVACY-DETECTOR:phone:boundary-negative",
+      "executor": "packages/domain/src/privacy-phone.ts#inspectPrivacyPhoneText",
+      "implementationDigest": "b0125fcca43c97c24354591991b533e83444b33c44b6c51e4d1c8c0b63846d0e",
+      "scope": "pure phone classification only, not full corpus acceptance",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "144c92ebea70a29b7458149f1447b0c141bbea7c656438057bc89c223bf5eb2c"
+    },
+    {
+      "id": "PRIVACY-DETECTOR:phone:embedded-digit-boundary-negative",
+      "executor": "packages/domain/src/privacy-phone.ts#inspectPrivacyPhoneText",
+      "implementationDigest": "b0125fcca43c97c24354591991b533e83444b33c44b6c51e4d1c8c0b63846d0e",
+      "scope": "pure phone classification only, not full corpus acceptance",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "7612667453ababa9a19ddd6547ee4f866a835a9937b1ddd2424a283cf6bbee63"
+    },
+    {
+      "id": "PRIVACY-DETECTOR:phone:international-too-long-boundary-negative",
+      "executor": "packages/domain/src/privacy-phone.ts#inspectPrivacyPhoneText",
+      "implementationDigest": "b0125fcca43c97c24354591991b533e83444b33c44b6c51e4d1c8c0b63846d0e",
+      "scope": "pure phone classification only, not full corpus acceptance",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "0906a212dc6acaaa3723b52f7328f860c1868fa5c6f9493067aa60b2a6ca8085"
+    },
+    {
+      "id": "LIFECYCLE:originator-session-opened:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "748991098257c9fba5616998f04e99d25a284792dabc22a47a3c2abc7c5e048c"
+    },
+    {
+      "id": "LIFECYCLE:originator-draft-saved:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "090e9d4b63fbfc3af4abbdff091412c1ebbcf42c1b2e5ff5ffce7579663d637d"
+    },
+    {
+      "id": "LIFECYCLE:originator-session-abandoned:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "1024ae5bf7646ed58f8d0083207c30c3d60324754048c7d45c10991a0661b7b3"
+    },
+    {
+      "id": "LIFECYCLE:record-committed:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "5f6e2490035736274c42656f46fdf043ff3db14f2806c8c758456d7d94db6b71"
+    },
+    {
+      "id": "LIFECYCLE:item-closed:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "158c7c37ca30e6009c97ecb4e700f2e1db09b611be1c34547d26a18558e9a57a"
+    },
+    {
+      "id": "LIFECYCLE:environment-retired:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "759a97280ddbfebe6f2d5a248dd90ba98c0d1510dc44cd565ddb8658f5f07161"
+    },
+    {
+      "id": "LIFECYCLE:run-terminal:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "bd1142849c79d2d4887aba738b5cacb70b237ad517532e12921259a01d48f952"
+    },
+    {
+      "id": "LIFECYCLE:event-committed:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "415cad1b0dc033b55c2840d8bdf04d5bd6b334f312b1984602398d5e3afb6137"
+    },
+    {
+      "id": "LIFECYCLE:record-superseded:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "2e83193035deb82356b6bec221289b3d63f57b18466e9419b698973dc2947c78"
+    },
+    {
+      "id": "LIFECYCLE:corpus-source-authorized:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "e7285ce52afe5c2adc5bba751c1a8267f6312837ba842affa311e3ae293eb5e9"
+    },
+    {
+      "id": "LIFECYCLE:corpus-use-authorization-revoked:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "ea5252d7971f7e6ea7f75cc45f1cc35088e35f0c0929fa23b942493eefe4b3d7"
+    },
+    {
+      "id": "LIFECYCLE:corpus-sanitization-terminal:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "70fb7cab6355c2b22bb526059bc8e2aa30575668578eef83b0093c535278c631"
+    },
+    {
+      "id": "LIFECYCLE:corpus-version-accepted:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "cce81f3e35698f0c5d273b2147f0e59b69ce57585af7e6fdb8593d5afcc44046"
+    },
+    {
+      "id": "LIFECYCLE:corpus-version-superseded:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "2f6c6d1f274b12175f7cd8febbc1ad8fed131571a190c9ba4e4da694e0d00049"
+    },
+    {
+      "id": "LIFECYCLE:corpus-retired:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "ff667997397c13c5916c86d16b36f1897c773b14ba4d93f5dd8f4fbe28191b70"
+    },
+    {
+      "id": "LIFECYCLE:hold-applied:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "c9103a44cd1920bb8e48dccf96a19ad8ae4a0d9a6e5226bc4c162e408193f30d"
+    },
+    {
+      "id": "LIFECYCLE:hold-released:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "0ce56de2e59206d2678f0f57b7105a4d66c2b75beaaf59ea3c819cb6dd612c8a"
+    },
+    {
+      "id": "LIFECYCLE:rebuild-requested:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "9ca50bfc12be588b8c38f62e15f5237f43ab34bdccc18b0706ff2008ae1517ee"
+    },
+    {
+      "id": "LIFECYCLE:reference-revocation-authorized:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "44faf3361f3495c7b562d0a62391a50840d7637cbecdb803c0eb4132358909fb"
+    },
+    {
+      "id": "LIFECYCLE:raw-working-policy-grant-signed:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "5bf29fdb2797c2cf0afcaba7a4c7ea5b91bc84ec96cdc40e783f2a91ba2df335"
+    },
+    {
+      "id": "LIFECYCLE:derived-record-deleted:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "7cef7e5cfad45ae16fac06f017ab5581009dda3fb0cbe7bfd497e9db1c9c7d04"
+    },
+    {
+      "id": "LIFECYCLE:expiry-due:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "e640f533042b46743496f22e1ad8db92d457c7088e992584eeee9272bbdd6ed1"
+    },
+    {
+      "id": "LIFECYCLE:deletion-requested:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "4e47b118779bd9739778b0881812e6ef3eb5b40e25668bf097c0ab82834f8857"
+    },
+    {
+      "id": "LIFECYCLE:deletion-completed:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "b8e32527c0441f3dddf68fccd69bb97533f296c49659d74961ceeb9eda3eab2d"
+    },
+    {
+      "id": "LIFECYCLE:tombstone-committed:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "8aadc22409d638cbb171234fac5da244c3b71160fc4e9f89e5cd44b97d46a90b"
+    },
+    {
+      "id": "LIFECYCLE:export-authorized:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "0321e89a5bdaf21573a2187024de58c7aca5c7b8cabd0a20173c09e3eb5f3d8f"
+    },
+    {
+      "id": "LIFECYCLE:export-completed:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "1feb9ed6a3d777177591c6d095a8d7fc559fbd012955df719ed2c6cf2ace3469"
+    },
+    {
+      "id": "LIFECYCLE-NEGATIVE:missing-record-sha",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "2eaa083bff8301e20b74040ac8234a0c1bd6e1749b9c017d9dbc0e9a4a572f03"
+    },
+    {
+      "id": "LIFECYCLE-NEGATIVE:unknown-event",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "693ddd0e507aa2eb9f637db709c5117fb77e25fb1df127025a4b45808fe17293"
+    },
+    {
+      "id": "LIFECYCLE-NEGATIVE:invalid-time",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "74b18a7ea65585684d93ab60ce197f9cbf09a152eb98c09c9df5b1b0a3ecaea5"
+    },
+    {
+      "id": "LIFECYCLE-NEGATIVE:bad-provider-proof",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "f0db155064b60a48586bee2f3ab2028f687e90635ae89f5f81dd376b706297a8"
+    },
+    {
+      "id": "LIFECYCLE-NEGATIVE:extra-field",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "905302bd6fd59a7c1a7659df8e3168d26722e0d935370e67fb570d898170a241"
+    },
+    {
+      "id": "R5:PREFLIGHT-R3-R5-001:reproduction:2",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 3,
+      "observationsDigest": "5642f2a39f1fe4c697608cc6e3812ff8a96d525e56fc4d145308a09d1a642ee7"
+    },
+    {
+      "id": "R5:PREFLIGHT-R3-R5-005:reproduction:1",
+      "executor": "packages/domain/src/privacy-phone.ts#inspectPrivacyPhoneText",
+      "implementationDigest": "b0125fcca43c97c24354591991b533e83444b33c44b6c51e4d1c8c0b63846d0e",
+      "scope": "documented Unicode detector reproduction and required boundaries, not full corpus/time evidence",
+      "status": "passed",
+      "observationCount": 20,
+      "observationsDigest": "2b23e101c57fe43013dd57b0b8405e937f3bbf7663e051a19ff4aad723c8405f"
+    }
+  ],
+  "completeCoverage": false,
+  "normativeAcceptanceComplete": false,
+  "independentAcceptance": false,
+  "executionAuthorized": false,
+  "liveProviderUsed": false,
+  "limitations": [
+    "Executed means this registered hook ran and its assertions passed, not all invariants of the associated oracle.",
+    "No registered hook means uncovered here, not necessarily absent implementation elsewhere.",
+    "Privacy graph hooks retain the 0056 scope; 0063 observation and remaining global time requirements still need execution mapping.",
+    "Legacy baseline calls inside a counterexample hook are not credited as corrected coverage.",
+    "The source catalog is the frozen declaration plus nine R5 reproductions, not every additional normative clause or variation.",
+    "These are synthetic development executions; full normative, live integration, independent and protected review remain separate."
+  ]
+}

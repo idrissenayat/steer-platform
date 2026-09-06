@@ -848,6 +848,14 @@ Six dependency-ordered packages now constrain remaining assurance work, beginnin
 with GAP-01's actual corrected execution ledger. See `intent/0097/PLAN.md`;
 neither this inventory nor its passing tests closes a gate or completes Phase 1.
 
+Item `intent/0098` begins GAP-01 with an independently derived 4,036-ID catalog and
+actual corrected execution hooks. The snapshot records 63 passing mapped cases,
+zero failures and 3,973 IDs not yet mapped into this runner. This is not a missing
+feature count. `pnpm r5:coverage:report` emits the evidence and scope limitations;
+`pnpm r5:coverage:require-complete` correctly exits 2 while incomplete. Required
+IDs never come from the available hook list. Existing wider tests and all formal
+review obligations remain; see `intent/0098/PLAN.md` for the next mappings.
+
 ## Local commands
 
 ```sh
