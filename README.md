@@ -103,6 +103,10 @@ Item [0143](intent/0143/README.md) reconstructs native exception Briefs from the
 complete pinned review records. Original findings and holds remain; readiness for
 Critic review is not gate approval or permission to write.
 
+Item [0144](intent/0144/README.md) preserves native Critic HOLD records and checks
+their finding totals before policy evaluation. Historical test success is not a
+passing review; reviewer provenance and a passing native contract remain unfinished.
+
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono
 API/shared tool registry (0007), OIDC adapter/API composition (0008), and

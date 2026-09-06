@@ -2819,3 +2819,20 @@ provenance, governed pin/Builder selection and actual authority bindings remain.
 Then finish action-time verification, runtime/destination/head discovery, save/status
 UI, board and decision review. All five R5 findings and signed Phase 1 obligations
 remain due; no provider access, live write, release, deployment or spending is enabled.
+
+## Completed development increment: 0144 — Native Critic HOLD source compatibility
+
+The two retained native canonical Critic layouts now have closed, source-faithful
+handling: complete findings/statuses are preserved, unresolved counts reconstructed
+and actual HOLD verdicts fed into policy from exact current-head Git bytes. Historical
+test success and fresh-context declarations are not upgraded to live verification.
+Unknown passing formats and local remediation preflight remain separate. Focused
+checks pass 32 groups; full repository verification passes, including 437 root
+controls, 227 adapter tests and all package checks/builds. See `intent/0144/EVIDENCE.md`.
+
+This closes compatibility for historical HOLD sources, not a passing Critic contract
+or current review. Independent reviewer provenance, prior-finding history, governed
+source/Builder selection, actual provider bindings and full action-time authority
+remain before writer enablement. Continue those dependencies and then destination,
+head, save/status UI, board and review. All five R5 findings and signed obligations
+remain open; no live write, deployment or spending is authorized.

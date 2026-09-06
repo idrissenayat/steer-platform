@@ -1247,6 +1247,13 @@ readiness remains unchanged while the gate policy still blocks it. The actual
 original records remain untouched and do not become authenticated reviews or
 approvals. See `intent/0143/EVIDENCE.md` for verification and remaining boundaries.
 
+Item `intent/0144` adds exact-source compatibility for the two native canonical
+Critic HOLD layouts. Counter consistency, explicit reviewer/task bindings and
+review chronology are checked; original claims and citations stay intact. Native
+Git integration feeds failed review facts to the actual gate policy. Neither
+historical tests nor local preflight are a passing gate report. See
+`intent/0144/EVIDENCE.md`; reviewer authenticity, history and authority remain due.
+
 ## Local commands
 
 ```sh

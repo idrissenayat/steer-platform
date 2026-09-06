@@ -252,6 +252,13 @@ substituted reviewers and inconsistent ready/hold labels reject. Native Critic,
 review provenance and governed selection remain before actual authority binding;
 see `intent/0143/EVIDENCE.md`. No frontend or live-write change is claimed.
 
+0144 development update: the two existing canonical native Critic HOLD layouts
+can now feed exact-source, counter-checked failed verdicts into policy. Local R5
+preflight and unknown passing formats are deliberately not treated as canonical
+passes. A supported passing native contract, reviewer authenticity, prior-finding
+history and governed source/Builder selection remain before full live authority.
+See `intent/0144/EVIDENCE.md`; this is backend compatibility, not a frontend change.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

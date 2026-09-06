@@ -6,16 +6,20 @@ import { createGitGateSignerCollector, gitGateSignerConfigurationSchema } from '
 import type { RepositoryReader, ArtifactSnapshot } from './github.ts';
 import { normalizeGateDomainReview } from './gate-domain-review.ts';
 import { verifyNativeDomainException } from './gate-domain-exception.ts';
+import { normalizeGateCritic } from './gate-critic.ts';
 
 const targetSchema = gatePolicyInputSchema.shape.target.omit({ decisionDigest: true });
 const digest = gatePolicyInputSchema.shape.target.shape.decisionDigest;
 const ref = z.strictObject({ path: artifactProjectionInputSchema.shape.path, digest });
+const taskIdentity = z.string().min(1).max(200).refine(value => value === value.trim());
+const nativeCriticRef = ref.extend({ format: z.literal('steer-critic-review/v1'),
+  reviewerProvider: taskIdentity, reviewerTask: taskIdentity, builderTask: taskIdentity });
 const nativeReviewRef = ref.extend({ format: z.literal('steer-domain-review-record/v1'),
   domain: gatePolicyInputSchema.shape.policy.shape.activatedDomains.element, examPath: artifactProjectionInputSchema.shape.path,
   evidence: z.array(ref).min(1).max(128).refine(values => new Set(values.map(value => value.path)).size === values.length) });
 const nativeExceptionRef = ref.extend({ format: z.literal('steer-domain-exception-brief/v1'),
   builderSubject: gatePolicyInputSchema.shape.domainAssurance.unwrap().shape.builderSubject, examPath: artifactProjectionInputSchema.shape.path });
-const entrySchema = z.strictObject({ signerCollection: gitGateSignerConfigurationSchema, policy: ref, critic: ref,
+const entrySchema = z.strictObject({ signerCollection: gitGateSignerConfigurationSchema, policy: ref, critic: z.union([ref, nativeCriticRef]),
   buildEvidence: ref.nullable(), domainAssurance: z.strictObject({ reviews: z.array(z.union([ref, nativeReviewRef])).min(1).max(7),
     exceptionBrief: z.union([ref, nativeExceptionRef]) }).nullable() });
 const configSchema = z.strictObject({ gates: z.array(entrySchema).min(1).max(3) });
@@ -55,6 +59,7 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
       source.scope.organizationId !== first.scope.organizationId || source.scope.repository !== first.scope.repository ||
       source.scope.itemId !== first.scope.itemId || recordPaths.has(source.recordPath)) throw new Error('Invalid gate policy sources.');
     recordPaths.add(source.recordPath);
+    if ('format' in entry.critic && source.gate !== 2) throw new Error('Invalid gate policy sources.');
     const paths = [entry.policy.path, entry.critic.path, ...(entry.buildEvidence ? [entry.buildEvidence.path] : []),
       ...(entry.domainAssurance ? [entry.domainAssurance.exceptionBrief.path, ...entry.domainAssurance.reviews.map((value) => value.path)] : [])];
     if (new Set(paths).size !== paths.length || paths.includes(source.recordPath)) throw new Error('Invalid gate policy sources.');
@@ -99,6 +104,7 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
           const sources: Readonly<ArtifactSnapshot>[][] = [];
           const nativeDomainReviews: { observation: NonNullable<ReturnType<typeof normalizeGateDomainReview>>; linkedEvidenceVerified: true }[][] = [];
           const nativeDomainExceptions: ReturnType<typeof verifyNativeDomainException>[] = [];
+          const nativeCritics: ReturnType<typeof normalizeGateCritic>[] = [];
           let retainedBytes = 0;
           for (const [index, entry] of config.gates.entries()) {
             const selected = entry.signerCollection, target = { ...selected.gateSource.scope, gate: selected.gateSource.gate,
@@ -128,7 +134,19 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
               if (Object.entries(target).some(([key, value]) => facts.target[key as keyof typeof target] !== value)) throw failure();
               return facts;
             };
-            const policy = await read(entry.policy, policySchema), critic = await read(entry.critic, criticSchema);
+            const policy = await read(entry.policy, policySchema);
+            let critic: NonNullable<GatePolicyInput['critic']>;
+            nativeCritics[index] = null;
+            if ('format' in entry.critic) {
+              const reference = entry.critic, source = await readSource(reference, input.sourceRevision, 512 * 1024);
+              const native = normalizeGateCritic(source.content, { recordItem: selected.gateSource.recordItem,
+                artifactRevision: target.artifactRevision, reportDigest: reference.digest, evaluatedAt: new Date(check()).toISOString(),
+                reviewerProvider: reference.reviewerProvider, reviewerTask: reference.reviewerTask, builderTask: reference.builderTask });
+              if (!native || observation.record.signatures.some(value => parseUtcInstant(value.signedAt)! < parseUtcInstant(native.record.reviewedAt)!)) throw failure();
+              nativeCritics[index] = native; critic = native.critic;
+            } else {
+              const facts = await read(entry.critic, criticSchema); critic = { ...facts.critic, reportDigest: entry.critic.digest };
+            }
             const build = entry.buildEvidence ? await read(entry.buildEvidence, buildSchema) : null;
             let domainAssurance: GatePolicyInput['domainAssurance'] = null;
             if (entry.domainAssurance) {
@@ -173,7 +191,7 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
             }
             prepared.push(gatePolicyInputSchema.omit({ evaluatedAt: true, prerequisite: true }).parse({
               target: { ...target, decisionDigest: observation.record.decisionDigest }, record: observation.record,
-              policy: { ...policy.policy, digest: entry.policy.digest }, critic: { ...critic.critic, reportDigest: entry.critic.digest },
+              policy: { ...policy.policy, digest: entry.policy.digest }, critic,
               buildEvidence: build ? { ...build.buildEvidence, evidenceDigest: entry.buildEvidence!.digest } : null, domainAssurance,
             }));
           }
@@ -194,7 +212,7 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
           const result = freeze({ kind: 'git-gate-policy-observation' as const, sourceRevision: input.sourceRevision, evaluatedAt,
             policyOutcome: evaluations.every((value) => value.evaluation.outcome === 'policy-satisfied') ? 'policy-satisfied' as const : 'blocked' as const,
             gates: evaluations.map((value, index) => ({ ...value, signers: observations[index]!, sources: sources[index]!,
-              nativeDomainReviews: nativeDomainReviews[index]!, nativeDomainException: nativeDomainExceptions[index]! })),
+              nativeDomainReviews: nativeDomainReviews[index]!, nativeDomainException: nativeDomainExceptions[index]!, nativeCritic: nativeCritics[index]! })),
             governedSelectionVerificationRequired: true as const, reviewAuthenticityVerificationRequired: true as const,
             currentSourceVerificationRequired: true as const, gateVerified: false as const, writeAuthorized: false as const });
           const finished = parseUtcInstant(new Date(check()).toISOString())!;

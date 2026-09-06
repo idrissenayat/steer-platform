@@ -11,6 +11,7 @@ import { fixture, hash } from './gate-signers-fixture.ts';
 import type { RepositoryReader } from '../src/code-host/github.ts';
 import { nativeDomainReviewFixture } from './native-domain-review-fixture.ts';
 import { nativeDomainExceptionFixture } from './native-domain-exception-fixture.ts';
+import { nativeCriticFixture } from './native-critic-fixture.ts';
 
 const failure = /^Error: Gate policy source collection could not be verified\.$/;
 const blob = (text: string) => createHash('sha1').update(`blob ${Buffer.byteLength(text)}\0`).update(text).digest('hex');
@@ -367,5 +368,59 @@ test('native exception admission requires an explicit Builder, selected common E
   }
   assert.throws(() => f.create({ gates: [f.config.gates[0], { ...entry, domainAssurance: {
     reviews: [{ path: f.selected.path, digest: f.selected.digest }], exceptionBrief: f.reference } }] }));
+  assert.equal(f.reads.length, 0);
+});
+
+function nativeCritic(t: TestContext, git = false) {
+  const f = chain(t, 2, git), entry = f.config.gates[1]!, record = nativeCriticFixture();
+  record.item = entry.signerCollection.gateSource.recordItem; record.targetRevision = entry.signerCollection.gateSource.artifactRevision;
+  record.reviewedAt = JSON.parse(f.sources.get(entry.critic.path)!).critic.reportedAt;
+  const reference = { ...entry.critic, format: 'steer-critic-review/v1', reviewerProvider: record.reviewer.provider as string,
+    reviewerTask: record.reviewer.task as string, builderTask: '/synthetic/builder' };
+  const repin = () => { const content = JSON.stringify(record, null, 2); f.sources.set(reference.path, content); reference.digest = hash(content); };
+  repin();
+  const configuration = () => ({ gates: [f.config.gates[0], { ...entry, critic: reference }] });
+  return { ...f, record, reference, repin, configuration };
+}
+
+test('native Git Critic HOLD bytes survive source collection and block real gate policy despite passing test metadata', async t => {
+  const f = nativeCritic(t, true); f.commit();
+  const result = await f.create(f.configuration()).collect(f.input()), gate = result.gates[1]!;
+  assert.equal(result.gates[0]!.nativeCritic, null); assert.deepEqual(gate.nativeCritic!.record, f.record);
+  assert.equal(gate.nativeCritic!.record.pass, false); assert.equal(gate.input.critic!.unresolvedFindings, 6);
+  assert.equal(gate.sources.find(value => value.path === f.reference.path)!.content, f.sources.get(f.reference.path));
+  assert.equal(gate.input.critic!.reportDigest, f.reference.digest); assert.equal(gate.input.critic!.passed, false);
+  assert.equal(gate.evaluation.outcome, 'blocked'); assert.equal(result.policyOutcome, 'blocked');
+  assert.equal(gate.nativeCritic!.evidenceVerificationRequired, true); assert.equal(result.reviewAuthenticityVerificationRequired, true);
+  assert.equal(result.gateVerified, false); assert.equal(result.writeAuthorized, false);
+});
+
+test('native Critic report substitution, contradictory counters and post-signature reviews reject before returning policy', async t => {
+  for (const mode of ['digest', 'item', 'revision', 'reviewer', 'counter', 'time', 'future', 'pass', 'oversize', 'head']) {
+    const f = nativeCritic(t);
+    if (mode === 'item') f.record.item = 'foreign';
+    if (mode === 'revision') f.record.targetRevision = 'd'.repeat(40);
+    if (mode === 'reviewer') f.record.reviewer.task = '/different/task';
+    if (mode === 'counter') f.record.unresolved.total = 0;
+    if (mode === 'time') f.record.reviewedAt = f.config.gates[1]!.signerCollection.signers.at(-1)!.proof.expected.signedAt.replace(/Z$/, '1Z');
+    if (mode === 'future') f.record.reviewedAt = '2099-01-01T00:00:00Z';
+    if (mode === 'pass') f.record.pass = true;
+    f.repin();
+    if (mode === 'digest') f.reference.digest = 'd'.repeat(64);
+    if (mode === 'oversize') { const value = ' '.repeat(512 * 1024 + 1); f.sources.set(f.reference.path, value); f.reference.digest = hash(value); }
+    if (mode === 'head') { const read = f.reader.readArtifact; f.reader.readArtifact = async (...args) => {
+      const value = await read(...args); if (args[0] === f.reference.path) f.state.head = 'd'.repeat(40); return value;
+    }; }
+    await assert.rejects(f.create(f.configuration()).collect(f.input()), failure, mode);
+  }
+});
+
+test('native Critic startup must explicitly bind task/provider/Builder and cannot apply a Gate 2 format to another gate', t => {
+  const f = nativeCritic(t), entry = f.config.gates[1]!;
+  for (const reference of [{ ...f.reference, reviewerTask: '' }, { ...f.reference, reviewerProvider: '' },
+    { ...f.reference, builderTask: '' }, { ...f.reference, format: 'unknown' }]) {
+    assert.throws(() => f.create({ gates: [f.config.gates[0], { ...entry, critic: reference }] }));
+  }
+  assert.throws(() => f.create({ gates: [{ ...f.config.gates[0], critic: f.reference }] }));
   assert.equal(f.reads.length, 0);
 });
