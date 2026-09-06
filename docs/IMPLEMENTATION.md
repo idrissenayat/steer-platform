@@ -1027,6 +1027,18 @@ leaving sixteen lifecycle coordinates. See `intent/0115/SOURCE-MAP.json` and
 `EVIDENCE.md`; no live projection, instantaneous deletion, reference clearance,
 quarantine or execution authority is claimed. All formal findings remain open.
 
+Item `intent/0116` adds a release-only current-v6 full/readiness profile. The
+seven-year clock requires a named environment and exact trusted retirement event,
+release-rails record, provider record, actor and time, with a provider-bound
+release-rails commit and both traffic-disabled/credentials-revoked conditions.
+Wrong signed retirement semantics deny. Original history/key windows and fresh
+qualified/current proof separation remain intact; other future classes are not
+admitted. Four source observations map, leaving twelve lifecycle coordinates.
+Readiness does not authorize deletion, and full completion still requires current
+copy/action/provider/aggregate/tombstone proof. See `intent/0116/EVIDENCE.md` and
+`SOURCE-MAP.json`; this is not a live traffic/credential check or actual retirement.
+All five formal findings remain open.
+
 ## Local commands
 
 ```sh

@@ -7,6 +7,7 @@ import { createMixedHistoryVerifier, policyDigest as mixedHistoryPolicy } from '
 import { createQualifiedHistoryVerifier, policyDigest as qualifiedHistoryPolicy, archivalPolicyDigest as archivalHistoryPolicy } from '../0083/qualified-history.candidate.mjs';
 import { createReferenceRevocationVerifier, policyDigest as referenceRevocationPolicy } from '../0087/reference-revocation.candidate.mjs';
 import { manifestDigest as referenceActionManifestDigest } from '../0088/reference-actions.candidate.mjs';
+import { exactInstant } from '../0069/exact-time.candidate.mjs';
 const originalProviders = JSON.parse(readFileSync(new URL('../0001/reviews/domain/round-3/remediation/PROVIDER-KEY-REGISTRY.candidate.json', import.meta.url), 'utf8'));
 const supportedClasses = Object.freeze(['RC-SECURITY-AUDIT', 'RC-CORPUS-BASELINE', 'RC-DECISION-PROOF', 'RC-LEGAL-SIGNED-LOG']);
 export const policyDigest = sha256(jcs({ version: 'steer-lifecycle-runtime/v1', originalHumanPolicy, historyPolicy,
@@ -18,18 +19,31 @@ export const qualifiedPolicyDigest = sha256(jcs({ version: 'steer-lifecycle-runt
 export const archivalPolicyDigest = sha256(jcs({ version: 'steer-lifecycle-runtime/v4', qualifiedPolicyDigest, archivalHistoryPolicy }));
 export const referencePolicyDigest = sha256(jcs({ version: 'steer-lifecycle-runtime/v5', archivalPolicyDigest, referenceRevocationPolicy, referenceActionManifestDigest,
   recordClass: 'RC-REFERENCED-EVIDENCE', rules: 'full qualified revocation and removal; exact history/current state and version/copy hashes; named tombstone and full separate shared actions; no execution' }));
+export const releasePolicyDigest = sha256(jcs({ version: 'steer-lifecycle-runtime/v6', archivalPolicyDigest,
+  recordClass: 'RC-RELEASE-MIGRATION', rules: 'exact trusted retirement selector; non-null environment; one archived provider-bound release-rails commit with traffic disabled and credentials revoked; original history and fresh qualified archive/current proof stack; no actual retirement, deletion or execution' }));
 export function createLifecycleRuntime(serialized) {
   try {
     ensure(typeof serialized === 'string' && serialized.length <= 262144);
     const config = parseCanonical(serialized);
-    const reference = config.version === 'steer-lifecycle-runtime/v5', archival = reference || config.version === 'steer-lifecycle-runtime/v4';
-    ensure(exactKeys(config, ['version', 'currentRegistryBytes', 'currentProviderRegistryBytes', 'historicalContextBytes', ...(archival ? ['archivedOwnerContextBytes'] : []), ...(reference ? ['referenceContextBytes'] : [])]) && ['steer-lifecycle-runtime/v1', 'steer-lifecycle-runtime/v2', 'steer-lifecycle-runtime/v3', 'steer-lifecycle-runtime/v4', 'steer-lifecycle-runtime/v5'].includes(config.version) &&
+    const reference = config.version === 'steer-lifecycle-runtime/v5', release = config.version === 'steer-lifecycle-runtime/v6', archival = reference || release || config.version === 'steer-lifecycle-runtime/v4';
+    ensure(exactKeys(config, ['version', 'currentRegistryBytes', 'currentProviderRegistryBytes', 'historicalContextBytes', ...(archival ? ['archivedOwnerContextBytes'] : []), ...(reference ? ['referenceContextBytes'] : []), ...(release ? ['retirementContextBytes'] : [])]) && ['steer-lifecycle-runtime/v1', 'steer-lifecycle-runtime/v2', 'steer-lifecycle-runtime/v3', 'steer-lifecycle-runtime/v4', 'steer-lifecycle-runtime/v5', 'steer-lifecycle-runtime/v6'].includes(config.version) &&
       typeof config.currentProviderRegistryBytes === 'string' && config.currentProviderRegistryBytes.length <= 65536);
     const qualified = archival || config.version === 'steer-lifecycle-runtime/v3', mixed = qualified || config.version === 'steer-lifecycle-runtime/v2';
     const human = createHumanAuthorityVerifier(config.currentRegistryBytes), history = qualified ? createQualifiedHistoryVerifier(config.historicalContextBytes, archival ? config.archivedOwnerContextBytes : undefined) :
       mixed ? createMixedHistoryVerifier(config.historicalContextBytes) : createHistoricalEventVerifier(config.historicalContextBytes);
     const historicalContext = parseCanonical(config.historicalContextBytes);
     ensure(historicalContext.currentRegistryBytes === config.currentRegistryBytes);
+    let retirementContext;
+    if (release) {
+      ensure(typeof config.retirementContextBytes === 'string' && config.retirementContextBytes.length <= 16384);
+      retirementContext = parseCanonical(config.retirementContextBytes);
+      ensure(exactKeys(retirementContext, ['version', 'environmentId', 'recordId', 'artifactRevision', 'retirementEventId', 'releaseRailsRecordId', 'providerRecordId', 'retiredAt', 'actorId']) &&
+        retirementContext.version === 'steer-release-retirement-context/v1' && historicalContext.recordClass === 'RC-RELEASE-MIGRATION' &&
+        Object.values(retirementContext).every(v => typeof v === 'string' && v.length > 0 && v.length <= 512 && v.trim() === v && !/[\u0000-\u001f*?]/u.test(v)) &&
+        retirementContext.environmentId === historicalContext.scope.environmentId && retirementContext.recordId === historicalContext.recordId && retirementContext.artifactRevision === historicalContext.artifactRevision &&
+        /^[0-9a-f]{40}$/.test(retirementContext.artifactRevision) && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(retirementContext.retirementEventId) &&
+        exactInstant(retirementContext.retiredAt) !== null && exactInstant(retirementContext.retiredAt) <= exactInstant(historicalContext.observedAt));
+    }
     const referenceVerifier = reference ? createReferenceRevocationVerifier(config.referenceContextBytes) : null;
     const referenceContext = reference ? parseCanonical(config.referenceContextBytes) : null;
     const referenceContentContext = reference ? parseCanonical(referenceContext.contentContextBytes) : null;
@@ -45,8 +59,9 @@ export function createLifecycleRuntime(serialized) {
       const key = registry.bindings.find((entry) => entry.domain === binding.domain && entry.keyId === binding.keyId);
       ensure(key && ['algorithm', 'publicKeyHex', 'notBefore', 'notAfter', 'revokedAt'].every((field) => binding[field] === key[field]));
     }
-    return Object.freeze({ configDigest: sha256(serialized), policyDigest: reference ? referencePolicyDigest : archival ? archivalPolicyDigest : qualified ? qualifiedPolicyDigest : mixed ? mixedPolicyDigest : policyDigest,
+    return Object.freeze({ configDigest: sha256(serialized), policyDigest: release ? releasePolicyDigest : reference ? referencePolicyDigest : archival ? archivalPolicyDigest : qualified ? qualifiedPolicyDigest : mixed ? mixedPolicyDigest : policyDigest,
+      ...(release ? { release, retirementContext, retirementContextDigest: sha256(config.retirementContextBytes) } : {}),
       mixed, qualified, archival, reference, referenceVerifier, referenceContext, referenceContentContext, registryBytes: config.currentRegistryBytes, providerBytes: config.currentProviderRegistryBytes,
-      registry, providers: providers.bindings, historicalContext, history, human, supportedClasses: reference ? ['RC-REFERENCED-EVIDENCE'] : supportedClasses });
+      registry, providers: providers.bindings, historicalContext, history, human, supportedClasses: release ? ['RC-RELEASE-MIGRATION'] : reference ? ['RC-REFERENCED-EVIDENCE'] : supportedClasses });
   } catch { throw new Error('LIFECYCLE_RUNTIME_CONFIGURATION_INVALID'); }
 }

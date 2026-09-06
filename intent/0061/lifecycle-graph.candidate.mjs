@@ -69,7 +69,7 @@ function createComposedLifecycleVerifier(configBytes, runtime, readiness = false
   const providers = runtime?.providers ?? originalDependencies.providers;
   const timed = runtime ? createTimedRecordVerifier(registryBytes) : originalDependencies.timed;
   const humanPolicy = runtime?.human.policyDigest ?? originalDependencies.humanPolicy;
-  const currentVersion = runtime?.reference ? 'steer-lifecycle-graph/current-v5' : runtime?.archival ? 'steer-lifecycle-graph/current-v4' : runtime?.qualified ? 'steer-lifecycle-graph/current-v3' : runtime?.mixed ? 'steer-lifecycle-graph/current-v2' : 'steer-lifecycle-graph/current-v1';
+  const currentVersion = runtime?.release ? 'steer-lifecycle-graph/current-v6' : runtime?.reference ? 'steer-lifecycle-graph/current-v5' : runtime?.archival ? 'steer-lifecycle-graph/current-v4' : runtime?.qualified ? 'steer-lifecycle-graph/current-v3' : runtime?.mixed ? 'steer-lifecycle-graph/current-v2' : 'steer-lifecycle-graph/current-v1';
   const policyDigest = runtime ? sha256(jcs({ version: currentVersion, originalPolicyDigest: originalDependencies.policyDigest,
     runtimePolicyDigest: runtime.policyDigest, runtimeConfigDigest: runtime.configDigest })) : originalDependencies.policyDigest;
   let config, row;
@@ -100,10 +100,11 @@ function createComposedLifecycleVerifier(configBytes, runtime, readiness = false
       authorizationPolicyPath: AUTHORIZATION_POLICY_PATH, authorizationPolicyRevision: TARGET_REVISION, authorizationPolicyDigest: AUTHORIZATION_POLICY_SHA, authorizationPolicyBytes: AUTHORIZATION_POLICY_BYTES }, scope, grants: [grant] });
   const readinessTarget = { examRevision: TARGET_REVISION, examDigest: TARGET_EXAM_SHA, implementationRevision: config.implementationRevision,
     authorizationPolicyPath: AUTHORIZATION_POLICY_PATH, authorizationPolicyRevision: TARGET_REVISION, authorizationPolicyDigest: AUTHORIZATION_POLICY_SHA };
-  const readinessVersion = immediate ? 'steer-immediate-readiness/v1' : 'steer-lifecycle-readiness/v1';
+  const readinessVersion = immediate ? 'steer-immediate-readiness/v1' : runtime?.release ? 'steer-release-readiness/v1' : 'steer-lifecycle-readiness/v1';
   const readinessPolicyDigest = sha256(jcs(immediate ? { version: readinessVersion, dispositionPolicyDigest: policyDigest, target: readinessTarget,
     rules: 'closed rebuildable head-only evidence; verified complete available history and fresh state/inventory; absent trigger means waiting-for-trigger with null expiry; earliest observed supersession/rebuild gives pending disposition; known providers; no future event, quarantine, deletion, clearance or execution authority',
-    originalClasses: ['RC-REBUILDABLE'], currentProfile: 'original-only' } : { version: readinessVersion, dispositionPolicyDigest: policyDigest, target: readinessTarget,
+    originalClasses: ['RC-REBUILDABLE'], currentProfile: 'original-only' } : runtime?.release ? { version: readinessVersion, dispositionPolicyDigest: policyDigest, target: readinessTarget,
+    retirementContextDigest: runtime.retirementContextDigest, rules: 'release-v6 verified archived retirement event and current qualified head only; seven-year waiting or pending disposition; no effects or clearance', currentProfile: 'release-v6-only' } : { version: readinessVersion, dispositionPolicyDigest: policyDigest, target: readinessTarget,
     rules: 'closed head-only evidence; same verified event/history/inventory/state/retention prefix; known copy providers; no action, human disposition, reference removal, receipt or tombstone acceptance; no quarantine, deletion or execution authority',
     originalClasses: readinessOriginalClasses, currentProfile: 'archival-v4-or-reference-v5-only' }));
   const publicPolicyDigest = readiness ? readinessPolicyDigest : policyDigest;
@@ -221,6 +222,13 @@ function createComposedLifecycleVerifier(configBytes, runtime, readiness = false
         // Provenance instead selects the later retirement/final derived
         // completion. Events were verified in time order.
         const trigger = row.trigger.startsWith('earlier-') || row.trigger === 'record-superseded-or-rebuild-requested' ? triggers[0] : triggers.at(-1);
+        if (runtime?.release) {
+          const selected = runtime.retirementContext;
+          requireValue(triggers.length === 1 && trigger.eventType === 'environment-retired' && trigger.timestampAuthority === 'release-rails-commit' && trigger.actorAuthority === 'release-rails' &&
+            trigger.trafficDisabled === true && trigger.credentialsRevoked === true && trigger.environmentId === selected.environmentId &&
+            ['recordId', 'artifactRevision', 'releaseRailsRecordId', 'providerRecordId', 'actorId'].every(field => trigger[field] === selected[field]) &&
+            trigger.eventId === selected.retirementEventId && trigger.occurredAt === selected.retiredAt);
+        }
         for (const event of triggers) {
           if (event.eventType === 'run-terminal') requireValue(['completed', 'failed', 'cancelled', 'timed-out'].includes(event.terminalStatus));
           if (event.eventType === 'environment-retired') requireValue(event.trafficDisabled === true && event.credentialsRevoked === true);
@@ -246,6 +254,7 @@ function createComposedLifecycleVerifier(configBytes, runtime, readiness = false
             recordId: config.recordId, recordClass: config.recordClass, artifactRevision: config.artifactRevision,
             inventoryDigest: inventory.recordDigest, stateDigest: state.recordDigest, historyDigest,
             ...(runtime ? { runtimeConfigDigest: runtime.configDigest, historicalEvidenceDigest: sha256(graph.historicalEvidenceBytes) } : {}),
+            ...(runtime?.release ? { retirementContextDigest: runtime.retirementContextDigest, retirementEventDigest: trigger.recordDigest } : {}),
             requires: [...(immediate && !trigger ? ['observed-trigger'] : []), ...(runtime?.reference ? ['reference-clearance'] : []), 'human-disposition-authority', 'protected-actions', 'provider-receipts', 'aggregate', 'tombstone'] };
         }
         if (boundaryAt === null) return { state: 'retained-immutable', firstError: null, effects: zeroEffects(), boundaryAt };
@@ -419,6 +428,7 @@ function createComposedLifecycleVerifier(configBytes, runtime, readiness = false
         return { state: 'validated-lifecycle-candidate', firstError: null, effects: zeroEffects(), configDigest, policyDigest, boundaryAt,
           copyCount: copies.length, protectedActionCount: copies.length + 1, replayCount,
           ...(runtime ? { executionAuthorized: false, runtimeConfigDigest: runtime.configDigest, historicalEvidenceDigest: sha256(graph.historicalEvidenceBytes) } : {}),
+          ...(runtime?.release ? { retirementContextDigest: runtime.retirementContextDigest, retirementEventDigest: trigger.recordDigest } : {}),
           ...(runtime?.reference ? { referenceEvidenceDigest: referenceEvidence.evidenceDigest, referenceCount: referenceEvidence.referenceCount,
             tombstoneRecordId: referenceEvidence.tombstoneRecordId } : {}),
           ...(raw ? { rawBatchMode: batchEvidence.mode, rawBatchPlanDigest: batchEvidence.planDigest, rawBatchReservationDigest: batchEvidence.reservationDigest,

@@ -2215,3 +2215,36 @@ This is not a live projection, deletion transaction or quarantine service. All f
 formal findings, normative/live work, GAP-01–06, independent/protected review and
 M1–M8 remain open. No protected edit, provider operation, deletion, signature,
 release, deployment or spending is authorized. The loop remains active.
+
+## Completed development increment: 0116 — release-record retention profile
+
+A release-only current-v6 profile binds a non-null named environment and exact
+retirement event, release-rails record, provider record, actor and time. Complete
+archived event proof must establish a release-rails commit with traffic disabled
+and credentials revoked. Authentic but semantically wrong retirement records deny;
+other future classes remain inadmissible. Original history/key material/windows
+and fresh qualified/current proof separation remain intact.
+
+Four source observations now map: seven-year waiting before expiry, read-only
+pending disposition at/after it, and full current two-copy +6s disposition/replay.
+Readiness never supplies deletion or clearance authority. All 389 prior mapped
+observation seals/counts/outcomes remain unchanged. Twenty-two focused groups pass,
+including eight new groups; the separate three-group full integration run passes.
+One historical source-layout assertion failed on the initial repository run; its
+v1–v5 fallback check was updated while preserving the original inventory, and all
+five targeted inventory groups pass. Final repository checks pass 403 root controls,
+prototype tests, 95 kit artifacts, scope/typecheck/build checks. Unchanged package
+tasks are cached; see intent/0116/EVIDENCE.md for the failed attempt and final result.
+
+Fresh quick execution matches 393 passed / 3,643 uncovered; full matches 409 passed /
+3,627 uncovered, with zero failures. SOURCE-MAP.json discloses the named synthetic
+environment/retirement selectors absent from the legacy fixture and the exact
+historical/current proof boundaries. No actual retirement or deletion is claimed.
+
+Twelve lifecycle coordinates remain across deletion evidence, provenance and
+sanitized corpus, plus 3,614 migration and one obsolete schema case. Next under
+intent/0116/PLAN.md is provenance's compound manifest/completion rule; its existing
+receipt-digest-only limitation must be resolved before claiming complete disposition.
+All five formal findings, normative/live work, GAP-01–06, independent/protected
+review and M1–M8 remain open. No protected edit, provider operation, deletion,
+signature, release, deployment or spending is authorized. The loop remains active.

@@ -4,6 +4,7 @@ import { createHash, createPrivateKey, createPublicKey, sign } from 'node:crypto
 import { readFileSync } from 'node:fs';
 import { createLifecycleGraphVerifier, createCurrentLifecycleGraphVerifier, createLifecycleReadinessVerifier, createCurrentLifecycleReadinessVerifier, lifecycleBoundary, policyDigest } from '../0061/lifecycle-graph.candidate.mjs';
 import { createImmediateLifecycleReadinessVerifier } from '../0115/lifecycle-immediate.candidate.mjs';
+import { createReleaseLifecycleVerifier, createReleaseLifecycleReadinessVerifier } from '../0116/release-lifecycle.candidate.mjs';
 import { humanAuthorityBindingDigest } from '../0058/human-authority.candidate.mjs';
 import { manifestBytes, manifestDigest } from '../0060/protected-actions.candidate.mjs';
 import { exactInstant, formatExactInstant } from '../0069/exact-time.candidate.mjs';
@@ -102,6 +103,7 @@ function fixture(options = {}) {
   }
   function event(eventType, index, second, current = false) {
     const value = { ...JSON.parse(makeLifecycleEventBytes(eventType, index)), recordId: config.recordId, recordClass: config.recordClass, artifactRevision: config.artifactRevision,
+      ...(options.releaseRuntime ? { environmentId: config.environmentId } : {}),
       policySha256: RETENTION_POLICY_SHA, occurredAt: options.runtimeYear && !current ? formatExactInstant(BigInt(epoch) * 1000000n + BigInt(second) * 1000000000n) : at(second), ...(eventType === 'corpus-sanitization-terminal' ? { result: 'pass', sanitizerRevision: 'sanitizer-v1', inspectionRevision: 'inspector-v1' } : {}),
       ...(eventType === 'run-terminal' ? { terminalStatus: 'failed' } : {}),
       ...(eventType === 'derived-record-deleted' ? { derivedRecordId: `derived-${String(index).padStart(3, '0')}`, derivedRecordClass: 'RC-CORPUS-DERIVED-TEXT', parentCorpusId: 'corpusId-value', parentCorpusVersion: 'corpusVersion-value' } : {}) };
@@ -190,9 +192,12 @@ function fixture(options = {}) {
       authority: (record) => { record.holdState = options.referenceHoldState ?? 'none'; changes.authority?.(record); },
       }, options.runtimeYear, { registry, seal: runtimeSeal, at: (second) => at(second - 30), until, evaluationTime: evaluatedAt });
     }
-    runtimeBytes = jcs(edit('runtime', { version: options.referenceRuntime ? 'steer-lifecycle-runtime/v5' : options.archivedOwners ? 'steer-lifecycle-runtime/v4' : options.qualifiedDecisions ? 'steer-lifecycle-runtime/v3' : Array.isArray(options.currentHistory) ? 'steer-lifecycle-runtime/v2' : 'steer-lifecycle-runtime/v1', currentRegistryBytes: trustedRegistryBytes,
+    runtimeBytes = jcs(edit('runtime', { version: options.releaseRuntime ? 'steer-lifecycle-runtime/v6' : options.referenceRuntime ? 'steer-lifecycle-runtime/v5' : options.archivedOwners ? 'steer-lifecycle-runtime/v4' : options.qualifiedDecisions ? 'steer-lifecycle-runtime/v3' : Array.isArray(options.currentHistory) ? 'steer-lifecycle-runtime/v2' : 'steer-lifecycle-runtime/v1', currentRegistryBytes: trustedRegistryBytes,
       currentProviderRegistryBytes: jcs(providers), historicalContextBytes: archiveBytes, ...(options.archivedOwners ? { archivedOwnerContextBytes } : {}),
-      ...(options.referenceRuntime ? { referenceContextBytes: referenceProof.contextBytes } : {}) }));
+      ...(options.referenceRuntime ? { referenceContextBytes: referenceProof.contextBytes } : {}),
+      ...(options.releaseRuntime ? { retirementContextBytes: jcs({ version: 'steer-release-retirement-context/v1', environmentId: config.environmentId, recordId: config.recordId,
+        artifactRevision: config.artifactRevision, retirementEventId: '00000000-0000-4000-8000-000000000002', releaseRailsRecordId: 'fixture-retirement-commit-1',
+        providerRecordId: 'provider-event-2', retiredAt: '2026-09-04T12:00:00Z', actorId: 'service:fixture-release-rails' }) } : {}) }));
     if (Array.isArray(options.currentHistory)) {
       const combined = [...allBytes, ...options.currentHistory.map((entry, index) => event(entry.type, allBytes.length + index + 1, entry.second, true)),
         ...(referenceProof ? [referenceProof.envelope.eventBytes] : [])];
@@ -221,7 +226,7 @@ function fixture(options = {}) {
     historyDigest: sha256(jcs([...historyBytes, eventBytes])), historyComplete: true, holdState: 'none', referenceState: 'cleared',
     referenceRevocationDigest: referenceProof ? JSON.parse(referenceProof.envelope.completionBytes).recordDigest : null, parentExpiryAt: null, recordedAt: at(2), validThrough: until,
     ...(provenance ? { derivedInventoryDigest: derived.recordDigest } : {}) }), options.stateDomain ?? 'authority');
-  const graph = { version: runtimeBytes ? options.referenceRuntime ? 'steer-lifecycle-graph/current-v5' : options.archivedOwners ? 'steer-lifecycle-graph/current-v4' : options.qualifiedDecisions ? 'steer-lifecycle-graph/current-v3' : Array.isArray(options.currentHistory) ? 'steer-lifecycle-graph/current-v2' : 'steer-lifecycle-graph/current-v1' : chained ? 'steer-lifecycle-graph/raw-v4' : continuation ? 'steer-lifecycle-graph/raw-v3' : raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1', configDigest, policyDigest, eventBytes, historyBytes, inventoryBytes: jcs(inventory), stateBytes: jcs(state), referenceRevocationBytes: referenceProof?.bytes ?? '', copies: [], aggregateBytes: '', tombstone: {},
+  const graph = { version: runtimeBytes ? options.releaseRuntime ? 'steer-lifecycle-graph/current-v6' : options.referenceRuntime ? 'steer-lifecycle-graph/current-v5' : options.archivedOwners ? 'steer-lifecycle-graph/current-v4' : options.qualifiedDecisions ? 'steer-lifecycle-graph/current-v3' : Array.isArray(options.currentHistory) ? 'steer-lifecycle-graph/current-v2' : 'steer-lifecycle-graph/current-v1' : chained ? 'steer-lifecycle-graph/raw-v4' : continuation ? 'steer-lifecycle-graph/raw-v3' : raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1', configDigest, policyDigest, eventBytes, historyBytes, inventoryBytes: jcs(inventory), stateBytes: jcs(state), referenceRevocationBytes: referenceProof?.bytes ?? '', copies: [], aggregateBytes: '', tombstone: {},
     ...(options.archivedOwners ? { archivedOwnerBytes } : {}),
     ...(options.qualifiedDecisions ? { qualifiedDecisionBytes: jcs(edit('qualified-proofs', qualifiedDecisions)) } : {}),
     ...(runtimeBytes ? { historicalEvidenceBytes } : {}),
@@ -704,4 +709,38 @@ export function immediateLifecycleExecutionCase(point, variant = 'positive') {
   const bytes = jcs(head);
   return { configBytes: value.configBytes, point, variant, head, bytes, verifier, fullVerifier: value.verifier, evaluationTime,
     input: jcs({ configBytes: value.configBytes, bytes, evaluatedAt: evaluationTime }) };
+}
+
+export function releaseLifecycleExecutionCase(point, variant = 'positive') {
+  const points = { before: -1, at: 0, after: 1, complete: 6 };
+  if (!Object.hasOwn(points, point) || !['positive', 'wrong-clock-source', 'wrong-actor', 'wrong-rails-record', 'wrong-provider-record', 'wrong-retired-time',
+    'traffic-active', 'credentials-active', 'missing-history', 'missing-owner-archive', 'missing-state', 'held', 'wrong-provider', 'future-state', 'wrong-target',
+    'full-positive', 'full-replay', 'full-missing-receipt', 'full-wrong-clock-source', 'full-wrong-rails-record', 'full-traffic-active', 'full-credentials-active'].includes(variant) || variant.startsWith('full-') && point !== 'complete') throw new Error('UNKNOWN_RELEASE_LIFECYCLE_CASE');
+  const boundaryAt = '2033-09-04T12:00:00Z', expiry = Date.parse(boundaryAt), full = variant.startsWith('full-');
+  const fault = full ? variant.slice(5) : variant;
+  const evaluationTime = new Date(expiry + points[point] * 1000).toISOString().replace('.000Z', 'Z');
+  const options = { fixtureEpoch: Date.parse('2026-09-04T12:00:00Z'), recordClass: 'RC-RELEASE-MIGRATION', eventType: 'environment-retired', historyType: 'originator-draft-saved',
+    runtimeYear: 2033, runtimeEpoch: new Date(expiry - (full ? 0 : 60000)).toISOString(), tickNanoseconds: 100000000, horizon: 1500,
+    qualifiedDecisions: true, archivedOwners: true, currentHistory: [], releaseRuntime: true, replay: variant === 'full-replay', evaluationTime,
+    edits: { config: (record) => { record.environmentId = 'fixture-retired-environment'; },
+      'event-2': (record) => { record.timestampAuthority = fault === 'wrong-clock-source' ? 'system-of-record-commit' : 'release-rails-commit';
+        record.actorId = 'service:fixture-release-rails'; record.actorAuthority = fault === 'wrong-actor' ? 'lifecycle-worker' : 'release-rails';
+        record.releaseRailsRecordId = fault === 'wrong-rails-record' ? 'other-retirement-commit' : 'fixture-retirement-commit-1';
+        if (variant === 'wrong-provider-record') record.providerRecordId = 'other-provider-record';
+        if (variant === 'wrong-retired-time') record.occurredAt = '2026-09-04T12:00:01Z';
+        if (fault === 'traffic-active') record.trafficDisabled = false; if (fault === 'credentials-active') record.credentialsRevoked = false; },
+      inventory: (record) => { if (variant === 'wrong-provider') record.copies[0].account = 'unbound-account'; },
+      state: (record) => { if (variant === 'held') record.holdState = 'active'; if (variant === 'future-state') record.recordedAt = formatExactInstant(exactInstant(evaluationTime) + 1n); },
+      graph: (graph) => { if (variant === 'missing-history') graph.historicalEvidenceBytes = ''; if (variant === 'missing-owner-archive') graph.archivedOwnerBytes = '';
+        if (variant === 'missing-state') graph.stateBytes = ''; if (variant === 'full-missing-receipt') graph.copies[0].receiptBytes = ''; } } };
+  const value = fixture(options), fullVerifier = createReleaseLifecycleVerifier(value.configBytes, value.runtimeBytes);
+  if (full) return { ...value, verifier: fullVerifier, point, variant, boundaryAt, input: jcs({ configBytes: value.configBytes, runtimeBytes: value.runtimeBytes, bytes: value.bytes, evaluatedAt: evaluationTime }) };
+  const graph = value.graph, verifier = createReleaseLifecycleReadinessVerifier(value.configBytes, value.runtimeBytes);
+  const head = { version: 'steer-release-readiness/v1', policyDigest: verifier.policyDigest, dispositionPolicyDigest: fullVerifier.policyDigest,
+    target: Object.fromEntries(['examRevision', 'examDigest', 'implementationRevision', 'authorizationPolicyPath', 'authorizationPolicyRevision', 'authorizationPolicyDigest'].map(field => [field, target[field]])),
+    ...Object.fromEntries(['configDigest', 'eventBytes', 'historyBytes', 'inventoryBytes', 'stateBytes', 'historicalEvidenceBytes', 'qualifiedDecisionBytes', 'archivedOwnerBytes'].map(field => [field, graph[field]])) };
+  if (variant === 'wrong-target') head.target.implementationRevision = 'f'.repeat(40);
+  const bytes = jcs(head);
+  return { configBytes: value.configBytes, runtimeBytes: value.runtimeBytes, verifier, fullVerifier, point, variant, boundaryAt, head, bytes, evaluationTime,
+    input: jcs({ configBytes: value.configBytes, runtimeBytes: value.runtimeBytes, bytes, evaluatedAt: evaluationTime }) };
 }

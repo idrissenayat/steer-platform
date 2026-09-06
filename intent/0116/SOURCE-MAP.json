@@ -1,0 +1,14 @@
+{
+  "classId": "RC-RELEASE-MIGRATION",
+  "retiredAt": "2026-09-04T12:00:00Z",
+  "expiryAt": "2033-09-04T12:00:00Z",
+  "observations": {"before": "2033-09-04T11:59:59Z", "at": "2033-09-04T12:00:00Z", "after": "2033-09-04T12:00:01Z", "complete": "2033-09-04T12:00:06Z"},
+  "runtimeProfile": "steer-lifecycle-runtime/v6",
+  "fullProfile": "steer-lifecycle-graph/current-v6",
+  "readinessProfile": "steer-release-readiness/v1",
+  "retirementReconciliation": "Preserve source retirement and observation times. The legacy fixture lacks named environment and release-rails fields. The corrected fixture supplies a named synthetic environment, exact trusted retirement event/record/provider/actor/time selector and an independently provider-bound release-rails-commit event with both shutdown flags true. This is development evidence, not an actual environment retirement.",
+  "beforeAtAfter": "Fresh current head/qualified archive proofs with no future effect receipts establish waiting before expiry and pending disposition at/after it, never actual quarantine or deletion. The full +6-second control remains separate.",
+  "trust": "Original history and key material/windows are preserved. Separate synthetic 2033 current keys revalidate retained historical and qualified-owner bytes and authorize the current proof graph. No actual seven-year observation or key renewal.",
+  "limits": "No live release-rails traffic/credential check, environment shutdown, provider disposition, current qualified hold review, real storage/CAS, independent review, protected incorporation or gate approval. Other future classes remain explicitly inadmissible in this profile.",
+  "remainingLifecycleClasses": ["RC-DELETION-EVIDENCE", "RC-CORPUS-PROVENANCE", "RC-CORPUS-SANITIZED"]
+}

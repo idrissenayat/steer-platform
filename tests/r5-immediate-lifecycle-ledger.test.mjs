@@ -94,14 +94,14 @@ test('0115: closed four-coordinate hooks assert pinned fields, reject arbitrary 
     assert.equal(count, row.coordinate.boundary === 'before' ? 19 : 21); assert.throws(() => hook.run(() => { throw new Error('ASSERTION_FAILED'); }), /ASSERTION_FAILED/);
   }
   for (const [point, variant] of [['bad', 'positive'], ['at', 'caller-mutation'], ['at', 'full-positive'], ['before', 'earliest-rebuild']]) assert.throws(() => make(point, variant), /UNKNOWN_IMMEDIATE_LIFECYCLE_CASE/);
-  assert.deepEqual(Object.keys(fixtures).sort(), ['immediateLifecycleExecutionCase', 'immutableRetentionExecutionCase', 'lifecycleGraphExecutionCase', 'lifecycleGraphVariants', 'lifecycleNegativeExecutionCase', 'lifecycleReadinessExecutionCase', 'longRetentionExecutionCase', 'rawDeadlineExecutionCase', 'shortRetentionExecutionCase', 'specialLifecycleExecutionCase']);
+  assert.deepEqual(Object.keys(fixtures).sort(), ['immediateLifecycleExecutionCase', 'immutableRetentionExecutionCase', 'lifecycleGraphExecutionCase', 'lifecycleGraphVariants', 'lifecycleNegativeExecutionCase', 'lifecycleReadinessExecutionCase', 'longRetentionExecutionCase', 'rawDeadlineExecutionCase', 'releaseLifecycleExecutionCase', 'shortRetentionExecutionCase', 'specialLifecycleExecutionCase']);
 });
 
 test('0115: existing complete and readiness observations stay unchanged while the four immediate coordinates map', () => {
   const report = runCorrectedCoverage(), prior = JSON.parse(readFileSync(new URL('../intent/0114/QUICK-EXECUTION-REPORT.json', import.meta.url)));
   const current = new Map(report.executions.map(r => [r.id, r])); for (const old of prior.executions) for (const field of ['observationsDigest', 'observationCount', 'status']) assert.equal(current.get(old.id)[field], old[field], `${old.id}:${field}`);
-  assert.equal(report.executed, 389); assert.equal(report.passed, 389); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3647);
-  assert.deepEqual(report.families['LIFECYCLE-GRAPH'], { required: 64, executed: 48, passed: 48, failed: 0, uncovered: 16 });
+  assert.equal(report.executed, 393); assert.equal(report.passed, 393); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3643);
+  assert.deepEqual(report.families['LIFECYCLE-GRAPH'], { required: 64, executed: 52, passed: 52, failed: 0, uncovered: 12 });
   for (const flag of ['completeCoverage', 'normativeAcceptanceComplete', 'independentAcceptance', 'executionAuthorized', 'liveProviderUsed']) assert.equal(report[flag], false);
-  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0115/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
+  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0116/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
 });

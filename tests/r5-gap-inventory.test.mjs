@@ -47,7 +47,9 @@ test('0097: all sixteen classes retain explicit selection versus current-registr
   const runtime = body('intent/0080/lifecycle-runtime.candidate.mjs');
   const declaration = runtime.flatMap((node) => node.type === 'VariableDeclaration' ? node.declarations : []).find((node) => node.id.name === 'supportedClasses');
   const supported = declaration.init.arguments[0].elements.map((node) => node.value);
-  assert.match(read('intent/0080/lifecycle-runtime.candidate.mjs'), /supportedClasses: reference \? \['RC-REFERENCED-EVIDENCE'\] : supportedClasses/);
+  // 0097 records baseline v1-v5 admission, not current coverage. Later explicit
+  // profiles are tested independently; preserve this historical inventory.
+  assert.match(read('intent/0080/lifecycle-runtime.candidate.mjs'), /reference \? \['RC-REFERENCED-EVIDENCE'\] : supportedClasses/);
   for (const row of inventory.lifecycleClasses) {
     assert.equal(row.futureRegistryProfile, row.classId === 'RC-AUTHORITATIVE-ARTIFACT' ? 'not-applicable-immutable' :
       supported.includes(row.classId) ? 'current-v1-through-v4' : row.classId === 'RC-REFERENCED-EVIDENCE' ? 'current-v5' : 'not-admitted');
