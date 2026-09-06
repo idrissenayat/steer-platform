@@ -4,6 +4,11 @@ The frozen round-three R5 verdict remains SEND_BACK: three blockers and two majo
 All five findings remain formally open. Development candidates are not an
 independent Critic verdict, protected Exam incorporation or a human signature.
 
+The current finite remaining-work map is `intent/0097/GAP-INVENTORY.json` and
+`intent/0097/PLAN.md`. It has six dependency-ordered assurance packages, beginning
+with an actual corrected declared-versus-executed ledger. Source and test-pointer
+checks are not a substitute for that ledger or independent acceptance.
+
 | Finding | Candidate work available | Required remaining work |
 |---|---|---|
 | R5-001 lifecycle | 0059/0058/0060 composed in 0061; 0068 retention; 0070/0071 precision/ordering; 0072–0077 raw grant/batch/checkpoint/terminal evidence; 0078–0084 four-class future/mixed history and qualified current/archival hold evidence; 0085–0089 full referenced-evidence candidate composition | Real store/transport/trust integration; remaining class/trust-era coverage, unranked ties/auxiliary times and normative matrix; independent/protected review |
@@ -113,3 +118,10 @@ a source-reported newer head against an older valid sequence. It does not perfor
 a live query or establish currentness beyond the signed confirmation instant.
 Next is a finite reconciliation of remaining source/class/trust-era and crash-cut
 requirements, not another standalone verifier added without a mapped requirement.
+
+0097 reconciles source dimensions and current admission: all sixteen classes have
+original selection tests, but only four classes plus reference-specific evidence
+are admitted to the newer current-registry profiles; ten other non-immutable
+classes need requirement-specific assessment. The 3,600+14 corrected migration
+ID set remains unreconciled. Recovery's two pre-ack unknown outcomes are expected
+fail-closed results, not defects to turn into success. The five findings remain open.

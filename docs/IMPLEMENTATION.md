@@ -839,6 +839,15 @@ confirmation instant, with no live store query or resume authority. Existing
 checkpoint APIs are unchanged. See `intent/0096/EVIDENCE.md` and `PLAN.md` for
 checks and the next finite normative-gap reconciliation before further changes.
 
+Item `intent/0097` supplies a source-pinned finite gap inventory rather than another
+decision verifier. It retains five current R5 findings and fourteen historical IDs,
+maps sixteen lifecycle classes and fourteen candidate/test pointers, and preserves
+3,600 migration coordinates plus fourteen additional cases and the correct eight
+recovery-cut outcomes. Corrected exact-ID coverage is explicitly unreconciled.
+Six dependency-ordered packages now constrain remaining assurance work, beginning
+with GAP-01's actual corrected execution ledger. See `intent/0097/PLAN.md`;
+neither this inventory nor its passing tests closes a gate or completes Phase 1.
+
 ## Local commands
 
 ```sh

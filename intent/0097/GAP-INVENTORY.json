@@ -1,0 +1,604 @@
+{
+  "version": "steer-r5-gap-inventory/v1",
+  "baselineRevision": "57980ea3a3aecc35e024e5ae2516cfa457dd2667",
+  "status": "planning-traceability-not-acceptance",
+  "sources": [
+    {
+      "path": "intent/0001/reviews/domain/round-3/remediation/preflight-critic-r5.json",
+      "sha256": "7a05ed7a4186d1eb82e6a360307b837f972ad422d316aa4629033fa9ff7acfdb"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-3/remediation/NORMATIVE-EXECUTION-INVENTORY.candidate.json",
+      "sha256": "0794ec26daa67daeab22e047e77f89d1c84f1444fc597c9bfdff587495c44e21"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-3/remediation/LIFECYCLE-POLICY-TABLE.candidate.json",
+      "sha256": "29dbe694ff5f85ccd24dea0617067da36586a63998f162cc2a48a8189679f566"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-3/remediation/finding-resolution.json",
+      "sha256": "5cc9b2c8fee90c3337de17656b935842a065abe0201c931852b25f134a3b1adf"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-3/remediation/EXAM-AMENDMENT.candidate.md",
+      "sha256": "5ff53b3fdc6032596ff923ba288da2c5152a2c218e9cf153da86d4185b0ea6aa"
+    },
+    {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+      "sha256": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32"
+    }
+  ],
+  "findings": [
+    {
+      "id": "PREFLIGHT-R3-R5-001",
+      "severity": "blocker",
+      "status": "open",
+      "requiredFix": "Represent every lifecycle trigger/history element with LIFECYCLE-EVENT.schema.json and validate all provider proofs and registry keys at their authoritative times. Add lifecycle.delete-copy, lifecycle.crypto-erase and lifecycle.commit-tombstone to the exact deny-by-default manifest, then route each tuple through authorizationDecision or one demonstrably identical shared verifier binding actor, credentials, delegation, assignment, authority, target, exact resources, replay and CAS. Add the three reproductions to the normative inventory and require typed zero effects.",
+      "sourceFindingIds": [
+        "IRREV-G2-R3-001",
+        "SEC-G2-R3-001"
+      ],
+      "evidenceRefs": [
+        "events",
+        "actions",
+        "lifecycle"
+      ],
+      "coverage": "bounded-regressions-not-complete-normative-acceptance"
+    },
+    {
+      "id": "PREFLIGHT-R3-R5-002",
+      "severity": "blocker",
+      "status": "open",
+      "requiredFix": "Derive the provider authority-binding digest from the complete canonical authority record excluding only unavoidable circular digest/signature fields, and independently bind the selected provider trust-anchor digest. Validate provider.recordedAt, authority times and evaluation currentness, passing the authoritative provider time explicitly to signature verification. Apply the same provider-time rule to every public oracle that currently relies on parseSigned's fixed default. Add wrong-session, altered omitted-field, pre-notBefore, post-expiry/revocation and wrong-anchor cases to the normative inventory.",
+      "sourceFindingIds": [
+        "IRREV-G2-R3-001",
+        "LEGAL-G2-R3-001",
+        "REL-G2-R2-001",
+        "SEC-G2-R3-001"
+      ],
+      "evidenceRefs": [
+        "human",
+        "events",
+        "actions"
+      ],
+      "coverage": "bounded-regressions-not-complete-normative-acceptance"
+    },
+    {
+      "id": "PREFLIGHT-R3-R5-003",
+      "severity": "blocker",
+      "status": "open",
+      "requiredFix": "Extend the migration schema and every nested signed record with exact Exam target, implementation revision, authorization-policy path/revision/digest and immutable request bindings. Enumerate migration.expand, migration.backfill and migration.contract in the permissions manifest and consume exact runner credential/delegation/assignment/resource evidence. Replace casWinner with closed replay-ledger, CAS-head and reservation records signed by their independent domains and validated for request/idempotency/result/head lineage. Bind pre/post item, signature, attempt, audit, release and evidence truth to actual supplied bytes rather than fixed digest constants. Add missing-target, wrong-implementation, unlisted-action, ordinary-replay, stale/missing head, loser and drift cases to the inventory.",
+      "sourceFindingIds": [
+        "IRREV-G2-R3-002",
+        "SEC-G2-R3-001"
+      ],
+      "evidenceRefs": [
+        "migration",
+        "actions",
+        "compatibility",
+        "latest-checkpoint"
+      ],
+      "coverage": "bounded-regressions-not-complete-normative-acceptance"
+    },
+    {
+      "id": "PREFLIGHT-R3-R5-004",
+      "severity": "major",
+      "status": "open",
+      "requiredFix": "Represent variance and reconciliation as exact-cardinality arrays, require unique IDs/digests, and compare a complete bijection across every ledger, usage, invoice, variance and reconciliation line before aggregation. Add a positive reordered multi-line reconciliation and missing, duplicate, orphan and cross-line negative cases to the cost schema, fixtures and normative inventory.",
+      "sourceFindingIds": [
+        "MONEY-G2-005",
+        "MONEY-G2-R3-001"
+      ],
+      "evidenceRefs": [
+        "cost"
+      ],
+      "coverage": "bounded-regressions-not-complete-normative-acceptance"
+    },
+    {
+      "id": "PREFLIGHT-R3-R5-005",
+      "severity": "major",
+      "status": "open",
+      "requiredFix": "Normalize every governed Unicode Nd digit to its ASCII decimal value before phone matching, or explicitly reject non-ASCII digit-bearing text from accepted corpora. Add plus and 00 Arabic-Indic and at least one other non-Latin decimal set, with 6/7/15/16-digit and embedding boundaries, to the registry, cases, privacy graph fixtures and normative inventory.",
+      "sourceFindingIds": [
+        "PRIV-G2-R2-001"
+      ],
+      "evidenceRefs": [
+        "phone"
+      ],
+      "coverage": "bounded-regressions-not-complete-normative-acceptance"
+    }
+  ],
+  "legacyFindingIds": [
+    "ACC-G2-R3-001",
+    "ACC-G2-R3-002",
+    "IRREV-G2-R3-001",
+    "IRREV-G2-R3-002",
+    "IRREV-G2-R3-003",
+    "LEGAL-G2-R3-001",
+    "LEGAL-G2-R3-002",
+    "MONEY-G2-004",
+    "MONEY-G2-005",
+    "MONEY-G2-R3-001",
+    "PRIV-G2-R2-001",
+    "REL-G2-R2-001",
+    "REL-G2-R3-001",
+    "SEC-G2-R3-001"
+  ],
+  "legacyDisposition": "Historical resolution claims are not current independent acceptance; retain all fourteen source finding IDs.",
+  "evidence": [
+    {
+      "id": "events",
+      "path": "intent/0059/lifecycle-events.candidate.mjs",
+      "entryPoint": "correctedLifecycleEventDecision",
+      "testPath": "tests/r5-lifecycle-events.test.mjs",
+      "testName": "R5-001: corrupted historical provider proof passes frozen history but is rejected by the successor",
+      "evidenceLevel": "synthetic-development-regression"
+    },
+    {
+      "id": "human",
+      "path": "intent/0058/human-authority.candidate.mjs",
+      "entryPoint": "correctedHumanAuthorityDecision",
+      "testPath": "tests/r5-human-correction.test.mjs",
+      "testName": "R5-002: wrong-session and pre-key provider proofs reach frozen ALLOW but deny in the successor",
+      "evidenceLevel": "synthetic-development-regression"
+    },
+    {
+      "id": "actions",
+      "path": "intent/0060/protected-actions.candidate.mjs",
+      "entryPoint": "createProtectedActionVerifier",
+      "testPath": "tests/r5-protected-actions.test.mjs",
+      "testName": "one successor verifier covers the prior Exam action and all six omitted lifecycle/migration actions",
+      "evidenceLevel": "synthetic-development-regression"
+    },
+    {
+      "id": "lifecycle",
+      "path": "intent/0061/lifecycle-graph.candidate.mjs",
+      "entryPoint": "createLifecycleGraphVerifier",
+      "testPath": "tests/r5-lifecycle-graph.test.mjs",
+      "testName": "the old effects graph surrogate and ignored historical provider proof cannot pass the composed path",
+      "evidenceLevel": "synthetic-development-regression"
+    },
+    {
+      "id": "class-selection",
+      "path": "intent/0061/lifecycle-graph.candidate.mjs",
+      "entryPoint": "createLifecycleGraphVerifier",
+      "testPath": "tests/r5-lifecycle-graph.test.mjs",
+      "testName": "0068: all sixteen pinned record classes derive their actual composed retention outcome",
+      "evidenceLevel": "synthetic-development-regression"
+    },
+    {
+      "id": "current-lifecycle",
+      "path": "intent/0061/lifecycle-graph.candidate.mjs",
+      "entryPoint": "createCurrentLifecycleGraphVerifier",
+      "testPath": "tests/r5-lifecycle-graph.test.mjs",
+      "testName": "0080: full one-, three- and seven-year lifecycle evidence composes historical facts with current human/actions/providers",
+      "evidenceLevel": "synthetic-development-regression"
+    },
+    {
+      "id": "references",
+      "path": "intent/0061/lifecycle-graph.candidate.mjs",
+      "entryPoint": "createCurrentLifecycleGraphVerifier",
+      "testPath": "tests/r5-lifecycle-graph.test.mjs",
+      "testName": "0089: full referenced-evidence lifecycle verifies both copy hashes, removal, independent actions and named tombstone",
+      "evidenceLevel": "synthetic-development-regression"
+    },
+    {
+      "id": "migration",
+      "path": "intent/0062/migration-graph.candidate.mjs",
+      "entryPoint": "createMigrationGraphVerifier",
+      "testPath": "tests/r5-migration-graph.test.mjs",
+      "testName": "the frozen target-free boolean-winner graph is rejected and every shared proof is required in every phase",
+      "evidenceLevel": "synthetic-development-regression"
+    },
+    {
+      "id": "compatibility",
+      "path": "intent/0091/migration-compatibility.candidate.mjs",
+      "entryPoint": "createMigrationCompatibilityVerifier",
+      "testPath": "tests/r5-migration-graph.test.mjs",
+      "testName": "0091: complete signed migration runs every bounded old/new interleaving on both actual states",
+      "evidenceLevel": "synthetic-development-regression"
+    },
+    {
+      "id": "latest-checkpoint",
+      "path": "intent/0096/latest-checkpoint.candidate.mjs",
+      "entryPoint": "createLatestMigrationCheckpointVerifier",
+      "testPath": "tests/r5-migration-graph.test.mjs",
+      "testName": "0096: an internally valid older sequence is rejected when the canonical head reports its successor",
+      "evidenceLevel": "synthetic-development-regression"
+    },
+    {
+      "id": "cost",
+      "path": "intent/0057/cost-correction.candidate.mjs",
+      "entryPoint": "correctedCostDecision",
+      "testPath": "tests/r5-cost-correction.test.mjs",
+      "testName": "R5-004: frozen two-line graph accepts one pair; corrected graph requires both before aggregating",
+      "evidenceLevel": "synthetic-development-regression"
+    },
+    {
+      "id": "phone",
+      "path": "intent/0056/privacy-correction.candidate.mjs",
+      "entryPoint": "correctedPrivacyGraphDecision",
+      "testPath": "tests/r5-phone-correction.test.mjs",
+      "testName": "R5-005: exact Unicode counterexamples accepted by frozen graph are rejected by the policy-bound correction",
+      "evidenceLevel": "synthetic-development-regression"
+    },
+    {
+      "id": "recovery",
+      "path": "intent/0065/recovery-time.candidate.mjs",
+      "entryPoint": "createRecoveryTimeVerifier",
+      "testPath": "tests/r5-recovery-time.test.mjs",
+      "testName": "all eight recovery cuts preserve unknown versus verified outcomes with all six records timed",
+      "evidenceLevel": "synthetic-development-regression"
+    },
+    {
+      "id": "recovery-corruptions",
+      "path": "intent/0065/recovery-time.candidate.mjs",
+      "entryPoint": "createRecoveryTimeVerifier",
+      "testPath": "tests/r5-recovery-time.test.mjs",
+      "testName": "all 25 original recovery corruption classes remain denied",
+      "evidenceLevel": "synthetic-development-regression"
+    }
+  ],
+  "lifecycleClasses": [
+    {
+      "classId": "RC-AUTHORITATIVE-ARTIFACT",
+      "sourceDuration": "indefinite",
+      "selectionEvidenceRef": "class-selection",
+      "futureRegistryProfile": "not-applicable-immutable",
+      "fullBoundaryMatrix": "not-reconciled"
+    },
+    {
+      "classId": "RC-DECISION-PROOF",
+      "sourceDuration": "P7Y",
+      "selectionEvidenceRef": "class-selection",
+      "futureRegistryProfile": "current-v1-through-v4",
+      "fullBoundaryMatrix": "not-reconciled"
+    },
+    {
+      "classId": "RC-LEGAL-SIGNED-LOG",
+      "sourceDuration": "P7Y",
+      "selectionEvidenceRef": "class-selection",
+      "futureRegistryProfile": "current-v1-through-v4",
+      "fullBoundaryMatrix": "not-reconciled"
+    },
+    {
+      "classId": "RC-RELEASE-MIGRATION",
+      "sourceDuration": "P7Y",
+      "selectionEvidenceRef": "class-selection",
+      "futureRegistryProfile": "not-admitted",
+      "fullBoundaryMatrix": "not-reconciled"
+    },
+    {
+      "classId": "RC-REFERENCED-EVIDENCE",
+      "sourceDuration": "P3Y",
+      "selectionEvidenceRef": "class-selection",
+      "futureRegistryProfile": "current-v5",
+      "fullBoundaryMatrix": "not-reconciled"
+    },
+    {
+      "classId": "RC-FAILED-RUN",
+      "sourceDuration": "P90D",
+      "selectionEvidenceRef": "class-selection",
+      "futureRegistryProfile": "not-admitted",
+      "fullBoundaryMatrix": "not-reconciled"
+    },
+    {
+      "classId": "RC-SECURITY-AUDIT",
+      "sourceDuration": "P1Y",
+      "selectionEvidenceRef": "class-selection",
+      "futureRegistryProfile": "current-v1-through-v4",
+      "fullBoundaryMatrix": "not-reconciled"
+    },
+    {
+      "classId": "RC-POSTHOG-RAW",
+      "sourceDuration": "P90D",
+      "selectionEvidenceRef": "class-selection",
+      "futureRegistryProfile": "not-admitted",
+      "fullBoundaryMatrix": "not-reconciled"
+    },
+    {
+      "classId": "RC-REBUILDABLE",
+      "sourceDuration": "immediate",
+      "selectionEvidenceRef": "class-selection",
+      "futureRegistryProfile": "not-admitted",
+      "fullBoundaryMatrix": "not-reconciled"
+    },
+    {
+      "classId": "RC-DELETION-EVIDENCE",
+      "sourceDuration": "P7Y",
+      "selectionEvidenceRef": "class-selection",
+      "futureRegistryProfile": "not-admitted",
+      "fullBoundaryMatrix": "not-reconciled"
+    },
+    {
+      "classId": "RC-CORPUS-RAW-WORKING",
+      "sourceDuration": "PT60S",
+      "selectionEvidenceRef": "class-selection",
+      "futureRegistryProfile": "not-admitted",
+      "fullBoundaryMatrix": "not-reconciled"
+    },
+    {
+      "classId": "RC-CORPUS-PROVENANCE",
+      "sourceDuration": "P7Y",
+      "selectionEvidenceRef": "class-selection",
+      "futureRegistryProfile": "not-admitted",
+      "fullBoundaryMatrix": "not-reconciled"
+    },
+    {
+      "classId": "RC-CORPUS-SANITIZED",
+      "sourceDuration": "P1Y",
+      "selectionEvidenceRef": "class-selection",
+      "futureRegistryProfile": "not-admitted",
+      "fullBoundaryMatrix": "not-reconciled"
+    },
+    {
+      "classId": "RC-CORPUS-BASELINE",
+      "sourceDuration": "P3Y",
+      "selectionEvidenceRef": "class-selection",
+      "futureRegistryProfile": "current-v1-through-v4",
+      "fullBoundaryMatrix": "not-reconciled"
+    },
+    {
+      "classId": "RC-CORPUS-DERIVED-TEXT",
+      "sourceDuration": "P90D",
+      "selectionEvidenceRef": "class-selection",
+      "futureRegistryProfile": "not-admitted",
+      "fullBoundaryMatrix": "not-reconciled"
+    },
+    {
+      "classId": "RC-CORPUS-EXPORT",
+      "sourceDuration": "P30D",
+      "selectionEvidenceRef": "class-selection",
+      "futureRegistryProfile": "not-admitted",
+      "fullBoundaryMatrix": "not-reconciled"
+    }
+  ],
+  "policyCorrections": [
+    {
+      "classId": "RC-CORPUS-PROVENANCE",
+      "source": "accepted-retention-policy",
+      "rule": "Later corpus retirement or maximum verified derived-record-deleted time over the closed manifest, plus seven calendar years; item closure is not a substitute.",
+      "implementation": "intent/0061/lifecycle-graph.candidate.mjs",
+      "spec": "intent/0068/SPEC.md"
+    }
+  ],
+  "migration": {
+    "sourceDimensions": {
+      "versions": [
+        "schema-v1:app-v1:app-v2",
+        "schema-v2:app-v2:app-v3"
+      ],
+      "phases": [
+        "expand",
+        "backfill-batch-1-checkpoint-1",
+        "backfill-batch-1-checkpoint-2",
+        "backfill-batch-2-checkpoint-1",
+        "backfill-batch-2-checkpoint-2",
+        "contract"
+      ],
+      "interleavings": [
+        "old-read",
+        "old-write",
+        "new-read",
+        "new-write",
+        "old-new-concurrent"
+      ],
+      "interruptions": [
+        "none",
+        "before-effect",
+        "after-effect"
+      ],
+      "rollbacks": [
+        "none",
+        "before-backfill",
+        "during-backfill",
+        "after-backfill"
+      ],
+      "idempotency": [
+        "first",
+        "same-byte-replay",
+        "different-byte-replay",
+        "two-runner-winner",
+        "two-runner-loser"
+      ],
+      "failureCases": [
+        "stale-cleanup",
+        "wrong-tenant-cleanup",
+        "wrong-column-cleanup",
+        "missing-cleanup",
+        "partial-provider",
+        "unknown-provider",
+        "recovery",
+        "restore"
+      ],
+      "transplantCases": [
+        "journal",
+        "provider-result",
+        "plan",
+        "request",
+        "backup",
+        "truth-lineage"
+      ]
+    },
+    "cartesianAxes": [
+      "versions",
+      "phases",
+      "interleavings",
+      "interruptions",
+      "rollbacks",
+      "idempotency"
+    ],
+    "declaredCartesianCount": 3600,
+    "declaredAdditionalCount": 14,
+    "correctedExactIdCoverage": "not-reconciled",
+    "correctedExecutedIdCount": null,
+    "evidenceRefs": [
+      "migration",
+      "compatibility",
+      "latest-checkpoint"
+    ],
+    "liveConcurrencyVerified": false
+  },
+  "recovery": {
+    "cuts": [
+      {
+        "cut": "before-provider-effect",
+        "expectedCompleteEvidenceOutcome": "UNKNOWN_RECONCILE_PROVIDER",
+        "evidenceRef": "recovery"
+      },
+      {
+        "cut": "after-provider-effect-before-acknowledgement",
+        "expectedCompleteEvidenceOutcome": "UNKNOWN_RECONCILE_PROVIDER",
+        "evidenceRef": "recovery"
+      },
+      {
+        "cut": "after-acknowledgement-before-webhook",
+        "expectedCompleteEvidenceOutcome": "RECOVERY_VERIFIED",
+        "evidenceRef": "recovery"
+      },
+      {
+        "cut": "after-webhook-before-fetch",
+        "expectedCompleteEvidenceOutcome": "RECOVERY_VERIFIED",
+        "evidenceRef": "recovery"
+      },
+      {
+        "cut": "after-fetch-before-spool-fsync",
+        "expectedCompleteEvidenceOutcome": "RECOVERY_VERIFIED",
+        "evidenceRef": "recovery"
+      },
+      {
+        "cut": "after-spool-fsync-before-WORM-acknowledgement",
+        "expectedCompleteEvidenceOutcome": "RECOVERY_VERIFIED",
+        "evidenceRef": "recovery"
+      },
+      {
+        "cut": "after-WORM-before-projection",
+        "expectedCompleteEvidenceOutcome": "RECOVERY_VERIFIED",
+        "evidenceRef": "recovery"
+      },
+      {
+        "cut": "after-projection",
+        "expectedCompleteEvidenceOutcome": "RECOVERY_VERIFIED",
+        "evidenceRef": "recovery"
+      }
+    ],
+    "corruptions": [
+      "missing",
+      "stale",
+      "partial",
+      "corrupt",
+      "unavailable",
+      "wrong-tenant",
+      "wrong-key",
+      "duplicated",
+      "reordered",
+      "provider-timestamp-regressed",
+      "cursor-gapped",
+      "ID-colliding",
+      "mapped-many-to-one",
+      "identity-proof-missing",
+      "artifact-mismatched",
+      "policy-mismatched",
+      "loss-during-mapping",
+      "loss-during-independent-verification",
+      "retry-request-drift",
+      "arbitrary-policy-digest",
+      "opaque-identity",
+      "generic-decision",
+      "cut-scope-mismatch",
+      "class-scope-mismatch",
+      "revision-scope-mismatch"
+    ],
+    "evidenceRef": "recovery-corruptions",
+    "rowBound": 4,
+    "coverage": "all-declared-cuts-and-corruptions-synthetic-not-live",
+    "liveRecoveryVerified": false
+  },
+  "publicOracleInventory": "intent/0067/PUBLIC-ORACLE-TIMING.json",
+  "workPackages": [
+    {
+      "id": "GAP-01",
+      "title": "Corrected declared-versus-executed normative ledger",
+      "dependsOn": [],
+      "scope": "Map every frozen dimension and each R5 required-fix reproduction to corrected executions; preserve source case IDs and report unsupported or unexecuted coordinates explicitly.",
+      "doneWhen": "Exact expected and executed corrected ID sets agree, with actual behavior and immutable evidence references; totals alone cannot satisfy this.",
+      "boundary": "No frozen inventory or protected Exam edits.",
+      "status": "open"
+    },
+    {
+      "id": "GAP-02",
+      "title": "Migration matrix completion",
+      "dependsOn": [
+        "GAP-01"
+      ],
+      "scope": "Exercise all 3600 declared coordinates plus eight failure and six transplant cases through full corrected signed graphs; map real interleavings, checkpoints, before/after interruptions, rollback, replay and two-runner outcomes.",
+      "doneWhen": "Distinct required coordinates have distinct semantic evidence where required; recovery and restoration are distinct transitions; unsupported coordinates remain visible failures.",
+      "boundary": "Synthetic model evidence is not real old/new application or database concurrency.",
+      "status": "open"
+    },
+    {
+      "id": "GAP-03",
+      "title": "Lifecycle class and temporal-boundary completion",
+      "dependsOn": [
+        "GAP-01"
+      ],
+      "scope": "Complete the 16-class boundary/hold/reference/use-authorization/raw-grant matrix; assess the ten non-immutable classes not admitted to current-registry profiles and preserve exact policy triggers.",
+      "doneWhen": "Every applicable before/at/after/completed cell has corrected execution evidence, including parent caps and provenance derived-inventory completion.",
+      "boundary": "Indefinite immutable retention does not require a destructive completion path.",
+      "status": "open"
+    },
+    {
+      "id": "GAP-04",
+      "title": "Trust-era and auxiliary-time reconciliation",
+      "dependsOn": [
+        "GAP-01"
+      ],
+      "scope": "Map original/current/archival key-era behavior and every governed native/auxiliary time across all ten public oracles; extend only requirement-backed missing profiles.",
+      "doneWhen": "Expiry, revocation, aliasing and exact-time cases have explicit supported or denied outcomes, without extending old key windows or treating an observation as issuance.",
+      "boundary": "New real provider trust bindings or access require their own authority.",
+      "status": "open"
+    },
+    {
+      "id": "GAP-05",
+      "title": "Isolated runtime integration and crash evidence",
+      "dependsOn": [
+        "GAP-02",
+        "GAP-03",
+        "GAP-04"
+      ],
+      "scope": "Bind real local adapters, authoritative inventories, persistence, restart/recovery and concurrency to the corrected contracts. Cover eight recovery cuts and 25 corruption cases with the correct unknown-versus-verified outcomes.",
+      "doneWhen": "Revision-bound isolated integration evidence identifies real versus synthetic runs and proves no duplicated effect or lost authoritative bytes.",
+      "boundary": "The two pre-ack UNKNOWN_RECONCILE_PROVIDER outcomes are expected fail-closed behavior, not defects to turn into success; no production or destructive provider action is authorized.",
+      "status": "open"
+    },
+    {
+      "id": "GAP-06",
+      "title": "Independent and protected incorporation",
+      "dependsOn": [
+        "GAP-01",
+        "GAP-02",
+        "GAP-03",
+        "GAP-04",
+        "GAP-05"
+      ],
+      "scope": "Prepare complete exact-revision candidate evidence for the required independent/protected path and subsequent qualified-human prerequisites.",
+      "doneWhen": "Actual required independent verdicts, protected incorporation and revision-bound human rulings exist; formal finding status changes only through that process.",
+      "boundary": "No broad repeated Critic loop, fabricated signature, self-approval or automatic protected write.",
+      "status": "open"
+    }
+  ],
+  "nextWorkPackage": "GAP-01",
+  "claims": {
+    "formalFindingsClosed": 0,
+    "independentAcceptance": false,
+    "protectedIncorporation": false,
+    "gateTwoApproved": false,
+    "phaseOneComplete": false,
+    "liveIntegrationVerified": false,
+    "executionAuthorized": false
+  }
+}
