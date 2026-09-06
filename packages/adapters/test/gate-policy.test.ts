@@ -11,7 +11,7 @@ import { fixture, hash } from './gate-signers-fixture.ts';
 import type { RepositoryReader } from '../src/code-host/github.ts';
 import { nativeDomainReviewFixture } from './native-domain-review-fixture.ts';
 import { nativeDomainExceptionFixture } from './native-domain-exception-fixture.ts';
-import { nativeCriticFixture } from './native-critic-fixture.ts';
+import { nativeCriticFixture, criticSource } from './native-critic-fixture.ts';
 import { reviewRunnerFixture } from './gate-review-fixture.ts';
 
 const failure = /^Error: Gate policy source collection could not be verified\.$/;
@@ -505,6 +505,55 @@ test('runner selection rejects ambiguous source paths and missing run identities
     { ...f.runner, trust: f.runner.proof }, { ...f.runner, proof: { ...f.runner.proof, path: f.selected.path } }]) {
     const configuration = f.configuration(); configuration.gates[1]!.domainAssurance.reviews = [{ ...f.selected, runner }];
     assert.throws(() => f.create(configuration));
+  }
+  assert.equal(f.reads.length, 0);
+});
+
+function criticHistory(t: TestContext, git = false) {
+  const f = nativeCritic(t, git), entry = f.config.gates[1]!, prior = structuredClone(f.record), followup = JSON.parse(criticSource('ab1d036'));
+  Object.assign(followup, { item: prior.item, targetRevision: prior.targetRevision, reviewedAt: prior.reviewedAt });
+  prior.reviewedAt = new Date(Date.parse(followup.reviewedAt) - 1000).toISOString();
+  for (const key of Object.keys(f.record)) delete f.record[key]; Object.assign(f.record, followup);
+  f.reference.reviewerTask = followup.reviewer.task; f.repin();
+  const previous = { path: 'gate-2/previous-critic.json', digest: '', artifactRevision: prior.targetRevision as string,
+    reviewerProvider: prior.reviewer.provider as string, reviewerTask: prior.reviewer.task as string, builderTask: '/synthetic/builder' };
+  const repinPrior = () => { const content = JSON.stringify(prior, null, 2); f.sources.set(previous.path, content); previous.digest = hash(content); }; repinPrior();
+  const configuration = () => ({ gates: [f.config.gates[0], { ...entry, critic: { ...f.reference, history: [previous] } }] as const });
+  return { ...f, prior, previous, repinPrior, configuration };
+}
+
+test('native Git policy retains the exact initial and followup Critic bytes and links every predecessor finding without clearing HOLD', async t => {
+  const f = criticHistory(t, true); f.commit(); const result = await f.create(f.configuration()).collect(f.input());
+  const history = result.gates[1]!.nativeCriticHistory; assert.ok(history);
+  assert.equal(history.findingIds.length, 6); assert.deepEqual(history.records[0]!.record, f.prior); assert.deepEqual(history.records[1]!.record, f.record);
+  for (const ref of [f.previous, f.reference]) assert.equal(result.gates[1]!.sources.find(value => value.path === ref.path)!.content, f.sources.get(ref.path));
+  assert.equal(result.gates[0]!.nativeCriticHistory, null); assert.equal(result.policyOutcome, 'blocked');
+  assert.equal(result.gateVerified, false); assert.equal(history.resolutionEvidenceVerificationRequired, true);
+});
+
+test('configured Critic history cannot be omitted, substituted, oversized or moved during collection even with coherent local counts', async t => {
+  for (const mode of ['omit-resolved', 'omit-open', 'missing-source', 'digest', 'time', 'task', 'oversize', 'head']) {
+    const f = criticHistory(t);
+    if (mode === 'omit-resolved') f.record.originalFindingStatus.shift();
+    if (mode === 'omit-open') { f.record.originalFindingStatus.splice(2, 1); f.record.unresolved.total--; f.record.unresolved.blocker--; }
+    if (mode === 'time') f.prior.reviewedAt = new Date(Date.parse(f.record.reviewedAt) + 1).toISOString();
+    if (mode === 'task') f.prior.reviewer.task = '/foreign/task';
+    f.repin(); f.repinPrior();
+    if (mode === 'missing-source') f.sources.delete(f.previous.path);
+    if (mode === 'digest') f.previous.digest = 'd'.repeat(64);
+    if (mode === 'oversize') { const content = ' '.repeat(512 * 1024 + 1); f.sources.set(f.previous.path, content); f.previous.digest = hash(content); }
+    if (mode === 'head') { const read = f.reader.readArtifact; f.reader.readArtifact = async (...args) => { const value = await read(...args);
+      if (args[0] === f.previous.path) f.state.head = 'd'.repeat(40); return value; }; }
+    await assert.rejects(f.create(f.configuration()).collect(f.input()), failure, mode);
+  }
+});
+
+test('history startup rejects missing pins, duplicate current/prior paths and more than fifteen predecessors before reads', t => {
+  const f = criticHistory(t);
+  for (const history of [[], [f.previous, f.previous], [{ ...f.previous, path: f.reference.path }],
+    [{ ...f.previous, reviewerTask: '' }], Array(16).fill(f.previous)]) {
+    const config = f.configuration();
+    assert.throws(() => f.create({ gates: [config.gates[0], { ...config.gates[1], critic: { ...config.gates[1].critic, history } }] }));
   }
   assert.equal(f.reads.length, 0);
 });

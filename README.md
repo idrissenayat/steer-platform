@@ -111,6 +111,10 @@ Item [0145](intent/0145/README.md) verifies a selected runner's signed assertion
 about exact domain-review bytes and execution identities. Actual runner governance
 and isolation remain unverified; no live attestor or gate approval is installed.
 
+Item [0146](intent/0146/README.md) checks complete finding continuity across selected
+native Critic reports. Even resolved findings cannot silently disappear; linked
+accounting does not prove resolution or clear a HOLD.
+
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono
 API/shared tool registry (0007), OIDC adapter/API composition (0008), and

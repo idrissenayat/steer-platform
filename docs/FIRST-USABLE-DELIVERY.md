@@ -266,6 +266,13 @@ demonstrated isolated execution, native Critic provenance, actual provider bindi
 and action-time authority remain required before live saving. No real attestor or
 writer is enabled. See `intent/0145/EVIDENCE.md`.
 
+0146 development update: native Critic follow-ups now account for every finding
+in a complete selected predecessor chain, including resolved findings omitted
+without affecting local counters. This verifies linked accounting, not truthful
+closure, authoritative history or review approval. The read-only frontend audit
+also confirms that artifact snapshots cannot yet supply truthful lifecycle board
+states; those projections remain unfinished. See `intent/0146/EVIDENCE.md`.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

@@ -2853,3 +2853,22 @@ isolation evidence, native Critic provenance/passing contract and real human/pro
 bindings remain. Then complete full action-time authority, runtime writer and
 destination/head/save/status UI, board and review. All five R5 findings and signed
 obligations stay open; no live access, write, approval, release or spending is added.
+
+## Completed development increment: 0146 — Native Critic finding continuity
+
+Complete selected native Critic history now rejects findings that disappear between
+reports even when each report's own counters are consistent. All inherited IDs,
+including previously resolved and newly introduced findings, remain accounted for.
+The actual Git collector retains exact current/prior bytes and fails closed when
+configured history is unavailable or inconsistent. Focused checks pass 40 groups;
+full verification passes, including 437 root controls, 246 adapter tests and all
+package checks/builds. Details and limits are in `intent/0146/EVIDENCE.md`.
+
+Selected-link consistency is not authoritative history, truthful resolution,
+reviewer provenance, target ancestry or gate approval. Those remain before full
+action-time authority and live runtime writes. A read-only frontend audit confirmed
+that existing snapshots contain artifact references, not lifecycle states; do not
+relabel them as a flight board. Continue the authority and actual lifecycle/read
+composition, then destination/head/save/status UI, board and review. All five R5
+findings and signed obligations stay open. No protected sources or live authority
+were changed.

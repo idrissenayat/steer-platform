@@ -1261,6 +1261,12 @@ to unsigned claims. This development receipt contract is not an installed provid
 format or proof of truthful isolation; all gate/write flags stay closed. See
 `intent/0145/EVIDENCE.md` for synthetic/native-Git verification and remaining work.
 
+Item `intent/0146` validates bounded native Critic history, including all previously
+resolved and newly introduced findings, against exact pinned predecessor bytes.
+Configured history is collected from actual Git sources; missing records or
+coherent-counter omissions reject. Original HOLDs and provenance/ancestry/closure
+verification requirements remain. See `intent/0146/EVIDENCE.md`.
+
 ## Local commands
 
 ```sh
