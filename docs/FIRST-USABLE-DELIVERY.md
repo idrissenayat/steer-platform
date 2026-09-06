@@ -192,6 +192,13 @@ Git-backed revocation checks are covered without installing a default factory.
 Full authority verification still precedes runtime binding and the actual save UI/
 board/decision journey. See `intent/0134/EVIDENCE.md` for exact coverage and limits.
 
+0135 development update: actual Git membership is now built into the managed
+writer factory before and after gate verification. HTTP/MCP integration exercises
+confirmed native-Git creation and status recovery through that factory and store.
+The full gate verifier remains a mandatory synthetic dependency in tests, not a
+production implementation or approval. Runtime/UI/board/review remain due; see
+`intent/0135/EVIDENCE.md` for exact implementation and fixture boundaries.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

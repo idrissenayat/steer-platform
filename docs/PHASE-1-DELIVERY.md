@@ -2664,3 +2664,19 @@ No runtime profile, provider scope, save UI or gate record is enabled or changed
 Next are complete authority and actual runtime binding, then save/status UI,
 authenticated board and revision-bound review. All five R5 findings, 0124/0120,
 independent review, human decisions and signed Phase 1 requirements remain due.
+
+## Completed development increment: 0135 — Git-membership-backed writer factory
+
+The actual membership verifier and GitHub reader now surround full gate verification
+inside a managed per-request writer factory. Source/head/session continuity and
+gate/member validity caps are enforced independently of a plausible callback result.
+Focused factory tests pass 9 groups; three HTTP/MCP cases exercise real confirmed
+storage into disposable Git and exact status/retry recovery, including lost ack.
+Full repository verification passes, including 437 root controls, 140 adapter and
+79 API tests, plus all package typechecks/builds. See `intent/0135/EVIDENCE.md`.
+
+Full source/historical human/qualification/provider/policy gate verification remains
+an unfinished mandatory dependency. No production factory, runtime profile, GitHub
+write scope or gate decision is enabled. Complete that verifier and approved runtime
+binding, then the save/status UI, board and revision-bound review. Preserve all five
+R5 findings, 0124/0120, independent protected review and signed Phase 1 obligations.

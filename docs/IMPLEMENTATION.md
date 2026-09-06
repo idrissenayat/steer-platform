@@ -1185,6 +1185,13 @@ context stays internal, and writer-enabled shutdown drains requests before share
 resources. This is opt-in composition code, not a configured runtime writer or
 full authority verifier. Default save/status and live provider access stay closed.
 
+Item `intent/0135` composes the real GitHub reader and current membership verifier
+around the mandatory full gate callback inside a managed request writer factory.
+Exact source/session checks and valid lifetime caps precede actual storage. HTTP
+and official MCP integration saves confirmed bytes into disposable Git and recovers
+lost acknowledgements without duplicate commits. Identity/provider/gate fixtures
+are not production evidence; the full gate verifier and runtime binding remain due.
+
 ## Local commands
 
 ```sh
