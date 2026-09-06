@@ -16,6 +16,7 @@ const expectedSchema = gatePolicyInputSchema.shape.target.extend({
   providerRecordId: identifier, identityEvidenceDigest: digest, authorizationEvidenceDigest: digest,
   decision: gatePolicyInputSchema.shape.record.shape.decision,
 });
+export { expectedSchema as gateProviderExpectedSchema };
 const trustSchema = z.strictObject({ version: z.literal('steer-gate-provider-trust/v1'),
   organizationId: identifier, repository: identifier, provider, issuer, keyId: identifier,
   publicKeyHex: digest, notBefore: instant, notAfter: instant, revokedAt: instant.nullable(),

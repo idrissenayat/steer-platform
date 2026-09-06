@@ -2595,3 +2595,20 @@ record or runtime writer is installed. The existing openai-codex Gate 1 remains
 unchanged and is not upgraded into this signed-envelope format. Full trusted-source,
 human/qualified-hat, policy/Critic/domain and request-bound writer composition still
 precede live saving. All five R5 findings, 0124/0120 and signed obligations remain.
+
+## Completed development increment: 0131 — read-through provider proof sources
+
+The signature verifier now has an authenticated read-through Git composition for
+configured trust/proof files. Exact source head, allowlisted paths, SHA-256/blob
+hashes, UTF-8/canonical/size bounds and fresh agent checks precede the immutable
+observation. No cached source can survive a changed trust pin or revoked key.
+Single-flight, a real 15-second timeout and draining shutdown bound owned work.
+The 17-case focused set and final full repository checks pass, including 112
+adapter tests. Verification and synthetic-source limits are recorded in
+`intent/0131/EVIDENCE.md`.
+
+Git key existence is not authorized trust-root selection. The current production
+provider-recorded Gate 1 is not converted or replaced. Actual applicable provider
+evidence, full human/qualification/policy/Critic/domain proof and the writer remain
+unfinished. No runtime binding, gate, write scope or production evidence is enabled.
+All five R5 findings, 0124/0120 and signed Phase 1 obligations remain open.

@@ -49,6 +49,10 @@ Item [0130](intent/0130/README.md) verifies signed provider-attested claims agai
 exact source facts with tampering and key-revocation tests. No production trust
 keys/provider binding is installed; full source/qualification/writer work remains.
 
+Item [0131](intent/0131/README.md) connects that primitive to authenticated pinned
+Git trust/proof reads with source rechecks and bounded work. It does not approve
+a production trust root or complete historical human/qualified-hat verification.
+
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono
 API/shared tool registry (0007), OIDC adapter/API composition (0008), and

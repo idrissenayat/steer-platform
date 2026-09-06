@@ -1158,6 +1158,12 @@ Actual ephemeral cryptographic tests are distinct from provider retrieval,
 trusted-key-source approval, qualified hats and full gate/write authority. The
 existing provider-recorded Gate 1 is not converted or replaced by this primitive.
 
+Item `intent/0131` composes the provider primitive with authenticated pinned Git
+trust/proof reads. It verifies exact source bytes and current head/access, uses
+no stale source cache and bounds owned work with single-flight/timeout/shutdown.
+It does not authorize trust roots, convert existing provider approvals or produce
+full human/qualified-hat/gate/write authority. No runtime binding is installed.
+
 ## Local commands
 
 ```sh

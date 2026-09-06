@@ -166,6 +166,13 @@ snapshot. This does not fetch or authorize a production key/provider, validate
 qualified hats or replace the existing openai-codex approval record. Full proof
 retrieval/source verification and writer composition remain; see `intent/0130`.
 
+0131 development update: signed-envelope trust/proof files can now be read through
+an authenticated exact-head Git adapter and passed to the real verifier. Synthetic
+tests cover revocation, changed sources, serialization and bounded hung reads.
+Actual production-provider compatibility, authorized trust roots, full human/
+qualification/policy evidence and request-bound writer composition remain open.
+See `intent/0131/EVIDENCE.md`; no live source binding or write is enabled.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |
