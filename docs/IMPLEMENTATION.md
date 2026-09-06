@@ -1050,6 +1050,16 @@ verification remain required. This component adds no catalog credit; all five R5
 findings and the twelve remaining lifecycle coordinates stay open. See
 `intent/0117/PLAN.md` and `EVIDENCE.md` for the next composition and verification.
 
+Item `intent/0118` adds a fact-only archive verifier for the exact retained 0117
+child evidence. It revalidates complete original proofs at their trusted historical
+observation and requires fresh independent current revalidation/retention witnesses.
+Original key material/windows stay unchanged and any known original revocation,
+including unused domains, blocks this conservative first profile. Fresh signatures
+cannot make incomplete original child proofs or wrong receipt bytes valid. Archive
+validity does not establish complete parent manifest/history or current parent
+disposition authority. No current-v7 admission or catalog mapping is added yet;
+see `intent/0118/PLAN.md` and `EVIDENCE.md`. All five formal findings remain open.
+
 ## Local commands
 
 ```sh

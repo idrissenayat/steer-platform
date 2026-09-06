@@ -2274,3 +2274,35 @@ Twelve lifecycle, 3,614 migration and one schema coordinate remain unmapped. All
 five formal R5 findings, normative/live integration and independent/protected
 review remain open. No provider operation, actual deletion, gate signature,
 release, deployment or spending is authorized. The implementation loop stays active.
+
+## Completed development increment: 0118 — archived derived-child evidence
+
+A separately pinned fact-only archive component now revalidates exact retained
+0117 child proofs at their trusted original observation, then requires fresh
+independent current revalidation and retention witnesses. Original key identities
+and windows cannot change. The conservative first profile rejects every known
+original-key revocation, including unused domains, at its exact instant; it does
+not claim minimal revocation impact. Current witness keys must be distinct across
+roles and eras and valid now. Neither historical facts nor archived approvals
+become current parent disposition authority.
+
+Synthetic one-, three- and seven-year audits and replay pass. Correct fresh
+signatures cannot cover incomplete original child proof or wrong archive/result/
+receipt semantics. All 18 original-domain revocations, a one-nanosecond boundary,
+current-key revocation, original-key witness reuse, closure and byte limits are
+tested. Twenty-five focused groups pass, including nine new groups. Repository
+checks pass 420 root controls, 88 prototype tests, 95 kit artifacts and security/
+typecheck/build checks; unchanged package tasks are cached. Separate full integration
+passes three groups. See intent/0118/EVIDENCE.md for commands and precise limits.
+
+No ledger hook or source mapping changes: fresh quick/full execution still matches
+the existing intent/0117 snapshots exactly (393/409 passed, zero failures;
+3,643/3,627 uncovered). This component receives no catalog credit. Next under
+intent/0118/PLAN.md is full parent manifest/history binding, explicit complete-empty
+handling and a dedicated future provenance profile with fresh retained evidence
+before current state. Current-v7 is not yet implemented. Twelve lifecycle,
+3,614 migration and one schema coordinate remain unmapped. All five formal R5
+findings, normative/live integration and independent/protected review remain open.
+No user-only blocker is present for the next local composition step; provider
+operations, deletion, signatures, release, deployment and spending remain gated.
+The implementation loop stays active.

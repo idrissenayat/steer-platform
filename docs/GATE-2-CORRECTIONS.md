@@ -31,6 +31,12 @@ two omitted-action reproductions through the complete shared permission stack.
 aggregate bytes, complete child graphs and exact parent deletion-event binding.
 It resolves a component prerequisite only, without a new catalog hook or case credit.
 Complete parent manifest/history and fresh future archive composition remain open.
+`intent/0118` supplies the separate fact-only future archive component for those
+exact retained bytes, requiring full original proof and fresh independent current
+witnesses without original key renewal. Its conservative profile rejects every
+known original-key revocation, including unused domains. It adds no catalog hook;
+parent manifest/history and full current lifecycle composition remain open. Existing
+0117 quick/full snapshots still represent mapped execution, not this component.
 Full snapshot: 4,036 required IDs, 409 passed, 3,627 unmapped. Quick explicitly
 leaves the 16 heavy cases unexecuted (393 passed / 3,643 uncovered). The require-complete command
 exits 2 and explains its deferred-full preflight; GAP-01 is not complete. Some hooks intentionally
