@@ -109,6 +109,15 @@ The next bounded slice is exact-content confirmation and disabled save orchestra
 followed by the Git write adapter. Keep machine drafting/context resolution visible
 as remaining work; do not relabel this interview preview as full agent-first delivery.
 
+0123 development update: exact confirmation/create/readback orchestration now exists
+behind an absent trusted-writer dependency. Synthetic ports cover duplicate/CAS and
+unknown outcomes; actual GitHub atomicity, durable operation readback and full
+source-verified write/Gate 2 authority are not implemented by those tests. These are
+the next adapter/composition slices. Canonical new artifact paths follow architecture
+ADR-02 (`items/NNNN-slug/BRIEF.md`); the legacy-only library also needs explicit
+canonical-path support before it can show those new artifacts. No live save or
+confirmation button is enabled. See `intent/0123/PLAN.md` for the remaining route.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

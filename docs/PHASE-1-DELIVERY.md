@@ -26,7 +26,8 @@ dependencies are in `docs/FIRST-USABLE-DELIVERY.md`. This orders safe developmen
 it does not defer signed requirements or waive any of the five R5 findings.
 Stateless authoring can proceed while Gate 2 continues to block live writes.
 This route began with 0121 Brief preview and 0122 guided authoring/correction UI.
-Next is exact-content confirmation and disabled save orchestration. The unimplemented retirement-archive prerequisite remains
+0123 now supplies closed confirmation/save orchestration; next is the actual writer
+adapter and full trusted write-authority composition. The unimplemented retirement-archive prerequisite remains
 tracked in `intent/0120/PLAN.md`, not silently marked complete or renumbered.
 
 | Milestone | Deliverable and acceptance evidence | Dependency / current state |
@@ -2439,3 +2440,32 @@ active. No new user-only input is needed for that local contract work. Live writ
 new provider permissions, gate signatures, deployment and spending stay gated.
 Outstanding archival/provenance work remains in 0120/PLAN; no signed requirement
 or acceptance finding has been deferred or waived by this execution priority.
+
+## Completed development increment: 0123 — exact confirmation/save boundary
+
+The shared registry now separates human exact-content acceptance, one create-only
+dispatch and operation readback. Save requires preview/save/status grants, canonical
+`items/NNNN-slug/BRIEF.md`, exact expected head, regenerated template/content digest,
+actor/key binding and current trusted-adapter write/Gate 2 authority. No existing
+artifact or operation marker may be overwritten. Unknown and post-dispatch failures
+require original-key readback, never a blind retry/new key or a false rollback claim.
+
+This is a coordinator and explicit port contract, not an actual GitHub writer or
+full source-verification adapter. Both remain absent from runtime; HTTP/MCP reject
+save/readback as unavailable without them. Synthetic CAS/marker tests are not live
+atomicity, durability, current provider approval or independent Gate 2 evidence.
+The profile requires co-located Git authority at the expected head; other sources
+need explicit future composition. Canonical-path library support is also missing.
+
+Verification passes 67 registry groups, six MCP groups and full `pnpm check`,
+including all 437 root controls and 88 prototype tests. An initial native TypeScript
+parameter-property failure was corrected without transpiler/runtime changes. See
+`intent/0123/EVIDENCE.md` for checks and limits. No protected files, runtime access,
+UI or R5 mapping changed, and all five formal findings remain open.
+
+Next under 0123/PLAN: real writer adapter with isolated provider/Git tests, full
+verified write-authority composition, canonical-path discovery, then confirmation/
+readback UI and board projection. Agent conversation/context remains unfinished.
+The active loop can continue local adapter development without user-only input.
+Real write scope, Gate 2 approval, deployment, release and spending remain separately
+gated. Remaining signed scope and 0120 archival obligations are not waived.

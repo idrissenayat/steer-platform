@@ -45,6 +45,28 @@ test('human Brief preview has HTTP/MCP parity without enabling default access or
   } finally { await client.close(); await endpoint.shutdown(); }
 });
 
+test('Brief save and readback are discovered but unavailable through both transports without a trusted writer', async () => {
+  const human = { ...principal, type: 'human', toolGrants: ['intent.brief.preview', 'intent.brief.save', 'intent.brief.save.status'] };
+  const dependencies = { authenticate: async () => human, now: () => now };
+  const endpoint = createMcpEndpoint(origin, dependencies); const client = await connect(endpoint); const api = createApi(dependencies);
+  const reference = { organizationId: 'org-a', repository: 'github:1', branch: 'codex/synthetic', path: 'items/0001-demo/BRIEF.md',
+    idempotencyKey: '00000000-0000-4000-8000-000000000123' };
+  const save = { ...reference, expectedHead: 'a'.repeat(40), draft: { title: 'Synthetic', problem: 'A problem', outcome: 'An outcome', users: ['A team'], systems: ['Unverified system'], constraints: [], openQuestions: [], successMeasure: '' },
+    confirmation: { action: 'accept-rendered-brief', templateVersion: 'steer-brief/v1', contentDigest: 'b'.repeat(64) } };
+  try {
+    const discovered = await client.listTools();
+    assert.equal(discovered.tools.find((tool) => tool.name === 'intent.brief.save')?.annotations?.readOnlyHint, false);
+    assert.equal(discovered.tools.find((tool) => tool.name === 'intent.brief.save.status')?.annotations?.readOnlyHint, true);
+    for (const [name, args] of [['intent.brief.save', save], ['intent.brief.save.status', reference]] as const) {
+      assert.equal(toolError(await client.callTool({ name, arguments: args })), 'UNAVAILABLE');
+      const request = { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(args) };
+      const response = await api.request(`/v1/tools/${name}`, request); assert.equal(response.status, 503);
+      assert.equal((await response.json()).error.code, 'UNAVAILABLE');
+      assert.equal((await createApi().request(`/v1/tools/${name}`, request)).status, 401);
+    }
+  } finally { await client.close(); await endpoint.shutdown(); }
+});
+
 test('official MCP v2 client lists canonical schemas and calls the same tools as HTTP', async () => {
   const schedulingScope = { organizationId: 'org-a', repository: 'github:1', itemId: 'intent/0001' };
   const receipt = { workflowId: 'steer-reconcile/v1/org-a/github%3A1/intent%2F0001', runId: '00000000-0000-4000-8000-000000000039' };

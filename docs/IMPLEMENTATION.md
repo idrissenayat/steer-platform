@@ -1101,6 +1101,15 @@ mobile, keyboard and automated accessibility observations. This is deterministic
 preview, not model-backed conversation, confirmation, Git saving or a gate approval.
 See `intent/0122/EVIDENCE.md` and the first-journey plan for remaining requirements.
 
+Item `intent/0123` adds exact human-confirmation/create/readback contracts to the
+common registry. The coordinator re-renders confirmed bytes, binds target/base/key,
+inspects prior operation state, checks fresh adapter authority and dispatches once.
+Unknown post-dispatch outcomes require original-key readback, not a new write.
+The writer and full source-verification adapter remain absent from runtime, so
+real saves remain unavailable. Synthetic CAS/receipt tests do not prove GitHub
+durability or Gate 2 acceptance. Canonical-path discovery and save UI remain next
+integration work; see `intent/0123/PLAN.md` and `EVIDENCE.md`. All findings stay open.
+
 ## Local commands
 
 ```sh

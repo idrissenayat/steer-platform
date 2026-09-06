@@ -3,6 +3,8 @@ import { readBriefDocument } from '@steer/domain/brief-document';
 import { draftBrief } from '@steer/domain/brief-author';
 import { briefPreviewInputSchema, briefPreviewOutputSchema, type BriefPreview } from './brief-preview.ts';
 export * from './brief-preview.ts';
+import { runBriefSave, BriefSaveError, briefSaveInputSchema, briefSaveStatusInputSchema, briefSaveOutputSchema, type BriefWriter, type BriefSaveOutput } from './brief-save.ts';
+export * from './brief-save.ts';
 import { artifactProjectionInputSchema, artifactProjectionOutputSchema, briefProjectionInputSchema, briefProjectionOutputSchema,
   briefCatalogInputSchema, briefCatalogRecordsSchema, briefCatalogOutputSchema, type ArtifactProjectionInput,
   type ArtifactProjection, type BriefProjection, type BriefCatalog } from './brief-contracts.ts';
@@ -86,7 +88,7 @@ export interface ReconciliationScheduler {
   start(input: ReconciliationStart): Promise<unknown>;
   inspect(): Promise<unknown>;
 }
-export interface ToolServices { artifactProjection?: ArtifactProjectionReader; reconciliationScheduler?: ReconciliationScheduler; projectionChanges?: ProjectionChangeReader; projectionSnapshot?: ProjectionSnapshotReader }
+export interface ToolServices { artifactProjection?: ArtifactProjectionReader; reconciliationScheduler?: ReconciliationScheduler; projectionChanges?: ProjectionChangeReader; projectionSnapshot?: ProjectionSnapshotReader; briefWriter?: BriefWriter }
 
 const contextInput = z.strictObject({ organizationId: identifier });
 const contextOutput = principalSchema.omit({ expiresAt: true });
@@ -375,8 +377,32 @@ const previewQuery = {
   },
 };
 
+function briefSaveDefinition(mode: 'save' | 'status') {
+  const name = mode === 'save' ? 'intent.brief.save' : 'intent.brief.save.status';
+  const input = mode === 'save' ? briefSaveInputSchema : briefSaveStatusInputSchema;
+  const guard = defineQuery({ name, description: 'Authorize exact scoped human Brief creation or operation readback.', input,
+    output: principalSchema, handler: (_input, principal) => principal });
+  const authorization = { invoke(raw: unknown, context: InvocationContext) {
+    const principal = guard.invoke(raw, context);
+    if (principal.type !== 'human' || (mode === 'save' && !['intent.brief.preview', 'intent.brief.save.status'].every((grant) => principal.toolGrants.includes(grant)))) throw new ToolError('FORBIDDEN');
+    return principal;
+  } };
+  return { name, description: mode === 'save' ? 'Create an absent canonical Brief only after exact human content confirmation and current verified write/Gate 2 authority; disabled without a trusted writer. Unknown outcomes require status readback, not a new key.' :
+    'Read a scoped human-owned code-host operation marker; unavailable is not absence. No write or gate signature.',
+    kind: mode === 'save' ? 'command' as const : 'query' as const, scope: 'organization' as const, authorization: 'explicit-tool-grant' as const,
+    input, output: briefSaveOutputSchema,
+    async invoke(raw: unknown, context: InvocationContext): Promise<BriefSaveOutput> {
+      const initial = authorization.invoke(raw, context);
+      try { return await runBriefSave(mode, raw, initial, context.services?.briefWriter,
+        () => freshToolPrincipal(authorization, raw, initial, context), context.clock ?? (() => new Date())); }
+      catch (error) { if (error instanceof BriefSaveError) throw new ToolError(error.code); throw error; }
+    },
+  };
+}
+const briefSaveCommand = briefSaveDefinition('save'), briefSaveStatusQuery = briefSaveDefinition('status');
+
 // Frozen definitions are the common source for discovery, dispatch and HTTP contracts.
-const definitions = Object.freeze([Object.freeze(contextQuery), Object.freeze(projectionQuery), Object.freeze(reconciliationStart), Object.freeze(reconciliationStatus), Object.freeze(changesQuery), Object.freeze(snapshotQuery), Object.freeze(briefQuery), Object.freeze(catalogQuery), Object.freeze(previewQuery)]);
+const definitions = Object.freeze([Object.freeze(contextQuery), Object.freeze(projectionQuery), Object.freeze(reconciliationStart), Object.freeze(reconciliationStatus), Object.freeze(changesQuery), Object.freeze(snapshotQuery), Object.freeze(briefQuery), Object.freeze(catalogQuery), Object.freeze(previewQuery), Object.freeze(briefSaveCommand), Object.freeze(briefSaveStatusQuery)]);
 export function invokeTool(name: 'session.context', input: unknown, context: InvocationContext): z.output<typeof contextOutput>;
 export function invokeTool(name: 'projection.artifact.read', input: unknown, context: InvocationContext): Promise<ArtifactProjection | null>;
 export function invokeTool(name: 'workflow.reconciliation.start', input: unknown, context: InvocationContext): Promise<ReconciliationStartResult>;
@@ -386,7 +412,8 @@ export function invokeTool(name: 'projection.snapshot.read', input: unknown, con
 export function invokeTool(name: 'intent.brief.read', input: unknown, context: InvocationContext): Promise<BriefProjection | null>;
 export function invokeTool(name: 'intent.brief.catalog', input: unknown, context: InvocationContext): Promise<BriefCatalog>;
 export function invokeTool(name: 'intent.brief.preview', input: unknown, context: InvocationContext): Promise<BriefPreview>;
-export function invokeTool(name: string, input: unknown, context: InvocationContext): z.output<typeof contextOutput> | Promise<ArtifactProjection | BriefProjection | BriefCatalog | BriefPreview | null | ReconciliationStartResult | ReconciliationStatusResult | ProjectionChangesResult | ProjectionSnapshotResult>;
+export function invokeTool(name: 'intent.brief.save' | 'intent.brief.save.status', input: unknown, context: InvocationContext): Promise<BriefSaveOutput>;
+export function invokeTool(name: string, input: unknown, context: InvocationContext): z.output<typeof contextOutput> | Promise<ArtifactProjection | BriefProjection | BriefCatalog | BriefPreview | BriefSaveOutput | null | ReconciliationStartResult | ReconciliationStatusResult | ProjectionChangesResult | ProjectionSnapshotResult>;
 export function invokeTool(name: string, input: unknown, context: InvocationContext) {
   const definition = definitions.find((tool) => tool.name === name);
   if (!definition) throw new ToolError('TOOL_NOT_FOUND');

@@ -16,6 +16,10 @@ Item [0122](intent/0122/README.md) now supplies that guided production preview U
 verified with synthetic identities in an isolated browser. It is not yet the
 model-backed agent conversation or the complete writing/decision journey.
 
+Item [0123](intent/0123/README.md) adds exact confirmation and closed save/readback
+orchestration. Actual writer/authority adapters and runtime enablement remain pending;
+synthetic duplicate/retry tests are not a real GitHub save or gate approval.
+
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono
 API/shared tool registry (0007), OIDC adapter/API composition (0008), and

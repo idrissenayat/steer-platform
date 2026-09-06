@@ -55,8 +55,9 @@ test('closed bounded input excludes forged author, signatures, target and oversi
     await assert.rejects(invokeTool('intent.brief.preview', value, context()), code('INVALID_INPUT'));
   }
 });
-test('preview is discoverable as a read-only contract without write or signature capability', () => {
+test('preview is discoverable as a read-only contract distinct from disabled writer composition', () => {
   const document = createOpenApiDocument();
   assert.equal(document.paths['/v1/tools/intent.brief.preview']?.post['x-steer-kind'], 'query');
-  assert.equal(document.paths['/v1/tools/intent.brief.save'], undefined);
+  assert.equal(document.paths['/v1/tools/intent.brief.save']?.post['x-steer-kind'], 'command');
+  assert.equal(document.paths['/v1/tools/intent.brief.save.status']?.post['x-steer-kind'], 'query');
 });
