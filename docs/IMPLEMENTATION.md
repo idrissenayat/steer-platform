@@ -890,6 +890,14 @@ has 293 passed, zero failed and 3,743 unmapped IDs. All schema and accessibility
 IDs stay unmapped pending source-version reconciliation and actual streamed-input
 seals. See `intent/0102/EVIDENCE.md` and `PLAN.md`; formal findings remain open.
 
+Item `intent/0103` records all 15 schema sources and maps three existing precision
+successors plus eleven retained structural validators. Original fixtures, closed
+object checks, all declared precise time fields and fractional policy numbers
+are exercised. The obsolete migration schema remains unmapped, as do all full
+accessibility cases. Shape checks do not validate copied signatures or whole
+graphs. The snapshot has 307 passed, zero failed and 3,729 unmapped IDs. See
+`intent/0103/SCHEMA-MAP.json`, `EVIDENCE.md` and `PLAN.md`; formal findings stay open.
+
 ## Local commands
 
 ```sh

@@ -38,7 +38,7 @@ test('0102: public boundary hooks neither swallow assertion failures nor claim u
 
 test('0102: exact source and observation seals retain narrow capability scope with schema and accessibility still uncovered', () => {
   const report = runCorrectedCoverage(), executions = report.executions.filter((row) => row.id.startsWith('TRUST-DOMAIN-FORGERY:'));
-  assert.equal(report.executed, 293); assert.equal(report.passed, 293); assert.equal(report.uncovered, 3743);
+  assert.equal(report.executed, 307); assert.equal(report.passed, 307); assert.equal(report.uncovered, 3729);
   assert.deepEqual(executions.map((row) => row.id), rows.map((row) => row.id));
   for (const row of executions) {
     assert.equal(row.status, 'passed'); assert.equal(row.observationCount, 2);
@@ -46,6 +46,6 @@ test('0102: exact source and observation seals retain narrow capability scope wi
   }
   const source = report.supplementalHookSources.filter((row) => row.path === 'intent/0102/execution-hooks.mjs');
   assert.equal(source.length, 1); assert.equal(source[0].digest, digest(readFileSync(new URL('../intent/0102/execution-hooks.mjs', import.meta.url))));
-  assert.equal(report.families.SCHEMA.uncovered, 15); assert.equal(report.families.ACCESSIBILITY.uncovered, 16);
+  assert.equal(report.families.SCHEMA.uncovered, 1); assert.equal(report.families.ACCESSIBILITY.uncovered, 16);
   assert.equal(report.completeCoverage, false); assert.equal(report.normativeAcceptanceComplete, false); assert.equal(report.independentAcceptance, false);
 });

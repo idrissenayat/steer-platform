@@ -1,0 +1,178 @@
+{
+  "version": "steer-schema-execution-map/v1",
+  "baselineRevision": "206f9bb9774bdb7c3e98a4efee13aba62acd8b70",
+  "schemas": [
+    {
+      "requiredId": "SCHEMA:LIFECYCLE-EVENT",
+      "name": "LIFECYCLE-EVENT",
+      "sourcePath": "intent/0001/reviews/domain/round-3/remediation/schemas/LIFECYCLE-EVENT.schema.json",
+      "sourceDigest": "d71299d3e8af363172994c607c4b44fb6dba54b47bed34c95498b50fc4949b3f",
+      "sourceSchemaId": "https://steer.invalid/schemas/lifecycle-event-v2.json",
+      "sourceVersion": null,
+      "status": "mapped-precision-structure",
+      "executor": "intent/0070/precision-schemas.candidate.mjs#compilePreciseSchema",
+      "semanticAcceptance": false
+    },
+    {
+      "requiredId": "SCHEMA:HUMAN-AUTHORITY",
+      "name": "HUMAN-AUTHORITY",
+      "sourcePath": "intent/0001/reviews/domain/round-3/remediation/schemas/HUMAN-AUTHORITY.schema.json",
+      "sourceDigest": "fb5e7da8a3be267baea85426d2ce2ba124da78c714c255f7b203cb07f49a24df",
+      "sourceSchemaId": "https://steer.invalid/schemas/human-authority-v3.json",
+      "sourceVersion": "steer-human-authority/v3",
+      "status": "mapped-precision-structure",
+      "executor": "intent/0070/precision-schemas.candidate.mjs#compilePreciseSchema",
+      "semanticAcceptance": false
+    },
+    {
+      "requiredId": "SCHEMA:RAW-POLICY-GRANT",
+      "name": "RAW-POLICY-GRANT",
+      "sourcePath": "intent/0001/reviews/domain/round-3/remediation/schemas/RAW-POLICY-GRANT.schema.json",
+      "sourceDigest": "811acf3484a97577678fbfa2985e2604dadf5b659d58ba140719b5efa6d291a9",
+      "sourceSchemaId": "https://steer.invalid/schemas/raw-policy-grant-v4.json",
+      "sourceVersion": "steer-raw-policy-grant/v4",
+      "status": "mapped-precision-structure",
+      "executor": "intent/0070/precision-schemas.candidate.mjs#compilePreciseSchema",
+      "semanticAcceptance": false
+    },
+    {
+      "requiredId": "SCHEMA:MIGRATION-EVIDENCE",
+      "name": "MIGRATION-EVIDENCE",
+      "sourcePath": "intent/0001/reviews/domain/round-3/remediation/schemas/MIGRATION-EVIDENCE.schema.json",
+      "sourceDigest": "ac06cbd97002c53f561c0ea565c6605bca20cbdd5046cdb9ae590f92e6ccab6b",
+      "sourceSchemaId": "https://steer.invalid/schemas/migration-evidence-v1.json",
+      "sourceVersion": "steer-migration-evidence/v2",
+      "status": "unmapped-obsolete-graph",
+      "executor": null,
+      "semanticAcceptance": false
+    },
+    {
+      "requiredId": "SCHEMA:PROVIDER-RECOVERY",
+      "name": "PROVIDER-RECOVERY",
+      "sourcePath": "intent/0001/reviews/domain/round-3/remediation/schemas/PROVIDER-RECOVERY.schema.json",
+      "sourceDigest": "2d343393a67cd4502322cf84f10bef5487006cabb8723c8143cfb495166e4594",
+      "sourceSchemaId": "https://steer.invalid/schemas/provider-recovery-v4.json",
+      "sourceVersion": "steer-provider-recovery/v4",
+      "status": "mapped-retained-structure",
+      "executor": "intent/0001/reviews/domain/round-3/remediation/offline-schema-registry.candidate.mjs#compileOffline",
+      "semanticAcceptance": false
+    },
+    {
+      "requiredId": "SCHEMA:ACCESSIBILITY-MANIFEST",
+      "name": "ACCESSIBILITY-MANIFEST",
+      "sourcePath": "intent/0001/reviews/domain/round-3/remediation/schemas/ACCESSIBILITY-MANIFEST.schema.json",
+      "sourceDigest": "3b28ab456009d3a416ab537e2a8c432c48f1af704c443dbfdbe6e6e07237a94b",
+      "sourceSchemaId": "https://steer.invalid/schemas/accessibility-manifest-v2.json",
+      "sourceVersion": "steer-accessibility-matrix/v2",
+      "status": "mapped-retained-structure",
+      "executor": "intent/0001/reviews/domain/round-3/remediation/offline-schema-registry.candidate.mjs#compileOffline",
+      "semanticAcceptance": false
+    },
+    {
+      "requiredId": "SCHEMA:ACCESSIBILITY-ROW",
+      "name": "ACCESSIBILITY-ROW",
+      "sourcePath": "intent/0001/reviews/domain/round-3/remediation/schemas/ACCESSIBILITY-ROW.schema.json",
+      "sourceDigest": "9eda1c032da057fc8fa3165ded5189d5d7c4a8178b42722936f246f4fbd9addb",
+      "sourceSchemaId": "https://steer.invalid/schemas/accessibility-row-v2.json",
+      "sourceVersion": null,
+      "status": "mapped-retained-structure",
+      "executor": "intent/0001/reviews/domain/round-3/remediation/offline-schema-registry.candidate.mjs#compileOffline",
+      "semanticAcceptance": false
+    },
+    {
+      "requiredId": "SCHEMA:ACCESSIBILITY-SUMMARY",
+      "name": "ACCESSIBILITY-SUMMARY",
+      "sourcePath": "intent/0001/reviews/domain/round-3/remediation/schemas/ACCESSIBILITY-SUMMARY.schema.json",
+      "sourceDigest": "96e34e2d5049a5cd0d740184a6e25bd322878c61651c68f440161f4cb60fbc45",
+      "sourceSchemaId": "https://steer.invalid/schemas/accessibility-summary-v2.json",
+      "sourceVersion": null,
+      "status": "mapped-retained-structure",
+      "executor": "intent/0001/reviews/domain/round-3/remediation/offline-schema-registry.candidate.mjs#compileOffline",
+      "semanticAcceptance": false
+    },
+    {
+      "requiredId": "SCHEMA:PRIVACY-DETECTOR-REGISTRY",
+      "name": "PRIVACY-DETECTOR-REGISTRY",
+      "sourcePath": "intent/0001/reviews/domain/round-3/remediation/schemas/PRIVACY-DETECTOR-REGISTRY.schema.json",
+      "sourceDigest": "2b32a359edfaf0de9fe893d02b63d490648aa0ead3afd42d1ceed100c7096ef4",
+      "sourceSchemaId": "https://steer.invalid/schemas/privacy-detector-registry-v1.json",
+      "sourceVersion": "steer-prohibited-identifier-detector/v2",
+      "status": "mapped-retained-structure",
+      "executor": "intent/0001/reviews/domain/round-3/remediation/offline-schema-registry.candidate.mjs#compileOffline",
+      "semanticAcceptance": false
+    },
+    {
+      "requiredId": "SCHEMA:PRIVACY-EVIDENCE",
+      "name": "PRIVACY-EVIDENCE",
+      "sourcePath": "intent/0001/reviews/domain/round-3/remediation/schemas/PRIVACY-EVIDENCE.schema.json",
+      "sourceDigest": "15bc4eaaa3f20de4a5ce150c1ef05bf9d7526b699c82da46a150784f5db3d7cc",
+      "sourceSchemaId": "https://steer.invalid/schemas/privacy-evidence-v3.json",
+      "sourceVersion": "steer-sanitized-real-evidence/v3",
+      "status": "mapped-retained-structure",
+      "executor": "intent/0001/reviews/domain/round-3/remediation/offline-schema-registry.candidate.mjs#compileOffline",
+      "semanticAcceptance": false
+    },
+    {
+      "requiredId": "SCHEMA:COST-EVIDENCE",
+      "name": "COST-EVIDENCE",
+      "sourcePath": "intent/0001/reviews/domain/round-3/remediation/schemas/COST-EVIDENCE.schema.json",
+      "sourceDigest": "9381100e2bf6cccabd897fa3dca2f243fff6000269cc2ff647bd10b50bad7460",
+      "sourceSchemaId": "https://steer.invalid/schemas/cost-evidence-v3.json",
+      "sourceVersion": null,
+      "status": "mapped-retained-structure",
+      "executor": "intent/0001/reviews/domain/round-3/remediation/offline-schema-registry.candidate.mjs#compileOffline",
+      "semanticAcceptance": false
+    },
+    {
+      "requiredId": "SCHEMA:SPEND-AUTHORIZATION",
+      "name": "SPEND-AUTHORIZATION",
+      "sourcePath": "intent/0001/reviews/domain/round-3/remediation/schemas/SPEND-AUTHORIZATION.schema.json",
+      "sourceDigest": "702a839387f1ce1df6f915211e55f3e17414c6ada9111c2acb329203457f03bc",
+      "sourceSchemaId": "https://steer.invalid/schemas/spend-authorization-v3.json",
+      "sourceVersion": "steer-spend-authorization/v2",
+      "status": "mapped-retained-structure",
+      "executor": "intent/0001/reviews/domain/round-3/remediation/offline-schema-registry.candidate.mjs#compileOffline",
+      "semanticAcceptance": false
+    },
+    {
+      "requiredId": "SCHEMA:REPLAY-LEDGER",
+      "name": "REPLAY-LEDGER",
+      "sourcePath": "intent/0001/reviews/domain/round-3/remediation/schemas/REPLAY-LEDGER.schema.json",
+      "sourceDigest": "0a9d115c5d26d3166a1439ef61633700b4b6a2a7e357131b1b01f8575ef48953",
+      "sourceSchemaId": "REPLAY-LEDGER.schema.json",
+      "sourceVersion": null,
+      "status": "mapped-retained-structure",
+      "executor": "intent/0001/reviews/domain/round-3/remediation/offline-schema-registry.candidate.mjs#compileOffline",
+      "semanticAcceptance": false
+    },
+    {
+      "requiredId": "SCHEMA:CAS-HEAD",
+      "name": "CAS-HEAD",
+      "sourcePath": "intent/0001/reviews/domain/round-3/remediation/schemas/CAS-HEAD.schema.json",
+      "sourceDigest": "fbc4a0c3f8e64673819c412a719d7946bcb67531a6e3c3abf997efe655589eff",
+      "sourceSchemaId": "CAS-HEAD.schema.json",
+      "sourceVersion": null,
+      "status": "mapped-retained-structure",
+      "executor": "intent/0001/reviews/domain/round-3/remediation/offline-schema-registry.candidate.mjs#compileOffline",
+      "semanticAcceptance": false
+    },
+    {
+      "requiredId": "SCHEMA:PROVIDER-RECEIPT",
+      "name": "PROVIDER-RECEIPT",
+      "sourcePath": "intent/0001/reviews/domain/round-3/remediation/schemas/PROVIDER-RECEIPT.schema.json",
+      "sourceDigest": "71be8d074852b5999674784ad1bbe2937db2b42c334ac1d02266f7f3d010f4a6",
+      "sourceSchemaId": "PROVIDER-RECEIPT.schema.json",
+      "sourceVersion": null,
+      "status": "mapped-retained-structure",
+      "executor": "intent/0001/reviews/domain/round-3/remediation/offline-schema-registry.candidate.mjs#compileOffline",
+      "semanticAcceptance": false
+    }
+  ],
+  "limitations": [
+    "Structure and exact-time grammar do not verify signatures or graph acceptance.",
+    "Copied timestamp mutations are schema-only examples, not newly valid signed records.",
+    "The original migration graph schema is not the corrected closed v2/v3 migration graph and remains unmapped.",
+    "Synthetic accessibility row/summary schema checks are not matrix execution or manual evidence."
+  ],
+  "normativeAcceptanceComplete": false
+}

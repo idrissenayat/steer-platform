@@ -1890,3 +1890,25 @@ then streamed accessibility execution evidence. Preserve exact consumed rows and
 complete controls without treating metadata or cached reports as execution.
 Remaining R5/lifecycle/migration mappings, GAP-01–06 and M1–M8 remain open. No
 provider mutation, cleanup, release, deployment, spending or signature is authorized.
+
+## Completed development increment: 0103 — schema source reconciliation
+
+The source map retains all 15 exact schema files, hashes, IDs and declared version
+constants. Three cases use the existing 0070 precision successors and eleven
+exercise retained structural validators. Original positives/negatives, closed
+objects and every declared precise timestamp field are checked. Fractional
+detector-policy thresholds remain JSON numbers in the observation seal; signed
+record canonicalization is unchanged. The obsolete migration schema stays unmapped.
+
+Six new groups and final full checks pass: 324 root controls and 88 prototype
+tests. A fresh run matches the snapshot: 307 passed, zero failed and 3,729 unmapped
+IDs of 4,036. See intent/0103/EVIDENCE.md and SCHEMA-MAP.json. Structural evidence
+does not validate copied signatures or full graphs; sample accessibility schemas
+do not count as matrix execution. All 16 accessibility IDs and the migration
+schema remain unmapped. Protected artifacts and all five formal findings are unchanged.
+
+Next under intent/0103/PLAN.md is actual streamed accessibility execution evidence,
+with complete controls and consumed-row seals rather than metadata-only credit.
+Then reconcile remaining R5/lifecycle/migration cases and the obsolete migration
+schema. GAP-01–06 and M1–M8 remain separate. No provider mutation, cleanup, release,
+deployment, spending or signature is authorized.
