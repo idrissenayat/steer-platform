@@ -17,8 +17,13 @@ verified with synthetic identities in an isolated browser. It is not yet the
 model-backed agent conversation or the complete writing/decision journey.
 
 Item [0123](intent/0123/README.md) adds exact confirmation and closed save/readback
-orchestration. Actual writer/authority adapters and runtime enablement remain pending;
+orchestration. Full writer/authority composition and runtime enablement remain pending;
 synthetic duplicate/retry tests are not a real GitHub save or gate approval.
+
+Item [0124](intent/0124/README.md) adds the uninstalled GitHub create/readback storage
+primitive, tested with synthetic provider responses backed by native disposable Git.
+It creates the Brief and retry marker together at an exact expected head. Full
+source authority, broader historical lookup and live access remain prerequisites.
 
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono

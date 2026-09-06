@@ -118,6 +118,15 @@ ADR-02 (`items/NNNN-slug/BRIEF.md`); the legacy-only library also needs explicit
 canonical-path support before it can show those new artifacts. No live save or
 confirmation button is enabled. See `intent/0123/PLAN.md` for the remaining route.
 
+0124 development update: the uninstalled GitHub storage primitive now issues the
+exact-head two-addition mutation and verifies the resulting Git record through
+bounded commit/tree/blob/history reads. Its isolated transport uses native Git
+fixtures, including restart and lost-acknowledgement recovery. Fifteen focused
+groups and full repository verification pass; see `intent/0124/EVIDENCE.md`.
+No real write occurred. Full authenticated writer and source-authority composition,
+historical lookup beyond the bounded linear profile, canonical discovery and UI
+save/status connection still remain. The actual runtime App stays read-only.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

@@ -1110,6 +1110,15 @@ real saves remain unavailable. Synthetic CAS/receipt tests do not prove GitHub
 durability or Gate 2 acceptance. Canonical-path discovery and save UI remain next
 integration work; see `intent/0123/PLAN.md` and `EVIDENCE.md`. All findings stay open.
 
+Item `intent/0124` implements the uninstalled GitHub Brief storage primitive:
+explicit narrow installation-token requests, exact-head two-file mutation, native
+Git-backed retry/restart tests and exact tree/blob/marker readback. Lost responses,
+bad ancestry, branch/protection rejection and resource-limit failures cannot become
+success or automatic retries. The current history profile is deliberately bounded
+to 100 linear commits. This is not the full authenticated `BriefWriter` or the
+source-verified Gate 2 authority callback; runtime and the actual App stay read-only.
+See `intent/0124/EVIDENCE.md` for verification and `intent/0124/PLAN.md` for follow-up.
+
 ## Local commands
 
 ```sh

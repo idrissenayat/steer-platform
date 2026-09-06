@@ -26,8 +26,9 @@ dependencies are in `docs/FIRST-USABLE-DELIVERY.md`. This orders safe developmen
 it does not defer signed requirements or waive any of the five R5 findings.
 Stateless authoring can proceed while Gate 2 continues to block live writes.
 This route began with 0121 Brief preview and 0122 guided authoring/correction UI.
-0123 now supplies closed confirmation/save orchestration; next is the actual writer
-adapter and full trusted write-authority composition. The unimplemented retirement-archive prerequisite remains
+0123 supplies closed confirmation/save orchestration; 0124 adds the uninstalled
+GitHub storage primitive. Next is full trusted writer/authority composition and
+canonical-path discovery, with broader historical lookup still required. The unimplemented retirement-archive prerequisite remains
 tracked in `intent/0120/PLAN.md`, not silently marked complete or renumbered.
 
 | Milestone | Deliverable and acceptance evidence | Dependency / current state |
@@ -2469,3 +2470,24 @@ readback UI and board projection. Agent conversation/context remains unfinished.
 The active loop can continue local adapter development without user-only input.
 Real write scope, Gate 2 approval, deployment, release and spending remain separately
 gated. Remaining signed scope and 0120 archival obligations are not waived.
+
+## Completed development increment: 0124 — GitHub create/readback storage
+
+Implements the provider storage primitive for the 0123 contract. It uses a scoped
+installation token, exact-head GraphQL mutation and two atomic additions: Brief
+plus durable operation marker. Native Git-backed synthetic provider tests cover
+restart, duplicates, races, lost acknowledgements, scope/authority denial, path
+history, exact readback, unexpected changes and resource limits. It does not use
+the real App key, invoke live writes or alter repository permissions/protection.
+
+Fifteen focused groups, adapter typecheck and full `pnpm check` pass, including all
+437 root controls and 88 prototype tests; see `intent/0124/EVIDENCE.md`. The adapter is not wired
+into production and cannot replace full source-verified membership/Gate 2 evidence.
+The first history profile is limited to 100 linear commits and fails closed for
+older/nonlinear histories; broader lookup and append-only protection proof remain
+required. No test count is a live-provider or gate-completion claim.
+
+Next: full trusted writer/authority composition, canonical-path discovery, exact
+confirmation/status UI, board ingestion and revision-bound review. Agent conversation
+and trusted systems context remain open. The existing loop continues safe local
+development; all five R5 findings, signed scope and 0120 archival work remain due.
