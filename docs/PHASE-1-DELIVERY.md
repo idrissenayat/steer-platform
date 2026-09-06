@@ -2750,3 +2750,21 @@ simultaneous current signer validity and real attestor/commercial compatibility
 remain unfinished. No gate or live writer is enabled. Complete those dependencies,
 then approved runtime and destination/head/save UI, board and decision review.
 All five R5 findings, 0124/0120 and signed Phase 1 requirements remain due.
+
+## Completed development increment: 0140 — Common completion-time signer validity
+
+A reproduced expiry gap is corrected: an earlier signer cannot expire during later
+verification or final source recollection and still produce a successful set.
+Actual key, current-role and qualification validity bounds are compared at one
+completion instant with exact UTC arithmetic. Historical login expiry remains a
+historical constraint, not a current-login requirement. Focused checks pass 44
+groups and adapter typecheck; full checks pass 437 root controls, 189 adapter tests
+and all package checks/builds. See `intent/0140/EVIDENCE.md` for the before/after
+evidence and exact verification boundaries.
+
+These bounds are not current-source leases or gate authority. Fresh source checks,
+whole-gate policy/prerequisite/Critic/domain/build verification, governed pin
+selection, real attestor bindings and commercial approval compatibility remain.
+Then finish runtime/destination/head discovery, save/status UI, board and review.
+All five R5 findings and the signed Phase 1 obligations remain due; no live writes,
+release, deployment or spending is enabled.

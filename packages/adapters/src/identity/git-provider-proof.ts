@@ -50,6 +50,7 @@ type SpecialistQualification = Readonly<{ trustSource: SourceReference; proofSou
   policySignature: Readonly<GatePolicyInput['record']['signatures'][number]> }>;
 type Observation = Readonly<{ kind: 'git-provider-proof-observation'; organizationId: string; repository: string; branch: string;
   sourceRevision: string; trustSource: SourceReference; proofSource: SourceReference; attestation: Attestation;
+  currentEvidenceValidity: Readonly<{ evaluatedAt: string; validBefore: string; sourceRevalidationRequired: true }>;
   signerAuthorization?: SignerAuthorization; signerIdentity?: SignerIdentity;
   specialistQualification?: SpecialistQualification; gateVerified: false; writeAuthorized: false }>;
 
@@ -120,6 +121,7 @@ export function createGitProviderProofReader(reader: ArtifactReader, rawConfigur
         const start = parseUtcInstant(grant.validAfter), end = parseUtcInstant(grant.expiresAt);
         const first = parseUtcInstant(from), last = parseUtcInstant(until);
         if (start === null || end === null || first === null || last === null || start >= end || first > last || first < start || last >= end) throw failure();
+        return grant.expiresAt;
       };
       const work = (async (): Promise<Observation> => {
         try {
@@ -145,9 +147,10 @@ export function createGitProviderProofReader(reader: ArtifactReader, rawConfigur
           if (!attestation || attestation.proofDigest !== proof.reference.contentDigest || attestation.trustDigest !== trust.reference.contentDigest) throw failure();
           const evaluatedAt = new Date(time()).toISOString();
           let signerAuthorization: SignerAuthorization | undefined;
+          let currentGrantExpiry: string | undefined;
           if (historical && currentGrant) {
             verifyHat(historical.content, attestation.claims.authenticatedAt, attestation.claims.signedAt);
-            verifyHat(currentGrant.content, evaluatedAt, evaluatedAt);
+            currentGrantExpiry = verifyHat(currentGrant.content, evaluatedAt, evaluatedAt);
             signerAuthorization = Object.freeze({ issuer: config.signerAuthorization!.issuer, subject: attestation.claims.subject,
               hat: attestation.claims.hat, historicalSource: historical.reference, currentSource: currentGrant.reference,
               historicalHatVerified: true, currentHatVerified: true,
@@ -183,6 +186,7 @@ export function createGitProviderProofReader(reader: ArtifactReader, rawConfigur
               attestation: qualification, policySignature });
           }
           const completedAt = time();
+          const validityBounds: string[] = currentGrantExpiry ? [currentGrantExpiry] : [];
           if (Math.min(Date.parse(initial.expiresAt), Date.parse(current.expiresAt)) <= completedAt) throw failure();
           if (currentGrant) verifyHat(currentGrant.content, new Date(completedAt).toISOString(), new Date(completedAt).toISOString());
           // Cryptographic/schema work must not carry an observation past a key
@@ -191,14 +195,27 @@ export function createGitProviderProofReader(reader: ArtifactReader, rawConfigur
             const selected = JSON.parse(source.content), at = parseUtcInstant(new Date(completedAt).toISOString())!;
             const until = parseUtcInstant(selected.notAfter), revoked = selected.revokedAt === null ? null : parseUtcInstant(selected.revokedAt);
             if (until === null || until <= at || (selected.revokedAt !== null && (revoked === null || revoked <= at))) throw failure();
+            validityBounds.push(selected.notAfter);
+            if (selected.revokedAt !== null) validityBounds.push(selected.revokedAt);
           }
           if (specialistQualification) {
             const claims = specialistQualification.attestation.claims, at = parseUtcInstant(new Date(completedAt).toISOString())!;
             if (parseUtcInstant(claims.validThrough)! <= at || (claims.revokedAt !== null && parseUtcInstant(claims.revokedAt)! <= at)) throw failure();
+            validityBounds.push(claims.validThrough);
+            if (claims.revokedAt !== null) validityBounds.push(claims.revokedAt);
           }
+          // An exact, exclusive bound for the evidence actually checked in this
+          // mode, not a source-freshness lease or permission to reuse it for writes.
+          // Historical login expiry is intentionally absent: it bounds signing,
+          // not the later lifetime of an otherwise valid historical assertion.
+          const validBefore = validityBounds.reduce((earliest, value) => parseUtcInstant(value)! < parseUtcInstant(earliest)! ? value : earliest);
+          const checkedAt = new Date(time()).toISOString();
+          if (parseUtcInstant(checkedAt)! >= parseUtcInstant(validBefore)! ||
+            Math.min(Date.parse(initial.expiresAt), Date.parse(current.expiresAt)) <= Date.parse(checkedAt)) throw failure();
           return Object.freeze({ kind: 'git-provider-proof-observation', organizationId: config.organizationId,
             repository: config.repository, branch: config.branch, sourceRevision: input.sourceRevision,
             trustSource: trust.reference, proofSource: proof.reference, attestation,
+            currentEvidenceValidity: Object.freeze({ evaluatedAt: checkedAt, validBefore, sourceRevalidationRequired: true as const }),
             ...(signerAuthorization ? { signerAuthorization } : {}), ...(signerIdentity ? { signerIdentity } : {}),
             ...(specialistQualification ? { specialistQualification } : {}),
             gateVerified: false, writeAuthorized: false });

@@ -226,6 +226,13 @@ second one. The collector preserves non-approval decisions and requires downstre
 policy verification and current signer revalidation. Real attestor bindings and
 existing commercial compatibility remain open; see `intent/0139/EVIDENCE.md`.
 
+0140 development update: individually verified signer evidence must now remain
+within all known key/role/qualification validity bounds at one common completion
+instant. A reproduced expiry gap is corrected, with exact nanosecond comparisons
+and no false requirement for an old signing login to remain active today. Fresh
+source checks and full policy/authority composition still precede live writer
+enablement; see `intent/0140/EVIDENCE.md`. No UI change is claimed.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

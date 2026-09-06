@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { principalSchema } from '@steer/tool-registry';
-import { gatePolicyInputSchema } from '@steer/tool-registry/gate-policy';
+import { gatePolicyInputSchema, parseUtcInstant } from '@steer/tool-registry/gate-policy';
 import { createGitGateObserver, gitGateSourceConfigurationSchema } from './gate-observation.ts';
 import { createGitProviderProofReader, gitProviderSourceConfigurationSchema, gitSignerIdentityInputSchema } from '../identity/git-provider-proof.ts';
 import type { RepositoryReader } from './github.ts';
@@ -20,7 +20,7 @@ const inputSchema = z.strictObject({ sourceRevision: z.string().length(40).regex
 
 /** Exact canonical record/artifact collection joined to actual signer verifiers.
  * Trusted startup selects proof facts, trust roots and domain requirements. These
- * are not HTTP input. Full gate policy and simultaneous signer validity remain
+ * are not HTTP input. Full gate policy and fresh source revalidation remain
  * mandatory downstream: this evidence collection never authorizes a write. */
 export function createGitGateSignerCollector(reader: RepositoryReader, rawConfiguration: unknown, authenticate: () => Promise<unknown>) {
   const config = configurationSchema.parse(rawConfiguration), binding = Object.freeze({ ...reader.binding });
@@ -92,14 +92,22 @@ export function createGitGateSignerCollector(reader: RepositoryReader, rawConfig
             Object.freeze(signature.qualifiedDomains); signatures.push(Object.freeze(signature)); observations.push(observation);
           }
           // Recollect the exact canonical source/artifact set after all signers.
-          // This is not a claim that every historical/current signer lease is
-          // simultaneously live at this later instant; full authority must recheck.
-          await gate.collect(input); const finished = check();
+          // Check every signer's known validity bounds at ONE completion instant,
+          // after the final source recollection. Never let a later signer refresh
+          // an earlier key/grant/qualification's expiry or scheduled revocation.
+          await gate.collect(input); const evaluatedAt = new Date(check()).toISOString(), at = parseUtcInstant(evaluatedAt)!;
+          const bounds = observations.map((observation) => {
+            const validity = observation.currentEvidenceValidity;
+            if (parseUtcInstant(validity.evaluatedAt)! > at || parseUtcInstant(validity.validBefore)! <= at) throw failure();
+            return validity.validBefore;
+          });
+          const validBefore = bounds.reduce((earliest, value) => parseUtcInstant(value)! < parseUtcInstant(earliest)! ? value : earliest);
           return Object.freeze({ kind: 'git-gate-signers-observation' as const, bundle,
             record: Object.freeze({ organizationId: scope.organizationId, repository: scope.repository, itemId: scope.itemId,
               gate: config.gateSource.gate, artifactRevision: config.gateSource.artifactRevision, decisionDigest: input.decisionDigest,
               decision: record.decision, signatures: Object.freeze(signatures) }),
-            signerObservations: Object.freeze(observations), evaluatedAt: new Date(finished).toISOString(),
+            signerObservations: Object.freeze(observations), evaluatedAt,
+            currentEvidenceValidity: Object.freeze({ evaluatedAt, validBefore, sourceRevalidationRequired: true as const }),
             currentSignerRevalidationRequired: true as const, policyVerificationRequired: true as const,
             gateVerified: false as const, writeAuthorized: false as const });
         } catch {

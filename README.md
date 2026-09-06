@@ -87,6 +87,10 @@ Item [0139](intent/0139/README.md) joins canonical gate/artifact sources with ac
 verification of every recorded signer. Whole-gate policy/evidence verification and
 current signer revalidation remain required; no live gate or writer is enabled.
 
+Item [0140](intent/0140/README.md) checks every signer's known key, role and
+qualification validity at the same completion instant. Exact bounds cannot be
+extended by a later signer and are not a replacement for fresh source verification.
+
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono
 API/shared tool registry (0007), OIDC adapter/API composition (0008), and

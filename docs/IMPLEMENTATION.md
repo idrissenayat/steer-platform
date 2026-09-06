@@ -1219,6 +1219,14 @@ actor/expiry/ownership envelope. Native Git and real signatures cover partial an
 forged rosters. Full policy sources and simultaneous current signer revalidation
 remain due; no live approval, writer or frontend feature is installed.
 
+Item `intent/0140` closes the reproduced expiry gap between individual signer
+verification and final source recollection. Actual verified key, current-role and
+qualification bounds now feed a shared completion-time check with exact UTC
+comparisons. Historical login expiry remains a historical signing constraint, not
+a requirement for a still-live login today. Bounds are immutable observations,
+not source-freshness or write-authority leases. Full policy/source composition and
+real approved bindings remain due; see `intent/0140/EVIDENCE.md`.
+
 ## Local commands
 
 ```sh
