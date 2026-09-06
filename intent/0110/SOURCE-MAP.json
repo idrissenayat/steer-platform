@@ -1,0 +1,15 @@
+{
+  "version": "steer-short-retention-boundary-map/v1",
+  "sourcePins": "intent/0098/SOURCE-PINS.json",
+  "triggerAt": "2026-09-04T12:00:00Z",
+  "boundaries": ["before", "complete"],
+  "observations": { "beforeOffsetSeconds": -1, "completeOffsetSeconds": 6 },
+  "rows": [
+    { "classId": "RC-FAILED-RUN", "eventType": "run-terminal", "boundaryAt": "2026-12-03T12:00:00Z", "parentExpiryAt": null },
+    { "classId": "RC-POSTHOG-RAW", "eventType": "event-committed", "boundaryAt": "2026-12-03T12:00:00Z", "parentExpiryAt": null },
+    { "classId": "RC-CORPUS-DERIVED-TEXT", "eventType": "run-terminal", "boundaryAt": "2026-09-19T12:00:00Z", "parentExpiryAt": "2026-09-19T12:00:00Z" },
+    { "classId": "RC-CORPUS-EXPORT", "eventType": "export-completed", "boundaryAt": "2026-09-19T12:00:00Z", "parentExpiryAt": "2026-09-19T12:00:00Z" }
+  ],
+  "reconciliation": "Closed schema-valid trigger/history replaces the frozen surrogate. Before-expiry inventory/state is freshly signed before observation, not transplanted from after it. Complete proof steps are ordered at 100 ms intervals and finish before the exact source +6 second observation. Original trust keys/windows are unchanged. Source deleted-tombstoned is represented by zero-effect validated-lifecycle-candidate, never an executed deletion. Before scheduling does not validate copy actions/receipts; the same hook separately executes full complete controls.",
+  "unmapped": "All at/after coordinates and the other twelve classes remain uncovered. Missing-proof blocked results do not stand in for a truthful pending-disposition boundary result."
+}

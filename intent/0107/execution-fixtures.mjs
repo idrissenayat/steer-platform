@@ -510,3 +510,31 @@ export function specialLifecycleExecutionCase(kind, variant = 'negative') {
   const verifier = reference ? createReferenceLifecycleVerifier(value.configBytes, value.runtimeBytes) : value.verifier;
   return { ...value, verifier, kind, variant, input: jcs({ configBytes: value.configBytes, runtimeBytes: value.runtimeBytes ?? null, bytes: value.bytes, evaluatedAt: value.evaluationTime }) };
 }
+
+// The frozen matrix uses a September 4 trigger and a 15-day parent cap. Keep
+// these exact instants while constructing fresh, complete evidence near expiry.
+export function shortRetentionExecutionCase(classId, boundary, variant = 'positive') {
+  const classes = {
+    'RC-FAILED-RUN': ['run-terminal', '2026-12-03T12:00:00Z', false],
+    'RC-POSTHOG-RAW': ['event-committed', '2026-12-03T12:00:00Z', false],
+    'RC-CORPUS-DERIVED-TEXT': ['run-terminal', '2026-09-19T12:00:00Z', true],
+    'RC-CORPUS-EXPORT': ['export-completed', '2026-09-19T12:00:00Z', true],
+  };
+  if (!Object.hasOwn(classes, classId) || !['before', 'complete'].includes(boundary) || !['positive', 'replay', 'missing-state', 'missing-receipt', 'wrong-parent'].includes(variant))
+    throw new Error('UNKNOWN_SHORT_RETENTION_CASE');
+  const [eventType, boundaryAt, parentCap] = classes[classId];
+  if (variant === 'wrong-parent' && !parentCap) throw new Error('UNKNOWN_SHORT_RETENTION_CASE');
+  const triggerEpoch = Date.parse('2026-09-04T12:00:00Z'), expiryEpoch = Date.parse(boundaryAt);
+  const fixtureEpoch = expiryEpoch - (boundary === 'before' ? 60000 : 0);
+  // 100 ms ordered proof steps let the complete path finish at the source's
+  // exact +6 second observation. No current proof lies after evaluation.
+  const triggerSecond = (triggerEpoch - fixtureEpoch) / 100;
+  const options = { recordClass: classId, eventType, fixtureEpoch, triggerSecond, tickNanoseconds: 100000000,
+    horizon: 1500, evaluationTime: new Date(expiryEpoch + (boundary === 'before' ? -1000 : 6000)).toISOString().replace('.000Z', 'Z'),
+    history: [{ type: 'originator-draft-saved', second: triggerSecond - 100 }], replay: variant === 'replay', edits: {} };
+  if (parentCap) options.edits.state = (state) => { state.parentExpiryAt = variant === 'wrong-parent' ? null : '2026-09-19T12:00:00Z'; };
+  if (variant === 'missing-state') options.edits.graph = (graph) => { graph.stateBytes = ''; };
+  if (variant === 'missing-receipt') options.edits.graph = (graph) => { graph.copies[0].receiptBytes = ''; };
+  const value = fixture(options);
+  return { ...value, classId, boundary, boundaryAt, variant, input: jcs({ configBytes: value.configBytes, bytes: value.bytes, evaluatedAt: value.evaluationTime }) };
+}

@@ -962,6 +962,16 @@ negatives are mapped, but all five formal findings remain open. Class boundaries
 migration/schema, real integration and independent/protected review remain separate.
 See `intent/0109/EVIDENCE.md`, `SOURCE-MAP.json` and `PLAN.md`.
 
+Item `intent/0110` maps eight before/complete retention coordinates across failed
+runs, raw analytics events, corpus-derived text and exports. Exact source trigger,
+parent-cap and observation instants are preserved. Fresh before-expiry state yields
+scheduled, without accepting premature receipt evidence; each hook also verifies
+full completion/replay with both copies and the separate tombstone. Complete proof
+steps fit the exact source +6 second observation, with unchanged original keys.
+Full profile records 365 passed / 3,671 uncovered; quick 349 passed / 3,687 uncovered.
+The 56 other boundary rows and all formal findings stay open. See
+`intent/0110/EVIDENCE.md`, `SOURCE-MAP.json` and `PLAN.md`; no real deletion is claimed.
+
 ## Local commands
 
 ```sh

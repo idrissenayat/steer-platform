@@ -55,7 +55,8 @@ function run(profile) {
       'intent/0104/execution-hooks.mjs', 'intent/0104/stream-seal.mjs', 'intent/0104/execution-prerequisites.mjs',
       'intent/0105/execution-hooks.mjs', 'intent/0105/execution-fixtures.mjs', 'intent/0106/execution-hooks.mjs', 'intent/0106/execution-fixtures.mjs',
       'intent/0107/execution-hooks.mjs', 'intent/0107/execution-fixtures.mjs', 'intent/0108/execution-hooks.mjs', 'intent/0108/SOURCE-MAP.json',
-      'intent/0109/execution-hooks.mjs', 'intent/0109/SOURCE-MAP.json', 'tests/fixtures/reference-evidence.mjs'].map((path) => ({
+      'intent/0109/execution-hooks.mjs', 'intent/0109/SOURCE-MAP.json', 'tests/fixtures/reference-evidence.mjs',
+      'intent/0110/execution-hooks.mjs', 'intent/0110/SOURCE-MAP.json'].map((path) => ({
       path, digest: digest(readFileSync(new URL('../../' + path, import.meta.url))) })),
     required: catalog.cases.length, executed: executions.length, passed: executions.length - failed, failed, uncovered: uncovered.length,
     uncoveredIdsDigest: digest(jcs(uncovered)), executionsDigest: digest(jcs(executions)), families, executions,

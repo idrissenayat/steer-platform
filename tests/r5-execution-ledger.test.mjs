@@ -37,13 +37,13 @@ test('0098: all nine R5 reproductions retain source content including singular m
 
 test('0098: actual corrected hooks produce exact-ID execution seals while every unmapped case stays uncovered', () => {
   const catalog = loadRequiredCases(), report = runCorrectedCoverage(), mapped = catalog.cases.filter((row) => executionHook(row) !== null).map((row) => row.id);
-  assert.equal(report.required, 4036); assert.equal(report.executed, 341); assert.equal(report.passed, 341); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3695);
+  assert.equal(report.required, 4036); assert.equal(report.executed, 349); assert.equal(report.passed, 349); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3687);
   assert.deepEqual(report.executions.map((row) => row.id), mapped); assert.equal(report.completeCoverage, false);
   for (const row of report.executions) {
     assert.ok(row.observationCount > 0); assert.equal(row.status, 'passed'); assert.match(row.observationsDigest, /^[0-9a-f]{64}$/);
     assert.equal(row.implementationDigest, digest(read(row.executor.split('#')[0])));
   }
-  assert.equal(report.families.MIGRATION.executed, 0); assert.equal(report.families['LIFECYCLE-GRAPH'].executed, 0);
+  assert.equal(report.families.MIGRATION.executed, 0); assert.equal(report.families['LIFECYCLE-GRAPH'].executed, 8);
   assert.equal(report.families.R5.executed, 9); assert.equal(report.families.R5.uncovered, 0);
   assert.deepEqual(runCorrectedCoverage(), report);
 });
@@ -62,7 +62,7 @@ test('0098: CLI report is truthful and complete-coverage mode fails while uncove
   for (const mode of [[], ['--report'], ['--require-complete']]) {
     const result = spawnSync(process.execPath, [command, ...mode], { encoding: 'utf8', timeout: 30000, maxBuffer: 2097152 });
     assert.equal(result.status, mode[0] === '--report' ? 0 : 2, result.stderr);
-    const report = JSON.parse(result.stdout); assert.equal(report.completeCoverage, false); assert.equal(report.uncovered, 3695); assert.equal(report.failed, 0);
+    const report = JSON.parse(result.stdout); assert.equal(report.completeCoverage, false); assert.equal(report.uncovered, 3687); assert.equal(report.failed, 0);
   }
   const bad = spawnSync(process.execPath, [command, '--approve'], { encoding: 'utf8', timeout: 30000 });
   assert.equal(bad.status, 64); assert.equal(bad.stdout, '');

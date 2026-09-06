@@ -2050,3 +2050,27 @@ one obsolete schema case. Preserve real coordinate differences and implement
 unsupported class/key-era combinations; generic rejection is not boundary evidence.
 GAP-01–06 and M1–M8 remain separate. No protected edit, provider mutation, cleanup,
 release, deployment, spending or signature is authorized.
+
+## Completed development increment: 0110 — short-retention boundaries
+
+Eight exact before/complete coordinates now map for failed runs, raw analytics,
+derived text and exports. Source trigger dates, fifteen-day parent caps and exact
+minus-one/plus-six-second observations are preserved. Fresh before-expiry state
+yields scheduled without accepting premature disposition evidence. Each hook
+separately runs full complete/replay controls, with both copies and the separate
+tombstone. Ordered 100 ms proofs fit the complete observation without changing
+original key windows. Missing state, complete receipt or required parent cap denies.
+
+Six new groups and final full checks pass: 361 root controls and 88 prototype tests.
+Fresh quick execution matches 349 passed / 3,687 uncovered; full matches 365 passed /
+3,671 uncovered, both with zero failures. The separate three-group full integration
+process reran the matrix and matched the full snapshot. See intent/0110/EVIDENCE.md
+and SOURCE-MAP.json for exact scope and synthetic/cached limits. All five formal
+findings remain open; no retention period elapsed and no provider effect occurred.
+
+Next under intent/0110/PLAN.md are the existing supported long-retention and
+reference profiles, with exact source times and current proofs. In total 56 lifecycle
+boundaries, 3,614 migration cases and one obsolete schema case remain unmapped.
+Pending-state coordinates require actual semantics, not generic rejection. GAP-01–06
+and M1–M8 remain separate; no protected edit, provider mutation, cleanup, deployment,
+release, spending or signature is authorized. The continuation loop remains active.

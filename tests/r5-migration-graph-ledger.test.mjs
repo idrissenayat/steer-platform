@@ -75,10 +75,10 @@ test('0106: closed cases retain target/proof and human requirements without expo
 
 test('0106: one full-graph R5 mapping does not claim migration matrix IDs or formal closure', () => {
   const report = runCorrectedCoverage(), rows = report.executions.filter((row) => row.id === id);
-  assert.equal(report.required, 4036); assert.equal(report.executed, 341); assert.equal(report.passed, 341); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3695);
+  assert.equal(report.required, 4036); assert.equal(report.executed, 349); assert.equal(report.passed, 349); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3687);
   assert.equal(rows.length, 1); assert.equal(rows[0].status, 'passed'); assert.ok(rows[0].observationCount > 130);
   assert.equal(report.families.R5.executed, 9); assert.equal(report.families.R5.uncovered, 0);
-  assert.equal(report.families.MIGRATION.executed, 0); assert.equal(report.families['LIFECYCLE-GRAPH'].executed, 0);
+  assert.equal(report.families.MIGRATION.executed, 0); assert.equal(report.families['LIFECYCLE-GRAPH'].executed, 8);
   for (const flag of ['completeCoverage', 'normativeAcceptanceComplete', 'independentAcceptance', 'executionAuthorized', 'liveProviderUsed']) assert.equal(report[flag], false);
-  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0109/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
+  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0110/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
 });
