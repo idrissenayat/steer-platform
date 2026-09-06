@@ -135,6 +135,13 @@ See `intent/0125/EVIDENCE.md` for verification and desktop/mobile evidence.
 This closes path recognition, not real saving, dynamic projection
 admission, board rendering, source authority or the complete first usable journey.
 
+0126 development update: a separate exact-head membership verifier now binds the
+human session/issuer and current Git grants for the future writer composition.
+Nine focused checks and the final full repository check pass. It does not produce Gate 2/write authority or verify an
+OIDC session by itself; the trusted callback and full provider-backed gate/source
+composition still need implementation. No live enablement follows from this result.
+See `intent/0126/EVIDENCE.md` and `intent/0126/PLAN.md`.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

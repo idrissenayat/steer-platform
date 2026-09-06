@@ -29,6 +29,10 @@ Item [0125](intent/0125/README.md) connects canonical `items/NNNN-slug/BRIEF.md`
 recognition to curated discovery, exact reading and browser links. Legacy Briefs
 remain readable; no runtime scope, save permission or board state is inferred.
 
+Item [0126](intent/0126/README.md) adds exact-head human membership verification for
+the pending writer composition. It explicitly does not verify Gate 2 or authorize
+writes. The full session/provider-proof composition is still required.
+
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono
 API/shared tool registry (0007), OIDC adapter/API composition (0008), and

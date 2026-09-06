@@ -1126,6 +1126,13 @@ scope, grants, tenant isolation and exact revision/content checks are unchanged;
 legacy paths do not become create targets. The browser harness uses a canonical
 local Git fixture. Verification and remaining boundaries are in 0125/EVIDENCE.
 
+Item `intent/0126` adds an uninstalled revision-bound human membership adapter.
+It verifies fresh issuer/session/grants against exact Git authorization bytes and
+expected head, caps validity and discards stale/late observations. Its result says
+gate/write authority are not verified; it cannot replace the full trusted writer.
+Existing login and provenance-only gate observation remain unchanged. See
+`intent/0126/EVIDENCE.md` and `intent/0126/PLAN.md` for the remaining composition.
+
 ## Local commands
 
 ```sh

@@ -2510,3 +2510,21 @@ tests and package/typecheck/build tasks after the fixture correction.
 No real save, production migration, membership or provider access changes. Next:
 full trusted writer/source-authority composition, historical lookup, confirmation/
 status UI and board ingestion. All five R5 findings and signed obligations remain.
+
+## Completed development increment: 0126 — exact-head human membership
+
+Adds the source-verified membership prerequisite for the pending trusted writer.
+Current authenticated issuer/session/grants must match the exact Git authorization
+document at the proposed head. Scope, both source hashes, expiry and head stability
+are checked. Nine focused groups pass, including real timeout/backpressure behavior.
+Final `pnpm check` passes all 437 root controls, 85 adapter tests, 88 prototype
+tests and package/typecheck/build tasks. Two prior full runs hit the unchanged
+report CLI deadline; capping control-file concurrency at four resolves contention
+without changing the deadline, assertions or coverage. The complete history is
+recorded in `intent/0126/EVIDENCE.md`.
+
+The new observation explicitly is not Gate 2 or write authority. The existing gate
+observer and normalized policy evaluator are also insufficient: full provider-backed
+gate proof and session/bearer composition remain unfinished. Neither runtime nor
+real App access is changed. Continue that local composition route, then save/status
+UI and board integration, retaining all five R5 findings and signed obligations.

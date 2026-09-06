@@ -15,7 +15,7 @@
     "build": "pnpm build:prototype && turbo run build --filter='./apps/*' --filter='./packages/*'",
     "build:prototype": "tsc --noEmit && vite build",
     "test": "vitest run",
-    "test:controls": "node --test tests/*.test.mjs",
+    "test:controls": "node --test --test-concurrency=4 tests/*.test.mjs",
     "r5:coverage:report": "node scripts/run-r5-coverage.mjs --report",
     "r5:coverage:full-report": "node scripts/run-r5-coverage.mjs --full-report",
     "r5:coverage:test-full": "node --test tests/integration/r5-accessibility-ledger.test.mjs",
