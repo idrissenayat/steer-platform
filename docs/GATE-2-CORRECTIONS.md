@@ -37,6 +37,12 @@ witnesses without original key renewal. Its conservative profile rejects every
 known original-key revocation, including unused domains. It adds no catalog hook;
 parent manifest/history and full current lifecycle composition remain open. Existing
 0117 quick/full snapshots still represent mapped execution, not this component.
+`intent/0119` composes qualified hold history, complete manifest/head assertions
+and exact archived child events, including explicit empty handling. Its later-event
+P7Y result is only a boundary candidate: the signed policy requires a qualified
+corpus-retirement decision, while current 0082/0084 owner profiles cover holds only.
+Retirement authority remains false until a distinct complete proof/archive profile
+exists. No eligibility, current-v7 admission or catalog credit is claimed.
 Full snapshot: 4,036 required IDs, 409 passed, 3,627 unmapped. Quick explicitly
 leaves the 16 heavy cases unexecuted (393 passed / 3,643 uncovered). The require-complete command
 exits 2 and explains its deferred-full preflight; GAP-01 is not complete. Some hooks intentionally

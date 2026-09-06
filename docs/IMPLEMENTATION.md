@@ -1060,6 +1060,17 @@ validity does not establish complete parent manifest/history or current parent
 disposition authority. No current-v7 admission or catalog mapping is added yet;
 see `intent/0118/PLAN.md` and `EVIDENCE.md`. All five formal findings remain open.
 
+Item `intent/0119` connects qualified parent hold history, fresh complete manifest
+and independent history-head assertions to exact archived child-event/receipt bytes.
+Every child/event must map one-to-one; complete-empty mode cannot hide deletions or
+missing evidence. The later retirement/final deletion yields a boundary candidate
+only. The source policy requires qualified corpus-retirement authority, and the
+existing owner profiles cover hold decisions, not retirement. Consequently
+retirementAuthorityVerified stays false and retentionEligible is absent. Next is a
+separate complete retirement-decision/archive profile before future lifecycle
+admission; see `intent/0119/PLAN.md`. All five findings and mapped counts stay open
+and unchanged. No live history completeness or actual deletion is claimed.
+
 ## Local commands
 
 ```sh

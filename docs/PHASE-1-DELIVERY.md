@@ -2306,3 +2306,37 @@ findings, normative/live integration and independent/protected review remain ope
 No user-only blocker is present for the next local composition step; provider
 operations, deletion, signatures, release, deployment and spending remain gated.
 The implementation loop stays active.
+
+## Completed development increment: 0119 — parent provenance manifest/history
+
+A fact-only composition now joins complete qualified hold history, exact archived
+child proofs and fresh authoritative manifest/head assertions. Each manifest child
+must match one exact retained deletion event and receipt digest; missing, orphan,
+duplicate, reordered and substituted children deny. An explicit complete-empty
+configuration still requires complete signed manifest/history and cannot hide
+deletions or absent evidence. Retained parent/owner/child archives precede manifest
+and head. Both fresh records sign the exact context and profile policy digest.
+
+Retirement-before-final-deletion and retirement-after-all-children controls select
+the later event plus seven years; a later item closure cannot substitute. This is
+only boundaryCandidateAt. Source review confirmed that corpus retirement requires
+a qualified records-owner decision, while existing 0082/0084 owner profiles cover
+hold decisions only. retirementAuthorityVerified remains false and retentionEligible
+is absent. No current-v7 admission or catalog hook is added.
+
+All 25 focused groups pass, including eight new groups. After signed-policy
+hardening, final repository checks pass 428 root controls, 88 prototype tests,
+95 kit artifacts and security/typecheck/build checks; unchanged package tasks are
+cached. The final separate full integration run passes three groups. Fresh quick
+and full execution match unchanged intent/0117 snapshots exactly (393/409 passed,
+zero failures; 3,643/3,627 uncovered). No new case credit is claimed.
+
+Next under intent/0119/PLAN.md is a complete non-erasure qualified retirement proof
+and its original/current archive binding. Only then admit future parent readiness/
+full disposition with copies/actions/aggregate/tombstone and qualified holds intact.
+The plan records the existing 0119-to-0080 dependency path so integration does not
+introduce a static cycle or drop required verification. This local prerequisite is
+unblocked and does not request a human signature. Twelve lifecycle, 3,614 migration
+and one schema coordinate, all five formal R5 findings, normative/live integrations
+and independent/protected review remain open. Provider operations, actual deletion,
+gate signatures, release, deployment and spending stay gated. The loop stays active.
