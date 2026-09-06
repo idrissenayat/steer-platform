@@ -1227,6 +1227,13 @@ a requirement for a still-live login today. Bounds are immutable observations,
 not source-freshness or write-authority leases. Full policy/source composition and
 real approved bindings remain due; see `intent/0140/EVIDENCE.md`.
 
+Item `intent/0141` composes pinned policy, Critic, build and domain/exception sources
+with actual canonical signer collection for every prerequisite gate. The existing
+policy evaluator consumes source-derived digests and facts, and any failed gate
+blocks the aggregate. Strict development source profiles are not replacements for
+existing review/approval formats. Their authenticity and governed selection remain
+unverified here; no gate, runtime writer or UI is enabled. See `intent/0141/EVIDENCE.md`.
+
 ## Local commands
 
 ```sh

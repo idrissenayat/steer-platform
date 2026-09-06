@@ -91,6 +91,10 @@ Item [0140](intent/0140/README.md) checks every signer's known key, role and
 qualification validity at the same completion instant. Exact bounds cannot be
 extended by a later signer and are not a replacement for fresh source verification.
 
+Item [0141](intent/0141/README.md) reads pinned policy/review sources and evaluates
+the whole prerequisite gate chain with actual verified signers. Governed selection,
+independent review authenticity and current authority remain required; no writes are enabled.
+
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono
 API/shared tool registry (0007), OIDC adapter/API composition (0008), and

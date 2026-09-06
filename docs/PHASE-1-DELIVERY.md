@@ -2768,3 +2768,22 @@ selection, real attestor bindings and commercial approval compatibility remain.
 Then finish runtime/destination/head discovery, save/status UI, board and review.
 All five R5 findings and the signed Phase 1 obligations remain due; no live writes,
 release, deployment or spending is enabled.
+
+## Completed development increment: 0141 — Source-backed gate policy chain
+
+An internal collector joins actual signer verification with fixed exact-head policy,
+Critic, build and domain/exception source reads across Gate 1 through the target.
+The existing policy evaluator consumes source-derived digests and normalized facts.
+A satisfied target cannot hide a failed prerequisite, and adverse or incomplete
+evidence stays blocked. One actor/deadline/current-validity envelope covers all
+children and owned work. Focused checks pass 21 groups. Full repository verification
+passes 437 root controls, 198 adapter tests and all package checks/builds. Native Git
+exercises an actual three-gate chain. Exact scope and limits are recorded in
+`intent/0141/EVIDENCE.md`.
+
+The new source profiles are development inputs, not automatic conversions or
+replacements of current Critic/domain/human records. Governed selection and review
+authenticity, real approved bindings and the full action-time authority verifier
+remain required. No gate or writer is enabled. Continue those dependencies, then
+runtime/destination/head discovery, save/status UI, board and decision review.
+All five R5 findings and the signed Phase 1 requirements remain due.

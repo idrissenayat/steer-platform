@@ -233,6 +233,13 @@ and no false requirement for an old signing login to remain active today. Fresh
 source checks and full policy/authority composition still precede live writer
 enablement; see `intent/0140/EVIDENCE.md`. No UI change is claimed.
 
+0141 development update: pinned policy/review sources now feed the actual policy
+evaluator alongside every actual verified signer set in the prerequisite chain.
+A passing target cannot conceal an earlier policy failure. This is source/policy
+observation, not verification of the review's origin or its pass/fresh-context claims.
+Governed normalization of actual formats, approved real authority and current-source
+checks remain before live writer binding. See `intent/0141/EVIDENCE.md`.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

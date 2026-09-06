@@ -15,6 +15,7 @@ const recordSchema = z.object({ decision: gatePolicyInputSchema.shape.record.sha
 const configurationSchema = z.strictObject({ gateSource: gitGateSourceConfigurationSchema,
   signers: z.array(z.strictObject({ source: gitProviderSourceConfigurationSchema,
     proof: gitSignerIdentityInputSchema.omit({ sourceRevision: true }) })).min(1).max(100) });
+export { configurationSchema as gitGateSignerConfigurationSchema };
 const inputSchema = z.strictObject({ sourceRevision: z.string().length(40).regex(/^[a-f0-9]{40}$/),
   decisionDigest: z.string().length(64).regex(/^[a-f0-9]{64}$/) });
 
