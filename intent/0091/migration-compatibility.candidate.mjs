@@ -2,6 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { exactKeys, hex, jcs, parseCanonical, sha256, zeroEffects } from '../0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
 import { createMigrationTimeVerifier, policyDigest as migrationPolicyDigest } from '../0090/migration-time.candidate.mjs';
+import { createStagedMigrationGraphVerifier, stagedPolicyDigest as stagedMigrationPolicy } from '../0062/migration-graph.candidate.mjs';
 import { createDualColumnModel } from './dual-column.candidate.mjs';
 export const modelDigest = sha256(readFileSync(new URL('./dual-column.candidate.mjs', import.meta.url), 'utf8'));
 const supportedVersions = [
@@ -14,18 +15,32 @@ export const policyDigest = sha256(jcs({ version: 'steer-migration-compatibility
   manifestDigest: sha256(manifestBytes),
   cases: 'every row in both signed states; all 24 old/new read/write permutations; both competing-snapshot winner orders, stale loser, retry and exact/key-drift replay',
   boundary: 'synthetic dual-column shim; no live application/database compatibility or execution authority' }));
+const stagedVersions = [1, 2].flatMap((version) => [
+  { phase: 'expand', schemaFrom: `schema-v${version}`, schemaTo: `schema-v${version + 1}`, oldAppVersion: `app-v${version}`, newAppVersion: `app-v${version + 1}` },
+  { phase: 'backfill', schemaFrom: `schema-v${version + 1}`, schemaTo: `schema-v${version + 1}`, oldAppVersion: `app-v${version}`, newAppVersion: `app-v${version + 1}` },
+  { phase: 'contract', schemaFrom: `schema-v${version + 1}`, schemaTo: `schema-v${version + 2}`, oldAppVersion: `app-v${version}`, newAppVersion: `app-v${version + 1}` },
+]);
+export const stagedPolicyDigest = sha256(jcs({ version: 'steer-migration-compatibility/v2', originalPolicyDigest: policyDigest, stagedMigrationPolicy, stagedVersions }));
 const ensure = (value) => { if (!value) throw new Error('MIGRATION_COMPATIBILITY_INVALID'); };
 const permutations = (values) => values.length === 0 ? [[]] : values.flatMap((value, index) => permutations(values.filter((_, position) => position !== index)).map((tail) => [value, ...tail]));
 const orders = permutations(['old-read', 'old-write', 'new-read', 'new-write']);
 const byteBound = (value, maximum) => typeof value === 'string' && Buffer.byteLength(value, 'utf8') <= maximum;
 export function createMigrationCompatibilityVerifier(contextBytes) {
+  return createSelectedCompatibilityVerifier(contextBytes, false);
+}
+export function createStagedMigrationCompatibilityVerifier(contextBytes) {
+  return createSelectedCompatibilityVerifier(contextBytes, true);
+}
+const originalCompatibilityPolicy = policyDigest;
+function createSelectedCompatibilityVerifier(contextBytes, staged) {
+  const policyDigest = staged ? stagedPolicyDigest : originalCompatibilityPolicy;
   let context, migration;
   try {
     ensure(byteBound(contextBytes, 32768)); context = parseCanonical(contextBytes);
     ensure(exactKeys(context, ['version', 'modelDigest', 'migrationConfigBytes', 'sourceColumn', 'targetColumn']) &&
-      context.version === 'steer-migration-compatibility-context/v1' && context.modelDigest === modelDigest && hex(context.modelDigest, 64));
+      context.version === (staged ? 'steer-migration-compatibility-context/v2' : 'steer-migration-compatibility-context/v1') && context.modelDigest === modelDigest && hex(context.modelDigest, 64));
     // Independently selected migration configuration carries approved plan and before pins.
-    migration = createMigrationTimeVerifier(context.migrationConfigBytes);
+    migration = (staged ? createStagedMigrationGraphVerifier : createMigrationTimeVerifier)(context.migrationConfigBytes);
     createDualColumnModel(jcs({ schemaVersion: 'shape-check', columns: [context.sourceColumn, context.targetColumn].sort(),
       rows: [{ rowId: 'shape-check', values: { [context.sourceColumn]: null, [context.targetColumn]: null } }] }), context.sourceColumn, context.targetColumn);
   } catch { throw new Error('MIGRATION_COMPATIBILITY_CONFIGURATION_INVALID'); }
@@ -34,12 +49,12 @@ export function createMigrationCompatibilityVerifier(contextBytes) {
     verify(serialized, evaluationTime) {
       try {
         ensure(byteBound(serialized, 16777216)); const envelope = parseCanonical(serialized);
-        ensure(exactKeys(envelope, ['version', 'configDigest', 'policyDigest', 'graphBytes']) && envelope.version === 'steer-migration-compatibility/v1' &&
+        ensure(exactKeys(envelope, ['version', 'configDigest', 'policyDigest', 'graphBytes']) && envelope.version === (staged ? 'steer-migration-compatibility/v2' : 'steer-migration-compatibility/v1') &&
           envelope.configDigest === configDigest && envelope.policyDigest === policyDigest);
         const verified = migration.verify(envelope.graphBytes, evaluationTime);
         ensure(['validated-migration-candidate', 'validated-safe-non-result', 'replay-noop'].includes(verified.state));
         const graph = parseCanonical(envelope.graphBytes), definition = parseCanonical(graph.planBytes).definition;
-        ensure(supportedVersions.some((version) => Object.entries(version).every(([field, value]) => definition[field] === value)));
+        ensure((staged ? stagedVersions : supportedVersions).some((version) => Object.entries(version).every(([field, value]) => definition[field] === value)));
         const { sourceColumn, targetColumn } = context;
         const operation = definition.phase === 'expand' ? { kind: 'add-column', column: targetColumn, defaultValue: null } :
           definition.phase === 'backfill' ? { kind: 'copy-column', sourceColumn, targetColumn } : { kind: 'drop-column', column: sourceColumn };

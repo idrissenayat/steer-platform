@@ -13,7 +13,8 @@
     { "name": "migrationDecision", "successors": [
       { "path": "intent/0062/migration-graph.candidate.mjs", "export": "createMigrationGraphVerifier", "test": "tests/r5-migration-graph.test.mjs", "scope": "original whole-second bounded transformation graph; full compatibility matrix still open" },
       { "path": "intent/0090/migration-time.candidate.mjs", "export": "createMigrationTimeVerifier", "test": "tests/r5-migration-graph.test.mjs", "scope": "explicit exact-time full single-step composition; live compatibility/checkpoints still open" },
-      { "path": "intent/0091/migration-compatibility.candidate.mjs", "export": "createMigrationCompatibilityVerifier", "test": "tests/r5-migration-graph.test.mjs", "scope": "full exact graph plus executable bounded dual-column compatibility; not live app/database concurrency" }
+      { "path": "intent/0091/migration-compatibility.candidate.mjs", "export": "createMigrationCompatibilityVerifier", "test": "tests/r5-migration-graph.test.mjs", "scope": "full exact graph plus executable bounded dual-column compatibility; not live app/database concurrency" },
+      { "path": "intent/0092/migration-chain.candidate.mjs", "export": "createMigrationChainVerifier", "test": "tests/r5-migration-graph.test.mjs", "scope": "ordered full staged graphs, exact predecessor truth, coverage and retry/replay; not durable runtime checkpointing" }
     ] },
     { "name": "recoveryDecision", "successors": [{ "path": "intent/0065/recovery-time.candidate.mjs", "export": "createRecoveryTimeVerifier", "test": "tests/r5-recovery-time.test.mjs", "scope": "four-row recovery evidence; pre-ack remains unknown" }] },
     { "name": "spendDecision", "successors": [{ "path": "intent/0064/money-time.candidate.mjs", "export": "createMoneyTimeVerifier", "test": "tests/r5-money-time.test.mjs", "scope": "spend evidence audit, not execution authority" }] },

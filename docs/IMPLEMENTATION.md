@@ -795,6 +795,15 @@ This is synchronous in-memory client behavior, not real application or database
 concurrency. Outputs explicitly retain `liveCompatibilityVerified=false` and
 zero execution. See `intent/0091/EVIDENCE.md` and `intent/0091/PLAN.md`.
 
+Item `intent/0092` composes approved ordered migration chains. Separate staged
+profiles let backfill keep its schema while expand/contract change it. Every
+attempt invokes the complete signed graph and executable client model. Exact
+predecessor bytes, observation order, complete disjoint batch coverage and immutable
+request ownership are required. Interrupted/restored prefixes stay pending;
+verified fresh retry can complete, and exact replay never advances twice. Even a
+null-valued unchanged row cannot disappear from coverage. This is not durable
+checkpointing or a live runner. See `intent/0092/EVIDENCE.md` and `PLAN.md`.
+
 ## Local commands
 
 ```sh

@@ -14,6 +14,8 @@ export const policyDigest = sha256(jcs({ version: 'steer-migration-graph/v1', ma
   providerDigest: sha256(providerBytes), model: 'bounded add/copy/drop-column; exact six-source preservation; supplied backup/restore bytes; shared authorization; zero effects' }));
 export const exactPolicyDigest = sha256(jcs({ version: 'steer-migration-graph/v2', originalPolicyDigest: policyDigest, exactTimePolicy,
   rules: 'full original composition with bigint nanosecond chronology, exact 300-second age and half-open expiry; zero execution' }));
+export const stagedPolicyDigest = sha256(jcs({ version: 'steer-migration-graph/v3', exactPolicyDigest,
+  rules: 'expand/contract change schema; backfill preserves schema; every exact-time proof and zero-execution boundary remains' }));
 const ensure = (value) => { if (!value) throw new Error('MIGRATION_GRAPH_INVALID'); };
 const text = (value) => typeof value === 'string' && value.length > 0 && value.length <= 512 && value.trim() === value && !/[\u0000-\u001f\u007f*?]/u.test(value);
 const time = (value) => { const result = strictTime(value); ensure(result !== null); return result; };
@@ -68,15 +70,18 @@ export function createMigrationGraphVerifier(configBytes) {
 export function createExactMigrationGraphVerifier(configBytes) {
   return createSelectedMigrationGraphVerifier(configBytes, true);
 }
-function createSelectedMigrationGraphVerifier(configBytes, exact) {
-  const policyDigest = exact ? exactPolicyDigest : originalPolicyDigest;
+export function createStagedMigrationGraphVerifier(configBytes) {
+  return createSelectedMigrationGraphVerifier(configBytes, true, true);
+}
+function createSelectedMigrationGraphVerifier(configBytes, exact, staged = false) {
+  const policyDigest = staged ? stagedPolicyDigest : exact ? exactPolicyDigest : originalPolicyDigest;
   const time = exact ? (value) => { const result = exactInstant(value); ensure(result !== null); return result; } : originalTime;
   const maximumAge = exact ? 300000000000n : 300000;
   let config, binding;
   try {
     ensure(typeof configBytes === 'string' && configBytes.length <= 16384); config = parseCanonical(configBytes);
     ensure(exactKeys(config, ['version', 'implementationRevision', 'repositoryId', 'installationId', 'database', 'schema', 'actorSubject', 'upstreamSubject',
-      'providerBindingId', 'approvedDefinitionDigest', 'approvedBeforeTruthDigest']) && config.version === (exact ? 'steer-migration-context/v2' : 'steer-migration-context/v1') && hex(config.implementationRevision, 40) &&
+      'providerBindingId', 'approvedDefinitionDigest', 'approvedBeforeTruthDigest']) && config.version === (staged ? 'steer-migration-context/v3' : exact ? 'steer-migration-context/v2' : 'steer-migration-context/v1') && hex(config.implementationRevision, 40) &&
       hex(config.approvedDefinitionDigest, 64) && hex(config.approvedBeforeTruthDigest, 64) &&
       ['repositoryId', 'installationId', 'database', 'schema', 'actorSubject', 'upstreamSubject', 'providerBindingId'].every((key) => text(config[key])));
     binding = providers.find((value) => value.providerBindingId === config.providerBindingId); ensure(binding && binding.tenant === 'steer-platform');
@@ -93,7 +98,7 @@ function createSelectedMigrationGraphVerifier(configBytes, exact) {
         const now = time(evaluationTime); ensure(typeof serialized === 'string' && serialized.length <= 8388608); const graph = parseCanonical(serialized);
         ensure(exactKeys(graph, ['version', 'configDigest', 'policyDigest', 'mode', 'planBytes', 'beforeTruthBytes', 'beforeProofBytes', 'backupTruthBytes', 'backupProofBytes',
           'rehearsalTruthBytes', 'rehearsalProofBytes', 'cleanupBundleBytes', 'actionBundleBytes', 'afterTruthBytes', 'afterProofBytes', 'rollbackTruthBytes', 'rollbackProofBytes', 'journalBytes', 'resultBytes']) &&
-          graph.version === (exact ? 'steer-migration-graph/v2' : 'steer-migration-graph/v1') && graph.configDigest === configDigest && graph.policyDigest === policyDigest);
+          graph.version === (staged ? 'steer-migration-graph/v3' : exact ? 'steer-migration-graph/v2' : 'steer-migration-graph/v1') && graph.configDigest === configDigest && graph.policyDigest === policyDigest);
         ensure(exactKeys(graph.mode, ['interruption', 'rollback']) && ['none', 'before-effect', 'after-effect'].includes(graph.mode.interruption) &&
           ['none', 'before-backfill', 'during-backfill', 'after-backfill'].includes(graph.mode.rollback));
         const proof = (bytes, domain, kind, fields) => {
@@ -108,7 +113,7 @@ function createSelectedMigrationGraphVerifier(configBytes, exact) {
         ensure(exactKeys(definition, ['planId', 'executionId', 'phase', 'batch', 'checkpoint', 'schemaFrom', 'schemaTo', 'oldAppVersion', 'newAppVersion', 'columns', 'dataOperations',
           'affectedTenants', 'batchRowIds', 'supportedReaders', 'supportedWriters', 'allowedRollbacks']) &&
           ['planId', 'executionId', 'batch', 'checkpoint', 'schemaFrom', 'schemaTo', 'oldAppVersion', 'newAppVersion'].every((key) => text(definition[key])) &&
-          ['expand', 'backfill', 'contract'].includes(definition.phase) && definition.schemaFrom !== definition.schemaTo && definition.oldAppVersion !== definition.newAppVersion &&
+          ['expand', 'backfill', 'contract'].includes(definition.phase) && (staged && definition.phase === 'backfill' ? definition.schemaFrom === definition.schemaTo : definition.schemaFrom !== definition.schemaTo) && definition.oldAppVersion !== definition.newAppVersion &&
           same(definition.affectedTenants, [scope.tenant]) && same(definition.supportedReaders, [definition.oldAppVersion, definition.newAppVersion]) &&
           same(definition.supportedWriters, [definition.oldAppVersion, definition.newAppVersion]) && names(definition.allowedRollbacks, 4) &&
           definition.allowedRollbacks.every((value) => ['none', 'before-backfill', 'during-backfill', 'after-backfill'].includes(value)) && definition.allowedRollbacks.includes(graph.mode.rollback));

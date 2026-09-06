@@ -1652,3 +1652,26 @@ schema versions, which cannot represent same-schema backfill batches unchanged.
 Use a distinct profile for that capability rather than weakening existing pins.
 No signature, real cleanup, provider mutation, release, deployment or spending is
 authorized. Remaining source/class/trust-era/normative and live coverage is open.
+
+## Completed development increment: 0092 — ordered migration evidence chains
+
+Separate staged profiles preserve schema during backfill and reuse complete
+signed/executable compatibility verification. The ordered chain binds exact
+predecessor before/after truth, immutable scope, approved coordinates, complete
+disjoint row coverage and request-owned action identities through replay.
+Interrupted/restored prefixes remain pending; a fresh fully verified retry can
+complete. A repeated committed observation never advances twice.
+
+All 26 migration groups pass, including seven new groups and explicit omission
+of an unchanged null-valued row, individually passing transplanted/early state,
+and cross-request replay-reservation counterexamples. Final full checks pass with
+260 root controls and 88 prototype tests; see intent/0092/EVIDENCE.md for exact
+synthetic/cached limits. Frozen artifacts remain unchanged. All five formal R5
+findings remain open; no live migration, signature or gate approval occurred.
+
+Next under intent/0092/PLAN.md is durable checkpoint/current-head/consumption
+evidence, acknowledgment loss and restart readback around the verified chain.
+Checkpoint-only observations must not create a duplicate backfill effect.
+Remaining provider crash cuts, real app/database concurrency and full normative/
+source/class/trust-era coverage stay separate. No provider mutation, real cleanup,
+release, deployment or spending is authorized. The implementation loop remains active.

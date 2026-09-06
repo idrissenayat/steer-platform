@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createHash, createPrivateKey, sign } from 'node:crypto';
-import { createMigrationGraphVerifier, policyDigest } from '../intent/0062/migration-graph.candidate.mjs';
+import { createMigrationGraphVerifier, createStagedMigrationGraphVerifier, stagedPolicyDigest as stagedMigrationPolicyDigest, policyDigest } from '../intent/0062/migration-graph.candidate.mjs';
 import { createMigrationTimeVerifier, policyDigest as exactPolicyDigest } from '../intent/0090/migration-time.candidate.mjs';
 import { exactInstant, formatExactInstant } from '../intent/0069/exact-time.candidate.mjs';
-import { createMigrationCompatibilityVerifier, modelDigest as compatibilityModelDigest, policyDigest as compatibilityPolicyDigest } from '../intent/0091/migration-compatibility.candidate.mjs';
+import { createMigrationCompatibilityVerifier, createStagedMigrationCompatibilityVerifier, stagedPolicyDigest as stagedCompatibilityPolicyDigest,
+  modelDigest as compatibilityModelDigest, policyDigest as compatibilityPolicyDigest } from '../intent/0091/migration-compatibility.candidate.mjs';
 import { createDualColumnModel } from '../intent/0091/dual-column.candidate.mjs';
+import { createMigrationChainVerifier, policyDigest as chainPolicyDigest } from '../intent/0092/migration-chain.candidate.mjs';
 import { humanAuthorityBindingDigest } from '../intent/0058/human-authority.candidate.mjs';
 import { manifestBytes, manifestDigest } from '../intent/0060/protected-actions.candidate.mjs';
 import { makeHumanAuthorityBundle, makeMigrationEvidence } from '../intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs';
@@ -25,10 +27,12 @@ const scope = { organization: 'steer-platform', tenant: 'steer-platform', reposi
 const target = { examRevision: TARGET_REVISION, examDigest: TARGET_EXAM_SHA, implementationRevision: 'e'.repeat(40), authorizationPolicyPath: AUTHORIZATION_POLICY_PATH,
   authorizationPolicyRevision: TARGET_REVISION, authorizationPolicyDigest: AUTHORIZATION_POLICY_SHA, authorizationPolicyBytes: AUTHORIZATION_POLICY_BYTES };
 function fixture(options = {}) {
-  const at = (second) => formatExactInstant(exactInstant('2026-09-04T12:00:00Z') + BigInt(second) * BigInt(options.tickNanoseconds ?? 1000000000) + BigInt(options.nanoseconds ?? 0));
-  const evaluation = options.evaluationTime ?? at(60), until = at(options.horizon ?? 180), policyDigest = options.exact ? exactPolicyDigest : originalPolicyDigest;
+  const at = (second) => formatExactInstant(exactInstant('2026-09-04T12:00:00Z') + BigInt(second) * BigInt(options.tickNanoseconds ?? 1000000000) + BigInt(options.nanoseconds ?? 0) + BigInt(options.timeOffset ?? 0) * 1000000000n);
+  const evaluation = options.evaluationTime ?? at(60), until = at(options.horizon ?? 180), policyDigest = options.staged ? stagedMigrationPolicyDigest : options.exact ? exactPolicyDigest : originalPolicyDigest;
   const phase = options.phase ?? 'expand', edits = options.edits ?? {}, edit = (key, value) => { edits[key]?.(value); return value; };
-  const schemaFrom = options.successorTuple ? 'schema-v2' : 'schema-v1', schemaTo = options.successorTuple ? 'schema-v3' : 'schema-v2';
+  const baseVersion = options.successorTuple ? 2 : 1;
+  const schemaFrom = `schema-v${baseVersion + (options.staged && phase !== 'expand' ? 1 : 0)}`,
+    schemaTo = `schema-v${baseVersion + (options.staged && phase === 'contract' ? 2 : 1)}`;
   const oldAppVersion = options.successorTuple ? 'app-v2' : 'app-v1', newAppVersion = options.successorTuple ? 'app-v3' : 'app-v2';
   const definition = { planId: 'plan-1', executionId: 'execution-1', phase, batch: 'batch-1', checkpoint: 'checkpoint-1', schemaFrom, schemaTo,
     oldAppVersion, newAppVersion, columns: [phase === 'contract' ? 'old' : 'new'],
@@ -41,7 +45,7 @@ function fixture(options = {}) {
   edit('before-data', data);
   const before = { ...Object.fromEntries(sourceFields.map((key) => [key, Buffer.from(`${key}: original e\u0301\n\0`, 'utf8').toString('base64')])), dataBytes: jcs(data) };
   const beforeTruthBytes = jcs(before);
-  const config = { version: options.exact ? 'steer-migration-context/v2' : 'steer-migration-context/v1', implementationRevision: target.implementationRevision, repositoryId: scope.repositoryId, installationId: scope.installationId,
+  const config = { version: options.staged ? 'steer-migration-context/v3' : options.exact ? 'steer-migration-context/v2' : 'steer-migration-context/v1', implementationRevision: target.implementationRevision, repositoryId: scope.repositoryId, installationId: scope.installationId,
     database: 'fixture-db', schema: 'public', actorSubject: 'service:schema-migration-runner', upstreamSubject: 'authority:migration', providerBindingId: 'fixture-provider-a-binding',
     approvedDefinitionDigest: sha256(jcs(definition)), approvedBeforeTruthDigest: sha256(beforeTruthBytes) };
   edit('config', config); const configBytes = jcs(config), configDigest = sha256(configBytes);
@@ -94,7 +98,7 @@ function fixture(options = {}) {
   if (!noEffect && !restored) {
     expected.schemaVersion = schemaTo;
     if (phase === 'expand') { expected.columns = ['new', 'old']; for (const row of expected.rows) row.values.new = null; }
-    if (phase === 'backfill') expected.rows[0].values.new = expected.rows[0].values.old;
+    if (phase === 'backfill') for (const row of expected.rows) if (definition.batchRowIds.includes(row.rowId)) row.values.new = row.values.old;
     if (phase === 'contract') { expected.columns = ['new']; for (const row of expected.rows) delete row.values.old; }
   }
   const afterTruth = edit('after-truth', { ...before, dataBytes: jcs(expected) }), afterTruthBytes = jcs(afterTruth);
@@ -111,20 +115,20 @@ function fixture(options = {}) {
   emit('reservation', { reservationId: 'reservation-1', source: 'authoritative-cas-store', requestDigest: request.recordDigest, headId: head.headId, headDigest: head.recordDigest,
     replayDigest: replay.recordDigest, expectedHead: head.head, idempotencyKey: operation.idempotencyKey, winner: !options.replay, status: options.replay ? 'already-committed' : 'reserved' }, 'cas-authority', options.replay ? 25 : 17);
   const actionBundle = edit('action-bundle', { version: 'steer-protected-action-bundle/v1', contextDigest, ...Object.fromEntries(Object.entries(records).map(([kind, record]) => [`${kind}Bytes`, jcs(record)])) });
-  const graph = edit('graph', { version: options.exact ? 'steer-migration-graph/v2' : 'steer-migration-graph/v1', ...inputs, cleanupBundleBytes, actionBundleBytes: jcs(actionBundle), afterTruthBytes, afterProofBytes: jcs(afterProof),
+  const graph = edit('graph', { version: options.staged ? 'steer-migration-graph/v3' : options.exact ? 'steer-migration-graph/v2' : 'steer-migration-graph/v1', ...inputs, cleanupBundleBytes, actionBundleBytes: jcs(actionBundle), afterTruthBytes, afterProofBytes: jcs(afterProof),
     rollbackTruthBytes, rollbackProofBytes: rollback ? jcs(rollback) : '', journalBytes: jcs(journal), resultBytes: jcs(result) });
-  return { bytes: jcs(graph), graph, config, configBytes, exact: options.exact === true, evaluationTime: evaluation,
-    verifier: (options.exact ? createMigrationTimeVerifier : createMigrationGraphVerifier)(configBytes) };
+  return { bytes: jcs(graph), graph, config, configBytes, exact: options.staged === true || options.exact === true, evaluationTime: evaluation,
+    verifier: (options.staged ? createStagedMigrationGraphVerifier : options.exact ? createMigrationTimeVerifier : createMigrationGraphVerifier)(configBytes) };
 }
 const originalPolicyDigest = policyDigest;
 const denied = (value, now = value.evaluationTime) => assert.deepEqual(value.verifier.verify(value.bytes, now), { state: 'blocked', firstError: 'MIGRATION_GRAPH_INVALID', effects: zeroEffects(), journalEffects: 0,
   ...(value.exact ? { executionAuthorized: false } : {}) });
 
 function compatibilityFixture(options = {}, edits = {}) {
-  const value = fixture({ exact: true, ...options }), context = { version: 'steer-migration-compatibility-context/v1', modelDigest: compatibilityModelDigest,
+  const value = fixture({ exact: true, ...options }), context = { version: options.staged ? 'steer-migration-compatibility-context/v2' : 'steer-migration-compatibility-context/v1', modelDigest: compatibilityModelDigest,
     migrationConfigBytes: value.configBytes, sourceColumn: 'old', targetColumn: 'new' };
-  edits.context?.(context); const contextBytes = jcs(context), verifier = createMigrationCompatibilityVerifier(contextBytes);
-  const envelope = { version: 'steer-migration-compatibility/v1', configDigest: sha256(contextBytes), policyDigest: compatibilityPolicyDigest, graphBytes: value.bytes };
+  edits.context?.(context); const contextBytes = jcs(context), verifier = (options.staged ? createStagedMigrationCompatibilityVerifier : createMigrationCompatibilityVerifier)(contextBytes);
+  const envelope = { version: options.staged ? 'steer-migration-compatibility/v2' : 'steer-migration-compatibility/v1', configDigest: sha256(contextBytes), policyDigest: options.staged ? stagedCompatibilityPolicyDigest : compatibilityPolicyDigest, graphBytes: value.bytes };
   edits.envelope?.(envelope);
   return { ...value, contextBytes, envelope, compatibilityBytes: jcs(envelope), compatibilityVerifier: verifier };
 }
@@ -132,6 +136,138 @@ function compatibilityDenied(value) {
   assert.deepEqual(value.compatibilityVerifier.verify(value.compatibilityBytes, value.evaluationTime), { state: 'blocked', firstError: 'MIGRATION_COMPATIBILITY_INVALID',
     executionAuthorized: false, effects: zeroEffects(), journalEffects: 0 });
 }
+
+function chainFixture(options = {}, edits = {}) {
+  const phases = ['expand', 'backfill', 'backfill', 'contract'], values = [], steps = [];
+  let beforeData;
+  for (const [index, phase] of phases.entries()) {
+    const label = `step-${index + 1}`, additional = options.stepEdits?.[index] ?? {};
+    const defaults = {
+      definition: (record) => { record.planId = `plan-${label}`; record.executionId = `execution-${label}`; record.batch = `batch-${label}`; record.checkpoint = `checkpoint-${label}`;
+        if (phase === 'backfill') record.batchRowIds = [`row-${index}`]; },
+      'before-data': (data) => { if (beforeData) Object.assign(data, structuredClone(beforeData)); },
+      operation: (record) => { record.requestId = `request-${label}`; record.idempotencyKey = `idem-${label}`; record.casHead = sha256(label); },
+      'action-upstream': (record) => { record.credentialId = `up-${label}`; }, 'action-downstream': (record) => { record.credentialId = `down-${label}`; },
+      'action-head': (record) => { record.headId = `head-${label}`; }, 'action-replay': (record) => { record.headId = `head-${label}`; },
+      'action-reservation': (record) => { record.reservationId = `reservation-${label}`; }, after: (record) => { record.transactionId = `transaction-${label}`; },
+    };
+    const merged = Object.fromEntries([...new Set([...Object.keys(defaults), ...Object.keys(additional)])].map((key) => [key, (record) => { defaults[key]?.(record); additional[key]?.(record); }]));
+    const value = compatibilityFixture({ staged: true, phase, successorTuple: options.successorTuple, timeOffset: options.timeOffsets?.[index] ?? index * 30, evaluationTime: at(150),
+      replay: options.replay, interruption: options.interruptionStep === index ? 'before-effect' : 'none', rollback: options.rollbackStep === index ? 'during-backfill' : 'none', edits: merged });
+    values.push(value); steps.push({ stepId: label, phase, batch: `batch-${label}`, checkpoint: `checkpoint-${label}`, compatibilityContextBytes: value.contextBytes });
+    beforeData = JSON.parse(JSON.parse(value.graph.afterTruthBytes).dataBytes);
+  }
+  const context = { version: 'steer-migration-chain-context/v1', chainId: 'migration-chain-1', initialTruthDigest: sha256(values[0].graph.beforeTruthBytes),
+    finalTruthDigest: sha256(values.at(-1).graph.afterTruthBytes), steps };
+  edits.context?.(context); const contextBytes = jcs(context), verifier = createMigrationChainVerifier(contextBytes);
+  const envelope = { version: 'steer-migration-chain/v1', configDigest: sha256(contextBytes), policyDigest: chainPolicyDigest,
+    attempts: values.map((value, index) => ({ stepId: `step-${index + 1}`, compatibilityBytes: value.compatibilityBytes })) };
+  edits.envelope?.(envelope);
+  return { values, context, contextBytes, envelope, bytes: jcs(envelope), evaluationTime: at(150), verifier };
+}
+function chainDenied(value) {
+  assert.deepEqual(value.verifier.verify(value.bytes, value.evaluationTime), { state: 'blocked', firstError: 'MIGRATION_CHAIN_INVALID', executionAuthorized: false, effects: zeroEffects(), journalEffects: 0 });
+}
+
+test('0092: staged schema profiles compose complete ordered expand, same-schema batches and safe contract', () => {
+  for (const successorTuple of [false, true]) for (const replay of [false, true]) {
+    const value = chainFixture({ successorTuple, replay });
+    for (const item of value.values) assert.equal(item.compatibilityVerifier.verify(item.compatibilityBytes, item.evaluationTime).state, 'verified-migration-model-compatibility');
+    const result = value.verifier.verify(value.bytes, value.evaluationTime);
+    assert.equal(result.state, 'verified-migration-chain'); assert.equal(result.completedStepCount, 4); assert.equal(result.requiredStepCount, 4); assert.equal(result.attemptCount, 4);
+    assert.equal(result.currentTruthDigest, value.context.finalTruthDigest); assert.equal(result.executionAuthorized, false); assert.equal(result.liveCompatibilityVerified, false);
+    assert.equal(result.factOnly, true); assert.deepEqual(result.effects, zeroEffects()); assert.equal(result.journalEffects, 0);
+  }
+});
+
+test('0092: complete prefixes and interrupted/restored batches remain pending until a separately verified retry succeeds', () => {
+  const prefix = chainFixture({}, { envelope: (envelope) => { envelope.attempts = envelope.attempts.slice(0, 2); } });
+  let result = prefix.verifier.verify(prefix.bytes, prefix.evaluationTime);
+  assert.equal(result.state, 'verified-migration-chain-pending'); assert.equal(result.completedStepCount, 2); assert.equal(result.requiredStepCount, 4);
+  for (const failure of ['interruptionStep', 'rollbackStep']) {
+    const failed = chainFixture({ [failure]: 1, timeOffsets: [0, 30, 90, 120], stepEdits: { 1: {
+      operation: (record) => { record.requestId = 'failed-request'; record.idempotencyKey = 'failed-idem'; record.casHead = sha256('failed-head'); },
+      'action-upstream': (record) => { record.credentialId = 'failed-up'; }, 'action-downstream': (record) => { record.credentialId = 'failed-down'; },
+      'action-head': (record) => { record.headId = 'failed-head'; }, 'action-replay': (record) => { record.headId = 'failed-head'; },
+      'action-reservation': (record) => { record.reservationId = 'failed-reservation'; }, after: (record) => { record.transactionId = 'failed-transaction'; },
+    } } });
+    const complete = chainFixture({ timeOffsets: [0, 60, 90, 120] });
+    assert.equal(failed.values[1].contextBytes, complete.values[1].contextBytes);
+    const attempts = [complete.envelope.attempts[0], failed.envelope.attempts[1], ...complete.envelope.attempts.slice(1)];
+    result = complete.verifier.verify(jcs({ ...complete.envelope, attempts: attempts.slice(0, 2) }), complete.evaluationTime);
+    assert.equal(result.state, 'verified-migration-chain-pending'); assert.equal(result.completedStepCount, 1);
+    result = complete.verifier.verify(jcs({ ...complete.envelope, attempts }), complete.evaluationTime);
+    assert.equal(result.state, 'verified-migration-chain'); assert.equal(result.completedStepCount, 4); assert.equal(result.attemptCount, 5); assert.equal(result.executionAuthorized, false);
+  }
+});
+
+test('0092: exact committed replay cannot repeat a first effect, change immutable evidence or alter chain progress', () => {
+  const replay = chainFixture({ replay: true }, { envelope: (envelope) => { envelope.attempts.push(envelope.attempts.at(-1)); } });
+  const result = replay.verifier.verify(replay.bytes, replay.evaluationTime);
+  assert.equal(result.state, 'verified-migration-chain'); assert.equal(result.completedStepCount, 4); assert.equal(result.replayCount, 1); assert.equal(result.attemptCount, 5);
+  chainDenied(chainFixture({}, { envelope: (envelope) => { envelope.attempts.push(envelope.attempts.at(-1)); } }));
+  chainDenied(chainFixture({ replay: true }, { envelope: (envelope) => {
+    const attempt = structuredClone(envelope.attempts.at(-1)), compatibility = JSON.parse(attempt.compatibilityBytes), graph = JSON.parse(compatibility.graphBytes);
+    graph.afterTruthBytes += ' '; compatibility.graphBytes = jcs(graph); attempt.compatibilityBytes = jcs(compatibility); envelope.attempts.push(attempt);
+  } }));
+  const source = chainFixture({ replay: true }), aliased = chainFixture({ replay: true, stepEdits: { 3: { 'action-reservation': (record) => { record.reservationId = 'reservation-step-1'; } } } });
+  assert.equal(aliased.values[3].compatibilityVerifier.verify(aliased.values[3].compatibilityBytes, aliased.evaluationTime).state, 'verified-migration-model-compatibility');
+  chainDenied({ ...source, bytes: jcs({ ...source.envelope, attempts: [...source.envelope.attempts, aliased.envelope.attempts[3]] }) });
+});
+
+test('0092: exact predecessor bytes and availability order cannot be replaced by independently passing step labels', () => {
+  const transplant = chainFixture({ stepEdits: { 1: { 'before-data': (data) => { data.rows[0].values.old = 'transplanted'; } } } });
+  for (const item of transplant.values) assert.equal(item.compatibilityVerifier.verify(item.compatibilityBytes, item.evaluationTime).state, 'verified-migration-model-compatibility');
+  chainDenied(transplant);
+  const premature = chainFixture({ timeOffsets: [0, 10, 60, 90] });
+  for (const item of premature.values) assert.equal(item.compatibilityVerifier.verify(item.compatibilityBytes, item.evaluationTime).state, 'verified-migration-model-compatibility');
+  chainDenied(premature);
+  for (const mutate of [(envelope) => envelope.attempts.splice(1, 1), (envelope) => envelope.attempts.reverse(),
+    (envelope) => { envelope.attempts[1].stepId = envelope.attempts[0].stepId; }]) chainDenied(chainFixture({}, { envelope: mutate }));
+});
+
+test('0092: full backfill partition and first-use action identities are mandatory across all approved steps', () => {
+  const repeated = chainFixture({ stepEdits: { 2: { definition: (record) => { record.batchRowIds = ['row-1']; } } } }, { envelope: (envelope) => { envelope.attempts.pop(); } });
+  for (const item of repeated.values.slice(0, 3)) assert.equal(item.compatibilityVerifier.verify(item.compatibilityBytes, item.evaluationTime).state, 'verified-migration-model-compatibility');
+  chainDenied(repeated);
+  const omittedNullRow = chainFixture({ stepEdits: { 0: { 'before-data': (data) => { data.rows[1].values.old = null; } } } }, {
+    context: (context) => { context.steps.splice(2, 1); }, envelope: (envelope) => { envelope.attempts.splice(2, 1); },
+  });
+  for (const item of omittedNullRow.values) assert.equal(item.compatibilityVerifier.verify(item.compatibilityBytes, item.evaluationTime).state, 'verified-migration-model-compatibility');
+  assert.equal(omittedNullRow.values[1].graph.afterTruthBytes, omittedNullRow.values[3].graph.beforeTruthBytes);
+  chainDenied(omittedNullRow);
+  for (const [key, field, reused] of [['operation', 'requestId', 'request-step-1'], ['operation', 'idempotencyKey', 'idem-step-1'],
+    ['action-upstream', 'credentialId', 'up-step-1'], ['action-downstream', 'credentialId', 'down-step-1'],
+    ['action-reservation', 'reservationId', 'reservation-step-1'], ['after', 'transactionId', 'transaction-step-1']])
+    chainDenied(chainFixture({ stepEdits: { 1: { [key]: (record) => { record[field] = reused; } } } }));
+});
+
+test('0092: approved chain pins, scope, coordinates, full proof records and explicit observation cannot be omitted', () => {
+  for (const field of ['initialTruthDigest', 'finalTruthDigest']) chainDenied(chainFixture({}, { context: (context) => { context[field] = 'f'.repeat(64); } }));
+  for (const mutate of [(context) => { context.steps[1].stepId = context.steps[0].stepId; }, (context) => { context.steps[1].phase = 'expand'; },
+    (context) => { context.steps[1].batch = context.steps[0].batch; context.steps[1].checkpoint = context.steps[0].checkpoint; },
+    (context) => { context.extra = true; }, (context) => { context.steps = context.steps.slice(0, 2); },
+    (context) => { const compatibility = JSON.parse(context.steps[1].compatibilityContextBytes), config = JSON.parse(compatibility.migrationConfigBytes);
+      config.database = 'other-db'; compatibility.migrationConfigBytes = jcs(config); context.steps[1].compatibilityContextBytes = jcs(compatibility); }])
+    assert.throws(() => chainFixture({}, { context: mutate }), /MIGRATION_CHAIN_CONFIGURATION_INVALID/);
+  for (const field of ['planBytes', 'actionBundleBytes', 'afterProofBytes', 'journalBytes', 'resultBytes'])
+    chainDenied(chainFixture({ stepEdits: { 2: { graph: (graph) => { graph[field] = '{}'; } } } }));
+  const value = chainFixture(); assert.equal(value.verifier.verify(value.bytes).state, 'blocked'); assert.equal(value.verifier.verify(value.bytes, at(180)).state, 'blocked');
+  chainDenied(chainFixture({ replay: true }, { envelope: (envelope) => { while (envelope.attempts.length < 65) envelope.attempts.push(envelope.attempts.at(-1)); } }));
+  chainDenied(chainFixture({}, { envelope: (envelope) => { envelope.attempts = []; } }));
+  assert.throws(() => chainFixture({}, { context: (context) => { context.steps = Array.from({ length: 17 }, () => context.steps[0]); } }), /MIGRATION_CHAIN_CONFIGURATION_INVALID/);
+});
+
+test('0092: staged schema semantics cannot downgrade old profiles or change schema during a backfill batch', () => {
+  const batch = compatibilityFixture({ staged: true, phase: 'backfill' });
+  assert.equal(batch.compatibilityVerifier.verify(batch.compatibilityBytes, batch.evaluationTime).state, 'verified-migration-model-compatibility');
+  assert.throws(() => createMigrationTimeVerifier(batch.configBytes), /MIGRATION_CONFIGURATION_INVALID/);
+  assert.throws(() => createMigrationCompatibilityVerifier(batch.contextBytes), /MIGRATION_COMPATIBILITY_CONFIGURATION_INVALID/);
+  const wrong = compatibilityFixture({ staged: true, phase: 'backfill', edits: { definition: (record) => { record.schemaTo = 'schema-v3'; } } }); compatibilityDenied(wrong);
+  const original = compatibilityFixture({ phase: 'backfill' });
+  assert.throws(() => createStagedMigrationGraphVerifier(original.configBytes), /MIGRATION_CONFIGURATION_INVALID/);
+  assert.throws(() => createStagedMigrationCompatibilityVerifier(original.contextBytes), /MIGRATION_COMPATIBILITY_CONFIGURATION_INVALID/);
+});
 
 test('0091: complete signed migration runs every bounded old/new interleaving on both actual states', () => {
   for (const successorTuple of [false, true]) for (const phase of ['expand', 'backfill', 'contract']) for (const replay of [false, true]) for (const interruption of ['none', 'before-effect', 'after-effect']) {

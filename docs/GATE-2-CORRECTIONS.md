@@ -8,7 +8,7 @@ independent Critic verdict, protected Exam incorporation or a human signature.
 |---|---|---|
 | R5-001 lifecycle | 0059/0058/0060 composed in 0061; 0068 retention; 0070/0071 precision/ordering; 0072–0077 raw grant/batch/checkpoint/terminal evidence; 0078–0084 four-class future/mixed history and qualified current/archival hold evidence; 0085–0089 full referenced-evidence candidate composition | Real store/transport/trust integration; remaining class/trust-era coverage, unranked ties/auxiliary times and normative matrix; independent/protected review |
 | R5-002 full authority/time | 0058–0067 cover all ten original signed public oracles; 0069/0070 exact primitives/contracts; 0079/0082–0085 complete current/archival owner and distinct reference profiles; 0090 full exact migration timing; source/export/test inventory in 0067 | Other public precision paths; full normative review; later trust eras and runtime clocks; independent review |
-| R5-003 migration | 0062 composes all three shared actions with approved plan/before-state pins, actual bounded data/source bytes, backup/restoration, full contract cleanup, provider/journal/result and replay/CAS; 0090 exact time; 0091 executable bounded dual-column client compatibility and preservation | Real old/new/concurrent compatibility, full multi-batch/checkpoint/crash-cut matrix and normative inventory; independent/protected review; no live runner claimed |
+| R5-003 migration | 0062 complete signed/shared-action graph; 0090 exact time; 0091 executable bounded client compatibility; 0092 staged full-graph chains, exact predecessor truth/coverage and pending/retry/replay | Durable checkpoint/current-head/acknowledgment-loss and remaining crash cuts; real old/new/concurrent compatibility; normative inventory; independent/protected review; no live runner claimed |
 | R5-004 reconciliation | 0057 exact plural lineage and aggregate-before-rounding; 0063 explicit-time composition of every line/provider proof and exact independent observation | Independent review of complete package and legacy observation semantics; protected incorporation; no spending authorization |
 | R5-005 Unicode phone | 0056 pinned Unicode 17 graph correction; 0063 explicit-time composition, exact observation and current source/use expiry | Independent review of complete package and legacy observation semantics; protected incorporation; no production corpus use |
 
@@ -68,11 +68,16 @@ outcomes through a pinned dual-column model over both complete supplied states.
 It rejects stale mirrors and logical loss on contract; it does not establish
 real application binaries, live database concurrency or multi-step continuity.
 
+0092 composes complete staged evidence in an approved order, with schema-preserving
+backfill, exact predecessor bytes, full row coverage and cross-request identity
+ownership. Pending/interrupted/restored steps require full retry; exact replay
+cannot advance twice. Chain-level durable checkpoint/CAS is still not established.
+
 Next bounded work is reconciliation of the remaining source/class/trust-era matrix,
 remaining classes and migration compatibility/concurrency/checkpoint coverage and complete
 normative inventory. Do not extend frozen key windows merely to make historical
 or future-retention tests pass; resolve archival versus current authority explicitly.
-0061–0091 are development candidates and verification increments,
+0061–0092 are development candidates and verification increments,
 not proof of complete retention-key coverage, live compatibility or atomic execution.
 Preserve the frozen send-back package. Do not request a new qualified-human ruling
 until the complete corrected candidate is independently accepted and incorporated
@@ -84,4 +89,4 @@ production/provider mutation, deletion, release, deployment, protected edit or
 signature is authorized by this ledger. No credential handoff is pending here.
 
 Sources: intent/0001/reviews/domain/round-3/remediation/CYCLE-DISPOSITION.md,
-preflight-critic-r5.json in that same frozen directory, and intent/0056–0091.
+preflight-critic-r5.json in that same frozen directory, and intent/0056–0092.
