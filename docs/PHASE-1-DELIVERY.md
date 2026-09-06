@@ -1675,3 +1675,25 @@ Checkpoint-only observations must not create a duplicate backfill effect.
 Remaining provider crash cuts, real app/database concurrency and full normative/
 source/class/trust-era coverage stay separate. No provider mutation, real cleanup,
 release, deployment or spending is authorized. The implementation loop remains active.
+
+## Completed development increment: 0093 — checkpoint-slot readback evidence
+
+One independently selected migration checkpoint slot now composes full original
+and current chain verification with twelve signed opening, checkpoint/retention,
+terminal, delivery and current readback records. Lost acknowledgment still needs
+terminal commit and fresh readback. Current checks cannot revive expired plan or
+human evidence; original signed bytes remain unchanged. Readback emits no new
+migration/checkpoint effect and no resume authority.
+
+Seven new groups and final full checks pass: 267 root controls, 88 prototype tests
+and all 33 migration groups. See intent/0093/EVIDENCE.md for synthetic/cached limits.
+Frozen artifacts remain unchanged; all five formal R5 findings remain open.
+No real persistence, provider request, migration, signature or gate approval occurred.
+
+Next under intent/0093/PLAN.md is successive checkpoint/head linkage and exact
+chain-prefix extension, not another first-slot commit. Preserve retained contract
+human audit-clock scalars in original bytes while supporting later current-time
+verification; never rewrite native signed times or omit failed contract attempts.
+Chain-wide latest-head resolution, real durable storage/restart, remaining crash
+cuts and normative/source/class/trust-era coverage remain open. No resumed action,
+provider mutation, cleanup, release, deployment or spending is authorized.

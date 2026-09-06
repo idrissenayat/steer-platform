@@ -804,6 +804,15 @@ verified fresh retry can complete, and exact replay never advances twice. Even a
 null-valued unchanged row cannot disappear from coverage. This is not durable
 checkpointing or a live runner. See `intent/0092/EVIDENCE.md` and `PLAN.md`.
 
+Item `intent/0093` verifies one selected migration checkpoint slot using complete
+original/current chain evidence and twelve signed opening, checkpoint/retention,
+terminal, transport and current readback records. Lost acknowledgment does not
+waive terminal commit or fresh readback. Expired plan/human evidence is not revived;
+only unsigned audit clocks change in a temporary view, with original signed bytes
+preserved. Outputs deny execution and resume authority. This is synthetic source
+evidence, not a real durable store or chain-wide latest-head resolver. See
+`intent/0093/EVIDENCE.md` and `PLAN.md` for checks and remaining work.
+
 ## Local commands
 
 ```sh

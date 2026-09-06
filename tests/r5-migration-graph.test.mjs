@@ -8,6 +8,7 @@ import { createMigrationCompatibilityVerifier, createStagedMigrationCompatibilit
   modelDigest as compatibilityModelDigest, policyDigest as compatibilityPolicyDigest } from '../intent/0091/migration-compatibility.candidate.mjs';
 import { createDualColumnModel } from '../intent/0091/dual-column.candidate.mjs';
 import { createMigrationChainVerifier, policyDigest as chainPolicyDigest } from '../intent/0092/migration-chain.candidate.mjs';
+import { createMigrationCheckpointVerifier, policyDigest as checkpointPolicyDigest } from '../intent/0093/migration-checkpoint.candidate.mjs';
 import { humanAuthorityBindingDigest } from '../intent/0058/human-authority.candidate.mjs';
 import { manifestBytes, manifestDigest } from '../intent/0060/protected-actions.candidate.mjs';
 import { makeHumanAuthorityBundle, makeMigrationEvidence } from '../intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs';
@@ -168,6 +169,140 @@ function chainFixture(options = {}, edits = {}) {
 function chainDenied(value) {
   assert.deepEqual(value.verifier.verify(value.bytes, value.evaluationTime), { state: 'blocked', firstError: 'MIGRATION_CHAIN_INVALID', executionAuthorized: false, effects: zeroEffects(), journalEffects: 0 });
 }
+
+function checkpointFixture(options = {}, edits = {}) {
+  const source = chainFixture({ ...options.chainOptions, replay: options.replay }, { envelope: (envelope) => { if (options.prefix) envelope.attempts = envelope.attempts.slice(0, options.prefix); } });
+  const original = source.verifier.verify(source.bytes, source.evaluationTime);
+  assert.ok(['verified-migration-chain', 'verified-migration-chain-pending'].includes(original.state));
+  const edit = (label, record) => { edits[label]?.(record); return record; };
+  const context = edit('context', { version: 'steer-migration-checkpoint-context/v1', chainContextBytes: source.contextBytes, checkpointId: 'checkpoint-1',
+    idempotencyKey: 'checkpoint-command-1', headId: 'checkpoint-head-1', storeId: 'fixture-migration-store', objectKey: 'checkpoints/chain-1.json' });
+  const contextBytes = jcs(context), configDigest = sha256(contextBytes), observedAt = source.evaluationTime, chainDigest = sha256(source.bytes);
+  const requestDigest = sha256(jcs({ configDigest, policyDigest: checkpointPolicyDigest, chainDigest, observedAt }));
+  const emit = (label, domain, fields, second, sourceName = 'authoritative-migration-checkpoint-cas') => seal(edit(label, {
+    kind: `migration-checkpoint-${label}`, source: sourceName, configDigest, requestDigest, recordedAt: at(second), validThrough: at(180), ...fields,
+  }), options.domains?.[label] ?? domain);
+  let checkpoint, retention;
+  function store(phase, previous, second) {
+    const opening = phase === 'opening', current = phase === 'current';
+    const head = emit(`${phase}-head`, 'cas-authority', { headId: context.headId, head: sha256(opening ? 'opening-head' : 'terminal-head'),
+      previousHead: sha256(opening ? 'prior-head' : 'opening-head'), sequence: opening ? 4 : 5,
+      checkpointDigest: opening ? null : checkpoint.recordDigest, retentionDigest: opening ? null : retention.recordDigest }, second);
+    const replay = emit(`${phase}-replay`, 'replay-authority', { headDigest: head.recordDigest, idempotencyKey: context.idempotencyKey,
+      status: opening ? 'unused' : 'committed', resultDigest: opening ? null : checkpoint.recordDigest }, second + 1);
+    const reservation = emit(`${phase}-reservation`, 'cas-authority', { reservationId: `checkpoint-${phase}-reservation`, headDigest: head.recordDigest,
+      replayDigest: replay.recordDigest, previousReservationDigest: previous?.reservation.recordDigest ?? null,
+      status: opening ? 'reserved' : current ? 'already-committed' : 'committed', winner: !current }, second + 2);
+    return { head, replay, reservation, bytes: jcs(edit(`${phase}-store`, { headBytes: jcs(head), replayBytes: jcs(replay), reservationBytes: jcs(reservation) })) };
+  }
+  const opening = store('opening', null, 150);
+  checkpoint = emit('checkpoint', 'record', { kind: 'migration-checkpoint', chainConfigDigest: source.verifier.configDigest, checkpointId: context.checkpointId,
+    chainDigest, chainEvidenceDigest: original.evidenceDigest, observedAt, currentTruthDigest: original.currentTruthDigest, completedStepCount: original.completedStepCount,
+    requiredStepCount: original.requiredStepCount, attemptCount: original.attemptCount, replayCount: original.replayCount,
+    nextStepId: source.context.steps[original.completedStepCount]?.stepId ?? null, status: original.state === 'verified-migration-chain' ? 'complete' : 'pending',
+    openingReservationDigest: opening.reservation.recordDigest }, 153, 'authoritative-migration-checkpoint-store');
+  retention = emit('retention', 'provider', { checkpointDigest: checkpoint.recordDigest, retainedBytesDigest: chainDigest,
+    storeId: context.storeId, objectKey: context.objectKey, objectVersion: 'version-1', complete: true }, 154, 'authoritative-migration-checkpoint-storage');
+  const terminal = store('terminal', opening, 155);
+  const delivery = emit('delivery', 'recovery-provider', { checkpointDigest: checkpoint.recordDigest, terminalReservationDigest: terminal.reservation.recordDigest,
+    outcome: options.delivery ?? 'acknowledgment-lost' }, 158, 'authoritative-migration-checkpoint-transport');
+  const current = store('current', terminal, 160);
+  const envelope = edit('envelope', { version: 'steer-migration-checkpoint/v1', configDigest, policyDigest: checkpointPolicyDigest, chainBytes: source.bytes, observedAt,
+    openingStoreBytes: opening.bytes, checkpointBytes: jcs(checkpoint), retentionBytes: jcs(retention), terminalStoreBytes: terminal.bytes, deliveryBytes: jcs(delivery), currentStoreBytes: current.bytes });
+  return { source, contextBytes, envelope, bytes: jcs(envelope), evaluationTime: at(170), verifier: createMigrationCheckpointVerifier(contextBytes) };
+}
+function checkpointDenied(value, now = value.evaluationTime) {
+  assert.deepEqual(value.verifier.verify(value.bytes, now), { state: 'blocked', firstError: 'MIGRATION_CHECKPOINT_INVALID', executionAuthorized: false,
+    resumeAuthorized: false, effects: zeroEffects(), journalEffects: 0 });
+}
+
+test('0093: exact persisted checkpoint and current readback verify after lost or delivered acknowledgment without another effect', () => {
+  for (const prefix of [2, 4]) for (const delivery of ['delivered', 'acknowledgment-lost']) for (const replay of [false, true]) {
+    const value = checkpointFixture({ prefix, delivery, replay }), originalBytes = value.bytes, result = value.verifier.verify(value.bytes, value.evaluationTime);
+    assert.equal(result.state, 'verified-migration-checkpoint-readback'); assert.equal(result.decision, 'REPLAY_NOOP'); assert.equal(result.deliveryOutcome, delivery);
+    assert.equal(result.completedStepCount, prefix); assert.equal(result.nextStepId, prefix === 4 ? null : 'step-3'); assert.equal(result.status, prefix === 4 ? 'complete' : 'pending');
+    assert.equal(result.executionAuthorized, false); assert.equal(result.resumeAuthorized, false); assert.deepEqual(result.effects, zeroEffects()); assert.equal(result.journalEffects, 0);
+    assert.equal(result.chainDigest, sha256(value.source.bytes)); assert.equal(value.bytes, originalBytes); assert.equal(result.observedAt, at(150)); assert.equal(result.evaluatedAt, at(170));
+    assert.deepEqual(value.verifier.verify(value.bytes, value.evaluationTime), result);
+  }
+});
+
+test('0093: all twelve independent checkpoint/store/delivery records are required and signature-verified', () => {
+  const locations = [['checkpointBytes'], ['retentionBytes'], ['deliveryBytes'], ...['openingStoreBytes', 'terminalStoreBytes', 'currentStoreBytes']
+    .flatMap((store) => ['headBytes', 'replayBytes', 'reservationBytes'].map((field) => [store, field]))];
+  for (const [outer, inner] of locations) for (const forge of [false, true]) {
+    const value = checkpointFixture({}, { envelope: (envelope) => {
+      const container = inner ? JSON.parse(envelope[outer]) : envelope, field = inner ?? outer;
+      if (forge) { const record = JSON.parse(container[field]); record.signature.valueBase64 = Buffer.alloc(64).toString('base64'); container[field] = jcs(record); }
+      else container[field] = '{}';
+      if (inner) envelope[outer] = jcs(container);
+    } }); checkpointDenied(value);
+  }
+  for (const label of ['checkpoint', 'retention', 'delivery', 'opening-head', 'opening-replay', 'opening-reservation', 'terminal-head', 'terminal-replay', 'terminal-reservation', 'current-head', 'current-replay', 'current-reservation'])
+    checkpointDenied(checkpointFixture({ domains: { [label]: label === 'retention' ? 'record' : 'provider' } }));
+});
+
+test('0093: checkpoint progress and retained object identity derive from exact verified chain bytes', () => {
+  for (const [label, field, replacement] of [
+    ['checkpoint', 'chainDigest', 'f'.repeat(64)], ['checkpoint', 'chainEvidenceDigest', 'f'.repeat(64)], ['checkpoint', 'chainConfigDigest', 'f'.repeat(64)],
+    ['checkpoint', 'completedStepCount', 3], ['checkpoint', 'requiredStepCount', 5], ['checkpoint', 'attemptCount', 5], ['checkpoint', 'replayCount', 1],
+    ['checkpoint', 'currentTruthDigest', 'f'.repeat(64)], ['checkpoint', 'nextStepId', 'step-1'], ['checkpoint', 'status', 'pending'],
+    ['checkpoint', 'checkpointId', 'other'], ['checkpoint', 'openingReservationDigest', 'f'.repeat(64)],
+    ['retention', 'retainedBytesDigest', 'f'.repeat(64)], ['retention', 'complete', false], ['retention', 'storeId', 'other-store'],
+    ['retention', 'objectKey', 'other-object'], ['retention', 'objectVersion', ''],
+  ]) checkpointDenied(checkpointFixture({}, { [label]: (record) => { record[field] = replacement; } }));
+  checkpointDenied(checkpointFixture({ prefix: 2 }, { checkpoint: (record) => { record.status = 'complete'; record.nextStepId = null; } }));
+});
+
+test('0093: winning opening, exact terminal consumption and effect-free current CAS lineage cannot diverge', () => {
+  for (const [label, field, replacement] of [
+    ['opening-reservation', 'winner', false], ['opening-replay', 'status', 'committed'], ['opening-head', 'checkpointDigest', 'f'.repeat(64)],
+    ['terminal-head', 'previousHead', 'f'.repeat(64)], ['terminal-head', 'sequence', 6], ['terminal-head', 'retentionDigest', 'f'.repeat(64)],
+    ['terminal-reservation', 'status', 'reserved'], ['terminal-reservation', 'winner', false], ['terminal-reservation', 'previousReservationDigest', 'f'.repeat(64)],
+    ['current-head', 'head', 'f'.repeat(64)], ['current-head', 'sequence', 6], ['current-head', 'headId', 'other-head'],
+    ['current-replay', 'resultDigest', 'f'.repeat(64)], ['current-replay', 'idempotencyKey', 'other-key'], ['current-replay', 'status', 'unused'],
+    ['current-reservation', 'status', 'committed'], ['current-reservation', 'winner', true], ['current-reservation', 'previousReservationDigest', 'f'.repeat(64)],
+    ['current-reservation', 'reservationId', 'checkpoint-opening-reservation'],
+  ]) checkpointDenied(checkpointFixture({}, { [label]: (record) => { record[field] = replacement; } }));
+});
+
+test('0093: acknowledgment loss requires terminal commit, independent transport evidence and later readback', () => {
+  for (const [label, field, replacement] of [
+    ['delivery', 'outcome', 'unknown'], ['delivery', 'source', 'caller-delivery-claim'], ['delivery', 'terminalReservationDigest', 'f'.repeat(64)],
+    ['delivery', 'checkpointDigest', 'f'.repeat(64)], ['delivery', 'recordedAt', '2026-09-04T12:02:36.999999999Z'],
+    ['current-head', 'recordedAt', '2026-09-04T12:02:37.999999999Z'],
+  ]) checkpointDenied(checkpointFixture({}, { [label]: (record) => { record[field] = replacement; } }));
+  checkpointDenied(checkpointFixture({}, { envelope: (record) => { record.acknowledgmentLost = true; } }));
+});
+
+test('0093: current revalidation never revives expired owner/plan evidence or rounds checkpoint chronology', () => {
+  for (const [step, label, field] of [[0, 'plan', 'validThrough'], [3, 'human', 'expiresAt']]) {
+    const value = checkpointFixture({ chainOptions: { stepEdits: { [step]: { [label]: (record) => { record[field] = at(165); } } } } });
+    assert.equal(value.source.verifier.verify(value.source.bytes, value.source.evaluationTime).state, 'verified-migration-chain'); checkpointDenied(value);
+  }
+  for (const [label, field, replacement] of [
+    ['checkpoint', 'recordedAt', at(152)], ['retention', 'recordedAt', '2026-09-04T12:02:32.999999999Z'],
+    ['terminal-head', 'recordedAt', '2026-09-04T12:02:33.999999999Z'], ['current-reservation', 'validThrough', at(170)],
+    ['checkpoint', 'validThrough', at(454)],
+  ]) checkpointDenied(checkpointFixture({}, { [label]: (record) => { record[field] = replacement; } }));
+  const value = checkpointFixture(); checkpointDenied(value, at(180));
+  for (const now of [undefined, null, '', '2026-09-04T12:02:50.000Z', at(149)]) assert.equal(value.verifier.verify(value.bytes, now).state, 'blocked');
+});
+
+test('0093: original signed bytes, trusted scope and closed envelopes cannot be substituted during clock refresh', () => {
+  for (const mutate of [(context) => { context.objectKey = '../checkpoint'; }, (context) => { context.objectKey = '/checkpoint'; },
+    (context) => { context.objectKey = 'a\\checkpoint'; }, (context) => { context.chainContextBytes = '{}'; },
+    (context) => { context.extra = true; }, (context) => { context.checkpointId = '*'; }])
+    assert.throws(() => checkpointFixture({}, { context: mutate }), /MIGRATION_CHECKPOINT_CONFIGURATION_INVALID/);
+  assert.throws(() => createMigrationCheckpointVerifier('x'.repeat(1048577)), /MIGRATION_CHECKPOINT_CONFIGURATION_INVALID/);
+  for (const [field, replacement] of [['observedAt', at(149)], ['chainBytes', '{}'], ['configDigest', 'f'.repeat(64)], ['policyDigest', 'f'.repeat(64)], ['version', 'steer-migration-checkpoint/v0']])
+    checkpointDenied(checkpointFixture({}, { envelope: (record) => { record[field] = replacement; } }));
+  checkpointDenied(checkpointFixture({}, { envelope: (record) => {
+    const chain = JSON.parse(record.chainBytes), last = chain.attempts.at(-1), compatibility = JSON.parse(last.compatibilityBytes), graph = JSON.parse(compatibility.graphBytes), bundle = JSON.parse(graph.cleanupBundleBytes);
+    const authority = JSON.parse(bundle.authorityBytes); authority.signature.valueBase64 = Buffer.alloc(64).toString('base64'); bundle.authorityBytes = jcs(authority);
+    graph.cleanupBundleBytes = jcs(bundle); compatibility.graphBytes = jcs(graph); last.compatibilityBytes = jcs(compatibility); record.chainBytes = jcs(chain);
+  } }));
+});
 
 test('0092: staged schema profiles compose complete ordered expand, same-schema batches and safe contract', () => {
   for (const successorTuple of [false, true]) for (const replay of [false, true]) {
