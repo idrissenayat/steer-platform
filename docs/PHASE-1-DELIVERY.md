@@ -1697,3 +1697,27 @@ verification; never rewrite native signed times or omit failed contract attempts
 Chain-wide latest-head resolution, real durable storage/restart, remaining crash
 cuts and normative/source/class/trust-era coverage remain open. No resumed action,
 provider mutation, cleanup, release, deployment or spending is authorized.
+
+## Completed development increment: 0094 — current retained-prefix audit
+
+Explicit read-only current observation now verifies retained staged graphs and
+chains with different unsigned contract-human audit clocks, while preserving
+original graph/prefix bytes and evidence seals. Every signed native/current proof
+and executable model check still runs. The new chain mode also gives one-request
+ownership to contract authority/provider/idempotency/reservation/head identities.
+Original factories and input policies remain unchanged; a separate observation
+policy identifies the current audit, which does not prove original-as-of observation.
+
+Four new groups and final full checks pass: 271 root controls, 88 prototype tests
+and all 37 migration groups. Retained failed contracts plus fresh retries pass;
+expired proof, reused decision identity, forged/missing evidence and changed
+original replay bytes fail. See intent/0094/EVIDENCE.md for synthetic/cached limits.
+Frozen artifacts are unchanged. All five formal R5 findings remain open.
+
+Next under intent/0094/PLAN.md is full successive checkpoint/head/prefix linkage,
+explicitly binding the current observation policy in its source/checkpoint records.
+Verify the full prior checkpoint/current head and strict immutable attempt-prefix
+extension; no checkpoint-only observation may duplicate a migration effect or
+authorize resumed work. Real storage/restart and remaining crash-cut, normative,
+source/class/trust-era coverage remain open. No signature, provider mutation,
+cleanup, release, deployment or spending is authorized. The loop remains active.

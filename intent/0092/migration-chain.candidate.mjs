@@ -2,13 +2,22 @@
 import { exactKeys, hex, jcs, parseCanonical, sha256, zeroEffects } from '../0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
 import { exactInstant } from '../0069/exact-time.candidate.mjs';
 import { createStagedMigrationCompatibilityVerifier, stagedPolicyDigest } from '../0091/migration-compatibility.candidate.mjs';
+import { createCurrentMigrationObservationVerifier, policyDigest as currentObservationPolicy } from '../0094/migration-observation.candidate.mjs';
 export const policyDigest = sha256(jcs({ version: 'steer-migration-chain/v1', stagedPolicyDigest,
   rules: 'approved ordered expand/backfill/contract inventory; exact predecessor truth, full proof/model per attempt; complete disjoint backfill; unique first identities; byte-bound replay; pending is not completed' }));
+export const observationPolicyDigest = sha256(jcs({ version: 'steer-migration-chain-current-observation/v1', originalPolicyDigest: policyDigest, currentObservationPolicy,
+  rules: 'current signatures/model checked without rewriting original chain bytes; exact replay compares original immutable bytes; contract human identities owned by one request' }));
 const ensure = (value) => { if (!value) throw new Error('MIGRATION_CHAIN_INVALID'); };
 const text = (value) => typeof value === 'string' && value.length > 0 && value.length <= 512 && value.trim() === value && !/[\u0000-\u001f\u007f*?]/u.test(value);
 const bounded = (value, maximum) => typeof value === 'string' && Buffer.byteLength(value, 'utf8') <= maximum;
 const time = (value) => { const result = exactInstant(value); ensure(result !== null); return result; };
 export function createMigrationChainVerifier(contextBytes) {
+  return createSelectedChainVerifier(contextBytes, false);
+}
+export function createCurrentMigrationChainVerifier(contextBytes) {
+  return createSelectedChainVerifier(contextBytes, true);
+}
+function createSelectedChainVerifier(contextBytes, currentObservation) {
   let context, selected;
   try {
     ensure(bounded(contextBytes, 524288)); context = parseCanonical(contextBytes);
@@ -19,7 +28,7 @@ export function createMigrationChainVerifier(contextBytes) {
       ensure(exactKeys(step, ['stepId', 'phase', 'batch', 'checkpoint', 'compatibilityContextBytes']) && ['stepId', 'batch', 'checkpoint'].every((key) => text(step[key])) &&
         step.phase === (index === 0 ? 'expand' : index === context.steps.length - 1 ? 'contract' : 'backfill') && !ids.has(step.stepId)); ids.add(step.stepId);
       const coordinate = jcs([step.batch, step.checkpoint]); ensure(!coordinates.has(coordinate)); coordinates.add(coordinate);
-      const verifier = createStagedMigrationCompatibilityVerifier(step.compatibilityContextBytes), compatibility = parseCanonical(step.compatibilityContextBytes);
+      const verifier = (currentObservation ? createCurrentMigrationObservationVerifier : createStagedMigrationCompatibilityVerifier)(step.compatibilityContextBytes), compatibility = parseCanonical(step.compatibilityContextBytes);
       const migration = parseCanonical(compatibility.migrationConfigBytes);
       const identity = jcs({ sourceColumn: compatibility.sourceColumn, targetColumn: compatibility.targetColumn,
         config: Object.fromEntries(Object.entries(migration).filter(([key]) => !['approvedDefinitionDigest', 'approvedBeforeTruthDigest'].includes(key))) });
@@ -28,7 +37,7 @@ export function createMigrationChainVerifier(contextBytes) {
     });
   } catch { throw new Error('MIGRATION_CHAIN_CONFIGURATION_INVALID'); }
   const configDigest = sha256(contextBytes);
-  return Object.freeze({ configDigest, policyDigest,
+  return Object.freeze({ configDigest, policyDigest, ...(currentObservation ? { observationPolicyDigest } : {}),
     verify(serialized, evaluationTime) {
       try {
         time(evaluationTime); ensure(bounded(serialized, 33554432)); const envelope = parseCanonical(serialized);
@@ -60,6 +69,11 @@ export function createMigrationChainVerifier(contextBytes) {
             ['head', jcs([head.headId, head.head])], ['credential', parseCanonical(action.upstreamBytes).credentialId], ['credential', parseCanonical(action.downstreamBytes).credentialId], ['transaction', post.transactionId]]) {
             const identity = claim(kind, value, request.recordDigest); ensure(!localClaims.has(identity)); localClaims.add(identity);
           }
+          if (currentObservation && graph.cleanupBundleBytes !== '') {
+            const bundle = parseCanonical(graph.cleanupBundleBytes), authority = parseCanonical(bundle.authorityBytes), humanHead = parseCanonical(bundle.casHeadBytes);
+            for (const [kind, value] of [['human-authority', authority.authorityId], ['human-provider', authority.providerRecordId], ['human-idempotency', authority.idempotencyKey],
+              ['human-reservation', parseCanonical(bundle.casReservationBytes).reservationId], ['human-head', jcs([humanHead.headId, humanHead.head])]]) claim(kind, value, request.recordDigest);
+          }
           if (requests.has(request.recordDigest)) {
             const prior = requests.get(request.recordDigest);
             ensure(prior.stepId === step.stepId && prior.immutableDigest === immutableDigest && prior.requestBytes === action.requestBytes && replay.status === 'committed' &&
@@ -86,7 +100,8 @@ export function createMigrationChainVerifier(contextBytes) {
         if (complete) ensure(sha256(currentTruth) === context.finalTruthDigest);
         return { state: complete ? 'verified-migration-chain' : 'verified-migration-chain-pending', firstError: null, executionAuthorized: false, factOnly: true,
           effects: zeroEffects(), journalEffects: 0, configDigest, policyDigest, completedStepCount: next, requiredStepCount: selected.length,
-          attemptCount: envelope.attempts.length, replayCount, currentTruthDigest: sha256(currentTruth), evidenceDigest: sha256(jcs(observations)), liveCompatibilityVerified: false };
+          attemptCount: envelope.attempts.length, replayCount, currentTruthDigest: sha256(currentTruth), evidenceDigest: sha256(jcs(observations)), liveCompatibilityVerified: false,
+          ...(currentObservation ? { observationPolicyDigest, evaluatedAt: evaluationTime, originalObservationsVerified: false } : {}) };
       } catch { return { state: 'blocked', firstError: 'MIGRATION_CHAIN_INVALID', executionAuthorized: false, effects: zeroEffects(), journalEffects: 0 }; }
     },
   });

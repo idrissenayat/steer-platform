@@ -9,6 +9,8 @@ import { createMigrationCompatibilityVerifier, createStagedMigrationCompatibilit
 import { createDualColumnModel } from '../intent/0091/dual-column.candidate.mjs';
 import { createMigrationChainVerifier, policyDigest as chainPolicyDigest } from '../intent/0092/migration-chain.candidate.mjs';
 import { createMigrationCheckpointVerifier, policyDigest as checkpointPolicyDigest } from '../intent/0093/migration-checkpoint.candidate.mjs';
+import { createMigrationChainObservationVerifier } from '../intent/0094/current-chain.candidate.mjs';
+import { createCurrentMigrationObservationVerifier } from '../intent/0094/migration-observation.candidate.mjs';
 import { humanAuthorityBindingDigest } from '../intent/0058/human-authority.candidate.mjs';
 import { manifestBytes, manifestDigest } from '../intent/0060/protected-actions.candidate.mjs';
 import { makeHumanAuthorityBundle, makeMigrationEvidence } from '../intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs';
@@ -68,15 +70,18 @@ function fixture(options = {}) {
         columns: definition.columns, dataOperations: definition.dataOperations, affectedTenants: definition.affectedTenants })) }] }, 'record');
     const identity = seal({ ...JSON.parse(bundle.identityEvidenceBytes), verifiedAt: at(4) }, 'provider');
     const authority = edit('human', { ...prior, authorityType: 'disposition-authorization', eraseMethod: 'provider-delete', terminalEventId: definition.planId,
+      ...(options.humanIdentity ? { authorityId: `${options.humanIdentity}-authority`, providerRecordId: `${options.humanIdentity}-provider`, idempotencyKey: `${options.humanIdentity}-idempotency` } : {}),
       allowedCopyProviders: ['fixture-provider-a'], copyInventoryDigest: inventory.recordDigest, identityEvidenceDigest: identity.recordDigest, authenticatedAt: at(4), decidedAt: at(5),
       conditions: [`migration-execution:${definition.executionId}`, `plan:${plan.recordDigest}`, `backup:${backup.recordDigest}`, `columns:${sha256(jcs(definition.columns))}`,
         `operations:${sha256(jcs(definition.dataOperations))}`, `tenants:${sha256(jcs(definition.affectedTenants))}`, `input:${inputDigest}`] });
-    const provider = seal({ ...JSON.parse(bundle.providerProofBytes), authorityBindingDigest: humanAuthorityBindingDigest(authority), recordedAt: authority.decidedAt }, 'human-provider');
+    const provider = seal({ ...JSON.parse(bundle.providerProofBytes), providerRecordId: authority.providerRecordId, authorityBindingDigest: humanAuthorityBindingDigest(authority), recordedAt: authority.decidedAt }, 'human-provider');
     const full = seal({ ...authority, providerProofDigest: provider.recordDigest }, 'authority'); authorityDigest = full.recordDigest;
+    const humanHeadId = options.humanIdentity ? `${options.humanIdentity}-head` : JSON.parse(bundle.casHeadBytes).headId;
     Object.assign(bundle, { authorityBytes: jcs(full), providerProofBytes: jcs(provider), inventoryBytes: jcs(inventory), identityEvidenceBytes: jcs(identity),
-      casHeadBytes: jcs(seal({ ...JSON.parse(bundle.casHeadBytes), snapshotAt: at(5), validThrough: until }, 'cas-authority')),
-      replayLedgerBytes: jcs(seal({ ...JSON.parse(bundle.replayLedgerBytes), snapshotAt: at(5), validThrough: until }, 'replay-authority')),
-      casReservationBytes: jcs(seal({ ...JSON.parse(bundle.casReservationBytes), requestDigest: full.recordDigest, authorityDigest: full.recordDigest, recordedAt: at(6), validThrough: until }, 'cas-authority')), evaluationTime: evaluation });
+      casHeadBytes: jcs(seal({ ...JSON.parse(bundle.casHeadBytes), headId: humanHeadId, snapshotAt: at(5), validThrough: until }, 'cas-authority')),
+      replayLedgerBytes: jcs(seal({ ...JSON.parse(bundle.replayLedgerBytes), headId: humanHeadId, snapshotAt: at(5), validThrough: until }, 'replay-authority')),
+      casReservationBytes: jcs(seal({ ...JSON.parse(bundle.casReservationBytes), headId: humanHeadId, idempotencyKey: authority.idempotencyKey,
+        ...(options.humanIdentity ? { reservationId: `${options.humanIdentity}-reservation` } : {}), requestDigest: full.recordDigest, authorityDigest: full.recordDigest, recordedAt: at(6), validThrough: until }, 'cas-authority')), evaluationTime: evaluation });
     edit('human-bundle', bundle); cleanupBundleBytes = jcs(bundle);
   }
   const action = `migration.${phase}`, resources = { database: config.database, schema: config.schema, ...Object.fromEntries(['schemaFrom', 'schemaTo', 'oldAppVersion', 'newAppVersion', 'batch', 'checkpoint', 'executionId'].map((key) => [key, definition[key]])), planDigest: plan.recordDigest };
@@ -153,7 +158,7 @@ function chainFixture(options = {}, edits = {}) {
       'action-reservation': (record) => { record.reservationId = `reservation-${label}`; }, after: (record) => { record.transactionId = `transaction-${label}`; },
     };
     const merged = Object.fromEntries([...new Set([...Object.keys(defaults), ...Object.keys(additional)])].map((key) => [key, (record) => { defaults[key]?.(record); additional[key]?.(record); }]));
-    const value = compatibilityFixture({ staged: true, phase, successorTuple: options.successorTuple, timeOffset: options.timeOffsets?.[index] ?? index * 30, evaluationTime: at(150),
+    const value = compatibilityFixture({ staged: true, phase, successorTuple: options.successorTuple, timeOffset: options.timeOffsets?.[index] ?? index * 30, evaluationTime: options.evaluationTime ?? at(150), humanIdentity: options.humanIdentity,
       replay: options.replay, interruption: options.interruptionStep === index ? 'before-effect' : 'none', rollback: options.rollbackStep === index ? 'during-backfill' : 'none', edits: merged });
     values.push(value); steps.push({ stepId: label, phase, batch: `batch-${label}`, checkpoint: `checkpoint-${label}`, compatibilityContextBytes: value.contextBytes });
     beforeData = JSON.parse(JSON.parse(value.graph.afterTruthBytes).dataBytes);
@@ -164,7 +169,7 @@ function chainFixture(options = {}, edits = {}) {
   const envelope = { version: 'steer-migration-chain/v1', configDigest: sha256(contextBytes), policyDigest: chainPolicyDigest,
     attempts: values.map((value, index) => ({ stepId: `step-${index + 1}`, compatibilityBytes: value.compatibilityBytes })) };
   edits.envelope?.(envelope);
-  return { values, context, contextBytes, envelope, bytes: jcs(envelope), evaluationTime: at(150), verifier };
+  return { values, context, contextBytes, envelope, bytes: jcs(envelope), evaluationTime: options.evaluationTime ?? at(150), verifier };
 }
 function chainDenied(value) {
   assert.deepEqual(value.verifier.verify(value.bytes, value.evaluationTime), { state: 'blocked', firstError: 'MIGRATION_CHAIN_INVALID', executionAuthorized: false, effects: zeroEffects(), journalEffects: 0 });
@@ -215,6 +220,72 @@ function checkpointDenied(value, now = value.evaluationTime) {
   assert.deepEqual(value.verifier.verify(value.bytes, now), { state: 'blocked', firstError: 'MIGRATION_CHECKPOINT_INVALID', executionAuthorized: false,
     resumeAuthorized: false, effects: zeroEffects(), journalEffects: 0 });
 }
+
+function retainedContractFixture(options = {}) {
+  const failed = chainFixture({ rollbackStep: 3, humanIdentity: options.aliasAll ? undefined : 'failed-contract', stepEdits: { 3: {
+    operation: (record) => { record.requestId = 'failed-contract-request'; record.idempotencyKey = 'failed-contract-command'; record.casHead = sha256('failed-contract'); },
+    'action-upstream': (record) => { record.credentialId = 'failed-contract-up'; }, 'action-downstream': (record) => { record.credentialId = 'failed-contract-down'; },
+    'action-head': (record) => { record.headId = 'failed-contract-head'; }, 'action-replay': (record) => { record.headId = 'failed-contract-head'; },
+    'action-reservation': (record) => { record.reservationId = 'failed-contract-reservation'; }, after: (record) => { record.transactionId = 'failed-contract-transaction'; },
+  } } });
+  const complete = chainFixture({ humanIdentity: options.aliasAll ? undefined : 'retried-contract', evaluationTime: at(170), timeOffsets: [0, 30, 60, 120],
+    stepEdits: options.stepEdits });
+  assert.equal(failed.values[3].contextBytes, complete.values[3].contextBytes);
+  const envelope = { ...complete.envelope, attempts: [...failed.envelope.attempts, complete.envelope.attempts[3]] };
+  return { failed, complete, envelope, bytes: jcs(envelope), verifier: createMigrationChainObservationVerifier(complete.contextBytes), evaluationTime: at(170) };
+}
+
+test('0094: current audit verifies a retained failed contract plus fresh retry without rewriting its immutable prefix', () => {
+  const value = retainedContractFixture(), originalBytes = value.bytes;
+  assert.equal(value.failed.verifier.verify(value.failed.bytes, value.failed.evaluationTime).state, 'verified-migration-chain-pending');
+  assert.equal(value.complete.verifier.verify(value.bytes, value.evaluationTime).state, 'blocked');
+  const result = value.verifier.verify(value.bytes, value.evaluationTime);
+  assert.equal(result.state, 'verified-migration-chain'); assert.equal(result.completedStepCount, 4); assert.equal(result.attemptCount, 5);
+  assert.equal(result.originalObservationsVerified, false); assert.equal(result.executionAuthorized, false); assert.equal(result.liveCompatibilityVerified, false);
+  assert.equal(result.evaluatedAt, at(170)); assert.deepEqual(result.effects, zeroEffects()); assert.equal(result.journalEffects, 0);
+  assert.equal(value.bytes, originalBytes);
+  assert.deepEqual(JSON.parse(value.bytes).attempts.slice(0, 4), JSON.parse(value.failed.bytes).attempts);
+  const observed = createCurrentMigrationObservationVerifier(value.failed.values[3].contextBytes).verify(value.failed.values[3].compatibilityBytes, at(170));
+  assert.equal(observed.state, 'verified-migration-model-compatibility'); assert.equal(observed.originalObservationVerified, false);
+  assert.equal(observed.graphDigest, sha256(value.failed.values[3].bytes));
+});
+
+test('0094: current audits preserve original evidence digest when source clocks already match and reject expired native proof', () => {
+  const source = chainFixture(), verifier = createMigrationChainObservationVerifier(source.contextBytes), original = source.verifier.verify(source.bytes, source.evaluationTime);
+  let result = verifier.verify(source.bytes, source.evaluationTime);
+  assert.equal(result.evidenceDigest, original.evidenceDigest); assert.equal(result.currentTruthDigest, original.currentTruthDigest);
+  result = verifier.verify(source.bytes, at(170)); assert.equal(result.state, 'verified-migration-chain'); assert.equal(result.evidenceDigest, original.evidenceDigest);
+  assert.equal(verifier.verify(source.bytes, at(180)).state, 'blocked');
+  const expired = chainFixture({ stepEdits: { 3: { human: (record) => { record.expiresAt = at(165); } } } });
+  assert.equal(expired.verifier.verify(expired.bytes, expired.evaluationTime).state, 'verified-migration-chain');
+  assert.equal(createMigrationChainObservationVerifier(expired.contextBytes).verify(expired.bytes, at(170)).state, 'blocked');
+});
+
+test('0094: distinct contract attempts cannot relabel one authority, provider or idempotency identity', () => {
+  const aliased = retainedContractFixture({ aliasAll: true }); assert.equal(aliased.verifier.verify(aliased.bytes, aliased.evaluationTime).state, 'blocked');
+  for (const [field, replacement] of [['authorityId', 'failed-contract-authority'], ['providerRecordId', 'failed-contract-provider'], ['idempotencyKey', 'failed-contract-idempotency']]) {
+    const value = retainedContractFixture({ stepEdits: { 3: { human: (record) => { record[field] = replacement; } } } });
+    const single = createCurrentMigrationObservationVerifier(value.complete.values[3].contextBytes).verify(value.complete.values[3].compatibilityBytes, value.evaluationTime);
+    assert.equal(single.state, 'verified-migration-model-compatibility'); assert.equal(value.verifier.verify(value.bytes, value.evaluationTime).state, 'blocked');
+  }
+});
+
+test('0094: current-time clock rebinding does not hide changed immutable replay bytes, forged signatures or missing proofs', () => {
+  const source = chainFixture({ replay: true }), verifier = createMigrationChainObservationVerifier(source.contextBytes);
+  const exact = { ...source.envelope, attempts: [...source.envelope.attempts, source.envelope.attempts.at(-1)] };
+  assert.equal(verifier.verify(jcs(exact), at(170)).state, 'verified-migration-chain');
+  const changed = structuredClone(exact); changed.attempts[changed.attempts.length - 1] = structuredClone(changed.attempts.at(-1));
+  const last = changed.attempts.at(-1), compatibility = JSON.parse(last.compatibilityBytes), graph = JSON.parse(compatibility.graphBytes), bundle = JSON.parse(graph.cleanupBundleBytes);
+  bundle.evaluationTime = at(160); graph.cleanupBundleBytes = jcs(bundle); compatibility.graphBytes = jcs(graph); last.compatibilityBytes = jcs(compatibility);
+  assert.equal(createCurrentMigrationObservationVerifier(source.values[3].contextBytes).verify(last.compatibilityBytes, at(170)).state, 'verified-migration-model-compatibility');
+  assert.equal(verifier.verify(jcs(changed), at(170)).state, 'blocked');
+  for (const mutate of [(value) => { value.evaluationTime = at(171); }, (value) => { value.evaluationTime = 'invalid'; },
+    (value) => { value.providerProofBytes = '{}'; }, (value) => { const authority = JSON.parse(value.authorityBytes); authority.signature.valueBase64 = Buffer.alloc(64).toString('base64'); value.authorityBytes = jcs(authority); }]) {
+    const candidate = chainFixture({ stepEdits: { 3: { 'human-bundle': mutate } } });
+    assert.equal(createMigrationChainObservationVerifier(candidate.contextBytes).verify(candidate.bytes, at(170)).state, 'blocked');
+  }
+  for (const now of [undefined, '', '2026-09-04T12:02:50.000Z']) assert.equal(verifier.verify(source.bytes, now).state, 'blocked');
+});
 
 test('0093: exact persisted checkpoint and current readback verify after lost or delivered acknowledgment without another effect', () => {
   for (const prefix of [2, 4]) for (const delivery of ['delivered', 'acknowledgment-lost']) for (const replay of [false, true]) {

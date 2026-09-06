@@ -813,6 +813,15 @@ preserved. Outputs deny execution and resume authority. This is synthetic source
 evidence, not a real durable store or chain-wide latest-head resolver. See
 `intent/0093/EVIDENCE.md` and `PLAN.md` for checks and remaining work.
 
+Item `intent/0094` adds explicit read-only current observation of retained staged
+graphs and chains. It preserves original graph/prefix bytes and evidence seals
+while rebinding only unsigned human audit clocks in temporary verifier views.
+Retained failed contracts and fresh retries can therefore be checked together;
+expired native proof still denies. Contract authority/provider/idempotency/CAS
+identities belong to one request, while changed original replay bytes remain
+drift. The separate observation policy does not claim original-as-of verification,
+checkpoint extension or resumed execution. See `intent/0094/EVIDENCE.md` and `PLAN.md`.
+
 ## Local commands
 
 ```sh
