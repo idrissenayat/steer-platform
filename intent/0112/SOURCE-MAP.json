@@ -1,0 +1,12 @@
+{
+  "version": "steer-lifecycle-readiness-map/v1",
+  "sourcePins": "intent/0098/SOURCE-PINS.json",
+  "classSources": ["intent/0110/SOURCE-MAP.json", "intent/0111/SOURCE-MAP.json"],
+  "classes": ["RC-FAILED-RUN", "RC-POSTHOG-RAW", "RC-CORPUS-DERIVED-TEXT", "RC-CORPUS-EXPORT", "RC-SECURITY-AUDIT", "RC-CORPUS-BASELINE", "RC-DECISION-PROOF", "RC-LEGAL-SIGNED-LOG", "RC-REFERENCED-EVIDENCE"],
+  "boundaries": ["at", "after"],
+  "observations": { "atOffsetSeconds": 0, "afterOffsetSeconds": 1 },
+  "sourceState": "quarantined-deletion-pending",
+  "correctedState": "eligible-pending-disposition-evidence",
+  "reconciliation": "Preserve exact source trigger, parent cap and observation instants. Validate a distinct closed head-only envelope using the same event/history/inventory/state/retention prefix, fresh evidence available before observation, pinned target and known provider selectors. No future effect receipt is supplied. The source pending meaning is mapped, but quarantine is not claimed: no actual store operation was performed or proved. Complete human/action/provider/tombstone verification remains a separate unchanged path and every hook executes complete positive/replay controls. Signed active-state claims conservatively retain; they do not assert independently proved new qualified hold decisions.",
+  "unmapped": "All four coordinates for seven other classes remain uncovered. Raw deadlines, indefinite/immediate timing and unsupported current-class profiles require separate reconciliation and implementation."
+}

@@ -56,7 +56,8 @@ function run(profile) {
       'intent/0105/execution-hooks.mjs', 'intent/0105/execution-fixtures.mjs', 'intent/0106/execution-hooks.mjs', 'intent/0106/execution-fixtures.mjs',
       'intent/0107/execution-hooks.mjs', 'intent/0107/execution-fixtures.mjs', 'intent/0108/execution-hooks.mjs', 'intent/0108/SOURCE-MAP.json',
       'intent/0109/execution-hooks.mjs', 'intent/0109/SOURCE-MAP.json', 'tests/fixtures/reference-evidence.mjs',
-      'intent/0110/execution-hooks.mjs', 'intent/0110/SOURCE-MAP.json', 'intent/0111/execution-hooks.mjs', 'intent/0111/SOURCE-MAP.json'].map((path) => ({
+      'intent/0110/execution-hooks.mjs', 'intent/0110/SOURCE-MAP.json', 'intent/0111/execution-hooks.mjs', 'intent/0111/SOURCE-MAP.json',
+      'intent/0112/lifecycle-readiness.candidate.mjs', 'intent/0112/execution-hooks.mjs', 'intent/0112/SOURCE-MAP.json', 'intent/0061/lifecycle-graph.candidate.mjs'].map((path) => ({
       path, digest: digest(readFileSync(new URL('../../' + path, import.meta.url))) })),
     required: catalog.cases.length, executed: executions.length, passed: executions.length - failed, failed, uncovered: uncovered.length,
     uncoveredIdsDigest: digest(jcs(uncovered)), executionsDigest: digest(jcs(executions)), families, executions,

@@ -2,7 +2,7 @@
 // Signing, generic construction and all dormant raw/current-era helpers stay private.
 import { createHash, createPrivateKey, createPublicKey, sign } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { createLifecycleGraphVerifier, createCurrentLifecycleGraphVerifier, lifecycleBoundary, policyDigest } from '../0061/lifecycle-graph.candidate.mjs';
+import { createLifecycleGraphVerifier, createCurrentLifecycleGraphVerifier, createLifecycleReadinessVerifier, createCurrentLifecycleReadinessVerifier, lifecycleBoundary, policyDigest } from '../0061/lifecycle-graph.candidate.mjs';
 import { humanAuthorityBindingDigest } from '../0058/human-authority.candidate.mjs';
 import { manifestBytes, manifestDigest } from '../0060/protected-actions.candidate.mjs';
 import { exactInstant, formatExactInstant } from '../0069/exact-time.candidate.mjs';
@@ -565,4 +565,43 @@ export function longRetentionExecutionCase(classId, boundary, variant = 'positiv
   const value = fixture(options), verifier = reference ? createReferenceLifecycleVerifier(value.configBytes, value.runtimeBytes) : value.verifier;
   return { ...value, verifier, classId, boundary, boundaryAt, variant,
     input: jcs({ configBytes: value.configBytes, runtimeBytes: value.runtimeBytes, bytes: value.bytes, evaluatedAt: value.evaluationTime }) };
+}
+
+export function lifecycleReadinessExecutionCase(classId, point, variant = 'positive') {
+  const short = ['RC-FAILED-RUN', 'RC-POSTHOG-RAW', 'RC-CORPUS-DERIVED-TEXT', 'RC-CORPUS-EXPORT'];
+  const long = ['RC-SECURITY-AUDIT', 'RC-CORPUS-BASELINE', 'RC-DECISION-PROOF', 'RC-LEGAL-SIGNED-LOG', 'RC-REFERENCED-EVIDENCE'];
+  const variants = ['positive', 'missing-state', 'bad-history', 'stale-inventory', 'future-state', 'wrong-provider', 'wrong-target', 'wrong-policy', 'wrong-config', 'active-hold', 'reference-active', 'extra-field', 'missing-cap'];
+  if (![...short, ...long].includes(classId) || !['before', 'at', 'after', 'complete'].includes(point) || !variants.includes(variant) ||
+    variant === 'missing-cap' && !['RC-CORPUS-DERIVED-TEXT', 'RC-CORPUS-EXPORT'].includes(classId)) throw new Error('UNKNOWN_LIFECYCLE_READINESS_CASE');
+  const current = long.includes(classId), value = (current ? longRetentionExecutionCase : shortRetentionExecutionCase)(classId, 'before');
+  const graph = structuredClone(value.graph), seal = current ? runtimeSeal : originalSeal;
+  const evaluationTime = new Date(Date.parse(value.boundaryAt) + ({ before: -1000, at: 0, after: 1000, complete: 6000 })[point]).toISOString().replace('.000Z', 'Z');
+  let state = JSON.parse(graph.stateBytes);
+  if (['stale-inventory', 'wrong-provider'].includes(variant)) {
+    const inventory = JSON.parse(graph.inventoryBytes);
+    if (variant === 'stale-inventory') inventory.recordedAt = new Date(Date.parse(value.boundaryAt) - 600000).toISOString().replace('.000Z', 'Z');
+    else inventory.copies[0].provider = 'unbound-provider';
+    const signedInventory = seal(inventory, 'provider'); graph.inventoryBytes = jcs(signedInventory); state.inventoryDigest = signedInventory.recordDigest;
+  }
+  if (variant === 'future-state') state.recordedAt = new Date(Date.parse(evaluationTime) + 2000).toISOString().replace('.000Z', 'Z');
+  if (variant === 'active-hold') state.holdState = 'active';
+  if (variant === 'reference-active') state.referenceState = 'active';
+  if (variant === 'missing-cap') state.parentExpiryAt = null;
+  graph.stateBytes = jcs(seal(state, 'authority'));
+  if (variant === 'bad-history') {
+    const prior = JSON.parse(graph.historyBytes[0]); prior.signature.valueBase64 = 'A'.repeat(86) + '=='; graph.historyBytes[0] = jcs(prior);
+    state = JSON.parse(graph.stateBytes); state.historyDigest = sha256(jcs([...graph.historyBytes, graph.eventBytes])); graph.stateBytes = jcs(seal(state, 'authority'));
+  }
+  if (variant === 'missing-state') graph.stateBytes = '';
+  const verifier = current ? createCurrentLifecycleReadinessVerifier(value.configBytes, value.runtimeBytes) : createLifecycleReadinessVerifier(value.configBytes);
+  const head = { version: 'steer-lifecycle-readiness/v1', policyDigest: verifier.policyDigest, dispositionPolicyDigest: value.verifier.policyDigest,
+    target: Object.fromEntries(['examRevision', 'examDigest', 'implementationRevision', 'authorizationPolicyPath', 'authorizationPolicyRevision', 'authorizationPolicyDigest'].map((field) => [field, target[field]])),
+    ...Object.fromEntries(['configDigest', 'eventBytes', 'historyBytes', 'inventoryBytes', 'stateBytes', ...(current ? ['historicalEvidenceBytes', 'qualifiedDecisionBytes', 'archivedOwnerBytes'] : [])].map((field) => [field, graph[field]])) };
+  if (variant === 'wrong-target') head.target.implementationRevision = 'f'.repeat(40);
+  if (variant === 'wrong-policy') head.policyDigest = value.verifier.policyDigest;
+  if (variant === 'wrong-config') head.configDigest = 'f'.repeat(64);
+  if (variant === 'extra-field') head.executionAuthorized = true;
+  const bytes = jcs(head);
+  return { configBytes: value.configBytes, runtimeBytes: value.runtimeBytes, boundaryAt: value.boundaryAt, classId, point, variant, head, bytes, verifier,
+    fullVerifier: value.verifier, evaluationTime, input: jcs({ configBytes: value.configBytes, runtimeBytes: value.runtimeBytes ?? null, bytes, evaluatedAt: evaluationTime }) };
 }

@@ -47,7 +47,19 @@ export function createCurrentLifecycleGraphVerifier(configBytes, trustedRuntimeB
   });
 }
 
-function createComposedLifecycleVerifier(configBytes, runtime) {
+const readinessOriginalClasses = ['RC-FAILED-RUN', 'RC-POSTHOG-RAW', 'RC-CORPUS-DERIVED-TEXT', 'RC-CORPUS-EXPORT'];
+// Separate read-only entry points. Extra arguments to the complete factories
+// cannot select this private mode, and readiness envelopes are not full graphs.
+export function createLifecycleReadinessVerifier(configBytes) {
+  return createComposedLifecycleVerifier(configBytes, null, true);
+}
+export function createCurrentLifecycleReadinessVerifier(configBytes, trustedRuntimeBytes) {
+  const runtime = createLifecycleRuntime(trustedRuntimeBytes);
+  if (!runtime.archival) throw new Error('LIFECYCLE_READINESS_CONFIGURATION_INVALID');
+  return createComposedLifecycleVerifier(configBytes, runtime, true);
+}
+
+function createComposedLifecycleVerifier(configBytes, runtime, readiness = false) {
   const registryBytes = runtime?.registryBytes ?? originalDependencies.registryBytes;
   const registry = runtime?.registry ?? originalDependencies.registry;
   const providers = runtime?.providers ?? originalDependencies.providers;
@@ -67,6 +79,7 @@ function createComposedLifecycleVerifier(configBytes, runtime) {
       !config.tombstonePath.split('/').some((part) => ['', '.', '..'].includes(part)));
     row = table.classes.find((entry) => entry.classId === config.recordClass);
     requireValue(row && providers.some((binding) => binding.providerBindingId === config.tombstoneProviderBindingId) && table.policySha256 === RETENTION_POLICY_SHA);
+    if (readiness && !runtime) requireValue(readinessOriginalClasses.includes(config.recordClass));
     if (runtime) requireValue(runtime.supportedClasses.includes(config.recordClass) &&
       ['recordId', 'recordClass', 'artifactRevision', 'environmentId'].every((field) =>
         config[field] === (field === 'environmentId' ? runtime.historicalContext.scope.environmentId : runtime.historicalContext[field])));
@@ -81,13 +94,26 @@ function createComposedLifecycleVerifier(configBytes, runtime) {
     manifestDigest: runtime?.reference ? referenceActionManifestDigest : manifestDigest, trustRegistryBytes: registryBytes,
     target: { examRevision: TARGET_REVISION, examDigest: TARGET_EXAM_SHA, implementationRevision: config.implementationRevision,
       authorizationPolicyPath: AUTHORIZATION_POLICY_PATH, authorizationPolicyRevision: TARGET_REVISION, authorizationPolicyDigest: AUTHORIZATION_POLICY_SHA, authorizationPolicyBytes: AUTHORIZATION_POLICY_BYTES }, scope, grants: [grant] });
-  return Object.freeze({ configDigest, policyDigest,
+  const readinessTarget = { examRevision: TARGET_REVISION, examDigest: TARGET_EXAM_SHA, implementationRevision: config.implementationRevision,
+    authorizationPolicyPath: AUTHORIZATION_POLICY_PATH, authorizationPolicyRevision: TARGET_REVISION, authorizationPolicyDigest: AUTHORIZATION_POLICY_SHA };
+  const readinessPolicyDigest = sha256(jcs({ version: 'steer-lifecycle-readiness/v1', dispositionPolicyDigest: policyDigest, target: readinessTarget,
+    rules: 'closed head-only evidence; same verified event/history/inventory/state/retention prefix; known copy providers; no action, human disposition, reference removal, receipt or tombstone acceptance; no quarantine, deletion or execution authority',
+    originalClasses: readinessOriginalClasses, currentProfile: 'archival-v4-or-reference-v5-only' }));
+  const publicPolicyDigest = readiness ? readinessPolicyDigest : policyDigest;
+  const headFields = ['configDigest', 'eventBytes', 'historyBytes', 'inventoryBytes', 'stateBytes', ...(runtime ? ['historicalEvidenceBytes'] : []),
+    ...(runtime?.qualified ? ['qualifiedDecisionBytes'] : []), ...(runtime?.archival ? ['archivedOwnerBytes'] : [])];
+  return Object.freeze({ configDigest, policyDigest: publicPolicyDigest,
     verify(serialized, evaluationTime) {
-      const blocked = () => ({ state: 'blocked', firstError: 'LIFECYCLE_GRAPH_INVALID', effects: zeroEffects() });
+      const readinessLimits = { effects: zeroEffects(), executionAuthorized: false, dispositionEvidenceVerified: false, quarantineVerified: false, deletionVerified: false, referenceClearanceVerified: false };
+      const blocked = () => readiness ? { state: 'blocked', firstError: 'LIFECYCLE_READINESS_INVALID', ...readinessLimits } : { state: 'blocked', firstError: 'LIFECYCLE_GRAPH_INVALID', effects: zeroEffects() };
       try {
         const now = time(evaluationTime);
         requireValue(typeof serialized === 'string' && serialized.length <= 16777216);
-        const graph = parseCanonical(serialized);
+        const envelope = parseCanonical(serialized);
+        if (readiness) requireValue(exactKeys(envelope, ['version', 'policyDigest', 'dispositionPolicyDigest', 'target', ...headFields]) &&
+          envelope.version === 'steer-lifecycle-readiness/v1' && envelope.policyDigest === readinessPolicyDigest && envelope.dispositionPolicyDigest === policyDigest && equal(envelope.target, readinessTarget));
+        const graph = readiness ? { ...Object.fromEntries(headFields.map((field) => [field, envelope[field]])),
+          version: runtime ? currentVersion : 'steer-lifecycle-graph/v1', policyDigest, referenceRevocationBytes: '', copies: [], aggregateBytes: '', tombstone: {} } : envelope;
         const provenance = config.recordClass === 'RC-CORPUS-PROVENANCE';
         const chained = raw && graph.version === 'steer-lifecycle-graph/raw-v4';
         const continuation = chained || raw && graph.version === 'steer-lifecycle-graph/raw-v3';
@@ -195,6 +221,26 @@ function createComposedLifecycleVerifier(configBytes, runtime) {
         }
         requireValue(row.parentCap ? state.parentExpiryAt !== null : state.parentExpiryAt === null);
         const boundaryAt = lifecycleBoundary(trigger.occurredAt, row.duration, state.parentExpiryAt);
+        if (readiness) {
+          // Age eligibility is not permission to mutate these objects. Still
+          // reject inventory selectors that do not belong to the trusted binding.
+          for (const copy of copies) {
+            const binding = providers.find((entry) => entry.providerBindingId === copy.providerBindingId);
+            requireValue(binding && binding.tenant === scope.tenant && binding.provider === copy.provider && binding.account === copy.account);
+            const anchor = registry.bindings.find((entry) => entry.domain === binding.domain && entry.keyId === binding.keyId);
+            requireValue(anchor && ['algorithm', 'publicKeyHex', 'notBefore', 'notAfter', 'revokedAt'].every((field) => anchor[field] === binding[field]));
+          }
+          requireValue(runtime?.reference ? state.referenceRevocationDigest === null || hex(state.referenceRevocationDigest, 64) : state.referenceRevocationDigest === null);
+          const held = state.holdState === 'active' || state.referenceState !== 'cleared';
+          const eligible = !held && boundaryAt !== null && now >= time(boundaryAt);
+          return { state: held ? 'retained-on-hold' : eligible ? 'eligible-pending-disposition-evidence' : 'waiting-retention', firstError: null,
+            ...readinessLimits, retentionEligible: eligible, boundaryAt, evaluatedAt: evaluationTime, configDigest, policyDigest: readinessPolicyDigest,
+            dispositionPolicyDigest: policyDigest, targetDigest: sha256(jcs(readinessTarget)), inputDigest: sha256(jcs({ bytes: serialized, evaluatedAt: evaluationTime })),
+            recordId: config.recordId, recordClass: config.recordClass, artifactRevision: config.artifactRevision,
+            inventoryDigest: inventory.recordDigest, stateDigest: state.recordDigest, historyDigest,
+            ...(runtime ? { runtimeConfigDigest: runtime.configDigest, historicalEvidenceDigest: sha256(graph.historicalEvidenceBytes) } : {}),
+            requires: [...(runtime?.reference ? ['reference-clearance'] : []), 'human-disposition-authority', 'protected-actions', 'provider-receipts', 'aggregate', 'tombstone'] };
+        }
         if (boundaryAt === null) return { state: 'retained-immutable', firstError: null, effects: zeroEffects(), boundaryAt };
         if (state.holdState === 'active' || state.referenceState !== 'cleared') return { state: 'retained-on-hold', firstError: null, effects: zeroEffects(), boundaryAt };
         if (!raw && now < time(boundaryAt)) return { state: 'scheduled', firstError: null, effects: zeroEffects(), boundaryAt };

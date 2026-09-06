@@ -983,6 +983,18 @@ completion reference evidence retains safely. Full profile records 375 passed /
 now map; forty-six and all formal findings remain open. See `intent/0111/EVIDENCE.md`,
 `SOURCE-MAP.json` and `PLAN.md`; no real future retention/deletion is claimed.
 
+Item `intent/0112` adds a separate read-only lifecycle readiness candidate. A closed
+head-only envelope reuses verified event/history/inventory/state/retention checks
+and adds pinned target/policy and known provider selectors. It reports waiting,
+eligible-pending-disposition-evidence or conservative hold retention, always with
+zero effects and false execution, quarantine, deletion and clearance flags. Complete
+disposition remains a separate format requiring all human/action/provider/tombstone
+proofs. Eighteen exact at/after coordinates now map; full profile records 393 passed /
+3,643 uncovered, quick 377 passed / 3,659 uncovered. Thirty-six lifecycle coordinates
+map and twenty-eight remain. This is an offline candidate, not a live API or mutation
+capability. See `intent/0112/EVIDENCE.md`, `SOURCE-MAP.json` and `PLAN.md`; all formal
+findings remain open and no actual quarantine or deletion is claimed.
+
 ## Local commands
 
 ```sh

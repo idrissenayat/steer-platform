@@ -2101,3 +2101,33 @@ deletion or execution authority. The seven other classes, 3,614 migration cases,
 one obsolete schema case, GAP-01–06 and M1–M8 remain separate work. All five formal
 findings stay open. No protected edit, provider mutation, cleanup, deployment,
 release, spending or signature is authorized. The continuation loop remains active.
+
+## Completed development increment: 0112 — read-only lifecycle readiness
+
+A separate closed head-only surface now reports waiting-retention or age-eligible,
+pending complete disposition evidence. It shares the verified event/history/
+inventory/state/retention prefix and adds pinned target/policy and known provider
+selectors. It always reports zero effects and false execution, disposition,
+quarantine, deletion and reference-clearance flags. Held/reference-active state
+conservatively retains. Full human/action/provider/aggregate/tombstone verification
+remains a distinct unchanged completion path; the two formats cannot be interchanged.
+
+Eighteen exact at/after coordinates now map for the nine already supported classes,
+using available head evidence without future receipts. Tests verify genuinely signed
+stale/future/unbound-provider snapshots fail, exact nanosecond boundaries hold, and
+observation hashes bind the evaluation time. All 359 prior mapped quick observation
+seals/counts/outcomes remain byte-for-byte unchanged despite implementation changes.
+
+Eight new groups and final full checks pass: 375 root controls and 88 prototype tests.
+Fresh quick execution matches 377 passed / 3,659 uncovered; full matches 393 passed /
+3,643 uncovered, both with zero failures. A separate three-group full integration
+process reran the matrix and matched the full snapshot. See intent/0112/EVIDENCE.md
+and SOURCE-MAP.json for the pending/quarantine reconciliation and synthetic/cached
+limits. No real quarantine or deletion is performed or proved by this candidate.
+
+Next under intent/0112/PLAN.md are 28 lifecycle coordinates for seven other classes,
+then remaining migration/schema and GAP-01–06/M1–M8 work. Raw deadlines, indefinite/
+immediate timing and unsupported future profiles need distinct treatment. This
+readiness surface is not a live API, approval or mutation capability. All five
+formal findings stay open. No protected edit, provider operation, deletion,
+deployment, release, spending or signature is authorized. The loop remains active.

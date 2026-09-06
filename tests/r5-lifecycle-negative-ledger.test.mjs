@@ -84,10 +84,10 @@ test('0108: inventory races, receipt reuse and aggregate omission preserve disti
 });
 
 test('0108: exactly 27 negative IDs have fresh execution seals without claiming class boundaries or formal closure', () => {
-  const report = runCorrectedCoverage(); assert.equal(report.executed, 359); assert.equal(report.passed, 359); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3677);
+  const report = runCorrectedCoverage(); assert.equal(report.executed, 377); assert.equal(report.passed, 377); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3659);
   assert.deepEqual(report.families['LIFECYCLE-GRAPH-NEGATIVE'], { required: 30, executed: 30, passed: 30, failed: 0, uncovered: 0 });
-  assert.equal(report.families['LIFECYCLE-GRAPH'].executed, 18); assert.equal(report.families.MIGRATION.executed, 0); assert.equal(report.families.R5.passed, 9);
+  assert.equal(report.families['LIFECYCLE-GRAPH'].executed, 36); assert.equal(report.families.MIGRATION.executed, 0); assert.equal(report.families.R5.passed, 9);
   for (const row of report.executions.filter((entry) => entry.id.startsWith('LIFECYCLE-GRAPH-NEGATIVE:') && mapping.rows.some((source) => source.mapped && entry.id.endsWith(':' + source.kind)))) assert.equal(row.observationCount, 2);
   for (const flag of ['completeCoverage', 'normativeAcceptanceComplete', 'independentAcceptance', 'executionAuthorized', 'liveProviderUsed']) assert.equal(report[flag], false);
-  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0111/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
+  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0112/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
 });
