@@ -9,8 +9,9 @@ The current finite remaining-work map is `intent/0097/GAP-INVENTORY.json` and
 with an actual corrected declared-versus-executed ledger. Source and test-pointer
 checks are not a substitute for that ledger or independent acceptance.
 
-`intent/0098` now provides the initial actual runner and snapshot for GAP-01:
-4,036 required IDs, 63 passing mapped executions, 3,973 unmapped here. The
+`intent/0098` provides the actual runner and initial snapshot for GAP-01;
+`intent/0099` adds complete recovery/human mappings and a new snapshot:
+4,036 required IDs, 115 passing mapped executions, 3,921 unmapped here. The
 require-complete command exits 2; GAP-01 is not complete. Some hooks intentionally
 cover only a narrower correction/classifier scope and do not certify the entire
 public oracle. No formal finding is closed by this count.

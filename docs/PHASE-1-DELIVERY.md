@@ -1803,3 +1803,24 @@ outcomes and positive controls. Then connect the remaining domains without
 crediting labels or arbitrary denials as semantic execution. The finite GAP-01–06
 plan and M1–M8 platform milestones remain. No provider mutation, cleanup, release,
 deployment, spending or signature is authorized.
+
+## Completed development increment: 0099 — recovery and human execution mappings
+
+The ledger now invokes corrected recovery and complete human-authority fixtures
+for 52 additional exact IDs. All eight recovery cuts retain their expected
+outcomes, including the two unknown pre-ack results; all 25 corruptions have a
+verified positive control. All 17 human cases retain the exact frozen mutations
+against a full-binding positive bundle. Both R5-002 counterexamples demonstrate
+legacy acceptance and the named corrected binding/time error, without approving
+an action. New hook/fixture source digests are recorded explicitly.
+
+Five new groups and final full checks pass: 301 root controls and 88 prototype
+tests. The new snapshot exactly matches a fresh run: 115 passed, zero failed and
+3,921 unmapped IDs out of 4,036. The earlier 0098 snapshot is unchanged. See
+intent/0099/EVIDENCE.md for synthetic/cached limits. No protected artifacts or
+formal finding/gate state changed; GAP-01 remains open.
+
+Next under intent/0099/PLAN.md are remaining shared-action/authorization,
+privacy/time and cost mappings, followed by lifecycle and migration reconciliation.
+The finite GAP-01–06 assurance plan and separate M1–M8 platform milestones remain.
+No provider mutation, cleanup, release, deployment, spending or signature is authorized.

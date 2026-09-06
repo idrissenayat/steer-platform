@@ -1,0 +1,1217 @@
+{
+  "version": "steer-corrected-execution-ledger/v1",
+  "baselineRevision": "8b821096985e84310094c2300fc09250ac86c4ad",
+  "catalogDigest": "873ffe9cfadaa9455120265b593fe60644a56651db04a50d7242e9da8dd61f4a",
+  "sourcePinsDigest": "2fbe6cfba44fb2dccb5730a5e8b72d8812ab87eaca838d678c53df47bff18903",
+  "runnerDigest": "be2a96725d536826c3f2d0357d0de2a0c06c776eee31689a66397865416c36f6",
+  "hooksDigest": "d7e9fd3bf48e3ab66f34f4e0e1e7b9d2ae0b6f3d2c1597473e542ed8aaa49379",
+  "supplementalHookSources": [
+    {
+      "path": "intent/0099/execution-hooks.mjs",
+      "digest": "466e260ffe7a12090ecf1e12d71e36523c08f4dede9e6cb74a084796ea3f2c57"
+    },
+    {
+      "path": "intent/0099/execution-fixtures.mjs",
+      "digest": "ed9f198384d1ce929e4b5064e9bc65e26846dde98d6904d7af88f2573086c2ff"
+    }
+  ],
+  "required": 4036,
+  "executed": 115,
+  "passed": 115,
+  "failed": 0,
+  "uncovered": 3921,
+  "uncoveredIdsDigest": "41e18e8f1639395fdaa866aa38b3306ca0c683f1344d889044d1d52e78f07955",
+  "executionsDigest": "c7d4bd9e7e048be04b7a48557adad57783aa3934dd2adfdd3c0414fa38a97a7f",
+  "families": {
+    "TRUST-DOMAIN-FORGERY": {
+      "required": 17,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 17
+    },
+    "AUTHORIZATION": {
+      "required": 32,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 32
+    },
+    "PRIVACY-GRAPH": {
+      "required": 19,
+      "executed": 19,
+      "passed": 19,
+      "failed": 0,
+      "uncovered": 0
+    },
+    "PRIVACY-IDENTIFIER": {
+      "required": 14,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 14
+    },
+    "PRIVACY-DETECTOR": {
+      "required": 70,
+      "executed": 10,
+      "passed": 10,
+      "failed": 0,
+      "uncovered": 60
+    },
+    "ACCESSIBILITY": {
+      "required": 16,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 16
+    },
+    "LIFECYCLE": {
+      "required": 27,
+      "executed": 27,
+      "passed": 27,
+      "failed": 0,
+      "uncovered": 0
+    },
+    "LIFECYCLE-NEGATIVE": {
+      "required": 5,
+      "executed": 5,
+      "passed": 5,
+      "failed": 0,
+      "uncovered": 0
+    },
+    "LIFECYCLE-GRAPH": {
+      "required": 64,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 64
+    },
+    "LIFECYCLE-GRAPH-NEGATIVE": {
+      "required": 30,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 30
+    },
+    "HUMAN-AUTHORITY": {
+      "required": 17,
+      "executed": 17,
+      "passed": 17,
+      "failed": 0,
+      "uncovered": 0
+    },
+    "MIGRATION": {
+      "required": 3600,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 3600
+    },
+    "MIGRATION-FAILURE": {
+      "required": 8,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 8
+    },
+    "MIGRATION-TRANSPLANT": {
+      "required": 6,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 6
+    },
+    "RECOVERY-CUT": {
+      "required": 8,
+      "executed": 8,
+      "passed": 8,
+      "failed": 0,
+      "uncovered": 0
+    },
+    "RECOVERY-CORRUPTION": {
+      "required": 25,
+      "executed": 25,
+      "passed": 25,
+      "failed": 0,
+      "uncovered": 0
+    },
+    "SPEND": {
+      "required": 20,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 20
+    },
+    "COST": {
+      "required": 34,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 34
+    },
+    "SCHEMA": {
+      "required": 15,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "uncovered": 15
+    },
+    "R5": {
+      "required": 9,
+      "executed": 4,
+      "passed": 4,
+      "failed": 0,
+      "uncovered": 5
+    }
+  },
+  "executions": [
+    {
+      "id": "PRIVACY-GRAPH:positive",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "b298beab9072c1f53e364f894366720da4f5ac7113a9647e53b4ffa6dc09d81f"
+    },
+    {
+      "id": "PRIVACY-GRAPH:empty",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "3454cd532133c6241f8337d5e44ce67a2ccbb39d9d0dbc6608a7226f34597016"
+    },
+    {
+      "id": "PRIVACY-GRAPH:prompt-missing",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "f736fdc87829a7446dfb1fcf382f3b9a7de03e4e97618293946a81c01921f502"
+    },
+    {
+      "id": "PRIVACY-GRAPH:identifier",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "1455fdd2185504e8492ddd70ed7433c9673f6297dc4c89421e346b0b67fb07fd"
+    },
+    {
+      "id": "PRIVACY-GRAPH:receipt-missing",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "5c694ed92e2458bdd221f99ec7d8579a0fec91eb22b29d63c71955837d9fde82"
+    },
+    {
+      "id": "PRIVACY-GRAPH:destination",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "02e6143388b206cdf492c46b1ac52118f3880dbdab2856b0bbbf8e0eb8a3f96e"
+    },
+    {
+      "id": "PRIVACY-GRAPH:detector-drift",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "21fa3080e65af679891b38d5a3f2d6f169847588fa1f8ba5d5c91cb5dbefdcb0"
+    },
+    {
+      "id": "PRIVACY-GRAPH:linkage",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "9ac801ff17ec34e6a08cecee3002044555fc9cd8952594d2cee4ccc4cc7d2451"
+    },
+    {
+      "id": "PRIVACY-GRAPH:derivative-missing",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "f93fb21d53dc7e0ffec1c3b13beefc9f5b021a390d14849990d156913d7f6ff1"
+    },
+    {
+      "id": "PRIVACY-GRAPH:wrong-source-authority",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "c9132880644100bf40610c9b0d5f93c5b3d6ff30095a6f14ab82eefbbfe1cc5f"
+    },
+    {
+      "id": "PRIVACY-GRAPH:expired-use",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "2462e908167a2994a0e8073eebee26c0f29597bda11f4bcdacc74ac04159e39f"
+    },
+    {
+      "id": "PRIVACY-GRAPH:allowed-derivatives-empty",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "825e23fb8759e884720207de57d331173d6d95a0881bb66892e1ccd3260bee96"
+    },
+    {
+      "id": "PRIVACY-GRAPH:raw-authority-missing",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "d75498e932b523c807a2cff378d29652a45ef69ceb1435fc589e1fd8d2fd0257"
+    },
+    {
+      "id": "PRIVACY-GRAPH:encrypted-key-missing",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "20f18119144573457eab13842e2328e09d52f1dace1233177cad30915bcbb8cb"
+    },
+    {
+      "id": "PRIVACY-GRAPH:sanitizer-substitution",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "a97f9a49d6b47b8a1bcbd71dccdc4def638d251b72e9d722025869e9d103452a"
+    },
+    {
+      "id": "PRIVACY-GRAPH:linkage-trial-substitution",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "dc3c54e80debcb03e56c7700866178f1c043d7a354ab0bf6f47ee5769977ebf7"
+    },
+    {
+      "id": "PRIVACY-GRAPH:policy-substitution",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "7cf059bdb6603e3d666cf46169182e06b578144e5eb8421480fe4a0306740531"
+    },
+    {
+      "id": "PRIVACY-GRAPH:policy-bytes-missing",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "1cc349015b906b2ea0dd2785d7a657ade953ce5b88d3fe0be0149b6ad65dea70"
+    },
+    {
+      "id": "PRIVACY-GRAPH:k-below-five",
+      "executor": "intent/0056/privacy-correction.candidate.mjs#correctedPrivacyGraphDecision",
+      "implementationDigest": "0c0c7ce8aaf8628747e9a674a96846660f5562682c5fa3e6b6db60583df553f1",
+      "scope": "Unicode correction plus legacy graph semantics; 0063 independent time observation is not covered by this hook",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "21a59739948c53de481cac3d41d17b68758d7f4c33853b5da04fb1af91bfb5fa"
+    },
+    {
+      "id": "PRIVACY-DETECTOR:phone:plain-positive",
+      "executor": "packages/domain/src/privacy-phone.ts#inspectPrivacyPhoneText",
+      "implementationDigest": "b0125fcca43c97c24354591991b533e83444b33c44b6c51e4d1c8c0b63846d0e",
+      "scope": "pure phone classification only, not full corpus acceptance",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "c0dca19e0277c70fdc9763d1171a36488f32f987695955cddc272b7168613f6f"
+    },
+    {
+      "id": "PRIVACY-DETECTOR:phone:evasion-positive",
+      "executor": "packages/domain/src/privacy-phone.ts#inspectPrivacyPhoneText",
+      "implementationDigest": "b0125fcca43c97c24354591991b533e83444b33c44b6c51e4d1c8c0b63846d0e",
+      "scope": "pure phone classification only, not full corpus acceptance",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "bcaf906eddab43d5c0ffc8b9fb691dee778b46fd16c9032ee12fabd89c6454b2"
+    },
+    {
+      "id": "PRIVACY-DETECTOR:phone:digit-only-evasion-positive",
+      "executor": "packages/domain/src/privacy-phone.ts#inspectPrivacyPhoneText",
+      "implementationDigest": "b0125fcca43c97c24354591991b533e83444b33c44b6c51e4d1c8c0b63846d0e",
+      "scope": "pure phone classification only, not full corpus acceptance",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "65a1c1ff9ed71dc63673cac1aa6776b0a76e466942ba65d3376f92124330a7f0"
+    },
+    {
+      "id": "PRIVACY-DETECTOR:phone:country-code-evasion-positive",
+      "executor": "packages/domain/src/privacy-phone.ts#inspectPrivacyPhoneText",
+      "implementationDigest": "b0125fcca43c97c24354591991b533e83444b33c44b6c51e4d1c8c0b63846d0e",
+      "scope": "pure phone classification only, not full corpus acceptance",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "d229a9781d0b14099014a3445ec886e7cb172394c52faee29f240ffa1a5dae9b"
+    },
+    {
+      "id": "PRIVACY-DETECTOR:phone:uk-plus-country-code-evasion-positive",
+      "executor": "packages/domain/src/privacy-phone.ts#inspectPrivacyPhoneText",
+      "implementationDigest": "b0125fcca43c97c24354591991b533e83444b33c44b6c51e4d1c8c0b63846d0e",
+      "scope": "pure phone classification only, not full corpus acceptance",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "952219ea35739ce6c8e361eb5d36686004420a542aa222d7062a60216a2d6382"
+    },
+    {
+      "id": "PRIVACY-DETECTOR:phone:uk-00-country-code-evasion-positive",
+      "executor": "packages/domain/src/privacy-phone.ts#inspectPrivacyPhoneText",
+      "implementationDigest": "b0125fcca43c97c24354591991b533e83444b33c44b6c51e4d1c8c0b63846d0e",
+      "scope": "pure phone classification only, not full corpus acceptance",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "d2819be6bb1c303aa2310c2996bfc3cfc06b513260fba4fc9891eb36ec106383"
+    },
+    {
+      "id": "PRIVACY-DETECTOR:phone:extension-evasion-positive",
+      "executor": "packages/domain/src/privacy-phone.ts#inspectPrivacyPhoneText",
+      "implementationDigest": "b0125fcca43c97c24354591991b533e83444b33c44b6c51e4d1c8c0b63846d0e",
+      "scope": "pure phone classification only, not full corpus acceptance",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "5b052a2ba9c38e7ba8397d8d90c32e4b58c8e9d1057b2cc89a010bb89d7735bb"
+    },
+    {
+      "id": "PRIVACY-DETECTOR:phone:boundary-negative",
+      "executor": "packages/domain/src/privacy-phone.ts#inspectPrivacyPhoneText",
+      "implementationDigest": "b0125fcca43c97c24354591991b533e83444b33c44b6c51e4d1c8c0b63846d0e",
+      "scope": "pure phone classification only, not full corpus acceptance",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "144c92ebea70a29b7458149f1447b0c141bbea7c656438057bc89c223bf5eb2c"
+    },
+    {
+      "id": "PRIVACY-DETECTOR:phone:embedded-digit-boundary-negative",
+      "executor": "packages/domain/src/privacy-phone.ts#inspectPrivacyPhoneText",
+      "implementationDigest": "b0125fcca43c97c24354591991b533e83444b33c44b6c51e4d1c8c0b63846d0e",
+      "scope": "pure phone classification only, not full corpus acceptance",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "7612667453ababa9a19ddd6547ee4f866a835a9937b1ddd2424a283cf6bbee63"
+    },
+    {
+      "id": "PRIVACY-DETECTOR:phone:international-too-long-boundary-negative",
+      "executor": "packages/domain/src/privacy-phone.ts#inspectPrivacyPhoneText",
+      "implementationDigest": "b0125fcca43c97c24354591991b533e83444b33c44b6c51e4d1c8c0b63846d0e",
+      "scope": "pure phone classification only, not full corpus acceptance",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "0906a212dc6acaaa3723b52f7328f860c1868fa5c6f9493067aa60b2a6ca8085"
+    },
+    {
+      "id": "LIFECYCLE:originator-session-opened:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "748991098257c9fba5616998f04e99d25a284792dabc22a47a3c2abc7c5e048c"
+    },
+    {
+      "id": "LIFECYCLE:originator-draft-saved:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "090e9d4b63fbfc3af4abbdff091412c1ebbcf42c1b2e5ff5ffce7579663d637d"
+    },
+    {
+      "id": "LIFECYCLE:originator-session-abandoned:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "1024ae5bf7646ed58f8d0083207c30c3d60324754048c7d45c10991a0661b7b3"
+    },
+    {
+      "id": "LIFECYCLE:record-committed:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "5f6e2490035736274c42656f46fdf043ff3db14f2806c8c758456d7d94db6b71"
+    },
+    {
+      "id": "LIFECYCLE:item-closed:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "158c7c37ca30e6009c97ecb4e700f2e1db09b611be1c34547d26a18558e9a57a"
+    },
+    {
+      "id": "LIFECYCLE:environment-retired:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "759a97280ddbfebe6f2d5a248dd90ba98c0d1510dc44cd565ddb8658f5f07161"
+    },
+    {
+      "id": "LIFECYCLE:run-terminal:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "bd1142849c79d2d4887aba738b5cacb70b237ad517532e12921259a01d48f952"
+    },
+    {
+      "id": "LIFECYCLE:event-committed:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "415cad1b0dc033b55c2840d8bdf04d5bd6b334f312b1984602398d5e3afb6137"
+    },
+    {
+      "id": "LIFECYCLE:record-superseded:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "2e83193035deb82356b6bec221289b3d63f57b18466e9419b698973dc2947c78"
+    },
+    {
+      "id": "LIFECYCLE:corpus-source-authorized:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "e7285ce52afe5c2adc5bba751c1a8267f6312837ba842affa311e3ae293eb5e9"
+    },
+    {
+      "id": "LIFECYCLE:corpus-use-authorization-revoked:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "ea5252d7971f7e6ea7f75cc45f1cc35088e35f0c0929fa23b942493eefe4b3d7"
+    },
+    {
+      "id": "LIFECYCLE:corpus-sanitization-terminal:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "70fb7cab6355c2b22bb526059bc8e2aa30575668578eef83b0093c535278c631"
+    },
+    {
+      "id": "LIFECYCLE:corpus-version-accepted:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "cce81f3e35698f0c5d273b2147f0e59b69ce57585af7e6fdb8593d5afcc44046"
+    },
+    {
+      "id": "LIFECYCLE:corpus-version-superseded:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "2f6c6d1f274b12175f7cd8febbc1ad8fed131571a190c9ba4e4da694e0d00049"
+    },
+    {
+      "id": "LIFECYCLE:corpus-retired:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "ff667997397c13c5916c86d16b36f1897c773b14ba4d93f5dd8f4fbe28191b70"
+    },
+    {
+      "id": "LIFECYCLE:hold-applied:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "c9103a44cd1920bb8e48dccf96a19ad8ae4a0d9a6e5226bc4c162e408193f30d"
+    },
+    {
+      "id": "LIFECYCLE:hold-released:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "0ce56de2e59206d2678f0f57b7105a4d66c2b75beaaf59ea3c819cb6dd612c8a"
+    },
+    {
+      "id": "LIFECYCLE:rebuild-requested:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "9ca50bfc12be588b8c38f62e15f5237f43ab34bdccc18b0706ff2008ae1517ee"
+    },
+    {
+      "id": "LIFECYCLE:reference-revocation-authorized:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "44faf3361f3495c7b562d0a62391a50840d7637cbecdb803c0eb4132358909fb"
+    },
+    {
+      "id": "LIFECYCLE:raw-working-policy-grant-signed:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "5bf29fdb2797c2cf0afcaba7a4c7ea5b91bc84ec96cdc40e783f2a91ba2df335"
+    },
+    {
+      "id": "LIFECYCLE:derived-record-deleted:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "7cef7e5cfad45ae16fac06f017ab5581009dda3fb0cbe7bfd497e9db1c9c7d04"
+    },
+    {
+      "id": "LIFECYCLE:expiry-due:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "e640f533042b46743496f22e1ad8db92d457c7088e992584eeee9272bbdd6ed1"
+    },
+    {
+      "id": "LIFECYCLE:deletion-requested:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "4e47b118779bd9739778b0881812e6ef3eb5b40e25668bf097c0ab82834f8857"
+    },
+    {
+      "id": "LIFECYCLE:deletion-completed:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "b8e32527c0441f3dddf68fccd69bb97533f296c49659d74961ceeb9eda3eab2d"
+    },
+    {
+      "id": "LIFECYCLE:tombstone-committed:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "8aadc22409d638cbb171234fac5da244c3b71160fc4e9f89e5cd44b97d46a90b"
+    },
+    {
+      "id": "LIFECYCLE:export-authorized:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "0321e89a5bdaf21573a2187024de58c7aca5c7b8cabd0a20173c09e3eb5f3d8f"
+    },
+    {
+      "id": "LIFECYCLE:export-completed:positive",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "1feb9ed6a3d777177591c6d095a8d7fc559fbd012955df719ed2c6cf2ace3469"
+    },
+    {
+      "id": "LIFECYCLE-NEGATIVE:missing-record-sha",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "2eaa083bff8301e20b74040ac8234a0c1bd6e1749b9c017d9dbc0e9a4a572f03"
+    },
+    {
+      "id": "LIFECYCLE-NEGATIVE:unknown-event",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "693ddd0e507aa2eb9f637db709c5117fb77e25fb1df127025a4b45808fe17293"
+    },
+    {
+      "id": "LIFECYCLE-NEGATIVE:invalid-time",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "74b18a7ea65585684d93ab60ce197f9cbf09a152eb98c09c9df5b1b0a3ecaea5"
+    },
+    {
+      "id": "LIFECYCLE-NEGATIVE:bad-provider-proof",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "f0db155064b60a48586bee2f3ab2028f687e90635ae89f5f81dd376b706297a8"
+    },
+    {
+      "id": "LIFECYCLE-NEGATIVE:extra-field",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "905302bd6fd59a7c1a7659df8e3168d26722e0d935370e67fb570d898170a241"
+    },
+    {
+      "id": "HUMAN-AUTHORITY:positive",
+      "executor": "intent/0058/human-authority.candidate.mjs#createHumanAuthorityVerifier",
+      "implementationDigest": "363af3c2b282a53c3f725ce9e51fa43eddd7b5f33e68c22e5cdf1790aaf359c1",
+      "scope": "complete original-registry nine-proof disposition authority with trusted clock; not current qualified-event/reference profiles or real approval",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "ff96d1203e38d8f7050605f59e095bc49fc518a6dab06f60bf22103cd72df9fe"
+    },
+    {
+      "id": "HUMAN-AUTHORITY:missing-bundle-field",
+      "executor": "intent/0058/human-authority.candidate.mjs#createHumanAuthorityVerifier",
+      "implementationDigest": "363af3c2b282a53c3f725ce9e51fa43eddd7b5f33e68c22e5cdf1790aaf359c1",
+      "scope": "complete original-registry nine-proof disposition authority with trusted clock; not current qualified-event/reference profiles or real approval",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "0f74fc7b23d5c995c94a3115afb7669d9c0f82fecf6c6b103c6ba8a06ddf4a9e"
+    },
+    {
+      "id": "HUMAN-AUTHORITY:builder",
+      "executor": "intent/0058/human-authority.candidate.mjs#createHumanAuthorityVerifier",
+      "implementationDigest": "363af3c2b282a53c3f725ce9e51fa43eddd7b5f33e68c22e5cdf1790aaf359c1",
+      "scope": "complete original-registry nine-proof disposition authority with trusted clock; not current qualified-event/reference profiles or real approval",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "0e00e3320a428b6046236b2b7fa26be068d31fc3262648cd9ab00715bb29cb6b"
+    },
+    {
+      "id": "HUMAN-AUTHORITY:invalid-time",
+      "executor": "intent/0058/human-authority.candidate.mjs#createHumanAuthorityVerifier",
+      "implementationDigest": "363af3c2b282a53c3f725ce9e51fa43eddd7b5f33e68c22e5cdf1790aaf359c1",
+      "scope": "complete original-registry nine-proof disposition authority with trusted clock; not current qualified-event/reference profiles or real approval",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "6fbab80e6326ab7127d23ea5161ae350422f01e62fcf7ffec11be98c5b3b74a1"
+    },
+    {
+      "id": "HUMAN-AUTHORITY:expired",
+      "executor": "intent/0058/human-authority.candidate.mjs#createHumanAuthorityVerifier",
+      "implementationDigest": "363af3c2b282a53c3f725ce9e51fa43eddd7b5f33e68c22e5cdf1790aaf359c1",
+      "scope": "complete original-registry nine-proof disposition authority with trusted clock; not current qualified-event/reference profiles or real approval",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "21fb0c87a454aba659db7756dcbf9adf4103a5dcf812cf9d80d67bb38bb3974f"
+    },
+    {
+      "id": "HUMAN-AUTHORITY:null-values",
+      "executor": "intent/0058/human-authority.candidate.mjs#createHumanAuthorityVerifier",
+      "implementationDigest": "363af3c2b282a53c3f725ce9e51fa43eddd7b5f33e68c22e5cdf1790aaf359c1",
+      "scope": "complete original-registry nine-proof disposition authority with trusted clock; not current qualified-event/reference profiles or real approval",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "4d387f3c1ae1ccb957819fbaa1d3d72fdd47d8a279b0b7fa6d886bd5024d6c5e"
+    },
+    {
+      "id": "HUMAN-AUTHORITY:bad-base64",
+      "executor": "intent/0058/human-authority.candidate.mjs#createHumanAuthorityVerifier",
+      "implementationDigest": "363af3c2b282a53c3f725ce9e51fa43eddd7b5f33e68c22e5cdf1790aaf359c1",
+      "scope": "complete original-registry nine-proof disposition authority with trusted clock; not current qualified-event/reference profiles or real approval",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "d9fb0399e27643175f9ff9d1507ebc1a21da3bfa0ee136234e1c952a74c5c421"
+    },
+    {
+      "id": "HUMAN-AUTHORITY:wrong-provider-proof",
+      "executor": "intent/0058/human-authority.candidate.mjs#createHumanAuthorityVerifier",
+      "implementationDigest": "363af3c2b282a53c3f725ce9e51fa43eddd7b5f33e68c22e5cdf1790aaf359c1",
+      "scope": "complete original-registry nine-proof disposition authority with trusted clock; not current qualified-event/reference profiles or real approval",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "5733cbd519f2e7e7e7fa05f83532ec38ddb73be603bde52af3835e173ed6f81f"
+    },
+    {
+      "id": "HUMAN-AUTHORITY:replay",
+      "executor": "intent/0058/human-authority.candidate.mjs#createHumanAuthorityVerifier",
+      "implementationDigest": "363af3c2b282a53c3f725ce9e51fa43eddd7b5f33e68c22e5cdf1790aaf359c1",
+      "scope": "complete original-registry nine-proof disposition authority with trusted clock; not current qualified-event/reference profiles or real approval",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "617a983036c01973ca43f319a1efbccfba4668166470c1f363a8c2c5ff882c34"
+    },
+    {
+      "id": "HUMAN-AUTHORITY:cas-loser",
+      "executor": "intent/0058/human-authority.candidate.mjs#createHumanAuthorityVerifier",
+      "implementationDigest": "363af3c2b282a53c3f725ce9e51fa43eddd7b5f33e68c22e5cdf1790aaf359c1",
+      "scope": "complete original-registry nine-proof disposition authority with trusted clock; not current qualified-event/reference profiles or real approval",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "0417106d40d22010253e97381921345276e403bc29e42a89f6aef09082924cc4"
+    },
+    {
+      "id": "HUMAN-AUTHORITY:target-substitution",
+      "executor": "intent/0058/human-authority.candidate.mjs#createHumanAuthorityVerifier",
+      "implementationDigest": "363af3c2b282a53c3f725ce9e51fa43eddd7b5f33e68c22e5cdf1790aaf359c1",
+      "scope": "complete original-registry nine-proof disposition authority with trusted clock; not current qualified-event/reference profiles or real approval",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "9bdea0b56a06cc28ca9a5b156003ba22c25f3527b2de139590f8bd35ed958230"
+    },
+    {
+      "id": "HUMAN-AUTHORITY:policy-substitution",
+      "executor": "intent/0058/human-authority.candidate.mjs#createHumanAuthorityVerifier",
+      "implementationDigest": "363af3c2b282a53c3f725ce9e51fa43eddd7b5f33e68c22e5cdf1790aaf359c1",
+      "scope": "complete original-registry nine-proof disposition authority with trusted clock; not current qualified-event/reference profiles or real approval",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "421b157f8e0c7d941dd56420c8f3def81bf7788cfce21212a028f58d5cbb3f98"
+    },
+    {
+      "id": "HUMAN-AUTHORITY:item-substitution",
+      "executor": "intent/0058/human-authority.candidate.mjs#createHumanAuthorityVerifier",
+      "implementationDigest": "363af3c2b282a53c3f725ce9e51fa43eddd7b5f33e68c22e5cdf1790aaf359c1",
+      "scope": "complete original-registry nine-proof disposition authority with trusted clock; not current qualified-event/reference profiles or real approval",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "3ee36cf0fd488af48196ce1a700fad96735974ebf4dc7407e515e86fb40972da"
+    },
+    {
+      "id": "HUMAN-AUTHORITY:assignment-target-substitution",
+      "executor": "intent/0058/human-authority.candidate.mjs#createHumanAuthorityVerifier",
+      "implementationDigest": "363af3c2b282a53c3f725ce9e51fa43eddd7b5f33e68c22e5cdf1790aaf359c1",
+      "scope": "complete original-registry nine-proof disposition authority with trusted clock; not current qualified-event/reference profiles or real approval",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "c57ed4ea2e351d434dc95599efe698c7f4bf18d504c00960ec2e436029b7e31c"
+    },
+    {
+      "id": "HUMAN-AUTHORITY:evaluation-time-substitution",
+      "executor": "intent/0058/human-authority.candidate.mjs#createHumanAuthorityVerifier",
+      "implementationDigest": "363af3c2b282a53c3f725ce9e51fa43eddd7b5f33e68c22e5cdf1790aaf359c1",
+      "scope": "complete original-registry nine-proof disposition authority with trusted clock; not current qualified-event/reference profiles or real approval",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "5b1b18e88ca8b1c6921263729bfad4dee3e8d1ed361fcc65afe32da49c27343a"
+    },
+    {
+      "id": "HUMAN-AUTHORITY:ordinary-replay",
+      "executor": "intent/0058/human-authority.candidate.mjs#createHumanAuthorityVerifier",
+      "implementationDigest": "363af3c2b282a53c3f725ce9e51fa43eddd7b5f33e68c22e5cdf1790aaf359c1",
+      "scope": "complete original-registry nine-proof disposition authority with trusted clock; not current qualified-event/reference profiles or real approval",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "f82c0e813c3f273fec8f800beabafe6f9a93baea609e7b611ec997aa12621ab2"
+    },
+    {
+      "id": "HUMAN-AUTHORITY:policy-bytes-substitution",
+      "executor": "intent/0058/human-authority.candidate.mjs#createHumanAuthorityVerifier",
+      "implementationDigest": "363af3c2b282a53c3f725ce9e51fa43eddd7b5f33e68c22e5cdf1790aaf359c1",
+      "scope": "complete original-registry nine-proof disposition authority with trusted clock; not current qualified-event/reference profiles or real approval",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "cc96a19019c062c5f4e2aaa4cfa8e4c7b1f6cb346b27b21ab34e35eea4e8c4e7"
+    },
+    {
+      "id": "RECOVERY-CUT:before-provider-effect",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "4446728aef64846f7026f710224e9e4eeeaa3d8e0352cfed6741b508a69f1075"
+    },
+    {
+      "id": "RECOVERY-CUT:after-provider-effect-before-acknowledgement",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "a4eb355c57f1bf5b18126ceee4182c3301e47d530095affe9aa44becf56cd088"
+    },
+    {
+      "id": "RECOVERY-CUT:after-acknowledgement-before-webhook",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "0a7c75c920dd66f11e9e6c5edf3d42064ff8a9fc7c30a4c36f351b96ee49a475"
+    },
+    {
+      "id": "RECOVERY-CUT:after-webhook-before-fetch",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "8e25ca4407017dc1727a55b4d35f5f86c0acd2f3bef21a1c9edf29398a61589e"
+    },
+    {
+      "id": "RECOVERY-CUT:after-fetch-before-spool-fsync",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "4f6dd489327d01bfa1c632582f00278efed721332123a61c42e0ec274f4fb469"
+    },
+    {
+      "id": "RECOVERY-CUT:after-spool-fsync-before-WORM-acknowledgement",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "e922eb794f4e838a32bb5b8a3a86e00bf9b978c5337daa1430573908f3759af6"
+    },
+    {
+      "id": "RECOVERY-CUT:after-WORM-before-projection",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "539b0d07499d3510d3c26e30c807fec6cd467723527cfa526036a98dca98f2f0"
+    },
+    {
+      "id": "RECOVERY-CUT:after-projection",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 1,
+      "observationsDigest": "49f552f693efcaa7e19f47e6cdfac3e8da2c479c875b08e6faa5f13f0ec83d67"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:missing",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "4e8232ee1e3c824f022362eac91ff0f5c0970dca43bda504080df3150819bf06"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:stale",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "0ab8c5566d5175ee175964bf3b120f009c636d45c2e34b4957fe9759dd6d2509"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:partial",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "abf05961a585260a42d9bcbeca20c4b1f3794905275c389aaeb289cbfa4e7541"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:corrupt",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "df83aed9a54fd77f25341e6e42e5ea92028c785f7b17681fba3ee8a95ea010fb"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:unavailable",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "0d266e8811f601ba815a047167875b1fb51797b346fb048c1837e920508d1ae5"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:wrong-tenant",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "fc330a1008720ae5b5e1be10587bbbc61d23c3b4eb5347452adfe16f138e1d12"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:wrong-key",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "6bc1648750c2613d17eb7dfbab9794f15759de00297ab6be4a71f63cb0e50014"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:duplicated",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "5858fd214bdddb27c1d21617a121789d9bcd831a9b921b56f6558cc7a449683c"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:reordered",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "515ef8023ab39fba9f5cf163b1e5e6d1fefc606a90ae5b1fabc9142f109c6053"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:provider-timestamp-regressed",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "04f51f3ba1abbbbd514bb25881823db242470824df5e99d7f535c02de41abb3a"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:cursor-gapped",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "93a0a8da3b390a3fe055c99dc4fa1321ce375bcb5adce0812a3ff2c5a321d59c"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:ID-colliding",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "d956496b7404218631272aa2ddc66e8a79c5d38c3f053e03f8e6286f2635ac8b"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:mapped-many-to-one",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "b1ce4813ec1a21a0f7258f9a6b69c5e5eb5cf53d8c1ea68094076e209ce51fed"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:identity-proof-missing",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "793db83edba77817fa07f833372dc334103a16c5629338e8e0fb94b63c7fff32"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:artifact-mismatched",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "b7f47f6eca42efa671952952b145af4e3e00d6be1703c56aa6dd4989fb5c5459"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:policy-mismatched",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "6f98bcd3ad89e31fbd45842b0c4bc6e4af9a13fa56fe5427bf70e411a65aace2"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:loss-during-mapping",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "23bce976ed338572b88cd80fd3873849c3e51279b12963ee28a1272b0175e04c"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:loss-during-independent-verification",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "7cd7af6b84a4de489f7277e0bee3907b8b1ef3f8f324b0e3104674c76b71348a"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:retry-request-drift",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "299ff2fe34af8713ccd0401e6e23afa368c9c490d0bacdda77ab192c01af5ec9"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:arbitrary-policy-digest",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "c4d781306d4d01d5aa126abdca3119a5c1a46b85cf87cb105b331a16050e9bb2"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:opaque-identity",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "04c2a23be627044dd733225364b6e0f3c3a3c924e173f76f9f613143c26cfa65"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:generic-decision",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "5fb438ea375458eeaaf7c03f0902a8f742e935e0b747ac6ca4f3100841512799"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:cut-scope-mismatch",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "dc6b05fd1d07ce205a225f333e384cde981b291aedf75c355468a37ac48c9326"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:class-scope-mismatch",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "5c908ac8611bd083868d3dc2aa1201032c3072d05ec78370f0bb1380eb2ae188"
+    },
+    {
+      "id": "RECOVERY-CORRUPTION:revision-scope-mismatch",
+      "executor": "intent/0065/recovery-time.candidate.mjs#createRecoveryTimeVerifier",
+      "implementationDigest": "7aca83d2f5e8ab6832cf6bcab700abf9130153b917c334feaad52960bd59eb66",
+      "scope": "complete six-record original-registry recovery audit; four-row synthetic bound; pre-ack unknown is expected, not live recovery",
+      "status": "passed",
+      "observationCount": 2,
+      "observationsDigest": "49bda9131431093beb4d5435a9130d34eaf3e3079382e14f800c3544c06acca1"
+    },
+    {
+      "id": "R5:PREFLIGHT-R3-R5-001:reproduction:2",
+      "executor": "intent/0059/lifecycle-events.candidate.mjs#createLifecycleEventVerifier",
+      "implementationDigest": "d9dc4208d94c7798144acb8537a3f591735665d77279b53f3b4f96385bf439ee",
+      "scope": "complete selected original-registry event/history audit with explicit clock; not lifecycle disposition",
+      "status": "passed",
+      "observationCount": 3,
+      "observationsDigest": "5642f2a39f1fe4c697608cc6e3812ff8a96d525e56fc4d145308a09d1a642ee7"
+    },
+    {
+      "id": "R5:PREFLIGHT-R3-R5-002:reproduction:1",
+      "executor": "intent/0058/human-authority.candidate.mjs#createHumanAuthorityVerifier",
+      "implementationDigest": "363af3c2b282a53c3f725ce9e51fa43eddd7b5f33e68c22e5cdf1790aaf359c1",
+      "scope": "complete original-registry nine-proof disposition authority with trusted clock; not current qualified-event/reference profiles or real approval",
+      "status": "passed",
+      "observationCount": 3,
+      "observationsDigest": "347c81c4e8f04b8352cc36a20b4f5d9bc4dfe8bad591a219171d4c6977025680"
+    },
+    {
+      "id": "R5:PREFLIGHT-R3-R5-002:reproduction:2",
+      "executor": "intent/0058/human-authority.candidate.mjs#createHumanAuthorityVerifier",
+      "implementationDigest": "363af3c2b282a53c3f725ce9e51fa43eddd7b5f33e68c22e5cdf1790aaf359c1",
+      "scope": "complete original-registry nine-proof disposition authority with trusted clock; not current qualified-event/reference profiles or real approval",
+      "status": "passed",
+      "observationCount": 3,
+      "observationsDigest": "c8d6873a80307c941bf9313e51b38abbc07ec8525ade9fc837c29871aea13876"
+    },
+    {
+      "id": "R5:PREFLIGHT-R3-R5-005:reproduction:1",
+      "executor": "packages/domain/src/privacy-phone.ts#inspectPrivacyPhoneText",
+      "implementationDigest": "b0125fcca43c97c24354591991b533e83444b33c44b6c51e4d1c8c0b63846d0e",
+      "scope": "documented Unicode detector reproduction and required boundaries, not full corpus/time evidence",
+      "status": "passed",
+      "observationCount": 20,
+      "observationsDigest": "2b23e101c57fe43013dd57b0b8405e937f3bbf7663e051a19ff4aad723c8405f"
+    }
+  ],
+  "completeCoverage": false,
+  "normativeAcceptanceComplete": false,
+  "independentAcceptance": false,
+  "executionAuthorized": false,
+  "liveProviderUsed": false,
+  "limitations": [
+    "Executed means this registered hook ran and its assertions passed, not all invariants of the associated oracle.",
+    "No registered hook means uncovered here, not necessarily absent implementation elsewhere.",
+    "Privacy graph hooks retain the 0056 scope; 0063 observation and remaining global time requirements still need execution mapping.",
+    "Legacy baseline calls inside a counterexample hook are not credited as corrected coverage.",
+    "The source catalog is the frozen declaration plus nine R5 reproductions, not every additional normative clause or variation.",
+    "These are synthetic development executions; full normative, live integration, independent and protected review remain separate."
+  ]
+}

@@ -856,6 +856,14 @@ feature count. `pnpm r5:coverage:report` emits the evidence and scope limitation
 IDs never come from the available hook list. Existing wider tests and all formal
 review obligations remain; see `intent/0098/PLAN.md` for the next mappings.
 
+Item `intent/0099` adds 52 exact-ID recovery and human-authority executions. Every
+recovery corruption and human case includes a complete positive control; the two
+pre-ack recovery cuts correctly remain unknown. Both R5-002 examples demonstrate
+legacy acceptance and the precise full-binding/native-time corrected denial. The
+new snapshot has 115 passed, zero failed and 3,921 unmapped IDs. It seals the new
+hook/fixture sources and leaves the 0098 historical report unchanged. GAP-01 and
+all five findings remain open; see `intent/0099/PLAN.md` and `EVIDENCE.md`.
+
 ## Local commands
 
 ```sh
