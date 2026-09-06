@@ -34,7 +34,7 @@ export function runCorrectedCoverage() {
     catalogDigest: catalog.catalogDigest, sourcePinsDigest: catalog.sourcePinsDigest,
     runnerDigest: digest(readFileSync(new URL('./execution-ledger.mjs', import.meta.url))),
     hooksDigest: digest(readFileSync(new URL('./execution-hooks.mjs', import.meta.url))),
-    supplementalHookSources: ['intent/0099/execution-hooks.mjs', 'intent/0099/execution-fixtures.mjs'].map((path) => ({
+    supplementalHookSources: ['intent/0099/execution-hooks.mjs', 'intent/0099/execution-fixtures.mjs', 'intent/0100/execution-hooks.mjs', 'intent/0100/execution-fixtures.mjs'].map((path) => ({
       path, digest: digest(readFileSync(new URL('../../' + path, import.meta.url))) })),
     required: catalog.cases.length, executed: executions.length, passed: executions.length - failed, failed, uncovered: uncovered.length,
     uncoveredIdsDigest: digest(jcs(uncovered)), executionsDigest: digest(jcs(executions)), families, executions,
@@ -42,7 +42,7 @@ export function runCorrectedCoverage() {
     executionAuthorized: false, liveProviderUsed: false,
     limitations: ['Executed means this registered hook ran and its assertions passed, not all invariants of the associated oracle.',
       'No registered hook means uncovered here, not necessarily absent implementation elsewhere.',
-      'Privacy graph hooks retain the 0056 scope; 0063 observation and remaining global time requirements still need execution mapping.',
+      'Privacy graph hooks now include 0063 independent time observation; later trust eras and remaining global time requirements still need reconciliation.',
       'Legacy baseline calls inside a counterexample hook are not credited as corrected coverage.',
       'The source catalog is the frozen declaration plus nine R5 reproductions, not every additional normative clause or variation.',
       'These are synthetic development executions; full normative, live integration, independent and protected review remain separate.'] };

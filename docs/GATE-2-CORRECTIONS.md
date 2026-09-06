@@ -10,8 +10,9 @@ with an actual corrected declared-versus-executed ledger. Source and test-pointe
 checks are not a substitute for that ledger or independent acceptance.
 
 `intent/0098` provides the actual runner and initial snapshot for GAP-01;
-`intent/0099` adds complete recovery/human mappings and a new snapshot:
-4,036 required IDs, 115 passing mapped executions, 3,921 unmapped here. The
+`intent/0099` adds recovery/human mappings; `intent/0100` adds authorization/money
+and upgrades privacy graph cases to independent-time evidence. Current snapshot:
+4,036 required IDs, 201 passing mapped executions, 3,835 unmapped here. The
 require-complete command exits 2; GAP-01 is not complete. Some hooks intentionally
 cover only a narrower correction/classifier scope and do not certify the entire
 public oracle. No formal finding is closed by this count.

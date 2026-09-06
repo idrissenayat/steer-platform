@@ -864,6 +864,15 @@ new snapshot has 115 passed, zero failed and 3,921 unmapped IDs. It seals the ne
 hook/fixture sources and leaves the 0098 historical report unchanged. GAP-01 and
 all five findings remain open; see `intent/0099/PLAN.md` and `EVIDENCE.md`.
 
+Item `intent/0100` maps 32 authorization, 20 spending and 34 cost cases through
+complete timed audits. Reconciliation uses plural 0057/0063, preserving original
+signed bytes; overflow observes exact primitive failures plus signed graph denial.
+The 19 existing privacy graph IDs now include full 0063 observations and positive
+controls, without double credit. The new snapshot records 201 passed, zero failed
+and 3,835 unmapped. Original authorization is not the separate shared-action
+contract, and one-line reconciliation does not resolve R5-004. See
+`intent/0100/EVIDENCE.md` and `PLAN.md`; all formal findings remain open.
+
 ## Local commands
 
 ```sh

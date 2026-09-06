@@ -1824,3 +1824,25 @@ Next under intent/0099/PLAN.md are remaining shared-action/authorization,
 privacy/time and cost mappings, followed by lifecycle and migration reconciliation.
 The finite GAP-01–06 assurance plan and separate M1–M8 platform milestones remain.
 No provider mutation, cleanup, release, deployment, spending or signature is authorized.
+
+## Completed development increment: 0100 — authorization, money and privacy time
+
+The ledger adds 86 exact IDs: 32 original authorization, 20 spending and 34 cost
+cases. All use complete positive controls. Six reconciliation cases use plural
+0057/0063 evidence with unchanged original signed variance/successor bytes;
+overflow cases execute exact declared primitives and signed aggregate rejection.
+The 19 existing privacy graph IDs now include full independent-time observations,
+without duplicate credit. Original authorization does not certify the separate
+0060 shared-action contract; one-line cost cases do not resolve R5-004.
+
+Seven new groups and final full checks pass: 308 root controls and 88 prototype
+tests. A fresh run matches the new snapshot: 201 passed, zero failed and 3,835
+unmapped IDs of 4,036. Earlier snapshots are unchanged. See intent/0100/EVIDENCE.md
+for synthetic/cached limits. Protected artifacts and formal finding/gate state
+are unchanged; GAP-01 and all five formal R5 findings remain open.
+
+Next under intent/0100/PLAN.md are the R5-004 multi-line counterexample and remaining
+identifier/detector cases, followed by shared-action/lifecycle/migration and other
+normative reconciliation. The finite assurance packages and platform milestones
+remain separate. No provider mutation, cleanup, release, deployment, spending or
+signature is authorized.

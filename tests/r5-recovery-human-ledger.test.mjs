@@ -81,7 +81,7 @@ test('0099: closed mappings seal supplemental sources without crediting unknown 
   const row = catalog.find((entry) => entry.family === 'HUMAN-AUTHORITY');
   assert.throws(() => recoveryHumanExecutionHook(row).run(() => { throw new Error('ASSERTION_FAILED'); }), /ASSERTION_FAILED/);
   const report = runCorrectedCoverage();
-  assert.deepEqual(report.supplementalHookSources.map((entry) => entry.path), ['intent/0099/execution-hooks.mjs', 'intent/0099/execution-fixtures.mjs']);
+  assert.deepEqual(report.supplementalHookSources.filter((entry) => entry.path.startsWith('intent/0099/')).map((entry) => entry.path), ['intent/0099/execution-hooks.mjs', 'intent/0099/execution-fixtures.mjs']);
   for (const entry of report.supplementalHookSources) assert.equal(entry.digest, digest(readFileSync(new URL('../' + entry.path, import.meta.url))));
   assert.equal(report.completeCoverage, false); assert.equal(report.independentAcceptance, false);
 });
