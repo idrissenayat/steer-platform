@@ -1359,3 +1359,24 @@ Next is terminal consumption/acknowledgment-loss evidence under intent/0076/PLAN
 then remaining retention/rotation/reference, time and migration/normative coverage.
 All five R5 findings and independent/protected review remain open; no gate,
 provider mutation, deployment, release or spending is authorized.
+
+## Completed development increment: 0077 — raw terminal consumption readback
+
+The offline raw-v4 wrapper seals the exact original graph, grant, plan, chain,
+aggregate and separately authorized tombstone. Full independent terminal/current
+committed store proofs are required. Repeated acknowledgment-loss audits return
+only zero-effect REPLAY_NOOP; a checkpoint, new winner, fork or different result
+cannot stand in for completed consumption. Original signed bytes stay unchanged.
+Current authority/expiry is rechecked using only temporary unsigned clock inputs;
+old observations and fresh terminal records cannot rescue expired original proofs.
+
+Full checks pass with 157 root controls and 88 prototype tests. Seven new terminal
+groups cover all 24 outcome/partition combinations, exact retries, scope/result
+substitutions, omitted/forged records, reused heads, expiry and malformed input.
+See intent/0077/EVIDENCE.md for verification and cached-task boundaries.
+
+Next is future-retention/key-rotation/reference evidence, then remaining auxiliary
+time and migration compatibility/checkpoint/crash-cut coverage and the normative
+inventory under intent/0077/PLAN.md. Real terminal storage and transport recovery
+are not implemented by this offline verifier. All five formal R5 findings remain
+open pending independent/protected review; no gate or deployment is claimed.

@@ -10,12 +10,42 @@ import { policyDigest as preterminalPolicy } from '../intent/0073/raw-pretermina
 import { policyDigest as rawBatchPolicy } from '../intent/0074/raw-batch.candidate.mjs';
 import { policyDigest as checkpointPolicy } from '../intent/0075/raw-checkpoint.candidate.mjs';
 import { policyDigest as chainPolicy } from '../intent/0076/raw-checkpoint-chain.candidate.mjs';
+import { createRawTerminalVerifier, policyDigest as terminalPolicy } from '../intent/0077/raw-terminal.candidate.mjs';
 import { makeHumanAuthorityBundle, makeLifecycleEventBytes, makeLifecycleGraph } from '../intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs';
 import { lifecycleGraphDecision as frozen } from '../intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs';
 import { jcs, sha256, TRUST_REGISTRY, TARGET_REVISION, TARGET_EXAM_SHA, AUTHORIZATION_POLICY_PATH, AUTHORIZATION_POLICY_SHA, AUTHORIZATION_POLICY_BYTES, RETENTION_POLICY_SHA, zeroEffects } from '../intent/0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
 const epoch = Date.parse('2026-09-04T12:00:00Z');
 const at = (seconds) => new Date(epoch + seconds * 1000).toISOString().replace('.000Z', 'Z');
 const evaluation = at(50), until = at(150);
+function terminalFixture(options = {}) {
+  const value = fixture({ recordClass: 'RC-CORPUS-RAW-WORKING', checkpoints: [['copy-1']], ...options.graphOptions });
+  const graph = value.graph, batch = JSON.parse(graph.rawBatchBytes), priorHead = JSON.parse(batch.headBytes), prior = JSON.parse(batch.reservationBytes);
+  const original = value.verifier.verify(value.bytes, value.evaluationTime);
+  assert.equal(original.state, 'validated-lifecycle-candidate');
+  const edit = (name, record) => { options.edits?.[name]?.(record); return record; };
+  const common = { source: 'authoritative-raw-terminal-store', configDigest: sha256(value.configBytes), recordedAt: at(51), validThrough: until };
+  const completion = seal(edit('completion', { ...common, kind: 'raw-terminal-completion', policyDigest: terminalPolicy, observedAt: value.evaluationTime,
+    graphDigest: sha256(value.bytes), evidenceDigest: original.evidenceDigest, consumptionKey: prior.consumptionKey, grantDigest: original.rawGrantDigest,
+    planDigest: original.rawBatchPlanDigest, checkpointChainDigest: original.rawCheckpointChainDigest, aggregateDigest: JSON.parse(graph.aggregateBytes).recordDigest,
+    tombstoneReceiptDigest: JSON.parse(graph.tombstone.receiptBytes).recordDigest, previousReservationDigest: prior.recordDigest }), 'authority');
+  function store(label, terminal = null) {
+    const base = { ...common, recordedAt: at(terminal ? 60 : 52), completionDigest: completion.recordDigest, consumptionKey: completion.consumptionKey };
+    const head = seal(edit(`${label}-head`, { ...base, kind: 'raw-terminal-head', headId: priorHead.headId, head: sha256('terminal-head'), previousHead: priorHead.head, sequence: priorHead.sequence + 1 }), 'cas-authority');
+    const replay = seal(edit(`${label}-replay`, { ...base, kind: 'raw-terminal-replay', headDigest: head.recordDigest, status: 'committed', resultDigest: completion.recordDigest }), 'replay-authority');
+    const reservation = seal(edit(`${label}-reservation`, { ...base, kind: 'raw-terminal-reservation', headDigest: head.recordDigest, replayDigest: replay.recordDigest,
+      previousReservationDigest: terminal?.reservation.recordDigest ?? prior.recordDigest, status: terminal ? 'already-committed' : 'committed', winner: !terminal }), 'cas-authority');
+    const envelope = edit(`${label}-store`, { headBytes: jcs(head), replayBytes: jcs(replay), reservationBytes: jcs(reservation) });
+    return { bytes: jcs(envelope), reservation };
+  }
+  const terminal = store('terminal'), current = store('current', terminal);
+  const envelope = edit('envelope', { version: 'steer-raw-terminal/v1', policyDigest: terminalPolicy, graphBytes: value.bytes, observedAt: value.evaluationTime,
+    completionBytes: jcs(completion), terminalStoreBytes: terminal.bytes, currentStoreBytes: current.bytes });
+  return { ...value, envelope, terminalBytes: jcs(envelope), terminalVerifier: createRawTerminalVerifier(value.configBytes) };
+}
+function terminalDenied(value, now = at(70)) {
+  const result = value.terminalVerifier.verify(value.terminalBytes, now);
+  assert.equal(result.state, 'blocked'); assert.equal(result.executionAuthorized, false); assert.deepEqual(result.effects, zeroEffects());
+}
 const keys = new Map();
 function seal(input, domain) {
   if (!keys.has(domain)) keys.set(domain, createPrivateKey({ key: Buffer.concat([Buffer.from('302e020100300506032b657004220420', 'hex'), createHash('sha256').update(`steer-r3-r1-${domain}`).digest()]), format: 'der', type: 'pkcs8' }));
@@ -948,6 +978,98 @@ test('0068: provenance uses the maximum verified derived deletion, not an unrela
     { type: 'corpus-retired', second: -130 },
     ...Array.from({ length: 128 }, (_, index) => ({ type: 'derived-record-deleted', second: index - 129 })),
   ] }));
+});
+
+test('0077: terminal replay preserves original signed bytes across repeated acknowledgment-loss audits', () => {
+  const value = terminalFixture(), before = value.terminalBytes;
+  for (const seconds of [60, 70, 80, 90]) {
+    const result = value.terminalVerifier.verify(value.terminalBytes, at(seconds));
+    assert.equal(result.state, 'verified-terminal-replay'); assert.equal(result.decision, 'REPLAY_NOOP');
+    assert.equal(result.originalGraphDigest, sha256(value.bytes)); assert.equal(result.executionAuthorized, false);
+    assert.deepEqual(result.effects, zeroEffects()); assert.equal(value.terminalBytes, before);
+  }
+});
+
+test('0077: a terminal seal cannot substitute scope, grant, plan, chain, aggregate, tombstone or result', () => {
+  for (const key of ['configDigest', 'policyDigest', 'graphDigest', 'evidenceDigest', 'consumptionKey', 'grantDigest', 'planDigest',
+    'checkpointChainDigest', 'aggregateDigest', 'tombstoneReceiptDigest', 'previousReservationDigest']) {
+    terminalDenied(terminalFixture({ edits: { completion: (record) => { record[key] = 'f'.repeat(64); } } }));
+  }
+  for (const [key, replacement] of [['source', 'caller'], ['kind', 'checkpoint'], ['observedAt', at(49)], ['recordedAt', at(49)]])
+    terminalDenied(terminalFixture({ edits: { completion: (record) => { record[key] = replacement; } } }));
+});
+
+test('0077: all terminal outcomes and completed partitions converge to no-op with no recycled chain head', () => {
+  for (const result of ['pass', 'fail', 'cancelled']) for (let mask = 0; mask < 8; mask++) {
+    const completed = ['copy-1', 'copy-2', 'copy-3'].filter((_, index) => mask & (1 << index));
+    const value = terminalFixture({ graphOptions: { checkpoints: [completed], edits: { 'event-2': (event) => { event.result = result; } } } });
+    assert.equal(value.terminalVerifier.verify(value.terminalBytes, at(70)).state, 'verified-terminal-replay');
+  }
+  const value = terminalFixture(), batch = JSON.parse(value.graph.rawBatchBytes), opening = JSON.parse(JSON.parse(batch.openingBytes).headBytes);
+  terminalDenied(terminalFixture({ edits: { 'terminal-head': (record) => { record.head = opening.head; } } }));
+  terminalDenied(terminalFixture({ edits: { 'current-replay': (record) => { record.recordedAt = at(59); } } }));
+  for (const label of ['terminal', 'current']) for (const field of ['headBytes', 'replayBytes', 'reservationBytes']) {
+    for (const forge of [true, false]) terminalDenied(terminalFixture({ edits: { [`${label}-store`]: (store) => {
+      const record = JSON.parse(store[field]);
+      if (forge) { record.signature.valueBase64 = Buffer.alloc(64).toString('base64'); store[field] = jcs(record); }
+      else store[field] = jcs(seal(record, 'provider'));
+    } } }));
+  }
+});
+
+test('0077: terminal and current stores require full independent linked committed proofs, never a new winning effect', () => {
+  for (const label of ['terminal', 'current']) {
+    for (const field of ['headBytes', 'replayBytes', 'reservationBytes'])
+      terminalDenied(terminalFixture({ edits: { [`${label}-store`]: (store) => { delete store[field]; } } }));
+    for (const [suffix, key, replacement] of [['head', 'headId', 'other'], ['head', 'sequence', 100], ['head', 'previousHead', 'f'.repeat(64)],
+      ['replay', 'resultDigest', 'f'.repeat(64)], ['replay', 'status', 'checkpointed'], ['reservation', 'status', 'reserved'],
+      ['reservation', 'previousReservationDigest', 'f'.repeat(64)], ['reservation', 'headDigest', 'f'.repeat(64)], ['reservation', 'replayDigest', 'f'.repeat(64)]])
+      terminalDenied(terminalFixture({ edits: { [`${label}-${suffix}`]: (record) => { record[key] = replacement; } } }));
+  }
+  terminalDenied(terminalFixture({ edits: { 'current-reservation': (record) => { record.winner = true; } } }));
+  terminalDenied(terminalFixture({ edits: { 'terminal-reservation': (record) => { record.winner = false; } } }));
+  terminalDenied(terminalFixture({ edits: { 'current-head': (record) => { record.head = sha256('fork'); } } }));
+});
+
+test('0077: original observation does not bypass current expiry, freshness or exact clocks', () => {
+  const value = terminalFixture();
+  terminalDenied(value, at(59)); terminalDenied(value, until); terminalDenied(value, at(351)); terminalDenied(value, '2027-09-01T00:00:00Z');
+  assert.equal(value.terminalVerifier.verify(value.terminalBytes, '2026-09-04T12:02:29.999999999Z').state, 'verified-terminal-replay');
+  // Fresh terminal evidence cannot extend an expired original human/action proof.
+  const extended = terminalFixture({ edits: Object.fromEntries(['completion', 'terminal-head', 'terminal-replay', 'terminal-reservation',
+    'current-head', 'current-replay', 'current-reservation'].map((name) => [name, (record) => { record.validThrough = at(200); }])) });
+  terminalDenied(extended, until);
+  for (const name of ['completion', 'terminal-head', 'terminal-replay', 'terminal-reservation', 'current-head', 'current-replay', 'current-reservation'])
+    terminalDenied(terminalFixture({ edits: { [name]: (record) => { record.recordedAt = at(71); } } }));
+  terminalDenied(terminalFixture({ edits: { 'current-head': (record) => { record.recordedAt = at(51); } } }));
+});
+
+test('0077: sealed graph still needs every original human, action, receipt and checkpoint proof', () => {
+  for (const mutate of [
+    (graph) => { graph.tombstone.receiptBytes = '{}'; },
+    (graph) => { graph.tombstone.humanBundleBytes = '{}'; },
+    (graph) => { graph.copies[0].actionBundleBytes = '{}'; },
+    (graph) => { graph.copies[0].receiptBytes = '{}'; },
+    (graph) => { graph.continuationBytes = '{}'; },
+    (graph) => { graph.aggregateBytes = '{}'; },
+    (graph) => { const raw = JSON.parse(graph.rawPolicyBytes); raw.humanBundleBytes = '{}'; graph.rawPolicyBytes = jcs(raw); },
+  ]) terminalDenied(terminalFixture({ edits: { envelope: (input) => {
+    const graph = JSON.parse(input.graphBytes); mutate(graph); input.graphBytes = jcs(graph);
+    // Re-sign the seal to ensure rejection is not merely its graph hash mismatch.
+    input.completionBytes = jcs(seal({ ...JSON.parse(input.completionBytes), graphDigest: sha256(input.graphBytes) }, 'authority'));
+  } } }));
+});
+
+test('0077: malformed, forged, wrong-domain and oversized terminal evidence fails closed', () => {
+  for (const mutate of [
+    (input) => { input.extra = true; }, (input) => { input.version = 'steer-raw-checkpoint/v2'; },
+    (input) => { input.graphBytes += ' '; }, (input) => { input.observedAt = at(71); },
+    (input) => { input.completionBytes = jcs(seal(JSON.parse(input.completionBytes), 'provider')); },
+    (input) => { const record = JSON.parse(input.completionBytes); record.signature.valueBase64 = Buffer.alloc(64).toString('base64'); input.completionBytes = jcs(record); },
+    (input) => { input.currentStoreBytes = input.terminalStoreBytes; },
+    (input) => { input.graphBytes = ' '.repeat(16777217); },
+  ]) terminalDenied(terminalFixture({ edits: { envelope: mutate } }));
+  const value = terminalFixture(); terminalDenied({ ...value, terminalBytes: ' '.repeat(25165825) });
 });
 
 test('0068: provenance manifests are independently timed, closed, complete and exactly matched to every event', () => {

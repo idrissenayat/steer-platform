@@ -662,6 +662,15 @@ approval binds the complete chain. This is offline evidence, not a real store or
 restart. Terminal consumption and acknowledgment-loss evidence remain next under
 `intent/0076/PLAN.md`; all five R5 findings remain open.
 
+Item `intent/0077` adds an offline raw-v4 terminal-consumption wrapper. It seals
+the exact original graph/grant/plan/chain/aggregate/tombstone and requires full
+independent committed terminal and current store proofs. Repeated reads return
+only REPLAY_NOOP, never new effect authority. Original signed bytes are preserved;
+an ephemeral view changes only unsigned audit-clock inputs to re-run all current
+authority/expiry checks. Expired originals still deny. This is not archival replay,
+a real atomic store or live lost-acknowledgment recovery. See `intent/0077/EVIDENCE.md`
+and `PLAN.md`. All five R5 findings and independent/protected review remain open.
+
 ## Local commands
 
 ```sh
