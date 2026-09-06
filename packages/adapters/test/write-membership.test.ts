@@ -121,6 +121,13 @@ test('single-flight admission refuses overlapping observations and resumes after
   f.duringRead(async () => {}); await f.verify(input);
 });
 
+test('partial clock rollback after authentication denies even when still after operation start', async () => {
+  const f = fixture();
+  f.authenticate(async () => { f.clock(new Date(now.getTime() + 1000)); return session; });
+  f.duringRead(async () => { f.clock(new Date(now.getTime() + 999)); });
+  await assert.rejects(f.verify(input), failure);
+});
+
 test('wall-clock timeout withholds late results and keeps a hung dependency from accumulating new reads', async () => {
   const f = fixture(); let release!: () => void, entered!: () => void;
   const waiting = new Promise<void>((resolve) => { release = resolve; });

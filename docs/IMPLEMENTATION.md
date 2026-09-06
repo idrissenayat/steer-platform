@@ -1172,6 +1172,12 @@ with native disposable Git and synthetic provider/identity/authority dependencie
 The full verifier and runtime writer installation remain unfinished; no live save,
 gate approval, UI completion or provider-permission change is claimed.
 
+Item `intent/0133` corrects partial-clock-rollback acceptance in current membership
+and gate-source reads. Gate collection now has a fifteen-second caller deadline
+while retaining underlying-work ownership, denying late continuation and draining
+on shutdown. Public shapes and no-gate/no-write semantics remain unchanged. This
+is a prerequisite correction; full authority and runtime writer binding are due.
+
 ## Local commands
 
 ```sh

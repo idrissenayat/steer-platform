@@ -39,11 +39,11 @@ export function createGitWriteMembershipVerifier(reader: ArtifactReader, rawConf
         !config.paths.includes(input.path)) throw failure();
     let started: number;
     try { started = clock().getTime(); if (!Number.isFinite(started)) throw failure(); } catch { throw failure(); }
-    active = true; let timedOut = false; let timer: ReturnType<typeof setTimeout> | undefined;
+    active = true; let timedOut = false, last = started; let timer: ReturnType<typeof setTimeout> | undefined;
     const currentTime = () => {
       const time = clock().getTime();
-      if (timedOut || !Number.isFinite(started) || !Number.isFinite(time) || time < started || time - started >= 15000) throw failure();
-      return time;
+      if (timedOut || !Number.isFinite(started) || !Number.isFinite(time) || time < last || time - started >= 15000) throw failure();
+      last = time; return time;
     };
     const authenticate = async () => {
       currentTime(); const session = sessionSchema.parse(await dependencies.authenticate()); const now = currentTime();

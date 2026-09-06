@@ -176,3 +176,51 @@ test('collector composes with the real GitHub reader using read-only synthetic H
   assert.equal(calls.filter((path) => path.endsWith('/access_tokens')).length, 1);
   truncated = true; await assert.rejects(observer.collect(expected()));
 });
+
+test('partial clock rollback during source collection rejects instead of returning plausible provenance', async (t) => {
+  const start = Date.now(); let at = start; t.mock.method(Date, 'now', () => at);
+  const f = fixture(), read = f.reader.readArtifact; let reads = 0;
+  f.reader.readArtifact = async (path, revision) => {
+    at = start + (++reads === 1 ? 1000 : 999); return read(path, revision);
+  };
+  await assert.rejects(createGitGateObserver(f.reader, config, async () => principal).collect(expected()));
+});
+
+test('nonfinite start and exact logical deadline deny before further gate-source reads', async (t) => {
+  const start = Date.now(); let at = start; t.mock.method(Date, 'now', () => at);
+  let authentications = 0;
+  const f = fixture(); at = NaN;
+  await assert.rejects(createGitGateObserver(f.reader, config, async () => { authentications++; return principal; }).observe());
+  assert.equal(authentications, 0); assert.equal(f.reads(), 0);
+  for (const advance of [15000, NaN, -1]) {
+    at = start; const g = fixture(), read = g.reader.readHead;
+    g.reader.readHead = async () => { at = start + advance; return read(); };
+    await assert.rejects(createGitGateObserver(g.reader, config, async () => principal).collect(expected()));
+    assert.equal(g.reads(), 0);
+  }
+});
+
+test('equal clock observations preserve collection and the public legacy observation shape', async (t) => {
+  const at = Date.now(); t.mock.method(Date, 'now', () => at);
+  const f = fixture(), observer = createGitGateObserver(f.reader, config, async () => principal);
+  assert.equal((await observer.collect(expected())).writeAuthorized, false);
+  assert.deepEqual(Object.keys(await observer.observe()).sort(), ['artifactRevision', 'decisionDigest', 'sourceRevision']);
+  await observer.shutdown();
+});
+
+test('real collection timeout keeps admission closed and shutdown draining; late source cannot continue', async (t) => {
+  const f = fixture(), read = f.reader.readArtifact;
+  let release!: () => void, entered!: () => void, sourceCalls = 0;
+  const blocked = new Promise<void>((resolve) => { release = resolve; });
+  const arrived = new Promise<void>((resolve) => { entered = resolve; }); t.after(() => release());
+  f.reader.readArtifact = async (path, at) => { sourceCalls++; entered(); await blocked; return read(path, at); };
+  const observer = createGitGateObserver(f.reader, config, async () => principal);
+  const first = observer.collect(expected()); const rejected = assert.rejects(first, /^Error: Gate source observation could not be verified\.$/);
+  await arrived; await rejected;
+  assert.deepEqual(observer.status(), { stopping: false, active: true });
+  await assert.rejects(observer.observe(), /not accepting/); await assert.rejects(observer.collect(expected()), /not accepting/);
+  let stopped = false; const draining = observer.shutdown().then(() => { stopped = true; });
+  await Promise.resolve(); assert.equal(stopped, false);
+  release(); await draining; assert.equal(stopped, true); assert.equal(sourceCalls, 1); assert.equal(f.reads(), 1);
+  assert.deepEqual(observer.status(), { stopping: true, active: false }); await assert.rejects(observer.observe(), /not accepting/);
+});

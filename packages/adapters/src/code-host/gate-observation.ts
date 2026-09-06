@@ -25,14 +25,18 @@ export function createGitGateObserver(reader: RepositoryReader, rawConfiguration
     record: Readonly<ArtifactSnapshot> | null; artifacts: Readonly<ArtifactSnapshot>[] };
   let active: Promise<SourceResult> | undefined;
   let stopping = false; let shutdown: Promise<void> | undefined;
+  const failure = () => new Error('Gate source observation could not be verified.');
+  // Only one underlying run owns this clock guard, even after its caller times out.
+  let currentTime = () => Date.now();
   const authorize = async () => {
-    const principal = principalSchema.parse(await authenticate());
+    currentTime(); const principal = principalSchema.parse(await authenticate()); const now = currentTime();
     if (principal.organizationId !== binding.organizationId || principal.type !== 'agent' || principal.hats.length ||
-      !principal.toolGrants.includes('gate.observe') || Date.parse(principal.expiresAt) <= Date.now()) throw new Error();
+      !principal.toolGrants.includes('gate.observe') || Date.parse(principal.expiresAt) <= now) throw new Error();
     return principal;
   };
   const read = async (file: string, revision: string) => {
-    const value = await reader.readArtifact(file, revision); const bytes = Buffer.from(value.content, 'utf8');
+    currentTime(); const value = await reader.readArtifact(file, revision); currentTime();
+    const bytes = Buffer.from(value.content, 'utf8');
     if (bytes.length > 512 * 1024 || new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes) !== value.content ||
       value.organizationId !== binding.organizationId || value.repositoryId !== binding.repositoryId || value.path !== file || value.revision !== revision ||
       createHash('sha256').update(bytes).digest('hex') !== value.contentDigest || createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex') !== value.blobSha) throw new Error();
@@ -43,9 +47,17 @@ export function createGitGateObserver(reader: RepositoryReader, rawConfiguration
   };
   const run = (expected?: z.infer<typeof collectionSchema>): Promise<SourceResult> => {
       if (stopping || active) return Promise.reject(new Error('Gate observer is not accepting work.'));
+      let started: number;
+      try { started = Date.now(); if (!Number.isFinite(started)) throw failure(); } catch { return Promise.reject(failure()); }
+      let last = started, expired = false, timer: ReturnType<typeof setTimeout> | undefined;
+      currentTime = () => {
+        const now = Date.now();
+        if (expired || !Number.isFinite(now) || now < last || now - started >= 15000) throw failure();
+        last = now; return now;
+      };
       active = (async () => {
         try {
-          const initial = await authorize(); const head = sha.parse(await reader.readHead());
+          const initial = await authorize(); const head = sha.parse(await reader.readHead()); currentTime();
           if (expected && head !== expected.sourceRevision) throw new Error();
           const artifacts: Readonly<ArtifactSnapshot>[] = [];
           let changed = false;
@@ -58,7 +70,9 @@ export function createGitGateObserver(reader: RepositoryReader, rawConfiguration
           let recordSnapshot: Readonly<ArtifactSnapshot> | null = null;
           if (!changed) {
             const parts = configuration.recordPath.split('/'); const fileName = parts.pop()!;
+            currentTime();
             const inventory = await reader.readInventory({ roots: [parts.join('/')], fileNames: [fileName] }, head);
+            currentTime();
             if (inventory.organizationId !== binding.organizationId || inventory.repositoryId !== binding.repositoryId || inventory.revision !== head ||
               !sha.safeParse(inventory.treeSha).success || inventory.entries.length > 100 || new Set(inventory.entries.map((entry) => entry.path)).size !== inventory.entries.length) throw new Error();
             const entry = inventory.entries.find((value) => value.path === configuration.recordPath);
@@ -78,13 +92,17 @@ export function createGitGateObserver(reader: RepositoryReader, rawConfiguration
           }
           const current = await authorize();
           if (current.subject !== initial.subject || await reader.readHead() !== head ||
-            Math.min(Date.parse(initial.expiresAt), Date.parse(current.expiresAt)) <= Date.now()) throw new Error();
+            Math.min(Date.parse(initial.expiresAt), Date.parse(current.expiresAt)) <= currentTime()) throw new Error();
           if (expected && (changed || !recordSnapshot || decisionDigest !== expected.decisionDigest)) throw new Error();
           return { sourceRevision: head, artifactRevision: changed ? head : configuration.artifactRevision, decisionDigest,
             record: recordSnapshot, artifacts };
-        } catch { throw new Error('Gate source observation could not be verified.'); }
+        } catch { throw failure(); }
       })().finally(() => { active = undefined; });
-      return active;
+      // Timeout bounds the caller, not an arbitrary source implementation. Keep
+      // admission closed and shutdown waiting until the owned source actually ends.
+      return Promise.race([active, new Promise<never>((_resolve, reject) => {
+        timer = setTimeout(() => { expired = true; reject(failure()); }, 15000);
+      })]).finally(() => { clearTimeout(timer); });
   };
   return {
     async observe() {

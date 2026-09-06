@@ -2630,3 +2630,19 @@ still missing; a valid-looking callback result is not production evidence. No
 runtime writer, live GitHub scope or UI save control is enabled. Next are full
 authority and request-service binding, save/status UI, board, decision review and
 the combined journey. All five R5 findings, 0124/0120 and signed obligations remain.
+
+## Completed development increment: 0133 — bounded current-authority observations
+
+Two reproduced regressions returned observations after a partial clock rollback.
+Membership and gate-source collection now enforce last-observation monotonic time.
+Gate collection additionally bounds the caller at fifteen seconds, retains owned
+work after timeout, denies overlap/late continuation and preserves draining
+shutdown. The focused set passes 24 groups, including the original 19 and five
+new clock/lifecycle groups; both original failing cases now pass. Full checks pass,
+including 437 root controls, 131 adapter tests and all package typecheck/test/build
+tasks. See `intent/0133/EVIDENCE.md` for before/after evidence and remaining limits.
+
+No full source/human/qualification/provider/gate authority or live save is enabled.
+Continue that composition, trusted runtime binding and the save/board/decision
+journey. All five R5 findings, independent review, protected artifacts, existing
+provider approvals, 0124/0120 and signed Phase 1 obligations remain unchanged.

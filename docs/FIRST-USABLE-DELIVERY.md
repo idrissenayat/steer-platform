@@ -180,6 +180,12 @@ duplicate mutation after recovery. Actual full authority verification is still a
 required unfinished dependency. Runtime binding, save/status UI, board and decision
 review remain due; this is not an enabled real writing journey. See `intent/0132`.
 
+0133 development update: reproduced partial-clock rollbacks now reject in current
+membership and gate-source observations. Gate collection also rejects at its real
+deadline while retaining outstanding-work ownership and safe draining shutdown.
+This corrects prerequisites for authority composition, not the full verifier or
+live saving. See `intent/0133/EVIDENCE.md` for before/after and timeout evidence.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

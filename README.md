@@ -58,6 +58,10 @@ writer with current human/session checks and fresh authority before each new com
 The full authority verifier remains a mandatory unfinished dependency; no live
 writer is enabled. Isolated native-Git tests are not production gate evidence.
 
+Item [0133](intent/0133/README.md) corrects reproduced clock-rollback acceptance in
+authority prerequisites and bounds gate-source collection with late-result denial.
+This strengthens source observations; it does not complete full gate verification.
+
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono
 API/shared tool registry (0007), OIDC adapter/API composition (0008), and
