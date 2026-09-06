@@ -173,6 +173,13 @@ Actual production-provider compatibility, authorized trust roots, full human/
 qualification/policy evidence and request-bound writer composition remain open.
 See `intent/0131/EVIDENCE.md`; no live source binding or write is enabled.
 
+0132 development update: the registry save contract now has a request-bound GitHub
+writer composition. Tests exercise exact preview/confirmation/save/status through
+real storage into disposable Git, with fresh session/grant/proof checks and no
+duplicate mutation after recovery. Actual full authority verification is still a
+required unfinished dependency. Runtime binding, save/status UI, board and decision
+review remain due; this is not an enabled real writing journey. See `intent/0132`.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

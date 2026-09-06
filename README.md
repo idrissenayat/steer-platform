@@ -53,6 +53,11 @@ Item [0131](intent/0131/README.md) connects that primitive to authenticated pinn
 Git trust/proof reads with source rechecks and bounded work. It does not approve
 a production trust root or complete historical human/qualified-hat verification.
 
+Item [0132](intent/0132/README.md) connects the save tools to a request-bound GitHub
+writer with current human/session checks and fresh authority before each new commit.
+The full authority verifier remains a mandatory unfinished dependency; no live
+writer is enabled. Isolated native-Git tests are not production gate evidence.
+
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono
 API/shared tool registry (0007), OIDC adapter/API composition (0008), and

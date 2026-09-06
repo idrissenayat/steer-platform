@@ -1164,6 +1164,14 @@ no stale source cache and bounds owned work with single-flight/timeout/shutdown.
 It does not authorize trust roots, convert existing provider approvals or produce
 full human/qualified-hat/gate/write authority. No runtime binding is installed.
 
+Item `intent/0132` composes the shared BriefWriter contract with the real GitHub
+store, request-bound human identity and mandatory fresh full-authority callbacks.
+It adds bounded operations, session/grant rechecks, status-only reads and uncertain
+outcome recovery. The shared registry's confirmation/save/readback path is tested
+with native disposable Git and synthetic provider/identity/authority dependencies.
+The full verifier and runtime writer installation remain unfinished; no live save,
+gate approval, UI completion or provider-permission change is claimed.
+
 ## Local commands
 
 ```sh

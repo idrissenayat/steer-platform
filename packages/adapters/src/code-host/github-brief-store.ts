@@ -20,6 +20,7 @@ const requestSchema = briefSaveReferenceSchema.extend({ requestDigest: digest, e
   content: z.string().min(1).max(32768), contentDigest: digest, contentBlobSha: sha,
   expectedBlob: z.null(), operationPath: z.string().max(100),
 });
+export { configurationSchema as githubBriefConfigurationSchema, requestSchema as githubBriefRequestSchema };
 const markerSchema = briefSaveReferenceSchema.extend({ version: z.literal('steer-brief-operation/v1'),
   requestDigest: digest, expectedHead: sha, contentDigest: digest, blobSha: sha,
 });

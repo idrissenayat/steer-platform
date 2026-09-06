@@ -2612,3 +2612,21 @@ provider-recorded Gate 1 is not converted or replaced. Actual applicable provide
 evidence, full human/qualification/policy/Critic/domain proof and the writer remain
 unfinished. No runtime binding, gate, write scope or production evidence is enabled.
 All five R5 findings, 0124/0120 and signed Phase 1 obligations remain open.
+
+## Completed development increment: 0132 — request-bound GitHub Brief writer
+
+Connects the shared writer contract to the actual GitHub store under repeated
+current-human, exact-session and grant checks. Full authority must be supplied by
+a trusted verifier and is evaluated again after write-token issuance. Status-only
+access, exact-head creation, duplicate recovery, deadlines and post-dispatch
+uncertainty preserve the storage contract. The focused set passes 29 groups,
+including the actual registry preview/confirmation/save/status path into disposable
+native Git. Full repository verification passes, including 437 root controls,
+126 adapter tests and all package typechecks/tests/builds. See
+`intent/0132/EVIDENCE.md` for synthetic-dependency and runtime limits.
+
+The full current/historical human, qualification, provider and gate verifier is
+still missing; a valid-looking callback result is not production evidence. No
+runtime writer, live GitHub scope or UI save control is enabled. Next are full
+authority and request-service binding, save/status UI, board, decision review and
+the combined journey. All five R5 findings, 0124/0120 and signed obligations remain.
