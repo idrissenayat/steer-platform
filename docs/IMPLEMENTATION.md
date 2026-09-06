@@ -766,6 +766,16 @@ remain mandatory; original seven-action output/pins stay unchanged. Full checks
 pass with 232 root controls and 88 prototype tests. Full referenced-evidence
 lifecycle admission is next under `intent/0088/PLAN.md`; R5 remains formally open.
 
+Item `intent/0089` composes full referenced-evidence lifecycle under an explicitly
+selected current-v5 runtime. Retained content, qualified revocation and exact
+removal must match complete history/current state and every copy version/hash.
+Qualified current/archival holds, exact three-year retention, separate complete
+copy/tombstone humans and shared actions, selected-provider terminal receipts and
+cross-decision identity guards remain required. The owner cannot claim a future
+hold release. Missing reference evidence retains; partial or substituted proofs
+block. No real execution or gate approval is claimed. See `intent/0089/EVIDENCE.md`
+for verification and `intent/0089/PLAN.md` for remaining coverage.
+
 ## Local commands
 
 ```sh

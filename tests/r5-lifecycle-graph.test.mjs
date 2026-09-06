@@ -15,6 +15,9 @@ import { policyDigest as historicalPolicy } from '../intent/0078/historical-even
 import { createMixedHistoryVerifier } from '../intent/0081/mixed-history.candidate.mjs';
 import { createQualifiedHistoryVerifier } from '../intent/0083/qualified-history.candidate.mjs';
 import { createArchivedOwnerVerifier, policyDigest as archivedOwnerPolicy } from '../intent/0084/archived-owner.candidate.mjs';
+import { manifestBytes as referenceActionManifestBytes, manifestDigest as referenceActionManifestDigest } from '../intent/0088/reference-actions.candidate.mjs';
+import { createReferenceLifecycleVerifier } from '../intent/0089/reference-lifecycle.candidate.mjs';
+import { revocationFixture } from './fixtures/reference-evidence.mjs';
 import { makeHumanAuthorityBundle, makeLifecycleEventBytes, makeLifecycleGraph } from '../intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs';
 import { lifecycleGraphDecision as frozen } from '../intent/0001/reviews/domain/round-3/remediation/semantic-oracles.candidate.mjs';
 import { jcs, sha256, TRUST_REGISTRY, TARGET_REVISION, TARGET_EXAM_SHA, AUTHORIZATION_POLICY_PATH, AUTHORIZATION_POLICY_SHA, AUTHORIZATION_POLICY_BYTES, RETENTION_POLICY_SHA, zeroEffects } from '../intent/0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
@@ -151,7 +154,7 @@ function fixture(options = {}) {
   let eventBytes = event(type, history.length + 1, 0);
   // Explicit test expectation, not a call back into the verifier's selector.
   const trigger = JSON.parse(options.triggerHistoryIndex === undefined ? eventBytes : historyBytes[options.triggerHistoryIndex]);
-  let runtimeBytes, historicalEvidenceBytes, archivedOwnerBytes, trustedRegistryBytes = jcs(TRUST_REGISTRY);
+  let runtimeBytes, historicalEvidenceBytes, archivedOwnerBytes, referenceProof, trustedRegistryBytes = jcs(TRUST_REGISTRY);
   if (options.runtimeYear) {
     const registry = structuredClone(TRUST_REGISTRY);
     for (const key of TRUST_REGISTRY.bindings) registry.bindings.push({ ...key, keyId: `${key.domain}-key-current`,
@@ -202,17 +205,32 @@ function fixture(options = {}) {
       archivedOwnerBytes = jcs(edit('archived-owner-envelope', { version: 'steer-archived-owner/v1', policyDigest: archivedOwnerPolicy,
         archivedEvidenceBytes: historicalEvidenceBytes, decisionBytes, attestationBytes: jcs(ownerAttestation), retentionReceiptBytes: jcs(ownerReceipt) }));
     }
-    runtimeBytes = jcs(edit('runtime', { version: options.archivedOwners ? 'steer-lifecycle-runtime/v4' : options.qualifiedDecisions ? 'steer-lifecycle-runtime/v3' : Array.isArray(options.currentHistory) ? 'steer-lifecycle-runtime/v2' : 'steer-lifecycle-runtime/v1', currentRegistryBytes: trustedRegistryBytes,
-      currentProviderRegistryBytes: jcs(providers), historicalContextBytes: archiveBytes, ...(options.archivedOwners ? { archivedOwnerContextBytes } : {}) }));
+    if (options.referenceRuntime) {
+      const changes = options.referenceEdits ?? {}, contentChanges = changes.content ?? {};
+      referenceProof = revocationFixture({ ...changes, content: { ...contentChanges,
+        manifest: (record) => { record.recordId = config.recordId; record.artifactRevision = config.artifactRevision;
+          for (const reference of record.references) { reference.targetRecordId = config.recordId; reference.targetArtifactRevision = config.artifactRevision; }
+          contentChanges.manifest?.(record); },
+        context: (record) => { record.recordId = config.recordId; record.artifactRevision = config.artifactRevision; contentChanges.context?.(record); },
+      }, context: (record) => { record.environmentId = config.environmentId; changes.context?.(record); },
+      event: (record) => { record.eventId = `00000000-0000-4000-8000-${String(allBytes.length + (options.currentHistory?.length ?? 0) + 1).padStart(12, '0')}`; changes.event?.(record); },
+      authority: (record) => { record.holdState = options.referenceHoldState ?? 'none'; changes.authority?.(record); },
+      }, options.runtimeYear, { registry, seal: runtimeSeal, at: (second) => at(second - 30), until, evaluationTime: evaluatedAt });
+    }
+    runtimeBytes = jcs(edit('runtime', { version: options.referenceRuntime ? 'steer-lifecycle-runtime/v5' : options.archivedOwners ? 'steer-lifecycle-runtime/v4' : options.qualifiedDecisions ? 'steer-lifecycle-runtime/v3' : Array.isArray(options.currentHistory) ? 'steer-lifecycle-runtime/v2' : 'steer-lifecycle-runtime/v1', currentRegistryBytes: trustedRegistryBytes,
+      currentProviderRegistryBytes: jcs(providers), historicalContextBytes: archiveBytes, ...(options.archivedOwners ? { archivedOwnerContextBytes } : {}),
+      ...(options.referenceRuntime ? { referenceContextBytes: referenceProof.contextBytes } : {}) }));
     if (Array.isArray(options.currentHistory)) {
-      const combined = [...allBytes, ...options.currentHistory.map((entry, index) => event(entry.type, allBytes.length + index + 1, entry.second, true))];
+      const combined = [...allBytes, ...options.currentHistory.map((entry, index) => event(entry.type, allBytes.length + index + 1, entry.second, true)),
+        ...(referenceProof ? [referenceProof.envelope.eventBytes] : [])];
       edit('combined-history', combined); historyBytes = combined.slice(0, -1); eventBytes = combined.at(-1);
     }
   }
   const selectedVerifier = runtimeBytes ? createCurrentLifecycleGraphVerifier(configBytes, runtimeBytes) : createLifecycleGraphVerifier(configBytes);
   const policyDigest = selectedVerifier.policyDigest;
   const copies = (raw ? ['a', 'b', 'a'] : ['a', 'b']).map((suffix, index) => ({ copyId: `copy-${index + 1}`, copyKind: raw ? 'temporary-working' : 'replica', provider: `fixture-provider-${suffix}`,
-    providerBindingId: `fixture-provider-${suffix}-binding`, account: `fixture-account-${suffix}`, objectKey: `object-${index}`, versionId: 'version-1', keyId: `key-${index}`, sourceOriginal: false }));
+    providerBindingId: `fixture-provider-${suffix}-binding`, account: `fixture-account-${suffix}`, objectKey: `object-${index}`, versionId: options.referenceRuntime ? `v${index + 1}` : 'version-1', keyId: `key-${index}`, sourceOriginal: false,
+    ...(options.referenceRuntime ? { objectSha256: sha256(index === 0 ? 'object-one' : 'object-two') } : {}) }));
   edit('copies', copies);
   const rawConfigDigest = sha256(jcs({ version: 'steer-raw-preparation-context/v1', lifecycleConfigDigest: configDigest,
     recordId: config.recordId, artifactRevision: config.artifactRevision, environmentId: config.environmentId }));
@@ -227,9 +245,10 @@ function fixture(options = {}) {
     entries: [...historyBytes, eventBytes].map(JSON.parse).filter((event) => event.eventType === 'derived-record-deleted').map((event) => ({ derivedRecordId: event.derivedRecordId, derivedRecordClass: event.derivedRecordClass, deletionEventId: event.eventId })),
     recordedAt: at(1), validThrough: until }), options.derivedDomain ?? 'provider') : null;
   const state = seal(edit('state', { kind: 'state', configDigest, source: 'authoritative-lifecycle-store', inventoryDigest: inventory.recordDigest,
-    historyDigest: sha256(jcs([...historyBytes, eventBytes])), historyComplete: true, holdState: 'none', referenceState: 'cleared', referenceRevocationDigest: null, parentExpiryAt: null, recordedAt: at(2), validThrough: until,
+    historyDigest: sha256(jcs([...historyBytes, eventBytes])), historyComplete: true, holdState: 'none', referenceState: 'cleared',
+    referenceRevocationDigest: referenceProof ? JSON.parse(referenceProof.envelope.completionBytes).recordDigest : null, parentExpiryAt: null, recordedAt: at(2), validThrough: until,
     ...(provenance ? { derivedInventoryDigest: derived.recordDigest } : {}) }), options.stateDomain ?? 'authority');
-  const graph = { version: runtimeBytes ? options.archivedOwners ? 'steer-lifecycle-graph/current-v4' : options.qualifiedDecisions ? 'steer-lifecycle-graph/current-v3' : Array.isArray(options.currentHistory) ? 'steer-lifecycle-graph/current-v2' : 'steer-lifecycle-graph/current-v1' : chained ? 'steer-lifecycle-graph/raw-v4' : continuation ? 'steer-lifecycle-graph/raw-v3' : raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1', configDigest, policyDigest, eventBytes, historyBytes, inventoryBytes: jcs(inventory), stateBytes: jcs(state), referenceRevocationBytes: '', copies: [], aggregateBytes: '', tombstone: {},
+  const graph = { version: runtimeBytes ? options.referenceRuntime ? 'steer-lifecycle-graph/current-v5' : options.archivedOwners ? 'steer-lifecycle-graph/current-v4' : options.qualifiedDecisions ? 'steer-lifecycle-graph/current-v3' : Array.isArray(options.currentHistory) ? 'steer-lifecycle-graph/current-v2' : 'steer-lifecycle-graph/current-v1' : chained ? 'steer-lifecycle-graph/raw-v4' : continuation ? 'steer-lifecycle-graph/raw-v3' : raw ? 'steer-lifecycle-graph/raw-v2' : 'steer-lifecycle-graph/v1', configDigest, policyDigest, eventBytes, historyBytes, inventoryBytes: jcs(inventory), stateBytes: jcs(state), referenceRevocationBytes: referenceProof?.bytes ?? '', copies: [], aggregateBytes: '', tombstone: {},
     ...(options.archivedOwners ? { archivedOwnerBytes } : {}),
     ...(options.qualifiedDecisions ? { qualifiedDecisionBytes: jcs(edit('qualified-proofs', qualifiedDecisions)) } : {}),
     ...(runtimeBytes ? { historicalEvidenceBytes } : {}),
@@ -272,7 +291,7 @@ function fixture(options = {}) {
     graph.rawPolicyBytes = jcs(edit('raw-policy', { version: 'steer-raw-preterminal/v1', policyDigest: preterminalPolicy, configDigest: rawConfigDigest,
       preparationBytes: jcs(preparation), humanBundleBytes: rawFull.bytes, rawGrantBytes: jcs(grant) }));
   }
-  const baseDigest = sha256(jcs({ configDigest, policyDigest, eventBytes, historyBytes, inventoryBytes: graph.inventoryBytes, stateBytes: graph.stateBytes, referenceRevocationBytes: '',
+  const baseDigest = sha256(jcs({ configDigest, policyDigest, eventBytes, historyBytes, inventoryBytes: graph.inventoryBytes, stateBytes: graph.stateBytes, referenceRevocationBytes: graph.referenceRevocationBytes,
     ...(provenance ? { derivedInventoryBytes: graph.derivedInventoryBytes } : {}), ...(raw ? { rawGrantBindingDigest } : {}), ...(runtimeBytes ? { historicalEvidenceBytes } : {}),
     ...(options.qualifiedDecisions ? { qualifiedDecisionBytes: graph.qualifiedDecisionBytes } : {}), ...(options.archivedOwners ? { archivedOwnerBytes } : {}) }));
   const plannedRequests = new Map();
@@ -281,9 +300,10 @@ function fixture(options = {}) {
     const replayed = label === 'tombstone' ? (options.tombstoneReplay ?? options.replay) : recoveringCopy ? completedCopies.includes(label) : (options.replayCopies ? options.replayCopies.includes(label) : options.replay);
     const firstCompleted = chained ? options.checkpoints.findIndex((ids) => ids.includes(label)) : -1;
     const receiptDelay = recoveringCopy ? (chained && firstCompleted >= 0 ? 4 + 8 * firstCompleted : replayed ? 4 : 11 + recoveryShift) : 4;
-    const context = { version: 'steer-protected-action-context/v1', manifestDigest, trustRegistryBytes: trustedRegistryBytes, target: structuredClone(target), scope: structuredClone(scope), grants: [structuredClone(grant)] };
+    const context = { version: options.referenceRuntime ? 'steer-protected-reference-context/v1' : 'steer-protected-action-context/v1',
+      manifestDigest: options.referenceRuntime ? referenceActionManifestDigest : manifestDigest, trustRegistryBytes: trustedRegistryBytes, target: structuredClone(target), scope: structuredClone(scope), grants: [structuredClone(grant)] };
     edit(`${label}:context`, context);
-    const contextDigest = sha256(jcs(context)), definition = JSON.parse(manifestBytes).actions.find((entry) => entry.action === grant.action);
+    const contextDigest = sha256(jcs(context)), definition = JSON.parse(options.referenceRuntime ? referenceActionManifestBytes : manifestBytes).actions.find((entry) => entry.action === grant.action);
     const operation = { requestId: `request-${label}`, grantId: grant.grantId, idempotencyKey: `idem-${label}`, casHead: 'a'.repeat(64), requestedAt: at(second) };
     edit(`${label}:operation`, operation);
     const operationDigest = sha256(jcs({ contextDigest, operation })), records = {};
@@ -317,7 +337,8 @@ function fixture(options = {}) {
   for (const copy of copies) {
     const conditions = [`lifecycle-inventory:${inventory.recordDigest}`, `tuple:${sha256(jcs(copy))}`, `input:${baseDigest}`];
     const full = raw ? rawFull : human(copy.copyId, [copy], conditions, 'provider-delete', false, 5 + offset);
-    const resources = { objectId: config.recordId, recordClass: config.recordClass, ...Object.fromEntries(['copyId', 'copyKind', 'providerBindingId', 'account', 'objectKey', 'versionId', 'keyId'].map((key) => [key, copy[key]])), inventoryDigest: inventory.recordDigest, tupleDigest };
+    const resources = { objectId: config.recordId, recordClass: config.recordClass, ...Object.fromEntries(['copyId', 'copyKind', 'providerBindingId', 'account', 'objectKey', 'versionId', 'keyId'].map((key) => [key, copy[key]])), inventoryDigest: inventory.recordDigest, tupleDigest,
+      ...(options.referenceRuntime ? { objectSha256: copy.objectSha256 } : {}) };
     const grant = { grantId: copy.copyId, action: raw ? 'lifecycle.crypto-erase' : 'lifecycle.delete-copy', actorSubject: config.actorSubject, upstreamSubject: config.upstreamSubject,
       provider: copy.provider, resourceDomain: copy.provider.endsWith('-b') ? 'provider-b' : 'provider-a', resources, authorityEvidenceDigest: full.authority.recordDigest, inputDigest: baseDigest };
     graph.copies.push({ copyId: copy.copyId, ...(!raw ? { humanBundleBytes: full.bytes, rawGrantBytes: '' } : {}), ...action(copy.copyId, grant, full.authority, 15 + offset) });
@@ -392,10 +413,13 @@ function fixture(options = {}) {
     }
   }
   const full = human('tombstone', copies, [`lifecycle-inventory:${inventory.recordDigest}`, `aggregate:${aggregate.recordDigest}`, `input:${baseDigest}`,
+    ...(referenceProof ? [`tombstone:${JSON.parse(referenceProof.contextBytes).tombstoneRecordId}`, `verification:${JSON.parse(referenceProof.source.contextBytes).verificationBundleDigest}`] : []),
     ...(continuation ? [`raw-checkpoint:${checkpoint.recordDigest}`] : []), ...(chained ? [`raw-checkpoint-chain:${sha256(graph.continuationBytes)}`] : [])], 'provider-delete', false, (continuation ? 30 + recoveryShift : 27) + offset);
   const grant = { grantId: 'tombstone', action: 'lifecycle.commit-tombstone', actorSubject: config.actorSubject, upstreamSubject: config.upstreamSubject,
     provider: 'fixture-provider-a', resourceDomain: 'provider-a', resources: { objectId: config.recordId, recordClass: config.recordClass, inventoryDigest: inventory.recordDigest,
-      tupleDigest, aggregateReceiptDigest: aggregate.recordDigest, path: config.tombstonePath }, authorityEvidenceDigest: full.authority.recordDigest, inputDigest: baseDigest };
+      tupleDigest, aggregateReceiptDigest: aggregate.recordDigest, path: config.tombstonePath,
+      ...(referenceProof ? { tombstoneRecordId: JSON.parse(referenceProof.contextBytes).tombstoneRecordId, verificationBundleDigest: JSON.parse(referenceProof.source.contextBytes).verificationBundleDigest } : {}) },
+    authorityEvidenceDigest: full.authority.recordDigest, inputDigest: baseDigest };
   graph.tombstone = { humanBundleBytes: full.bytes, ...action('tombstone', grant, full.authority, (continuation ? 38 + recoveryShift : 35) + offset) };
   edit('graph', graph); return { graph, config, configBytes, runtimeBytes, evaluationTime: evaluatedAt, bytes: jcs(graph), verifier: selectedVerifier };
 }
@@ -1304,7 +1328,121 @@ test('0080: exact selected provider keys and available-before-state archive proo
 });
 
 const holdSuffix = [{ type: 'hold-applied', second: -10 }, { type: 'hold-released', second: -5 }];
+const referenceOptions = { runtimeYear: 2029, recordClass: 'RC-REFERENCED-EVIDENCE', eventType: 'item-closed', referenceRuntime: true,
+  qualifiedDecisions: true, archivedOwners: true, currentHistory: [] };
+function referenceLifecycleFixture(edits = {}, options = {}) { return fixture({ ...referenceOptions, ...options, edits }); }
+test('0089: full referenced-evidence lifecycle verifies both copy hashes, removal, independent actions and named tombstone', () => {
+  for (const runtimeYear of [2029, 2033]) for (const replay of [false, true]) {
+    const value = referenceLifecycleFixture({}, { runtimeYear, replay });
+    const result = value.verifier.verify(value.bytes, value.evaluationTime);
+    assert.equal(result.state, 'validated-lifecycle-candidate'); assert.equal(result.copyCount, 2); assert.equal(result.protectedActionCount, 3);
+    assert.equal(result.referenceCount, 2); assert.equal(result.tombstoneRecordId, 'tombstone-evidence-1'); assert.equal(result.replayCount, replay ? 3 : 0);
+    assert.equal(result.referenceEvidenceDigest, sha256(value.graph.referenceRevocationBytes)); assert.equal(result.executionAuthorized, false); assert.deepEqual(result.effects, zeroEffects());
+    assert.deepEqual(createReferenceLifecycleVerifier(value.configBytes, value.runtimeBytes).verify(value.bytes, value.evaluationTime), result);
+  }
+});
 const qualifiedOptions = { ...futureCases[2], qualifiedDecisions: true, currentHistory: holdSuffix };
+test('0089: missing reference evidence retains while partial, reappeared or substituted evidence blocks', () => {
+  const missing = referenceLifecycleFixture({ graph: (graph) => { graph.referenceRevocationBytes = ''; } });
+  const result = missing.verifier.verify(missing.bytes, missing.evaluationTime);
+  assert.equal(result.state, 'retained-pending-safe-disposition'); assert.equal(result.firstError, 'REFERENCE_EVIDENCE_REQUIRED');
+  assert.equal(result.executionAuthorized, false); assert.deepEqual(result.effects, zeroEffects());
+  for (const field of ['contentBytes', 'eventBytes', 'humanBundleBytes', 'completionBytes']) {
+    const value = referenceLifecycleFixture({ graph: (graph) => { const record = JSON.parse(graph.referenceRevocationBytes); record[field] = '{}'; graph.referenceRevocationBytes = jcs(record); } }); denied(value, value.evaluationTime);
+  }
+  for (const edits of [
+    { envelope: (record) => { record.referenceReceiptBytes.pop(); } },
+    { 'receipt-0': (record) => { record.remainingMatches = 1; } },
+    { completion: (record) => { record.remainingReferenceIds = ['reference-1']; } },
+    { completion: (record) => { record.recordedAt = '2029-09-04T12:00:03Z'; } },
+    { content: { retention: (record) => { record.complete = false; } } },
+  ]) { const value = referenceLifecycleFixture({}, { referenceEdits: edits }); denied(value, value.evaluationTime); }
+  for (const edits of [
+    { state: (record) => { record.referenceRevocationDigest = 'f'.repeat(64); } },
+    { 'combined-history': (records) => { records.pop(); } },
+    { 'combined-history': (records) => { records.push(records.at(-1)); } },
+    { graph: (record) => { record.referenceRevocationBytes = jcs({ decision: 'authorized' }); } },
+  ]) { const value = referenceLifecycleFixture(edits); denied(value, value.evaluationTime); }
+});
+
+test('0089: complete version and content hashes bind every copy and provider resource', () => {
+  const omitted = referenceLifecycleFixture({ graph: (graph) => { const inventory = JSON.parse(graph.inventoryBytes); delete inventory.copies[0].objectSha256; graph.inventoryBytes = jcs(runtimeSeal(inventory, 'record')); } });
+  denied(omitted, omitted.evaluationTime);
+  for (const mutate of [(copies) => copies.pop(),
+    (copies) => { copies[0].objectSha256 = 'f'.repeat(64); }, (copies) => { copies[0].versionId = 'unknown'; },
+    (copies) => { copies[1].versionId = copies[0].versionId; copies[1].objectSha256 = copies[0].objectSha256; },
+    (copies) => { copies[0].sourceOriginal = true; }]) {
+    const value = referenceLifecycleFixture({ copies: mutate }); denied(value, value.evaluationTime);
+  }
+  for (const label of ['copy-1', 'copy-2']) {
+    const value = referenceLifecycleFixture({ [`${label}:resources`]: (record) => { record.resources.objectSha256 = 'f'.repeat(64); } }); denied(value, value.evaluationTime);
+  }
+});
+
+test('0089: copy and named tombstone each require independent complete human, shared action and terminal receipt', () => {
+  for (const label of ['copy-1', 'copy-2', 'tombstone']) {
+    for (const field of ['humanBundleBytes', 'actionBundleBytes', 'receiptBytes']) {
+      const value = referenceLifecycleFixture({ graph: (graph) => { (label === 'tombstone' ? graph.tombstone : graph.copies.find((entry) => entry.copyId === label))[field] = '{}'; } });
+      denied(value, value.evaluationTime);
+    }
+    const losing = referenceLifecycleFixture({ [`${label}:reservation`]: (record) => { record.winner = false; } }); denied(losing, losing.evaluationTime);
+    for (const field of ['oldProviderResources', 'oldProviderReceipts']) {
+      const value = referenceLifecycleFixture({}, { [field]: [label] }); denied(value, value.evaluationTime);
+    }
+  }
+  for (const field of ['tombstoneRecordId', 'verificationBundleDigest']) {
+    const value = referenceLifecycleFixture({ 'tombstone:resources': (record) => { record.resources[field] = field === 'tombstoneRecordId' ? 'other-tombstone' : 'f'.repeat(64); } }); denied(value, value.evaluationTime);
+  }
+  const conditions = referenceLifecycleFixture({ 'tombstone:human': (record) => { record.conditions = record.conditions.filter((condition) => !condition.startsWith('tombstone:')); } });
+  denied(conditions, conditions.evaluationTime);
+});
+
+test('0089: current and retained historical qualified holds cannot be bypassed by reference clearance', () => {
+  const currentHistory = [{ type: 'hold-applied', second: -40 }, { type: 'hold-released', second: -35 }];
+  for (const historyOptions of [{ currentHistory }, { history: archiveHoldHistory }]) {
+    const value = referenceLifecycleFixture({ state: (record) => { record.holdState = 'released'; } }, { ...historyOptions, referenceHoldState: 'released' });
+    assert.equal(value.verifier.verify(value.bytes, value.evaluationTime).state, 'validated-lifecycle-candidate');
+    const mismatch = referenceLifecycleFixture({ state: (record) => { record.holdState = 'released'; } }, historyOptions); denied(mismatch, mismatch.evaluationTime);
+  }
+  const active = referenceLifecycleFixture({ state: (record) => { record.holdState = 'active'; } }, { currentHistory: currentHistory.slice(0, 1), referenceHoldState: 'active' });
+  const result = active.verifier.verify(active.bytes, active.evaluationTime);
+  assert.equal(result.state, 'retained-on-hold'); assert.equal(result.executionAuthorized, false); assert.deepEqual(result.effects, zeroEffects());
+  const concealed = referenceLifecycleFixture({}, { currentHistory: currentHistory.slice(0, 1) }); denied(concealed, concealed.evaluationTime);
+  const futureRelease = referenceLifecycleFixture({ state: (record) => { record.holdState = 'released'; } }, {
+    currentHistory: [currentHistory[0], { type: 'hold-released', second: -8 }], referenceHoldState: 'released' });
+  denied(futureRelease, futureRelease.evaluationTime);
+  const references = referenceLifecycleFixture({ state: (record) => { record.referenceState = 'active'; } });
+  assert.equal(references.verifier.verify(references.bytes, references.evaluationTime).state, 'retained-on-hold');
+});
+
+test('0089: exact three-year retention boundary cannot admit premature copy disposition', () => {
+  const options = { runtimeEpoch: '2029-09-04T11:59:00Z' };
+  const before = referenceLifecycleFixture({}, { ...options, evaluationTime: '2029-09-04T11:59:59.999999999Z' });
+  assert.equal(before.verifier.verify(before.bytes, before.evaluationTime).state, 'scheduled');
+  const boundary = referenceLifecycleFixture({}, { ...options, evaluationTime: '2029-09-04T12:00:00Z' }); denied(boundary, boundary.evaluationTime);
+  const premature = referenceLifecycleFixture({ 'copy-1:operation': (record) => { record.requestedAt = '2029-09-04T11:59:59.999999999Z'; } }); denied(premature, premature.evaluationTime);
+  const expired = referenceLifecycleFixture(); denied(expired, '2029-09-04T12:02:30Z');
+});
+
+test('0089: reference owner authority and provider identity cannot be reused for later copy approval', () => {
+  const source = referenceLifecycleFixture(), proof = JSON.parse(source.graph.referenceRevocationBytes), human = JSON.parse(proof.humanBundleBytes), authority = JSON.parse(human.authorityBytes);
+  for (const field of ['authorityId', 'providerRecordId', 'idempotencyKey']) {
+    const value = referenceLifecycleFixture({ 'copy-1:human': (record) => { record[field] = authority[field]; } }); denied(value, value.evaluationTime);
+  }
+});
+
+test('0089: trusted reference runtime is class-specific and cannot downgrade or mismatch its independently selected context', () => {
+  const value = referenceLifecycleFixture(), runtime = JSON.parse(value.runtimeBytes);
+  for (const version of ['steer-lifecycle-runtime/v1', 'steer-lifecycle-runtime/v4'])
+    assert.throws(() => createReferenceLifecycleVerifier(value.configBytes, jcs({ ...runtime, version })), /REFERENCE_LIFECYCLE_CONFIGURATION_INVALID/);
+  for (const mutate of [(record) => { delete record.referenceContextBytes; }, (record) => { record.referenceContextBytes = '{}'; }])
+    assert.throws(() => referenceLifecycleFixture({ runtime: mutate }), /LIFECYCLE_RUNTIME_CONFIGURATION_INVALID/);
+  for (const recordClass of ['RC-DECISION-PROOF', 'RC-CORPUS-RAW-WORKING'])
+    assert.throws(() => referenceLifecycleFixture({}, { recordClass }), /LIFECYCLE_CONFIGURATION_INVALID/);
+  assert.throws(() => referenceLifecycleFixture({}, { referenceEdits: { context: (record) => { record.environmentId = 'other'; } } }), /LIFECYCLE_CONFIGURATION_INVALID/);
+  assert.throws(() => referenceLifecycleFixture({}, { referenceEdits: { content: { context: (record) => { record.repositoryId = 'other'; } } } }), /LIFECYCLE_RUNTIME_CONFIGURATION_INVALID/);
+  const downgrade = referenceLifecycleFixture({ graph: (record) => { record.version = 'steer-lifecycle-graph/current-v4'; } }); denied(downgrade, downgrade.evaluationTime);
+});
 function qualifiedFixture(edits = {}, options = {}) {
   return fixture({ ...qualifiedOptions, ...options, edits: { state: (state) => { state.holdState = 'released'; }, ...edits } });
 }

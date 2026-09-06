@@ -6,7 +6,7 @@ independent Critic verdict, protected Exam incorporation or a human signature.
 
 | Finding | Candidate work available | Required remaining work |
 |---|---|---|
-| R5-001 lifecycle | 0059/0058/0060 composed in 0061; 0068 retention; 0070/0071 precision/ordering; 0072–0077 raw grant/batch/checkpoint/terminal evidence; 0078–0084 four-class future/mixed history and qualified current/archival hold evidence; 0085 reference-owner profile | Real store/transport/trust integration; exact reference content/full lifecycle, remaining class/trust-era coverage, unranked ties/auxiliary times and normative matrix; independent/protected review |
+| R5-001 lifecycle | 0059/0058/0060 composed in 0061; 0068 retention; 0070/0071 precision/ordering; 0072–0077 raw grant/batch/checkpoint/terminal evidence; 0078–0084 four-class future/mixed history and qualified current/archival hold evidence; 0085–0089 full referenced-evidence candidate composition | Real store/transport/trust integration; remaining class/trust-era coverage, unranked ties/auxiliary times and normative matrix; independent/protected review |
 | R5-002 full authority/time | 0058–0067 cover all ten original signed public oracles; 0069/0070 exact primitives/contracts; 0079/0082–0085 complete current/archival owner and distinct reference profiles; source/export/test inventory in 0067 | Other public/migration precision paths; full normative review; later trust eras and runtime clocks; independent review |
 | R5-003 migration | 0062 composes all three shared actions with approved plan/before-state pins, actual bounded data/source bytes, backup/restoration, full contract cleanup, provider/journal/result and replay/CAS | Complete old/new/concurrent compatibility, multi-batch/checkpoint/crash-cut matrix and normative inventory; independent/protected review; no live runner claimed |
 | R5-004 reconciliation | 0057 exact plural lineage and aggregate-before-rounding; 0063 explicit-time composition of every line/provider proof and exact independent observation | Independent review of complete package and legacy observation semantics; protected incorporation; no spending authorization |
@@ -54,11 +54,16 @@ Its fact-only result still requires full lifecycle/history/copy/tombstone admiss
 fields through the same complete shared protected-action verifier. This closes a
 resource-contract prerequisite without bypassing authorization or changing old pins.
 
-Next bounded work is full referenced-evidence lifecycle/history composition, followed by
+0089 admits only referenced evidence through explicit current-v5 composition of
+full content/revocation/removal, current and qualified archival history, truthful
+hold context, exact copy/version hashes and independent named-tombstone actions.
+Missing evidence retains; partial or substituted evidence blocks with no effects.
+
+Next bounded work is reconciliation of the remaining source/class/trust-era matrix,
 remaining classes and migration compatibility/concurrency/checkpoint coverage and complete
 normative inventory. Do not extend frozen key windows merely to make historical
 or future-retention tests pass; resolve archival versus current authority explicitly.
-0061–0088 are development candidates and verification increments,
+0061–0089 are development candidates and verification increments,
 not proof of complete retention-key coverage, live compatibility or atomic execution.
 Preserve the frozen send-back package. Do not request a new qualified-human ruling
 until the complete corrected candidate is independently accepted and incorporated
@@ -70,4 +75,4 @@ production/provider mutation, deletion, release, deployment, protected edit or
 signature is authorized by this ledger. No credential handoff is pending here.
 
 Sources: intent/0001/reviews/domain/round-3/remediation/CYCLE-DISPOSITION.md,
-preflight-critic-r5.json in that same frozen directory, and intent/0056–0088.
+preflight-critic-r5.json in that same frozen directory, and intent/0056–0089.

@@ -1585,3 +1585,24 @@ including exact copy/version hashes, history/state/revocation binding, retention
 holds, separately authorized named tombstone and cross-decision identity guards.
 All five formal R5 findings remain open. No action, signature, protected edit,
 provider mutation, release, deployment or spending is authorized.
+
+## Completed development increment: 0089 — referenced-evidence lifecycle
+
+The explicit reference-only current-v5 runtime now composes retained content,
+qualified revocation, exact removal, complete current/archived history and hold
+proofs, the three-year expiry and complete copy/version hashes. Every copy and
+the named tombstone still require their own full human/shared-action/provider
+receipt path. Reference approval cannot reuse later decision identities or claim
+a hold release that had not happened when the owner decided.
+
+Eight new groups and final full checks pass: 240 root controls, 88 prototype tests,
+84 lifecycle groups and 14 reference groups. See intent/0089/EVIDENCE.md for exact
+synthetic/cached limits. Frozen artifacts remain unchanged; no actual deletion,
+owner signature, gate approval, deployment or spending is authorized.
+
+Next is the remaining source/class/trust-era and migration coverage reconciliation
+under intent/0089/PLAN.md. In particular, the migration graph still uses the
+original whole-second outer clock while shared action/human records support exact
+nanoseconds; that bounded precision gap precedes broader compatibility/checkpoint
+coverage. Live store/source integration and independent/protected review remain.
+All five formal R5 findings remain open.
