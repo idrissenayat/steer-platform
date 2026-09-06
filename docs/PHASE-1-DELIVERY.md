@@ -2074,3 +2074,30 @@ boundaries, 3,614 migration cases and one obsolete schema case remain unmapped.
 Pending-state coordinates require actual semantics, not generic rejection. GAP-01–06
 and M1–M8 remain separate; no protected edit, provider mutation, cleanup, deployment,
 release, spending or signature is authorized. The continuation loop remains active.
+
+## Completed development increment: 0111 — long-retention boundaries
+
+Ten exact before/complete coordinates now map for security audit, corpus baseline,
+decision proof, legal signed log and referenced evidence. Existing current-v4/v5
+profiles preserve original 2026 event bytes and all per-domain key windows while
+fresh synthetic archive/state/human/action/provider proofs fit the exact source
+minus-one/plus-six-second observations. References bind removal receipts and a named
+tombstone. Missing history/state/complete receipts deny; absent complete reference
+evidence retains. Before scheduling does not imply disposition evidence acceptance.
+
+Six new groups and final full checks pass: 367 root controls and 88 prototype tests.
+Fresh quick execution matches 359 passed / 3,677 uncovered; full matches 375 passed /
+3,661 uncovered, both with zero failures. A separate three-group full integration
+process reran the matrix and matched the full snapshot. See intent/0111/EVIDENCE.md
+and SOURCE-MAP.json for exact scope and synthetic/cached limits. An incorrect test
+assumption about universal 2027 key expiry was corrected to preserve the provider
+anchors' actual 2040 windows; no verifier or key policy was relaxed.
+
+Eighteen lifecycle boundaries are now mapped; forty-six remain. Next under
+intent/0111/PLAN.md is a separate read-only waiting/eligible-pending result for the
+nine supported classes at exact at/+1-second observations. It must validate fresh
+head evidence, keep full disposition checks intact, and never claim quarantine,
+deletion or execution authority. The seven other classes, 3,614 migration cases,
+one obsolete schema case, GAP-01–06 and M1–M8 remain separate work. All five formal
+findings stay open. No protected edit, provider mutation, cleanup, deployment,
+release, spending or signature is authorized. The continuation loop remains active.

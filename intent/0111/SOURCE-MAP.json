@@ -1,0 +1,16 @@
+{
+  "version": "steer-long-retention-boundary-map/v1",
+  "sourcePins": "intent/0098/SOURCE-PINS.json",
+  "triggerAt": "2026-09-04T12:00:00Z",
+  "boundaries": ["before", "complete"],
+  "observations": { "beforeOffsetSeconds": -1, "completeOffsetSeconds": 6 },
+  "rows": [
+    { "classId": "RC-SECURITY-AUDIT", "eventType": "event-committed", "boundaryAt": "2027-09-04T12:00:00Z", "profile": "current-v4" },
+    { "classId": "RC-CORPUS-BASELINE", "eventType": "corpus-retired", "boundaryAt": "2029-09-04T12:00:00Z", "profile": "current-v4" },
+    { "classId": "RC-DECISION-PROOF", "eventType": "item-closed", "boundaryAt": "2033-09-04T12:00:00Z", "profile": "current-v4" },
+    { "classId": "RC-LEGAL-SIGNED-LOG", "eventType": "item-closed", "boundaryAt": "2033-09-04T12:00:00Z", "profile": "current-v4" },
+    { "classId": "RC-REFERENCED-EVIDENCE", "eventType": "item-closed", "boundaryAt": "2029-09-04T12:00:00Z", "profile": "current-v5 via narrow 0089" }
+  ],
+  "reconciliation": "Closed schema-valid 2026 trigger/history replaces the frozen surrogate, with exact original bytes retained between observations. Original key records/windows remain unchanged; independent synthetic current keys and fresh archive/state/human/action/provider evidence supply the admitted current-v4/v5 path. Ordered 100 ms steps fit the exact +6 observation. Before scheduling validates current history/state but not disposition receipts. Source deleted-tombstoned becomes zero-effect validated-lifecycle-candidate, never a real deletion or future observation.",
+  "unmapped": "All at/after coordinates and all coordinates for seven other classes remain uncovered; 0110 separately maps four short-retention classes. No expired-key denial is credited as a correct boundary result."
+}

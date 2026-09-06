@@ -21,14 +21,15 @@ two omitted-action reproductions through the complete shared permission stack.
 `intent/0108` maps 27 ordinary lifecycle negatives with explicit source reconciliation.
 `intent/0109` adds the three raw/reference negatives with complete positive/replay controls.
 `intent/0110` maps eight short-retention before/complete coordinates with exact source dates and parent caps.
-Full snapshot: 4,036 required IDs, 365 passed, 3,671 unmapped. Quick explicitly
-leaves the 16 heavy cases unexecuted (349 passed / 3,687 uncovered). The require-complete command
+`intent/0111` adds ten long-retention current-v4/v5 coordinates while preserving original history and per-domain key windows.
+Full snapshot: 4,036 required IDs, 375 passed, 3,661 unmapped. Quick explicitly
+leaves the 16 heavy cases unexecuted (359 passed / 3,677 uncovered). The require-complete command
 exits 2 and explains its deferred-full preflight; GAP-01 is not complete. Some hooks intentionally
 cover only a narrower correction/classifier scope and do not certify the entire
 public oracle. No formal finding is closed by this count.
 
 All nine R5 reproductions now have mapped development executions. Still unmapped:
-56 lifecycle boundaries, 3,614 migration and one obsolete schema case. The complete
+46 lifecycle boundaries, 3,614 migration and one obsolete schema case. The complete
 graph hooks do not execute every matrix coordinate, future key era or a live store.
 The five formal findings remain open regardless of the reproduction count.
 

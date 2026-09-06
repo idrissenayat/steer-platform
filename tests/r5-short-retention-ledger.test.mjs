@@ -72,16 +72,16 @@ test('0110: completed paths bind both copies and tombstone with receipts after e
 });
 
 test('0110: no arbitrary mutation or unmapped class/pending boundary is admitted by the closed adapter', () => {
-  assert.deepEqual(Object.keys(fixtures).sort(), ['lifecycleGraphExecutionCase', 'lifecycleGraphVariants', 'lifecycleNegativeExecutionCase', 'shortRetentionExecutionCase', 'specialLifecycleExecutionCase']);
+  assert.deepEqual(Object.keys(fixtures).sort(), ['lifecycleGraphExecutionCase', 'lifecycleGraphVariants', 'lifecycleNegativeExecutionCase', 'longRetentionExecutionCase', 'shortRetentionExecutionCase', 'specialLifecycleExecutionCase']);
   for (const args of [['RC-FAILED-RUN', 'at'], ['RC-FAILED-RUN', 'after'], ['RC-SECURITY-AUDIT', 'complete'], ['RC-FAILED-RUN', 'before', 'wrong-parent'], ['RC-CORPUS-EXPORT', 'complete', 'arbitrary']])
     assert.throws(() => make(...args), /UNKNOWN_SHORT_RETENTION_CASE/);
   for (const row of loadRequiredCases().cases.filter((row) => row.family === 'LIFECYCLE-GRAPH' && ['at', 'after'].includes(row.coordinate.boundary))) assert.equal(shortRetentionExecutionHook(row), null);
 });
 
 test('0110: fresh execution credits eight boundaries only and retains all independent and live limitations', () => {
-  const report = runCorrectedCoverage(); assert.equal(report.passed, 349); assert.equal(report.executed, 349); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3687);
-  assert.deepEqual(report.families['LIFECYCLE-GRAPH'], { required: 64, executed: 8, passed: 8, failed: 0, uncovered: 56 });
+  const report = runCorrectedCoverage(); assert.equal(report.passed, 359); assert.equal(report.executed, 359); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3677);
+  assert.deepEqual(report.families['LIFECYCLE-GRAPH'], { required: 64, executed: 18, passed: 18, failed: 0, uncovered: 46 });
   assert.equal(report.families.MIGRATION.executed, 0); assert.equal(report.families['LIFECYCLE-GRAPH-NEGATIVE'].passed, 30);
   for (const flag of ['completeCoverage', 'normativeAcceptanceComplete', 'independentAcceptance', 'executionAuthorized', 'liveProviderUsed']) assert.equal(report[flag], false);
-  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0110/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
+  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0111/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
 });

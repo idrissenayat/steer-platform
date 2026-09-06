@@ -53,9 +53,9 @@ test('0104: negative accessibility hooks require one passed observed positive fr
 test('0104: quick and strict preflight truthfully retain heavy unexecuted cases and never claim completeness', () => {
   const quick = runCorrectedCoverage(), strict = runCoverageForCompletion();
   assert.equal(quick.profile, 'quick'); assert.equal(quick.version, 'steer-corrected-execution-ledger/v2');
-  assert.equal(quick.executed, 349); assert.equal(quick.families.ACCESSIBILITY.executed, 0); assert.equal(quick.families.ACCESSIBILITY.uncovered, 16);
+  assert.equal(quick.executed, 359); assert.equal(quick.families.ACCESSIBILITY.executed, 0); assert.equal(quick.families.ACCESSIBILITY.uncovered, 16);
   assert.equal(strict.completeCoverage, false); assert.equal(strict.completionPreflight.fullRunDeferred, true);
   const missing = loadRequiredCases().cases.filter((row) => executionHook(row) === null && accessibilityExecutionHook(row) === null).map((row) => row.id);
-  assert.equal(strict.completionPreflight.unmappedFullCaseCount, 3671); assert.equal(strict.completionPreflight.unmappedFullIdsDigest, sha256(jcs(missing)));
+  assert.equal(strict.completionPreflight.unmappedFullCaseCount, 3661); assert.equal(strict.completionPreflight.unmappedFullIdsDigest, sha256(jcs(missing)));
   assert.equal(quick.normativeAcceptanceComplete, false); assert.equal(quick.liveProviderUsed, false);
 });

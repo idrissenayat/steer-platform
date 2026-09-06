@@ -61,7 +61,7 @@ test('0109: malformed legacy placement is explicitly promoted into the real raw 
   assert.equal(old.recordClass, 'RC-FAILED-RUN'); assert.ok(Array.isArray(JSON.parse(old.rawGrantBytes[0])));
   const entry = map.rows.find((row) => row.kind === 'malformed-raw-grant'); assert.equal(entry.legacyClass, 'RC-FAILED-RUN'); assert.equal(entry.correctedClass, 'RC-CORPUS-RAW-WORKING');
   assert.ok(entry.limitation.includes('semantic promotion'));
-  assert.deepEqual(Object.keys(fixtures).sort(), ['lifecycleGraphExecutionCase', 'lifecycleGraphVariants', 'lifecycleNegativeExecutionCase', 'shortRetentionExecutionCase', 'specialLifecycleExecutionCase']);
+  assert.deepEqual(Object.keys(fixtures).sort(), ['lifecycleGraphExecutionCase', 'lifecycleGraphVariants', 'lifecycleNegativeExecutionCase', 'longRetentionExecutionCase', 'shortRetentionExecutionCase', 'specialLifecycleExecutionCase']);
   assert.throws(() => fixtures.specialLifecycleExecutionCase('arbitrary'), /UNKNOWN_SPECIAL_LIFECYCLE_CASE/);
   assert.throws(() => fixtures.specialLifecycleExecutionCase('reference-missing', 'arbitrary'), /UNKNOWN_SPECIAL_LIFECYCLE_CASE/);
   assert.equal(specialLifecycleExecutionHook({ family: 'unknown' }), null);
@@ -69,10 +69,10 @@ test('0109: malformed legacy placement is explicitly promoted into the real raw 
 });
 
 test('0109: all 30 lifecycle negatives have exact execution seals without claiming class boundaries or formal closure', () => {
-  const report = runCorrectedCoverage(); assert.equal(report.executed, 349); assert.equal(report.passed, 349); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3687);
+  const report = runCorrectedCoverage(); assert.equal(report.executed, 359); assert.equal(report.passed, 359); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3677);
   assert.deepEqual(report.families['LIFECYCLE-GRAPH-NEGATIVE'], { required: 30, executed: 30, passed: 30, failed: 0, uncovered: 0 });
   for (const kind of kinds) assert.equal(report.executions.find((row) => row.id === `LIFECYCLE-GRAPH-NEGATIVE:${kind}`).observationCount, 3);
-  assert.equal(report.families['LIFECYCLE-GRAPH'].executed, 8); assert.equal(report.families.MIGRATION.executed, 0);
+  assert.equal(report.families['LIFECYCLE-GRAPH'].executed, 18); assert.equal(report.families.MIGRATION.executed, 0);
   for (const flag of ['completeCoverage', 'normativeAcceptanceComplete', 'independentAcceptance', 'executionAuthorized', 'liveProviderUsed']) assert.equal(report[flag], false);
-  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0110/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
+  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0111/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
 });

@@ -972,6 +972,17 @@ Full profile records 365 passed / 3,671 uncovered; quick 349 passed / 3,687 unco
 The 56 other boundary rows and all formal findings stay open. See
 `intent/0110/EVIDENCE.md`, `SOURCE-MAP.json` and `PLAN.md`; no real deletion is claimed.
 
+Item `intent/0111` adds ten before/complete coordinates for security audit, corpus
+baseline, decision proof, legal signed log and referenced evidence. Existing
+current-v4/v5 profiles retain original 2026 event bytes and exact original key
+windows while using fresh synthetic archive/state/human/action/provider proofs.
+Exact source minus-one/plus-six-second observations are preserved. Referenced
+evidence additionally requires removal receipts and the named tombstone; missing
+completion reference evidence retains safely. Full profile records 375 passed /
+3,661 uncovered; quick 359 passed / 3,677 uncovered. Eighteen lifecycle boundaries
+now map; forty-six and all formal findings remain open. See `intent/0111/EVIDENCE.md`,
+`SOURCE-MAP.json` and `PLAN.md`; no real future retention/deletion is claimed.
+
 ## Local commands
 
 ```sh

@@ -538,3 +538,31 @@ export function shortRetentionExecutionCase(classId, boundary, variant = 'positi
   const value = fixture(options);
   return { ...value, classId, boundary, boundaryAt, variant, input: jcs({ configBytes: value.configBytes, bytes: value.bytes, evaluatedAt: value.evaluationTime }) };
 }
+
+export function longRetentionExecutionCase(classId, boundary, variant = 'positive') {
+  const classes = {
+    'RC-SECURITY-AUDIT': [2027, 'event-committed'],
+    'RC-CORPUS-BASELINE': [2029, 'corpus-retired'],
+    'RC-DECISION-PROOF': [2033, 'item-closed'],
+    'RC-LEGAL-SIGNED-LOG': [2033, 'item-closed'],
+    'RC-REFERENCED-EVIDENCE': [2029, 'item-closed'],
+  };
+  if (!Object.hasOwn(classes, classId) || !['before', 'complete'].includes(boundary) ||
+    !['positive', 'replay', 'missing-history', 'missing-state', 'missing-receipt', 'missing-reference'].includes(variant) ||
+    variant === 'missing-reference' && classId !== 'RC-REFERENCED-EVIDENCE') throw new Error('UNKNOWN_LONG_RETENTION_CASE');
+  const [runtimeYear, eventType] = classes[classId], boundaryAt = `${runtimeYear}-09-04T12:00:00Z`, expiryEpoch = Date.parse(boundaryAt);
+  const reference = classId === 'RC-REFERENCED-EVIDENCE';
+  const options = { fixtureEpoch: Date.parse('2026-09-04T12:00:00Z'), recordClass: classId, eventType,
+    historyType: 'originator-draft-saved', runtimeYear, runtimeEpoch: new Date(expiryEpoch - (boundary === 'before' ? 60000 : 0)).toISOString(),
+    tickNanoseconds: 100000000, horizon: 1500, replay: variant === 'replay', qualifiedDecisions: true, archivedOwners: true, currentHistory: [],
+    referenceRuntime: reference, evaluationTime: new Date(expiryEpoch + (boundary === 'before' ? -1000 : 6000)).toISOString().replace('.000Z', 'Z'), edits: {} };
+  if (variant !== 'positive' && variant !== 'replay') options.edits.graph = (graph) => {
+    if (variant === 'missing-history') graph.historicalEvidenceBytes = '';
+    if (variant === 'missing-state') graph.stateBytes = '';
+    if (variant === 'missing-receipt') graph.copies[0].receiptBytes = '';
+    if (variant === 'missing-reference') graph.referenceRevocationBytes = '';
+  };
+  const value = fixture(options), verifier = reference ? createReferenceLifecycleVerifier(value.configBytes, value.runtimeBytes) : value.verifier;
+  return { ...value, verifier, classId, boundary, boundaryAt, variant,
+    input: jcs({ configBytes: value.configBytes, runtimeBytes: value.runtimeBytes, bytes: value.bytes, evaluatedAt: value.evaluationTime }) };
+}
