@@ -5,6 +5,7 @@ import { gatePolicyInputSchema, evaluateGateDecisionPolicy, parseUtcInstant, typ
 import { createGitGateSignerCollector, gitGateSignerConfigurationSchema } from './gate-signers.ts';
 import type { RepositoryReader, ArtifactSnapshot } from './github.ts';
 import { normalizeGateDomainReview } from './gate-domain-review.ts';
+import { verifyNativeDomainException } from './gate-domain-exception.ts';
 
 const targetSchema = gatePolicyInputSchema.shape.target.omit({ decisionDigest: true });
 const digest = gatePolicyInputSchema.shape.target.shape.decisionDigest;
@@ -12,8 +13,11 @@ const ref = z.strictObject({ path: artifactProjectionInputSchema.shape.path, dig
 const nativeReviewRef = ref.extend({ format: z.literal('steer-domain-review-record/v1'),
   domain: gatePolicyInputSchema.shape.policy.shape.activatedDomains.element, examPath: artifactProjectionInputSchema.shape.path,
   evidence: z.array(ref).min(1).max(128).refine(values => new Set(values.map(value => value.path)).size === values.length) });
+const nativeExceptionRef = ref.extend({ format: z.literal('steer-domain-exception-brief/v1'),
+  builderSubject: gatePolicyInputSchema.shape.domainAssurance.unwrap().shape.builderSubject, examPath: artifactProjectionInputSchema.shape.path });
 const entrySchema = z.strictObject({ signerCollection: gitGateSignerConfigurationSchema, policy: ref, critic: ref,
-  buildEvidence: ref.nullable(), domainAssurance: z.strictObject({ reviews: z.array(z.union([ref, nativeReviewRef])).min(1).max(7), exceptionBrief: ref }).nullable() });
+  buildEvidence: ref.nullable(), domainAssurance: z.strictObject({ reviews: z.array(z.union([ref, nativeReviewRef])).min(1).max(7),
+    exceptionBrief: z.union([ref, nativeExceptionRef]) }).nullable() });
 const configSchema = z.strictObject({ gates: z.array(entrySchema).min(1).max(3) });
 const inputSchema = z.strictObject({ sourceRevision: gatePolicyInputSchema.shape.target.shape.artifactRevision, decisionDigest: digest });
 const domainSchema = gatePolicyInputSchema.shape.domainAssurance.unwrap();
@@ -56,6 +60,9 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
     if (new Set(paths).size !== paths.length || paths.includes(source.recordPath)) throw new Error('Invalid gate policy sources.');
     if (entry.domainAssurance?.reviews.some(value => 'format' in value &&
       (source.gate !== 2 || !source.artifactPaths.includes(value.examPath)))) throw new Error('Invalid gate policy sources.');
+    const exception = entry.domainAssurance?.exceptionBrief;
+    if (exception && 'format' in exception && (source.gate !== 2 || !source.artifactPaths.includes(exception.examPath) ||
+      entry.domainAssurance!.reviews.some(value => !('format' in value) || value.examPath !== exception.examPath))) throw new Error('Invalid gate policy sources.');
   }
   const failure = () => new Error('Gate policy source collection could not be verified.');
   let check: () => number = () => { throw failure(); }, subject: string | undefined, expiry = Infinity;
@@ -91,13 +98,14 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
           const observations: SignerObservation[] = [], prepared: Omit<GatePolicyInput, 'evaluatedAt' | 'prerequisite'>[] = [];
           const sources: Readonly<ArtifactSnapshot>[][] = [];
           const nativeDomainReviews: { observation: NonNullable<ReturnType<typeof normalizeGateDomainReview>>; linkedEvidenceVerified: true }[][] = [];
+          const nativeDomainExceptions: ReturnType<typeof verifyNativeDomainException>[] = [];
           let retainedBytes = 0;
           for (const [index, entry] of config.gates.entries()) {
             const selected = entry.signerCollection, target = { ...selected.gateSource.scope, gate: selected.gateSource.gate,
               artifactRevision: selected.gateSource.artifactRevision };
             const observation = await children[index]!.collect({ sourceRevision: input.sourceRevision,
               decisionDigest: selected.signers[0]!.proof.expected.decisionDigest });
-            check(); observations.push(observation); const retained: Readonly<ArtifactSnapshot>[] = []; sources.push(retained); nativeDomainReviews.push([]);
+            check(); observations.push(observation); const retained: Readonly<ArtifactSnapshot>[] = []; sources.push(retained); nativeDomainReviews.push([]); nativeDomainExceptions.push(null);
             const readSource = async (reference: z.infer<typeof ref>, revision = input.sourceRevision, maxBytes = 65536) => {
               const snapshot = await guarded.readArtifact(reference.path, revision), bytes = Buffer.from(snapshot.content, 'utf8');
               retainedBytes += bytes.length;
@@ -124,7 +132,9 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
             const build = entry.buildEvidence ? await read(entry.buildEvidence, buildSchema) : null;
             let domainAssurance: GatePolicyInput['domainAssurance'] = null;
             if (entry.domainAssurance) {
-              const exception = await read(entry.domainAssurance.exceptionBrief, exceptionSchema);
+              const exceptionRef = entry.domainAssurance.exceptionBrief;
+              const exception = 'format' in exceptionRef ? null : await read(exceptionRef, exceptionSchema);
+              const builderSubject = 'format' in exceptionRef ? exceptionRef.builderSubject : exception!.builderSubject;
               const reviews = [];
               for (const reference of entry.domainAssurance.reviews) {
                 if ('format' in reference) {
@@ -133,7 +143,7 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
                   const native = normalizeGateDomainReview(source.content, { organization: target.organizationId,
                     recordItem: selected.gateSource.recordItem, artifactRevision: target.artifactRevision, domain: reference.domain,
                     exam: { path: exam.path, sha256: exam.contentDigest }, reportDigest: reference.digest,
-                    builderSubject: exception.builderSubject, evaluatedAt: new Date(check()).toISOString() });
+                    builderSubject, evaluatedAt: new Date(check()).toISOString() });
                   if (!native || observation.record.signatures.some(value => parseUtcInstant(value.signedAt)! < parseUtcInstant(native.record.reviewedAt)!)) throw failure();
                   // A report cannot choose new reads. Match the WHOLE set against
                   // fixed startup pins before following even the first evidence link.
@@ -145,8 +155,21 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
                   const facts = await read(reference, reviewSchema); reviews.push({ ...facts.review, reportDigest: reference.digest });
                 }
               }
-              domainAssurance = { builderSubject: exception.builderSubject, reviews,
-                exceptionBrief: { ...exception.exceptionBrief, digest: entry.domainAssurance.exceptionBrief.digest } };
+              if ('format' in exceptionRef) {
+                const source = await readSource(exceptionRef, input.sourceRevision, 512 * 1024);
+                const exam = observation.bundle.artifacts.find(value => value.path === exceptionRef.examPath); if (!exam) throw failure();
+                const references = entry.domainAssurance.reviews.map(value => {
+                  if (!('format' in value)) throw failure(); return { path: value.path, digest: value.digest, domain: value.domain };
+                });
+                const nativeException = verifyNativeDomainException(source.content, { organization: target.organizationId,
+                  recordItem: selected.gateSource.recordItem, artifactRevision: target.artifactRevision, exam: { path: exam.path, sha256: exam.contentDigest },
+                  reportDigest: exceptionRef.digest, builderSubject, evaluatedAt: new Date(check()).toISOString(), reviews: references },
+                  references.map(value => ({ path: value.path, content: retained.find(snapshot => snapshot.path === value.path && snapshot.revision === input.sourceRevision)!.content })));
+                if (!nativeException || observation.record.signatures.some(value => parseUtcInstant(value.signedAt)! < parseUtcInstant(nativeException.record.generatedAt)!)) throw failure();
+                nativeDomainExceptions[index] = nativeException; domainAssurance = { builderSubject, reviews, exceptionBrief: nativeException.exceptionBrief };
+              } else {
+                domainAssurance = { builderSubject, reviews, exceptionBrief: { ...exception!.exceptionBrief, digest: exceptionRef.digest } };
+              }
             }
             prepared.push(gatePolicyInputSchema.omit({ evaluatedAt: true, prerequisite: true }).parse({
               target: { ...target, decisionDigest: observation.record.decisionDigest }, record: observation.record,
@@ -170,7 +193,8 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
           // A target pass can never hide a failed prerequisite's policy evaluation.
           const result = freeze({ kind: 'git-gate-policy-observation' as const, sourceRevision: input.sourceRevision, evaluatedAt,
             policyOutcome: evaluations.every((value) => value.evaluation.outcome === 'policy-satisfied') ? 'policy-satisfied' as const : 'blocked' as const,
-            gates: evaluations.map((value, index) => ({ ...value, signers: observations[index]!, sources: sources[index]!, nativeDomainReviews: nativeDomainReviews[index]! })),
+            gates: evaluations.map((value, index) => ({ ...value, signers: observations[index]!, sources: sources[index]!,
+              nativeDomainReviews: nativeDomainReviews[index]!, nativeDomainException: nativeDomainExceptions[index]! })),
             governedSelectionVerificationRequired: true as const, reviewAuthenticityVerificationRequired: true as const,
             currentSourceVerificationRequired: true as const, gateVerified: false as const, writeAuthorized: false as const });
           const finished = parseUtcInstant(new Date(check()).toISOString())!;

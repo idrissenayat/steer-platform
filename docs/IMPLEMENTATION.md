@@ -1240,6 +1240,13 @@ reference must match a complete startup allowlist and actual original-revision G
 bytes. Native observations still require verified reviewer provenance and governed
 source selection. No canonical report or approval is changed. See `intent/0142/EVIDENCE.md`.
 
+Item `intent/0143` supports native exception Briefs by reconstructing every summary,
+finding and escalation from complete pinned native reviews. Actual source digests
+feed policy links; inconsistent consolidations reject. Medium-confidence native
+readiness remains unchanged while the gate policy still blocks it. The actual
+original records remain untouched and do not become authenticated reviews or
+approvals. See `intent/0143/EVIDENCE.md` for verification and remaining boundaries.
+
 ## Local commands
 
 ```sh

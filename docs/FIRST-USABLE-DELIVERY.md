@@ -246,6 +246,12 @@ Adverse decisions and unresolved escalations cannot be normalized into approval.
 Reviewer authenticity, native Critic/exception integration and governed source
 selection remain before live authority. See `intent/0142/EVIDENCE.md`.
 
+0143 development update: native exception Briefs now reconstruct against their
+complete pinned review records before feeding gate policy. Omitted findings,
+substituted reviewers and inconsistent ready/hold labels reject. Native Critic,
+review provenance and governed selection remain before actual authority binding;
+see `intent/0143/EVIDENCE.md`. No frontend or live-write change is claimed.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

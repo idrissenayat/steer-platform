@@ -25,11 +25,25 @@ const recordSchema = z.strictObject({ version: z.literal('steer-domain-review-re
   boundaries: z.strictObject({ doesNotSignGateTwo: z.literal(true), doesNotAuthorizeBuildOrRelease: z.literal(true),
     doesNotAuthorizeProductionOrSpend: z.literal(true), doesNotAcceptResidualRiskOrWaiveControls: z.literal(true) }),
 });
+export { recordSchema as nativeDomainReviewSchema };
 const expectedSchema = z.strictObject({ organization: identifier, recordItem: identifier,
   artifactRevision: gatePolicyInputSchema.shape.target.shape.artifactRevision, exam: reference, domain,
   reportDigest: digest, builderSubject: identifier, evaluatedAt: instant });
 function freeze<T>(value: T): T {
   if (value && typeof value === 'object') { for (const child of Object.values(value)) freeze(child); Object.freeze(value); } return value;
+}
+
+/** Shared native JSON reader: whitespace is preserved by callers; duplicate keys
+ * and alternate token encodings are not silently normalized. Callers bound bytes. */
+export function parseNativeReviewJson(content: string): unknown {
+  let compact = '', quoted = false, escaped = false;
+  for (const char of content) {
+    if (quoted) { compact += char; if (escaped) escaped = false; else if (char === '\\') escaped = true; else if (char === '"') quoted = false; }
+    else if (!/[\t\n\r ]/.test(char)) { compact += char; if (char === '"') quoted = true; }
+  }
+  const raw: unknown = JSON.parse(content);
+  if (JSON.stringify(raw) !== compact) throw new Error('Unsupported native review encoding.');
+  return raw;
 }
 
 /** Native-v1 claim normalization, not reviewer authentication or independent
@@ -41,15 +55,7 @@ export function normalizeGateDomainReview(content: unknown, rawExpected: unknown
     const bytes = Buffer.from(content, 'utf8'), expected = expectedSchema.parse(rawExpected);
     if (bytes.length > 65536 || new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes) !== content ||
       createHash('sha256').update(bytes).digest('hex') !== expected.reportDigest) return null;
-    // Retain pretty-printed originals. Only insignificant JSON whitespace may
-    // differ from JSON.stringify; duplicate keys and ambiguous encodings reject.
-    let compact = '', quoted = false, escaped = false;
-    for (const char of content) {
-      if (quoted) { compact += char; if (escaped) escaped = false; else if (char === '\\') escaped = true; else if (char === '"') quoted = false; }
-      else if (!/[\t\n\r ]/.test(char)) { compact += char; if (char === '"') quoted = true; }
-    }
-    const raw: unknown = JSON.parse(content); if (JSON.stringify(raw) !== compact) return null;
-    const record = recordSchema.parse(raw), target = record.target;
+    const record = recordSchema.parse(parseNativeReviewJson(content)), target = record.target;
     if (target.organization !== expected.organization || target.item !== expected.recordItem || target.revision !== expected.artifactRevision ||
       target.exam.path !== expected.exam.path || target.exam.sha256 !== expected.exam.sha256 || record.domain !== expected.domain ||
       parseUtcInstant(record.reviewedAt)! > parseUtcInstant(expected.evaluatedAt)! ||

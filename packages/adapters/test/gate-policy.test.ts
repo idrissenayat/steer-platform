@@ -10,6 +10,7 @@ import { createGitGatePolicyCollector } from '../src/code-host/gate-policy.ts';
 import { fixture, hash } from './gate-signers-fixture.ts';
 import type { RepositoryReader } from '../src/code-host/github.ts';
 import { nativeDomainReviewFixture } from './native-domain-review-fixture.ts';
+import { nativeDomainExceptionFixture } from './native-domain-exception-fixture.ts';
 
 const failure = /^Error: Gate policy source collection could not be verified\.$/;
 const blob = (text: string) => createHash('sha1').update(`blob ${Buffer.byteLength(text)}\0`).update(text).digest('hex');
@@ -302,4 +303,69 @@ test('native linked evidence is byte-bounded per file and across the collection 
     await assert.rejects(f.create(f.configuration()).collect(f.input()), failure);
     assert.ok(largeReads > 0); if (mode === 'aggregate') assert.ok(largeReads < count);
   }
+});
+
+function nativeException(t: TestContext, native = false) {
+  const f = nativeDomain(t, native), entry = f.config.gates[1]!;
+  const brief = nativeDomainExceptionFixture([{ path: f.selected.path, record: f.record }],
+    new Date(Date.parse(entry.signerCollection.signers[0]!.proof.expected.authenticatedAt) - 500).toISOString());
+  const reference = { ...entry.domainAssurance.exceptionBrief, format: 'steer-domain-exception-brief/v1',
+    builderSubject: 'synthetic-builder', examPath: f.selected.examPath };
+  const repin = () => { f.sources.set(f.selected.path, JSON.stringify(f.record, null, 2) + '\n'); f.selected.digest = hash(f.sources.get(f.selected.path)!);
+    f.sources.set(reference.path, JSON.stringify(brief, null, 2) + '\n'); reference.digest = hash(f.sources.get(reference.path)!); };
+  const configuration = () => ({ gates: [f.config.gates[0], { ...entry, domainAssurance: { reviews: [f.selected], exceptionBrief: reference } }] });
+  repin(); if (native) f.commit(); return { ...f, brief, reference, repin, configuration };
+}
+
+test('native Git review and exception bytes reconstruct together before feeding the actual policy evaluator', async t => {
+  const f = nativeException(t, true), result = await f.create(f.configuration()).collect(f.input());
+  const gate = result.gates[1]!, native = gate.nativeDomainException!;
+  assert.equal(result.policyOutcome, 'policy-satisfied'); assert.equal(native.sourceConsolidationVerified, true);
+  assert.equal(native.reviewerAuthenticityVerificationRequired, true); assert.equal(native.gateVerified, false);
+  assert.deepEqual(gate.input.domainAssurance!.exceptionBrief.reviewDigests, [f.selected.digest]);
+  assert.equal(gate.sources.find(value => value.path === f.reference.path)!.content, JSON.stringify(f.brief, null, 2) + '\n');
+  assert.equal(gate.input.domainAssurance!.exceptionBrief.digest, f.reference.digest); assert.ok(Object.isFrozen(native.record.domainSummaries));
+  assert.equal(result.writeAuthorized, false);
+});
+
+test('a repinned native exception cannot suppress findings, replace reviewers, change source links or precede/follow the wrong events', async t => {
+  for (const mode of ['finding', 'reviewer', 'path', 'before-review', 'after-signature', 'scope', 'oversize', 'head']) {
+    const f = nativeException(t);
+    // The declared consolidation is detached from its source record.
+    Object.assign(f.brief, structuredClone(f.brief));
+    if (mode === 'finding') f.brief.findings = [];
+    if (mode === 'reviewer') f.brief.domainSummaries[0]!.reviewerServiceIdentity = 'replacement';
+    if (mode === 'path') f.brief.domainSummaries[0]!.recordPath = 'unapproved/secret.md';
+    if (mode === 'before-review') f.brief.generatedAt = new Date(Date.parse(f.record.reviewedAt) - 1).toISOString();
+    if (mode === 'after-signature') f.brief.generatedAt = new Date(Date.parse(f.config.gates[1]!.signerCollection.signers[0]!.proof.expected.signedAt) + 1).toISOString();
+    if (mode === 'scope') f.brief.item = 'foreign';
+    f.repin();
+    if (mode === 'oversize') { const text = ' '.repeat(512 * 1024 + 1); f.sources.set(f.reference.path, text); f.reference.digest = hash(text); }
+    if (mode === 'head') { const read = f.reader.readArtifact; f.reader.readArtifact = async (...args) => {
+      const result = await read(...args); if (args[0] === f.reference.path) f.state.head = 'd'.repeat(40); return result;
+    }; }
+    await assert.rejects(f.create(f.configuration()).collect(f.input()), failure, mode); assert.ok(!f.reads.includes('unapproved/secret.md'));
+  }
+});
+
+test('native pending escalations and medium-confidence readiness do not satisfy the gate policy', async t => {
+  for (const mode of ['escalation', 'medium']) {
+    const f = nativeException(t);
+    if (mode === 'escalation') { f.record.findings[0]!.status = 'open'; f.record.escalations.push({ triggerId: 'unresolved-blocker-or-major-finding', reason: 'Pending.', findingIds: ['CASE-OLD'] }); }
+    else f.record.confidence = 'medium';
+    Object.assign(f.brief, nativeDomainExceptionFixture([{ path: f.selected.path, record: f.record }], f.brief.generatedAt)); f.repin();
+    const result = await f.create(f.configuration()).collect(f.input()); assert.equal(result.policyOutcome, 'blocked');
+    assert.equal(result.gates[1]!.nativeDomainException!.record.eligibleForGateTwoCritic, mode === 'medium');
+    assert.equal(result.writeAuthorized, false);
+  }
+});
+
+test('native exception admission requires an explicit Builder, selected common Exam and exclusively native Gate 2 records', t => {
+  const f = nativeException(t), entry = f.config.gates[1]!;
+  for (const reference of [{ ...f.reference, builderSubject: '' }, { ...f.reference, examPath: 'unselected.md' }, { ...f.reference, format: 'unknown' }]) {
+    assert.throws(() => f.create({ gates: [f.config.gates[0], { ...entry, domainAssurance: { reviews: [f.selected], exceptionBrief: reference } }] }));
+  }
+  assert.throws(() => f.create({ gates: [f.config.gates[0], { ...entry, domainAssurance: {
+    reviews: [{ path: f.selected.path, digest: f.selected.digest }], exceptionBrief: f.reference } }] }));
+  assert.equal(f.reads.length, 0);
 });

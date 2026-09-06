@@ -2803,3 +2803,19 @@ Native Critic/exception semantics, reviewer provenance, governed source selectio
 real provider bindings and full action-time authority remain due before runtime
 writer enablement. Continue those dependencies, then destination/head/save UI,
 board and review. All five R5 findings and signed Phase 1 obligations remain open.
+
+## Completed development increment: 0143 — Native exception-brief consolidation
+
+Native exception sources now reconstruct every summary, finding and escalation from
+the complete pinned domain record set, then feed source-derived links to gate policy.
+Original source bytes remain unchanged. Tests include all three original bundles,
+an isolated native-Git chain, inconsistent consolidations and pending/medium-confidence
+semantics. Full repository verification passes, including 219 adapter tests and
+all package checks/builds. An initially disallowed import was removed without
+weakening the architecture check; details are in `intent/0143/EVIDENCE.md`.
+
+Ready-for-Critic does not sign a gate. Native Critic semantics, verified reviewer
+provenance, governed pin/Builder selection and actual authority bindings remain.
+Then finish action-time verification, runtime/destination/head discovery, save/status
+UI, board and decision review. All five R5 findings and signed Phase 1 obligations
+remain due; no provider access, live write, release, deployment or spending is enabled.
