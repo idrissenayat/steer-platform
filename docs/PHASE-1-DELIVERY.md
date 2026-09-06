@@ -2646,3 +2646,21 @@ No full source/human/qualification/provider/gate authority or live save is enabl
 Continue that composition, trusted runtime binding and the save/board/decision
 journey. All five R5 findings, independent review, protected artifacts, existing
 provider approvals, 0124/0120 and signed Phase 1 obligations remain unchanged.
+
+## Completed development increment: 0134 — per-request writer service lifecycle
+
+Adds lazy writer factories after shared human/input authorization, with independent
+invocation ownership and awaited cleanup. HTTP/MCP bind them to each request;
+browser and Git-backed transports supply fresh verified context. Writer-enabled
+service shutdown drains requests before shared resources. Focused suites pass
+17 common save groups and 30 API/session/transport groups, including eight new
+groups with signed test tokens and native-Git grant revocation. Full repository
+checks pass (437 root controls, 76 API, 81 registry and 131 adapter tests, all
+typechecks/builds); all 39 existing isolated browser checks pass. Factory tests and
+default-runtime browser regression are distinct; see `intent/0134/EVIDENCE.md`.
+
+This prepares closed integration while the full authority verifier remains missing.
+No runtime profile, provider scope, save UI or gate record is enabled or changed.
+Next are complete authority and actual runtime binding, then save/status UI,
+authenticated board and revision-bound review. All five R5 findings, 0124/0120,
+independent review, human decisions and signed Phase 1 requirements remain due.

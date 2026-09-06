@@ -186,6 +186,12 @@ deadline while retaining outstanding-work ownership and safe draining shutdown.
 This corrects prerequisites for authority composition, not the full verifier or
 live saving. See `intent/0133/EVIDENCE.md` for before/after and timeout evidence.
 
+0134 development update: request-service wiring is prepared with lazy per-invocation
+writer factories, verified cookie/bearer context and awaited cleanup. HTTP/MCP and
+Git-backed revocation checks are covered without installing a default factory.
+Full authority verification still precedes runtime binding and the actual save UI/
+board/decision journey. See `intent/0134/EVIDENCE.md` for exact coverage and limits.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

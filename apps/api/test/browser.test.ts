@@ -4,6 +4,7 @@ import { exportJWK, generateKeyPair, SignJWT } from 'jose';
 import type { BrowserSessionStore, LoginTransaction, BrowserSession } from '@steer/adapters/browser-session';
 import { createBrowserApi } from '../src/browser.ts';
 import { createApi } from '../src/app.ts';
+import type { SessionBriefWriterFactory } from '../src/request-writer.ts';
 
 const origin = 'https://steer.example';
 const configuration = { issuer: 'https://id.example/realm', jwksUri: 'https://id.example/jwks',
@@ -14,7 +15,7 @@ const keys = await generateKeyPair('RS256');
 const jwk = { ...await exportJWK(keys.publicKey), kid: 'synthetic', alg: 'RS256' };
 const pair = (value: string) => value.split(';')[0]!;
 const mutation = { origin, 'sec-fetch-site': 'same-origin' };
-function fixture() {
+function fixture(createBriefWriter?: SessionBriefWriterFactory) {
   const transactions = new Map<string, LoginTransaction>(); const sessions = new Map<string, BrowserSession>();
   let active = true; let hasContextGrant = true; let time = Date.parse('2026-09-05T03:32:00Z');
   let nonce = ''; let exchanges = 0; let access = ''; let failExchange = false; let failDelete = false;
@@ -26,8 +27,9 @@ function fixture() {
     deleteSession: async (key) => { if (failDelete) throw new Error('secret-storage-exception'); sessions.delete(key); },
   };
   const app = createBrowserApi(configuration, { store, now: () => new Date(time),
+    ...(createBriefWriter ? { createBriefWriter } : {}),
     resolveAuthorization: async () => ({ issuer: configuration.issuer, subject: 'human-1', organizationId: 'org-a',
-      type: 'human', hats: ['product-lead'], toolGrants: hasContextGrant ? ['session.context'] : [], active,
+      type: 'human', hats: ['product-lead'], toolGrants: hasContextGrant ? ['session.context', ...(createBriefWriter ? ['intent.brief.save.status'] : [])] : [], active,
       validAfter: new Date(time - 1000).toISOString(), expiresAt: new Date(time + 180000).toISOString() }),
     fetch: async (input) => {
       if (String(input) === configuration.jwksUri) return Response.json({ keys: [jwk] });
@@ -63,6 +65,35 @@ function fixture() {
     removeContextGrant: () => { hasContextGrant = false; },
     failExchange: () => { failExchange = true; }, failDelete: () => { failDelete = true; } };
 }
+
+test('browser request writer receives actual verified cookie/bearer context, never mixed or revoked credentials', async () => {
+  const contexts: { issuer: string; sessionBinding: string; subject: string }[] = []; let opened = 0, closed = 0;
+  const reference = { organizationId: 'org-a', repository: 'github:1', branch: 'codex/synthetic', path: 'items/0001-demo/BRIEF.md',
+    idempotencyKey: '00000000-0000-4000-8000-000000000134' };
+  const f = fixture((authenticate) => { opened++; return {
+    configuration: { organizationId: reference.organizationId, repository: reference.repository, branch: reference.branch,
+      paths: [reference.path], platformRevision: 'a'.repeat(40), gate2DecisionDigest: 'b'.repeat(64) },
+    inspect: async (ref) => { const context = await authenticate(); assert.ok(context);
+      contexts.push({ issuer: context.issuer, sessionBinding: context.sessionBinding, subject: context.principal.subject });
+      return { ...ref, outcome: 'not-found' }; },
+    verifyWriteAuthority: async () => { assert.fail('status cannot verify writes'); }, compareAndCreate: async () => { assert.fail('status cannot write'); },
+    close: async () => { closed++; },
+  }; });
+  const first = await f.login(), second = await f.login();
+  const status = (headers: Record<string, string>) => f.request('/v1/tools/intent.brief.save.status', { method: 'POST',
+    headers: { ...mutation, 'content-type': 'application/json', ...headers }, body: JSON.stringify(reference) });
+  for (const cookie of [first.sessionCookie, second.sessionCookie]) {
+    const response = await status({ cookie }); assert.equal(response.status, 200);
+    const result = await response.text(); assert.ok(!result.includes('sessionBinding')); assert.ok(!result.includes(configuration.issuer));
+  }
+  assert.equal(contexts.length, 2); assert.notEqual(contexts[0]!.sessionBinding, contexts[1]!.sessionBinding);
+  assert.ok(contexts.every((c) => c.issuer === configuration.issuer && c.subject === 'human-1' && /^[a-f0-9]{64}$/.test(c.sessionBinding)));
+  assert.equal((await status({ authorization: `Bearer ${f.stats().access}` })).status, 200);
+  assert.equal((await status({ cookie: second.sessionCookie, authorization: `Bearer ${f.stats().access}` })).status, 401);
+  assert.equal((await status({ cookie: second.sessionCookie, origin: 'https://foreign.invalid' })).status, 401);
+  f.revoke(); assert.equal((await status({ cookie: second.sessionCookie })).status, 401);
+  assert.equal(opened, 3); assert.equal(closed, 3);
+});
 
 test('verified authentication metadata remains internal to both public session responses', async () => {
   const f = fixture(), login = await f.login();

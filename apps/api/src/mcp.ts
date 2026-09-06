@@ -3,6 +3,7 @@ import { describeTools, invokeTool, principalSchema, ToolError } from '@steer/to
 import type { ApiDependencies } from './app.ts';
 import { createRequestBoundary } from './request-boundary.ts';
 import { readRequestBody, RequestBodyError } from './request-body.ts';
+import { requestWriterServices } from './request-writer.ts';
 
 export const mcpProtocolVersion = '2026-07-28';
 const headers = { 'cache-control': 'no-store', 'referrer-policy': 'no-referrer',
@@ -53,8 +54,9 @@ export function createMcpEndpoint(publicOrigin: string, dependencies: ApiDepende
             const fresh = principalSchema.safeParse(await authenticate(request)); const current = clock();
             if (!fresh.success || fresh.data.subject !== initial.data.subject || fresh.data.organizationId !== initial.data.organizationId ||
               fresh.data.type !== initial.data.type || current.getTime() < now.getTime() || Date.parse(initial.data.expiresAt) <= current.getTime()) throw new ToolError('UNAUTHENTICATED');
+            const services = requestWriterServices(dependencies.services, dependencies.createBriefWriter, request);
             const result = await invokeTool(call.params.name, call.params.arguments, { principal: fresh.data, now: current, clock,
-              revalidate: () => authenticate(request), ...(dependencies.services ? { services: dependencies.services } : {}) });
+              revalidate: () => authenticate(request), ...(services ? { services } : {}) });
             return { content: [{ type: 'text' as const, text: JSON.stringify(result) }], structuredContent: { result } };
           } catch (error) {
             const safe = error instanceof ToolError ? error : new ToolError('INTERNAL_ERROR');

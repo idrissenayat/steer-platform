@@ -169,3 +169,50 @@ test('malformed or mismatched post-commit receipts do not invent success or auth
     assert.equal(result.result.outcome, 'unknown'); assert.equal(f.calls.commits, 1); assert.ok(!JSON.stringify(result).includes('private'));
   }
 });
+
+test('managed writer is created lazily per authorized invocation and closed after save or status', async () => {
+  const f = await fixture(); let opened = 0, closed = 0;
+  f.context.services = { briefWriterFactory: () => { opened++; return { ...f.writer, close: async () => { await Promise.resolve(); closed++; } }; } };
+  await invokeTool('intent.brief.preview', { organizationId: 'org', draft: facts }, f.context); assert.equal(opened, 0);
+  const result = await invokeTool('intent.brief.save', f.input, f.context);
+  assert.equal(result.result.outcome, 'committed'); assert.equal(opened, 1); assert.equal(closed, 1);
+  assert.deepEqual(await invokeTool('intent.brief.save.status', { ...scope, idempotencyKey: key }, f.context), result);
+  assert.equal(opened, 2); assert.equal(closed, 2); assert.equal(f.calls.commits, 1);
+});
+
+test('invalid input, foreign scope, agent, revoked revalidation and ambiguous composition do not allocate writers', async () => {
+  const f = await fixture(); let opened = 0;
+  const factory = () => { opened++; return { ...f.writer, close() {} }; };
+  f.context.services = { briefWriterFactory: factory };
+  for (const [input, expected] of [[{ ...f.input, injected: true }, 'INVALID_INPUT'], [{ ...f.input, organizationId: 'foreign' }, 'FORBIDDEN']] as const)
+    await assert.rejects(invokeTool('intent.brief.save', input, f.context), code(expected));
+  await assert.rejects(invokeTool('intent.brief.save', f.input, { ...f.context, principal: { ...principal, type: 'agent' } }), code('FORBIDDEN'));
+  await assert.rejects(invokeTool('intent.brief.save', f.input, { ...f.context, revalidate: async () => null }), code('UNAUTHENTICATED'));
+  await assert.rejects(invokeTool('intent.brief.save', f.input, { ...f.context, services: { briefWriter: f.writer, briefWriterFactory: factory } }), code('UNAVAILABLE'));
+  assert.equal(opened, 0);
+});
+
+test('managed writer closes on denial and unknown dispatch; cleanup failure cannot report a successful response', async () => {
+  for (const fail of ['confirmation', 'dispatch', 'cleanup']) {
+    const f = await fixture(); let closed = 0;
+    f.context.services = { briefWriterFactory: () => ({ ...f.writer,
+      ...(fail === 'dispatch' ? { compareAndCreate: async () => { throw new Error('synthetic lost response'); } } : {}),
+      close: async () => { closed++; if (fail === 'cleanup') throw new Error('private cleanup detail'); },
+    }) };
+    if (fail === 'confirmation') await assert.rejects(invokeTool('intent.brief.save', { ...f.input, confirmation: { ...f.input.confirmation, contentDigest: '0'.repeat(64) } }, f.context));
+    else if (fail === 'cleanup') { await assert.rejects(invokeTool('intent.brief.save', f.input, f.context), code('UNAVAILABLE')); assert.equal(f.calls.commits, 1); }
+    else assert.equal((await invokeTool('intent.brief.save', f.input, f.context)).result.outcome, 'unknown');
+    assert.equal(closed, 1);
+  }
+});
+
+test('cleanup is awaited and concurrent calls own distinct writer instances', async () => {
+  const f = await fixture(); let opened = 0, arrived!: () => void, release!: () => void, responses = 0;
+  const ready = new Promise<void>((resolve) => { arrived = resolve; });
+  const wait = new Promise<void>((resolve) => { release = resolve; });
+  f.context.services = { briefWriterFactory: () => { const id = ++opened; return { ...f.writer,
+    close: async () => { if (id === 2) arrived(); await wait; },
+  }; } };
+  const calls = [1, 2].map(() => invokeTool('intent.brief.save.status', { ...scope, idempotencyKey: key }, f.context).then((result) => { responses++; return result; }));
+  await ready; assert.equal(opened, 2); assert.equal(responses, 0); release(); await Promise.all(calls); assert.equal(responses, 2);
+});

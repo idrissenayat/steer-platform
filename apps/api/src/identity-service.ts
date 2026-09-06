@@ -4,6 +4,7 @@ import type { IdentityDependencies } from '@steer/adapters/identity';
 import { createGitBackedBrowserApi } from './git-browser.ts';
 import type { ToolServices } from '@steer/tool-registry';
 import { createGitBackedMcpEndpoint } from './identity.ts';
+import type { SessionBriefWriterFactory } from './request-writer.ts';
 
 export interface ManagedIdentitySessions {
   readonly binding: Readonly<{ issuer: string; clientId: string; redirectUri: string }>;
@@ -15,10 +16,12 @@ export interface ManagedIdentitySessions {
 /** Explicit lifecycle composition, not an environment loader or readiness approval. */
 export function createIdentityService(configuration: BrowserSessionConfiguration,
   dependencies: Pick<IdentityDependencies, 'fetch' | 'now'> & {
-    reader: ArtifactReader; authorizationPath: string; sessions: ManagedIdentitySessions; services?: ToolServices;
+    reader: ArtifactReader; authorizationPath: string; sessions: ManagedIdentitySessions; services?: ToolServices; createBriefWriter?: SessionBriefWriterFactory;
     mcp?: { clientIds: string[] };
   }) {
   const sessions = dependencies.sessions;
+  if (dependencies.createBriefWriter !== undefined && (typeof dependencies.createBriefWriter !== 'function' ||
+    dependencies.services?.briefWriter || dependencies.services?.briefWriterFactory)) throw new Error('Invalid request writer composition.');
   if (!sessions || typeof sessions.shutdown !== 'function' || !sessions.binding ||
       sessions.binding.issuer !== configuration.issuer || sessions.binding.clientId !== configuration.clientId ||
       sessions.binding.redirectUri !== configuration.redirectUri) throw new Error('Invalid identity service resource binding.');
@@ -29,16 +32,18 @@ export function createIdentityService(configuration: BrowserSessionConfiguration
     issuer: configuration.issuer, jwksUri: configuration.jwksUri, audience: configuration.audience, clientIds: [...dependencies.mcp.clientIds], maxTokenAgeSeconds: 300,
   }, { reader: dependencies.reader, authorizationPath: dependencies.authorizationPath,
     ...(dependencies.services ? { services: dependencies.services } : {}),
+    ...(dependencies.createBriefWriter ? { createBriefWriter: dependencies.createBriefWriter } : {}),
     ...(dependencies.fetch ? { fetch: dependencies.fetch } : {}), ...(dependencies.now ? { now: dependencies.now } : {}),
   }) : undefined;
   const app = createGitBackedBrowserApi(configuration, { reader: dependencies.reader,
     authorizationPath: dependencies.authorizationPath, store: sessions.store,
     ...(dependencies.services ? { services: dependencies.services } : {}),
+    ...(dependencies.createBriefWriter ? { createBriefWriter: dependencies.createBriefWriter } : {}),
     ...(dependencies.fetch ? { fetch: dependencies.fetch } : {}),
     ...(dependencies.now ? { now: dependencies.now } : {}),
   });
   const stopResources = sessions.shutdown.bind(sessions);
-  const drainBeforeResources = Boolean(mcp || dependencies.services?.reconciliationScheduler);
+  const drainBeforeResources = Boolean(mcp || dependencies.services?.reconciliationScheduler || dependencies.createBriefWriter || dependencies.services?.briefWriterFactory);
   let state: 'running' | 'draining' | 'stopped' | 'failed' = 'running';
   let activeRequests = 0; let shutdown: Promise<void> | undefined;
   let drained: (() => void) | undefined;

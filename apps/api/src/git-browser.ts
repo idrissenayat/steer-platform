@@ -6,17 +6,19 @@ import { createBrowserApi } from './browser.ts';
 import { Hono } from 'hono';
 import { createRequestBoundary } from './request-boundary.ts';
 import type { ToolServices } from '@steer/tool-registry';
+import type { SessionBriefWriterFactory } from './request-writer.ts';
 
 /** Trusted startup composition, never populated from a request or token claim. */
 export function createGitBackedBrowserApi(configuration: BrowserSessionConfiguration,
   dependencies: Pick<IdentityDependencies, 'fetch' | 'now'> & {
-    reader: ArtifactReader; authorizationPath: string; store: BrowserSessionStore; services?: ToolServices;
+    reader: ArtifactReader; authorizationPath: string; store: BrowserSessionStore; services?: ToolServices; createBriefWriter?: SessionBriefWriterFactory;
   }) {
   // Explicit fields prevent even an untyped caller from overriding the authority resolver.
   const browser = createBrowserApi(configuration, {
     store: dependencies.store,
     resolveAuthorization: createGitAuthorizationResolver(dependencies.reader, dependencies.authorizationPath),
     ...(dependencies.services ? { services: dependencies.services } : {}),
+    ...(dependencies.createBriefWriter ? { createBriefWriter: dependencies.createBriefWriter } : {}),
     ...(dependencies.fetch ? { fetch: dependencies.fetch } : {}),
     ...(dependencies.now ? { now: dependencies.now } : {}),
   });

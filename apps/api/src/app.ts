@@ -2,12 +2,14 @@ import { Hono } from 'hono';
 import { secureHeaders } from 'hono/secure-headers';
 import { createOpenApiDocument, invokeTool, ToolError, type ToolServices } from '@steer/tool-registry';
 import { readRequestBody, RequestBodyError } from './request-body.ts';
+import { requestWriterServices, type RequestBriefWriterFactory } from './request-writer.ts';
 
 export interface ApiDependencies {
   /** Must verify the identity independently (issuer, audience, signature, expiry and grants). */
   authenticate?: (request: Request) => Promise<unknown>;
   now?: () => Date;
   services?: ToolServices;
+  createBriefWriter?: RequestBriefWriterFactory;
 }
 const maxBodyBytes = 16 * 1024;
 const error = (code: string, message: string) => ({ error: { code, message } });
@@ -48,8 +50,9 @@ export function createApi(dependencies: ApiDependencies = {}) {
       if (cause instanceof RequestBodyError) return c.json(error('REQUEST_TIMEOUT', 'Request body was not completed.'), 408);
       return c.json(error('INVALID_JSON', 'A valid UTF-8 JSON body is required.'), 400);
     }
+    const services = requestWriterServices(dependencies.services, dependencies.createBriefWriter, c.req.raw);
     return c.json(await invokeTool(c.req.param('name'), input, { principal, now: now(), clock: now,
-      revalidate: () => authenticate(c.req.raw), ...(dependencies.services ? { services: dependencies.services } : {}) }));
+      revalidate: () => authenticate(c.req.raw), ...(services ? { services } : {}) }));
   });
   app.notFound((c) => c.json(error('NOT_FOUND', 'Route not found.'), 404));
   app.onError((cause, c) => {

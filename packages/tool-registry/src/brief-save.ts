@@ -27,6 +27,9 @@ export interface BriefWriter {
    * processes; never overwrite either path, project first, retry blindly or use force. */
   compareAndCreate(request: BriefCreateRequest, authority: BriefWriteAuthority): Promise<unknown>;
 }
+/** Per-invocation instance; constructor is synchronous and must clean up if it
+ * throws. close prevents further use; it does not imply rollback of dispatched work. */
+export interface ManagedBriefWriter extends BriefWriter { close(): void | Promise<void> }
 export class BriefSaveError extends Error {
   readonly code: 'INVALID_INPUT' | 'FORBIDDEN' | 'UNAVAILABLE' | 'UNAUTHENTICATED';
   constructor(code: BriefSaveError['code']) { super('Brief save request rejected.'); this.code = code; }

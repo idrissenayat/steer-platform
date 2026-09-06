@@ -85,6 +85,32 @@ test('Brief save and readback are discovered but unavailable through both transp
   } finally { await client.close(); await endpoint.shutdown(); }
 });
 
+test('HTTP and official MCP client allocate and clean distinct request writers only for authorized save-status calls', async () => {
+  const human = { ...principal, type: 'human', toolGrants: ['intent.brief.save.status', 'session.context'] };
+  const reference = { organizationId: 'org-a', repository: 'github:1', branch: 'codex/synthetic', path: 'items/0001-demo/BRIEF.md',
+    idempotencyKey: '00000000-0000-4000-8000-000000000134' };
+  const requests: string[] = []; let closed = 0;
+  const dependencies = { authenticate: async () => human, now: () => now, createBriefWriter: (request: Request) => {
+    requests.push(new URL(request.url).pathname); return {
+      configuration: { ...scope, branch: reference.branch, paths: [reference.path], platformRevision: 'a'.repeat(40), gate2DecisionDigest: 'b'.repeat(64) },
+      inspect: async (ref: typeof reference & { subject: string }) => ({ ...ref, outcome: 'not-found' }),
+      verifyWriteAuthority: async () => { assert.fail(); }, compareAndCreate: async () => { assert.fail(); }, close: async () => { closed++; },
+    };
+  } };
+  const endpoint = createMcpEndpoint(origin, dependencies), client = await connect(endpoint), api = createApi(dependencies);
+  try {
+    await client.listTools(); await client.callTool({ name: 'session.context', arguments: { organizationId: 'org-a' } }); assert.equal(requests.length, 0);
+    const result = await client.callTool({ name: 'intent.brief.save.status', arguments: reference }); assert.ok(!result.isError);
+    assert.equal(closed, 1);
+    const response = await api.request(`${origin}/v1/tools/intent.brief.save.status`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(reference) });
+    assert.equal(response.status, 200); assert.deepEqual(await response.json(), (result.structuredContent as { result: unknown }).result);
+    assert.equal(closed, 2); assert.deepEqual(requests, ['/mcp', '/v1/tools/intent.brief.save.status']);
+    assert.equal(toolError(await client.callTool({ name: 'intent.brief.save.status', arguments: { ...reference, organizationId: 'foreign' } })), 'FORBIDDEN');
+    assert.equal(toolError(await client.callTool({ name: 'intent.brief.save.status', arguments: { ...reference, injected: true } })), 'INVALID_INPUT');
+    assert.equal(requests.length, 2);
+  } finally { await client.close(); await endpoint.shutdown(); }
+});
+
 test('official MCP v2 client lists canonical schemas and calls the same tools as HTTP', async () => {
   const schedulingScope = { organizationId: 'org-a', repository: 'github:1', itemId: 'intent/0001' };
   const receipt = { workflowId: 'steer-reconcile/v1/org-a/github%3A1/intent%2F0001', runId: '00000000-0000-4000-8000-000000000039' };

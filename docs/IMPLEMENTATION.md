@@ -1178,6 +1178,13 @@ while retaining underlying-work ownership, denying late continuation and drainin
 on shutdown. Public shapes and no-gate/no-write semantics remain unchanged. This
 is a prerequisite correction; full authority and runtime writer binding are due.
 
+Item `intent/0134` prepares per-request writer factories through the shared registry,
+HTTP/browser, Git-backed MCP and identity-service lifecycle. Allocation follows
+current human authorization; cleanup is awaited. Actual verified cookie/bearer
+context stays internal, and writer-enabled shutdown drains requests before shared
+resources. This is opt-in composition code, not a configured runtime writer or
+full authority verifier. Default save/status and live provider access stay closed.
+
 ## Local commands
 
 ```sh

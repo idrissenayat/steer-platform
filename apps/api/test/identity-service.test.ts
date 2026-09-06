@@ -112,3 +112,19 @@ test('browser-only scheduling composition drains admitted requests before closin
   assert.equal((await service.fetch(new Request(`${origin}/health/live`))).status, 503);
   finish(false); await request; await stop; assert.equal(closed, 1); assert.equal(service.status().state, 'stopped');
 });
+
+test('writer-enabled browser service drains admitted requests before shared resources and rejects ambiguous factories', async () => {
+  const factory = () => { throw new Error('writer must remain unused by login'); };
+  assert.throws(() => createIdentityService(configuration, { ...dependencies, createBriefWriter: factory,
+    services: { briefWriterFactory: factory } }), /Invalid request writer composition/);
+  let finish!: (value: boolean) => void, entered!: () => void, closed = 0;
+  const admitted = new Promise<void>((resolve) => { entered = resolve; });
+  const service = createIdentityService(configuration, { ...dependencies, createBriefWriter: factory,
+    sessions: { ...dependencies.sessions, shutdown: async () => { closed++; }, store: { ...store,
+      insertTransaction: async () => { entered(); return new Promise<boolean>((resolve) => { finish = resolve; }); },
+    } } });
+  const request = service.fetch(new Request(`${origin}/auth/login`, { method: 'POST', headers: { origin } }));
+  await admitted; const stop = service.shutdown(); await Promise.resolve(); await Promise.resolve(); assert.equal(closed, 0);
+  assert.equal((await service.fetch(new Request(`${origin}/health/live`))).status, 503);
+  finish(false); await request; await stop; assert.equal(closed, 1); assert.equal(service.status().state, 'stopped');
+});

@@ -1,11 +1,12 @@
 import { Hono } from 'hono';
 import { secureHeaders } from 'hono/secure-headers';
 import { createBrowserSessionBroker, type BrowserSessionConfiguration, type BrowserSessionStore } from '@steer/adapters/browser-session';
-import { createOidcAuthenticator, type IdentityDependencies } from '@steer/adapters/identity';
+import { createOidcContextAuthenticator, type IdentityDependencies } from '@steer/adapters/identity';
 import { createOpenApiDocument, invokeTool, ToolError, type ToolServices } from '@steer/tool-registry';
 import { createApi } from './app.ts';
 import { readRequestBody } from './request-body.ts';
 import { sessionViewSchema } from './session-view.ts';
+import type { SessionBriefWriterFactory } from './request-writer.ts';
 
 const failure = { error: { code: 'SIGN_IN_FAILED', message: 'The sign-in operation could not be completed.' } };
 const denied = { error: { code: 'FORBIDDEN', message: 'The request is not allowed.' } };
@@ -57,12 +58,12 @@ async function emptyBody(request: Request): Promise<boolean> {
 
 /** Explicit composition only. CLI startup never installs these routes by default. */
 export function createBrowserApi(configuration: BrowserSessionConfiguration,
-  dependencies: IdentityDependencies & { store: BrowserSessionStore; services?: ToolServices }) {
+  dependencies: IdentityDependencies & { store: BrowserSessionStore; services?: ToolServices; createBriefWriter?: SessionBriefWriterFactory }) {
   const broker = createBrowserSessionBroker(configuration, dependencies);
   const callback = new URL(configuration.redirectUri);
   if (callback.pathname !== '/auth/callback') throw new Error('Invalid browser route configuration.');
   const origin = callback.origin;
-  const bearer = createOidcAuthenticator({ issuer: configuration.issuer, jwksUri: configuration.jwksUri,
+  const bearer = createOidcContextAuthenticator({ issuer: configuration.issuer, jwksUri: configuration.jwksUri,
     audience: configuration.audience, clientIds: [configuration.clientId], maxTokenAgeSeconds: 300 }, dependencies);
   const app = new Hono();
   app.use('*', secureHeaders());
@@ -122,18 +123,20 @@ export function createBrowserApi(configuration: BrowserSessionConfiguration,
     } catch (error) { return c.json(denied, error instanceof ToolError && error.code === 'UNAUTHENTICATED' ? 401 : 403); }
   });
   app.get('/openapi.json', (c) => c.json(createBrowserOpenApiDocument()));
-  app.route('/', createApi({
-    ...(dependencies.services ? { services: dependencies.services } : {}),
-    authenticate: async (request) => {
+  const authenticateContext = async (request: Request) => {
       const cookies = request.headers.get('cookie');
       const hasSession = cookies?.split(';').some((part) => part.trim().startsWith('__Host-steer-session=')) ?? false;
       if (hasSession) {
         // Do not let a bearer header mask a revoked/malformed ambient session.
         if (request.headers.has('authorization') || !sameOriginMutation(request, origin)) return null;
-        return broker.authenticate(cookies);
+        return broker.authenticateContext(cookies);
       }
       return bearer(request);
-    },
+  };
+  app.route('/', createApi({
+    ...(dependencies.services ? { services: dependencies.services } : {}),
+    ...(dependencies.createBriefWriter ? { createBriefWriter: (request: Request) => dependencies.createBriefWriter!(() => authenticateContext(request)) } : {}),
+    authenticate: async (request) => (await authenticateContext(request))?.principal ?? null,
     ...(dependencies.now ? { now: dependencies.now } : {}),
   }));
   app.onError((_cause, c) => c.json({ error: { code: 'INTERNAL_ERROR', message: 'The operation could not be completed.' } }, 500));

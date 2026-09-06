@@ -3,7 +3,7 @@ import { readBriefDocument } from '@steer/domain/brief-document';
 import { draftBrief } from '@steer/domain/brief-author';
 import { briefPreviewInputSchema, briefPreviewOutputSchema, type BriefPreview } from './brief-preview.ts';
 export * from './brief-preview.ts';
-import { runBriefSave, BriefSaveError, briefSaveInputSchema, briefSaveStatusInputSchema, briefSaveOutputSchema, type BriefWriter, type BriefSaveOutput } from './brief-save.ts';
+import { runBriefSave, BriefSaveError, briefSaveInputSchema, briefSaveStatusInputSchema, briefSaveOutputSchema, type BriefWriter, type ManagedBriefWriter, type BriefSaveOutput } from './brief-save.ts';
 export * from './brief-save.ts';
 import { artifactProjectionInputSchema, artifactProjectionOutputSchema, briefProjectionInputSchema, briefProjectionOutputSchema,
   briefCatalogInputSchema, briefCatalogRecordsSchema, briefCatalogOutputSchema, type ArtifactProjectionInput,
@@ -88,7 +88,7 @@ export interface ReconciliationScheduler {
   start(input: ReconciliationStart): Promise<unknown>;
   inspect(): Promise<unknown>;
 }
-export interface ToolServices { artifactProjection?: ArtifactProjectionReader; reconciliationScheduler?: ReconciliationScheduler; projectionChanges?: ProjectionChangeReader; projectionSnapshot?: ProjectionSnapshotReader; briefWriter?: BriefWriter }
+export interface ToolServices { artifactProjection?: ArtifactProjectionReader; reconciliationScheduler?: ReconciliationScheduler; projectionChanges?: ProjectionChangeReader; projectionSnapshot?: ProjectionSnapshotReader; briefWriter?: BriefWriter; briefWriterFactory?: () => ManagedBriefWriter }
 
 const contextInput = z.strictObject({ organizationId: identifier });
 const contextOutput = principalSchema.omit({ expiresAt: true });
@@ -393,9 +393,22 @@ function briefSaveDefinition(mode: 'save' | 'status') {
     input, output: briefSaveOutputSchema,
     async invoke(raw: unknown, context: InvocationContext): Promise<BriefSaveOutput> {
       const initial = authorization.invoke(raw, context);
-      try { return await runBriefSave(mode, raw, initial, context.services?.briefWriter,
-        () => freshToolPrincipal(authorization, raw, initial, context), context.clock ?? (() => new Date())); }
+      let owned: ManagedBriefWriter | undefined;
+      try {
+        const factory = context.services?.briefWriterFactory;
+        if (factory !== undefined) {
+          if (typeof factory !== 'function' || context.services?.briefWriter) throw new BriefSaveError('UNAVAILABLE');
+          await freshToolPrincipal(authorization, raw, initial, context);
+          owned = factory();
+          if (!owned || typeof owned.close !== 'function') throw new BriefSaveError('UNAVAILABLE');
+        }
+        return await runBriefSave(mode, raw, initial, owned ?? context.services?.briefWriter,
+          () => freshToolPrincipal(authorization, raw, initial, context), context.clock ?? (() => new Date()));
+      }
       catch (error) { if (error instanceof BriefSaveError) throw new ToolError(error.code); throw error; }
+      finally { if (owned && typeof owned.close === 'function') {
+        try { await owned.close(); } catch { throw new ToolError('UNAVAILABLE'); }
+      } }
     },
   };
 }

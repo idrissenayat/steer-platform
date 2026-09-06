@@ -62,6 +62,10 @@ Item [0133](intent/0133/README.md) corrects reproduced clock-rollback acceptance
 authority prerequisites and bounds gate-source collection with late-result denial.
 This strengthens source observations; it does not complete full gate verification.
 
+Item [0134](intent/0134/README.md) adds per-invocation writer allocation and cleanup
+across shared tools, HTTP/browser and MCP, using verified request context. The
+default runtime still has no writer; full authority and live enablement are due.
+
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono
 API/shared tool registry (0007), OIDC adapter/API composition (0008), and
