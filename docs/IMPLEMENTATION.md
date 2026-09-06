@@ -873,6 +873,15 @@ and 3,835 unmapped. Original authorization is not the separate shared-action
 contract, and one-line reconciliation does not resolve R5-004. See
 `intent/0100/EVIDENCE.md` and `PLAN.md`; all formal findings remain open.
 
+Item `intent/0101` maps 74 remaining classifier IDs and the R5-004 two-line cost
+counterexample. Complete timed evidence verifies; either missing variance or
+successor, including a single pair for two lines, denies without totals. All 32
+array orderings preserve exact lineage and rounding. Non-phone classifiers are
+unchanged components of the corrected graph, not newly fixed detector behavior;
+classification is not corpus acceptance. The snapshot has 276 passed, zero failed
+and 3,760 unmapped IDs. See `intent/0101/EVIDENCE.md` and `PLAN.md`. All five formal
+findings remain open; actual counterexample execution is not independent closure.
+
 ## Local commands
 
 ```sh

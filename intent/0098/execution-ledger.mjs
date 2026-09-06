@@ -34,7 +34,8 @@ export function runCorrectedCoverage() {
     catalogDigest: catalog.catalogDigest, sourcePinsDigest: catalog.sourcePinsDigest,
     runnerDigest: digest(readFileSync(new URL('./execution-ledger.mjs', import.meta.url))),
     hooksDigest: digest(readFileSync(new URL('./execution-hooks.mjs', import.meta.url))),
-    supplementalHookSources: ['intent/0099/execution-hooks.mjs', 'intent/0099/execution-fixtures.mjs', 'intent/0100/execution-hooks.mjs', 'intent/0100/execution-fixtures.mjs'].map((path) => ({
+    supplementalHookSources: ['intent/0099/execution-hooks.mjs', 'intent/0099/execution-fixtures.mjs', 'intent/0100/execution-hooks.mjs', 'intent/0100/execution-fixtures.mjs',
+      'intent/0101/execution-hooks.mjs', 'intent/0101/execution-fixtures.mjs'].map((path) => ({
       path, digest: digest(readFileSync(new URL('../../' + path, import.meta.url))) })),
     required: catalog.cases.length, executed: executions.length, passed: executions.length - failed, failed, uncovered: uncovered.length,
     uncoveredIdsDigest: digest(jcs(uncovered)), executionsDigest: digest(jcs(executions)), families, executions,
@@ -44,6 +45,7 @@ export function runCorrectedCoverage() {
       'No registered hook means uncovered here, not necessarily absent implementation elsewhere.',
       'Privacy graph hooks now include 0063 independent time observation; later trust eras and remaining global time requirements still need reconciliation.',
       'Legacy baseline calls inside a counterexample hook are not credited as corrected coverage.',
+      'Non-phone detector IDs execute the unchanged classifier retained by the corrected graph; they do not claim newly corrected detector behavior or corpus acceptance.',
       'The source catalog is the frozen declaration plus nine R5 reproductions, not every additional normative clause or variation.',
       'These are synthetic development executions; full normative, live integration, independent and protected review remain separate.'] };
 }

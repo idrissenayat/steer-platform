@@ -1846,3 +1846,26 @@ identifier/detector cases, followed by shared-action/lifecycle/migration and oth
 normative reconciliation. The finite assurance packages and platform milestones
 remain separate. No provider mutation, cleanup, release, deployment, spending or
 signature is authorized.
+
+## Completed development increment: 0101 — detectors and multi-line reconciliation
+
+The ledger adds 74 remaining identifier/detector IDs and the single R5-004 case.
+Unchanged non-phone classification is explicitly scoped as a retained component,
+not newly corrected behavior or full corpus acceptance. The complete two-line
+reconciliation verifies all 14 records and aggregates before rounding. The legacy
+single-pair acceptance is reproduced; either missing variance or successor,
+including both missing, denies without totals. All 32 independent array orderings
+retain exact record sets and totals. Forty observations count as one R5 ID.
+
+Six new groups and final full checks pass: 314 root controls and 88 prototype
+tests. A fresh run matches the new snapshot: 276 passed, zero failed and 3,760
+unmapped IDs of 4,036. Earlier snapshots are unchanged. See intent/0101/EVIDENCE.md
+for synthetic/cached limits. No protected artifact or formal finding/gate state
+changed. GAP-01 and all five formal R5 findings remain open.
+
+Next under intent/0101/PLAN.md are trust-domain, schema and complete accessibility
+mappings, carefully distinguishing structural validity and synthetic matrices
+from corrected semantic and qualified manual evidence. Then reconcile the four
+remaining R5 IDs, 94 lifecycle graph cases and 3,614 migration cases. The finite
+assurance packages and M1–M8 milestones remain separate. No provider mutation,
+cleanup, release, deployment, spending or signature is authorized.
