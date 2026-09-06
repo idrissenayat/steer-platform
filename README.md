@@ -45,6 +45,10 @@ Item [0129](intent/0129/README.md) fixes reproduced sub-millisecond gate chronol
 errors with exact UTC comparisons. Normalized policy still requires independent
 source/provider verification; no gate approval or runtime writer is enabled.
 
+Item [0130](intent/0130/README.md) verifies signed provider-attested claims against
+exact source facts with tampering and key-revocation tests. No production trust
+keys/provider binding is installed; full source/qualification/writer work remains.
+
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono
 API/shared tool registry (0007), OIDC adapter/API composition (0008), and

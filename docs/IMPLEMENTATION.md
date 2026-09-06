@@ -1152,6 +1152,12 @@ while genuinely ordered fractional timestamps preserve their sequence. All
 normalized timestamp fields are validated without rounding; provider verification
 and live write enablement remain separate unfinished work.
 
+Item `intent/0130` adds an unconfigured read-only Ed25519 provider-attestation
+verifier with strict source/identity/session pins and exact key/time checks.
+Actual ephemeral cryptographic tests are distinct from provider retrieval,
+trusted-key-source approval, qualified hats and full gate/write authority. The
+existing provider-recorded Gate 1 is not converted or replaced by this primitive.
+
 ## Local commands
 
 ```sh

@@ -2578,3 +2578,20 @@ This is a development correction required before authority composition, not an
 independent R5 closure, human second-look proof or approval. Full source/provider
 verification, writer/UI/board integration and all prior signed/gate/provider
 boundaries remain unchanged. The five R5 findings and 0124/0120 work remain open.
+
+## Completed development increment: 0130 — provider-attested gate evidence
+
+Adds a read-only Ed25519 verifier for exact source-bound provider claims under a
+selected trust snapshot. It rejects tampering, cross-scope/session/revision replay,
+agent/qualification injection, ambiguous serialization and expired/revoked keys.
+Chronology retains nanoseconds. Returned immutable evidence requires current source
+and qualification verification and grants no gate/write authority. Tests use actual
+ephemeral signatures and synthetic Git-source composition. The 19-case focused
+set and full repository checks pass, including 437 root controls and 104 adapter
+tests. See `intent/0130/EVIDENCE.md` for exact scope and limits.
+
+No production key, proof retrieval adapter, provider selection, signature, protected
+record or runtime writer is installed. The existing openai-codex Gate 1 remains
+unchanged and is not upgraded into this signed-envelope format. Full trusted-source,
+human/qualified-hat, policy/Critic/domain and request-bound writer composition still
+precede live saving. All five R5 findings, 0124/0120 and signed obligations remain.

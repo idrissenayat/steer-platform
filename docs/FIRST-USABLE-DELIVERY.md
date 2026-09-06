@@ -160,6 +160,12 @@ This validates chronology only, not provider identity or a human second look.
 The full source/provider proof and request-bound writer remain unfinished. See
 `intent/0129/EVIDENCE.md` for before/after regression evidence.
 
+0130 development update: a read-only provider-attestation signature primitive now
+binds expected record/identity/session facts under an explicitly selected trust
+snapshot. This does not fetch or authorize a production key/provider, validate
+qualified hats or replace the existing openai-codex approval record. Full proof
+retrieval/source verification and writer composition remain; see `intent/0130`.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

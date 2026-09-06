@@ -1,5 +1,6 @@
 import { roles } from '@steer/domain/types';
 import { parseUtcInstant } from '@steer/domain/utc-instant';
+export { parseUtcInstant } from '@steer/domain/utc-instant';
 import { z } from 'zod';
 
 const identifier = z.string().min(1).max(200).refine((value) => value === value.trim());
