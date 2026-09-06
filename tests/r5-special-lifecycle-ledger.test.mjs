@@ -74,5 +74,5 @@ test('0109: all 30 lifecycle negatives have exact execution seals without claimi
   for (const kind of kinds) assert.equal(report.executions.find((row) => row.id === `LIFECYCLE-GRAPH-NEGATIVE:${kind}`).observationCount, 3);
   assert.equal(report.families['LIFECYCLE-GRAPH'].executed, 52); assert.equal(report.families.MIGRATION.executed, 0);
   for (const flag of ['completeCoverage', 'normativeAcceptanceComplete', 'independentAcceptance', 'executionAuthorized', 'liveProviderUsed']) assert.equal(report[flag], false);
-  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0117/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
+  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0120/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
 });

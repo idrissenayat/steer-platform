@@ -1071,6 +1071,17 @@ separate complete retirement-decision/archive profile before future lifecycle
 admission; see `intent/0119/PLAN.md`. All five findings and mapped counts stay open
 and unchanged. No live history completeness or actual deletion is claimed.
 
+Item `intent/0120` provides the separate qualified-retirement profile, using all
+nine human records and exact corpus/event/predecessor/policy-bound history-head
+composition. Identity, qualification, assignment, provider proof, replay and CAS
+must pass, with reservation before retirement commit. Existing hold/reference/
+disposition contracts and mapped observations remain unchanged. A verified decision
+at its explicit original/current observation is not later archival validity or
+complete qualified prior history; those flags stay false. Next is an exact retained
+retirement archive and parent/lifecycle integration under `intent/0120/PLAN.md`.
+No new catalog credit or live retirement/deletion is claimed; all five findings
+remain open.
+
 ## Local commands
 
 ```sh

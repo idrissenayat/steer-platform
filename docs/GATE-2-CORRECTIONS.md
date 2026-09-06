@@ -43,6 +43,12 @@ P7Y result is only a boundary candidate: the signed policy requires a qualified
 corpus-retirement decision, while current 0082/0084 owner profiles cover holds only.
 Retirement authority remains false until a distinct complete proof/archive profile
 exists. No eligibility, current-v7 admission or catalog credit is claimed.
+`intent/0120` adds the separate qualified-retirement human profile and complete
+decision/event/history-head binding at an explicit valid-key observation. All nine
+supporting records execute; original hold/reference/disposition profiles stay intact.
+Later retirement archive revalidation, full qualified parent history and lifecycle
+composition remain open. Fresh 0120 reports update shared-source fingerprints only;
+no new hook or exact-ID credit is added and 0119 itself remains a boundary candidate.
 Full snapshot: 4,036 required IDs, 409 passed, 3,627 unmapped. Quick explicitly
 leaves the 16 heavy cases unexecuted (393 passed / 3,643 uncovered). The require-complete command
 exits 2 and explains its deferred-full preflight; GAP-01 is not complete. Some hooks intentionally

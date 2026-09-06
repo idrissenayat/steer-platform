@@ -61,7 +61,9 @@ function run(profile) {
       'intent/0113/execution-hooks.mjs', 'intent/0113/SOURCE-MAP.json',
       'intent/0114/execution-hooks.mjs', 'intent/0114/SOURCE-MAP.json',
       'intent/0115/execution-hooks.mjs', 'intent/0115/SOURCE-MAP.json', 'intent/0115/lifecycle-immediate.candidate.mjs',
-      'intent/0116/execution-hooks.mjs', 'intent/0116/SOURCE-MAP.json', 'intent/0116/release-lifecycle.candidate.mjs', 'intent/0080/lifecycle-runtime.candidate.mjs'].map((path) => ({
+      'intent/0116/execution-hooks.mjs', 'intent/0116/SOURCE-MAP.json', 'intent/0116/release-lifecycle.candidate.mjs', 'intent/0080/lifecycle-runtime.candidate.mjs',
+      // Shared human verifier imports this schema; fingerprinting is not retirement-profile execution credit.
+      'intent/0120/retirement-decision-schema.candidate.mjs'].map((path) => ({
       path, digest: digest(readFileSync(new URL('../../' + path, import.meta.url))) })),
     required: catalog.cases.length, executed: executions.length, passed: executions.length - failed, failed, uncovered: uncovered.length,
     uncoveredIdsDigest: digest(jcs(uncovered)), executionsDigest: digest(jcs(executions)), families, executions,

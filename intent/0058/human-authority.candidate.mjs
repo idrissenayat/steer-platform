@@ -8,6 +8,7 @@ import { AUTHORIZATION_POLICY_BYTES, AUTHORIZATION_POLICY_PATH, AUTHORIZATION_PO
 import { createTimedRecordVerifier } from './record-verifier.candidate.mjs';
 import { validateQualifiedDecision, schemaPolicyDigest as qualifiedSchemaPolicy } from '../0082/qualified-decision-schema.candidate.mjs';
 import { validateReferenceDecision, schemaPolicyDigest as referenceSchemaPolicy } from '../0085/reference-decision-schema.candidate.mjs';
+import { validateRetirementDecision, schemaPolicyDigest as retirementSchemaPolicy } from '../0120/retirement-decision-schema.candidate.mjs';
 
 const registryBytes = jcs(JSON.parse(readFileSync(new URL('../0001/reviews/domain/round-3/remediation/TRUST-REGISTRY.candidate.json', import.meta.url), 'utf8')));
 const verifier = createTimedRecordVerifier(registryBytes);
@@ -37,7 +38,7 @@ export function correctedHumanAuthorityDecision(serialized) {
 export function createHumanAuthorityVerifier(trustedRegistryBytes, profile = 'disposition') {
   let selected;
   try {
-    if (!['disposition', 'qualified-event', 'qualified-reference'].includes(profile)) throw new Error('HUMAN_PROFILE_INVALID');
+    if (!['disposition', 'qualified-event', 'qualified-reference', 'qualified-retirement'].includes(profile)) throw new Error('HUMAN_PROFILE_INVALID');
     selected = createTimedRecordVerifier(trustedRegistryBytes);
     const registry = parseCanonical(trustedRegistryBytes);
     if (profile !== 'disposition' && new Set(registry.bindings.map((key) => key.publicKeyHex)).size !== registry.bindings.length)
@@ -49,15 +50,18 @@ export function createHumanAuthorityVerifier(trustedRegistryBytes, profile = 'di
         throw new Error('CURRENT_TRUST_INVALID');
     }
   } catch { throw new Error('HUMAN_AUTHORITY_CONFIGURATION_INVALID'); }
-  const reference = profile === 'qualified-reference', qualified = reference || profile === 'qualified-event';
-  const policyBytes = jcs(reference ? { version: 'steer-qualified-reference-human/v1', originalHumanPolicyDigest: correctionPolicyDigest,
+  const retirement = profile === 'qualified-retirement', reference = profile === 'qualified-reference', qualified = retirement || reference || profile === 'qualified-event';
+  const policyBytes = jcs(retirement ? { version: 'steer-qualified-retirement-human/v1', originalHumanPolicyDigest: correctionPolicyDigest,
+    registryDigest: selected.registryDigest, schemaPolicyDigest: retirementSchemaPolicy,
+    rules: 'complete nine-record qualified proof with exact current clock and independent keys; corpus retirement selector, event, previous event and history head; no erasure or execution; full event/history binding required separately' } : reference ? { version: 'steer-qualified-reference-human/v1', originalHumanPolicyDigest: correctionPolicyDigest,
     registryDigest: selected.registryDigest, schemaPolicyDigest: referenceSchemaPolicy,
     rules: 'complete qualified owner proof and exact referenced-evidence selector; current independent keys/clock and 300-second freshness; bind reference inventory verification bundle and tombstone identity; decision is not erasure permission' } : qualified ? { version: 'steer-qualified-event-human/v1', originalHumanPolicyDigest: correctionPolicyDigest,
     registryDigest: selected.registryDigest, schemaPolicyDigest: qualifiedSchemaPolicy,
     rules: 'complete identity qualification assignment provider selector inventory and winning CAS; distinct keys; exact current clock and 300-second decision/snapshot freshness; non-erasure event decision, no execution' } :
     { ...parseCanonical(correctionPolicyBytes), registryDigest: selected.registryDigest });
   const selectedPolicyDigest = sha256(policyBytes);
-  const contract = reference ? { envelopeVersion: 'steer-qualified-reference-human/v1', schema: validateReferenceDecision,
+  const contract = retirement ? { envelopeVersion: 'steer-qualified-retirement-human/v1', schema: validateRetirementDecision,
+    inventoryDigestField: 'selectorInventoryDigest', inventoryItemIdField: 'recordId', recordClass: 'RC-CORPUS-PROVENANCE' } : reference ? { envelopeVersion: 'steer-qualified-reference-human/v1', schema: validateReferenceDecision,
     inventoryDigestField: 'selectorInventoryDigest', inventoryItemIdField: 'recordId', recordClass: 'RC-REFERENCED-EVIDENCE' } : qualified ? { envelopeVersion: 'steer-qualified-event-human/v1', schema: validateQualifiedDecision,
     inventoryDigestField: 'selectorInventoryDigest', inventoryItemIdField: 'recordId' } : null;
   return Object.freeze({ policyBytes, policyDigest: selectedPolicyDigest, registryDigest: selected.registryDigest,

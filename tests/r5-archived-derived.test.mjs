@@ -89,8 +89,8 @@ test('0118: fixture surface remains deterministic and closed without signing or 
   assert.deepEqual(Object.keys(fixtures), ['archivedDerivedExecutionCase']); assert.throws(() => make('unknown'), /UNKNOWN_ARCHIVED_DERIVED_CASE/); assert.equal(make().bytes, make().bytes);
 });
 
-test('0118: archive prerequisite adds no case credit and leaves the existing execution snapshot unchanged', () => {
-  const report = runCorrectedCoverage(), prior = JSON.parse(readFileSync(new URL('../intent/0117/QUICK-EXECUTION-REPORT.json', import.meta.url)));
+test('0118: archive prerequisite adds no case credit and matches the current mapped execution snapshot', () => {
+  const report = runCorrectedCoverage(), prior = JSON.parse(readFileSync(new URL('../intent/0120/QUICK-EXECUTION-REPORT.json', import.meta.url)));
   assert.deepEqual(report, prior); assert.equal(report.passed, 393); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3643);
   for (const flag of ['completeCoverage', 'normativeAcceptanceComplete', 'independentAcceptance', 'executionAuthorized', 'liveProviderUsed']) assert.equal(report[flag], false);
 });

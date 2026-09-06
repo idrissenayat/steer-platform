@@ -80,8 +80,8 @@ test('0119: closed envelope, exact pins, UTF-8 limits and fixture API cannot gra
   assert.deepEqual(Object.keys(fixtures), ['provenanceHistoryExecutionCase']); assert.throws(() => make('unknown'), /UNKNOWN_PROVENANCE_HISTORY_CASE/); assert.equal(make().bytes, make().bytes);
 });
 
-test('0119: fact-only composition adds no catalog credit and preserves the prior execution snapshot exactly', () => {
-  const report = runCorrectedCoverage(), prior = JSON.parse(readFileSync(new URL('../intent/0117/QUICK-EXECUTION-REPORT.json', import.meta.url)));
+test('0119: fact-only composition adds no catalog credit and matches the current execution snapshot exactly', () => {
+  const report = runCorrectedCoverage(), prior = JSON.parse(readFileSync(new URL('../intent/0120/QUICK-EXECUTION-REPORT.json', import.meta.url)));
   assert.deepEqual(report, prior); assert.equal(report.passed, 393); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3643);
   for (const flag of ['completeCoverage', 'normativeAcceptanceComplete', 'independentAcceptance', 'executionAuthorized', 'liveProviderUsed']) assert.equal(report[flag], false);
 });

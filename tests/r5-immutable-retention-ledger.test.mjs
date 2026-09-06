@@ -76,5 +76,5 @@ test('0113: fresh report credits the four declared immutable aliases without cla
   assert.equal(rows.length, 4); assert.equal(new Set(rows.map((row) => row.observationsDigest)).size, 1);
   for (const flag of ['completeCoverage', 'normativeAcceptanceComplete', 'independentAcceptance', 'executionAuthorized', 'liveProviderUsed']) assert.equal(report[flag], false);
   assert.equal(report.families.MIGRATION.executed, 0);
-  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0117/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
+  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0120/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
 });

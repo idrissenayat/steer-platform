@@ -2340,3 +2340,37 @@ unblocked and does not request a human signature. Twelve lifecycle, 3,614 migrat
 and one schema coordinate, all five formal R5 findings, normative/live integrations
 and independent/protected review remain open. Provider operations, actual deletion,
 gate signatures, release, deployment and spending stay gated. The loop stays active.
+
+## Completed development increment: 0120 — qualified retirement decision evidence
+
+A distinct non-erasure retirement authority schema/profile now uses all nine human
+supporting records and exact corpus/event/parent/predecessor/history-head binding.
+The head and human conditions bind the profile policy. History/CAS/replay snapshots
+must precede decision, and the winning reservation must precede retirement commit.
+Wrong semantic bindings deny even when the full human proof and event signatures
+individually pass. Identity, qualification, assignment, replay or CAS failure denies.
+Existing hold/reference/disposition profiles and mapped observations stay unchanged.
+
+Original and fresh-current decisions, empty prefix and truthful active/released
+hold metadata pass with zero effects. retirementAuthorityVerified describes that
+explicit observation only: futureArchiveVerified and qualifiedPriorHistoryVerified
+remain false. This does not authorize retirement, erase held data, qualify prior
+hold decisions, validate a later archive or admit current-v7 lifecycle completion.
+
+All 41 focused groups pass, including nine new groups. The first repository attempt
+had one CLI subprocess timeout during overlapping heavy checks (436/437 passed).
+The unchanged CLI test then passed in isolation; the final repository rerun without
+extra verification overlap passes all 437 root controls, 88 prototype tests, 95 kit
+artifacts and security/typecheck/build checks. No timeout or assertion was relaxed.
+Unchanged package tasks are cached. Separate full integration passes three groups.
+See intent/0120/EVIDENCE.md for the failed attempt, commands and final outcomes.
+
+Fresh 0120 reports preserve all 393 quick/409 full prior observation hashes, counts
+and outcomes: zero failures; 3,643/3,627 uncovered. Shared human/schema source
+fingerprints change but no catalog hook or case credit is added. Next under
+intent/0120/PLAN.md is exact retained retirement-decision revalidation with fresh
+independent current witnesses, then qualified parent/lifecycle composition. The
+local archive prerequisite is unblocked. Twelve lifecycle, 3,614 migration and one
+schema coordinate, all five formal R5 findings and normative/live/independent/
+protected review remain open. Provider operations, actual retirement/deletion,
+signatures, release, deployment and spending remain gated. The loop stays active.
