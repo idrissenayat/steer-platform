@@ -14,12 +14,18 @@ checks are not a substitute for that ledger or independent acceptance.
 and independent privacy time; `intent/0101` adds remaining classifier cases and the
 complete timed R5-004 counterexample; `intent/0102` maps the public signing boundary;
 `intent/0103` reconciles schemas with structural-only scope; `intent/0104` adds
-actual streamed accessibility execution in full profile. Full snapshot: 4,036
-required IDs, 323 passed, 3,713 unmapped. Quick explicitly leaves the 16 heavy
-cases unexecuted (307 passed / 3,729 uncovered). The require-complete command
+actual streamed accessibility execution in full profile; `intent/0105` maps the
+two omitted-action reproductions through the complete shared permission stack.
+Full snapshot: 4,036 required IDs, 325 passed, 3,711 unmapped. Quick explicitly
+leaves the 16 heavy cases unexecuted (309 passed / 3,727 uncovered). The require-complete command
 exits 2 and explains its deferred-full preflight; GAP-01 is not complete. Some hooks intentionally
 cover only a narrower correction/classifier scope and do not certify the entire
 public oracle. No formal finding is closed by this count.
+
+Seven of nine R5 reproductions now have mapped development executions. The full
+lifecycle surrogate-trigger and migration target-free graph reproductions remain
+unmapped, together with 94 lifecycle graph, 3,614 migration and one obsolete schema
+case. Shared-action hooks do not substitute for complete graph execution.
 
 | Finding | Candidate work available | Required remaining work |
 |---|---|---|

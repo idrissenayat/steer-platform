@@ -1939,3 +1939,25 @@ then 94 lifecycle graph and 3,614 migration cases plus the obsolete migration
 schema. Full profile leaves exactly those 3,713 IDs uncovered. GAP-01–06 and
 M1–M8 remain separate. No provider mutation, cleanup, release, deployment, spending
 or signature is authorized.
+
+## Completed development increment: 0105 — omitted-action executions
+
+The ledger maps the two omitted-action R5 reproductions through the complete
+existing shared verifier. All six lifecycle/migration actions have complete
+positive and replay controls, every signed-proof omission/corruption, re-signed
+hostile semantics, exact resource substitutions and installed scope/target
+transplants. The old manifest omission is reproduced separately. The 177 lifecycle
+and 179 migration observations count as two exact IDs, not 356 cases.
+
+Five new groups and final full checks pass: 334 root controls and 88 prototype
+tests. Fresh quick execution matches 309 passed / 3,727 uncovered; full matches
+325 passed / 3,711 uncovered, both with zero failures. A separate three-group
+full integration process actually reran the matrix and matched the full snapshot.
+See intent/0105/EVIDENCE.md for synthetic/cached limits. Shared-action proof is not
+full graph execution or live authorization. All five formal findings stay open.
+
+Next under intent/0105/PLAN.md are the full lifecycle surrogate-trigger and
+migration target-free boolean-winner graph reproductions with complete controls,
+followed by 94 lifecycle graph, 3,614 migration and one obsolete schema case.
+GAP-01–06 and M1–M8 remain separate. No protected edit, provider mutation, cleanup,
+release, deployment, spending or signature is authorized.

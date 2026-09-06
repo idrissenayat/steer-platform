@@ -910,6 +910,17 @@ when none remain it must execute full before succeeding. Use
 synthetic execution. This is not a manual audit or formal finding closure. See
 `intent/0104/EVIDENCE.md` and `PLAN.md`.
 
+Item `intent/0105` maps two omitted-action R5 reproductions through the existing
+0060 verifier. All six exact lifecycle/migration actions execute complete positive
+and replay controls, every signed-proof omission/corruption, re-signed hostile
+semantics, resource substitutions and independently installed scope/target
+transplants. The original manifest omission is reproduced separately. The 177
+lifecycle and 179 migration observations count as two case IDs, not 356 cases.
+Full profile now records 325 passed / 3,711 uncovered; quick records 309 passed /
+3,727 uncovered. The two complete-graph reproductions remain unmapped; this work
+does not authorize effects or close formal findings. See `intent/0105/EVIDENCE.md`
+and `PLAN.md` for verification and the next complete-graph work.
+
 ## Local commands
 
 ```sh
