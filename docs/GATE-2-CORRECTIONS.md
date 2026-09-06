@@ -87,7 +87,7 @@ Next bounded work is reconciliation of the remaining source/class/trust-era matr
 remaining classes and migration compatibility/concurrency/checkpoint coverage and complete
 normative inventory. Do not extend frozen key windows merely to make historical
 or future-retention tests pass; resolve archival versus current authority explicitly.
-0061–0094 are development candidates and verification increments,
+0061–0095 are development candidates and verification increments,
 not proof of complete retention-key coverage, live compatibility or atomic execution.
 Preserve the frozen send-back package. Do not request a new qualified-human ruling
 until the complete corrected candidate is independently accepted and incorporated
@@ -99,4 +99,10 @@ production/provider mutation, deletion, release, deployment, protected edit or
 signature is authorized by this ledger. No credential handoff is pending here.
 
 Sources: intent/0001/reviews/domain/round-3/remediation/CYCLE-DISPOSITION.md,
-preflight-critic-r5.json in that same frozen directory, and intent/0056–0094.
+preflight-critic-r5.json in that same frozen directory, and intent/0056–0095.
+
+0095 adds successive full-proof checkpoint/head linkage and strict retained-prefix
+extension with current-policy/predecessor pins on every source. It does not prove
+that the supplied sequence is the latest external store state. Latest-head
+resolution, real durability/restart and the remaining normative matrix remain open;
+all five formal R5 findings still require independent/protected review.

@@ -9,7 +9,8 @@ import { createMigrationCompatibilityVerifier, createStagedMigrationCompatibilit
 import { createDualColumnModel } from '../intent/0091/dual-column.candidate.mjs';
 import { createMigrationChainVerifier, policyDigest as chainPolicyDigest } from '../intent/0092/migration-chain.candidate.mjs';
 import { createMigrationCheckpointVerifier, policyDigest as checkpointPolicyDigest } from '../intent/0093/migration-checkpoint.candidate.mjs';
-import { createMigrationChainObservationVerifier } from '../intent/0094/current-chain.candidate.mjs';
+import { createMigrationChainObservationVerifier, policyDigest as observationPolicyDigest } from '../intent/0094/current-chain.candidate.mjs';
+import { createMigrationCheckpointSequenceVerifier, policyDigest as sequencePolicyDigest } from '../intent/0095/checkpoint-sequence.candidate.mjs';
 import { createCurrentMigrationObservationVerifier } from '../intent/0094/migration-observation.candidate.mjs';
 import { humanAuthorityBindingDigest } from '../intent/0058/human-authority.candidate.mjs';
 import { manifestBytes, manifestDigest } from '../intent/0060/protected-actions.candidate.mjs';
@@ -158,7 +159,7 @@ function chainFixture(options = {}, edits = {}) {
       'action-reservation': (record) => { record.reservationId = `reservation-${label}`; }, after: (record) => { record.transactionId = `transaction-${label}`; },
     };
     const merged = Object.fromEntries([...new Set([...Object.keys(defaults), ...Object.keys(additional)])].map((key) => [key, (record) => { defaults[key]?.(record); additional[key]?.(record); }]));
-    const value = compatibilityFixture({ staged: true, phase, successorTuple: options.successorTuple, timeOffset: options.timeOffsets?.[index] ?? index * 30, evaluationTime: options.evaluationTime ?? at(150), humanIdentity: options.humanIdentity,
+    const value = compatibilityFixture({ staged: true, phase, successorTuple: options.successorTuple, timeOffset: options.timeOffsets?.[index] ?? index * 30, evaluationTime: options.evaluationTime ?? at(150), humanIdentity: options.humanIdentity, horizon: options.horizon,
       replay: options.replay, interruption: options.interruptionStep === index ? 'before-effect' : 'none', rollback: options.rollbackStep === index ? 'during-backfill' : 'none', edits: merged });
     values.push(value); steps.push({ stepId: label, phase, batch: `batch-${label}`, checkpoint: `checkpoint-${label}`, compatibilityContextBytes: value.contextBytes });
     beforeData = JSON.parse(JSON.parse(value.graph.afterTruthBytes).dataBytes);
@@ -176,27 +177,35 @@ function chainDenied(value) {
 }
 
 function checkpointFixture(options = {}, edits = {}) {
-  const source = chainFixture({ ...options.chainOptions, replay: options.replay }, { envelope: (envelope) => { if (options.prefix) envelope.attempts = envelope.attempts.slice(0, options.prefix); } });
-  const original = source.verifier.verify(source.bytes, source.evaluationTime);
+  const source = options.source ?? chainFixture({ ...options.chainOptions, replay: options.replay }, { envelope: (envelope) => { if (options.prefix) envelope.attempts = envelope.attempts.slice(0, options.prefix); } });
+  const observedAt = options.observedAt ?? source.evaluationTime, selectedPolicy = options.sequence ? sequencePolicyDigest : checkpointPolicyDigest;
+  const original = (options.sequence ? createMigrationChainObservationVerifier(source.contextBytes) : source.verifier).verify(source.bytes, observedAt);
   assert.ok(['verified-migration-chain', 'verified-migration-chain-pending'].includes(original.state));
   const edit = (label, record) => { edits[label]?.(record); return record; };
-  const context = edit('context', { version: 'steer-migration-checkpoint-context/v1', chainContextBytes: source.contextBytes, checkpointId: 'checkpoint-1',
-    idempotencyKey: 'checkpoint-command-1', headId: 'checkpoint-head-1', storeId: 'fixture-migration-store', objectKey: 'checkpoints/chain-1.json' });
-  const contextBytes = jcs(context), configDigest = sha256(contextBytes), observedAt = source.evaluationTime, chainDigest = sha256(source.bytes);
-  const requestDigest = sha256(jcs({ configDigest, policyDigest: checkpointPolicyDigest, chainDigest, observedAt }));
+  const slot = options.slotId ?? '1';
+  const context = edit('context', { version: options.sequence ? 'steer-migration-checkpoint-context/v2' : 'steer-migration-checkpoint-context/v1', chainContextBytes: source.contextBytes, checkpointId: `checkpoint-${slot}`,
+    idempotencyKey: `checkpoint-command-${slot}`, headId: 'checkpoint-head-1', storeId: 'fixture-migration-store', objectKey: 'checkpoints/chain-1.json' });
+  const contextBytes = jcs(context), configDigest = sha256(contextBytes), chainDigest = sha256(source.bytes);
+  const predecessor = options.previous, previousStore = predecessor ? JSON.parse(predecessor.envelope.currentStoreBytes) : null;
+  const previousHead = previousStore ? JSON.parse(previousStore.headBytes) : null, previousReservation = previousStore ? JSON.parse(previousStore.reservationBytes) : null;
+  const predecessorDigest = predecessor ? sha256(jcs({ checkpointBytes: predecessor.bytes, checkpointDigest: JSON.parse(predecessor.envelope.checkpointBytes).recordDigest,
+    headDigest: previousHead.recordDigest, reservationDigest: previousReservation.recordDigest })) : null;
+  const binding = options.sequence ? { observationPolicyDigest, predecessorDigest } : {};
+  const requestDigest = sha256(jcs({ configDigest, policyDigest: selectedPolicy, chainDigest, observedAt, ...binding }));
   const emit = (label, domain, fields, second, sourceName = 'authoritative-migration-checkpoint-cas') => seal(edit(label, {
-    kind: `migration-checkpoint-${label}`, source: sourceName, configDigest, requestDigest, recordedAt: at(second), validThrough: at(180), ...fields,
+    kind: `migration-checkpoint-${label}`, source: sourceName, configDigest, requestDigest, recordedAt: at(second + (options.clockOffset ?? 0)), validThrough: options.validThrough ?? at(180), ...binding, ...fields,
   }), options.domains?.[label] ?? domain);
   let checkpoint, retention;
   function store(phase, previous, second) {
     const opening = phase === 'opening', current = phase === 'current';
-    const head = emit(`${phase}-head`, 'cas-authority', { headId: context.headId, head: sha256(opening ? 'opening-head' : 'terminal-head'),
-      previousHead: sha256(opening ? 'prior-head' : 'opening-head'), sequence: opening ? 4 : 5,
-      checkpointDigest: opening ? null : checkpoint.recordDigest, retentionDigest: opening ? null : retention.recordDigest }, second);
+    const openingHead = previousHead?.head ?? sha256('opening-head'), openingPrevious = previousHead?.previousHead ?? sha256('prior-head');
+    const head = emit(`${phase}-head`, 'cas-authority', { headId: context.headId, head: opening ? openingHead : sha256(options.sequence ? `terminal-head-${slot}` : 'terminal-head'),
+      previousHead: opening ? openingPrevious : openingHead, sequence: (previousHead?.sequence ?? 4) + (opening ? 0 : 1),
+      checkpointDigest: opening ? previousHead?.checkpointDigest ?? null : checkpoint.recordDigest, retentionDigest: opening ? previousHead?.retentionDigest ?? null : retention.recordDigest }, second);
     const replay = emit(`${phase}-replay`, 'replay-authority', { headDigest: head.recordDigest, idempotencyKey: context.idempotencyKey,
       status: opening ? 'unused' : 'committed', resultDigest: opening ? null : checkpoint.recordDigest }, second + 1);
-    const reservation = emit(`${phase}-reservation`, 'cas-authority', { reservationId: `checkpoint-${phase}-reservation`, headDigest: head.recordDigest,
-      replayDigest: replay.recordDigest, previousReservationDigest: previous?.reservation.recordDigest ?? null,
+    const reservation = emit(`${phase}-reservation`, 'cas-authority', { reservationId: options.sequence ? `checkpoint-${slot}-${phase}-reservation` : `checkpoint-${phase}-reservation`, headDigest: head.recordDigest,
+      replayDigest: replay.recordDigest, previousReservationDigest: previous?.reservation.recordDigest ?? (opening ? previousReservation?.recordDigest ?? null : null),
       status: opening ? 'reserved' : current ? 'already-committed' : 'committed', winner: !current }, second + 2);
     return { head, replay, reservation, bytes: jcs(edit(`${phase}-store`, { headBytes: jcs(head), replayBytes: jcs(replay), reservationBytes: jcs(reservation) })) };
   }
@@ -207,33 +216,166 @@ function checkpointFixture(options = {}, edits = {}) {
     nextStepId: source.context.steps[original.completedStepCount]?.stepId ?? null, status: original.state === 'verified-migration-chain' ? 'complete' : 'pending',
     openingReservationDigest: opening.reservation.recordDigest }, 153, 'authoritative-migration-checkpoint-store');
   retention = emit('retention', 'provider', { checkpointDigest: checkpoint.recordDigest, retainedBytesDigest: chainDigest,
-    storeId: context.storeId, objectKey: context.objectKey, objectVersion: 'version-1', complete: true }, 154, 'authoritative-migration-checkpoint-storage');
+    storeId: context.storeId, objectKey: context.objectKey, objectVersion: `version-${slot}`, complete: true }, 154, 'authoritative-migration-checkpoint-storage');
   const terminal = store('terminal', opening, 155);
   const delivery = emit('delivery', 'recovery-provider', { checkpointDigest: checkpoint.recordDigest, terminalReservationDigest: terminal.reservation.recordDigest,
     outcome: options.delivery ?? 'acknowledgment-lost' }, 158, 'authoritative-migration-checkpoint-transport');
   const current = store('current', terminal, 160);
-  const envelope = edit('envelope', { version: 'steer-migration-checkpoint/v1', configDigest, policyDigest: checkpointPolicyDigest, chainBytes: source.bytes, observedAt,
+  const envelope = edit('envelope', { version: options.sequence ? 'steer-migration-checkpoint/v2' : 'steer-migration-checkpoint/v1', configDigest, policyDigest: selectedPolicy, chainBytes: source.bytes, observedAt,
     openingStoreBytes: opening.bytes, checkpointBytes: jcs(checkpoint), retentionBytes: jcs(retention), terminalStoreBytes: terminal.bytes, deliveryBytes: jcs(delivery), currentStoreBytes: current.bytes });
-  return { source, contextBytes, envelope, bytes: jcs(envelope), evaluationTime: at(170), verifier: createMigrationCheckpointVerifier(contextBytes) };
+  return { source, contextBytes, envelope, bytes: jcs(envelope), evaluationTime: at(170), verifier: options.sequence ? undefined : createMigrationCheckpointVerifier(contextBytes) };
 }
 function checkpointDenied(value, now = value.evaluationTime) {
   assert.deepEqual(value.verifier.verify(value.bytes, now), { state: 'blocked', firstError: 'MIGRATION_CHECKPOINT_INVALID', executionAuthorized: false,
     resumeAuthorized: false, effects: zeroEffects(), journalEffects: 0 });
 }
 
+function sequenceFixture(options = {}, edits = {}) {
+  const source = options.source ?? chainFixture({ timeOffsets: [0, 30, 90, 120], replay: options.replay, successorTuple: options.successorTuple });
+  const prefix = { ...source, envelope: { ...source.envelope, attempts: source.envelope.attempts.slice(0, options.prefix ?? 2) } };
+  prefix.bytes = jcs(prefix.envelope);
+  const first = checkpointFixture({ sequence: true, source: prefix, observedAt: options.firstObservedAt ?? at(60),
+    clockOffset: options.firstOffset ?? -90, validThrough: options.validThrough }, edits.first);
+  const second = checkpointFixture({ sequence: true, source, previous: first, slotId: '2', observedAt: options.secondObservedAt ?? at(150),
+    clockOffset: options.secondOffset ?? 0, validThrough: options.validThrough }, edits.second);
+  const context = { version: 'steer-migration-checkpoint-sequence-context/v1', checkpointContextBytes: [first.contextBytes, second.contextBytes] };
+  edits.context?.(context); const contextBytes = jcs(context), verifier = createMigrationCheckpointSequenceVerifier(contextBytes);
+  const envelope = { version: 'steer-migration-checkpoint-sequence/v1', configDigest: sha256(contextBytes), policyDigest: sequencePolicyDigest, checkpoints: [first.bytes, second.bytes] };
+  edits.envelope?.(envelope);
+  return { source, first, second, context, contextBytes, envelope, bytes: jcs(envelope), verifier, evaluationTime: options.evaluationTime ?? at(170) };
+}
+function sequenceDenied(value, now = value.evaluationTime) {
+  assert.deepEqual(value.verifier.verify(value.bytes, now), { state: 'blocked', firstError: 'MIGRATION_CHECKPOINT_SEQUENCE_INVALID', executionAuthorized: false,
+    resumeAuthorized: false, effects: zeroEffects(), journalEffects: 0 });
+}
+
+test('0095: successive checkpoint heads extend an exact retained prefix with effect-free lost-acknowledgment readback', () => {
+  for (const successorTuple of [false, true]) for (const replay of [false, true]) {
+    const value = sequenceFixture({ successorTuple, replay }), bytes = value.bytes, result = value.verifier.verify(bytes, value.evaluationTime);
+    assert.equal(result.state, 'verified-migration-checkpoint-sequence'); assert.equal(result.checkpointCount, 2);
+    assert.equal(result.completedStepCount, 4); assert.equal(result.status, 'complete'); assert.equal(result.nextStepId, null);
+    assert.equal(result.decision, 'REPLAY_NOOP'); assert.equal(result.deliveryOutcome, 'acknowledgment-lost');
+    assert.equal(result.observationPolicyDigest, observationPolicyDigest); assert.equal(result.originalObservationVerified, false);
+    assert.equal(result.latestStoreHeadVerified, false); assert.equal(result.executionAuthorized, false); assert.equal(result.resumeAuthorized, false);
+    assert.deepEqual(result.effects, zeroEffects()); assert.equal(result.journalEffects, 0); assert.equal('sequenceEvidence' in result, false);
+    assert.equal(result.sequenceDigest, sha256(bytes)); assert.equal(value.bytes, bytes);
+    assert.deepEqual(value.verifier.verify(bytes, value.evaluationTime), result);
+  }
+});
+
+test('0095: all checkpoint sources bind the current policy and exact fully reverified predecessor', () => {
+  const labels = ['checkpoint', 'retention', 'delivery', ...['opening', 'terminal', 'current'].flatMap((phase) => [`${phase}-head`, `${phase}-replay`, `${phase}-reservation`])];
+  for (const label of labels) for (const field of ['observationPolicyDigest', 'predecessorDigest'])
+    sequenceDenied(sequenceFixture({}, { second: { [label]: (record) => { record[field] = 'f'.repeat(64); } } }));
+  for (const label of labels) sequenceDenied(sequenceFixture({}, {
+    envelope: (envelope) => {
+      const first = JSON.parse(envelope.checkpoints[0]), outer = label.startsWith('opening-') ? 'openingStoreBytes' : label.startsWith('terminal-') ? 'terminalStoreBytes' : label.startsWith('current-') ? 'currentStoreBytes' : null;
+      const field = outer ? `${label.split('-')[1]}Bytes` : `${label}Bytes`, container = outer ? JSON.parse(first[outer]) : first;
+      const record = JSON.parse(container[field]); record.signature.valueBase64 = Buffer.alloc(64).toString('base64'); container[field] = jcs(record);
+      if (outer) first[outer] = jcs(container); envelope.checkpoints[0] = jcs(first);
+    } }));
+});
+
+test('0095: successor opening cannot reset or fork the prior head, retention, reservation or sequence', () => {
+  for (const [label, field, replacement] of [
+    ['opening-head', 'head', 'f'.repeat(64)], ['opening-head', 'previousHead', 'f'.repeat(64)], ['opening-head', 'sequence', 4],
+    ['opening-head', 'checkpointDigest', null], ['opening-head', 'retentionDigest', null], ['opening-reservation', 'previousReservationDigest', null],
+    ['opening-reservation', 'reservationId', 'checkpoint-1-current-reservation'], ['terminal-reservation', 'reservationId', 'checkpoint-1-opening-reservation'],
+    ['current-reservation', 'reservationId', 'checkpoint-1-terminal-reservation'], ['retention', 'objectVersion', 'version-1'],
+    ['terminal-head', 'head', sha256('opening-head')],
+  ]) sequenceDenied(sequenceFixture({}, { second: { [label]: (record) => { record[field] = replacement; } } }));
+  // Both signed terminal and current heads agree: only cross-slot ABA detection denies.
+  sequenceDenied(sequenceFixture({}, { second: {
+    'terminal-head': (record) => { record.head = sha256('opening-head'); },
+    'current-head': (record) => { record.head = sha256('opening-head'); },
+  } }));
+});
+
+test('0095: independently valid old work cannot masquerade as a new checkpoint extension', () => {
+  // All four graphs independently verify, but step three predates the first readback.
+  const early = sequenceFixture({ source: chainFixture() });
+  assert.equal(createMigrationChainObservationVerifier(early.source.contextBytes).verify(early.source.bytes, at(170)).state, 'verified-migration-chain');
+  sequenceDenied(early);
+  for (const mutation of ['no-extension', 'replay-only', 'changed-prefix']) {
+    const source = chainFixture({ timeOffsets: [0, 30, 90, 120], replay: true });
+    const firstSource = { ...source, envelope: { ...source.envelope, attempts: source.envelope.attempts.slice(0, 2) } }; firstSource.bytes = jcs(firstSource.envelope);
+    const first = checkpointFixture({ sequence: true, source: firstSource, observedAt: at(60), clockOffset: -90 });
+    if (mutation === 'no-extension') source.envelope.attempts = source.envelope.attempts.slice(0, 2);
+    if (mutation === 'replay-only') source.envelope.attempts = [...source.envelope.attempts.slice(0, 2), source.envelope.attempts[1]];
+    if (mutation === 'changed-prefix') {
+      const attempt = source.envelope.attempts[0], compatibility = JSON.parse(attempt.compatibilityBytes), graph = JSON.parse(compatibility.graphBytes), action = JSON.parse(graph.actionBundleBytes);
+      action.reservationBytes = jcs(seal({ ...JSON.parse(action.reservationBytes), reservationId: 'different-retained-reservation' }, 'cas-authority'));
+      graph.actionBundleBytes = jcs(action); compatibility.graphBytes = jcs(graph); attempt.compatibilityBytes = jcs(compatibility);
+    }
+    source.bytes = jcs(source.envelope);
+    const second = checkpointFixture({ sequence: true, source, previous: first, slotId: '2' });
+    const contextBytes = jcs({ version: 'steer-migration-checkpoint-sequence-context/v1', checkpointContextBytes: [first.contextBytes, second.contextBytes] });
+    const verifier = createMigrationCheckpointSequenceVerifier(contextBytes);
+    sequenceDenied({ verifier, evaluationTime: at(170), bytes: jcs({ version: 'steer-migration-checkpoint-sequence/v1', configDigest: sha256(contextBytes), policyDigest: sequencePolicyDigest, checkpoints: [first.bytes, second.bytes] }) });
+  }
+});
+
+test('0095: trusted checkpoint inventory, exact chronology and current expiry cannot be bypassed', () => {
+  for (const field of ['chainContextBytes', 'headId', 'storeId', 'objectKey', 'checkpointId', 'idempotencyKey']) {
+    assert.throws(() => sequenceFixture({}, { context: (context) => {
+      const slot = JSON.parse(context.checkpointContextBytes[1]);
+      slot[field] = ['checkpointId', 'idempotencyKey'].includes(field) ? JSON.parse(context.checkpointContextBytes[0])[field] : field === 'chainContextBytes' ? '{}' : 'other';
+      context.checkpointContextBytes[1] = jcs(slot);
+    } }), /MIGRATION_CHECKPOINT_SEQUENCE_CONFIGURATION_INVALID/);
+  }
+  for (const mutate of [(context) => { context.extra = true; }, (context) => { context.checkpointContextBytes = []; },
+    (context) => { context.checkpointContextBytes = Array(17).fill(context.checkpointContextBytes[0]); }])
+    assert.throws(() => sequenceFixture({}, { context: mutate }), /MIGRATION_CHECKPOINT_SEQUENCE_CONFIGURATION_INVALID/);
+  assert.throws(() => createMigrationCheckpointSequenceVerifier('x'.repeat(8388609)), /MIGRATION_CHECKPOINT_SEQUENCE_CONFIGURATION_INVALID/);
+  for (const mutate of [(input) => { input.checkpoints.reverse(); }, (input) => { input.checkpoints.pop(); }, (input) => { input.extra = true; },
+    (input) => { input.policyDigest = checkpointPolicyDigest; }, (input) => { input.configDigest = 'f'.repeat(64); }]) sequenceDenied(sequenceFixture({}, { envelope: mutate }));
+  for (const now of [undefined, null, at(161), at(180), '2026-09-04T12:02:50.000Z']) {
+    const value = sequenceFixture(); assert.equal(value.verifier.verify(value.bytes, now).state, 'blocked');
+  }
+  sequenceDenied(sequenceFixture({}, { first: { 'current-reservation': (record) => { record.validThrough = at(165); } } }));
+});
+
 function retainedContractFixture(options = {}) {
-  const failed = chainFixture({ rollbackStep: 3, humanIdentity: options.aliasAll ? undefined : 'failed-contract', stepEdits: { 3: {
+  const failed = chainFixture({ rollbackStep: 3, horizon: options.horizon, humanIdentity: options.aliasAll ? undefined : 'failed-contract', stepEdits: { 3: {
     operation: (record) => { record.requestId = 'failed-contract-request'; record.idempotencyKey = 'failed-contract-command'; record.casHead = sha256('failed-contract'); },
     'action-upstream': (record) => { record.credentialId = 'failed-contract-up'; }, 'action-downstream': (record) => { record.credentialId = 'failed-contract-down'; },
     'action-head': (record) => { record.headId = 'failed-contract-head'; }, 'action-replay': (record) => { record.headId = 'failed-contract-head'; },
     'action-reservation': (record) => { record.reservationId = 'failed-contract-reservation'; }, after: (record) => { record.transactionId = 'failed-contract-transaction'; },
   } } });
-  const complete = chainFixture({ humanIdentity: options.aliasAll ? undefined : 'retried-contract', evaluationTime: at(170), timeOffsets: [0, 30, 60, 120],
+  const complete = chainFixture({ humanIdentity: options.aliasAll ? undefined : 'retried-contract', horizon: options.horizon, evaluationTime: options.evaluationTime ?? at(170), timeOffsets: options.timeOffsets ?? [0, 30, 60, 120],
     stepEdits: options.stepEdits });
   assert.equal(failed.values[3].contextBytes, complete.values[3].contextBytes);
   const envelope = { ...complete.envelope, attempts: [...failed.envelope.attempts, complete.envelope.attempts[3]] };
   return { failed, complete, envelope, bytes: jcs(envelope), verifier: createMigrationChainObservationVerifier(complete.contextBytes), evaluationTime: at(170) };
 }
+
+test('0095: retained failed contract clocks stay immutable across a checkpoint and a later separately authorized retry', () => {
+  const retained = retainedContractFixture({ horizon: 240, evaluationTime: at(210), timeOffsets: [0, 30, 60, 170] });
+  const source = { ...retained.complete, envelope: retained.envelope, bytes: retained.bytes };
+  const value = sequenceFixture({ source, prefix: 4, firstObservedAt: at(150), firstOffset: 0, secondObservedAt: at(210), secondOffset: 60,
+    validThrough: at(240), evaluationTime: at(230) });
+  const firstBytes = value.first.envelope.chainBytes, result = value.verifier.verify(value.bytes, value.evaluationTime);
+  assert.equal(result.state, 'verified-migration-checkpoint-sequence'); assert.equal(result.status, 'complete'); assert.equal(result.completedStepCount, 4);
+  assert.deepEqual(JSON.parse(value.second.envelope.chainBytes).attempts.slice(0, 4), JSON.parse(firstBytes).attempts);
+  const oldGraph = JSON.parse(JSON.parse(JSON.parse(firstBytes).attempts[3].compatibilityBytes).graphBytes);
+  assert.equal(JSON.parse(oldGraph.cleanupBundleBytes).evaluationTime, at(150));
+  assert.equal(value.first.envelope.chainBytes, firstBytes); sequenceDenied(value, at(240));
+});
+
+test('0095: three ordered checkpoints preserve pending progress and reject a second update after completion', () => {
+  const source = chainFixture({ horizon: 240, timeOffsets: [0, 30, 90, 140], evaluationTime: at(170) });
+  const partial = { ...source, envelope: { ...source.envelope, attempts: source.envelope.attempts.slice(0, 3) } }; partial.bytes = jcs(partial.envelope);
+  const pair = sequenceFixture({ source: partial, secondObservedAt: at(120), secondOffset: -30, validThrough: at(240), evaluationTime: at(190) });
+  const pending = pair.verifier.verify(pair.bytes, pair.evaluationTime);
+  assert.equal(pending.state, 'verified-migration-checkpoint-sequence'); assert.equal(pending.status, 'pending'); assert.equal(pending.nextStepId, 'step-4');
+  const third = checkpointFixture({ sequence: true, source, previous: pair.second, slotId: '3', observedAt: at(170), clockOffset: 20, validThrough: at(240) });
+  const contextBytes = jcs({ ...pair.context, checkpointContextBytes: [...pair.context.checkpointContextBytes, third.contextBytes] });
+  const verifier = createMigrationCheckpointSequenceVerifier(contextBytes), bytes = jcs({ ...pair.envelope, configDigest: sha256(contextBytes), checkpoints: [...pair.envelope.checkpoints, third.bytes] });
+  assert.equal(verifier.verify(bytes, at(190)).checkpointCount, 3); assert.equal(verifier.verify(bytes, at(190)).status, 'complete');
+  const fourth = checkpointFixture({ sequence: true, source, previous: third, slotId: '4', observedAt: at(200), clockOffset: 50, validThrough: at(240) });
+  const extendedContext = jcs({ ...pair.context, checkpointContextBytes: [...JSON.parse(contextBytes).checkpointContextBytes, fourth.contextBytes] });
+  sequenceDenied({ verifier: createMigrationCheckpointSequenceVerifier(extendedContext), evaluationTime: at(230), bytes: jcs({ ...pair.envelope, configDigest: sha256(extendedContext), checkpoints: [...JSON.parse(bytes).checkpoints, fourth.bytes] }) });
+});
 
 test('0094: current audit verifies a retained failed contract plus fresh retry without rewriting its immutable prefix', () => {
   const value = retainedContractFixture(), originalBytes = value.bytes;

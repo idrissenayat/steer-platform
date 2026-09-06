@@ -1721,3 +1721,23 @@ extension; no checkpoint-only observation may duplicate a migration effect or
 authorize resumed work. Real storage/restart and remaining crash-cut, normative,
 source/class/trust-era coverage remain open. No signature, provider mutation,
 cleanup, release, deployment or spending is authorized. The loop remains active.
+
+## Completed development increment: 0095 — successive checkpoint continuity
+
+Trusted ordered checkpoint slots now reverify each predecessor and the complete
+current migration chain. All signed sources bind the separate observation policy
+and exact predecessor; successor opening state preserves the full prior current
+head and reservation. Strict original attempt-prefix extension requires a new
+post-readback request. Replay-only observations do not create another update.
+Two/three-slot cases and retained failed contracts with later fresh retries pass.
+
+Seven new groups and final full workspace checks pass: 278 root controls,
+88 prototype tests and all 44 migration groups. See intent/0095/EVIDENCE.md for
+the verification record and synthetic/cached limits. Frozen artifacts are
+unchanged. All five formal R5 findings remain open.
+
+Next under intent/0095/PLAN.md is authoritative latest-head resolution so an older
+but internally valid supplied sequence cannot stand in for the latest retained
+state. Real storage/restart, crash-cut and normative/source/class/trust-era
+coverage remain open. No live provider mutation, migration, signature, release,
+deployment or spending occurred. The authorized implementation loop remains active.

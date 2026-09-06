@@ -822,6 +822,15 @@ identities belong to one request, while changed original replay bytes remain
 drift. The separate observation policy does not claim original-as-of verification,
 checkpoint extension or resumed execution. See `intent/0094/EVIDENCE.md` and `PLAN.md`.
 
+Item `intent/0095` composes successive checkpoints with the full current audit,
+policy-bound source records, exact prior head/reservation linkage and a strict
+immutable attempt-prefix extension. At least one new post-readback request is
+required; replay alone cannot update progress. Retained failed contract clocks
+remain unchanged. The original v1 slot profile is preserved through a shared
+private verifier. This is effect-free offline verification, not authoritative
+latest-head discovery, a durable runtime or resume authority. See
+`intent/0095/EVIDENCE.md` and `PLAN.md` for checks and the remaining scope.
+
 ## Local commands
 
 ```sh
