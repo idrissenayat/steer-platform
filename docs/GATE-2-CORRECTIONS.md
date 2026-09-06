@@ -13,9 +13,11 @@ checks are not a substitute for that ledger or independent acceptance.
 `intent/0099` adds recovery/human mappings; `intent/0100` adds authorization/money
 and independent privacy time; `intent/0101` adds remaining classifier cases and the
 complete timed R5-004 counterexample; `intent/0102` maps the public signing boundary;
-`intent/0103` reconciles schemas with explicit structural-only scope.
-Current snapshot: 4,036 required IDs, 307 passing mapped executions, 3,729 unmapped here. The
-require-complete command exits 2; GAP-01 is not complete. Some hooks intentionally
+`intent/0103` reconciles schemas with structural-only scope; `intent/0104` adds
+actual streamed accessibility execution in full profile. Full snapshot: 4,036
+required IDs, 323 passed, 3,713 unmapped. Quick explicitly leaves the 16 heavy
+cases unexecuted (307 passed / 3,729 uncovered). The require-complete command
+exits 2 and explains its deferred-full preflight; GAP-01 is not complete. Some hooks intentionally
 cover only a narrower correction/classifier scope and do not certify the entire
 public oracle. No formal finding is closed by this count.
 

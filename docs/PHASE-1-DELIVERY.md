@@ -1912,3 +1912,30 @@ with complete controls and consumed-row seals rather than metadata-only credit.
 Then reconcile remaining R5/lifecycle/migration cases and the obsolete migration
 schema. GAP-01–06 and M1–M8 remain separate. No provider mutation, cleanup, release,
 deployment, spending or signature is authorized.
+
+## Completed development increment: 0104 — streamed accessibility execution
+
+The full v2 ledger executes all 16 original synthetic accessibility cases. Its
+positive actually consumes 32,900 raw rows and verifies 2,664,900 expanded matrix
+cells. Each negative binds that passed positive execution from the same run.
+Length-framed prefix hashes, legacy row digests, counts, exhaustion and closure
+record what was actually consumed; early rejection does not read or claim the tail.
+Passing a negative case means its rejection assertions passed, not a valid matrix.
+
+Fixed profiles keep execution claims explicit: full records 323 passed and 3,713
+uncovered; quick records 307 passed and 3,729 uncovered, leaving the 16 heavy cases
+unexecuted. Strict completion fails early with an explicit deferred-full preflight
+while unmapped full hooks remain; when none remain, it must execute full before
+succeeding. No cached report supplies evidence or positive prerequisites.
+
+Five new root groups and final full checks pass: 329 root controls and 88 prototype
+tests. A separate three-group full integration process actually reran the matrix
+and exactly matched the full snapshot. See intent/0104/EVIDENCE.md for timings and
+synthetic/cached limits. This is not a qualified manual audit or independent Critic.
+Protected artifacts and all five formal R5 findings are unchanged; GAP-01 stays open.
+
+Next under intent/0104/PLAN.md is the four remaining R5 counterexample mappings,
+then 94 lifecycle graph and 3,614 migration cases plus the obsolete migration
+schema. Full profile leaves exactly those 3,713 IDs uncovered. GAP-01–06 and
+M1–M8 remain separate. No provider mutation, cleanup, release, deployment, spending
+or signature is authorized.

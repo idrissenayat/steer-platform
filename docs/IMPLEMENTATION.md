@@ -898,6 +898,18 @@ accessibility cases. Shape checks do not validate copied signatures or whole
 graphs. The snapshot has 307 passed, zero failed and 3,729 unmapped IDs. See
 `intent/0103/SCHEMA-MAP.json`, `EVIDENCE.md` and `PLAN.md`; formal findings stay open.
 
+Item `intent/0104` adds actual streamed accessibility ledger execution. Full profile
+executes all 16 cases; the positive consumes 32,900 raw rows, and negatives bind
+that passed execution from the same run. Length-framed consumed-prefix seals,
+byte/row counts and closure state prevent metadata-only or cached-result credit.
+Full profile records 323 passed and 3,713 uncovered; quick explicitly omits those
+16 heavy executions and records 307 passed / 3,729 uncovered. Strict completion
+fails early with explicit quick evidence while unmapped full-profile cases remain;
+when none remain it must execute full before succeeding. Use
+`pnpm r5:coverage:full-report` and `pnpm r5:coverage:test-full` for fresh complete
+synthetic execution. This is not a manual audit or formal finding closure. See
+`intent/0104/EVIDENCE.md` and `PLAN.md`.
+
 ## Local commands
 
 ```sh

@@ -17,6 +17,8 @@
     "test": "vitest run",
     "test:controls": "node --test tests/*.test.mjs",
     "r5:coverage:report": "node scripts/run-r5-coverage.mjs --report",
+    "r5:coverage:full-report": "node scripts/run-r5-coverage.mjs --full-report",
+    "r5:coverage:test-full": "node --test tests/integration/r5-accessibility-ledger.test.mjs",
     "r5:coverage:require-complete": "node scripts/run-r5-coverage.mjs --require-complete",
     "test:watch": "vitest",
     "test:workspace": "turbo run test --filter='./apps/*' --filter='./packages/*'",
