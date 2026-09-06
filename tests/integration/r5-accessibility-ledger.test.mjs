@@ -8,7 +8,7 @@ import { jcs, sha256 } from '../../intent/0001/reviews/domain/round-3/remediatio
 const report = runFullCorrectedCoverage(), rows = report.executions.filter((row) => row.id.startsWith('ACCESSIBILITY:'));
 
 test('0104 full: all 16 exact original accessibility cases actually execute with a full same-run positive control', () => {
-  assert.equal(report.profile, 'full'); assert.equal(report.executed, 325); assert.equal(report.passed, 325); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3711);
+  assert.equal(report.profile, 'full'); assert.equal(report.executed, 326); assert.equal(report.passed, 326); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3710);
   assert.deepEqual(rows.map((row) => row.id), loadRequiredCases().cases.filter((row) => row.family === 'ACCESSIBILITY').map((row) => row.id));
   const positive = rows.find((row) => row.id === 'ACCESSIBILITY:positive'), stream = positive.streamObservations[0];
   assert.equal(stream.count, 32900); assert.equal(stream.exhausted, true); assert.equal(stream.closed, true);
@@ -32,5 +32,5 @@ test('0104 full: preflight denials do not claim row consumption, and row failure
 });
 
 test('0104 full: saved full report exactly matches a fresh execution, never imported as proof', () => {
-  assert.deepEqual(JSON.parse(readFileSync(new URL('../../intent/0105/FULL-EXECUTION-REPORT.json', import.meta.url))), report);
+  assert.deepEqual(JSON.parse(readFileSync(new URL('../../intent/0106/FULL-EXECUTION-REPORT.json', import.meta.url))), report);
 });

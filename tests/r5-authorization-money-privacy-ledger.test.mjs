@@ -121,8 +121,8 @@ test('0100: source seals, exact case accounting and strict unmapped boundaries d
     assert.throws(() => builder('invented'));
     assert.throws(() => hook(rows(family)[0]).run(() => { throw new Error('ASSERTION_FAILED'); }), /ASSERTION_FAILED/);
   }
-  const report = runCorrectedCoverage(); assert.equal(report.executed, 309); assert.equal(report.uncovered, 3727);
-  assert.equal(report.families.R5.executed, 7); assert.equal(report.families.MIGRATION.executed, 0);
+  const report = runCorrectedCoverage(); assert.equal(report.executed, 310); assert.equal(report.uncovered, 3726);
+  assert.equal(report.families.R5.executed, 8); assert.equal(report.families.MIGRATION.executed, 0);
   const sources = report.supplementalHookSources.filter((row) => row.path.startsWith('intent/0100/'));
   assert.deepEqual(sources.map((row) => row.path), ['intent/0100/execution-hooks.mjs', 'intent/0100/execution-fixtures.mjs']);
   for (const source of sources) assert.equal(source.digest, digest(readFileSync(new URL('../' + source.path, import.meta.url))));

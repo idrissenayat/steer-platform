@@ -921,6 +921,16 @@ Full profile now records 325 passed / 3,711 uncovered; quick records 309 passed 
 does not authorize effects or close formal findings. See `intent/0105/EVIDENCE.md`
 and `PLAN.md` for verification and the next complete-graph work.
 
+Item `intent/0106` maps the full target-free migration counterexample through the
+staged v3 graph, including actual transformed rows, six preserved governance byte
+strings, backup/restore evidence, shared authorization and contract human scope.
+All phases pass positive/replay/interruption/rollback controls; missing targets,
+permissions and re-signed source/row/journal corruption deny. Its 135 observations
+count as one R5 ID, not migration matrix coverage. Full profile now records
+326 passed / 3,710 uncovered; quick 310 passed / 3,726 uncovered. The final R5
+lifecycle graph reproduction remains unmapped. No database/store or migration
+effect is executed. See `intent/0106/EVIDENCE.md` and `PLAN.md`.
+
 ## Local commands
 
 ```sh

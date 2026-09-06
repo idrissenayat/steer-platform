@@ -1961,3 +1961,25 @@ migration target-free boolean-winner graph reproductions with complete controls,
 followed by 94 lifecycle graph, 3,614 migration and one obsolete schema case.
 GAP-01–06 and M1–M8 remain separate. No protected edit, provider mutation, cleanup,
 release, deployment, spending or signature is authorized.
+
+## Completed development increment: 0106 — complete migration counterexample
+
+The exact target-free boolean-winner R5 reproduction now runs through the full
+staged v3 migration graph. All three phases pass complete positive, replay,
+interruption and rollback controls. Missing targets/actions and re-signed
+source/row/journal corruption deny; contract requires complete scoped human proof.
+Expected transformations are constructed separately; six governance source byte
+strings and actual backup/restoration bytes are preserved. Its 135 observations
+count as one R5 ID, not migration matrix execution or a real database operation.
+
+Five new groups and final full checks pass: 339 root controls and 88 prototype
+tests. Fresh quick execution matches 310 passed / 3,726 uncovered; full matches
+326 passed / 3,710 uncovered, both with zero failures. A separate three-group full
+integration process reran the matrix and matched the full snapshot. See
+intent/0106/EVIDENCE.md for synthetic/cached limits. All formal findings stay open.
+
+Next under intent/0106/PLAN.md is the final lifecycle surrogate-trigger graph
+reproduction with a complete corrected control, then 94 lifecycle graph,
+3,614 migration and one obsolete schema case. GAP-01–06 and M1–M8 remain separate.
+No protected edit, provider mutation, cleanup, release, deployment, spending or
+signature is authorized.
