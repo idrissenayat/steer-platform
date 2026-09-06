@@ -2716,3 +2716,20 @@ commercial signatures are not converted. Complete those bindings and qualified
 policy/source prerequisites, then approved writer configuration, destination/head
 discovery and save/status UI, board and decision review. All five R5 findings,
 0124/0120, independent protected review and signed Phase 1 obligations remain due.
+
+## Completed development increment: 0138 — Source-backed specialist qualification
+
+Specialist-mode source verification joins scoped qualification assertions with
+provider/identity proofs and historical/current human-role grants. It derives a
+normalized specialist signature with only verified required domains. The actual
+policy evaluator accepts this among sufficient synthetic remaining facts and rejects
+missing qualification; source verification remains required. Native Git covers all
+three proofs and later revocation. Focused suites pass 38 groups. Full repository
+verification passes, including 177 adapter tests, root controls and all package
+checks/builds. Exact evidence and limits are recorded in `intent/0138/EVIDENCE.md`.
+
+No actual qualification authority, receipt issuer, existing commercial approval or
+gate decision is enabled or converted. Complete whole-gate governed source/policy
+composition and real approved bindings, then writer configuration, destination/head
+discovery, save/status UI, board and decision review. All five R5 findings, 0124/0120,
+independent protected review and signed Phase 1 obligations remain due.

@@ -213,6 +213,13 @@ does not create an approved real identity attestor, issue receipts or convert th
 existing commercial approval format. Qualification/full gate and runtime/UI/board/
 review remain unfinished. See `intent/0137/EVIDENCE.md` for exact scope.
 
+0138 development update: scoped specialist qualification is now verified alongside
+the provider/identity proofs and historical/current Git roles. A derived specialist
+signature feeds the actual gate-policy evaluator in development tests; all other
+policy facts in that test remain synthetic. Full governed-source gate composition,
+real authority/receipt bindings and commercial compatibility remain before live
+writer enablement. No UI change is claimed; see `intent/0138/EVIDENCE.md`.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

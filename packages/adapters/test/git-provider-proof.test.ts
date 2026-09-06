@@ -10,6 +10,8 @@ import { createGitProviderProofReader } from '../src/identity/git-provider-proof
 import type { ArtifactReader } from '../src/code-host/github.ts';
 import { providerProofFixture } from './gate-proof-fixture.ts';
 import { identityProofFixture } from './gate-identity-fixture.ts';
+import { qualificationProofFixture } from './gate-qualification-fixture.ts';
+import { evaluateGateDecisionPolicy } from '@steer/tool-registry/gate-policy';
 
 const head = 'b'.repeat(40), hash = (text: string) => createHash('sha256').update(text).digest('hex');
 function fixture() {
@@ -81,6 +83,23 @@ function signerIdentityFixture() {
   return { ...f, identity, trustPath, proofPath, seal, identityConfiguration: configuration,
     identityInput: () => ({ ...f.signerInput, proofDigest: f.input.proofDigest, identityProofPath: proofPath }),
     identityReader: () => f.create(configuration) };
+}
+
+function specialistFixture() {
+  const f = signerIdentityFixture(), qualification = qualificationProofFixture();
+  f.proof.expected.hat = 'specialist'; f.proof.expected.sequence = 2;
+  f.proof.payload.hat = 'specialist'; f.proof.payload.sequence = 2;
+  f.grant.hats = ['specialist']; f.history.content = JSON.stringify(f.document); f.pin();
+  f.sources.set(f.authorizationPath, JSON.stringify(f.document)); f.seal();
+  const trustPath = 'organization/qualification-trust.json', proofPath = 'evidence/qualification-proof.json';
+  f.sources.set(trustPath, JSON.stringify(qualification.trust)); f.sources.set(proofPath, JSON.stringify(qualification.encode()));
+  const qualificationConfiguration = { ...f.identityConfiguration, specialistQualification: {
+    trustPath, trustDigest: hash(f.sources.get(trustPath)!), proofPath, proofDigest: hash(f.sources.get(proofPath)!), requiredDomains: ['privacy'] } };
+  const sealQualification = (envelope: unknown = qualification.encode()) => {
+    f.sources.set(proofPath, JSON.stringify(envelope)); qualificationConfiguration.specialistQualification.proofDigest = hash(f.sources.get(proofPath)!);
+  };
+  return { ...f, qualification, qualificationTrustPath: trustPath, qualificationProofPath: proofPath, qualificationConfiguration,
+    sealQualification, specialistReader: () => f.create(qualificationConfiguration) };
 }
 
 test('read-through proof composition verifies exact source bytes and the real provider signature without granting authority', async () => {
@@ -293,8 +312,8 @@ test('provider-only and signer observations share single-flight ownership and dr
   await assert.rejects(service.verifySigner(f.signerInput), failure); assert.equal(service.status().active, false);
 });
 
-test('native Git history supplies old/current grants, both signed proofs and a later revocation', async (t) => {
-  const f = signerIdentityFixture(), directory = mkdtempSync(join(tmpdir(), 'steer-0137-'));
+test('native Git supplies grant history and all three specialist proofs and observes later role revocation', async (t) => {
+  const f = specialistFixture(), directory = mkdtempSync(join(tmpdir(), 'steer-0138-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   const git = (...args: string[]) => execFileSync('git', args, { cwd: directory, encoding: 'utf8', maxBuffer: 1024 * 1024 }).trim();
   const put = (path: string, content: string) => { const file = join(directory, path); mkdirSync(dirname(file), { recursive: true }); writeFileSync(file, content); };
@@ -311,17 +330,19 @@ test('native Git history supplies old/current grants, both signed proofs and a l
     return { organizationId: 'synthetic', repositoryId: 1, path, revision, content,
       contentDigest: hash(content), blobSha: git('rev-parse', `${revision}:${path}`) };
   };
-  const service = f.identityReader(), input = { ...f.identityInput(), sourceRevision: currentRevision, authorizationRevision: historicalRevision };
-  const observation = await service.verifySignerIdentity(input);
+  const service = f.specialistReader(), input = { ...f.identityInput(), sourceRevision: currentRevision, authorizationRevision: historicalRevision };
+  const observation = await service.verifySpecialist(input);
   assert.equal(observation.signerAuthorization.historicalSource.revision, historicalRevision);
   assert.equal(observation.signerAuthorization.currentSource.revision, currentRevision);
   assert.notEqual(observation.signerAuthorization.historicalSource.contentDigest, observation.signerAuthorization.currentSource.contentDigest);
   assert.equal(observation.signerIdentity.proofSource.revision, currentRevision);
   assert.equal(observation.signerIdentity.attestation.claims.sessionId, observation.attestation.claims.sessionId);
+  assert.equal(observation.specialistQualification.proofSource.revision, currentRevision);
+  assert.deepEqual(observation.specialistQualification.policySignature.qualifiedDomains, ['privacy']);
   put(f.authorizationPath, JSON.stringify({ ...f.document, records: [{ ...f.grant, active: false }] }));
   git('add', '.'); git('-c', 'commit.gpgsign=false', 'commit', '-qm', 'Revoke role');
-  await assert.rejects(service.verifySignerIdentity(input), failure); // Stale current head.
-  await assert.rejects(service.verifySignerIdentity({ ...input, sourceRevision: git('rev-parse', 'HEAD') }), failure); // Fresh revocation.
+  await assert.rejects(service.verifySpecialist(input), failure); // Stale current head.
+  await assert.rejects(service.verifySpecialist({ ...input, sourceRevision: git('rev-parse', 'HEAD') }), failure); // Fresh revocation.
   await service.shutdown();
 });
 
@@ -441,5 +462,122 @@ test('key and grant validity are rechecked when the completion clock advances du
     Object.defineProperty(f.state, 'time', { get: () => base + (++reads >= 22 ? 1 : 0) });
     await assert.rejects(f.identityReader().verifySignerIdentity(f.identityInput()), failure);
     assert.equal(reads, 22); assert.equal(f.state.authCalls, 2);
+  }
+});
+
+test('verified specialist domains feed the actual policy evaluator but do not verify other policy sources or approve a gate', async () => {
+  const f = specialistFixture(), service = f.specialistReader(), result = await service.verifySpecialist(f.identityInput());
+  const specialist = result.specialistQualification.policySignature;
+  for (const value of [result.specialistQualification, specialist, specialist.qualifiedDomains]) assert.ok(Object.isFrozen(value));
+  assert.deepEqual(specialist.qualifiedDomains, ['privacy']); assert.equal(specialist.hat, 'specialist');
+  const expected = f.proof.expected, target = { organizationId: expected.organizationId, repository: expected.repository,
+    itemId: expected.itemId, gate: expected.gate, artifactRevision: expected.artifactRevision, decisionDigest: expected.decisionDigest };
+  // Only the specialist comes from the actual composed verifier in this test.
+  // Other signatures and policy/evidence records are normalized synthetic facts.
+  const input = { target, policy: { digest: '1'.repeat(64), profile: 'commercial', defaultClosed: true, userFacing: false,
+    activatedDomains: ['privacy'], humanSpecialistDomains: ['privacy'] },
+    record: { ...target, decision: 'approved', signatures: [{ ...specialist, hat: 'tech-lead', sequence: 1, qualifiedDomains: [] }, specialist] },
+    prerequisite: { organizationId: target.organizationId, repository: target.repository, itemId: target.itemId, gate: 1,
+      artifactRevision: '2'.repeat(40), decisionDigest: '3'.repeat(64), decision: 'approved',
+      signatures: [{ subject: specialist.subject, sessionId: 'prior-session', signedAt: '2026-09-06T12:00:00.010Z' }] },
+    critic: { artifactRevision: target.artifactRevision, reportDigest: '4'.repeat(64), reportedAt: '2026-09-06T12:00:00.050Z',
+      passed: true, freshContext: true, unresolvedFindings: 0 }, buildEvidence: null,
+    domainAssurance: { builderSubject: 'synthetic-builder', reviews: [{ domain: 'privacy', artifactRevision: target.artifactRevision,
+      reportDigest: '5'.repeat(64), reviewerSubject: 'synthetic-reviewer', freshContext: true, passed: true, confidence: 'high', unresolvedFindings: 0, humanRequired: true }],
+      exceptionBrief: { artifactRevision: target.artifactRevision, digest: '6'.repeat(64), reviewDigests: ['5'.repeat(64)] } }, evaluatedAt: '2026-09-06T12:00:00.400Z' };
+  assert.deepEqual(evaluateGateDecisionPolicy(input), { outcome: 'policy-satisfied', reasons: [], sourceVerificationRequired: true });
+  input.record.signatures[1] = { ...specialist, qualifiedDomains: [] };
+  assert.ok(evaluateGateDecisionPolicy(input).reasons.includes('UNQUALIFIED_SPECIALIST'));
+  assert.equal(result.gateVerified, false); assert.equal(result.writeAuthorized, false);
+  assert.equal(briefWriteAuthoritySchema.safeParse(result).success, false);
+  const older = await service.verifySignerIdentity(f.identityInput()); assert.equal(older.specialistQualification, undefined);
+  await service.shutdown();
+});
+
+test('specialist mode requires the configured evidence, domains and all preceding identity/hat dependencies before source access', async () => {
+  const f = specialistFixture(); await assert.rejects(f.identityReader().verifySpecialist(f.identityInput()), failure);
+  await assert.rejects(f.specialistReader().verifySpecialist({ ...f.identityInput(), expected: { ...f.proof.expected, hat: 'tech-lead' } }), failure);
+  await assert.rejects(f.specialistReader().verifySpecialist({ ...f.identityInput(), qualifiedDomains: ['money'] }), failure);
+  for (const field of ['signerAuthorization', 'signerIdentity']) assert.throws(() => f.create({ ...f.qualificationConfiguration, [field]: undefined }));
+  for (const change of [{ trustPath: f.trustPath }, { proofPath: f.authorizationPath }, { proofPath: f.qualificationTrustPath },
+    { requiredDomains: [] }, { requiredDomains: ['privacy', 'privacy'] }, { proofDigest: 'bad' }]) {
+    assert.throws(() => f.create({ ...f.qualificationConfiguration, specialistQualification: { ...f.qualificationConfiguration.specialistQualification, ...change } }));
+  }
+  assert.equal(f.state.authCalls, 0); assert.deepEqual(f.state.paths, []);
+});
+
+test('authentic qualification proofs reject another human, insufficient domains, retroactive grants and revoked qualifications', async () => {
+  for (const change of [{ subject: 'another-human' }, { identityIssuer: 'https://foreign.invalid' }, { type: 'agent' },
+    { domains: ['security'] }, { domains: ['money', 'privacy'] }, { recordedAt: '2026-09-06T12:00:00.200000001Z' },
+    { revokedAt: '2026-09-06T12:00:00.399999999Z' }, { validThrough: '2026-09-06T12:00:00.400Z' }]) {
+    const f = specialistFixture(); Object.assign(f.qualification.payload, change); f.sealQualification();
+    await assert.rejects(f.specialistReader().verifySpecialist(f.identityInput()), failure);
+  }
+  const f = specialistFixture(), proof = f.qualification.encode(); proof.signatureBase64 = Buffer.alloc(64).toString('base64'); f.sealQualification(proof);
+  await assert.rejects(f.specialistReader().verifySpecialist(f.identityInput()), failure);
+});
+
+test('changed qualification sources cannot reuse old evidence pins and repinned key revocation still denies', async () => {
+  const f = specialistFixture(), service = f.specialistReader(); await service.verifySpecialist(f.identityInput());
+  f.qualification.trust.revokedAt = '2026-09-06T12:00:00.399999999Z';
+  f.sources.set(f.qualificationTrustPath, JSON.stringify(f.qualification.trust));
+  await assert.rejects(service.verifySpecialist(f.identityInput()), failure);
+  f.qualificationConfiguration.specialistQualification.trustDigest = hash(f.sources.get(f.qualificationTrustPath)!);
+  await assert.rejects(f.specialistReader().verifySpecialist(f.identityInput()), failure);
+  const changed = specialistFixture(), earlier = changed.specialistReader(); await earlier.verifySpecialist(changed.identityInput());
+  changed.qualification.payload.revokedAt = '2026-09-06T12:00:00.399999999Z'; changed.sealQualification();
+  await assert.rejects(earlier.verifySpecialist(changed.identityInput()), failure);
+  await assert.rejects(changed.specialistReader().verifySpecialist(changed.identityInput()), failure);
+});
+
+test('qualification source integrity, exact encoding and final source/identity checks stay mandatory', async () => {
+  for (const change of [{ blobSha: 'f'.repeat(40) }, { revision: 'c'.repeat(40) }, { path: 'another.json' }, { contentDigest: 'f'.repeat(64) }]) {
+    const f = specialistFixture(), read = f.reader.readArtifact;
+    f.reader.readArtifact = async (...args) => ({ ...await read(...args), ...(args[0] === f.qualificationProofPath ? change : {}) });
+    await assert.rejects(f.specialistReader().verifySpecialist(f.identityInput()), failure);
+  }
+  for (const mode of ['pretty', 'large', 'missing', 'head', 'identity', 'clock']) {
+    const f = specialistFixture();
+    if (mode === 'pretty' || mode === 'large') {
+      const content = mode === 'pretty' ? JSON.stringify(f.qualification.encode(), null, 2) : 'x'.repeat(65537);
+      f.sources.set(f.qualificationProofPath, content); f.qualificationConfiguration.specialistQualification.proofDigest = hash(content);
+    } else if (mode === 'missing') f.sources.delete(f.qualificationProofPath);
+    else { const read = f.reader.readArtifact; f.reader.readArtifact = async (...args) => {
+      const value = await read(...args); if (args[0] === f.qualificationProofPath) {
+        if (mode === 'head') f.state.head = 'c'.repeat(40);
+        if (mode === 'identity') f.state.afterIdentity = null;
+        if (mode === 'clock') f.state.time--;
+      } return value;
+    }; }
+    await assert.rejects(f.specialistReader().verifySpecialist(f.identityInput()), failure);
+  }
+});
+
+test('all reader modes share pending qualification ownership and deadline prevents later authentication', async () => {
+  const f = specialistFixture(), read = f.reader.readArtifact; let release!: () => void, entered!: () => void;
+  const wait = new Promise<void>((resolve) => { release = resolve; }), entry = new Promise<void>((resolve) => { entered = resolve; });
+  f.reader.readArtifact = async (...args) => { if (args[0] === f.qualificationProofPath) { entered(); await wait; } return read(...args); };
+  const service = f.specialistReader(), pending = service.verifySpecialist(f.identityInput()); await entry;
+  await assert.rejects(service.verify(f.input), failure); await assert.rejects(service.verifySigner(f.signerInput), failure);
+  await assert.rejects(service.verifySignerIdentity(f.identityInput()), failure);
+  let stopped = false; const stopping = service.shutdown().then(() => { stopped = true; }); await Promise.resolve(); assert.equal(stopped, false);
+  f.state.time += 15000; release(); await assert.rejects(pending, failure); await stopping;
+  assert.equal(f.state.authCalls, 1); assert.equal(service.status().active, false);
+});
+
+test('completion cannot outlive qualification expiry, record revocation or qualification key validity', async () => {
+  for (const mode of ['expiry', 'record-revocation', 'key-expiry', 'key-revocation']) {
+    const f = specialistFixture(), edge = '2026-09-06T12:00:00.400000001Z';
+    if (mode === 'expiry' || mode === 'record-revocation') {
+      f.qualification.payload[mode === 'expiry' ? 'validThrough' : 'revokedAt'] = edge; f.sealQualification();
+    } else {
+      if (mode === 'key-expiry') f.qualification.trust.notAfter = edge; else f.qualification.trust.revokedAt = edge;
+      f.sources.set(f.qualificationTrustPath, JSON.stringify(f.qualification.trust));
+      f.qualificationConfiguration.specialistQualification.trustDigest = hash(f.sources.get(f.qualificationTrustPath)!);
+    }
+    const base = f.state.time; let reads = 0;
+    // Two additional source reads add four clock observations to identity mode.
+    Object.defineProperty(f.state, 'time', { get: () => base + (++reads >= 26 ? 1 : 0) });
+    await assert.rejects(f.specialistReader().verifySpecialist(f.identityInput()), failure); assert.equal(reads, 26);
   }
 });

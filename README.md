@@ -79,6 +79,10 @@ Item [0137](intent/0137/README.md) verifies signed identity/session assertions b
 to gate records and exact Git sources. Actual attestor binding, existing commercial
 approval compatibility, qualification and full gate composition remain due.
 
+Item [0138](intent/0138/README.md) verifies scoped specialist qualifications with
+the identity/provider proofs and Git role grants. Verified domains feed the policy
+signature; real authority bindings and complete gate/source verification remain due.
+
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono
 API/shared tool registry (0007), OIDC adapter/API composition (0008), and

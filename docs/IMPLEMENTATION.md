@@ -1205,6 +1205,13 @@ verified without accessing real credentials. Actual receipt issuance/attestor
 binding, existing commercial provider compatibility and full qualified gate
 composition remain unfinished; no production authority or frontend change occurs.
 
+Item `intent/0138` joins scoped qualification assertions with provider/identity
+proofs and both Git role sources. A derived specialist signature supplies only
+verified required domains to the policy evaluator. Native Git and genuine synthetic
+signatures cover current revocation, expiry and source integrity. Full gate-source
+composition, real attestor bindings and existing commercial compatibility remain;
+no professional designation, gate, live writer or frontend feature is enabled.
+
 ## Local commands
 
 ```sh
