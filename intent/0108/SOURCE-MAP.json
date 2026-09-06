@@ -1,0 +1,239 @@
+{
+  "version": "steer-lifecycle-negative-map/v1",
+  "source": "intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs#makeLifecycleGraph",
+  "sourcePins": "intent/0098/SOURCE-PINS.json",
+  "scope": "original-era RC-FAILED-RUN; synthetic clock; no effect or formal closure",
+  "rows": [
+    {
+      "kind": "active-hold",
+      "mapped": true,
+      "legacy": "holdState=active",
+      "corrected": "ordered hold-applied event and authoritative state.holdState=active",
+      "construction": "fresh signed state/history",
+      "expectedState": "retained-on-hold"
+    },
+    {
+      "kind": "hold-conflict",
+      "mapped": true,
+      "legacy": "holdState=overlapping",
+      "corrected": "state.holdState=overlapping",
+      "construction": "fresh signed state",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "stale-inventory",
+      "mapped": true,
+      "legacy": "inventory.capturedAt ten minutes old",
+      "corrected": "inventory.recordedAt ten minutes old",
+      "construction": "fresh signed inventory and downstream lineage",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "provider-partial",
+      "mapped": true,
+      "legacy": "first receipt.status=partial",
+      "corrected": "copy-1 receipt.status=partial",
+      "construction": "fresh signed provider receipt",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "provider-wrong-copy",
+      "mapped": true,
+      "legacy": "first receipt.copyId=other-copy",
+      "corrected": "copy-1 shared resources.copyId=other-copy",
+      "construction": "fresh signed resource proof; receipt copy is digest-bound",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "aggregate-missing",
+      "mapped": true,
+      "legacy": "aggregate.receiptDigests=[]",
+      "corrected": "aggregate.receiptDigests=[]",
+      "construction": "fresh signed aggregate",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "early-tombstone",
+      "mapped": true,
+      "legacy": "tombstone.committedAt before aggregate",
+      "corrected": "tombstone provider receipt.recordedAt before aggregate",
+      "construction": "fresh signed provider receipt",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "ordinary-replay",
+      "mapped": true,
+      "legacy": "ordinary-domain replay proof",
+      "corrected": "copy-1 replay proof signed in ordinary record domain",
+      "construction": "envelope mutation; original reservation preserved",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "missing-authority",
+      "mapped": true,
+      "legacy": "last human bundle omitted",
+      "corrected": "copy-2 humanBundleBytes empty",
+      "construction": "envelope omission",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "request-reused",
+      "mapped": true,
+      "legacy": "second request reuses first request",
+      "corrected": "copy-2 action bundle reuses copy-1 action bundle",
+      "construction": "cross-copy transplant",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "restored-race",
+      "mapped": true,
+      "legacy": "inventory first versionId changes after authorization",
+      "corrected": "inventory first versionId=restored-version; all downstream bytes preserved",
+      "construction": "re-signed inventory race",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "local-signer-receipt",
+      "mapped": true,
+      "legacy": "ordinary local signer for provider receipt",
+      "corrected": "copy-1 receipt signed in ordinary record domain",
+      "construction": "re-signed envelope",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "copy-missing",
+      "mapped": true,
+      "legacy": "inventory last copy omitted",
+      "corrected": "inventory last copy omitted; original proofs retained",
+      "construction": "re-signed inventory set mismatch",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "copy-duplicate",
+      "mapped": true,
+      "legacy": "inventory copy duplicated",
+      "corrected": "inventory copy duplicated; original proofs retained",
+      "construction": "re-signed inventory set mismatch",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "copy-extra",
+      "mapped": true,
+      "legacy": "inventory extra copy",
+      "corrected": "inventory extra physical copy; original proofs retained",
+      "construction": "re-signed inventory set mismatch",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "tuple-key-mismatch",
+      "mapped": true,
+      "legacy": "first receipt.keyId=other-key",
+      "corrected": "copy-1 shared resources.keyId=other-key",
+      "construction": "fresh signed resource proof; receipt tuple is digest-bound",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "provider-mismatch",
+      "mapped": true,
+      "legacy": "first receipt.provider=other-provider",
+      "corrected": "copy-1 resources.provider=other-provider",
+      "construction": "fresh signed resource proof; provider anchor remains independently pinned",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "policy-mismatch",
+      "mapped": true,
+      "legacy": "first receipt.authorizationPolicyDigest changed",
+      "corrected": "copy-1 action context substitutes policy bytes and matching digest",
+      "construction": "fresh signed context-bound request; independently derived policy unchanged",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "target-mismatch",
+      "mapped": true,
+      "legacy": "first receipt.targetExamRevision changed",
+      "corrected": "copy-1 action context substitutes Exam revision",
+      "construction": "fresh signed context-bound request; independently derived target unchanged",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "cas-loser",
+      "mapped": true,
+      "legacy": "first reservation winner=false/status=lost",
+      "corrected": "copy-1 reservation winner=false/status=lost",
+      "construction": "fresh signed CAS proof",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "receipt-missing",
+      "mapped": true,
+      "legacy": "last provider receipt omitted",
+      "corrected": "copy-2 receiptBytes empty",
+      "construction": "envelope omission",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "receipt-duplicate",
+      "mapped": true,
+      "legacy": "second receipt reuses first receipt",
+      "corrected": "copy-2 receiptBytes reuses copy-1 receiptBytes",
+      "construction": "cross-copy transplant",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "crash-before-aggregate",
+      "mapped": true,
+      "legacy": "aggregate bytes empty",
+      "corrected": "aggregateBytes empty",
+      "construction": "envelope omission; distinct from signed empty aggregate set",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "invalid-human-schema",
+      "mapped": true,
+      "legacy": "first human authority version omitted",
+      "corrected": "copy-1 human authority version omitted",
+      "construction": "fresh signed full human bundle",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "provider-before-not-before",
+      "mapped": true,
+      "legacy": "first receipt.providerTime before key validity",
+      "corrected": "copy-1 receipt.recordedAt=2026-08-31T23:59:59Z",
+      "construction": "fresh signed provider receipt",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "provider-after-expiry",
+      "mapped": true,
+      "legacy": "first receipt.providerTime after key expiry",
+      "corrected": "copy-1 receipt.recordedAt=2040-09-01T00:00:00Z",
+      "construction": "fresh signed provider receipt",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "provider-registry-substitution",
+      "mapped": true,
+      "legacy": "untrusted provider registry public key replaced",
+      "corrected": "untrusted changed registry injected as undeclared graph field",
+      "construction": "closed-envelope rejection; not current-registry installation validation",
+      "expectedState": "blocked"
+    },
+    {
+      "kind": "reference-missing",
+      "mapped": false,
+      "reason": "Requires complete referenced-evidence clearance control."
+    },
+    {
+      "kind": "raw-grant-missing",
+      "mapped": false,
+      "reason": "Requires complete preterminal raw-grant/batch control."
+    },
+    {
+      "kind": "malformed-raw-grant",
+      "mapped": false,
+      "reason": "Frozen mutation inserts a malformed raw-grant array even on failed-run input; reconcile with full corrected raw schema rather than merely reject an unexpected field."
+    }
+  ]
+}

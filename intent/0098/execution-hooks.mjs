@@ -13,6 +13,7 @@ import { schemaExecutionHook } from '../0103/execution-hooks.mjs';
 import { sharedActionExecutionHook } from '../0105/execution-hooks.mjs';
 import { migrationGraphExecutionHook } from '../0106/execution-hooks.mjs';
 import { lifecycleGraphExecutionHook } from '../0107/execution-hooks.mjs';
+import { lifecycleNegativeExecutionHook } from '../0108/execution-hooks.mjs';
 const registry = jcs(JSON.parse(readFileSync(new URL('../0001/reviews/domain/round-3/remediation/TRUST-REGISTRY.candidate.json', import.meta.url), 'utf8')));
 const events = createLifecycleEventVerifier(registry), now = '2026-09-04T13:00:00Z';
 const eventEnvelope = (eventBytes, historyBytes = []) => jcs({ version: 'steer-r5-001-events/v1', policyDigest: events.policyDigest,
@@ -57,5 +58,5 @@ export function executionHook(caseItem) {
       for (const text of ['A+' + '٤'.repeat(7), '+' + '٤'.repeat(7) + 'Z', '界+' + '४'.repeat(7), '+' + '४'.repeat(7) + '界'])
         check(text, () => ({ hit: inspectPrivacyPhoneText(text) === 'phone' }), { hit: false });
     } };
-  return recoveryHumanExecutionHook(caseItem) ?? authorizationMoneyPrivacyExecutionHook(caseItem) ?? detectorMultilineExecutionHook(caseItem) ?? trustDomainExecutionHook(caseItem) ?? schemaExecutionHook(caseItem) ?? sharedActionExecutionHook(caseItem) ?? migrationGraphExecutionHook(caseItem) ?? lifecycleGraphExecutionHook(caseItem);
+  return recoveryHumanExecutionHook(caseItem) ?? authorizationMoneyPrivacyExecutionHook(caseItem) ?? detectorMultilineExecutionHook(caseItem) ?? trustDomainExecutionHook(caseItem) ?? schemaExecutionHook(caseItem) ?? sharedActionExecutionHook(caseItem) ?? migrationGraphExecutionHook(caseItem) ?? lifecycleGraphExecutionHook(caseItem) ?? lifecycleNegativeExecutionHook(caseItem);
 }

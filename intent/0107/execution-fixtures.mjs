@@ -429,3 +429,60 @@ export function lifecycleGraphExecutionCase(variant = 'positive') {
   const value = fixture(options);
   return { ...value, variant, input: jcs({ configBytes: value.configBytes, bytes: value.bytes, evaluatedAt: value.evaluationTime }) };
 }
+
+// Closed adapters for exact frozen ordinary lifecycle negative IDs. Raw/reference
+// evidence needs separate complete controls and is deliberately not accepted here.
+export function lifecycleNegativeExecutionCase(kind) {
+  const kinds = ['active-hold', 'hold-conflict', 'stale-inventory', 'provider-partial', 'provider-wrong-copy', 'aggregate-missing', 'early-tombstone',
+    'ordinary-replay', 'missing-authority', 'request-reused', 'restored-race', 'local-signer-receipt', 'copy-missing', 'copy-duplicate', 'copy-extra',
+    'tuple-key-mismatch', 'provider-mismatch', 'policy-mismatch', 'target-mismatch', 'cas-loser', 'receipt-missing', 'receipt-duplicate',
+    'crash-before-aggregate', 'invalid-human-schema', 'provider-before-not-before', 'provider-after-expiry', 'provider-registry-substitution'];
+  if (!kinds.includes(kind)) throw new Error('UNKNOWN_LIFECYCLE_NEGATIVE_CASE');
+  const options = { recordClass: 'RC-FAILED-RUN', eventType: 'run-terminal', triggerSecond: -7776000,
+    history: [{ type: 'record-committed', second: -7776010 }], edits: {} };
+  if (kind === 'active-hold') {
+    options.history.push({ type: 'run-terminal', second: -7776000 }); options.eventType = 'hold-applied';
+    options.triggerSecond = -20; options.triggerHistoryIndex = 1;
+    options.edits.state = (record) => { record.holdState = 'active'; };
+  }
+  if (kind === 'hold-conflict') options.edits.state = (record) => { record.holdState = 'overlapping'; };
+  if (kind === 'stale-inventory') options.edits.inventory = (record) => { record.recordedAt = at(-600); };
+  if (kind === 'provider-partial') options.edits['copy-1:receipt'] = (record) => { record.status = 'partial'; };
+  if (kind === 'provider-wrong-copy') options.edits['copy-1:resources'] = (record) => { record.resources.copyId = 'other-copy'; };
+  if (kind === 'tuple-key-mismatch') options.edits['copy-1:resources'] = (record) => { record.resources.keyId = 'other-key'; };
+  if (kind === 'provider-mismatch') options.edits['copy-1:resources'] = (record) => { record.provider = 'other-provider'; };
+  if (kind === 'aggregate-missing') options.edits.aggregate = (record) => { record.receiptDigests = []; };
+  if (kind === 'early-tombstone') options.edits['tombstone:receipt'] = (record) => { record.recordedAt = at(1); };
+  if (kind === 'policy-mismatch') options.edits['copy-1:context'] = (context) => { context.target.authorizationPolicyBytes = '{}'; context.target.authorizationPolicyDigest = sha256('{}'); };
+  if (kind === 'target-mismatch') options.edits['copy-1:context'] = (context) => { context.target.examRevision = 'f'.repeat(40); };
+  if (kind === 'cas-loser') options.edits['copy-1:reservation'] = (record) => { record.winner = false; record.status = 'lost'; };
+  if (kind === 'invalid-human-schema') options.edits['copy-1:human'] = (record) => { delete record.version; };
+  if (kind === 'provider-before-not-before') options.edits['copy-1:receipt'] = (record) => { record.recordedAt = '2026-08-31T23:59:59Z'; };
+  if (kind === 'provider-after-expiry') options.edits['copy-1:receipt'] = (record) => { record.recordedAt = '2040-09-01T00:00:00Z'; };
+  const value = fixture(options), graph = value.graph;
+  // Envelope/set/race variants preserve the originally authorized downstream bytes.
+  if (kind === 'ordinary-replay') {
+    const bundle = JSON.parse(graph.copies[0].actionBundleBytes); bundle.replayBytes = jcs(originalSeal(JSON.parse(bundle.replayBytes), 'record'));
+    graph.copies[0].actionBundleBytes = jcs(bundle);
+  }
+  if (kind === 'missing-authority') graph.copies[1].humanBundleBytes = '';
+  if (kind === 'request-reused') graph.copies[1].actionBundleBytes = graph.copies[0].actionBundleBytes;
+  if (['restored-race', 'copy-missing', 'copy-duplicate', 'copy-extra'].includes(kind)) {
+    const inventory = JSON.parse(graph.inventoryBytes);
+    if (kind === 'restored-race') inventory.copies[0].versionId = 'restored-version';
+    if (kind === 'copy-missing') inventory.copies.pop();
+    if (kind === 'copy-duplicate') inventory.copies.push(structuredClone(inventory.copies[0]));
+    if (kind === 'copy-extra') inventory.copies.push({ ...inventory.copies[0], copyId: 'extra-copy', objectKey: 'extra-object' });
+    graph.inventoryBytes = jcs(originalSeal(inventory, 'provider'));
+  }
+  if (kind === 'local-signer-receipt') graph.copies[0].receiptBytes = jcs(originalSeal(JSON.parse(graph.copies[0].receiptBytes), 'record'));
+  if (kind === 'receipt-missing') graph.copies[1].receiptBytes = '';
+  if (kind === 'receipt-duplicate') graph.copies[1].receiptBytes = graph.copies[0].receiptBytes;
+  if (kind === 'crash-before-aggregate') graph.aggregateBytes = '';
+  if (kind === 'provider-registry-substitution') {
+    const registry = JSON.parse(readFileSync(new URL('../0001/reviews/domain/round-3/remediation/PROVIDER-KEY-REGISTRY.candidate.json', import.meta.url), 'utf8'));
+    registry.bindings[0].publicKeyHex = 'f'.repeat(64); graph.providerKeyRegistryBytes = jcs(registry);
+  }
+  const bytes = jcs(graph);
+  return { ...value, bytes, kind, input: jcs({ configBytes: value.configBytes, bytes, evaluatedAt: value.evaluationTime }) };
+}

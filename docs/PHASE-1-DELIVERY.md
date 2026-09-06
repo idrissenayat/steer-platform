@@ -2006,3 +2006,24 @@ cases, 3,614 migration cases and one obsolete schema case. Do not credit unsuppo
 classes/dimensions through generic rejection or alias distinct migration interleavings.
 GAP-01–06 and M1–M8 remain separate. No protected edit, provider mutation, cleanup,
 release, deployment, spending or signature is authorized.
+
+## Completed development increment: 0108 — ordinary lifecycle negatives
+
+The source map reconciles all 30 frozen lifecycle negative IDs. Twenty-seven now
+execute a complete failed-run positive and a distinct adapted negative. Valid
+chronological active holds retain; conflicting evidence blocks. Signed semantic
+failures, old-inventory races, cross-copy transplants and registry injection are
+explicitly distinguished. Raw/reference cases remain uncovered pending complete
+controls; an obsolete-field rejection does not supply their semantic evidence.
+
+Six new groups and final full checks pass: 350 root controls and 88 prototype
+tests. Fresh quick execution matches 338 passed / 3,698 uncovered; full matches
+354 passed / 3,682 uncovered, both with zero failures. A separate three-group full
+integration process reran the matrix and matched the full snapshot. See
+intent/0108/EVIDENCE.md and SOURCE-MAP.json for source/synthetic/cached limits.
+No formal finding is closed and no lifecycle/provider effect is executed.
+
+Next under intent/0108/PLAN.md are the three raw/reference lifecycle negatives,
+64 class/boundary rows, 3,614 migration cases and one obsolete schema case.
+GAP-01–06 and M1–M8 remain separate. No protected edit, provider mutation, cleanup,
+release, deployment, spending or signature is authorized.

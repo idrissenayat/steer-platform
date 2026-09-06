@@ -56,7 +56,7 @@ test('0107: malformed event semantics can carry genuine signatures and rebuilt h
 });
 
 test('0107: every copy and the tombstone require complete action, human and provider proofs with zero effects', () => {
-  assert.deepEqual(Object.keys(fixtures).sort(), ['lifecycleGraphExecutionCase', 'lifecycleGraphVariants']);
+  assert.deepEqual(Object.keys(fixtures).sort(), ['lifecycleGraphExecutionCase', 'lifecycleGraphVariants', 'lifecycleNegativeExecutionCase']);
   assert.throws(() => fixtures.lifecycleGraphExecutionCase('arbitrary'), /UNKNOWN_LIFECYCLE_GRAPH_VARIANT/);
   const variants = fixtures.lifecycleGraphVariants(); assert.equal(variants[0], 'positive'); assert.equal(new Set(variants).size, variants.length);
   for (const label of ['copy-1', 'copy-2', 'tombstone']) assert.equal(variants.filter((kind) => kind.startsWith(`omit:${label}:`)).length, 10);
@@ -69,10 +69,10 @@ test('0107: every copy and the tombstone require complete action, human and prov
 
 test('0107: all nine R5 IDs execute once without closing the five findings or crediting remaining graph matrices', () => {
   const report = runCorrectedCoverage(), row = report.executions.find((entry) => entry.id === id);
-  assert.equal(report.required, 4036); assert.equal(report.executed, 311); assert.equal(report.passed, 311); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3725);
+  assert.equal(report.required, 4036); assert.equal(report.executed, 338); assert.equal(report.passed, 338); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3698);
   assert.equal(report.families.R5.executed, 9); assert.equal(report.families.R5.passed, 9); assert.equal(report.families.R5.uncovered, 0);
   assert.equal(row.observationCount, fixtures.lifecycleGraphVariants().length + 3); assert.equal(row.status, 'passed');
   assert.equal(report.families['LIFECYCLE-GRAPH'].executed, 0); assert.equal(report.families.MIGRATION.executed, 0);
   for (const flag of ['completeCoverage', 'normativeAcceptanceComplete', 'independentAcceptance', 'executionAuthorized', 'liveProviderUsed']) assert.equal(report[flag], false);
-  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0107/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
+  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0108/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
 });

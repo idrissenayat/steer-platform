@@ -941,6 +941,15 @@ records 327 passed / 3,709 uncovered; quick 311 passed / 3,725 uncovered. Remain
 matrix/schema, live integration and independent/protected evidence are separate.
 See `intent/0107/EVIDENCE.md` and `PLAN.md`. No real retention/deletion is claimed.
 
+Item `intent/0108` maps 27 ordinary lifecycle negative IDs, each with a full
+failed-run control before its distinct mutation. A chronological active hold
+retains the record; conflicting evidence blocks. The source map distinguishes
+re-signed semantic failures, inventory races, copy/receipt transplants and closed
+registry injection. Three raw/reference negatives remain unmapped. Full profile
+now records 354 passed / 3,682 uncovered; quick 338 passed / 3,698 uncovered.
+All formal findings remain open. See `intent/0108/EVIDENCE.md`, `SOURCE-MAP.json`
+and `PLAN.md`; no real retention, provider action or deletion is claimed.
+
 ## Local commands
 
 ```sh
