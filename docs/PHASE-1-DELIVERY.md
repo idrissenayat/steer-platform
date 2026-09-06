@@ -1380,3 +1380,21 @@ time and migration compatibility/checkpoint/crash-cut coverage and the normative
 inventory under intent/0077/PLAN.md. Real terminal storage and transport recovery
 are not implemented by this offline verifier. All five formal R5 findings remain
 open pending independent/protected review; no gate or deployment is claimed.
+
+## Completed development increment: 0078 — historical facts with current witnesses
+
+Historical lifecycle events can now be revalidated as facts after original-key
+expiry through a separate offline contract. Original bytes, signatures and key
+windows stay exact. Trusted current registry/archive selection and fresh independent
+revalidation/retention proofs are mandatory; known current revocation denies.
+Success supplies no current action authority and cannot authorize deletion.
+
+Eight focused groups cover future one-/three-/seven-year dates, all 27 event
+kinds, exact revocation/expiry, complete original proofs, current independence and
+bounded input. Full checks pass with 165 root controls and 88 prototype tests;
+see intent/0078/EVIDENCE.md for synthetic/cached boundaries.
+
+Next is fresh current-registry human authority, then full historical/current
+lifecycle and reference-revocation composition under intent/0078/PLAN.md. This is
+not completed future retention or a live archive. All five R5 findings, actual
+integration, normative coverage and independent/protected review remain open.

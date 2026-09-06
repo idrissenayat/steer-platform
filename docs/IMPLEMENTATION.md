@@ -671,6 +671,14 @@ authority/expiry checks. Expired originals still deny. This is not archival repl
 a real atomic store or live lost-acknowledgment recovery. See `intent/0077/EVIDENCE.md`
 and `PLAN.md`. All five R5 findings and independent/protected review remain open.
 
+Item `intent/0078` adds fact-only historical-event revalidation at future years.
+It keeps the original event/provider signatures and frozen key windows, requires
+trusted exact archive/current-registry selection and independent fresh revalidation
+and retention proofs, and denies known current historical-key revocation. It is
+not action authority or a completed future lifecycle disposition. The original
+current-key exports still deny expired originals. See `intent/0078/PLAN.md` for
+fresh human-authority and full lifecycle composition next; R5 remains open.
+
 ## Local commands
 
 ```sh
