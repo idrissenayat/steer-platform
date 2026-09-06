@@ -26,12 +26,15 @@ does not admit raw, referenced-evidence or other unsupported current-v1 classes.
 0081 adds full mixed-era history with exact archived prefix, current suffix,
 global order/identity and combined hold/release checks; current-v2 keys cannot alias.
 
-Next bounded work is complete qualified-owner binding for current hold decisions,
+0082 adds an explicit non-erasure qualified human profile with complete current
+proofs and truthful active-hold semantics. It is not yet bound to actual history.
+
+Next bounded work is complete qualified-owner/event binding for current hold decisions,
 then reference-revocation/retained-verification evidence, followed by
 remaining classes and migration compatibility/concurrency/checkpoint coverage and complete
 normative inventory. Do not extend frozen key windows merely to make historical
 or future-retention tests pass; resolve archival versus current authority explicitly.
-0061–0081 are development candidates and verification increments,
+0061–0082 are development candidates and verification increments,
 not proof of complete retention-key coverage, live compatibility or atomic execution.
 Preserve the frozen send-back package. Do not request a new qualified-human ruling
 until the complete corrected candidate is independently accepted and incorporated
@@ -43,4 +46,4 @@ production/provider mutation, deletion, release, deployment, protected edit or
 signature is authorized by this ledger. No credential handoff is pending here.
 
 Sources: intent/0001/reviews/domain/round-3/remediation/CYCLE-DISPOSITION.md,
-preflight-critic-r5.json in that same frozen directory, and intent/0056–0081.
+preflight-critic-r5.json in that same frozen directory, and intent/0056–0082.

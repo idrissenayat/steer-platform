@@ -1454,3 +1454,21 @@ reference inventory/revocation and retained verification bundles under
 intent/0081/PLAN.md. A provider-bound hold event alone is not claimed as that
 qualified-owner evidence. Other classes, normative coverage and all five formal
 R5 findings remain open pending independent/protected review.
+
+## Completed development increment: 0082 — non-erasure qualified authority
+
+The shared human verifier now has an explicit qualified-event profile, with its
+own closed schema and policy. It supports active-hold release without false
+no-hold, erase-method or raw-deadline fields. All nine current owner proof records
+remain mandatory, with exact one-record selector inventory, independent keys,
+current clock, event/predecessor fields and bounded freshness.
+
+The human suite passes 18 groups; full checks pass with 192 root controls and
+88 prototype tests. See intent/0082/EVIDENCE.md for synthetic/cached boundaries.
+Original signed schemas and disposition profile/policy outputs remain unchanged.
+
+Next is binding those qualified records to actual current events and complete
+history under intent/0082/PLAN.md. A verified owner record is not yet a verified
+event mutation or permission to erase. Qualified archival proof, reference
+revocation/retained-verification, other normative coverage and all five formal
+R5 findings remain open. No signature, live effect or gate approval is claimed.

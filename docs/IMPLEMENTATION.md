@@ -705,6 +705,14 @@ unique, and event/provider roles cannot alias one key. The four-class limit stay
 explicit; full referenced-object evidence is next under `intent/0081/PLAN.md`.
 This is not a live feed, key deployment, provider effect or independent gate ruling.
 
+Item `intent/0082` introduces a non-erasure qualified-event human profile. A hold
+release can truthfully declare an active hold and bind its predecessor without
+carrying false no-hold, copy/erase or raw-deadline fields. All nine current human
+proofs remain required through the shared verifier; selector inventory, independent
+keys and 300-second freshness are explicit. The original disposition profile/pins
+stay unchanged. Actual lifecycle-event binding is next under `intent/0082/PLAN.md`;
+this is not a human signature or a completed hold mutation.
+
 ## Local commands
 
 ```sh

@@ -4,8 +4,9 @@ import { compilePreciseSchema, schemaPolicyDigest } from '../0070/precision-sche
 import { exactInstant as strictTime } from '../0069/exact-time.candidate.mjs';
 import { AUTHORIZATION_POLICY_BYTES, AUTHORIZATION_POLICY_PATH, AUTHORIZATION_POLICY_SHA, RETENTION_POLICY_BYTES,
   RETENTION_POLICY_PATH, RETENTION_POLICY_SHA, TARGET_REVISION, TARGET_EXAM_SHA,
-  exactKeys, jcs, parseCanonical, sha256, zeroEffects } from '../0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
+  exactKeys, hex, jcs, parseCanonical, sha256, zeroEffects } from '../0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
 import { createTimedRecordVerifier } from './record-verifier.candidate.mjs';
+import { validateQualifiedDecision, schemaPolicyDigest as qualifiedSchemaPolicy } from '../0082/qualified-decision-schema.candidate.mjs';
 
 const registryBytes = jcs(JSON.parse(readFileSync(new URL('../0001/reviews/domain/round-3/remediation/TRUST-REGISTRY.candidate.json', import.meta.url), 'utf8')));
 const verifier = createTimedRecordVerifier(registryBytes);
@@ -32,11 +33,14 @@ export function correctedHumanAuthorityDecision(serialized) {
 
 // Trusted composition only. The bundle never selects or supplies this registry.
 // The default export/policy above remains exactly pinned to the original keys.
-export function createHumanAuthorityVerifier(trustedRegistryBytes) {
+export function createHumanAuthorityVerifier(trustedRegistryBytes, profile = 'disposition') {
   let selected;
   try {
+    if (!['disposition', 'qualified-event'].includes(profile)) throw new Error('HUMAN_PROFILE_INVALID');
     selected = createTimedRecordVerifier(trustedRegistryBytes);
     const registry = parseCanonical(trustedRegistryBytes);
+    if (profile === 'qualified-event' && new Set(registry.bindings.map((key) => key.publicKeyHex)).size !== registry.bindings.length)
+      throw new Error('CURRENT_TRUST_INDEPENDENCE_INVALID');
     for (const original of parseCanonical(registryBytes).bindings) {
       const matches = registry.bindings.filter((key) => key.domain === original.domain && key.keyId === original.keyId);
       if (matches.length !== 1 || ['algorithm', 'publicKeyHex', 'notBefore', 'notAfter'].some((field) => matches[0][field] !== original[field]) ||
@@ -44,9 +48,16 @@ export function createHumanAuthorityVerifier(trustedRegistryBytes) {
         throw new Error('CURRENT_TRUST_INVALID');
     }
   } catch { throw new Error('HUMAN_AUTHORITY_CONFIGURATION_INVALID'); }
-  const policyBytes = jcs({ ...parseCanonical(correctionPolicyBytes), registryDigest: selected.registryDigest });
+  const qualified = profile === 'qualified-event';
+  const policyBytes = jcs(qualified ? { version: 'steer-qualified-event-human/v1', originalHumanPolicyDigest: correctionPolicyDigest,
+    registryDigest: selected.registryDigest, schemaPolicyDigest: qualifiedSchemaPolicy,
+    rules: 'complete identity qualification assignment provider selector inventory and winning CAS; distinct keys; exact current clock and 300-second decision/snapshot freshness; non-erasure event decision, no execution' } :
+    { ...parseCanonical(correctionPolicyBytes), registryDigest: selected.registryDigest });
   const selectedPolicyDigest = sha256(policyBytes);
+  const contract = qualified ? { envelopeVersion: 'steer-qualified-event-human/v1', schema: validateQualifiedDecision,
+    inventoryDigestField: 'selectorInventoryDigest', inventoryItemIdField: 'recordId' } : null;
   return Object.freeze({ policyBytes, policyDigest: selectedPolicyDigest, registryDigest: selected.registryDigest,
+    envelopeVersion: contract?.envelopeVersion ?? 'steer-r5-002-human/v1',
     verify(serialized, evaluationTime) {
       try {
         validTime(evaluationTime);
@@ -54,23 +65,23 @@ export function createHumanAuthorityVerifier(trustedRegistryBytes) {
         const envelope = parseCanonical(serialized);
         if (typeof envelope.bundleBytes !== 'string' || envelope.bundleBytes.length > 1048576 ||
             parseCanonical(envelope.bundleBytes).evaluationTime !== evaluationTime) throw new Error('CLOCK_INVALID');
-        return { ...verifyHumanAuthority(serialized, selected, selectedPolicyDigest), executionAuthorized: false };
+        return { ...verifyHumanAuthority(serialized, selected, selectedPolicyDigest, contract), executionAuthorized: false };
       } catch { return { ...deny('HUMAN_CURRENT_CLOCK_INVALID'), executionAuthorized: false }; }
     },
   });
 }
 
-function verifyHumanAuthority(serialized, verifier, expectedPolicyDigest) {
+function verifyHumanAuthority(serialized, verifier, expectedPolicyDigest, contract = null) {
   try {
     if (typeof serialized !== 'string' || serialized.length > 1048576) return deny('HUMAN_ENVELOPE_INVALID');
     const envelope = parseCanonical(serialized);
-    if (!exactKeys(envelope, ['version', 'policyDigest', 'bundleBytes']) || envelope.version !== 'steer-r5-002-human/v1' ||
+    if (!exactKeys(envelope, ['version', 'policyDigest', 'bundleBytes']) || envelope.version !== (contract?.envelopeVersion ?? 'steer-r5-002-human/v1') ||
         envelope.policyDigest !== expectedPolicyDigest || typeof envelope.bundleBytes !== 'string') return deny('HUMAN_ENVELOPE_INVALID');
     const input = parseCanonical(envelope.bundleBytes);
     if (!exactKeys(input, fields) || fields.some((field) => typeof input[field] !== 'string' || input[field].length > 65536)) return deny('HUMAN_BUNDLE_INVALID');
     if (input.authorizationPolicyBytes !== AUTHORIZATION_POLICY_BYTES || input.retentionPolicyBytes !== RETENTION_POLICY_BYTES) return deny('HUMAN_POLICY_INVALID');
     const authority = parseCanonical(input.authorityBytes);
-    if (schema(authority).length) return deny('HUMAN_SCHEMA_INVALID');
+    if ((contract?.schema ?? schema)(authority).length) return deny('HUMAN_SCHEMA_INVALID');
     const now = validTime(input.evaluationTime), decided = validTime(authority.decidedAt), authenticated = validTime(authority.authenticatedAt);
     if (!(authenticated <= decided && decided <= now && validTime(authority.validFrom) <= decided && now < validTime(authority.expiresAt) &&
         now < validTime(authority.qualificationValidThrough) && now < validTime(authority.assignmentValidThrough))) return deny('HUMAN_TIME_INVALID');
@@ -104,9 +115,17 @@ function verifyHumanAuthority(serialized, verifier, expectedPolicyDigest) {
     if (!scope(assignment) || assignment.recordDigest !== authority.assignmentEvidenceDigest || assignment.activeHat !== authority.activeHat ||
         assignment.item !== authority.item || assignment.targetExamRevision !== authority.targetExamRevision || assignment.targetExamDigest !== authority.targetExamDigest ||
         assignment.status !== 'current' || assignment.validThrough !== authority.assignmentValidThrough) return deny('HUMAN_ASSIGNMENT_INVALID');
-    if (inventory.recordDigest !== authority.copyInventoryDigest || inventory.organization !== authority.organization || inventory.tenant !== authority.tenant ||
+    if (inventory.recordDigest !== authority[contract?.inventoryDigestField ?? 'copyInventoryDigest'] || inventory.organization !== authority.organization || inventory.tenant !== authority.tenant ||
         inventory.item !== authority.item || !Array.isArray(inventory.items) || !inventory.items.length ||
-        new Set(inventory.items.map((row) => row.copyId)).size !== inventory.items.length || validTime(inventory.capturedAt) > decided) return deny('HUMAN_INVENTORY_INVALID');
+        new Set(inventory.items.map((row) => row[contract?.inventoryItemIdField ?? 'copyId'])).size !== inventory.items.length || validTime(inventory.capturedAt) > decided) return deny('HUMAN_INVENTORY_INVALID');
+    if (contract) {
+      if (!exactKeys(inventory, ['inventoryId', 'organization', 'tenant', 'item', 'items', 'capturedAt', 'recordDigest', 'signature']) || inventory.items.length !== 1)
+        return deny('HUMAN_SELECTOR_INVENTORY_INVALID');
+      const row = inventory.items[0];
+      if (!exactKeys(row, ['recordId', 'recordClass', 'artifactRevision', 'selectorDigest']) ||
+          ['recordId', 'recordClass'].some((field) => typeof row[field] !== 'string' || !row[field].length || row[field].length > 512 || /[\u0000-\u001f*?]/u.test(row[field])) ||
+          !hex(row.artifactRevision, 40) || !hex(row.selectorDigest, 64)) return deny('HUMAN_SELECTOR_INVENTORY_INVALID');
+    }
     const target = (record) => record.targetExamRevision === TARGET_REVISION && record.targetExamSha256 === TARGET_EXAM_SHA && record.authorizationPolicyDigest === AUTHORIZATION_POLICY_SHA;
     if (!exactKeys(replay, ['ledgerId', 'source', 'status', 'idempotencyKey', 'requestDigest', 'resultDigest', 'headId', 'snapshotAt', 'validThrough',
       'targetExamRevision', 'targetExamSha256', 'authorizationPolicyDigest', 'recordDigest', 'signature']) || replay.source !== 'authoritative-replay-store' ||
@@ -121,6 +140,16 @@ function verifyHumanAuthority(serialized, verifier, expectedPolicyDigest) {
         reservation.idempotencyKey !== authority.idempotencyKey || reservation.requestDigest !== authority.recordDigest || reservation.authorityDigest !== authority.recordDigest ||
         reservation.winner !== true || reservation.status !== 'reserved' || !target(reservation) ||
         validTime(reservation.recordedAt) < validTime(head.snapshotAt) || now >= validTime(reservation.validThrough)) return deny('HUMAN_RESERVATION_INVALID');
+    if (contract) {
+      const maximum = 300000000000n;
+      if (now - decided > maximum || validTime(authority.expiresAt) - decided > maximum ||
+          now - validTime(identity.verifiedAt) > maximum || now - validTime(inventory.capturedAt) > maximum ||
+          validTime(reservation.recordedAt) < decided || validTime(reservation.recordedAt) < validTime(replay.snapshotAt)) return deny('HUMAN_QUALIFIED_FRESHNESS_INVALID');
+      for (const [record, at] of [[head, head.snapshotAt], [replay, replay.snapshotAt], [reservation, reservation.recordedAt]])
+        if (now - validTime(at) > maximum || validTime(record.validThrough) - validTime(at) > maximum) return deny('HUMAN_QUALIFIED_FRESHNESS_INVALID');
+      if (validTime(reservation.validThrough) > validTime(head.validThrough) || validTime(reservation.validThrough) > validTime(replay.validThrough) ||
+          validTime(reservation.validThrough) > validTime(authority.expiresAt)) return deny('HUMAN_QUALIFIED_FRESHNESS_INVALID');
+    }
     return { decision: 'ALLOW', firstError: null, effects: zeroEffects(), correctionPolicyDigest: expectedPolicyDigest,
       consumedRecordIds: [authority.authorityId, provider.providerRecordId, identity.evidenceId, qualification.evidenceId, assignment.assignmentId,
         inventory.inventoryId, replay.ledgerId, head.headId, reservation.reservationId] };

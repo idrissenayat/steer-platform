@@ -55,11 +55,21 @@ function currentHuman(options = {}) {
   const identity = emit('identityEvidenceBytes', { ...JSON.parse(bundle.identityEvidenceBytes), verifiedAt: at(18) }, 'provider');
   const qualification = emit('qualificationEvidenceBytes', { ...JSON.parse(bundle.qualificationEvidenceBytes), validThrough: at(59) }, 'provider');
   const assignment = emit('assignmentEvidenceBytes', { ...JSON.parse(bundle.assignmentEvidenceBytes), validThrough: at(59) }, 'assignment');
-  const inventory = emit('inventoryBytes', { ...JSON.parse(bundle.inventoryBytes), capturedAt: at(18) }, 'record');
-  const authority = edit('authority', { ...JSON.parse(bundle.authorityBytes), authenticatedAt: at(19), decidedAt: at(20), validFrom: at(0), expiresAt: at(59),
+  const qualified = options.profile === 'qualified-event';
+  const inventory = emit('inventoryBytes', { ...JSON.parse(bundle.inventoryBytes), capturedAt: at(18),
+    ...(qualified ? { items: [{ recordId: 'record-target', recordClass: 'RC-DECISION-PROOF', artifactRevision: 'b'.repeat(40), selectorDigest: sha256('exact-test-selector') }] } : {}) }, 'record');
+  const authority = { ...JSON.parse(bundle.authorityBytes), authenticatedAt: at(19), decidedAt: at(20), validFrom: at(0), expiresAt: at(59),
     identityEvidenceDigest: identity.recordDigest, qualificationEvidenceDigest: qualification.recordDigest, qualificationValidThrough: qualification.validThrough,
     assignmentEvidenceDigest: assignment.recordDigest, assignmentValidThrough: assignment.validThrough, copyInventoryDigest: inventory.recordDigest,
-    providerTrustAnchorDigest: sha256(current.bindings.find((key) => key.keyId === 'human-provider-key-v2').publicKeyHex) });
+    providerTrustAnchorDigest: sha256(current.bindings.find((key) => key.keyId === 'human-provider-key-v2').publicKeyHex) };
+  if (qualified) {
+    for (const field of ['copyInventoryDigest', 'referenceState', 'allowedCopyProviders', 'sourceOriginalExcluded', 'deadlineSeconds', 'eraseMethod', 'terminalEventId']) delete authority[field];
+    Object.assign(authority, { version: 'steer-qualified-lifecycle-decision/v1', authorityType: 'qualified-lifecycle-decision',
+      decisionKind: options.decisionKind ?? 'hold-released', eventId: '00000000-0000-4000-8000-000000000003', eventBindingDigest: sha256('exact-event-payload'),
+      selectorInventoryDigest: inventory.recordDigest, previousHoldEventDigest: options.decisionKind === 'hold-applied' ? null : sha256('prior-hold-event'),
+      holdState: options.decisionKind === 'hold-applied' ? 'none' : 'active' });
+  }
+  edit('authority', authority);
   const provider = emit('providerProofBytes', { ...JSON.parse(bundle.providerProofBytes), authorityBindingDigest: humanAuthorityBindingDigest(authority), recordedAt: authority.decidedAt }, 'human-provider');
   const signedAuthority = emit('authorityBytes', { ...authority, providerProofDigest: provider.recordDigest }, 'authority');
   emit('replayLedgerBytes', { ...JSON.parse(bundle.replayLedgerBytes), snapshotAt: at(20), validThrough: at(59) }, 'replay-authority');
@@ -67,9 +77,10 @@ function currentHuman(options = {}) {
   emit('casReservationBytes', { ...JSON.parse(bundle.casReservationBytes), recordedAt: at(21), validThrough: at(59),
     authorityDigest: signedAuthority.recordDigest, requestDigest: signedAuthority.recordDigest }, 'cas-authority');
   bundle.evaluationTime = at(30); edit('bundle', bundle);
-  const verifier = () => createHumanAuthorityVerifier(registryBytes);
-  const selectedPolicy = sha256(jcs({ ...JSON.parse(createHumanAuthorityVerifier(jcs(registry())).policyBytes), registryDigest: sha256(registryBytes) }));
-  const input = edit('envelope', { version: 'steer-r5-002-human/v1', policyDigest: selectedPolicy, bundleBytes: jcs(bundle) });
+  const verifier = () => createHumanAuthorityVerifier(registryBytes, options.profile);
+  const baseline = createHumanAuthorityVerifier(jcs(registry()), options.profile);
+  const selectedPolicy = sha256(jcs({ ...JSON.parse(baseline.policyBytes), registryDigest: sha256(registryBytes) }));
+  const input = edit('envelope', { version: baseline.envelopeVersion, policyDigest: selectedPolicy, bundleBytes: jcs(bundle) });
   return { bundle, input, bytes: jcs(input), registryBytes, verifier, evaluationTime: at(30) };
 }
 function currentDenied(value, clock = value.evaluationTime) {
@@ -205,6 +216,73 @@ test('0079: no request-controlled registry, malformed envelope or extra field by
     (input) => { input.bundleBytes = '{}'; }, (input) => { input.bundleBytes += ' '; }, (input) => { input.version = 'other'; }])
     currentDenied(currentHuman({ edits: { envelope: mutate } }));
   for (const bytes of [null, {}, ' '.repeat(1048577), source.bytes + ' ']) currentDenied({ ...source, bytes });
+});
+
+test('0082: qualified hold decisions use a non-erasure profile without asserting a false cleared hold', () => {
+  for (const year of [2027, 2029, 2033]) for (const decisionKind of ['hold-applied', 'hold-released']) {
+    const value = currentHuman({ year, profile: 'qualified-event', decisionKind }), result = value.verifier().verify(value.bytes, value.evaluationTime);
+    assert.equal(result.decision, 'ALLOW'); assert.equal(result.executionAuthorized, false); assert.deepEqual(result.effects, zeroEffects());
+    const authority = JSON.parse(value.bundle.authorityBytes);
+    assert.equal(authority.holdState, decisionKind === 'hold-applied' ? 'none' : 'active');
+    for (const field of ['eraseMethod', 'deadlineSeconds', 'copyInventoryDigest', 'allowedCopyProviders', 'sourceOriginalExcluded', 'terminalEventId', 'referenceState'])
+      assert.equal(Object.hasOwn(authority, field), false);
+    assert.equal(result.consumedRecordIds.length, 9);
+  }
+});
+
+test('0082: disposition and qualified profiles cannot substitute for each other through a changed envelope', () => {
+  const qualified = currentHuman({ profile: 'qualified-event' }), disposition = currentHuman();
+  const use = (value, destination) => ({ ...value, verifier: destination.verifier,
+    bytes: jcs({ version: destination.input.version, policyDigest: destination.input.policyDigest, bundleBytes: jcs(value.bundle) }) });
+  currentDenied(use(qualified, disposition)); currentDenied(use(disposition, qualified));
+  assert.throws(() => createHumanAuthorityVerifier(jcs(registry()), 'caller-defined'), /HUMAN_AUTHORITY_CONFIGURATION_INVALID/);
+  currentDenied(currentHuman({ profile: 'qualified-event', edits: { envelope: (input) => { input.profile = 'disposition'; } } }));
+});
+
+test('0082: event, selector and predecessor fields are fully provider-bound and hold-release state is exact', () => {
+  for (const field of ['eventId', 'eventBindingDigest', 'selectorInventoryDigest', 'previousHoldEventDigest', 'decisionKind'])
+    currentDenied(currentHuman({ profile: 'qualified-event', edits: { authorityBytes: (authority) => {
+      authority[field] = field === 'decisionKind' ? 'hold-applied' : field === 'eventId' ? 'another-event' : 'f'.repeat(64);
+    } } }));
+  for (const [field, value] of [['holdState', 'none'], ['previousHoldEventDigest', null], ['decisionKind', 'reference-revocation-authorized'],
+    ['eraseMethod', 'provider-delete'], ['authorityType', 'disposition-authorization'], ['deadlineSeconds', 60]])
+    currentDenied(currentHuman({ profile: 'qualified-event', edits: { authority: (authority) => { authority[field] = value; } } }));
+  currentDenied(currentHuman({ profile: 'qualified-event', decisionKind: 'hold-applied', edits: { authority: (authority) => { authority.previousHoldEventDigest = 'f'.repeat(64); } } }));
+});
+
+test('0082: selector inventory has one exact typed record, never a copy-inventory or missing-selector surrogate', () => {
+  for (const mutate of [
+    (record) => { record.items = []; }, (record) => { record.items.push(record.items[0]); },
+    (record) => { delete record.items[0].recordId; }, (record) => { record.items[0].recordId = '*'; },
+    (record) => { record.items[0].artifactRevision = 'bad'; }, (record) => { record.items[0].selectorDigest = 'bad'; },
+    (record) => { record.items[0].copyId = 'raw-copy'; }, (record) => { record.extra = true; },
+  ]) currentDenied(currentHuman({ profile: 'qualified-event', edits: { inventoryBytes: mutate } }));
+});
+
+test('0082: all nine qualified-owner proofs, trusted current clock and independent keys remain required', () => {
+  const fields = ['authorityBytes', 'providerProofBytes', 'identityEvidenceBytes', 'qualificationEvidenceBytes', 'assignmentEvidenceBytes',
+    'inventoryBytes', 'replayLedgerBytes', 'casHeadBytes', 'casReservationBytes'];
+  for (const field of fields) for (const corrupt of [false, true]) currentDenied(currentHuman({ profile: 'qualified-event', edits: { bundle: (bundle) => {
+    if (!corrupt) delete bundle[field];
+    else { const record = JSON.parse(bundle[field]); record.signature.valueBase64 = Buffer.alloc(64).toString('base64'); bundle[field] = jcs(record); }
+  } } }));
+  const value = currentHuman({ profile: 'qualified-event' }); assert.equal(value.verifier().verify(value.bytes).decision, 'DENY');
+  currentDenied(value, '2033-09-04T12:00:31Z');
+  assert.throws(currentHuman({ profile: 'qualified-event', edits: { registry: (registry) => {
+    registry.bindings.find((key) => key.keyId === 'human-provider-key-v2').publicKeyHex = registry.bindings.find((key) => key.keyId === 'authority-key-v2').publicKeyHex;
+  } } }).verifier, /HUMAN_AUTHORITY_CONFIGURATION_INVALID/);
+});
+
+test('0082: qualified decision freshness, reservation chronology and exact expiry do not inherit a long-lived grant', () => {
+  for (const [name, field, value] of [['authority', 'expiresAt', '2033-09-05T12:00:59Z'], ['identityEvidenceBytes', 'verifiedAt', '2033-09-04T11:50:00Z'],
+    ['inventoryBytes', 'capturedAt', '2033-09-04T11:50:00Z'], ['casHeadBytes', 'snapshotAt', '2033-09-04T11:50:00Z'],
+    ['casReservationBytes', 'recordedAt', '2033-09-04T12:00:19Z'], ['replayLedgerBytes', 'snapshotAt', '2033-09-04T12:00:22Z'],
+    ['casReservationBytes', 'validThrough', '2033-09-04T12:01:00Z']])
+    currentDenied(currentHuman({ profile: 'qualified-event', edits: { [name]: (record) => { record[field] = value; } } }));
+  const before = currentHuman({ profile: 'qualified-event', edits: { bundle: (bundle) => { bundle.evaluationTime = '2033-09-04T12:00:58.999999999Z'; } } });
+  assert.equal(before.verifier().verify(before.bytes, before.bundle.evaluationTime).decision, 'ALLOW');
+  const expired = currentHuman({ profile: 'qualified-event', edits: { bundle: (bundle) => { bundle.evaluationTime = '2033-09-04T12:00:59Z'; } } });
+  currentDenied(expired, expired.bundle.evaluationTime);
 });
 
 test('old negative authority cases remain denied; malformed envelopes cannot bypass the full-binding path', () => {

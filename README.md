@@ -48,7 +48,7 @@ raw grant/batch lifecycle integration (0074), single-checkpoint raw recovery (00
 bounded repeated-checkpoint chains (0076), terminal consumption readback (0077)
 fact-only historical-event revalidation (0078), current-registry human authority (0079)
 full future-retention composition for four supported classes (0080)
-and mixed-era lifecycle history (0081),
+mixed-era lifecycle history (0081) and non-erasure qualified decision authority (0082),
 correction candidates, are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
@@ -143,6 +143,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0079 · Current human authority | `intent/0079/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | all nine fresh human proofs under trusted current keys and explicit clock; unchanged default policy/output and old key windows | full historical/current lifecycle composition, reference evidence, runtime trust integration and independent/protected review |
 | 0080 · Future lifecycle composition | `intent/0080/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | full one-/three-/seven-year first/replay evidence for four classes; historical facts plus fresh current human/actions and exact selected provider receipts | mixed-era history, reference evidence, remaining classes/normative coverage, runtime integration and independent/protected review |
 | 0081 · Mixed-era history | `intent/0081/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | exact archived prefix/current suffix, global order/identity, combined holds and independent current keys in full lifecycle | complete reference evidence, remaining classes/normative coverage, runtime integration and independent/protected review |
+| 0082 · Qualified non-erasure authority | `intent/0082/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | complete current owner proof for explicit hold decisions; active-hold release, exact selector and event/predecessor bindings without erase fields | actual event/history binding, qualified archival evidence, reference evidence, remaining normative coverage and independent/protected review |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier
