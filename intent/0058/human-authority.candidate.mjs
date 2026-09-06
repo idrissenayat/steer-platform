@@ -7,6 +7,7 @@ import { AUTHORIZATION_POLICY_BYTES, AUTHORIZATION_POLICY_PATH, AUTHORIZATION_PO
   exactKeys, hex, jcs, parseCanonical, sha256, zeroEffects } from '../0001/reviews/domain/round-3/remediation/strict-evidence.candidate.mjs';
 import { createTimedRecordVerifier } from './record-verifier.candidate.mjs';
 import { validateQualifiedDecision, schemaPolicyDigest as qualifiedSchemaPolicy } from '../0082/qualified-decision-schema.candidate.mjs';
+import { validateReferenceDecision, schemaPolicyDigest as referenceSchemaPolicy } from '../0085/reference-decision-schema.candidate.mjs';
 
 const registryBytes = jcs(JSON.parse(readFileSync(new URL('../0001/reviews/domain/round-3/remediation/TRUST-REGISTRY.candidate.json', import.meta.url), 'utf8')));
 const verifier = createTimedRecordVerifier(registryBytes);
@@ -36,10 +37,10 @@ export function correctedHumanAuthorityDecision(serialized) {
 export function createHumanAuthorityVerifier(trustedRegistryBytes, profile = 'disposition') {
   let selected;
   try {
-    if (!['disposition', 'qualified-event'].includes(profile)) throw new Error('HUMAN_PROFILE_INVALID');
+    if (!['disposition', 'qualified-event', 'qualified-reference'].includes(profile)) throw new Error('HUMAN_PROFILE_INVALID');
     selected = createTimedRecordVerifier(trustedRegistryBytes);
     const registry = parseCanonical(trustedRegistryBytes);
-    if (profile === 'qualified-event' && new Set(registry.bindings.map((key) => key.publicKeyHex)).size !== registry.bindings.length)
+    if (profile !== 'disposition' && new Set(registry.bindings.map((key) => key.publicKeyHex)).size !== registry.bindings.length)
       throw new Error('CURRENT_TRUST_INDEPENDENCE_INVALID');
     for (const original of parseCanonical(registryBytes).bindings) {
       const matches = registry.bindings.filter((key) => key.domain === original.domain && key.keyId === original.keyId);
@@ -48,13 +49,16 @@ export function createHumanAuthorityVerifier(trustedRegistryBytes, profile = 'di
         throw new Error('CURRENT_TRUST_INVALID');
     }
   } catch { throw new Error('HUMAN_AUTHORITY_CONFIGURATION_INVALID'); }
-  const qualified = profile === 'qualified-event';
-  const policyBytes = jcs(qualified ? { version: 'steer-qualified-event-human/v1', originalHumanPolicyDigest: correctionPolicyDigest,
+  const reference = profile === 'qualified-reference', qualified = reference || profile === 'qualified-event';
+  const policyBytes = jcs(reference ? { version: 'steer-qualified-reference-human/v1', originalHumanPolicyDigest: correctionPolicyDigest,
+    registryDigest: selected.registryDigest, schemaPolicyDigest: referenceSchemaPolicy,
+    rules: 'complete qualified owner proof and exact referenced-evidence selector; current independent keys/clock and 300-second freshness; bind reference inventory verification bundle and tombstone identity; decision is not erasure permission' } : qualified ? { version: 'steer-qualified-event-human/v1', originalHumanPolicyDigest: correctionPolicyDigest,
     registryDigest: selected.registryDigest, schemaPolicyDigest: qualifiedSchemaPolicy,
     rules: 'complete identity qualification assignment provider selector inventory and winning CAS; distinct keys; exact current clock and 300-second decision/snapshot freshness; non-erasure event decision, no execution' } :
     { ...parseCanonical(correctionPolicyBytes), registryDigest: selected.registryDigest });
   const selectedPolicyDigest = sha256(policyBytes);
-  const contract = qualified ? { envelopeVersion: 'steer-qualified-event-human/v1', schema: validateQualifiedDecision,
+  const contract = reference ? { envelopeVersion: 'steer-qualified-reference-human/v1', schema: validateReferenceDecision,
+    inventoryDigestField: 'selectorInventoryDigest', inventoryItemIdField: 'recordId', recordClass: 'RC-REFERENCED-EVIDENCE' } : qualified ? { envelopeVersion: 'steer-qualified-event-human/v1', schema: validateQualifiedDecision,
     inventoryDigestField: 'selectorInventoryDigest', inventoryItemIdField: 'recordId' } : null;
   return Object.freeze({ policyBytes, policyDigest: selectedPolicyDigest, registryDigest: selected.registryDigest,
     envelopeVersion: contract?.envelopeVersion ?? 'steer-r5-002-human/v1',
@@ -124,7 +128,7 @@ function verifyHumanAuthority(serialized, verifier, expectedPolicyDigest, contra
       const row = inventory.items[0];
       if (!exactKeys(row, ['recordId', 'recordClass', 'artifactRevision', 'selectorDigest']) ||
           ['recordId', 'recordClass'].some((field) => typeof row[field] !== 'string' || !row[field].length || row[field].length > 512 || /[\u0000-\u001f*?]/u.test(row[field])) ||
-          !hex(row.artifactRevision, 40) || !hex(row.selectorDigest, 64)) return deny('HUMAN_SELECTOR_INVENTORY_INVALID');
+          !hex(row.artifactRevision, 40) || !hex(row.selectorDigest, 64) || (contract.recordClass && row.recordClass !== contract.recordClass)) return deny('HUMAN_SELECTOR_INVENTORY_INVALID');
     }
     const target = (record) => record.targetExamRevision === TARGET_REVISION && record.targetExamSha256 === TARGET_EXAM_SHA && record.authorizationPolicyDigest === AUTHORIZATION_POLICY_SHA;
     if (!exactKeys(replay, ['ledgerId', 'source', 'status', 'idempotencyKey', 'requestDigest', 'resultDigest', 'headId', 'snapshotAt', 'validThrough',

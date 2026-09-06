@@ -55,9 +55,9 @@ function currentHuman(options = {}) {
   const identity = emit('identityEvidenceBytes', { ...JSON.parse(bundle.identityEvidenceBytes), verifiedAt: at(18) }, 'provider');
   const qualification = emit('qualificationEvidenceBytes', { ...JSON.parse(bundle.qualificationEvidenceBytes), validThrough: at(59) }, 'provider');
   const assignment = emit('assignmentEvidenceBytes', { ...JSON.parse(bundle.assignmentEvidenceBytes), validThrough: at(59) }, 'assignment');
-  const qualified = options.profile === 'qualified-event';
+  const reference = options.profile === 'qualified-reference', qualified = reference || options.profile === 'qualified-event';
   const inventory = emit('inventoryBytes', { ...JSON.parse(bundle.inventoryBytes), capturedAt: at(18),
-    ...(qualified ? { items: [{ recordId: 'record-target', recordClass: 'RC-DECISION-PROOF', artifactRevision: 'b'.repeat(40), selectorDigest: sha256('exact-test-selector') }] } : {}) }, 'record');
+    ...(qualified ? { items: [{ recordId: 'record-target', recordClass: reference ? 'RC-REFERENCED-EVIDENCE' : 'RC-DECISION-PROOF', artifactRevision: 'b'.repeat(40), selectorDigest: sha256('exact-test-selector') }] } : {}) }, 'record');
   const authority = { ...JSON.parse(bundle.authorityBytes), authenticatedAt: at(19), decidedAt: at(20), validFrom: at(0), expiresAt: at(59),
     identityEvidenceDigest: identity.recordDigest, qualificationEvidenceDigest: qualification.recordDigest, qualificationValidThrough: qualification.validThrough,
     assignmentEvidenceDigest: assignment.recordDigest, assignmentValidThrough: assignment.validThrough, copyInventoryDigest: inventory.recordDigest,
@@ -68,6 +68,12 @@ function currentHuman(options = {}) {
       decisionKind: options.decisionKind ?? 'hold-released', eventId: '00000000-0000-4000-8000-000000000003', eventBindingDigest: sha256('exact-event-payload'),
       selectorInventoryDigest: inventory.recordDigest, previousHoldEventDigest: options.decisionKind === 'hold-applied' ? null : sha256('prior-hold-event'),
       holdState: options.decisionKind === 'hold-applied' ? 'none' : 'active' });
+    if (reference) {
+      delete authority.previousHoldEventDigest;
+      Object.assign(authority, { version: 'steer-qualified-reference-decision/v1', authorityType: 'qualified-reference-decision',
+        decisionKind: 'reference-revocation-authorized', referenceState: 'active', referenceInventoryDigest: sha256('exact-reference-inventory'),
+        verificationBundleDigest: sha256('exact-verification-bundle'), tombstoneRecordId: 'tombstone-reference-1' });
+    }
   }
   edit('authority', authority);
   const provider = emit('providerProofBytes', { ...JSON.parse(bundle.providerProofBytes), authorityBindingDigest: humanAuthorityBindingDigest(authority), recordedAt: authority.decidedAt }, 'human-provider');
@@ -87,6 +93,79 @@ function currentDenied(value, clock = value.evaluationTime) {
   const result = value.verifier().verify(value.bytes, clock); assert.equal(result.decision, 'DENY');
   assert.equal(result.executionAuthorized, false); assert.deepEqual(result.effects, zeroEffects());
 }
+
+test('0085: qualified reference decisions bind evidence without pretending references or holds are cleared', () => {
+  for (const year of [2027, 2029, 2033]) for (const holdState of ['none', 'active', 'released']) for (const referenceState of ['active', 'cleared']) {
+    const value = currentHuman({ year, profile: 'qualified-reference', edits: { authority: (record) => { record.holdState = holdState; record.referenceState = referenceState; } } });
+    const result = value.verifier().verify(value.bytes, value.evaluationTime);
+    assert.equal(result.decision, 'ALLOW'); assert.equal(result.executionAuthorized, false); assert.deepEqual(result.effects, zeroEffects());
+    const authority = JSON.parse(value.bundle.authorityBytes);
+    assert.equal(authority.decisionKind, 'reference-revocation-authorized'); assert.equal(authority.holdState, holdState); assert.equal(authority.referenceState, referenceState);
+    for (const field of ['eraseMethod', 'terminalEventId', 'deadlineSeconds', 'previousHoldEventDigest']) assert.equal(field in authority, false);
+  }
+});
+
+test('0085: reference, hold and disposition profiles cannot substitute for one another', () => {
+  const values = [currentHuman(), currentHuman({ profile: 'qualified-event' }), currentHuman({ profile: 'qualified-reference' })];
+  assert.equal(new Set(values.map((value) => value.verifier().policyDigest)).size, 3);
+  for (const source of values) for (const target of values) if (source !== target) {
+    const verifier = target.verifier();
+    currentDenied({ ...source, verifier: () => verifier, bytes: jcs({ version: verifier.envelopeVersion, policyDigest: verifier.policyDigest, bundleBytes: jcs(source.bundle) }) });
+  }
+  currentDenied(currentHuman({ profile: 'qualified-reference', edits: { envelope: (record) => { record.profile = 'disposition'; } } }));
+});
+
+test('0085: exact reference evidence and event fields are closed, required and fully human-provider-bound', () => {
+  const fields = ['eventId', 'eventBindingDigest', 'selectorInventoryDigest', 'referenceInventoryDigest', 'verificationBundleDigest', 'tombstoneRecordId'];
+  for (const field of fields) {
+    currentDenied(currentHuman({ profile: 'qualified-reference', edits: { authority: (record) => { delete record[field]; } } }));
+    currentDenied(currentHuman({ profile: 'qualified-reference', edits: { authorityBytes: (record) => {
+      record[field] = field.endsWith('Digest') ? 'f'.repeat(64) : 'substituted-id';
+    } } }));
+  }
+  for (const [field, replacement] of [['decisionKind', 'hold-released'], ['referenceState', 'unknown'], ['holdState', 'unknown'],
+    ['referenceInventoryDigest', 'not-a-digest'], ['verificationBundleDigest', 'f'.repeat(63)], ['tombstoneRecordId', ''],
+    ['tombstoneRecordId', '*'], ['tombstoneRecordId', 'record\nother'], ['tombstoneRecordId', 'a'.repeat(513)],
+    ['eraseMethod', 'provider-delete'], ['previousHoldEventDigest', 'f'.repeat(64)], ['deadlineSeconds', 60]]) {
+    currentDenied(currentHuman({ profile: 'qualified-reference', edits: { authority: (record) => { record[field] = replacement; } } }));
+  }
+});
+
+test('0085: reference decision selector is exactly one referenced-evidence record', () => {
+  for (const mutate of [
+    (record) => { record.items = []; }, (record) => { record.items.push({ ...record.items[0], recordId: 'second' }); },
+    (record) => { record.items[0].recordClass = 'RC-DECISION-PROOF'; }, (record) => { record.items[0].recordId = '*'; },
+    (record) => { record.items[0].selectorDigest = 'bad'; }, (record) => { record.items[0].artifactRevision = 'f'.repeat(39); },
+    (record) => { record.items[0].extra = true; }, (record) => { record.extra = true; },
+  ]) currentDenied(currentHuman({ profile: 'qualified-reference', edits: { inventoryBytes: mutate } }));
+});
+
+test('0085: all nine complete current proofs, role independence and explicit clock remain mandatory', () => {
+  for (const field of ['authorityBytes', 'providerProofBytes', 'identityEvidenceBytes', 'qualificationEvidenceBytes', 'assignmentEvidenceBytes',
+    'inventoryBytes', 'replayLedgerBytes', 'casHeadBytes', 'casReservationBytes']) for (const corrupt of [false, true]) {
+    currentDenied(currentHuman({ profile: 'qualified-reference', edits: { bundle: (bundle) => {
+      if (!corrupt) bundle[field] = '{}'; else { const record = JSON.parse(bundle[field]); record.signature.valueBase64 = Buffer.alloc(64).toString('base64'); bundle[field] = jcs(record); }
+    } } }));
+  }
+  const value = currentHuman({ profile: 'qualified-reference' });
+  assert.equal(value.verifier().verify(value.bytes).decision, 'DENY'); currentDenied(value, '2033-09-04T12:00:31Z');
+  assert.throws(currentHuman({ profile: 'qualified-reference', edits: { registry: (registry) => {
+    registry.bindings.find((key) => key.keyId === 'human-provider-key-v2').publicKeyHex = registry.bindings.find((key) => key.keyId === 'authority-key-v2').publicKeyHex;
+  } } }).verifier, /HUMAN_AUTHORITY_CONFIGURATION_INVALID/);
+});
+
+test('0085: reference decisions retain exact short-lived freshness and reservation boundaries', () => {
+  for (const [name, field, replacement] of [
+    ['authority', 'expiresAt', '2033-09-04T12:00:30Z'], ['identityEvidenceBytes', 'verifiedAt', '2033-09-04T11:55:29Z'],
+    ['inventoryBytes', 'capturedAt', '2033-09-04T11:55:29Z'], ['casReservationBytes', 'recordedAt', '2033-09-04T12:00:19Z'],
+    ['casReservationBytes', 'validThrough', '2033-09-04T12:01:00Z'], ['assignmentEvidenceBytes', 'status', 'expired'],
+    ['qualificationEvidenceBytes', 'qualification', 'unqualified'],
+  ]) currentDenied(currentHuman({ profile: 'qualified-reference', edits: { [name]: (record) => { record[field] = replacement; } } }));
+  const before = currentHuman({ profile: 'qualified-reference', edits: { bundle: (bundle) => { bundle.evaluationTime = '2033-09-04T12:00:58.999999999Z'; } } });
+  assert.equal(before.verifier().verify(before.bytes, '2033-09-04T12:00:58.999999999Z').decision, 'ALLOW');
+  const expiry = currentHuman({ profile: 'qualified-reference', edits: { bundle: (bundle) => { bundle.evaluationTime = '2033-09-04T12:00:59Z'; } } });
+  currentDenied(expiry, '2033-09-04T12:00:59Z');
+});
 
 test('R5-002: wrong-session and pre-key provider proofs reach frozen ALLOW but deny in the successor', () => {
   const original = makeHumanAuthorityBundle();

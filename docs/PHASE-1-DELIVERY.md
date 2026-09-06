@@ -1511,3 +1511,21 @@ intent/0084/PLAN.md, followed by remaining source/class/normative and migration
 coverage. This version covers the original pinned trust era, not every successor
 era or a live archive integration. All five formal R5 findings remain open. No
 actual human signature, provider mutation, gate approval, deployment or spending.
+
+## Completed development increment: 0085 — qualified reference decision profile
+
+The new qualified-reference profile represents reference revocation without
+pretending it is a hold release or an erasure grant. It binds the event, exact
+referenced record selector, reference inventory digest, verification bundle digest
+and bounded tombstone identifier. All nine current owner proofs and short-lived
+freshness checks remain required; existing profiles and frozen schemas stay exact.
+
+Six new focused groups and final full checks pass: 24 human test groups, 213 root
+controls and 88 prototype tests. See intent/0085/EVIDENCE.md for the final rerun
+after ID hardening and synthetic/cached limits. Protected artifacts are unchanged.
+
+Next is actual reference inventory/retained-verification content and full
+event/history/lifecycle composition under intent/0085/PLAN.md. This profile alone
+does not admit referenced objects to the current runtime, prove retention or
+permit deletion. All five formal R5 findings remain open. No real signature,
+provider mutation, gate approval, deployment or spending is authorized.

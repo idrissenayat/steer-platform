@@ -733,6 +733,14 @@ tests. The original-era limit, live archive integration and all five R5 findings
 remain explicit. Reference revocation/retained verification is next under
 `intent/0084/PLAN.md`; no human ruling, live effect or gate closure is claimed.
 
+Item `intent/0085` adds a qualified-reference owner profile with exact referenced
+record selection and bound event/reference-inventory/verification-bundle/tombstone
+identifiers. Truthful hold/reference state is separate from erase authority; all
+nine current proofs, key independence, freshness and profile isolation remain
+mandatory. Full checks pass with 213 root controls and 88 prototype tests. Exact
+reference contents, retained verification and full lifecycle admission are next
+under `intent/0085/PLAN.md`, not implied by this profile's ALLOW. R5 remains open.
+
 ## Local commands
 
 ```sh
