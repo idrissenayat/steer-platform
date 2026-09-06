@@ -1398,3 +1398,21 @@ Next is fresh current-registry human authority, then full historical/current
 lifecycle and reference-revocation composition under intent/0078/PLAN.md. This is
 not completed future retention or a live archive. All five R5 findings, actual
 integration, normative coverage and independent/protected review remain open.
+
+## Completed development increment: 0079 — fresh current human authority
+
+The full human verifier now has explicit trusted current-registry selection and
+a separate trusted evaluation clock. All nine signed records must be current;
+expired historical approvals cannot substitute. Original policy/API output and
+old key material/windows remain unchanged. Candidate ALLOW has zero effects and
+does not create a human signature or authorize execution.
+
+The 12-group human suite and full checks pass, including 171 root controls and
+88 prototype tests. Future dates, per-record omissions/forgeries/wrong roles,
+clock mismatch, expiry/revocation and exact bindings are covered. See
+intent/0079/EVIDENCE.md for the corrected test-helper issue and evidence limits.
+
+Next is full historical/current lifecycle composition under intent/0079/PLAN.md,
+followed by exact reference-revocation/verification-bundle and remaining normative
+coverage. No new trust is deployed, no live erasure is performed, and all five
+formal R5 findings remain open pending independent/protected review.

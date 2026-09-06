@@ -16,11 +16,14 @@ independent Critic verdict, protected Exam incorporation or a human signature.
 unchanged old keys and fresh independent current witnesses. It does not restore
 expired action/human authority or complete future lifecycle disposition.
 
-Next bounded work is trusted current-registry human authority, full historical/current
+0079 adds full current-registry human authority with fresh evidence and an explicit
+trusted clock, preserving the original API and old key windows.
+
+Next bounded work is full historical/current
 lifecycle composition and reference-revocation evidence, then migration compatibility/concurrency/checkpoint coverage and complete
 normative inventory. Do not extend frozen key windows merely to make historical
 or future-retention tests pass; resolve archival versus current authority explicitly.
-0061–0078 are development candidates and verification increments,
+0061–0079 are development candidates and verification increments,
 not proof of future retention-key coverage, live compatibility or atomic execution.
 Preserve the frozen send-back package. Do not request a new qualified-human ruling
 until the complete corrected candidate is independently accepted and incorporated
@@ -32,4 +35,4 @@ production/provider mutation, deletion, release, deployment, protected edit or
 signature is authorized by this ledger. No credential handoff is pending here.
 
 Sources: intent/0001/reviews/domain/round-3/remediation/CYCLE-DISPOSITION.md,
-preflight-critic-r5.json in that same frozen directory, and intent/0056–0078.
+preflight-critic-r5.json in that same frozen directory, and intent/0056–0079.

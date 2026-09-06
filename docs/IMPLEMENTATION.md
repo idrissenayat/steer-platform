@@ -679,6 +679,14 @@ not action authority or a completed future lifecycle disposition. The original
 current-key exports still deny expired originals. See `intent/0078/PLAN.md` for
 fresh human-authority and full lifecycle composition next; R5 remains open.
 
+Item `intent/0079` adds trusted current-registry selection to the full human
+authority verifier, preserving its original export and policy pin. All nine fresh
+signed records and exact bindings remain required at an explicit trusted current
+clock. Expired historical approvals, changed old key windows and request-selected
+registries deny. Future tests exercise fresh synthetic authority, not new real human
+signatures. Full lifecycle composition is next under `intent/0079/PLAN.md`; no gate
+or runtime trust publication is claimed.
+
 ## Local commands
 
 ```sh

@@ -27,11 +27,45 @@ const deny = (firstError) => ({ decision: 'DENY', firstError, effects: zeroEffec
 const validTime = (value) => { const time = strictTime(value); if (time === null) throw new Error('INVALID_TIME'); return time; };
 
 export function correctedHumanAuthorityDecision(serialized) {
+  return verifyHumanAuthority(serialized, verifier, correctionPolicyDigest);
+}
+
+// Trusted composition only. The bundle never selects or supplies this registry.
+// The default export/policy above remains exactly pinned to the original keys.
+export function createHumanAuthorityVerifier(trustedRegistryBytes) {
+  let selected;
+  try {
+    selected = createTimedRecordVerifier(trustedRegistryBytes);
+    const registry = parseCanonical(trustedRegistryBytes);
+    for (const original of parseCanonical(registryBytes).bindings) {
+      const matches = registry.bindings.filter((key) => key.domain === original.domain && key.keyId === original.keyId);
+      if (matches.length !== 1 || ['algorithm', 'publicKeyHex', 'notBefore', 'notAfter'].some((field) => matches[0][field] !== original[field]) ||
+          (original.revokedAt !== null && (matches[0].revokedAt === null || validTime(matches[0].revokedAt) > validTime(original.revokedAt))))
+        throw new Error('CURRENT_TRUST_INVALID');
+    }
+  } catch { throw new Error('HUMAN_AUTHORITY_CONFIGURATION_INVALID'); }
+  const policyBytes = jcs({ ...parseCanonical(correctionPolicyBytes), registryDigest: selected.registryDigest });
+  const selectedPolicyDigest = sha256(policyBytes);
+  return Object.freeze({ policyBytes, policyDigest: selectedPolicyDigest, registryDigest: selected.registryDigest,
+    verify(serialized, evaluationTime) {
+      try {
+        validTime(evaluationTime);
+        if (typeof serialized !== 'string' || serialized.length > 1048576) throw new Error('INPUT_INVALID');
+        const envelope = parseCanonical(serialized);
+        if (typeof envelope.bundleBytes !== 'string' || envelope.bundleBytes.length > 1048576 ||
+            parseCanonical(envelope.bundleBytes).evaluationTime !== evaluationTime) throw new Error('CLOCK_INVALID');
+        return { ...verifyHumanAuthority(serialized, selected, selectedPolicyDigest), executionAuthorized: false };
+      } catch { return { ...deny('HUMAN_CURRENT_CLOCK_INVALID'), executionAuthorized: false }; }
+    },
+  });
+}
+
+function verifyHumanAuthority(serialized, verifier, expectedPolicyDigest) {
   try {
     if (typeof serialized !== 'string' || serialized.length > 1048576) return deny('HUMAN_ENVELOPE_INVALID');
     const envelope = parseCanonical(serialized);
     if (!exactKeys(envelope, ['version', 'policyDigest', 'bundleBytes']) || envelope.version !== 'steer-r5-002-human/v1' ||
-        envelope.policyDigest !== correctionPolicyDigest || typeof envelope.bundleBytes !== 'string') return deny('HUMAN_ENVELOPE_INVALID');
+        envelope.policyDigest !== expectedPolicyDigest || typeof envelope.bundleBytes !== 'string') return deny('HUMAN_ENVELOPE_INVALID');
     const input = parseCanonical(envelope.bundleBytes);
     if (!exactKeys(input, fields) || fields.some((field) => typeof input[field] !== 'string' || input[field].length > 65536)) return deny('HUMAN_BUNDLE_INVALID');
     if (input.authorizationPolicyBytes !== AUTHORIZATION_POLICY_BYTES || input.retentionPolicyBytes !== RETENTION_POLICY_BYTES) return deny('HUMAN_POLICY_INVALID');
@@ -87,7 +121,7 @@ export function correctedHumanAuthorityDecision(serialized) {
         reservation.idempotencyKey !== authority.idempotencyKey || reservation.requestDigest !== authority.recordDigest || reservation.authorityDigest !== authority.recordDigest ||
         reservation.winner !== true || reservation.status !== 'reserved' || !target(reservation) ||
         validTime(reservation.recordedAt) < validTime(head.snapshotAt) || now >= validTime(reservation.validThrough)) return deny('HUMAN_RESERVATION_INVALID');
-    return { decision: 'ALLOW', firstError: null, effects: zeroEffects(), correctionPolicyDigest,
+    return { decision: 'ALLOW', firstError: null, effects: zeroEffects(), correctionPolicyDigest: expectedPolicyDigest,
       consumedRecordIds: [authority.authorityId, provider.providerRecordId, identity.evidenceId, qualification.evidenceId, assignment.assignmentId,
         inventory.inventoryId, replay.ledgerId, head.headId, reservation.reservationId] };
   } catch { return deny('HUMAN_TIMED_EVIDENCE_INVALID'); }

@@ -46,7 +46,7 @@ precise lifecycle composition (0070), policy-ranked event ordering (0071) and
 three-key raw lifecycle evidence (0072), pre-terminal raw grant eligibility (0073)
 raw grant/batch lifecycle integration (0074), single-checkpoint raw recovery (0075)
 bounded repeated-checkpoint chains (0076), terminal consumption readback (0077)
-and fact-only historical-event revalidation (0078),
+fact-only historical-event revalidation (0078) and current-registry human authority (0079),
 correction candidates, are
 implemented development increments. The separate
 runtime GitHub App has passed a live read-only artifact check; see
@@ -138,6 +138,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0076 · Raw checkpoint chains | `intent/0076/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | every predecessor checkpoint/reservation, monotonic receipts/history, known-hold intervals and chain-bound tombstone | terminal consumption/acknowledgment-loss evidence, real store integration, remaining normative coverage and independent/protected review |
 | 0077 · Raw terminal readback | `intent/0077/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | exact original completion seal, full terminal/current committed proofs, immutable signed evidence and current-time no-op audit | real store/transport recovery, archival versus current authority, remaining normative coverage and independent/protected review |
 | 0078 · Historical event revalidation | `intent/0078/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | complete original historical facts with fresh independent current archive attestations; unchanged old keys and current revocation denial | current human/action and full future lifecycle composition, reference evidence, runtime trust/archive integration and independent/protected review |
+| 0079 · Current human authority | `intent/0079/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | all nine fresh human proofs under trusted current keys and explicit clock; unchanged default policy/output and old key windows | full historical/current lifecycle composition, reference evidence, runtime trust integration and independent/protected review |
 
 The unnumbered `intent/BRIEF.md`, `SPEC.md`, and `EXAM.md`, plus the
 `intent/intent-detail-view*` files, remain compatibility paths for earlier
