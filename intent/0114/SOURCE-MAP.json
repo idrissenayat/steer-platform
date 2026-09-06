@@ -1,0 +1,12 @@
+{
+  "classId": "RC-CORPUS-RAW-WORKING",
+  "terminalAt": "2026-09-04T12:00:00Z",
+  "deadlineAt": "2026-09-04T12:01:00Z",
+  "observations": {"before": "2026-09-04T12:00:59Z", "at": "2026-09-04T12:01:00Z", "after": "2026-09-04T12:01:01Z", "complete": "2026-09-04T12:01:06Z"},
+  "receiptDeadlineInclusive": true,
+  "reconciliation": "The signed records policy requires temporary-copy erasure and receipt commitment no later than terminal plus 60 seconds. Frozen minimum-wait scheduling and late post-boundary receipts are not copied as success expectations. Early completed full graphs validate at all four exact source observations; a deadline-time receipt validates at the complete audit, while signed +1ns/+1s late receipts fail.",
+  "unavailableEvidence": "The near-deadline graph includes aggregate and tombstone after +61s. Earlier observations reject unavailable future evidence, not proof of a deadline miss; the +66s paired audit separately isolates the receipt deadline.",
+  "scope": "Closed synthetic raw-v2 preterminal grant, three temporary copies, one batch, protected actions, provider receipts, aggregate and separately authorized tombstone. No key policy, full verifier or source pin changes.",
+  "limits": "Not actual key destruction, receipt commitment, publication, quarantine, terminal status orchestration, all grant variants, crash/restore/race execution, source-original disposition, qualified hold verification, independent acceptance or protected incorporation. Held/reference-active claims conservatively retain; blocked is the existing offline graph result, not a claimed production quarantine state.",
+  "remainingLifecycleClasses": ["RC-RELEASE-MIGRATION", "RC-REBUILDABLE", "RC-DELETION-EVIDENCE", "RC-CORPUS-PROVENANCE", "RC-CORPUS-SANITIZED"]
+}

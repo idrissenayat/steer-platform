@@ -2156,3 +2156,31 @@ Raw deadlines, immediate triggers and future retention profiles need distinct
 semantics; no real immutable-store guarantee follows from these development tests.
 All five formal findings remain open. No protected edit, real provider operation,
 deletion, gate approval, deployment, release or spending is authorized.
+
+## Completed development increment: 0114 — raw-corpus maximum deadline
+
+Four raw-corpus source observations now execute complete early/replay proof graphs
+at exactly terminal +59/+60/+61/+66 seconds. The signed sixty-second receipt limit
+is a maximum deadline, not a minimum wait. A separately paired completed audit
+accepts a receipt at exactly +60 seconds and rejects genuine signed +1ns/+1s late
+receipts. Aggregate/tombstone hashes are rebuilt and correctly ordered; earlier
+observations cannot consume their future evidence. Missing/expired grants and
+incomplete graphs deny; held/reference-active state conservatively retains.
+
+Twelve focused groups pass, including six new groups. All 381 prior mapped
+observation seals/counts/outcomes remain unchanged. Fresh quick execution matches
+385 passed / 3,651 uncovered; full matches 401 passed / 3,635 uncovered, with zero
+failures. Separate full integration passes three groups. An initial repository run
+found six stale family-count assertions; after correcting those expectations, the
+full rerun passes 387 root controls and 88 prototype tests, plus 95 kit artifacts,
+scope audit, typechecks and builds. Unchanged package tasks are cached. See
+intent/0114/EVIDENCE.md and SOURCE-MAP.json for exact timing and evidence limits.
+
+Twenty lifecycle coordinates remain across five classes, alongside 3,614 migration
+and one obsolete schema case. The next immediate-trigger design constraints are
+recorded in intent/0114/PLAN.md: available pre-trigger history, separate read-only
+pending states, earliest-event selection and unchanged complete proof checks.
+Raw terminal/grant variants, live stores/races, GAP-01–06 and M1–M8 remain separate
+work. No actual erasure, quarantine or publication is claimed. All five formal
+findings remain open; no protected edit, provider operation, deletion, gate,
+release, deployment or spending is authorized. The implementation loop stays active.

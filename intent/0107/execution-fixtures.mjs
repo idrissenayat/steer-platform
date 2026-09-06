@@ -386,13 +386,13 @@ function fixture(options = {}) {
   }
   const full = human('tombstone', copies, [`lifecycle-inventory:${inventory.recordDigest}`, `aggregate:${aggregate.recordDigest}`, `input:${baseDigest}`,
     ...(referenceProof ? [`tombstone:${JSON.parse(referenceProof.contextBytes).tombstoneRecordId}`, `verification:${JSON.parse(referenceProof.source.contextBytes).verificationBundleDigest}`] : []),
-    ...(continuation ? [`raw-checkpoint:${checkpoint.recordDigest}`] : []), ...(chained ? [`raw-checkpoint-chain:${sha256(graph.continuationBytes)}`] : [])], 'provider-delete', false, (continuation ? 30 + recoveryShift : 27) + offset);
+    ...(continuation ? [`raw-checkpoint:${checkpoint.recordDigest}`] : []), ...(chained ? [`raw-checkpoint-chain:${sha256(graph.continuationBytes)}`] : [])], 'provider-delete', false, options.tombstoneHumanSecond ?? ((continuation ? 30 + recoveryShift : 27) + offset));
   const grant = { grantId: 'tombstone', action: 'lifecycle.commit-tombstone', actorSubject: config.actorSubject, upstreamSubject: config.upstreamSubject,
     provider: 'fixture-provider-a', resourceDomain: 'provider-a', resources: { objectId: config.recordId, recordClass: config.recordClass, inventoryDigest: inventory.recordDigest,
       tupleDigest, aggregateReceiptDigest: aggregate.recordDigest, path: config.tombstonePath,
       ...(referenceProof ? { tombstoneRecordId: JSON.parse(referenceProof.contextBytes).tombstoneRecordId, verificationBundleDigest: JSON.parse(referenceProof.source.contextBytes).verificationBundleDigest } : {}) },
     authorityEvidenceDigest: full.authority.recordDigest, inputDigest: baseDigest };
-  graph.tombstone = { humanBundleBytes: full.bytes, ...action('tombstone', grant, full.authority, (continuation ? 38 + recoveryShift : 35) + offset) };
+  graph.tombstone = { humanBundleBytes: full.bytes, ...action('tombstone', grant, full.authority, options.tombstoneActionSecond ?? ((continuation ? 38 + recoveryShift : 35) + offset)) };
   edit('graph', graph); return { graph, config, configBytes, runtimeBytes, evaluationTime: evaluatedAt, bytes: jcs(graph), verifier: selectedVerifier };
 }
 const proofKinds = ['request', 'upstream', 'downstream', 'delegation', 'assignment', 'authority', 'resources', 'replay', 'head', 'reservation'];
@@ -632,4 +632,35 @@ export function immutableRetentionExecutionCase(boundary, variant = 'positive') 
     } } };
   const value = fixture(options);
   return { ...value, boundary, variant, input: jcs({ configBytes: value.configBytes, bytes: value.bytes, evaluatedAt: value.evaluationTime }) };
+}
+
+export function rawDeadlineExecutionCase(boundary, variant = 'positive') {
+  const observations = { before: 59, at: 60, after: 61, complete: 66 };
+  if (!Object.hasOwn(observations, boundary) || !['positive', 'replay', 'missing-grant', 'expired-grant', 'missing-state', 'held', 'reference-active',
+    'missing-receipt', 'missing-batch', 'missing-tombstone', 'deadline-receipt', 'late-receipt', 'late-second'].includes(variant)) throw new Error('UNKNOWN_RAW_DEADLINE_CASE');
+  const fixtureEpoch = Date.parse('2026-09-04T12:00:00Z'), boundaryAt = '2026-09-04T12:01:00Z';
+  const evaluationTime = formatExactInstant(BigInt(fixtureEpoch) * 1000000n + BigInt(observations[boundary]) * 1000000000n);
+  const options = { fixtureEpoch, recordClass: 'RC-CORPUS-RAW-WORKING', tickNanoseconds: 100000000, horizon: 1500, evaluationTime,
+    replay: variant === 'replay', edits: { state: (record) => {
+      if (variant === 'held') record.holdState = 'active';
+      if (variant === 'reference-active') record.referenceState = 'active';
+    }, 'raw-policy:human': (record) => { if (variant === 'expired-grant') record.expiresAt = '2026-09-04T12:00:00Z'; },
+    graph: (graph) => {
+      if (variant === 'missing-grant') graph.rawPolicyBytes = '';
+      if (variant === 'missing-state') graph.stateBytes = '';
+      if (variant === 'missing-receipt') graph.copies[0].receiptBytes = '';
+      if (variant === 'missing-batch') graph.rawBatchBytes = '';
+      if (variant === 'missing-tombstone') graph.tombstone.receiptBytes = '';
+    } } };
+  if (['deadline-receipt', 'late-receipt', 'late-second'].includes(variant)) {
+    // Identical otherwise-valid lineage. Only the last provider receipt crosses
+    // the inclusive deadline; aggregate and tombstone follow it and are audited
+    // at +66s. They are future evidence at earlier observation coordinates.
+    options.edits['copy-3:receipt'] = (record) => { record.recordedAt = variant === 'deadline-receipt' ? boundaryAt :
+      variant === 'late-receipt' ? '2026-09-04T12:01:00.000000001Z' : '2026-09-04T12:01:01Z'; };
+    options.edits.aggregate = (record) => { record.recordedAt = '2026-09-04T12:01:01.100000000Z'; };
+    options.tombstoneHumanSecond = 613; options.tombstoneActionSecond = 621;
+  }
+  const value = fixture(options);
+  return { ...value, boundary, boundaryAt, variant, input: jcs({ configBytes: value.configBytes, bytes: value.bytes, evaluatedAt: evaluationTime }) };
 }

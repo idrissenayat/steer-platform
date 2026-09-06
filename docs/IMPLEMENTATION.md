@@ -1005,6 +1005,17 @@ source IDs map, with twenty-four uncovered. See `intent/0113/EVIDENCE.md`,
 `SOURCE-MAP.json` and `PLAN.md`; no live immutable-storage enforcement or formal
 finding closure is claimed.
 
+Item `intent/0114` reconciles raw-corpus lifecycle observations with the signed
+maximum sixty-second receipt deadline. Early-completed full graphs and committed
+replays validate at the four exact source clocks. A receipt at exactly the deadline
+passes in the completed audit; genuine signed +1ns/+1s late receipts deny. Earlier
+observations reject unavailable future aggregate/tombstone evidence, separately from
+that deadline comparison. Missing/expired grants and incomplete graphs deny, while
+held/reference-active state conservatively retains. The complete verifier and source
+pins are unchanged. See `intent/0114/EVIDENCE.md` and `SOURCE-MAP.json`; this proves
+offline evidence behavior, not real erasure, operational quarantine or all normative
+terminal/grant/crash requirements. All five formal findings remain open.
+
 ## Local commands
 
 ```sh

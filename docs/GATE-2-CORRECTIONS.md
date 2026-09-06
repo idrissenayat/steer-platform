@@ -24,14 +24,15 @@ two omitted-action reproductions through the complete shared permission stack.
 `intent/0111` adds ten long-retention current-v4/v5 coordinates while preserving original history and per-domain key windows.
 `intent/0112` adds separate head-only readiness and eighteen at/after coordinates without weakening complete disposition or claiming quarantine.
 `intent/0113` maps four indefinite-retention source aliases, explicitly one unique commit-time positive input rather than four expiry scenarios.
-Full snapshot: 4,036 required IDs, 397 passed, 3,639 unmapped. Quick explicitly
-leaves the 16 heavy cases unexecuted (381 passed / 3,655 uncovered). The require-complete command
+`intent/0114` maps four raw-corpus coordinates using the signed maximum receipt deadline, not a minimum wait; exact deadline and signed +1ns/+1s late controls are paired.
+Full snapshot: 4,036 required IDs, 401 passed, 3,635 unmapped. Quick explicitly
+leaves the 16 heavy cases unexecuted (385 passed / 3,651 uncovered). The require-complete command
 exits 2 and explains its deferred-full preflight; GAP-01 is not complete. Some hooks intentionally
 cover only a narrower correction/classifier scope and do not certify the entire
 public oracle. No formal finding is closed by this count.
 
 All nine R5 reproductions now have mapped development executions. Still unmapped:
-24 lifecycle coordinates, 3,614 migration and one obsolete schema case. The complete
+20 lifecycle coordinates, 3,614 migration and one obsolete schema case. The complete
 graph hooks do not execute every matrix coordinate, future key era or a live store.
 The five formal findings remain open regardless of the reproduction count.
 

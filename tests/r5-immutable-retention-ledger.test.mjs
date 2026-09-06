@@ -66,15 +66,15 @@ test('0113: exact selector maps four IDs with eleven observations each and never
     assert.equal(observations.length, 11); assert.throws(() => hook.run(() => { throw new Error('ASSERTION_FAILED'); }), /ASSERTION_FAILED/);
   }
   assert.throws(() => make('unknown'), /UNKNOWN_IMMUTABLE_RETENTION_CASE/); assert.throws(() => make('at', 'caller-mutation'), /UNKNOWN_IMMUTABLE_RETENTION_CASE/);
-  assert.deepEqual(Object.keys(fixtures).sort(), ['immutableRetentionExecutionCase', 'lifecycleGraphExecutionCase', 'lifecycleGraphVariants', 'lifecycleNegativeExecutionCase', 'lifecycleReadinessExecutionCase', 'longRetentionExecutionCase', 'shortRetentionExecutionCase', 'specialLifecycleExecutionCase']);
+  assert.deepEqual(Object.keys(fixtures).sort(), ['immutableRetentionExecutionCase', 'lifecycleGraphExecutionCase', 'lifecycleGraphVariants', 'lifecycleNegativeExecutionCase', 'lifecycleReadinessExecutionCase', 'longRetentionExecutionCase', 'rawDeadlineExecutionCase', 'shortRetentionExecutionCase', 'specialLifecycleExecutionCase']);
 });
 
 test('0113: fresh report credits the four declared immutable aliases without claiming unique time boundaries or formal closure', () => {
-  const report = runCorrectedCoverage(); assert.equal(report.executed, 381); assert.equal(report.passed, 381); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3655);
-  assert.deepEqual(report.families['LIFECYCLE-GRAPH'], { required: 64, executed: 40, passed: 40, failed: 0, uncovered: 24 });
+  const report = runCorrectedCoverage(); assert.equal(report.executed, 385); assert.equal(report.passed, 385); assert.equal(report.failed, 0); assert.equal(report.uncovered, 3651);
+  assert.deepEqual(report.families['LIFECYCLE-GRAPH'], { required: 64, executed: 44, passed: 44, failed: 0, uncovered: 20 });
   const rows = report.executions.filter((row) => row.id.startsWith('LIFECYCLE-GRAPH:RC-AUTHORITATIVE-ARTIFACT:'));
   assert.equal(rows.length, 4); assert.equal(new Set(rows.map((row) => row.observationsDigest)).size, 1);
   for (const flag of ['completeCoverage', 'normativeAcceptanceComplete', 'independentAcceptance', 'executionAuthorized', 'liveProviderUsed']) assert.equal(report[flag], false);
   assert.equal(report.families.MIGRATION.executed, 0);
-  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0113/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
+  assert.deepEqual(JSON.parse(readFileSync(new URL('../intent/0114/QUICK-EXECUTION-REPORT.json', import.meta.url))), report);
 });
