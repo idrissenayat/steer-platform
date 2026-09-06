@@ -1119,6 +1119,13 @@ to 100 linear commits. This is not the full authenticated `BriefWriter` or the
 source-verified Gate 2 authority callback; runtime and the actual App stay read-only.
 See `intent/0124/EVIDENCE.md` for verification and `intent/0124/PLAN.md` for follow-up.
 
+Item `intent/0125` shares canonical Brief path validation between creation and
+curated reading. Projection catalog filtering, HTTP/MCP and browser links now
+recognize `items/NNNN-slug/BRIEF.md` alongside explicit legacy read forms. Curated
+scope, grants, tenant isolation and exact revision/content checks are unchanged;
+legacy paths do not become create targets. The browser harness uses a canonical
+local Git fixture. Verification and remaining boundaries are in 0125/EVIDENCE.
+
 ## Local commands
 
 ```sh

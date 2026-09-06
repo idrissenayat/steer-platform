@@ -15,6 +15,16 @@ const reader = (): ArtifactProjectionReader => ({ scope: { organizationId: input
 const context = (service = reader()): InvocationContext => ({ principal, now, clock: () => now, revalidate: async () => principal, services: { artifactProjection: service } });
 const code = (value: string) => (error: unknown) => error instanceof ToolError && error.code === value;
 
+test('canonical reads retain exact revision/digest and curated access without aliasing legacy paths', async () => {
+  const path = 'items/0125-canonical/BRIEF.md', service = reader(); let reads = 0;
+  service.read = async () => { reads++; return { ...artifact, path }; };
+  await assert.rejects(invokeTool('intent.brief.read', { ...input, path }, context(service)), code('FORBIDDEN'));
+  assert.equal(reads, 0); const curated = { ...service, scope: { ...service.scope, paths: [path] } };
+  const result = await invokeTool('intent.brief.read', { ...input, path }, context(curated));
+  assert.equal(result?.path, path); assert.equal(result?.content, content); assert.equal(result?.contentDigest, input.contentDigest);
+  await assert.rejects(invokeTool('intent.brief.read', input, context(curated)), code('FORBIDDEN'));
+});
+
 test('Brief reads preserve exact source and parsed structure with independently checked fingerprints', async () => {
   const result = await invokeTool('intent.brief.read', input, context()); assert.ok(result);
   assert.equal(result.kind, 'brief-projection'); assert.equal(result.content, content); assert.equal(result.document.title, 'Scoped outcome');

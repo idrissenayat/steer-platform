@@ -111,9 +111,10 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
       const grant: AuthorizationRecord = { issuer, subject: deps.subject, organizationId: 'synthetic-org', type: 'human',
         hats: ['product-lead'], toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'intent.brief.read', 'intent.brief.catalog', 'intent.brief.preview'], active: true,
         validAfter: new Date(0).toISOString(), expiresAt: new Date(Date.now() + 600000).toISOString() };
-      const source = await createGitAuthorizationHarness(tls.temporary, grant);
+      const source = await createGitAuthorizationHarness(tls.temporary, grant, 'canonical');
       assert.ok(storage.createProjectionFixture);
       const projection = await storage.createProjectionFixture(source.reader, [source.artifactPath, source.secondArtifactPath]);
+      assert.equal(projection.input.path, 'items/0125-synthetic-outcome/BRIEF.md');
       await source.publish([grant, deps.agent.grant]);
       assert.ok(storage.shutdown);
       const dependencies = { fetch: deps.fetch, reader: source.reader, authorizationPath: source.authorizationPath, services: projection.services,
@@ -421,7 +422,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         await page.waitForFunction(() => document.querySelector('[data-testid="brief-status"]')?.textContent?.startsWith('Choose a Brief'));
         assert.equal(await library.locator('input').count(), 0);
         assert.equal(await library.getByTestId('brief-catalog').locator('li').count(), 1);
-        const button = library.getByRole('button', { name: 'Read Workspace Brief', exact: true });
+        const button = library.getByRole('button', { name: 'Read Intent 0125-synthetic-outcome', exact: true });
         briefStage = 'selected source rendering';
         await button.focus(); await page.keyboard.press('Enter');
         const detail = page.getByRole('dialog', { name: 'Synthetic scoped outcome' }); await detail.waitFor();
@@ -479,7 +480,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
       await check('Brief library clears a previously read source on committed permission denial and rechecks after refresh', async () => {
         const library = page.getByRole('region', { name: 'Brief library' });
         await source.publish([{ ...grant, toolGrants: ['session.context'] }]);
-        await library.getByRole('button', { name: 'Read Workspace Brief', exact: true }).click();
+        await library.getByRole('button', { name: 'Read Intent 0125-synthetic-outcome', exact: true }).click();
         await page.waitForFunction(() => document.querySelector('[data-testid="brief-status"]')?.textContent?.startsWith('Brief access could not be verified.'));
         assert.equal(await library.getByTestId('brief-catalog').locator('li').count(), 0);
         assert.equal(await page.getByRole('dialog').count(), 0);
@@ -500,7 +501,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         };
         page.on('request', observe);
         try {
-          await library.getByRole('button', { name: 'Read Workspace Brief', exact: true }).click(); await detail.waitFor();
+          await library.getByRole('button', { name: 'Read Intent 0125-synthetic-outcome', exact: true }).click(); await detail.waitFor();
           savedBriefLink = page.url(); const location = new URL(savedBriefLink);
           assert.equal(location.search, '');
           const params = new URLSearchParams(location.hash.slice(1));
@@ -516,7 +517,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           assert.equal(reads - before.reads, 1); assert.equal(page.url(), savedBriefLink);
           await page.reload(); await detail.waitFor(); assert.equal(page.url(), savedBriefLink);
           await page.keyboard.press('Escape'); assert.equal(new URL(page.url()).hash, '');
-          assert.equal(await library.getByRole('button', { name: 'Read Workspace Brief', exact: true }).evaluate((element) => element === document.activeElement), true);
+          assert.equal(await library.getByRole('button', { name: 'Read Intent 0125-synthetic-outcome', exact: true }).evaluate((element) => element === document.activeElement), true);
         } finally { page.off('request', observe); }
       });
       await check('foreign, stale and malformed Brief links never substitute content or authorize a source read', async () => {
@@ -603,7 +604,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           await expiryPanel.getByLabel('Repository scope ID').fill(projection.input.repository);
           await expiryPanel.getByRole('button', { name: 'Load references', exact: true }).click();
           await expiryPage.waitForFunction(() => document.querySelector('[data-testid="reference-status"]')?.textContent?.startsWith('References loaded.'));
-          await expiryPage.getByRole('button', { name: 'Read Workspace Brief', exact: true }).click();
+          await expiryPage.getByRole('button', { name: 'Read Intent 0125-synthetic-outcome', exact: true }).click();
           await expiryPage.getByRole('dialog', { name: 'Synthetic scoped outcome' }).waitFor();
           const beforeExpiry = requests;
           await expiryPage.clock.fastForward(310000);

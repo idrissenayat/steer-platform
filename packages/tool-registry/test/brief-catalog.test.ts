@@ -11,6 +11,14 @@ const reader = (): ArtifactProjectionReader => ({ scope: { ...input, paths: ['BR
 const context = (service = reader()): InvocationContext => ({ principal, now, clock: () => now, revalidate: async () => principal, services: { artifactProjection: service } });
 const code = (value: string) => (error: unknown) => error instanceof ToolError && error.code === value;
 
+test('canonical Brief catalog entries are accepted only when explicitly curated', async () => {
+  const path = 'items/0125-canonical/BRIEF.md', service = reader();
+  service.catalog = async () => [{ ...record, path }];
+  await assert.rejects(invokeTool('intent.brief.catalog', input, context(service)), code('INTERNAL_ERROR'));
+  const curated = { ...service, scope: { ...service.scope, paths: [...service.scope.paths, path] } };
+  assert.deepEqual((await invokeTool('intent.brief.catalog', input, context(curated))).records, [{ ...record, path }]);
+});
+
 test('catalog returns stable ordered curated references only, and empty is not fabricated content', async () => {
   const result = await invokeTool('intent.brief.catalog', input, context());
   assert.deepEqual(result, { ...input, kind: 'brief-catalog', records: [record, { ...record, path: 'intent/0001/BRIEF.md' }] });

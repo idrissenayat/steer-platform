@@ -6,6 +6,7 @@ const value = { organizationId: 'org', repository: 'github:1', path: 'intent/005
 
 test('Brief locations round-trip exact scope/path/revision/fingerprint as bounded metadata only', () => {
   for (const selection of [value, { ...value, path: 'BRIEF.md', organizationId: '組織 with space' },
+    { ...value, path: 'items/0125-canonical-outcome/BRIEF.md' },
     { ...value, organizationId: '組'.repeat(200), path: `intent/${'1'.repeat(479)}/BRIEF.md` }]) {
     const fragment = briefFragment(selection); assert.ok(fragment.length <= 4096);
     assert.deepEqual(readBriefLocation(fragment), { kind: 'brief', selection });

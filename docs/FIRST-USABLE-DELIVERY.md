@@ -127,6 +127,14 @@ No real write occurred. Full authenticated writer and source-authority compositi
 historical lookup beyond the bounded linear profile, canonical discovery and UI
 save/status connection still remain. The actual runtime App stays read-only.
 
+0125 development update: canonical-path discovery is now implemented through the
+shared read/create schemas, curated data catalog, transports and browser links.
+The isolated browser fixture uses `items/0125-synthetic-outcome/BRIEF.md` rather
+than relying on root-path compatibility; all 39 isolated browser checks pass.
+See `intent/0125/EVIDENCE.md` for verification and desktop/mobile evidence.
+This closes path recognition, not real saving, dynamic projection
+admission, board rendering, source authority or the complete first usable journey.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

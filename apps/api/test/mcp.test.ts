@@ -45,6 +45,24 @@ test('human Brief preview has HTTP/MCP parity without enabling default access or
   } finally { await client.close(); await endpoint.shutdown(); }
 });
 
+test('canonical Brief catalog/read references have HTTP and MCP parity without granting access to legacy aliases', async () => {
+  const path = 'items/0125-canonical-outcome/BRIEF.md', canonical = { ...input, path };
+  const reference = { path, revision: input.revision, contentDigest: output.contentDigest };
+  const dependencies = { authenticate: async () => principal, now: () => now,
+    services: { artifactProjection: { scope: { ...scope, paths: [path] }, read: async () => ({ ...output, path }), catalog: async () => [reference] } } };
+  const api = createApi(dependencies), endpoint = createMcpEndpoint(origin, dependencies), client = await connect(endpoint);
+  try {
+    for (const [name, args] of [['intent.brief.catalog', { organizationId: scope.organizationId, repository: scope.repository }],
+      ['intent.brief.read', { ...canonical, contentDigest: output.contentDigest }]] as const) {
+      const result = await client.callTool({ name, arguments: args }); assert.ok(!result.isError);
+      const response = await api.request(`/v1/tools/${name}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(args) });
+      assert.equal(response.status, 200); assert.equal(response.headers.get('cache-control'), 'no-store');
+      assert.deepEqual((result.structuredContent as { result: unknown }).result, await response.json());
+    }
+    assert.equal(toolError(await client.callTool({ name: 'intent.brief.read', arguments: { ...input, contentDigest: output.contentDigest } })), 'FORBIDDEN');
+  } finally { await client.close(); await endpoint.shutdown(); }
+});
+
 test('Brief save and readback are discovered but unavailable through both transports without a trusted writer', async () => {
   const human = { ...principal, type: 'human', toolGrants: ['intent.brief.preview', 'intent.brief.save', 'intent.brief.save.status'] };
   const dependencies = { authenticate: async () => human, now: () => now };

@@ -10,6 +10,20 @@ const catalog = { ...scope, kind: 'brief-catalog', records: [reference] };
 const content = '# Brief: An outcome\n\n## Problem\n\nA problem.\n';
 const detail = { ...scope, ...reference, kind: 'brief-projection', blobSha: 'c'.repeat(40), content, document: readBriefDocument(content) };
 
+test('canonical Brief discovery and exact selection use the same portable browser read contract', async () => {
+  const selected = { ...reference, path: 'items/0125-canonical-outcome/BRIEF.md' }; let calls = 0;
+  const reader = createBriefReader(scope, 'https://steer.example', async (_url, init) => {
+    calls++;
+    if (calls === 1) return Response.json({ ...catalog, records: [selected] });
+    assert.deepEqual(JSON.parse(init.body), { ...scope, ...selected });
+    return Response.json({ ...detail, path: selected.path });
+  });
+  assert.deepEqual(await reader.catalog(), [selected]);
+  assert.equal((await reader.read(selected)).path, selected.path);
+  await assert.rejects(reader.read(reference)); assert.equal(calls, 2);
+  await assert.rejects(reader.read(selected)); assert.equal(calls, 2); reader.close();
+});
+
 test('Brief reader fixes scope, validates shared contracts and reads only a catalog-selected exact tuple', async () => {
   const seen = []; const input = { ...scope };
   const reader = createBriefReader(input, 'https://steer.example', async (url, init) => {

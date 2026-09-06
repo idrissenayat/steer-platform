@@ -90,7 +90,9 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
           currentRevision: async (_repository, path) => (await readProjection(projector, principal, projectionKey(repository, path)))?.sourceRevision ?? null,
           ingest: (snapshot, expected) => ingestVerifiedArtifact(projector, principal, snapshot, expected),
         });
-        const selection = { roots: [''], fileNames: paths };
+        // Select by filename, not full path. The exact expected manifest below
+        // remains the guard against accidentally broadening this test fixture.
+        const selection = { roots: [''], fileNames: [...new Set(paths.map((path) => path.slice(path.lastIndexOf('/') + 1)))] };
         const inventory = await reader.readInventory(selection, await reader.readHead());
         assert.deepEqual(inventory.entries.map((item) => item.path).sort(), [...paths].sort());
         const first = await reconcileRepository(reader, selection, sink());

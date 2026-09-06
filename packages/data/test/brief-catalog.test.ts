@@ -26,6 +26,18 @@ test('catalog sends only curated Brief keys through one bounded parameterized me
   assert.match(query.sql, /record_key=ANY\(\$3::text\[\]\)/); assert.match(query.sql, /LIMIT 1001/);
   assert.match(query.sql, /octet_length\(value->>'path'\)<=500/); assert.equal(f.reads(), 1);
 });
+
+test('canonical and legacy metadata keys are selected exactly; malformed canonical lookalikes are excluded', async () => {
+  const canonical = 'items/0125-canonical/BRIEF.md', legacy = 'intent/0125/BRIEF.md';
+  const paths = ['BRIEF.md', canonical, legacy];
+  const rows = paths.map((path) => ({ ...row, path, record_key: projectionKey(binding.repository, path) }));
+  const f = fixture(rows);
+  const reader = createArtifactProjectionReader(f.pool, { ...binding, paths: [...paths, 'items/1/BRIEF.md', 'items/0125-canonical/EXAM.md'] }, () => now);
+  const records = await reader.catalog!(principal);
+  assert.deepEqual(records, [...paths].sort().map((path) => ({ path, revision: row.source_revision, contentDigest: row.content_digest })));
+  assert.deepEqual(f.queries.find(({ sql }) => sql.includes('FROM steer.projection_records'))!.values,
+    [binding.organizationId, binding.repository, rows.map((entry) => entry.record_key)]);
+});
 test('catalog refuses foreign/missing/agent-hat authority before acquisition and non-app roles before reading', async () => {
   const absent = { connect: async () => { assert.fail('Must not acquire'); } };
   const reader = createArtifactProjectionReader(absent, binding, () => now);

@@ -27,8 +27,9 @@ it does not defer signed requirements or waive any of the five R5 findings.
 Stateless authoring can proceed while Gate 2 continues to block live writes.
 This route began with 0121 Brief preview and 0122 guided authoring/correction UI.
 0123 supplies closed confirmation/save orchestration; 0124 adds the uninstalled
-GitHub storage primitive. Next is full trusted writer/authority composition and
-canonical-path discovery, with broader historical lookup still required. The unimplemented retirement-archive prerequisite remains
+GitHub storage primitive. 0125 connects canonical-path recognition to the curated
+Brief library. Next is full trusted writer/authority composition, with broader
+historical lookup still required. The unimplemented retirement-archive prerequisite remains
 tracked in `intent/0120/PLAN.md`, not silently marked complete or renumbered.
 
 | Milestone | Deliverable and acceptance evidence | Dependency / current state |
@@ -2491,3 +2492,21 @@ Next: full trusted writer/authority composition, canonical-path discovery, exact
 confirmation/status UI, board ingestion and revision-bound review. Agent conversation
 and trusted systems context remain open. The existing loop continues safe local
 development; all five R5 findings, signed scope and 0120 archival work remain due.
+
+## Completed development increment: 0125 — canonical Brief discovery
+
+Canonical `items/NNNN-slug/BRIEF.md` paths now share a single portable definition
+across creation and curated reading. Existing root/numbered Briefs remain readable,
+but are not writable through the create-only contract. Data catalog key selection,
+HTTP/MCP and browser links inherit canonical recognition without wider curation,
+grants or authority. The synthetic browser fixture uses the actual new path layout.
+
+All 39 isolated browser checks pass against the canonical local Git fixture,
+including actual projection replay/repair, library access and exact-revision links.
+Thirty-three focused checks pass. Full verification and the corrected test-harness
+assumptions are recorded in 0125/EVIDENCE; screenshots retain desktop/mobile proof.
+The final full repository check also passes all 437 root controls, 88 prototype
+tests and package/typecheck/build tasks after the fixture correction.
+No real save, production migration, membership or provider access changes. Next:
+full trusted writer/source-authority composition, historical lookup, confirmation/
+status UI and board ingestion. All five R5 findings and signed obligations remain.

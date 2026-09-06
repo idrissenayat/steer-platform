@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { briefPreviewInputSchema } from './brief-preview.ts';
+import { canonicalBriefPathSchema } from './brief-paths.ts';
 const identifier = z.string().min(1).max(200).refine((value) => value === value.trim() && !/[\u0000-\u001f\u007f]/u.test(value));
 const sha = z.string().length(40).regex(/^[a-f0-9]{40}$/), digest = z.string().length(64).regex(/^[a-f0-9]{64}$/);
 export const briefSaveScopeSchema = z.strictObject({ organizationId: identifier,
@@ -8,7 +9,7 @@ export const briefSaveScopeSchema = z.strictObject({ organizationId: identifier,
     !value.includes('@{') && value !== '@' && !value.startsWith('-') && !/[\u0000-\u001f\u007f]/u.test(value) &&
     value.split('/').every((part) => part.length > 0 && !part.startsWith('.') && !part.endsWith('.') && !part.endsWith('.lock'))),
   // Canonical architecture path. This first contract is create-only, not arbitrary artifact editing.
-  path: z.string().max(300).regex(/^items\/[0-9]{4,}-[a-z0-9]+(?:-[a-z0-9]+)*\/BRIEF\.md(?![\s\S])/),
+  path: canonicalBriefPathSchema,
 });
 export const briefSaveStatusInputSchema = briefSaveScopeSchema.extend({ idempotencyKey: z.string().length(36).regex(/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/) });
 export const briefSaveInputSchema = briefSaveStatusInputSchema.extend({ expectedHead: sha,

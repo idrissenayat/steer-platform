@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import { briefDocumentSchema } from './brief-document.ts';
+import { readableBriefPathSchema } from './brief-paths.ts';
+export { canonicalBriefPathSchema, readableBriefPathSchema } from './brief-paths.ts';
 export { briefPreviewInputSchema, briefPreviewOutputSchema, type BriefPreview } from './brief-preview.ts';
 
 // Portable wire contracts. No registry handlers or provider implementations enter this graph.
@@ -14,7 +16,7 @@ export const artifactProjectionOutputSchema = z.strictObject({ kind: z.literal('
 export type ArtifactProjectionInput = z.infer<typeof artifactProjectionInputSchema>;
 export type ArtifactProjection = z.infer<typeof artifactProjectionOutputSchema>;
 export const briefProjectionInputSchema = artifactProjectionInputSchema.extend({
-  path: path.refine((value) => /^(?:BRIEF\.md|intent\/[0-9]{4,}\/BRIEF\.md)$/.test(value)),
+  path: readableBriefPathSchema,
   contentDigest: z.string().regex(/^[a-f0-9]{64}$/),
 });
 export const briefProjectionOutputSchema = artifactProjectionOutputSchema.extend({ kind: z.literal('brief-projection'), document: briefDocumentSchema });

@@ -25,6 +25,10 @@ primitive, tested with synthetic provider responses backed by native disposable 
 It creates the Brief and retry marker together at an exact expected head. Full
 source authority, broader historical lookup and live access remain prerequisites.
 
+Item [0125](intent/0125/README.md) connects canonical `items/NNNN-slug/BRIEF.md`
+recognition to curated discovery, exact reading and browser links. Legacy Briefs
+remain readable; no runtime scope, save permission or board state is inferred.
+
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono
 API/shared tool registry (0007), OIDC adapter/API composition (0008), and
