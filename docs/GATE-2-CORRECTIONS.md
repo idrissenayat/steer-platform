@@ -19,21 +19,26 @@ two omitted-action reproductions through the complete shared permission stack.
 `intent/0106` maps the complete staged migration graph counterexample;
 `intent/0107` maps the complete original-era failed-run lifecycle counterexample.
 `intent/0108` maps 27 ordinary lifecycle negatives with explicit source reconciliation.
-Full snapshot: 4,036 required IDs, 354 passed, 3,682 unmapped. Quick explicitly
-leaves the 16 heavy cases unexecuted (338 passed / 3,698 uncovered). The require-complete command
+`intent/0109` adds the three raw/reference negatives with complete positive/replay controls.
+Full snapshot: 4,036 required IDs, 357 passed, 3,679 unmapped. Quick explicitly
+leaves the 16 heavy cases unexecuted (341 passed / 3,695 uncovered). The require-complete command
 exits 2 and explains its deferred-full preflight; GAP-01 is not complete. Some hooks intentionally
 cover only a narrower correction/classifier scope and do not certify the entire
 public oracle. No formal finding is closed by this count.
 
 All nine R5 reproductions now have mapped development executions. Still unmapped:
-64 lifecycle boundaries, three raw/reference negatives, 3,614 migration and one obsolete schema case. The complete
+64 lifecycle boundaries, 3,614 migration and one obsolete schema case. The complete
 graph hooks do not execute every matrix coordinate, future key era or a live store.
 The five formal findings remain open regardless of the reproduction count.
 
 Ordinary negatives use complete controls and source-specific mutations; a valid
 hold produces retained-on-hold. SOURCE-MAP.json in 0108 explains selectors moved
 into shared resource proofs and pinned-registry injection scope. Those mappings
-do not substitute for complete raw/reference or current-registry controls.
+do not substitute for current-registry installation controls. The 0109 source map
+adds full raw-v2 grant/batch and current-v5 reference-removal controls. Missing
+references retain safely; absent/malformed raw grants deny. Historical keys and
+bytes remain unchanged, and the future clock/current keys are synthetic. The old
+malformed raw-field placement is explicitly reconciled with the actual raw schema.
 
 | Finding | Candidate work available | Required remaining work |
 |---|---|---|

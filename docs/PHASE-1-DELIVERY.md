@@ -2027,3 +2027,26 @@ Next under intent/0108/PLAN.md are the three raw/reference lifecycle negatives,
 64 class/boundary rows, 3,614 migration cases and one obsolete schema case.
 GAP-01–06 and M1–M8 remain separate. No protected edit, provider mutation, cleanup,
 release, deployment, spending or signature is authorized.
+
+## Completed development increment: 0109 — raw and reference lifecycle negatives
+
+The three remaining lifecycle negative IDs now execute full positive, replay and
+safe failure controls. Raw-v2 binds a preterminal grant, all three temporary copies,
+the winning batch and separate tombstone. Current-v5 reference evidence retains
+original historical bytes/keys and binds fresh synthetic qualified proofs, exact
+removal receipts and the named tombstone. Missing references retain; missing or
+malformed raw grants block. SOURCE-MAP.json explicitly promotes the frozen malformed
+authority-array shape from its irrelevant failed-run field into the actual raw schema.
+
+Five new groups and final full checks pass: 355 root controls and 88 prototype
+tests. Fresh quick execution matches 341 passed / 3,695 uncovered; full matches
+357 passed / 3,679 uncovered, both with zero failures. A separate three-group full
+integration process reran the matrix and matched the full snapshot. See
+intent/0109/EVIDENCE.md for synthetic/cached limits. All 30 lifecycle negatives are
+mapped; none of the five formal findings is closed and no provider action occurred.
+
+Next under intent/0109/PLAN.md are 64 class/boundary rows, 3,614 migration cases and
+one obsolete schema case. Preserve real coordinate differences and implement
+unsupported class/key-era combinations; generic rejection is not boundary evidence.
+GAP-01–06 and M1–M8 remain separate. No protected edit, provider mutation, cleanup,
+release, deployment, spending or signature is authorized.

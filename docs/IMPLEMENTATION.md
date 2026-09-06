@@ -950,6 +950,18 @@ now records 354 passed / 3,682 uncovered; quick 338 passed / 3,698 uncovered.
 All formal findings remain open. See `intent/0108/EVIDENCE.md`, `SOURCE-MAP.json`
 and `PLAN.md`; no real retention, provider action or deletion is claimed.
 
+Item `intent/0109` supplies the three remaining raw/reference lifecycle negative
+mappings. Raw controls verify the preterminal grant, complete three-copy batch and
+separate tombstone; reference controls use retained historical bytes, fresh synthetic
+current-v5 proofs, exact removal evidence and the named tombstone. Each case runs
+positive, replay and negative controls. Missing references retain; absent or malformed
+raw grants block. The legacy malformed field is explicitly promoted into the actual
+raw-grant schema, not credited through obsolete-field rejection. Full profile records
+357 passed / 3,679 uncovered; quick 341 passed / 3,695 uncovered. All 30 lifecycle
+negatives are mapped, but all five formal findings remain open. Class boundaries,
+migration/schema, real integration and independent/protected review remain separate.
+See `intent/0109/EVIDENCE.md`, `SOURCE-MAP.json` and `PLAN.md`.
+
 ## Local commands
 
 ```sh

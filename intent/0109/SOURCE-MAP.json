@@ -1,0 +1,11 @@
+{
+  "version": "steer-special-lifecycle-negative-map/v1",
+  "sourcePins": "intent/0098/SOURCE-PINS.json",
+  "priorMap": "intent/0108/SOURCE-MAP.json",
+  "scope": "Three previously unmapped exact IDs; synthetic full controls, not class/boundary coverage or formal closure.",
+  "rows": [
+    { "kind": "reference-missing", "legacyClass": "RC-REFERENCED-EVIDENCE", "legacyMutation": "referenceRevocationBytes empty", "correctedClass": "RC-REFERENCED-EVIDENCE", "profile": "current-v5 via 0089", "correctedMutation": "referenceRevocationBytes empty after full content/history/qualified/removal control", "expectedState": "retained-pending-safe-disposition" },
+    { "kind": "raw-grant-missing", "legacyClass": "RC-CORPUS-RAW-WORKING", "legacyMutation": "rawGrantBytes and humanAuthorityBundles empty", "correctedClass": "RC-CORPUS-RAW-WORKING", "profile": "raw-v2 via 0061 with 0073/0074", "correctedMutation": "rawPolicyBytes.rawGrantBytes and humanBundleBytes empty", "expectedState": "blocked" },
+    { "kind": "malformed-raw-grant", "legacyClass": "RC-FAILED-RUN", "legacyMutation": "rawGrantBytes[0] contains an authority array even though failed-run has no raw grant", "correctedClass": "RC-CORPUS-RAW-WORKING", "profile": "raw-v2 via 0061 with 0073/0074", "correctedMutation": "The same authority-array shape replaces the valid raw grant in rawPolicyBytes.rawGrantBytes", "expectedState": "blocked", "limitation": "Explicit semantic promotion into the real raw schema; not evidence from generic rejection of an obsolete failed-run field." }
+  ]
+}

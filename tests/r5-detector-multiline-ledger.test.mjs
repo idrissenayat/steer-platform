@@ -82,7 +82,7 @@ test('0101: one R5 case seals all 40 actual observations without crediting legac
   assert.equal(observations[1].actual.decision, 'ALLOW');
   const report = runCorrectedCoverage(), execution = report.executions.filter((entry) => entry.id === reproductionId);
   assert.equal(execution.length, 1); assert.equal(execution[0].observationCount, 40); assert.equal(execution[0].status, 'passed');
-  assert.equal(report.required, 4036); assert.equal(report.executed, 338); assert.equal(report.uncovered, 3698);
+  assert.equal(report.required, 4036); assert.equal(report.executed, 341); assert.equal(report.uncovered, 3695);
   assert.equal(report.families.R5.executed, 9); assert.equal(report.families.R5.uncovered, 0);
   assert.equal(report.completeCoverage, false); assert.equal(report.independentAcceptance, false);
 });

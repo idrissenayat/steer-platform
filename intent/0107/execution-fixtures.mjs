@@ -47,6 +47,8 @@ const target = { examRevision: TARGET_REVISION, examDigest: TARGET_EXAM_SHA, imp
 
 // All keys and signing helpers are synthetic and private to this test file.
 function fixture(options = {}) {
+  // Only closed exported adapters select the source fixture's historical clock.
+  const epoch = options.fixtureEpoch ?? Date.parse('2026-12-03T12:00:00Z');
   const currentEpoch = options.runtimeYear ? Date.parse(options.runtimeEpoch ?? `${options.runtimeYear}-09-04T12:00:00Z`) : epoch;
   const at = (seconds) => formatExactInstant(BigInt(currentEpoch) * 1000000n + BigInt(seconds) * BigInt(options.tickNanoseconds ?? 1000000000) + BigInt(options.nanoseconds ?? 0));
   const seal = options.runtimeYear ? runtimeSeal : originalSeal;
@@ -485,4 +487,26 @@ export function lifecycleNegativeExecutionCase(kind) {
   }
   const bytes = jcs(graph);
   return { ...value, bytes, kind, input: jcs({ configBytes: value.configBytes, bytes, evaluatedAt: value.evaluationTime }) };
+}
+
+export function specialLifecycleExecutionCase(kind, variant = 'negative') {
+  if (!['reference-missing', 'raw-grant-missing', 'malformed-raw-grant'].includes(kind) || !['positive', 'replay', 'negative'].includes(variant))
+    throw new Error('UNKNOWN_SPECIAL_LIFECYCLE_CASE');
+  const reference = kind === 'reference-missing';
+  const options = { fixtureEpoch: Date.parse('2026-09-04T12:00:00Z'), replay: variant === 'replay', edits: {},
+    ...(reference ? { runtimeYear: 2029, recordClass: 'RC-REFERENCED-EVIDENCE', eventType: 'item-closed', referenceRuntime: true,
+      qualifiedDecisions: true, archivedOwners: true, currentHistory: [] } : { recordClass: 'RC-CORPUS-RAW-WORKING' }) };
+  if (variant === 'negative') options.edits.graph = (graph) => {
+    if (reference) graph.referenceRevocationBytes = '';
+    else {
+      const raw = JSON.parse(graph.rawPolicyBytes);
+      if (kind === 'raw-grant-missing') { raw.rawGrantBytes = ''; raw.humanBundleBytes = ''; }
+      else raw.rawGrantBytes = jcs([JSON.parse(raw.rawGrantBytes).authority]);
+      graph.rawPolicyBytes = jcs(raw);
+    }
+  };
+  const value = fixture(options);
+  // Use the narrow no-downgrade reference entry point for the reference profile.
+  const verifier = reference ? createReferenceLifecycleVerifier(value.configBytes, value.runtimeBytes) : value.verifier;
+  return { ...value, verifier, kind, variant, input: jcs({ configBytes: value.configBytes, runtimeBytes: value.runtimeBytes ?? null, bytes: value.bytes, evaluatedAt: value.evaluationTime }) };
 }
