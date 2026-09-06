@@ -13,6 +13,7 @@ import { nativeDomainReviewFixture } from './native-domain-review-fixture.ts';
 import { nativeDomainExceptionFixture } from './native-domain-exception-fixture.ts';
 import { nativeCriticFixture, criticSource } from './native-critic-fixture.ts';
 import { reviewRunnerFixture } from './gate-review-fixture.ts';
+import { criticRunnerFixture } from './gate-critic-proof-fixture.ts';
 
 const failure = /^Error: Gate policy source collection could not be verified\.$/;
 const blob = (text: string) => createHash('sha1').update(`blob ${Buffer.byteLength(text)}\0`).update(text).digest('hex');
@@ -554,6 +555,86 @@ test('history startup rejects missing pins, duplicate current/prior paths and mo
     [{ ...f.previous, reviewerTask: '' }], Array(16).fill(f.previous)]) {
     const config = f.configuration();
     assert.throws(() => f.create({ gates: [config.gates[0], { ...config.gates[1], critic: { ...config.gates[1].critic, history } }] }));
+  }
+  assert.equal(f.reads.length, 0);
+});
+
+function criticRunner(t: TestContext, git = false) {
+  const f = criticHistory(t, git), attestor = criticRunnerFixture(), source = f.config.gates[1]!.signerCollection.gateSource;
+  Object.assign(attestor.trust, { organizationId: source.scope.organizationId, repository: source.scope.repository,
+    reviewerProvider: f.record.reviewer.provider, reviewerTask: f.record.reviewer.task,
+    notBefore: new Date(Date.parse(f.record.reviewedAt) - 2000).toISOString(), notAfter: new Date(Date.now() + 60000).toISOString() });
+  Object.assign(attestor.payload, { organizationId: source.scope.organizationId, repository: source.scope.repository,
+    reviewerProvider: f.record.reviewer.provider, reviewerTask: f.record.reviewer.task,
+    recordItem: f.record.item, artifactRevision: f.record.targetRevision, reportPath: f.reference.path, reportDigest: f.reference.digest,
+    reviewedAt: f.record.reviewedAt, startedAt: new Date(Date.parse(f.record.reviewedAt) - 1000).toISOString(),
+    recordedAt: new Date(Date.parse(f.record.reviewedAt) + 1).toISOString() });
+  const runner = { trust: { path: 'gate-2/critic-runner-trust.json', digest: '' }, proof: { path: 'gate-2/critic-runner-proof.json', digest: '' },
+    executionId: attestor.payload.executionId, builderExecutionId: attestor.payload.builderExecutionId, configurationRevision: attestor.payload.configurationRevision };
+  const seal = () => { for (const [reference, value] of [[runner.trust, attestor.trust], [runner.proof, attestor.encode()]] as const) {
+    const content = JSON.stringify(value); f.sources.set(reference.path, content); reference.digest = hash(content);
+  } }; seal();
+  const configuration = () => { const prior = f.configuration(); return { gates: [prior.gates[0], { ...prior.gates[1], critic: { ...prior.gates[1].critic, runner } }] as const }; };
+  return { ...f, attestor, runner, seal, configuration };
+}
+
+test('actual native Git verifies Critic runner provenance alongside retained history and never clears the original HOLD', async t => {
+  const f = criticRunner(t, true); f.commit(); const result = await f.create(f.configuration()).collect(f.input());
+  const gate = result.gates[1]!, proof = gate.nativeCriticRunner; assert.ok(proof); assert.ok(gate.nativeCriticHistory);
+  assert.equal(proof.proofDigest, f.runner.proof.digest); assert.equal(proof.trustDigest, f.runner.trust.digest);
+  assert.equal(proof.claims.reportDigest, f.reference.digest); assert.equal(proof.claims.reviewerTask, f.record.reviewer.task);
+  assert.equal(proof.runnerIsolationVerificationRequired, true); assert.equal(result.gates[0]!.nativeCriticRunner, null);
+  assert.equal(gate.input.critic!.passed, false); assert.equal(result.policyOutcome, 'blocked'); assert.equal(result.gateVerified, false); assert.equal(result.writeAuthorized, false);
+  for (const ref of [f.runner.trust, f.runner.proof]) assert.equal(gate.sources.find(value => value.path === ref.path)!.content, f.sources.get(ref.path));
+});
+
+test('selected Critic runner evidence cannot fall back on missing, forged, foreign, late or contradictory native claims', async t => {
+  for (const mode of ['missing', 'hash', 'signature', 'report', 'task', 'provider', 'configuration', 'run', 'builder', 'late', 'context', 'trust-order', 'oversize', 'head']) {
+    const f = criticRunner(t);
+    if (mode === 'report') f.attestor.payload.reportDigest = 'f'.repeat(64);
+    if (mode === 'task') f.attestor.payload.reviewerTask = '/foreign/task';
+    if (mode === 'provider') f.attestor.payload.reviewerProvider = 'foreign';
+    if (mode === 'configuration') f.attestor.payload.configurationRevision = 'foreign';
+    if (mode === 'run') f.attestor.payload.executionId = 'foreign';
+    if (mode === 'builder') f.attestor.payload.builderTask = '/foreign/builder';
+    if (mode === 'late') f.attestor.payload.recordedAt = new Date(Date.parse(f.config.gates[1]!.signerCollection.signers.at(-1)!.proof.expected.signedAt) + 1).toISOString();
+    if (mode === 'context') { f.record.reviewer.inheritedConversation = true; f.repin(); f.attestor.payload.reportDigest = f.reference.digest; }
+    f.seal();
+    if (mode === 'missing') f.sources.delete(f.runner.proof.path);
+    if (mode === 'hash') f.runner.proof.digest = 'f'.repeat(64);
+    if (mode === 'signature') { const proof = f.attestor.encode(); proof.signatureBase64 = Buffer.alloc(64).toString('base64');
+      const content = JSON.stringify(proof); f.sources.set(f.runner.proof.path, content); f.runner.proof.digest = hash(content); }
+    if (mode === 'trust-order') { const content = JSON.stringify(Object.fromEntries(Object.entries(f.attestor.trust).reverse()));
+      f.sources.set(f.runner.trust.path, content); f.runner.trust.digest = hash(content); }
+    if (mode === 'oversize') { const content = ' '.repeat(65537); f.sources.set(f.runner.proof.path, content); f.runner.proof.digest = hash(content); }
+    if (mode === 'head') { const read = f.reader.readArtifact; f.reader.readArtifact = async (...args) => { const value = await read(...args);
+      if (args[0] === f.runner.proof.path) f.state.head = 'd'.repeat(40); return value; }; }
+    await assert.rejects(f.create(f.configuration()).collect(f.input()), failure, mode);
+  }
+});
+
+test('Critic runner expiry and scheduled revocation remain enforced after all later review/history reads', async t => {
+  const realNow = Date.now; let offset = 0;
+  try {
+    Date.now = () => realNow() + offset;
+    for (const mode of ['expires', 'revokes', 'before']) {
+      offset = 0; const f = criticRunner(t), read = f.reader.readArtifact, base = realNow();
+      f.attestor.trust[mode === 'revokes' ? 'revokedAt' : 'notAfter'] = new Date(base + 1000).toISOString(); f.seal();
+      let historyRead = false;
+      f.reader.readArtifact = async (...args) => { const value = await read(...args); if (args[0] === f.previous.path) historyRead = true; return value; };
+      f.reader.readHead = async () => { if (historyRead) offset = base + (mode === 'before' ? 500 : 1000) - realNow(); return f.state.head; };
+      if (mode === 'before') assert.ok((await f.create(f.configuration()).collect(f.input())).gates[1]!.nativeCriticRunner);
+      else await assert.rejects(f.create(f.configuration()).collect(f.input()), failure, mode);
+      assert.ok(historyRead, 'The intended later history boundary must be reached before the clock change.');
+    }
+  } finally { Date.now = realNow; }
+});
+
+test('Critic runner startup requires full run/configuration identity and disjoint current/history/proof paths before I/O', t => {
+  const f = criticRunner(t), selected = f.configuration();
+  for (const runner of [{ ...f.runner, executionId: '' }, { ...f.runner, builderExecutionId: '' }, { ...f.runner, configurationRevision: '' },
+    { ...f.runner, trust: f.runner.proof }, { ...f.runner, proof: { ...f.runner.proof, path: f.previous.path } }]) {
+    assert.throws(() => f.create({ gates: [selected.gates[0], { ...selected.gates[1], critic: { ...selected.gates[1].critic, runner } }] }));
   }
   assert.equal(f.reads.length, 0);
 });

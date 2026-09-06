@@ -115,6 +115,10 @@ Item [0146](intent/0146/README.md) checks complete finding continuity across sel
 native Critic reports. Even resolved findings cannot silently disappear; linked
 accounting does not prove resolution or clear a HOLD.
 
+Item [0147](intent/0147/README.md) verifies selected signed runner evidence for
+native Critic reports alongside their history. It preserves HOLDs and does not
+install a real attestor, prove isolation or approve a gate.
+
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono
 API/shared tool registry (0007), OIDC adapter/API composition (0008), and

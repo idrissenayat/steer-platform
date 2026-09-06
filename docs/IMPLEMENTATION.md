@@ -1267,6 +1267,12 @@ Configured history is collected from actual Git sources; missing records or
 coherent-counter omissions reject. Original HOLDs and provenance/ancestry/closure
 verification requirements remain. See `intent/0146/EVIDENCE.md`.
 
+Item `intent/0147` adds a distinct native Critic runner receipt verifier and actual
+source-pinned Git composition. It binds provider/task/configuration, exact report
+and independent execution identities; domain and Critic runner keys share final
+validity checks. Original HOLDs and unresolved provider/governance/isolation
+requirements remain. See `intent/0147/EVIDENCE.md`.
+
 ## Local commands
 
 ```sh

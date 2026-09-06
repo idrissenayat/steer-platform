@@ -2872,3 +2872,21 @@ relabel them as a flight board. Continue the authority and actual lifecycle/read
 composition, then destination/head/save/status UI, board and review. All five R5
 findings and signed obligations stay open. No protected sources or live authority
 were changed.
+
+## Completed development increment: 0147 — Native Critic runner evidence
+
+Current native Critic reports now support explicit source-pinned runner receipts,
+separate from domain reviewers and human approvals. Real signature verification
+binds report bytes, provider/task/configuration, Builder and independent execution
+IDs. Actual current-head Git collection retains receipt/history bytes, rejects
+contradictory native context claims and includes Critic keys in final common
+validity checks. Focused checks pass 44 groups; full repository checks pass,
+including 437 root controls, 256 adapter tests and all package checks/builds.
+Details and limits are in `intent/0147/EVIDENCE.md`.
+
+The retained Critic HOLD still blocks policy. Real approved runner/provider
+bindings, truthful isolation/closure evidence, governed source/Builder/history
+selection, ancestry and a passing native contract remain. Then finish full
+action-time authority, runtime/destination/head/save/status, lifecycle projections,
+board and review. All five R5 findings and signed obligations remain open; no
+real provider, live write, approval, release, deployment or spending is enabled.

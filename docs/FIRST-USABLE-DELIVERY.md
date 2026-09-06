@@ -273,6 +273,12 @@ closure, authoritative history or review approval. The read-only frontend audit
 also confirms that artifact snapshots cannot yet supply truthful lifecycle board
 states; those projections remain unfinished. See `intent/0146/EVIDENCE.md`.
 
+0147 development update: current native Critic reports can now bind to a selected
+runner's cryptographic assertion through actual Git source reads, with final
+expiry/revocation checks alongside domain runners. This is receipt verification,
+not approved runner configuration, isolation evidence, truthful findings or a
+passing gate. No real provider or writer is installed; see `intent/0147/EVIDENCE.md`.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |
