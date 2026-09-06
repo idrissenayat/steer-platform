@@ -4,12 +4,16 @@ import { principalSchema, artifactProjectionInputSchema } from '@steer/tool-regi
 import { gatePolicyInputSchema, evaluateGateDecisionPolicy, parseUtcInstant, type GatePolicyInput } from '@steer/tool-registry/gate-policy';
 import { createGitGateSignerCollector, gitGateSignerConfigurationSchema } from './gate-signers.ts';
 import type { RepositoryReader, ArtifactSnapshot } from './github.ts';
+import { normalizeGateDomainReview } from './gate-domain-review.ts';
 
 const targetSchema = gatePolicyInputSchema.shape.target.omit({ decisionDigest: true });
 const digest = gatePolicyInputSchema.shape.target.shape.decisionDigest;
 const ref = z.strictObject({ path: artifactProjectionInputSchema.shape.path, digest });
+const nativeReviewRef = ref.extend({ format: z.literal('steer-domain-review-record/v1'),
+  domain: gatePolicyInputSchema.shape.policy.shape.activatedDomains.element, examPath: artifactProjectionInputSchema.shape.path,
+  evidence: z.array(ref).min(1).max(128).refine(values => new Set(values.map(value => value.path)).size === values.length) });
 const entrySchema = z.strictObject({ signerCollection: gitGateSignerConfigurationSchema, policy: ref, critic: ref,
-  buildEvidence: ref.nullable(), domainAssurance: z.strictObject({ reviews: z.array(ref).min(1).max(7), exceptionBrief: ref }).nullable() });
+  buildEvidence: ref.nullable(), domainAssurance: z.strictObject({ reviews: z.array(z.union([ref, nativeReviewRef])).min(1).max(7), exceptionBrief: ref }).nullable() });
 const configSchema = z.strictObject({ gates: z.array(entrySchema).min(1).max(3) });
 const inputSchema = z.strictObject({ sourceRevision: gatePolicyInputSchema.shape.target.shape.artifactRevision, decisionDigest: digest });
 const domainSchema = gatePolicyInputSchema.shape.domainAssurance.unwrap();
@@ -50,6 +54,8 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
     const paths = [entry.policy.path, entry.critic.path, ...(entry.buildEvidence ? [entry.buildEvidence.path] : []),
       ...(entry.domainAssurance ? [entry.domainAssurance.exceptionBrief.path, ...entry.domainAssurance.reviews.map((value) => value.path)] : [])];
     if (new Set(paths).size !== paths.length || paths.includes(source.recordPath)) throw new Error('Invalid gate policy sources.');
+    if (entry.domainAssurance?.reviews.some(value => 'format' in value &&
+      (source.gate !== 2 || !source.artifactPaths.includes(value.examPath)))) throw new Error('Invalid gate policy sources.');
   }
   const failure = () => new Error('Gate policy source collection could not be verified.');
   let check: () => number = () => { throw failure(); }, subject: string | undefined, expiry = Infinity;
@@ -84,38 +90,61 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
           await authorize();
           const observations: SignerObservation[] = [], prepared: Omit<GatePolicyInput, 'evaluatedAt' | 'prerequisite'>[] = [];
           const sources: Readonly<ArtifactSnapshot>[][] = [];
+          const nativeDomainReviews: { observation: NonNullable<ReturnType<typeof normalizeGateDomainReview>>; linkedEvidenceVerified: true }[][] = [];
+          let retainedBytes = 0;
           for (const [index, entry] of config.gates.entries()) {
             const selected = entry.signerCollection, target = { ...selected.gateSource.scope, gate: selected.gateSource.gate,
               artifactRevision: selected.gateSource.artifactRevision };
             const observation = await children[index]!.collect({ sourceRevision: input.sourceRevision,
               decisionDigest: selected.signers[0]!.proof.expected.decisionDigest });
-            check(); observations.push(observation); const retained: Readonly<ArtifactSnapshot>[] = []; sources.push(retained);
-            const read = async <S extends z.ZodType<{ target: z.infer<typeof targetSchema> }>>(reference: z.infer<typeof ref>, schema: S) => {
-              const snapshot = await guarded.readArtifact(reference.path, input.sourceRevision), bytes = Buffer.from(snapshot.content, 'utf8');
-              if (bytes.length > 65536 || new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes) !== snapshot.content ||
+            check(); observations.push(observation); const retained: Readonly<ArtifactSnapshot>[] = []; sources.push(retained); nativeDomainReviews.push([]);
+            const readSource = async (reference: z.infer<typeof ref>, revision = input.sourceRevision, maxBytes = 65536) => {
+              const snapshot = await guarded.readArtifact(reference.path, revision), bytes = Buffer.from(snapshot.content, 'utf8');
+              retainedBytes += bytes.length;
+              if (bytes.length > maxBytes || retainedBytes > 8 * 1024 * 1024 || new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes) !== snapshot.content ||
                 snapshot.organizationId !== binding.organizationId || snapshot.repositoryId !== binding.repositoryId || snapshot.path !== reference.path ||
-                snapshot.revision !== input.sourceRevision || snapshot.contentDigest !== reference.digest ||
+                snapshot.revision !== revision || snapshot.contentDigest !== reference.digest ||
                 createHash('sha256').update(bytes).digest('hex') !== reference.digest ||
                 createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex') !== snapshot.blobSha) throw failure();
+              const source = Object.freeze({ organizationId: snapshot.organizationId, repositoryId: snapshot.repositoryId, path: reference.path,
+                revision, content: snapshot.content, contentDigest: reference.digest, blobSha: snapshot.blobSha });
+              retained.push(source); return source;
+            };
+            const read = async <S extends z.ZodType<{ target: z.infer<typeof targetSchema> }>>(reference: z.infer<typeof ref>, schema: S) => {
+              const snapshot = await readSource(reference);
               const raw: unknown = JSON.parse(snapshot.content);
               // This development profile uses compact JSON. Reject duplicate
               // keys/alternate encodings rather than silently changing their meaning.
               if (JSON.stringify(raw) !== snapshot.content) throw failure();
               const facts = schema.parse(raw);
               if (Object.entries(target).some(([key, value]) => facts.target[key as keyof typeof target] !== value)) throw failure();
-              retained.push(Object.freeze({ organizationId: snapshot.organizationId, repositoryId: snapshot.repositoryId, path: reference.path,
-                revision: input.sourceRevision, content: snapshot.content, contentDigest: reference.digest, blobSha: snapshot.blobSha }));
               return facts;
             };
             const policy = await read(entry.policy, policySchema), critic = await read(entry.critic, criticSchema);
             const build = entry.buildEvidence ? await read(entry.buildEvidence, buildSchema) : null;
             let domainAssurance: GatePolicyInput['domainAssurance'] = null;
             if (entry.domainAssurance) {
+              const exception = await read(entry.domainAssurance.exceptionBrief, exceptionSchema);
               const reviews = [];
               for (const reference of entry.domainAssurance.reviews) {
-                const facts = await read(reference, reviewSchema); reviews.push({ ...facts.review, reportDigest: reference.digest });
+                if ('format' in reference) {
+                  const source = await readSource(reference), exam = observation.bundle.artifacts.find(value => value.path === reference.examPath);
+                  if (!exam) throw failure();
+                  const native = normalizeGateDomainReview(source.content, { organization: target.organizationId,
+                    recordItem: selected.gateSource.recordItem, artifactRevision: target.artifactRevision, domain: reference.domain,
+                    exam: { path: exam.path, sha256: exam.contentDigest }, reportDigest: reference.digest,
+                    builderSubject: exception.builderSubject, evaluatedAt: new Date(check()).toISOString() });
+                  if (!native || observation.record.signatures.some(value => parseUtcInstant(value.signedAt)! < parseUtcInstant(native.record.reviewedAt)!)) throw failure();
+                  // A report cannot choose new reads. Match the WHOLE set against
+                  // fixed startup pins before following even the first evidence link.
+                  if (native.evidenceReferences.length !== reference.evidence.length || native.evidenceReferences.some(value =>
+                    !reference.evidence.some(pin => pin.path === value.path && pin.digest === value.sha256))) throw failure();
+                  for (const pin of reference.evidence) await readSource(pin, target.artifactRevision, 512 * 1024);
+                  nativeDomainReviews[index]!.push({ observation: native, linkedEvidenceVerified: true }); reviews.push(native.review);
+                } else {
+                  const facts = await read(reference, reviewSchema); reviews.push({ ...facts.review, reportDigest: reference.digest });
+                }
               }
-              const exception = await read(entry.domainAssurance.exceptionBrief, exceptionSchema);
               domainAssurance = { builderSubject: exception.builderSubject, reviews,
                 exceptionBrief: { ...exception.exceptionBrief, digest: entry.domainAssurance.exceptionBrief.digest } };
             }
@@ -141,7 +170,7 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
           // A target pass can never hide a failed prerequisite's policy evaluation.
           const result = freeze({ kind: 'git-gate-policy-observation' as const, sourceRevision: input.sourceRevision, evaluatedAt,
             policyOutcome: evaluations.every((value) => value.evaluation.outcome === 'policy-satisfied') ? 'policy-satisfied' as const : 'blocked' as const,
-            gates: evaluations.map((value, index) => ({ ...value, signers: observations[index]!, sources: sources[index]! })),
+            gates: evaluations.map((value, index) => ({ ...value, signers: observations[index]!, sources: sources[index]!, nativeDomainReviews: nativeDomainReviews[index]! })),
             governedSelectionVerificationRequired: true as const, reviewAuthenticityVerificationRequired: true as const,
             currentSourceVerificationRequired: true as const, gateVerified: false as const, writeAuthorized: false as const });
           const finished = parseUtcInstant(new Date(check()).toISOString())!;

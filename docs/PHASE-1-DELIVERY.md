@@ -2787,3 +2787,19 @@ authenticity, real approved bindings and the full action-time authority verifier
 remain required. No gate or writer is enabled. Continue those dependencies, then
 runtime/destination/head discovery, save/status UI, board and decision review.
 All five R5 findings and the signed Phase 1 requirements remain due.
+
+## Completed development increment: 0142 — Native domain-review source fidelity
+
+The policy collector now accepts explicitly selected native Gate 2 domain records
+without rewriting original JSON. Normalization preserves findings, escalations and
+confidence; every evidence link, including finding-only references, must match a
+fixed allowlist and actual original-revision Git bytes. Tests exercise all 21
+untouched repository records and an isolated native-Git policy chain. Focused suites
+pass 20 groups; full repository checks pass, including 209 adapter tests and all
+package checks/builds. Exact scope and limits are in `intent/0142/EVIDENCE.md`.
+
+Reading these records does not authenticate their reviewers or approve their claims.
+Native Critic/exception semantics, reviewer provenance, governed source selection,
+real provider bindings and full action-time authority remain due before runtime
+writer enablement. Continue those dependencies, then destination/head/save UI,
+board and review. All five R5 findings and signed Phase 1 obligations remain open.

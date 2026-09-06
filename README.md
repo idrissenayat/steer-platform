@@ -95,6 +95,10 @@ Item [0141](intent/0141/README.md) reads pinned policy/review sources and evalua
 the whole prerequisite gate chain with actual verified signers. Governed selection,
 independent review authenticity and current authority remain required; no writes are enabled.
 
+Item [0142](intent/0142/README.md) reads native domain-review records unchanged and
+verifies all pinned evidence at the original reviewed revision. Reviewer provenance
+and governed approval remain unverified; adverse records stay blocked.
+
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono
 API/shared tool registry (0007), OIDC adapter/API composition (0008), and

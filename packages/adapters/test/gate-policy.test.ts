@@ -9,6 +9,7 @@ import { briefWriteAuthoritySchema } from '@steer/tool-registry';
 import { createGitGatePolicyCollector } from '../src/code-host/gate-policy.ts';
 import { fixture, hash } from './gate-signers-fixture.ts';
 import type { RepositoryReader } from '../src/code-host/github.ts';
+import { nativeDomainReviewFixture } from './native-domain-review-fixture.ts';
 
 const failure = /^Error: Gate policy source collection could not be verified\.$/;
 const blob = (text: string) => createHash('sha1').update(`blob ${Buffer.byteLength(text)}\0`).update(text).digest('hex');
@@ -216,4 +217,89 @@ test('real stalled policy read retains ownership and shutdown drains without lat
   assert.equal(service.status().active, true); let stopped = false; const stop = service.shutdown().then(() => { stopped = true; });
   await Promise.resolve(); assert.equal(stopped, false); const count = f.reads.length; release(); await stop;
   assert.equal(f.reads.length, count + 1); assert.equal(service.status().active, false); await assert.rejects(service.collect(f.input()), failure);
+});
+
+function nativeDomain(t: TestContext, native = false) {
+  const f = chain(t, 2, native), entry = f.config.gates[1]!, ref = entry.domainAssurance.reviews[0]!, source = entry.signerCollection;
+  const record = nativeDomainReviewFixture(), examPath = source.gateSource.artifactPaths[0]!, evidencePath = source.signers[0]!.source.signerAuthorization.path;
+  record.target = { organization: source.gateSource.scope.organizationId, item: source.gateSource.recordItem,
+    revision: source.gateSource.artifactRevision, exam: { path: examPath, sha256: hash(f.sources.get(examPath)!) } };
+  record.evidence = [record.target.exam]; record.findings[0]!.evidence = [{ path: evidencePath, sha256: hash(f.sources.get(evidencePath)!) }];
+  record.reviewedAt = new Date(Date.parse(source.signers[0]!.proof.expected.authenticatedAt) - 1000).toISOString();
+  const selected = { ...ref, format: 'steer-domain-review-record/v1', domain: 'privacy', examPath,
+    evidence: [record.target.exam, ...record.findings[0]!.evidence].map(value => ({ path: value.path, digest: value.sha256 })) };
+  const repin = () => { f.sources.set(ref.path, JSON.stringify(record, null, 2) + '\n'); selected.digest = hash(f.sources.get(ref.path)!);
+    f.change(entry.domainAssurance.exceptionBrief, value => { value.exceptionBrief.reviewDigests = [selected.digest]; }); };
+  repin(); const configuration = () => ({ gates: [f.config.gates[0], { ...entry, domainAssurance: { ...entry.domainAssurance, reviews: [selected] } }] });
+  if (native) f.commit();
+  return { ...f, record, selected, repin, configuration };
+}
+
+test('native Git domain records retain original bytes and every pinned original-revision evidence reference through the policy chain', async t => {
+  const f = nativeDomain(t, true), result = await f.create(f.configuration()).collect(f.input());
+  assert.equal(result.policyOutcome, 'policy-satisfied'); const gate = result.gates[1]!, native = gate.nativeDomainReviews[0]!;
+  assert.equal(native.linkedEvidenceVerified, true); assert.equal(native.observation.reviewerAuthenticityVerificationRequired, true);
+  assert.equal(gate.sources.find(value => value.path === f.selected.path)!.content, JSON.stringify(f.record, null, 2) + '\n');
+  for (const pin of f.selected.evidence) assert.ok(gate.sources.some(value => value.path === pin.path && value.contentDigest === pin.digest && value.revision === f.record.target.revision));
+  assert.equal(result.gateVerified, false); assert.equal(result.writeAuthorized, false);
+});
+
+test('native reports cannot select new linked reads or omit finding-only evidence even with repinned report digests', async t => {
+  for (const mode of ['new-path', 'missing', 'extra', 'digest', 'exam', 'late']) {
+    const f = nativeDomain(t), before = f.reads.length;
+    if (mode === 'new-path') f.record.findings[0]!.evidence[0]!.path = 'unapproved/secret.md';
+    if (mode === 'missing') f.selected.evidence.pop();
+    if (mode === 'extra') f.selected.evidence.push({ path: 'unapproved/secret.md', digest: 'a'.repeat(64) });
+    if (mode === 'digest') f.selected.evidence[1]!.digest = 'a'.repeat(64);
+    if (mode === 'exam') f.record.target.exam.sha256 = 'a'.repeat(64);
+    if (mode === 'late') f.record.reviewedAt = new Date(Date.parse(f.config.gates[1]!.signerCollection.signers[0]!.proof.expected.signedAt) + 1).toISOString();
+    f.repin(); await assert.rejects(f.create(f.configuration()).collect(f.input()), failure, mode);
+    assert.ok(!f.reads.slice(before).includes('unapproved/secret.md'));
+  }
+});
+
+test('native original-revision evidence corruption or a source move denies instead of accepting a matching review assertion', async t => {
+  for (const mode of ['content', 'head', 'revision']) {
+    const f = nativeDomain(t), read = f.reader.readArtifact, path = f.selected.evidence[1]!.path; let hit = false;
+    f.reader.readArtifact = async (...args) => { const result = await read(...args);
+      // The linked-evidence read follows the native report, not its earlier signer grant read.
+      if (args[0] === f.selected.path) hit = true;
+      if (hit && args[0] === path) {
+        if (mode === 'content') result.content += 'changed';
+        if (mode === 'head') f.state.head = 'd'.repeat(40);
+        if (mode === 'revision') result.revision = f.state.head;
+      } return result;
+    };
+    await assert.rejects(f.create(f.configuration()).collect(f.input()), failure, mode);
+  }
+});
+
+test('native review admission requires Gate 2, a selected Exam and a complete duplicate-free startup evidence allowlist', t => {
+  const f = nativeDomain(t);
+  for (const selected of [{ ...f.selected, evidence: [] }, { ...f.selected, evidence: [f.selected.evidence[0], f.selected.evidence[0]] },
+    { ...f.selected, examPath: 'unselected/EXAM.md' }, { ...f.selected, format: 'unknown' }]) {
+    const entry = f.config.gates[1]!;
+    assert.throws(() => f.create({ gates: [f.config.gates[0], { ...entry, domainAssurance: { ...entry.domainAssurance, reviews: [selected] } }] }));
+  }
+  const first = f.config.gates[0]!;
+  assert.throws(() => f.create({ gates: [{ ...first, domainAssurance: { ...first.domainAssurance,
+    reviews: [{ ...f.selected, examPath: first.signerCollection.gateSource.artifactPaths[0] }] } }] }));
+  assert.equal(f.reads.length, 0);
+});
+
+test('native linked evidence is byte-bounded per file and across the collection without following the remaining links', async t => {
+  for (const mode of ['file', 'aggregate']) {
+    const f = nativeDomain(t), read = f.reader.readArtifact, content = 'x'.repeat(512 * 1024 + (mode === 'file' ? 1 : 0));
+    const digest = hash(content), count = mode === 'file' ? 1 : 17;
+    const refs = Array.from({ length: count }, (_, index) => ({ path: `large/evidence-${index}.md`, digest }));
+    f.selected.evidence.push(...refs); f.record.evidence.push(...refs.map(value => ({ path: value.path, sha256: value.digest }))); f.repin();
+    let largeReads = 0;
+    f.reader.readArtifact = async (path, revision) => {
+      if (path.startsWith('large/')) { largeReads++; return { organizationId: 'synthetic', repositoryId: 1, path, revision,
+        content, contentDigest: digest, blobSha: blob(content) }; }
+      return read(path, revision);
+    };
+    await assert.rejects(f.create(f.configuration()).collect(f.input()), failure);
+    assert.ok(largeReads > 0); if (mode === 'aggregate') assert.ok(largeReads < count);
+  }
 });

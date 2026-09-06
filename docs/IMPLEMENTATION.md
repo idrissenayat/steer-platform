@@ -1234,6 +1234,12 @@ blocks the aggregate. Strict development source profiles are not replacements fo
 existing review/approval formats. Their authenticity and governed selection remain
 unverified here; no gate, runtime writer or UI is enabled. See `intent/0141/EVIDENCE.md`.
 
+Item `intent/0142` adds explicit native Gate 2 domain-review profile support. Original
+record bytes, findings, escalations and confidence are preserved; every evidence
+reference must match a complete startup allowlist and actual original-revision Git
+bytes. Native observations still require verified reviewer provenance and governed
+source selection. No canonical report or approval is changed. See `intent/0142/EVIDENCE.md`.
+
 ## Local commands
 
 ```sh

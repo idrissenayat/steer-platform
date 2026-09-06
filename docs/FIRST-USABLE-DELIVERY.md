@@ -240,6 +240,12 @@ observation, not verification of the review's origin or its pass/fresh-context c
 Governed normalization of actual formats, approved real authority and current-source
 checks remain before live writer binding. See `intent/0141/EVIDENCE.md`.
 
+0142 development update: existing native domain records can be read without rewriting
+their bytes, with every pinned evidence link checked at the original reviewed revision.
+Adverse decisions and unresolved escalations cannot be normalized into approval.
+Reviewer authenticity, native Critic/exception integration and governed source
+selection remain before live authority. See `intent/0142/EVIDENCE.md`.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |
