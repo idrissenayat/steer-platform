@@ -2528,3 +2528,19 @@ observer and normalized policy evaluator are also insufficient: full provider-ba
 gate proof and session/bearer composition remain unfinished. Neither runtime nor
 real App access is changed. Continue that local composition route, then save/status
 UI and board integration, retaining all five R5 findings and signed obligations.
+
+## Completed development increment: 0127 — verified authentication context
+
+The actual OIDC verifier and browser broker now retain internal issuer, credential
+issuance/session creation and exact binding metadata. Principal-only methods keep
+the public shape unchanged. Membership compares exact binding as well as time,
+and tests compose signed-token/broker verification with the Git membership path.
+Thirty-four focused adapter and eleven browser API checks pass. Full repository
+verification passes, including 437 root controls and 89 adapter tests, followed by
+39 isolated browser integration checks. See 0127/EVIDENCE for exact scope and limits.
+
+No public metadata, token, cookie, persistence change or write activation is added.
+Token issuance and local session creation are not qualified human gate approval or
+second-look proof. Next remains full gate/provider/source verification and the
+request-bound writer, then save/status UI and board integration. All five R5 findings,
+signed Phase 1 obligations and 0124/0120 prerequisites remain open.

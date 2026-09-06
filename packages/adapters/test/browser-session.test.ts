@@ -4,6 +4,8 @@ import { test } from 'node:test';
 import { exportJWK, generateKeyPair, SignJWT } from 'jose';
 import { createBrowserSessionBroker, BrowserSessionError, type BrowserSessionStore,
   type LoginTransaction, type BrowserSession } from '../src/identity/browser-session.ts';
+import { createGitWriteMembershipVerifier } from '../src/identity/write-membership.ts';
+import type { ArtifactReader } from '../src/code-host/github.ts';
 
 const keys = await generateKeyPair('RS256');
 const jwk = { ...await exportJWK(keys.publicKey), kid: 'test', alg: 'RS256' };
@@ -84,6 +86,45 @@ test('PKCE transaction is browser-bound, confidential and opaque; provider token
   assert.equal(JSON.stringify([...f.sessions.values()]).includes('must-not-be-retained'), false);
   assert.equal(f.transactions.size, 0);
   assert.ok(await f.broker.authenticate(cookie(result.setCookies[1]!)));
+});
+
+test('internal browser context binds actual persisted session and token, survives broker reconstruction and stays out of the principal', async () => {
+  const f = await fixture(), first = await f.login(), second = await f.login();
+  const one = await f.broker.authenticateContext(first.sessionCookie), two = await f.broker.authenticateContext(second.sessionCookie);
+  assert.ok(one && two); assert.equal(one.issuer, config.issuer); assert.equal(one.establishedAt, two.establishedAt);
+  assert.notEqual(one.sessionBinding, two.sessionBinding);
+  assert.deepEqual(await createBrowserSessionBroker(config, f.dependencies).authenticateContext(first.sessionCookie), one);
+  assert.deepEqual(await f.broker.authenticate(first.sessionCookie), one.principal);
+  assert.equal(JSON.stringify(one).includes(f.stats().lastAccess), false);
+  assert.equal(JSON.stringify(one).includes(first.sessionCookie.split('=')[1]!), false);
+  assert.equal('sessionBinding' in one.principal, false); assert.ok(Object.isFrozen(one));
+  await f.broker.logout(first.sessionCookie, 'https://steer.example');
+  assert.equal(await f.broker.authenticateContext(first.sessionCookie), null);
+  assert.ok(await f.broker.authenticateContext(second.sessionCookie));
+});
+
+test('real broker verification supplies write membership context while revocation and replacement sessions deny', async () => {
+  const f = await fixture(); f.grant({ toolGrants: ['intent.brief.preview', 'intent.brief.save', 'intent.brief.save.status'] });
+  const login = await f.login(), second = await f.login(); const head = 'a'.repeat(40), path = 'items/0127-demo/BRIEF.md';
+  let selected = login.sessionCookie; let switchDuringRead = false;
+  const reader: ArtifactReader = { binding: { organizationId: 'org-a', repositoryId: 52, installationId: 1,
+    owner: 'synthetic', repository: 'fixture', branch: 'codex/fixture' }, readHead: async () => head,
+    readArtifact: async (sourcePath, revision) => {
+      const member = await f.dependencies.resolveAuthorization();
+      const content = JSON.stringify({ version: 'steer-authorization/v1', organizationId: 'org-a', records: [member] });
+      if (switchDuringRead) selected = second.sessionCookie;
+      return { organizationId: 'org-a', repositoryId: 52, path: sourcePath, revision, content,
+        contentDigest: createHash('sha256').update(content).digest('hex'),
+        blobSha: createHash('sha1').update(`blob ${Buffer.byteLength(content)}\0`).update(content).digest('hex') };
+    } };
+  const verify = createGitWriteMembershipVerifier(reader, { organizationId: 'org-a', repository: 'github:52', issuer: config.issuer,
+    branch: reader.binding.branch, authorizationPath: 'access/authorization.json', paths: [path] },
+    { now: f.dependencies.now, authenticate: () => f.broker.authenticateContext(selected) });
+  const input = { organizationId: 'org-a', repository: 'github:52', branch: reader.binding.branch, path, subject: 'human-1',
+    idempotencyKey: '00000000-0000-4000-8000-000000000127', expectedHead: head, requestDigest: 'b'.repeat(64) };
+  assert.equal((await verify(input)).writeAuthorized, false);
+  switchDuringRead = true; await assert.rejects(verify(input), /Current write membership/);
+  switchDuringRead = false; f.grant({ active: false }); await assert.rejects(verify(input), /Current write membership/);
 });
 
 test('concurrent callback replay exchanges once and cannot fix the new session identifier', async () => {

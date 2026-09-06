@@ -1,4 +1,5 @@
 import { createRemoteJWKSet, customFetch, jwtVerify } from 'jose';
+import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { principalSchema, type Principal } from '@steer/tool-registry';
 
@@ -15,6 +16,10 @@ const configSchema = z.strictObject({
   maxTokenAgeSeconds: z.number().int().min(1).max(3600).default(300),
 });
 export type OidcConfiguration = z.input<typeof configSchema>;
+/** Internal verified metadata, never an HTTP view, signature or grant. */
+export interface VerifiedIdentityContext {
+  issuer: string; establishedAt: string; sessionBinding: string; principal: Principal;
+}
 
 export const authorizationRecordSchema = principalSchema.extend({
   issuer: httpsUrl,
@@ -49,6 +54,12 @@ const claimsSchema = z.object({
 
 /** Keycloak-compatible access-token profile, isolated from domain and API code. */
 export function createOidcAuthenticator(configuration: OidcConfiguration, dependencies: IdentityDependencies) {
+  const authenticate = createOidcContextAuthenticator(configuration, dependencies);
+  return async (request: Request): Promise<Principal | null> => (await authenticate(request))?.principal ?? null;
+}
+
+/** Retains metadata from the same signature/grant verification, not a second decode. */
+export function createOidcContextAuthenticator(configuration: OidcConfiguration, dependencies: IdentityDependencies) {
   const validated = configSchema.safeParse(configuration);
   if (!validated.success) throw new Error('Invalid OIDC configuration.');
   const config = validated.data;
@@ -61,7 +72,7 @@ export function createOidcAuthenticator(configuration: OidcConfiguration, depend
     [customFetch]: (url, options) => transport(url, { ...options, redirect: 'error' }),
   });
 
-  return async function authenticate(request: Request): Promise<Principal | null> {
+  return async function authenticate(request: Request): Promise<VerifiedIdentityContext | null> {
     const header = request.headers.get('authorization');
     if (!header || header.length > 16384) return null;
     const match = /^Bearer ([A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)$/i.exec(header);
@@ -99,12 +110,15 @@ export function createOidcAuthenticator(configuration: OidcConfiguration, depend
           grant.organizationId !== token.steer_org || grant.type !== token.steer_kind ||
           Date.parse(grant.validAfter) > token.iat * 1000 ||
           (grant.type === 'agent' && (grant.hats.length !== 0 || token.steer_hats.length !== 0))) return null;
-      return principalSchema.parse({
+      const principal = principalSchema.parse({
         subject: grant.subject, organizationId: grant.organizationId, type: grant.type,
         hats: grant.hats.filter((hat) => token.steer_hats.includes(hat)),
         toolGrants: grant.toolGrants,
         expiresAt: new Date(expiry).toISOString(),
       });
+      Object.freeze(principal.hats); Object.freeze(principal.toolGrants); Object.freeze(principal);
+      return Object.freeze({ issuer: token.iss, establishedAt: new Date(token.iat * 1000).toISOString(),
+        sessionBinding: createHash('sha256').update(`steer-oidc-token/v1\0${match[1]}`).digest('hex'), principal });
     } catch {
       // No JWT, claim, URL, key-service error, or authorization record reaches logs.
       return null;

@@ -64,6 +64,18 @@ function fixture() {
     failExchange: () => { failExchange = true; }, failDelete: () => { failDelete = true; } };
 }
 
+test('verified authentication metadata remains internal to both public session responses', async () => {
+  const f = fixture(), login = await f.login();
+  const display = await f.request('/auth/session', { method: 'POST', headers: { ...mutation, cookie: login.sessionCookie } });
+  const tool = await f.tool(login.sessionCookie);
+  for (const response of [display, tool]) {
+    assert.equal(response.status, 200); const body = await response.json();
+    for (const field of ['sessionBinding', 'establishedAt', 'issuer', 'accessToken']) assert.equal(field in body, false);
+    assert.equal(JSON.stringify(body).includes(f.stats().access), false);
+    assert.equal(JSON.stringify(body).includes(login.sessionCookie.split('=')[1]!), false);
+  }
+});
+
 function secure(response: Response) {
   assert.equal(response.headers.get('cache-control'), 'no-store');
   assert.equal(response.headers.get('pragma'), 'no-cache');

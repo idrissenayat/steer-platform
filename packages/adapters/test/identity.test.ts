@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { createHash } from 'node:crypto';
 import { exportJWK, generateKeyPair, SignJWT, type JWTPayload } from 'jose';
-import { createOidcAuthenticator, type AuthorizationRecord } from '../src/identity/oidc.ts';
+import { createOidcAuthenticator, createOidcContextAuthenticator, type AuthorizationRecord } from '../src/identity/oidc.ts';
+import { createGitAuthorizationResolver } from '../src/identity/authorization.ts';
+import { createGitWriteMembershipVerifier } from '../src/identity/write-membership.ts';
+import type { ArtifactReader } from '../src/code-host/github.ts';
 
 const time = new Date('2026-09-04T12:00:00Z');
 const seconds = time.getTime() / 1000;
@@ -45,6 +49,43 @@ test('verified token is normalized only after current issuer/subject/organizatio
     subject: 'human-1', organizationId: 'org-a', type: 'human', hats: ['product-lead'],
     toolGrants: ['session.context'], expiresAt: grant.expiresAt,
   });
+});
+
+test('internal OIDC context retains signed issuer/iat and exact credential binding without leaking token bytes', async () => {
+  const authenticate = createOidcContextAuthenticator(config, { now: () => time, fetch: jwksFetch, resolveAuthorization: async () => grant });
+  const token = await sign(), value = await authenticate(request(token)); assert.ok(value);
+  assert.equal(value.issuer, config.issuer); assert.equal(value.establishedAt, time.toISOString());
+  assert.equal(value.sessionBinding, createHash('sha256').update(`steer-oidc-token/v1\0${token}`).digest('hex'));
+  assert.deepEqual(value.principal, await create()(request(token))); assert.equal(JSON.stringify(value).includes(token), false);
+  assert.ok(Object.isFrozen(value) && Object.isFrozen(value.principal) && Object.isFrozen(value.principal.toolGrants));
+  assert.equal((await authenticate(request(token)))?.sessionBinding, value.sessionBinding);
+  const other = await authenticate(request(await sign({ ...claims, jti: 'different-same-second-token' }))); assert.ok(other);
+  assert.equal(other.establishedAt, value.establishedAt); assert.notEqual(other.sessionBinding, value.sessionBinding);
+  assert.equal(await authenticate(request(await sign(claims, unknownKeys.privateKey))), null);
+});
+
+test('verified bearer context composes with exact-head Git membership and observes source revocation', async () => {
+  const authorizationPath = 'access/authorization.json', head = 'a'.repeat(40);
+  let member = { ...grant, toolGrants: ['intent.brief.preview', 'intent.brief.save', 'intent.brief.save.status'] };
+  const reader: ArtifactReader = { binding: { organizationId: 'org-a', repositoryId: 52, installationId: 1,
+    owner: 'synthetic', repository: 'fixture', branch: 'codex/fixture' }, readHead: async () => head,
+    readArtifact: async (path, revision) => {
+      const content = JSON.stringify({ version: 'steer-authorization/v1', organizationId: 'org-a', records: [member] });
+      return { organizationId: 'org-a', repositoryId: 52, path, revision, content,
+        contentDigest: createHash('sha256').update(content).digest('hex'),
+        blobSha: createHash('sha1').update(`blob ${Buffer.byteLength(content)}\0`).update(content).digest('hex') };
+    } };
+  const authenticate = createOidcContextAuthenticator(config, { now: () => time, fetch: jwksFetch,
+    resolveAuthorization: createGitAuthorizationResolver(reader, authorizationPath) });
+  const credential = request(await sign()), path = 'items/0127-demo/BRIEF.md';
+  const verify = createGitWriteMembershipVerifier(reader, { organizationId: 'org-a', repository: 'github:52',
+    branch: reader.binding.branch, issuer: config.issuer, authorizationPath, paths: [path] },
+    { now: () => time, authenticate: () => authenticate(credential) });
+  const input = { organizationId: 'org-a', repository: 'github:52', branch: reader.binding.branch, path, subject: grant.subject,
+    idempotencyKey: '00000000-0000-4000-8000-000000000127', expectedHead: head, requestDigest: 'b'.repeat(64) };
+  const result = await verify(input); assert.equal(result.writeAuthorized, false); assert.equal(result.gateVerified, false);
+  assert.equal(result.sessionBinding, (await authenticate(credential))?.sessionBinding);
+  member = { ...member, active: false }; await assert.rejects(verify(input), /Current write membership/);
 });
 
 test('signature, key, issuer, audience, client and access-token kind are enforced', async () => {

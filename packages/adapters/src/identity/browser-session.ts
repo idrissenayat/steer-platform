@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { type Principal } from '@steer/tool-registry';
 import { transactionSchema, sessionSchema, type BrowserSessionStore } from '@steer/tool-registry/browser-session';
 export type { LoginTransaction, BrowserSession, BrowserSessionStore } from '@steer/tool-registry/browser-session';
-import { createOidcAuthenticator, type IdentityDependencies } from './oidc.ts';
+import { createOidcContextAuthenticator, type IdentityDependencies, type VerifiedIdentityContext } from './oidc.ts';
 
 const https = z.string().url().refine((value) => {
   const url = new URL(value);
@@ -61,11 +61,31 @@ export function createBrowserSessionBroker(raw: BrowserSessionConfiguration, dep
   const transport = dependencies.fetch ?? globalThis.fetch;
   const store = dependencies.store;
   const now = () => { const time = clock().getTime(); if (!Number.isFinite(time)) throw new BrowserSessionError(); return time; };
-  const authenticateAccess = createOidcAuthenticator({ issuer: config.issuer, jwksUri: config.jwksUri,
+  const authenticateAccess = createOidcContextAuthenticator({ issuer: config.issuer, jwksUri: config.jwksUri,
     audience: config.audience, clientIds: [config.clientId], maxTokenAgeSeconds: 300 }, dependencies);
   const jwks = createRemoteJWKSet(new URL(config.jwksUri), { timeoutDuration: 5000,
     [customFetch]: (url, options) => transport(url, { ...options, redirect: 'error' }) });
-  const validateAccess = (accessToken: string) => authenticateAccess(new Request(config.redirectUri, { headers: { authorization: `Bearer ${accessToken}` } }));
+  const validateAccessContext = (accessToken: string) => authenticateAccess(new Request(config.redirectUri, { headers: { authorization: `Bearer ${accessToken}` } }));
+  const validateAccess = async (accessToken: string) => (await validateAccessContext(accessToken))?.principal ?? null;
+  const authenticateContext = async (cookieHeader: string | null): Promise<VerifiedIdentityContext | null> => {
+    try {
+      const id = parseCookie(cookieHeader, sessionCookie); if (!id) return null;
+      const key = digest(id); const session = sessionSchema.parse(await store.readSession(key));
+      const started = now();
+      if (started < session.createdAt || started >= session.expiresAt || session.expiresAt - session.createdAt > 300000) return null;
+      const verified = await validateAccessContext(session.accessToken); const principal = verified?.principal;
+      const current = sessionSchema.safeParse(await store.readSession(key));
+      const decision = now();
+      if (!verified || !principal || principal.type !== 'human' || principal.subject !== session.subject || principal.organizationId !== session.organizationId ||
+          !current.success || JSON.stringify(current.data) !== JSON.stringify(session) || decision < started ||
+          decision >= Math.min(session.expiresAt, Date.parse(principal.expiresAt))) return null;
+      // Bind the persisted session AND its currently verified token. A replaced
+      // token in the same cookie record cannot masquerade as the same observation.
+      return Object.freeze({ issuer: verified.issuer, establishedAt: new Date(session.createdAt).toISOString(),
+        sessionBinding: digest(`steer-browser-session/v1\0${key}\0${verified.sessionBinding}`),
+        principal: Object.freeze({ ...principal, expiresAt: new Date(Math.min(Date.parse(principal.expiresAt), session.expiresAt)).toISOString() }) });
+    } catch { return null; }
+  };
   const safely = async <T>(run: () => Promise<T>): Promise<T> => { try { return await run(); } catch { throw new BrowserSessionError(); } };
   return {
     begin: (requestOrigin: string | null) => safely(async () => {
@@ -117,21 +137,8 @@ export function createBrowserSessionBroker(raw: BrowserSessionConfiguration, dep
       return { setCookies: [cookie(loginCookie, '', 0), cookie(sessionCookie, sessionId, Math.floor((expiresAt - decision) / 1000))],
         expiresAt: new Date(expiresAt).toISOString() };
     }),
-    authenticate: async (cookieHeader: string | null): Promise<Principal | null> => {
-      try {
-        const id = parseCookie(cookieHeader, sessionCookie); if (!id) return null;
-        const key = digest(id); const session = sessionSchema.parse(await store.readSession(key));
-        const started = now();
-        if (started < session.createdAt || started >= session.expiresAt || session.expiresAt - session.createdAt > 300000) return null;
-        const principal = await validateAccess(session.accessToken);
-        const current = sessionSchema.safeParse(await store.readSession(key));
-        const decision = now();
-        if (!principal || principal.type !== 'human' || principal.subject !== session.subject || principal.organizationId !== session.organizationId ||
-            !current.success || JSON.stringify(current.data) !== JSON.stringify(session) || decision < started ||
-            decision >= Math.min(session.expiresAt, Date.parse(principal.expiresAt))) return null;
-        return { ...principal, expiresAt: new Date(Math.min(Date.parse(principal.expiresAt), session.expiresAt)).toISOString() };
-      } catch { return null; }
-    },
+    authenticateContext,
+    authenticate: async (cookieHeader: string | null): Promise<Principal | null> => (await authenticateContext(cookieHeader))?.principal ?? null,
     logout: (cookieHeader: string | null, requestOrigin: string | null) => safely(async () => {
       if (requestOrigin !== callback.origin) throw new BrowserSessionError();
       const id = parseCookie(cookieHeader, sessionCookie);

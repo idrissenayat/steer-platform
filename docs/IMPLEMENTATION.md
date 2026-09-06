@@ -1133,6 +1133,13 @@ gate/write authority are not verified; it cannot replace the full trusted writer
 Existing login and provenance-only gate observation remain unchanged. See
 `intent/0126/EVIDENCE.md` and `intent/0126/PLAN.md` for the remaining composition.
 
+Item `intent/0127` retains internal issuer/credential/session context from actual
+OIDC and browser verification. The public authenticator still returns only its
+principal. Membership now compares an exact binding hash as well as establishment
+time, preventing same-time session substitution. Signed-token/broker tests compose
+these paths and verify public metadata exclusion. This is not a human gate proof;
+the full source/provider verifier and request-bound writer remain unfinished.
+
 ## Local commands
 
 ```sh

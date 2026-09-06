@@ -33,6 +33,10 @@ Item [0126](intent/0126/README.md) adds exact-head human membership verification
 the pending writer composition. It explicitly does not verify Gate 2 or authorize
 writes. The full session/provider-proof composition is still required.
 
+Item [0127](intent/0127/README.md) retains verified bearer/browser context and tests
+its connection to exact-head membership. Public responses stay unchanged; complete
+gate/source verification and the request-bound writer are still not installed.
+
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono
 API/shared tool registry (0007), OIDC adapter/API composition (0008), and

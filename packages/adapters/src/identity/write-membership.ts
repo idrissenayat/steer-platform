@@ -13,7 +13,7 @@ const configurationSchema = briefSaveScopeSchema.omit({ path: true }).extend({
   paths: z.array(briefSaveScopeSchema.shape.path).min(1).max(100).refine((paths) => new Set(paths).size === paths.length),
 });
 const inputSchema = briefSaveReferenceSchema.extend({ expectedHead: sha, requestDigest: digest });
-const sessionSchema = z.strictObject({ issuer: authorizationRecordSchema.shape.issuer, establishedAt: instant,
+const sessionSchema = z.strictObject({ issuer: authorizationRecordSchema.shape.issuer, establishedAt: instant, sessionBinding: digest,
   principal: principalSchema.extend({ expiresAt: instant }),
 });
 const requiredGrants = ['intent.brief.preview', 'intent.brief.save', 'intent.brief.save.status'];
@@ -80,7 +80,7 @@ export function createGitWriteMembershipVerifier(reader: ArtifactReader, rawConf
             new Set(grant.hats).size !== grant.hats.length || new Set(grant.toolGrants).size !== grant.toolGrants.length) throw failure();
         const validAfter = Date.parse(instant.parse(grant.validAfter)), grantExpiry = Date.parse(instant.parse(grant.expiresAt));
         const fresh = await authenticate();
-        if (fresh.establishedAt !== initial.establishedAt || validAfter > Date.parse(initial.establishedAt) ||
+        if (fresh.sessionBinding !== initial.sessionBinding || fresh.establishedAt !== initial.establishedAt || validAfter > Date.parse(initial.establishedAt) ||
             validAfter >= grantExpiry || [...initial.principal.hats, ...fresh.principal.hats].some((hat) => !grant.hats.includes(hat)) ||
             [...initial.principal.toolGrants, ...fresh.principal.toolGrants].some((name) => !grant.toolGrants.includes(name))) throw failure();
         if (sha.parse(await reader.readHead()) !== input.expectedHead) throw failure();
@@ -88,7 +88,7 @@ export function createGitWriteMembershipVerifier(reader: ArtifactReader, rawConf
         const validThrough = Math.min(finished + 5000, Date.parse(initial.principal.expiresAt), Date.parse(fresh.principal.expiresAt), grantExpiry);
         if (validThrough <= finished) throw failure();
         return Object.freeze({ ...input, kind: 'git-write-membership-observation' as const,
-          issuer: config.issuer, sessionEstablishedAt: initial.establishedAt,
+          issuer: config.issuer, sessionEstablishedAt: initial.establishedAt, sessionBinding: initial.sessionBinding,
           authorizationPath: config.authorizationPath, authorizationRevision: input.expectedHead,
           authorizationDigest: artifact.contentDigest, authorizationBlobSha: artifact.blobSha,
           evaluatedAt: new Date(finished).toISOString(), validThrough: new Date(validThrough).toISOString(),

@@ -15,7 +15,7 @@ const input = { organizationId: 'org', repository: 'github:52', branch: configur
 const principal = { organizationId: 'org', subject: input.subject, type: 'human', hats: ['product-lead'],
   toolGrants: ['intent.brief.preview', 'intent.brief.save', 'intent.brief.save.status'],
   expiresAt: new Date(now.getTime() + 300000).toISOString() };
-const session = { issuer, establishedAt: new Date(now.getTime() - 60000).toISOString(), principal };
+const session = { issuer, establishedAt: new Date(now.getTime() - 60000).toISOString(), sessionBinding: 'c'.repeat(64), principal };
 const record = { ...principal, issuer, active: true, validAfter: new Date(now.getTime() - 120000).toISOString() };
 const document = { version: 'steer-authorization/v1', organizationId: 'org', records: [record] };
 const failure = (cause: unknown) => cause instanceof Error && cause.message === 'Current write membership could not be verified.';
@@ -95,7 +95,7 @@ test('inactive, absent, duplicate, cross-tenant, underqualified and malformed so
 });
 
 test('session switching, revocation during read and late expiry discard observations', async () => {
-  for (const next of [null, { ...session, establishedAt: new Date(now.getTime() - 50000).toISOString() },
+  for (const next of [null, { ...session, sessionBinding: 'd'.repeat(64) }, { ...session, establishedAt: new Date(now.getTime() - 50000).toISOString() },
     { ...session, principal: { ...principal, toolGrants: [] } }]) {
     const f = fixture(); f.duringRead(async () => { f.authenticate(async () => next); }); await assert.rejects(f.verify(input), failure);
   }
