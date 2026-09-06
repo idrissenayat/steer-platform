@@ -1254,6 +1254,13 @@ Git integration feeds failed review facts to the actual gate policy. Neither
 historical tests nor local preflight are a passing gate report. See
 `intent/0144/EVIDENCE.md`; reviewer authenticity, history and authority remain due.
 
+Item `intent/0145` joins optional source-pinned runner trust/proof records to native
+domain reviews. Real signature verification checks all report/identity/run bindings
+and current key validity at final collection. Configured failures cannot fall back
+to unsigned claims. This development receipt contract is not an installed provider
+format or proof of truthful isolation; all gate/write flags stay closed. See
+`intent/0145/EVIDENCE.md` for synthetic/native-Git verification and remaining work.
+
 ## Local commands
 
 ```sh

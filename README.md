@@ -107,6 +107,10 @@ Item [0144](intent/0144/README.md) preserves native Critic HOLD records and chec
 their finding totals before policy evaluation. Historical test success is not a
 passing review; reviewer provenance and a passing native contract remain unfinished.
 
+Item [0145](intent/0145/README.md) verifies a selected runner's signed assertion
+about exact domain-review bytes and execution identities. Actual runner governance
+and isolation remain unverified; no live attestor or gate approval is installed.
+
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono
 API/shared tool registry (0007), OIDC adapter/API composition (0008), and

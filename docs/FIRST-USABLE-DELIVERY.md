@@ -259,6 +259,13 @@ passes. A supported passing native contract, reviewer authenticity, prior-findin
 history and governed source/Builder selection remain before full live authority.
 See `intent/0144/EVIDENCE.md`; this is backend compatibility, not a frontend change.
 
+0145 development update: exact domain-review source bytes can now be checked
+against a selected runner's cryptographic execution assertion through actual Git
+collection. This advances provenance plumbing only: approved runner selection,
+demonstrated isolated execution, native Critic provenance, actual provider bindings
+and action-time authority remain required before live saving. No real attestor or
+writer is enabled. See `intent/0145/EVIDENCE.md`.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

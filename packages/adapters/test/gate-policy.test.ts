@@ -12,6 +12,7 @@ import type { RepositoryReader } from '../src/code-host/github.ts';
 import { nativeDomainReviewFixture } from './native-domain-review-fixture.ts';
 import { nativeDomainExceptionFixture } from './native-domain-exception-fixture.ts';
 import { nativeCriticFixture } from './native-critic-fixture.ts';
+import { reviewRunnerFixture } from './gate-review-fixture.ts';
 
 const failure = /^Error: Gate policy source collection could not be verified\.$/;
 const blob = (text: string) => createHash('sha1').update(`blob ${Buffer.byteLength(text)}\0`).update(text).digest('hex');
@@ -422,5 +423,88 @@ test('native Critic startup must explicitly bind task/provider/Builder and canno
     assert.throws(() => f.create({ gates: [f.config.gates[0], { ...entry, critic: reference }] }));
   }
   assert.throws(() => f.create({ gates: [{ ...f.config.gates[0], critic: f.reference }] }));
+  assert.equal(f.reads.length, 0);
+});
+
+function nativeRunner(t: TestContext, git = false) {
+  const f = nativeDomain(t, git), attestor = reviewRunnerFixture(), entry = f.config.gates[1]!, scope = entry.signerCollection.gateSource.scope;
+  Object.assign(attestor.trust, { organizationId: scope.organizationId, repository: scope.repository,
+    reviewerSubject: f.record.reviewer.serviceIdentity, configurationRevision: f.record.reviewer.configurationRevision,
+    notBefore: new Date(Date.parse(f.record.reviewedAt) - 2000).toISOString(), notAfter: new Date(Date.now() + 60000).toISOString() });
+  Object.assign(attestor.payload, { organizationId: scope.organizationId, repository: scope.repository,
+    reviewerSubject: f.record.reviewer.serviceIdentity, configurationRevision: f.record.reviewer.configurationRevision,
+    recordItem: f.record.target.item, artifactRevision: f.record.target.revision, reportPath: f.selected.path, reportDigest: f.selected.digest,
+    reviewedAt: f.record.reviewedAt, startedAt: new Date(Date.parse(f.record.reviewedAt) - 1000).toISOString(),
+    recordedAt: new Date(Date.parse(f.record.reviewedAt) + 1).toISOString() });
+  const runner = { trust: { path: 'gate-2/review-runner-trust.json', digest: '' }, proof: { path: 'gate-2/review-runner-proof.json', digest: '' },
+    executionId: attestor.payload.executionId, builderExecutionId: attestor.payload.builderExecutionId };
+  const seal = () => {
+    for (const [ref, record] of [[runner.trust, attestor.trust], [runner.proof, attestor.encode()]] as const) {
+      const content = JSON.stringify(record); f.sources.set(ref.path, content); ref.digest = hash(content);
+    }
+  };
+  seal();
+  const configuration = () => ({ gates: [f.config.gates[0], { ...entry, domainAssurance: { ...entry.domainAssurance, reviews: [{ ...f.selected, runner }] } }] });
+  return { ...f, attestor, runner, seal, configuration };
+}
+
+test('native Git collector verifies actual runner signatures and retains source-pinned provenance without gate authority', async t => {
+  const f = nativeRunner(t, true); f.commit();
+  const result = await f.create(f.configuration()).collect(f.input()), native = result.gates[1]!.nativeDomainReviews[0]!;
+  assert.ok(native.runnerAttestation); assert.equal(native.runnerAttestation.proofDigest, f.runner.proof.digest);
+  assert.equal(native.runnerAttestation.trustDigest, f.runner.trust.digest);
+  assert.equal(native.runnerAttestation.claims.reportDigest, f.selected.digest);
+  assert.equal(native.runnerAttestation.claims.executionId, f.runner.executionId);
+  for (const ref of [f.runner.trust, f.runner.proof]) assert.equal(result.gates[1]!.sources.find(value => value.path === ref.path)!.content, f.sources.get(ref.path));
+  assert.equal(result.policyOutcome, 'policy-satisfied'); assert.equal(result.gateVerified, false); assert.equal(result.writeAuthorized, false);
+  assert.equal(result.reviewAuthenticityVerificationRequired, true); assert.equal(native.runnerAttestation.runnerIsolationVerificationRequired, true);
+});
+
+test('configured runner proof is mandatory and wrong signed claims, keys, source encodings or chronology cannot fall back to raw review', async t => {
+  for (const mode of ['missing', 'hash', 'report', 'configuration', 'execution', 'builder', 'domain', 'signature', 'key', 'order', 'late', 'bytes']) {
+    const f = nativeRunner(t);
+    if (mode === 'report') f.attestor.payload.reportDigest = 'f'.repeat(64);
+    if (mode === 'configuration') f.attestor.payload.configurationRevision = 'foreign-configuration';
+    if (mode === 'execution') f.attestor.payload.executionId = 'foreign-execution';
+    if (mode === 'builder') f.attestor.payload.builderSubject = 'foreign-builder';
+    if (mode === 'domain') { f.attestor.payload.domain = 'security'; f.attestor.trust.domain = 'security'; }
+    if (mode === 'key') f.attestor.trust.publicKeyHex = 'f'.repeat(64);
+    if (mode === 'late') f.attestor.payload.recordedAt = new Date(Date.parse(f.config.gates[1]!.signerCollection.signers.at(-1)!.proof.expected.signedAt) + 1).toISOString();
+    f.seal();
+    if (mode === 'missing') f.sources.delete(f.runner.proof.path);
+    if (mode === 'hash') f.runner.proof.digest = 'f'.repeat(64);
+    if (mode === 'signature') { const proof = f.attestor.encode(); proof.signatureBase64 = Buffer.alloc(64).toString('base64'); const content = JSON.stringify(proof);
+      f.sources.set(f.runner.proof.path, content); f.runner.proof.digest = hash(content); }
+    if (mode === 'order') { const content = JSON.stringify(Object.fromEntries(Object.entries(f.attestor.trust).reverse()));
+      f.sources.set(f.runner.trust.path, content); f.runner.trust.digest = hash(content); }
+    if (mode === 'bytes') { const content = ' '.repeat(65537); f.sources.set(f.runner.proof.path, content); f.runner.proof.digest = hash(content); }
+    await assert.rejects(f.create(f.configuration()).collect(f.input()), failure, mode);
+  }
+});
+
+test('all collected runner keys remain current at final policy completion, including a scheduled revocation boundary', async t => {
+  const realNow = Date.now; let offset = 0;
+  try {
+    Date.now = () => realNow() + offset;
+    for (const mode of ['expires', 'revokes', 'before']) {
+      offset = 0; const f = nativeRunner(t), read = f.reader.readArtifact, base = realNow();
+      f.attestor.trust[mode === 'revokes' ? 'revokedAt' : 'notAfter'] = new Date(base + 1000).toISOString(); f.seal();
+      let observed = false;
+      f.reader.readArtifact = async (...args) => { const result = await read(...args); if (args[0] === f.runner.proof.path) observed = true; return result; };
+      f.reader.readHead = async () => { if (observed) offset = base + (mode === 'before' ? 500 : 1000) - realNow(); return f.state.head; };
+      if (mode === 'before') assert.ok((await f.create(f.configuration()).collect(f.input())).gates[1]!.nativeDomainReviews[0]!.runnerAttestation);
+      else await assert.rejects(f.create(f.configuration()).collect(f.input()), failure, mode);
+      assert.ok(observed, 'The test must reach the actual runner proof before the completion-time clock change.');
+    }
+  } finally { Date.now = realNow; }
+});
+
+test('runner selection rejects ambiguous source paths and missing run identities before source access', t => {
+  const f = nativeRunner(t);
+  for (const runner of [{ ...f.runner, executionId: '' }, { ...f.runner, builderExecutionId: '' },
+    { ...f.runner, trust: f.runner.proof }, { ...f.runner, proof: { ...f.runner.proof, path: f.selected.path } }]) {
+    const configuration = f.configuration(); configuration.gates[1]!.domainAssurance.reviews = [{ ...f.selected, runner }];
+    assert.throws(() => f.create(configuration));
+  }
   assert.equal(f.reads.length, 0);
 });

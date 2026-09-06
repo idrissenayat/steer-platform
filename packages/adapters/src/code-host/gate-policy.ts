@@ -7,6 +7,7 @@ import type { RepositoryReader, ArtifactSnapshot } from './github.ts';
 import { normalizeGateDomainReview } from './gate-domain-review.ts';
 import { verifyNativeDomainException } from './gate-domain-exception.ts';
 import { normalizeGateCritic } from './gate-critic.ts';
+import { verifyDomainReviewRunnerAttestation } from '../identity/gate-review-proof.ts';
 
 const targetSchema = gatePolicyInputSchema.shape.target.omit({ decisionDigest: true });
 const digest = gatePolicyInputSchema.shape.target.shape.decisionDigest;
@@ -16,6 +17,7 @@ const nativeCriticRef = ref.extend({ format: z.literal('steer-critic-review/v1')
   reviewerProvider: taskIdentity, reviewerTask: taskIdentity, builderTask: taskIdentity });
 const nativeReviewRef = ref.extend({ format: z.literal('steer-domain-review-record/v1'),
   domain: gatePolicyInputSchema.shape.policy.shape.activatedDomains.element, examPath: artifactProjectionInputSchema.shape.path,
+  runner: z.strictObject({ trust: ref, proof: ref, executionId: taskIdentity, builderExecutionId: taskIdentity }).optional(),
   evidence: z.array(ref).min(1).max(128).refine(values => new Set(values.map(value => value.path)).size === values.length) });
 const nativeExceptionRef = ref.extend({ format: z.literal('steer-domain-exception-brief/v1'),
   builderSubject: gatePolicyInputSchema.shape.domainAssurance.unwrap().shape.builderSubject, examPath: artifactProjectionInputSchema.shape.path });
@@ -61,7 +63,8 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
     recordPaths.add(source.recordPath);
     if ('format' in entry.critic && source.gate !== 2) throw new Error('Invalid gate policy sources.');
     const paths = [entry.policy.path, entry.critic.path, ...(entry.buildEvidence ? [entry.buildEvidence.path] : []),
-      ...(entry.domainAssurance ? [entry.domainAssurance.exceptionBrief.path, ...entry.domainAssurance.reviews.map((value) => value.path)] : [])];
+      ...(entry.domainAssurance ? [entry.domainAssurance.exceptionBrief.path, ...entry.domainAssurance.reviews.flatMap(value =>
+        [value.path, ...('format' in value && value.runner ? [value.runner.trust.path, value.runner.proof.path] : [])])] : [])];
     if (new Set(paths).size !== paths.length || paths.includes(source.recordPath)) throw new Error('Invalid gate policy sources.');
     if (entry.domainAssurance?.reviews.some(value => 'format' in value &&
       (source.gate !== 2 || !source.artifactPaths.includes(value.examPath)))) throw new Error('Invalid gate policy sources.');
@@ -102,7 +105,8 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
           await authorize();
           const observations: SignerObservation[] = [], prepared: Omit<GatePolicyInput, 'evaluatedAt' | 'prerequisite'>[] = [];
           const sources: Readonly<ArtifactSnapshot>[][] = [];
-          const nativeDomainReviews: { observation: NonNullable<ReturnType<typeof normalizeGateDomainReview>>; linkedEvidenceVerified: true }[][] = [];
+          const nativeDomainReviews: { observation: NonNullable<ReturnType<typeof normalizeGateDomainReview>>; linkedEvidenceVerified: true;
+            runnerAttestation: ReturnType<typeof verifyDomainReviewRunnerAttestation> }[][] = [];
           const nativeDomainExceptions: ReturnType<typeof verifyNativeDomainException>[] = [];
           const nativeCritics: ReturnType<typeof normalizeGateCritic>[] = [];
           let retainedBytes = 0;
@@ -168,7 +172,24 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
                   if (native.evidenceReferences.length !== reference.evidence.length || native.evidenceReferences.some(value =>
                     !reference.evidence.some(pin => pin.path === value.path && pin.digest === value.sha256))) throw failure();
                   for (const pin of reference.evidence) await readSource(pin, target.artifactRevision, 512 * 1024);
-                  nativeDomainReviews[index]!.push({ observation: native, linkedEvidenceVerified: true }); reviews.push(native.review);
+                  let runnerAttestation: ReturnType<typeof verifyDomainReviewRunnerAttestation> = null;
+                  if (reference.runner) {
+                    const selectedRunner = reference.runner;
+                    const trustSource = await readSource(selectedRunner.trust), proofSource = await readSource(selectedRunner.proof);
+                    const trust: unknown = JSON.parse(trustSource.content), proof: unknown = JSON.parse(proofSource.content);
+                    if (JSON.stringify(trust) !== trustSource.content || JSON.stringify(proof) !== proofSource.content) throw failure();
+                    runnerAttestation = verifyDomainReviewRunnerAttestation(proof, trust, {
+                      organizationId: target.organizationId, repository: target.repository, domain: reference.domain,
+                      recordItem: selected.gateSource.recordItem, artifactRevision: target.artifactRevision, reportPath: reference.path,
+                      reportDigest: reference.digest, reviewerSubject: native.record.reviewer.serviceIdentity,
+                      configurationRevision: native.record.reviewer.configurationRevision, builderSubject,
+                      executionId: selectedRunner.executionId, builderExecutionId: selectedRunner.builderExecutionId,
+                      reviewedAt: native.record.reviewedAt, proofDigest: selectedRunner.proof.digest,
+                    }, new Date(check()).toISOString());
+                    if (!runnerAttestation || runnerAttestation.trustDigest !== selectedRunner.trust.digest ||
+                      observation.record.signatures.some(value => parseUtcInstant(value.signedAt)! < parseUtcInstant(runnerAttestation!.claims.recordedAt)!)) throw failure();
+                  }
+                  nativeDomainReviews[index]!.push({ observation: native, linkedEvidenceVerified: true, runnerAttestation }); reviews.push(native.review);
                 } else {
                   const facts = await read(reference, reviewSchema); reviews.push({ ...facts.review, reportDigest: reference.digest });
                 }
@@ -197,6 +218,9 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
           }
           await authorize(); if (await guarded.readHead() !== input.sourceRevision) throw failure();
           const evaluatedAt = new Date(check()).toISOString(), at = parseUtcInstant(evaluatedAt)!;
+          const runnerAttestations = nativeDomainReviews.flat().flatMap(value => value.runnerAttestation ? [value.runnerAttestation] : []);
+          const reviewsCurrentAt = (time: bigint) => runnerAttestations.every(value => parseUtcInstant(value.evaluatedAt)! <= time && parseUtcInstant(value.validBefore)! > time);
+          if (!reviewsCurrentAt(at)) throw failure();
           for (const observation of observations) {
             if (parseUtcInstant(observation.evaluatedAt)! > at || parseUtcInstant(observation.currentEvidenceValidity.validBefore)! <= at) throw failure();
           }
@@ -216,6 +240,7 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
             governedSelectionVerificationRequired: true as const, reviewAuthenticityVerificationRequired: true as const,
             currentSourceVerificationRequired: true as const, gateVerified: false as const, writeAuthorized: false as const });
           const finished = parseUtcInstant(new Date(check()).toISOString())!;
+          if (!reviewsCurrentAt(finished)) throw failure();
           if (observations.some(value => parseUtcInstant(value.currentEvidenceValidity.validBefore)! <= finished)) throw failure();
           return result;
         } catch {

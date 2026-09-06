@@ -2836,3 +2836,20 @@ source/Builder selection, actual provider bindings and full action-time authorit
 remain before writer enablement. Continue those dependencies and then destination,
 head, save/status UI, board and review. All five R5 findings and signed obligations
 remain open; no live write, deployment or spending is authorized.
+
+## Completed development increment: 0145 — Domain-review runner evidence
+
+The native domain collector can now verify an explicitly selected runner signature
+against exact review bytes, target, reviewer/configuration, Builder and separate
+execution IDs. Actual Git trust/proof reads retain source hashes; configured missing
+or invalid proof cannot fall back to review self-declarations. Every runner key is
+rechecked at common policy evaluation and final completion. Focused checks pass
+37 groups; full repository verification passes, including 437 root controls,
+237 adapter tests and all package checks/builds. See `intent/0145/EVIDENCE.md`.
+
+This is an internal development receipt contract, not actual provider integration
+or proof of truthful isolated execution. Governed runner/source/Builder selection,
+isolation evidence, native Critic provenance/passing contract and real human/provider
+bindings remain. Then complete full action-time authority, runtime writer and
+destination/head/save/status UI, board and review. All five R5 findings and signed
+obligations stay open; no live access, write, approval, release or spending is added.
