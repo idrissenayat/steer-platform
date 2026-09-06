@@ -199,6 +199,13 @@ The full gate verifier remains a mandatory synthetic dependency in tests, not a
 production implementation or approval. Runtime/UI/board/review remain due; see
 `intent/0135/EVIDENCE.md` for exact implementation and fixture boundaries.
 
+0136 development update: the provider-source reader now verifies historical and
+current recorded human hats, including exact signed authorization digests and
+nanosecond grant windows. Native Git tests demonstrate later revocation denial.
+This removes a source-verification gap for signed-envelope development, not the
+remaining identity/session, specialist, existing-provider and full gate composition.
+No runtime/UI change is claimed; see `intent/0136/EVIDENCE.md`.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

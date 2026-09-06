@@ -2680,3 +2680,22 @@ an unfinished mandatory dependency. No production factory, runtime profile, GitH
 write scope or gate decision is enabled. Complete that verifier and approved runtime
 binding, then the save/status UI, board and revision-bound review. Preserve all five
 R5 findings, 0124/0120, independent protected review and signed Phase 1 obligations.
+
+## Completed development increment: 0136 — Historical and current gate-signer hats
+
+The signed provider-source reader now has an explicit signer mode which verifies
+historical grant bytes against the provider-attested digest, exact authentication/
+signing windows, and current human-hat validity at the expected Git head. The
+original provider-only mode stays distinct. Both share authenticated read scope,
+source integrity checks, bounded single-flight ownership and draining shutdown.
+Seventeen focused tests pass, including nine new groups and actual disposable Git
+history/current-revocation coverage. Full repository verification passes: 437 root
+controls, 149 adapter tests and all package checks/builds. Exact evidence and
+fixture boundaries are recorded in `intent/0136/EVIDENCE.md`.
+
+This does not establish identity/session evidence, specialist qualification,
+uninterrupted authorization history or full gate policy. Existing commercial
+provider compatibility remains due; no approval is converted or crypto-migrated.
+Complete these authority dependencies, approved runtime binding, destination/head
+discovery and save/status UI, then the board and revision-bound review. All five
+R5 findings, 0124/0120, independent review and signed Phase 1 duties remain due.

@@ -1192,6 +1192,12 @@ and official MCP integration saves confirmed bytes into disposable Git and recov
 lost acknowledgements without duplicate commits. Identity/provider/gate fixtures
 are not production evidence; the full gate verifier and runtime binding remain due.
 
+Item `intent/0136` adds explicit historical/current human-hat verification to the
+signed provider-source reader. Exact Git bytes, attested historical digest and
+nanosecond grant windows are checked, with current revocation and actual Git-history
+tests. Identity/session evidence, specialist qualification, commercial provider
+compatibility and full gate policy remain unfinished. No real writer is enabled.
+
 ## Local commands
 
 ```sh

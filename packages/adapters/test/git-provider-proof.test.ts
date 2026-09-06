@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { test } from 'node:test';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
 import { briefWriteAuthoritySchema } from '@steer/tool-registry';
 import { createGitProviderProofReader } from '../src/identity/git-provider-proof.ts';
 import type { ArtifactReader } from '../src/code-host/github.ts';
@@ -32,6 +36,33 @@ function fixture() {
   return { proof, sources, config, input, principal, state, reader, create };
 }
 const failure = /^Error: Provider proof source could not be verified\.$/;
+
+function signerFixture() {
+  const f = fixture(), authorizationRevision = 'a'.repeat(40), authorizationPath = 'organization/authorization.json';
+  const grant = { organizationId: 'synthetic', subject: f.proof.expected.subject, issuer: 'https://identity.synthetic.invalid',
+    type: 'human', hats: ['tech-lead'], toolGrants: [], active: true,
+    validAfter: '2026-09-06T12:00:00.100000000Z', expiresAt: '2026-09-06T12:00:30Z' };
+  const document = { version: 'steer-authorization/v1', organizationId: 'synthetic', records: [grant] };
+  const history = { content: JSON.stringify(document) };
+  const pin = () => {
+    f.proof.expected.authorizationEvidenceDigest = hash(history.content);
+    f.proof.payload.authorizationEvidenceDigest = hash(history.content);
+    f.sources.set(f.input.proofPath, JSON.stringify(f.proof.encode()));
+    f.input.proofDigest = hash(f.sources.get(f.input.proofPath)!);
+  };
+  pin(); f.sources.set(authorizationPath, JSON.stringify(document));
+  const originalRead = f.reader.readArtifact;
+  f.reader.readArtifact = async (path, revision) => {
+    const artifact = await originalRead(path, revision);
+    if (path !== authorizationPath || revision !== authorizationRevision) return artifact;
+    const content = history.content;
+    return { ...artifact, content, contentDigest: hash(content),
+      blobSha: createHash('sha1').update(`blob ${Buffer.byteLength(content)}\0`).update(content).digest('hex') };
+  };
+  const configuration = { ...f.config, signerAuthorization: { path: authorizationPath, issuer: grant.issuer } };
+  return { ...f, authorizationRevision, authorizationPath, grant, document, history, pin, configuration,
+    signerInput: { ...f.input, authorizationRevision }, signer: () => f.create(configuration) };
+}
 
 test('read-through proof composition verifies exact source bytes and the real provider signature without granting authority', async () => {
   const f = fixture(), service = f.create(), result = await service.verify(f.input);
@@ -125,4 +156,150 @@ test('real deadline leaves a hung source single-flight until it drains and shutd
   await Promise.resolve(); assert.equal(stopped, false); release(); await stopping;
   assert.equal(stopped, true); assert.equal(service.status().active, false);
   assert.deepEqual(f.state.paths, [f.config.trustPath]); // Timed-out work cannot continue to proof reads.
+});
+
+test('signer verification binds real signed authorization bytes to historical and current human hats, not a qualified gate', async () => {
+  const f = signerFixture(), result = await f.signer().verifySigner(f.signerInput);
+  assert.equal(result.signerAuthorization.historicalSource.revision, f.authorizationRevision);
+  assert.equal(result.signerAuthorization.historicalSource.contentDigest, f.proof.expected.authorizationEvidenceDigest);
+  assert.equal(result.signerAuthorization.currentSource.revision, head);
+  assert.equal(result.signerAuthorization.issuer, f.grant.issuer);
+  assert.equal(result.signerAuthorization.historicalHatVerified, true);
+  assert.equal(result.signerAuthorization.currentHatVerified, true);
+  assert.equal(result.signerAuthorization.identityEvidenceVerificationRequired, true);
+  assert.equal(result.signerAuthorization.qualificationVerificationRequired, true);
+  assert.equal(result.gateVerified, false); assert.equal(result.writeAuthorized, false);
+  assert.equal(briefWriteAuthoritySchema.safeParse(result).success, false);
+  for (const value of [result.signerAuthorization, result.signerAuthorization.currentSource, result.signerAuthorization.historicalSource]) assert.ok(Object.isFrozen(value));
+  assert.deepEqual(f.state.paths, [f.config.trustPath, f.input.proofPath, f.authorizationPath, f.authorizationPath]);
+  // The original method never silently upgrades a plain provider observation.
+  const providerOnly = await f.signer().verify(f.input); assert.equal(providerOnly.signerAuthorization, undefined);
+});
+
+test('signer mode requires explicit trusted configuration and a historical revision without accepting caller sources', async () => {
+  const f = signerFixture();
+  await assert.rejects(f.create().verifySigner(f.signerInput), failure);
+  for (const input of [f.input, { ...f.signerInput, authorizationRevision: 'main' },
+    { ...f.signerInput, authorizationPath: 'private/key.pem' }, { ...f.signerInput, qualifiedDomains: ['security'] }]) {
+    await assert.rejects(f.signer().verifySigner(input), failure);
+  }
+  for (const path of [f.config.trustPath, f.input.proofPath, '../private']) {
+    assert.throws(() => f.create({ ...f.configuration, signerAuthorization: { ...f.configuration.signerAuthorization, path } }));
+  }
+  assert.equal(f.state.authCalls, 0); assert.deepEqual(f.state.paths, []);
+});
+
+test('authentic provider assertions cannot grant absent, foreign, agent, inactive or duplicate historical hats', async () => {
+  for (const change of [{ type: 'agent' }, { active: false }, { hats: [] }, { hats: ['tech-lead', 'tech-lead'] },
+    { issuer: 'https://foreign.synthetic.invalid' }, { subject: 'different-human' }, { organizationId: 'foreign' }]) {
+    const f = signerFixture(); f.history.content = JSON.stringify({ ...f.document, records: [{ ...f.grant, ...change }] }); f.pin();
+    await assert.rejects(f.signer().verifySigner({ ...f.signerInput, proofDigest: f.input.proofDigest }), failure);
+  }
+  for (const records of [[], [signerFixture().grant, signerFixture().grant]]) {
+    const f = signerFixture(); f.history.content = JSON.stringify({ ...f.document, records }); f.pin();
+    await assert.rejects(f.signer().verifySigner({ ...f.signerInput, proofDigest: f.input.proofDigest }), failure);
+  }
+});
+
+test('grant windows cover authentication through signing exactly, including nanosecond half-open boundaries', async () => {
+  for (const [change, allowed] of [
+    [{ validAfter: '2026-09-06T12:00:00.100000001Z' }, false],
+    [{ expiresAt: '2026-09-06T12:00:00.200000000Z' }, false],
+    [{ expiresAt: '2026-09-06T12:00:00.200000001Z' }, true],
+    [{ validAfter: '2026-09-06T12:00:00.200000001Z', expiresAt: '2026-09-06T12:00:00.2Z' }, false],
+    [{ validAfter: '2026-09-06T12:00:00.1000000001Z' }, false],
+  ] as const) {
+    const f = signerFixture(); f.history.content = JSON.stringify({ ...f.document, records: [{ ...f.grant, ...change }] }); f.pin();
+    const pending = f.signer().verifySigner({ ...f.signerInput, proofDigest: f.input.proofDigest });
+    if (allowed) assert.equal((await pending).signerAuthorization.historicalHatVerified, true);
+    else await assert.rejects(pending, failure);
+  }
+});
+
+test('current revocation, missing hats and current expiry deny historical validity without a stale cache', async () => {
+  for (const change of [{ active: false }, { type: 'agent' }, { hats: [] },
+    { validAfter: '2026-09-06T12:00:00.400000001Z' }, { expiresAt: '2026-09-06T12:00:00.400Z' }]) {
+    const f = signerFixture(), service = f.signer(); await service.verifySigner(f.signerInput);
+    f.sources.set(f.authorizationPath, JSON.stringify({ ...f.document, records: [{ ...f.grant, ...change }] }));
+    await assert.rejects(service.verifySigner(f.signerInput), failure);
+  }
+  const f = signerFixture(); f.sources.delete(f.authorizationPath); await assert.rejects(f.signer().verifySigner(f.signerInput), failure);
+});
+
+test('historical authorization digest, source coordinates, encoding and size remain mandatory despite real signatures', async () => {
+  const changed = signerFixture(); changed.history.content += '\n';
+  await assert.rejects(changed.signer().verifySigner(changed.signerInput), failure);
+  for (const change of [{ revision: head }, { path: 'another.json' }, { contentDigest: 'f'.repeat(64) }, { blobSha: 'f'.repeat(40) }]) {
+    const f = signerFixture(), read = f.reader.readArtifact;
+    f.reader.readArtifact = async (...args) => {
+      const artifact = await read(...args); return args[1] === f.authorizationRevision ? { ...artifact, ...change } : artifact;
+    };
+    await assert.rejects(f.signer().verifySigner(f.signerInput), failure);
+  }
+  for (const content of ['\ud800', 'x'.repeat(512 * 1024 + 1), '{"version":"invalid"}']) {
+    const f = signerFixture(); f.history.content = content; f.pin();
+    await assert.rejects(f.signer().verifySigner({ ...f.signerInput, proofDigest: f.input.proofDigest }), failure);
+  }
+});
+
+test('signer source reads cannot bypass final head, service identity or clock checks', async () => {
+  for (const mode of ['head', 'identity', 'clock'] as const) {
+    const f = signerFixture(), read = f.reader.readArtifact;
+    f.reader.readArtifact = async (...args) => {
+      const artifact = await read(...args);
+      if (args[0] === f.authorizationPath && args[1] === head) {
+        if (mode === 'head') f.state.head = 'c'.repeat(40);
+        if (mode === 'identity') f.state.afterIdentity = null;
+        if (mode === 'clock') f.state.time--;
+      }
+      return artifact;
+    };
+    await assert.rejects(f.signer().verifySigner(f.signerInput), failure);
+  }
+});
+
+test('provider-only and signer observations share single-flight ownership and draining shutdown', async () => {
+  const f = signerFixture(), read = f.reader.readArtifact; let release!: () => void, entered!: () => void;
+  const wait = new Promise<void>((resolve) => { release = resolve; });
+  const entry = new Promise<void>((resolve) => { entered = resolve; });
+  f.reader.readArtifact = async (...args) => {
+    if (args[0] === f.authorizationPath) { entered(); await wait; }
+    return read(...args);
+  };
+  const service = f.signer(), pending = service.verifySigner(f.signerInput); await entry;
+  await assert.rejects(service.verify(f.input), failure); await assert.rejects(service.verifySigner(f.signerInput), failure);
+  let stopped = false; const stopping = service.shutdown().then(() => { stopped = true; });
+  await Promise.resolve(); assert.equal(stopped, false); release();
+  assert.equal((await pending).signerAuthorization.currentHatVerified, true); await stopping;
+  await assert.rejects(service.verifySigner(f.signerInput), failure); assert.equal(service.status().active, false);
+});
+
+test('native Git history supplies exact old and current grant bytes and a later revocation is observed', async (t) => {
+  const f = signerFixture(), directory = mkdtempSync(join(tmpdir(), 'steer-0136-'));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const git = (...args: string[]) => execFileSync('git', args, { cwd: directory, encoding: 'utf8', maxBuffer: 1024 * 1024 }).trim();
+  const put = (path: string, content: string) => { const file = join(directory, path); mkdirSync(dirname(file), { recursive: true }); writeFileSync(file, content); };
+  git('init', '-q', '-b', 'synthetic'); git('config', 'user.name', 'Synthetic Test'); git('config', 'user.email', 'test@synthetic.invalid');
+  put(f.authorizationPath, f.history.content); git('add', '.'); git('-c', 'commit.gpgsign=false', 'commit', '-qm', 'Historical role');
+  const historicalRevision = git('rev-parse', 'HEAD');
+  for (const [path, content] of f.sources) put(path, content);
+  put(f.authorizationPath, JSON.stringify({ ...f.document, records: [{ ...f.grant, expiresAt: '2026-09-06T12:01:00Z' }] }));
+  git('add', '.'); git('-c', 'commit.gpgsign=false', 'commit', '-qm', 'Current sources');
+  const currentRevision = git('rev-parse', 'HEAD');
+  f.reader.readHead = async () => git('rev-parse', 'HEAD');
+  f.reader.readArtifact = async (path, revision) => {
+    const content = execFileSync('git', ['show', `${revision}:${path}`], { cwd: directory, encoding: 'utf8' });
+    return { organizationId: 'synthetic', repositoryId: 1, path, revision, content,
+      contentDigest: hash(content), blobSha: git('rev-parse', `${revision}:${path}`) };
+  };
+  const service = f.signer(), input = { ...f.signerInput, sourceRevision: currentRevision, authorizationRevision: historicalRevision };
+  const observation = await service.verifySigner(input);
+  assert.equal(observation.signerAuthorization.historicalSource.revision, historicalRevision);
+  assert.equal(observation.signerAuthorization.currentSource.revision, currentRevision);
+  assert.notEqual(observation.signerAuthorization.historicalSource.contentDigest, observation.signerAuthorization.currentSource.contentDigest);
+  put(f.authorizationPath, JSON.stringify({ ...f.document, records: [{ ...f.grant, active: false }] }));
+  git('add', '.'); git('-c', 'commit.gpgsign=false', 'commit', '-qm', 'Revoke role');
+  await assert.rejects(service.verifySigner(input), failure); // Stale current head.
+  await assert.rejects(service.verifySigner({ ...input, sourceRevision: git('rev-parse', 'HEAD') }), failure); // Fresh revocation.
+  await service.shutdown();
 });

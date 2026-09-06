@@ -71,6 +71,10 @@ writer factory. HTTP/MCP confirmed save and recovery now run through the factory
 and storage into disposable Git. Full gate verification remains required and no
 production writer or live write access is installed.
 
+Item [0136](intent/0136/README.md) checks historical and current gate-signer hats
+against exact Git authorization bytes and the signed provider digest. Identity,
+qualification and complete gate verification remain due; no live write is enabled.
+
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono
 API/shared tool registry (0007), OIDC adapter/API composition (0008), and
