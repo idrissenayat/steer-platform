@@ -1140,6 +1140,12 @@ time, preventing same-time session substitution. Signed-token/broker tests compo
 these paths and verify public metadata exclusion. This is not a human gate proof;
 the full source/provider verifier and request-bound writer remain unfinished.
 
+Item `intent/0128` extends the existing read-only gate observer with internal
+exact-source collection. Expected head/digest, original artifact bytes, immutable
+snapshots, post-read expiry and legacy response compatibility are tested. The
+bundle explicitly requires provider verification and grants no gate/write
+authority. No HTTP/MCP collection endpoint or runtime writer is installed.
+
 ## Local commands
 
 ```sh

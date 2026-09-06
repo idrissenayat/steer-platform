@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { test } from 'node:test';
 import type { RepositoryReader } from '../src/code-host/github.ts';
+import { createGitHubReader } from '../src/code-host/github.ts';
 import { createGitGateObserver } from '../src/code-host/gate-observation.ts';
+import { briefWriteAuthoritySchema } from '@steer/tool-registry';
 
 const revision = 'a'.repeat(40), head = 'b'.repeat(40);
 const scope = { organizationId: 'synthetic', repository: 'github:1', itemId: 'intent/0042' };
@@ -63,4 +65,114 @@ test('invalid configuration denies and shutdown waits for the actual pending sou
   await assert.rejects(observer.observe(), /not accepting/); let closed = false;
   const stop = observer.shutdown().then(() => { closed = true; }); await Promise.resolve(); assert.equal(closed, false);
   release(); await pending; await stop; assert.equal(closed, true); await assert.rejects(observer.observe());
+});
+
+const expected = () => ({ sourceRevision: head, decisionDigest: createHash('sha256').update(JSON.stringify(record)).digest('hex') });
+test('exact-source collection retains immutable original bytes without creating gate or write authority', async () => {
+  const f = fixture(); const observer = createGitGateObserver(f.reader, config, async () => principal);
+  const bundle = await observer.collect(expected());
+  assert.equal(bundle.sourceRevision, head); assert.equal(bundle.artifactRevision, revision);
+  assert.equal(bundle.organizationId, scope.organizationId); assert.equal(bundle.repository, scope.repository);
+  assert.equal(bundle.branch, f.reader.binding.branch); assert.equal(bundle.itemId, scope.itemId);
+  assert.equal(bundle.recordItem, config.recordItem); assert.equal(bundle.gate, 2);
+  assert.equal(bundle.record.path, config.recordPath); assert.equal(bundle.record.revision, head);
+  assert.equal(bundle.record.content, JSON.stringify(record));
+  assert.equal(JSON.parse(bundle.record.content).decision, 'send-back');
+  assert.equal(bundle.artifacts.length, 1); assert.equal(bundle.artifacts[0]!.path, 'BRIEF.md');
+  assert.equal(bundle.artifacts[0]!.revision, revision); assert.equal(bundle.artifacts[0]!.content, 'original');
+  assert.equal(bundle.providerVerificationRequired, true); assert.equal(bundle.gateVerified, false); assert.equal(bundle.writeAuthorized, false);
+  assert.equal(briefWriteAuthoritySchema.safeParse(bundle).success, false);
+  for (const value of [bundle, bundle.record, bundle.artifacts, ...bundle.artifacts]) assert.ok(Object.isFrozen(value));
+  assert.throws(() => { (bundle.record as { content: string }).content = 'approved'; }, TypeError);
+  assert.deepEqual(Object.keys(await observer.observe()).sort(), ['artifactRevision', 'decisionDigest', 'sourceRevision']);
+  await observer.shutdown(); await assert.rejects(observer.collect(expected()), /not accepting/);
+});
+test('collection requires exact head and digest and never substitutes absent, stale or changed sources', async () => {
+  for (const input of [null, {}, { ...expected(), sourceRevision: `${head}\n` }, { ...expected(), sourceRevision: 'c'.repeat(40) },
+    { ...expected(), decisionDigest: '0'.repeat(64) }, { ...expected(), trusted: true }]) {
+    const f = fixture(); await assert.rejects(createGitGateObserver(f.reader, config, async () => principal).collect(input));
+    if (input === null || !('decisionDigest' in input) || 'trusted' in input || !('sourceRevision' in input) || input.sourceRevision !== head) assert.equal(f.reads(), 0);
+  }
+  for (const source of ['absent', 'stale', 'changed', 'moving', 'corrupt'] as const) {
+    const f = fixture();
+    if (source === 'absent') f.setRecord(null);
+    if (source === 'stale') f.setRecord({ ...record, artifactRevision: 'c'.repeat(40) });
+    if (source === 'changed') f.change();
+    if (source === 'moving') f.fault('head');
+    if (source === 'corrupt') f.fault('digest');
+    await assert.rejects(createGitGateObserver(f.reader, config, async () => principal).collect(expected()), /^Error: Gate source observation could not be verified\.$/);
+  }
+});
+test('collection shares authorization, single-flight and shutdown with the legacy observation', async () => {
+  for (const identity of [null, { ...principal, toolGrants: [] }, { ...principal, organizationId: 'foreign' }]) {
+    const f = fixture(); await assert.rejects(createGitGateObserver(f.reader, config, async () => identity).collect(expected())); assert.equal(f.reads(), 0);
+  }
+  const revoked = fixture(); let calls = 0;
+  await assert.rejects(createGitGateObserver(revoked.reader, config, async () => ++calls === 1 ? principal : null).collect(expected()));
+  const f = fixture(); let release!: () => void;
+  const wait = new Promise<void>((resolve) => { release = resolve; }); const readHead = f.reader.readHead;
+  f.reader.readHead = async () => { await wait; return readHead(); };
+  const observer = createGitGateObserver(f.reader, config, async () => principal); const pending = observer.collect(expected());
+  await assert.rejects(observer.observe(), /not accepting/); await assert.rejects(observer.collect(expected()), /not accepting/);
+  let stopped = false; const shutdown = observer.shutdown().then(() => { stopped = true; });
+  await Promise.resolve(); assert.equal(stopped, false); release(); await pending; await shutdown; assert.equal(stopped, true);
+});
+test('collector rejects malformed UTF-8 source strings and strips source extras without retaining mutable aliases', async () => {
+  const f = fixture(); const original = f.reader.readArtifact; let retained: Awaited<ReturnType<typeof original>> | undefined;
+  f.reader.readArtifact = async (path, at) => { const snapshot = await original(path, at); if (path === config.recordPath) retained = snapshot;
+    return Object.assign(snapshot, { injectedApproval: true }); };
+  const observer = createGitGateObserver(f.reader, config, async () => principal); const bundle = await observer.collect(expected());
+  retained!.content = 'replaced'; assert.equal(bundle.record.content, JSON.stringify(record));
+  assert.ok(!('injectedApproval' in bundle.record)); assert.ok(!('injectedApproval' in bundle.artifacts[0]!));
+  const broken = fixture(); const read = broken.reader.readArtifact;
+  broken.reader.readArtifact = async (path, at) => {
+    const result = await read(path, at), content = '\ud800';
+    return { ...result, content, contentDigest: createHash('sha256').update(content).digest('hex'),
+      blobSha: createHash('sha1').update(`blob ${Buffer.byteLength(content)}\0`).update(content).digest('hex') };
+  };
+  await assert.rejects(createGitGateObserver(broken.reader, config, async () => principal).collect(expected()));
+});
+test('collection rejects expiry reached during its final source-head read', async (t) => {
+  let time = Date.now(); t.mock.method(Date, 'now', () => time);
+  const f = fixture(), read = f.reader.readHead; let reads = 0;
+  const identity = { ...principal, expiresAt: new Date(time + 1000).toISOString() };
+  f.reader.readHead = async () => { if (++reads === 2) time += 1000; return read(); };
+  await assert.rejects(createGitGateObserver(f.reader, config, async () => identity).collect(expected()));
+});
+test('collector composes with the real GitHub reader using read-only synthetic HTTP responses', async () => {
+  const binding = fixture().reader.binding, tree = 'd'.repeat(40), originalTree = 'e'.repeat(40);
+  const digest = (content: string) => createHash('sha1').update(`blob ${Buffer.byteLength(content)}\0`).update(content).digest('hex');
+  const files = [{ path: 'BRIEF.md', content: 'original' }, { path: config.recordPath, content: JSON.stringify(record) }];
+  let truncated = false; const calls: string[] = [];
+  const transport: typeof fetch = async (input, init) => {
+    const url = new URL(String(input)); calls.push(url.pathname);
+    assert.equal(url.origin, 'https://api.github.com'); assert.equal(init?.redirect, 'error');
+    const headers = new Headers(init?.headers);
+    if (url.pathname === '/app/installations/1/access_tokens') {
+      assert.equal(init?.method, 'POST'); assert.equal(headers.get('authorization'), 'Bearer synthetic-app');
+      assert.deepEqual(JSON.parse(String(init.body)), { repository_ids: [1], permissions: { contents: 'read' } });
+      return Response.json({ token: 'synthetic-read-only', expires_at: new Date(Date.now() + 3600000).toISOString(),
+        permissions: { contents: 'read', metadata: 'read' }, repositories: [{ id: 1, full_name: 'synthetic/synthetic' }] });
+    }
+    assert.equal(init?.method, 'GET'); assert.equal(headers.get('authorization'), 'Bearer synthetic-read-only');
+    const prefix = '/repos/synthetic/synthetic/git/'; assert.ok(url.pathname.startsWith(prefix));
+    const route = url.pathname.slice(prefix.length);
+    if (route === 'ref/heads/synthetic') return Response.json({ ref: 'refs/heads/synthetic', object: { type: 'commit', sha: head } });
+    if (route === `commits/${head}` || route === `commits/${revision}`) {
+      const at = route.slice('commits/'.length); return Response.json({ sha: at, tree: { sha: at === head ? tree : originalTree } });
+    }
+    if (route === `trees/${tree}` || route === `trees/${originalTree}`) {
+      const at = route.slice('trees/'.length);
+      return Response.json({ sha: at, truncated, tree: files.filter((file) => at === tree || file.path === 'BRIEF.md')
+        .map((file) => ({ path: file.path, mode: '100644', type: 'blob', sha: digest(file.content) })) });
+    }
+    const file = files.find((file) => route === `blobs/${digest(file.content)}`); assert.ok(file);
+    return Response.json({ sha: digest(file.content), encoding: 'base64', size: Buffer.byteLength(file.content), content: Buffer.from(file.content).toString('base64') });
+  };
+  const reader = createGitHubReader(binding, { appJwt: async () => 'synthetic-app', fetch: transport });
+  const observer = createGitGateObserver(reader, config, async () => principal);
+  const bundle = await observer.collect(expected()); assert.equal(bundle.record.content, JSON.stringify(record));
+  assert.equal(bundle.artifacts[0]!.content, 'original'); assert.equal(bundle.writeAuthorized, false);
+  assert.equal(calls.filter((path) => path.endsWith('/access_tokens')).length, 1);
+  truncated = true; await assert.rejects(observer.collect(expected()));
 });

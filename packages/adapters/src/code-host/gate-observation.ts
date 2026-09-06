@@ -1,9 +1,10 @@
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { principalSchema, artifactProjectionInputSchema, reconciliationScopeSchema } from '@steer/tool-registry';
-import type { RepositoryReader } from './github.ts';
+import type { ArtifactSnapshot, RepositoryReader } from './github.ts';
 
-const sha = z.string().regex(/^[a-f0-9]{40}$/);
+const sha = z.string().length(40).regex(/^[a-f0-9]{40}$/);
+const collectionSchema = z.strictObject({ sourceRevision: sha, decisionDigest: z.string().length(64).regex(/^[a-f0-9]{64}$/) });
 const path = artifactProjectionInputSchema.shape.path;
 const configurationSchema = z.strictObject({ scope: reconciliationScopeSchema, gate: z.union([z.literal(1), z.literal(2), z.literal(3)]),
   artifactRevision: sha, artifactPaths: z.array(path).min(1).max(10), recordPath: path, recordItem: z.string().min(1).max(200),
@@ -20,7 +21,9 @@ export function createGitGateObserver(reader: RepositoryReader, rawConfiguration
   const configuration = configurationSchema.parse(rawConfiguration);
   const binding = { ...reader.binding };
   if (configuration.scope.organizationId !== binding.organizationId || configuration.scope.repository !== `github:${binding.repositoryId}`) throw new Error('Invalid gate source binding.');
-  let active: Promise<{ sourceRevision: string; artifactRevision: string; decisionDigest: string | null }> | undefined;
+  type SourceResult = { sourceRevision: string; artifactRevision: string; decisionDigest: string | null;
+    record: Readonly<ArtifactSnapshot> | null; artifacts: Readonly<ArtifactSnapshot>[] };
+  let active: Promise<SourceResult> | undefined;
   let stopping = false; let shutdown: Promise<void> | undefined;
   const authorize = async () => {
     const principal = principalSchema.parse(await authenticate());
@@ -30,22 +33,29 @@ export function createGitGateObserver(reader: RepositoryReader, rawConfiguration
   };
   const read = async (file: string, revision: string) => {
     const value = await reader.readArtifact(file, revision); const bytes = Buffer.from(value.content, 'utf8');
-    if (bytes.length > 512 * 1024 || value.organizationId !== binding.organizationId || value.repositoryId !== binding.repositoryId || value.path !== file || value.revision !== revision ||
+    if (bytes.length > 512 * 1024 || new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes) !== value.content ||
+      value.organizationId !== binding.organizationId || value.repositoryId !== binding.repositoryId || value.path !== file || value.revision !== revision ||
       createHash('sha256').update(bytes).digest('hex') !== value.contentDigest || createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex') !== value.blobSha) throw new Error();
-    return value;
+    // Copy only verified fields. A source adapter cannot mutate the retained
+    // snapshot through an alias or smuggle unrelated fields into the bundle.
+    return Object.freeze({ organizationId: value.organizationId, repositoryId: value.repositoryId,
+      path: file, revision, content: value.content, contentDigest: value.contentDigest, blobSha: value.blobSha });
   };
-  return {
-    observe() {
+  const run = (expected?: z.infer<typeof collectionSchema>): Promise<SourceResult> => {
       if (stopping || active) return Promise.reject(new Error('Gate observer is not accepting work.'));
       active = (async () => {
         try {
           const initial = await authorize(); const head = sha.parse(await reader.readHead());
+          if (expected && head !== expected.sourceRevision) throw new Error();
+          const artifacts: Readonly<ArtifactSnapshot>[] = [];
           let changed = false;
           for (const file of configuration.artifactPaths) {
             const original = await read(file, configuration.artifactRevision), current = await read(file, head);
             if (original.blobSha !== current.blobSha) changed = true;
+            artifacts.push(original);
           }
           let decisionDigest: string | null = null;
+          let recordSnapshot: Readonly<ArtifactSnapshot> | null = null;
           if (!changed) {
             const parts = configuration.recordPath.split('/'); const fileName = parts.pop()!;
             const inventory = await reader.readInventory({ roots: [parts.join('/')], fileNames: [fileName] }, head);
@@ -62,15 +72,38 @@ export function createGitGateObserver(reader: RepositoryReader, rawConfiguration
                 if (record.artifacts.length !== configuration.artifactPaths.length || new Set(record.artifacts.map((artifact) => artifact.path)).size !== record.artifacts.length ||
                   record.artifacts.some((artifact) => artifact.revision !== configuration.artifactRevision || !configuration.artifactPaths.includes(artifact.path))) throw new Error();
                 decisionDigest = snapshot.contentDigest;
+                recordSnapshot = snapshot;
               }
             }
           }
           const current = await authorize();
-          if (current.subject !== initial.subject || Date.parse(initial.expiresAt) <= Date.now() || await reader.readHead() !== head) throw new Error();
-          return { sourceRevision: head, artifactRevision: changed ? head : configuration.artifactRevision, decisionDigest };
+          if (current.subject !== initial.subject || await reader.readHead() !== head ||
+            Math.min(Date.parse(initial.expiresAt), Date.parse(current.expiresAt)) <= Date.now()) throw new Error();
+          if (expected && (changed || !recordSnapshot || decisionDigest !== expected.decisionDigest)) throw new Error();
+          return { sourceRevision: head, artifactRevision: changed ? head : configuration.artifactRevision, decisionDigest,
+            record: recordSnapshot, artifacts };
         } catch { throw new Error('Gate source observation could not be verified.'); }
       })().finally(() => { active = undefined; });
       return active;
+  };
+  return {
+    async observe() {
+      const result = await run();
+      // Preserve the existing public observation shape; raw records stay internal.
+      return { sourceRevision: result.sourceRevision, artifactRevision: result.artifactRevision, decisionDigest: result.decisionDigest };
+    },
+    /** Internal exact-source input for the unfinished full gate verifier. A
+     * matching send-back record is collectible too; provenance is not approval. */
+    async collect(rawExpected: unknown) {
+      const expected = collectionSchema.safeParse(rawExpected);
+      if (!expected.success) throw new Error('Gate source observation could not be verified.');
+      const result = await run(expected.data);
+      return Object.freeze({ kind: 'git-gate-source-bundle' as const,
+        organizationId: binding.organizationId, repository: `github:${binding.repositoryId}`, branch: binding.branch,
+        itemId: configuration.scope.itemId, recordItem: configuration.recordItem, gate: configuration.gate,
+        sourceRevision: result.sourceRevision, artifactRevision: result.artifactRevision,
+        decisionDigest: expected.data.decisionDigest, record: result.record!, artifacts: Object.freeze(result.artifacts),
+        providerVerificationRequired: true as const, gateVerified: false as const, writeAuthorized: false as const });
     },
     shutdown() {
       if (!shutdown) { stopping = true; const pending = active; shutdown = (async () => { try { await pending; } catch { /* Caller receives the failed observation. */ } })(); }

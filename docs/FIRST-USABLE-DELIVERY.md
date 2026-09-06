@@ -148,6 +148,12 @@ same-time credential/session substitution; public responses still exclude this
 metadata. See 0127/EVIDENCE for tests and limits. The full gate/provider/source
 verifier and request-bound writer remain unfinished, and no live write is enabled.
 
+0128 development update: the existing gate observer can now collect immutable
+record/artifact bytes pinned to the expected source head and decision digest.
+It preserves provider metadata for the missing verifier rather than substituting
+normalized claims. Full provider/policy proof and request-bound writer composition
+remain required. See `intent/0128/EVIDENCE.md`; no live write or gate is enabled.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

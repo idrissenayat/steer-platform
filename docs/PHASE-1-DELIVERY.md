@@ -2544,3 +2544,21 @@ Token issuance and local session creation are not qualified human gate approval 
 second-look proof. Next remains full gate/provider/source verification and the
 request-bound writer, then save/status UI and board integration. All five R5 findings,
 signed Phase 1 obligations and 0124/0120 prerequisites remain open.
+
+## Completed development increment: 0128 — exact gate-source collection
+
+The read-only gate observer now retains immutable original record and artifact
+snapshots for the pending full verifier, requiring the expected source head and
+decision digest. Shared source validation, agent authorization and shutdown are
+preserved; legacy observations still return their three prior fields. Collection
+rejects absent/stale/changed sources, malformed UTF-8, corrupted digests and expiry
+during final head read. The focused ten-case suite includes actual GitHub-reader
+composition through synthetic read-only HTTP responses. Full repository verification
+passes, including 437 root controls, 95 adapter tests and 72 API tests. Exact scope
+and limitations are recorded in `intent/0128/EVIDENCE.md`.
+
+Matching send-back records remain collectible, explicitly with no gate or write
+authority. Provider identity/qualified hats, policy/prerequisite/Critic/domain
+proof and request-bound writer composition are still required. No canonical
+provider binding, human signature, protected document or runtime activation changes.
+All five R5 findings, signed obligations and 0124/0120 prerequisites remain open.
