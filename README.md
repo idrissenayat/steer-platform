@@ -41,6 +41,10 @@ Item [0128](intent/0128/README.md) adds internal exact-head gate record/artifact
 collection through the existing read-only observer. It preserves original bytes
 for later verification; a collected record is not provider proof or gate approval.
 
+Item [0129](intent/0129/README.md) fixes reproduced sub-millisecond gate chronology
+errors with exact UTC comparisons. Normalized policy still requires independent
+source/provider verification; no gate approval or runtime writer is enabled.
+
 The implementation sequence is in [the Phase 1 delivery plan](docs/PHASE-1-DELIVERY.md).
 Workspace/web shell (0005), domain extraction (0006), stateless Hono
 API/shared tool registry (0007), OIDC adapter/API composition (0008), and

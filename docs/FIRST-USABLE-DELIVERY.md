@@ -154,6 +154,12 @@ It preserves provider metadata for the missing verifier rather than substituting
 normalized claims. Full provider/policy proof and request-bound writer composition
 remain required. See `intent/0128/EVIDENCE.md`; no live write or gate is enabled.
 
+0129 development update: before writer integration, reproduced gate-policy timing
+errors are corrected with exact UTC comparisons instead of millisecond rounding.
+This validates chronology only, not provider identity or a human second look.
+The full source/provider proof and request-bound writer remain unfinished. See
+`intent/0129/EVIDENCE.md` for before/after regression evidence.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

@@ -1146,6 +1146,12 @@ snapshots, post-read expiry and legacy response compatibility are tested. The
 bundle explicitly requires provider verification and grants no gate/write
 authority. No HTTP/MCP collection endpoint or runtime writer is installed.
 
+Item `intent/0129` adds a portable exact UTC parser and replaces millisecond
+gate-policy comparisons. Sub-millisecond future/order/session errors now deny,
+while genuinely ordered fractional timestamps preserve their sequence. All
+normalized timestamp fields are validated without rounding; provider verification
+and live write enablement remain separate unfinished work.
+
 ## Local commands
 
 ```sh

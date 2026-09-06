@@ -86,3 +86,52 @@ test('closed-domain assurance is complete, independent, high-confidence, current
   trigger.record.signatures[3]!.qualifiedDomains = ['accessibility']; blocked(trigger, 'UNQUALIFIED_SPECIALIST');
   const weakened = fixture(); weakened.policy.defaultClosed = false; blocked(weakened, 'POLICY_INCOMPLETE');
 });
+
+test('gate chronology rejects sub-millisecond future signatures, reversed sequences and future prerequisites', () => {
+  const future = fixture(); future.evaluatedAt = '2026-09-05T12:00:02.000000000Z';
+  future.record.signatures.forEach((entry) => { entry.signedAt = '2026-09-05T12:00:02.000000001Z'; });
+  blocked(future, 'INVALID_TIME');
+  const reversed = fixture(); reversed.record.signatures[0]!.signedAt = '2026-09-05T12:00:02.000000002Z';
+  reversed.record.signatures.slice(1).forEach((entry) => { entry.signedAt = '2026-09-05T12:00:02.000000001Z'; });
+  blocked(reversed, 'INVALID_TIME');
+  const prior = fixture(); prior.prerequisite!.signatures[0]!.signedAt = '2026-09-05T12:00:02.000000001Z';
+  blocked(prior, 'INVALID_TIME');
+});
+test('nanosecond authentication and session chronology cannot collapse to millisecond equality', () => {
+  const after = fixture(); after.record.signatures.forEach((entry) => { entry.authenticatedAt = '2026-09-05T12:00:02.000000001Z'; });
+  blocked(after, 'INVALID_TIME');
+  const switched = fixture(); switched.record.signatures[1]!.authenticatedAt = '2026-09-05T12:00:01.500000001Z';
+  blocked(switched, 'SESSION_MISMATCH');
+});
+test('strict post-Critic ordering accepts a genuine nanosecond second look and rejects equality', () => {
+  const input = fixture(); input.critic!.reportedAt = '2026-09-05T12:00:01.100000000Z';
+  input.record.signatures.forEach((entry) => { entry.authenticatedAt = '2026-09-05T12:00:01.100000001Z'; entry.signedAt = '2026-09-05T12:00:01.100000002Z'; });
+  input.evaluatedAt = '2026-09-05T12:00:01.100000003Z';
+  assert.deepEqual(evaluateGateDecisionPolicy(input), { outcome: 'policy-satisfied', reasons: [], sourceVerificationRequired: true });
+  const same = structuredClone(input); same.record.signatures.forEach((entry) => { entry.authenticatedAt = same.critic!.reportedAt; });
+  blocked(same, 'SECOND_LOOK_REQUIRED');
+  const signed = structuredClone(input); signed.record.signatures.forEach((entry) => { entry.signedAt = signed.critic!.reportedAt; });
+  blocked(signed, 'INVALID_TIME');
+});
+test('all normalized gate timestamp locations reject malformed calendars and precision that would require rounding', () => {
+  const setters = [
+    (input: GatePolicyInput, time: string) => { input.evaluatedAt = time; },
+    (input: GatePolicyInput, time: string) => { input.critic!.reportedAt = time; },
+    (input: GatePolicyInput, time: string) => { input.prerequisite!.signatures[0]!.signedAt = time; },
+    (input: GatePolicyInput, time: string) => { input.record.signatures[0]!.signedAt = time; },
+    (input: GatePolicyInput, time: string) => { input.record.signatures[0]!.authenticatedAt = time; },
+  ];
+  for (const set of setters) for (const time of ['2026-09-05T12:00:01.1234567890Z', '2026-02-30T12:00:01Z',
+    '2026-09-05T12:00:01+00:00', '2026-09-05T12:00:01Z\n']) {
+    const input = fixture(); set(input, time); blocked(input, 'INVALID_INPUT');
+  }
+  for (const field of ['artifactRevision', 'decisionDigest'] as const) {
+    const input = fixture(); input.target[field] += '\n'; blocked(input, 'INVALID_INPUT');
+  }
+});
+test('equivalent fractional forms preserve one session and policy output remains plain JSON without a signature claim', () => {
+  const input = fixture();
+  input.record.signatures.forEach((entry, index) => { entry.authenticatedAt = `2026-09-05T12:00:01.${['5', '50', '500', '500000000'][index]}Z`; });
+  const result = evaluateGateDecisionPolicy(input);
+  assert.deepEqual(JSON.parse(JSON.stringify(result)), { outcome: 'policy-satisfied', reasons: [], sourceVerificationRequired: true });
+});

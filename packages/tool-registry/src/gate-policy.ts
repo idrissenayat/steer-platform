@@ -1,11 +1,15 @@
 import { roles } from '@steer/domain/types';
+import { parseUtcInstant } from '@steer/domain/utc-instant';
 import { z } from 'zod';
 
 const identifier = z.string().min(1).max(200).refine((value) => value === value.trim());
-const sha = z.string().regex(/^[a-f0-9]{40}$/), digest = z.string().regex(/^[a-f0-9]{64}$/);
+const sha = z.string().length(40).regex(/^[a-f0-9]{40}$/), digest = z.string().length(64).regex(/^[a-f0-9]{64}$/);
+const utcInstant = z.string().max(30).refine((value) => parseUtcInstant(value) !== null);
+// Used only after every timestamp has passed the exact schema above.
+const instant = (value: string) => parseUtcInstant(value)!;
 const domains = z.enum(['accessibility', 'irreversible-operations', 'legal', 'money', 'privacy', 'reliability', 'security']);
 const signature = z.strictObject({ subject: identifier, type: z.enum(['human', 'agent']), hat: z.enum(roles),
-  sequence: z.number().int().positive().safe(), sessionId: identifier, authenticatedAt: z.iso.datetime(), signedAt: z.iso.datetime(),
+  sequence: z.number().int().positive().safe(), sessionId: identifier, authenticatedAt: utcInstant, signedAt: utcInstant,
   qualifiedDomains: z.array(domains).max(7).refine((values) => new Set(values).size === values.length),
 });
 const priorSignature = signature.pick({ subject: true, sessionId: true, signedAt: true });
@@ -24,7 +28,7 @@ export const gatePolicyInputSchema = z.strictObject({
     gate: z.union([z.literal(1), z.literal(2)]), artifactRevision: sha, decisionDigest: digest,
     decision: z.literal('approved'), signatures: z.array(priorSignature).min(1).max(100),
   }).nullable(),
-  critic: z.strictObject({ artifactRevision: sha, reportDigest: digest, reportedAt: z.iso.datetime(), passed: z.boolean(),
+  critic: z.strictObject({ artifactRevision: sha, reportDigest: digest, reportedAt: utcInstant, passed: z.boolean(),
     freshContext: z.boolean(), unresolvedFindings: z.number().int().nonnegative().max(100000),
   }).nullable(),
   buildEvidence: z.strictObject({ artifactRevision: sha, evidenceDigest: digest, examPassed: z.boolean(), planConformant: z.boolean() }).nullable(),
@@ -35,7 +39,7 @@ export const gatePolicyInputSchema = z.strictObject({
     })).max(7),
     exceptionBrief: z.strictObject({ artifactRevision: sha, digest, reviewDigests: z.array(digest).max(7) }),
   }).nullable(),
-  evaluatedAt: z.iso.datetime(),
+  evaluatedAt: utcInstant,
 });
 export type GatePolicyInput = z.infer<typeof gatePolicyInputSchema>;
 export type GatePolicyReason = 'INVALID_INPUT' | 'TARGET_MISMATCH' | 'NOT_APPROVED' | 'HUMAN_REQUIRED' | 'INVALID_SEQUENCE' |
@@ -50,7 +54,7 @@ export function evaluateGateDecisionPolicy(raw: unknown): {
   const parsed = gatePolicyInputSchema.safeParse(raw);
   if (!parsed.success) return { outcome: 'blocked', reasons: ['INVALID_INPUT'], sourceVerificationRequired: true };
   const { target, policy, record, prerequisite, critic, buildEvidence, domainAssurance, evaluatedAt } = parsed.data;
-  const reasons = new Set<GatePolicyReason>(); const now = Date.parse(evaluatedAt);
+  const reasons = new Set<GatePolicyReason>(); const now = instant(evaluatedAt);
   for (const key of ['organizationId', 'repository', 'itemId', 'gate', 'artifactRevision', 'decisionDigest'] as const) {
     if (record[key] !== target[key]) reasons.add('TARGET_MISMATCH');
   }
@@ -60,12 +64,12 @@ export function evaluateGateDecisionPolicy(raw: unknown): {
   if (record.signatures.some((entry, index) => entry.sequence !== index + 1) ||
     new Set(record.signatures.map((entry) => `${entry.subject}\0${entry.hat}`)).size !== record.signatures.length) reasons.add('INVALID_SEQUENCE');
   const signatures = record.signatures.filter((entry) => entry.type === 'human');
-  const times = record.signatures.map((entry) => Date.parse(entry.signedAt));
+  const times = record.signatures.map((entry) => instant(entry.signedAt));
   if (times.some((time, index) => time > now || (index > 0 && time < times[index - 1]!))) reasons.add('INVALID_TIME');
-  const sessions = new Map<string, { subject: string; authenticatedAt: number }>();
+  const sessions = new Map<string, { subject: string; authenticatedAt: bigint }>();
   for (const entry of record.signatures) {
-    const authenticatedAt = Date.parse(entry.authenticatedAt);
-    if (authenticatedAt > Date.parse(entry.signedAt)) reasons.add('INVALID_TIME');
+    const authenticatedAt = instant(entry.authenticatedAt);
+    if (authenticatedAt > instant(entry.signedAt)) reasons.add('INVALID_TIME');
     const prior = sessions.get(entry.sessionId);
     if (prior && (prior.subject !== entry.subject || prior.authenticatedAt !== authenticatedAt)) reasons.add('SESSION_MISMATCH');
     sessions.set(entry.sessionId, { subject: entry.subject, authenticatedAt });
@@ -98,12 +102,12 @@ export function evaluateGateDecisionPolicy(raw: unknown): {
     if (!prerequisite || prerequisite.gate !== target.gate - 1) reasons.add('PREREQUISITE_REQUIRED');
     else {
       if (prerequisite.organizationId !== target.organizationId || prerequisite.repository !== target.repository || prerequisite.itemId !== target.itemId) reasons.add('TARGET_MISMATCH');
-      if (prerequisite.signatures.some((entry) => Date.parse(entry.signedAt) > now) || times.some((time) => prerequisite.signatures.some((entry) => time < Date.parse(entry.signedAt)))) reasons.add('INVALID_TIME');
+      if (prerequisite.signatures.some((entry) => instant(entry.signedAt) > now) || times.some((time) => prerequisite.signatures.some((entry) => time < instant(entry.signedAt)))) reasons.add('INVALID_TIME');
     }
   }
   if (!critic || !critic.passed || !critic.freshContext || critic.artifactRevision !== target.artifactRevision) reasons.add('CRITIC_REQUIRED');
   else {
-    const at = Date.parse(critic.reportedAt);
+    const at = instant(critic.reportedAt);
     if (at > now || times.some((time) => time <= at)) reasons.add('INVALID_TIME');
     if (policy.defaultClosed && critic.unresolvedFindings !== 0) reasons.add('UNRESOLVED_FINDINGS');
   }
@@ -114,7 +118,7 @@ export function evaluateGateDecisionPolicy(raw: unknown): {
       // A newly added signer still needs the complete prerequisite and post-Critic chronology above.
       if (!prerequisite || prerequisite.gate !== 2 || signatures.some((entry) =>
         prerequisite.signatures.some((prior) => prior.sessionId === entry.sessionId))) reasons.add('SECOND_LOOK_REQUIRED');
-      if (!critic || signatures.some((entry) => Date.parse(entry.authenticatedAt) <= Date.parse(critic.reportedAt))) reasons.add('SECOND_LOOK_REQUIRED');
+      if (!critic || signatures.some((entry) => instant(entry.authenticatedAt) <= instant(critic.reportedAt))) reasons.add('SECOND_LOOK_REQUIRED');
     }
   }
   return { outcome: reasons.size ? 'blocked' : 'policy-satisfied', reasons: [...reasons], sourceVerificationRequired: true };

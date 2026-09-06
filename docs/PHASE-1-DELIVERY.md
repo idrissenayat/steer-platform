@@ -2562,3 +2562,19 @@ authority. Provider identity/qualified hats, policy/prerequisite/Critic/domain
 proof and request-bound writer composition are still required. No canonical
 provider binding, human signature, protected document or runtime activation changes.
 All five R5 findings, signed obligations and 0124/0120 prerequisites remain open.
+
+## Completed development increment: 0129 — exact gate chronology
+
+Three reproduced regression groups exposed millisecond rounding in the production
+normalized gate-policy evaluator: false acceptance of future signature/authentication
+and false rejection of an ordered nanosecond second look. A portable exact UTC
+parser now validates all timestamp fields and integer comparisons preserve the
+existing ordering/session rules. Invalid calendars and excess precision deny.
+The focused set passes 16 groups, including five new policy and three domain
+groups. Full repository verification passes, including 437 root controls and all
+package test/typecheck/build tasks; see `intent/0129/EVIDENCE.md`.
+
+This is a development correction required before authority composition, not an
+independent R5 closure, human second-look proof or approval. Full source/provider
+verification, writer/UI/board integration and all prior signed/gate/provider
+boundaries remain unchanged. The five R5 findings and 0124/0120 work remain open.
