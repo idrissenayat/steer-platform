@@ -10,7 +10,10 @@
     { "name": "lifecycleEventDecision", "successors": [{ "path": "intent/0059/lifecycle-events.candidate.mjs", "export": "correctedLifecycleEventDecision", "test": "tests/r5-lifecycle-events.test.mjs", "scope": "current event and every historical proof" }] },
     { "name": "lifecycleGraphDecision", "successors": [{ "path": "intent/0061/lifecycle-graph.candidate.mjs", "export": "createLifecycleGraphVerifier", "test": "tests/r5-lifecycle-graph.test.mjs", "scope": "bounded full copy/tombstone graph; full retention matrix still open" }] },
     { "name": "humanAuthorityDecision", "successors": [{ "path": "intent/0058/human-authority.candidate.mjs", "export": "correctedHumanAuthorityDecision", "test": "tests/r5-human-correction.test.mjs", "scope": "full human/provider binding with explicit evaluation" }] },
-    { "name": "migrationDecision", "successors": [{ "path": "intent/0062/migration-graph.candidate.mjs", "export": "createMigrationGraphVerifier", "test": "tests/r5-migration-graph.test.mjs", "scope": "bounded transformation graph; full compatibility matrix still open" }] },
+    { "name": "migrationDecision", "successors": [
+      { "path": "intent/0062/migration-graph.candidate.mjs", "export": "createMigrationGraphVerifier", "test": "tests/r5-migration-graph.test.mjs", "scope": "original whole-second bounded transformation graph; full compatibility matrix still open" },
+      { "path": "intent/0090/migration-time.candidate.mjs", "export": "createMigrationTimeVerifier", "test": "tests/r5-migration-graph.test.mjs", "scope": "explicit exact-time full single-step composition; live compatibility/checkpoints still open" }
+    ] },
     { "name": "recoveryDecision", "successors": [{ "path": "intent/0065/recovery-time.candidate.mjs", "export": "createRecoveryTimeVerifier", "test": "tests/r5-recovery-time.test.mjs", "scope": "four-row recovery evidence; pre-ack remains unknown" }] },
     { "name": "spendDecision", "successors": [{ "path": "intent/0064/money-time.candidate.mjs", "export": "createMoneyTimeVerifier", "test": "tests/r5-money-time.test.mjs", "scope": "spend evidence audit, not execution authority" }] },
     { "name": "costDecision", "successors": [

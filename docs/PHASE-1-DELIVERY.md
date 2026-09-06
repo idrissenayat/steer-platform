@@ -1606,3 +1606,25 @@ original whole-second outer clock while shared action/human records support exac
 nanoseconds; that bounded precision gap precedes broader compatibility/checkpoint
 coverage. Live store/source integration and independent/protected review remain.
 All five formal R5 findings remain open.
+
+## Completed development increment: 0090 — exact migration chronology
+
+The separately selected v2 migration profile now carries exact nanosecond time
+through the complete existing plan/backup/human/shared-action/rollback/journal/
+result/replay evidence body. Original v1 policy, grammar and outputs stay exact.
+The new profile explicitly denies execution in every result. No SQL or journal
+write is performed by this offline candidate.
+
+All 12 migration groups pass, including six new precision groups covering every
+phase, first/replay, supported interruption/rollback labels, one-nanosecond
+ordering, exact age/expiry, full proof omissions and profile isolation. Final full
+checks pass; see intent/0090/EVIDENCE.md for synthetic and cached limits.
+Frozen artifacts are unchanged. All five formal R5 findings remain open.
+
+Next under intent/0090/PLAN.md is actual bounded old/new reader/writer behavior
+and concurrent compatibility evidence, followed by multi-batch/checkpoint/crash
+coverage and remaining normative/source/class/trust-era reconciliation. Current
+supportedReaders/supportedWriters metadata is not that behavioral proof. The
+protected EXAM A10.3 and section 9 migration requirements remain authoritative;
+no live runner, destructive cleanup, signature, release, deployment or spending
+is authorized. The existing implementation heartbeat remains active.

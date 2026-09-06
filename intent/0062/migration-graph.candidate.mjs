@@ -5,15 +5,19 @@ import { exactKeys, hex, jcs, parseCanonical, sha256, strictTime, zeroEffects, T
 import { createTimedRecordVerifier } from '../0058/record-verifier.candidate.mjs';
 import { correctedHumanAuthorityDecision, correctionPolicyDigest as humanPolicy } from '../0058/human-authority.candidate.mjs';
 import { createProtectedActionVerifier, manifestDigest } from '../0060/protected-actions.candidate.mjs';
+import { exactInstant, timePolicyDigest as exactTimePolicy } from '../0069/exact-time.candidate.mjs';
 const read = (name) => readFileSync(new URL(`../0001/reviews/domain/round-3/remediation/${name}`, import.meta.url), 'utf8').trimEnd();
 const registryBytes = jcs(JSON.parse(read('TRUST-REGISTRY.candidate.json'))), registry = parseCanonical(registryBytes);
 const providerBytes = read('PROVIDER-KEY-REGISTRY.candidate.json'), providers = JSON.parse(providerBytes).bindings;
 const timed = createTimedRecordVerifier(registryBytes);
 export const policyDigest = sha256(jcs({ version: 'steer-migration-graph/v1', manifestDigest, humanPolicy, registryDigest: timed.registryDigest, timePolicyDigest: timed.timePolicyDigest,
   providerDigest: sha256(providerBytes), model: 'bounded add/copy/drop-column; exact six-source preservation; supplied backup/restore bytes; shared authorization; zero effects' }));
+export const exactPolicyDigest = sha256(jcs({ version: 'steer-migration-graph/v2', originalPolicyDigest: policyDigest, exactTimePolicy,
+  rules: 'full original composition with bigint nanosecond chronology, exact 300-second age and half-open expiry; zero execution' }));
 const ensure = (value) => { if (!value) throw new Error('MIGRATION_GRAPH_INVALID'); };
 const text = (value) => typeof value === 'string' && value.length > 0 && value.length <= 512 && value.trim() === value && !/[\u0000-\u001f\u007f*?]/u.test(value);
 const time = (value) => { const result = strictTime(value); ensure(result !== null); return result; };
+const originalPolicyDigest = policyDigest, originalTime = time;
 const same = (a, b) => jcs(a) === jcs(b);
 const names = (list, maximum) => Array.isArray(list) && list.length > 0 && list.length <= maximum && list.every(text) && new Set(list).size === list.length;
 const sourceFields = ['itemBytesBase64', 'signatureBytesBase64', 'attemptBytesBase64', 'auditBytesBase64', 'releaseBytesBase64', 'evidenceBytesBase64'];
@@ -59,11 +63,20 @@ export function expectedMigrationData(beforeBytes, definition) {
 }
 
 export function createMigrationGraphVerifier(configBytes) {
+  return createSelectedMigrationGraphVerifier(configBytes, false);
+}
+export function createExactMigrationGraphVerifier(configBytes) {
+  return createSelectedMigrationGraphVerifier(configBytes, true);
+}
+function createSelectedMigrationGraphVerifier(configBytes, exact) {
+  const policyDigest = exact ? exactPolicyDigest : originalPolicyDigest;
+  const time = exact ? (value) => { const result = exactInstant(value); ensure(result !== null); return result; } : originalTime;
+  const maximumAge = exact ? 300000000000n : 300000;
   let config, binding;
   try {
     ensure(typeof configBytes === 'string' && configBytes.length <= 16384); config = parseCanonical(configBytes);
     ensure(exactKeys(config, ['version', 'implementationRevision', 'repositoryId', 'installationId', 'database', 'schema', 'actorSubject', 'upstreamSubject',
-      'providerBindingId', 'approvedDefinitionDigest', 'approvedBeforeTruthDigest']) && config.version === 'steer-migration-context/v1' && hex(config.implementationRevision, 40) &&
+      'providerBindingId', 'approvedDefinitionDigest', 'approvedBeforeTruthDigest']) && config.version === (exact ? 'steer-migration-context/v2' : 'steer-migration-context/v1') && hex(config.implementationRevision, 40) &&
       hex(config.approvedDefinitionDigest, 64) && hex(config.approvedBeforeTruthDigest, 64) &&
       ['repositoryId', 'installationId', 'database', 'schema', 'actorSubject', 'upstreamSubject', 'providerBindingId'].every((key) => text(config[key])));
     binding = providers.find((value) => value.providerBindingId === config.providerBindingId); ensure(binding && binding.tenant === 'steer-platform');
@@ -80,13 +93,13 @@ export function createMigrationGraphVerifier(configBytes) {
         const now = time(evaluationTime); ensure(typeof serialized === 'string' && serialized.length <= 8388608); const graph = parseCanonical(serialized);
         ensure(exactKeys(graph, ['version', 'configDigest', 'policyDigest', 'mode', 'planBytes', 'beforeTruthBytes', 'beforeProofBytes', 'backupTruthBytes', 'backupProofBytes',
           'rehearsalTruthBytes', 'rehearsalProofBytes', 'cleanupBundleBytes', 'actionBundleBytes', 'afterTruthBytes', 'afterProofBytes', 'rollbackTruthBytes', 'rollbackProofBytes', 'journalBytes', 'resultBytes']) &&
-          graph.version === 'steer-migration-graph/v1' && graph.configDigest === configDigest && graph.policyDigest === policyDigest);
+          graph.version === (exact ? 'steer-migration-graph/v2' : 'steer-migration-graph/v1') && graph.configDigest === configDigest && graph.policyDigest === policyDigest);
         ensure(exactKeys(graph.mode, ['interruption', 'rollback']) && ['none', 'before-effect', 'after-effect'].includes(graph.mode.interruption) &&
           ['none', 'before-backfill', 'during-backfill', 'after-backfill'].includes(graph.mode.rollback));
         const proof = (bytes, domain, kind, fields) => {
           ensure(typeof bytes === 'string' && bytes.length > 0 && bytes.length <= 65536); const raw = parseCanonical(bytes);
           const record = timed.verifyBytes(bytes, { domain, recordedAt: raw.recordedAt, evaluatedAt: evaluationTime }).record;
-          ensure(exactKeys(record, ['kind', 'configDigest', 'recordedAt', ...fields, 'recordDigest', 'signature']) && record.kind === kind && record.configDigest === configDigest && now - time(record.recordedAt) <= 300000);
+          ensure(exactKeys(record, ['kind', 'configDigest', 'recordedAt', ...fields, 'recordDigest', 'signature']) && record.kind === kind && record.configDigest === configDigest && now - time(record.recordedAt) <= maximumAge);
           return record;
         };
         const plan = proof(graph.planBytes, 'authority', 'plan', ['definition', 'validThrough']);
@@ -162,8 +175,9 @@ export function createMigrationGraphVerifier(configBytes) {
         if (authorization.decision === 'REPLAY_NOOP') ensure(authorization.resultDigest === result.recordDigest && time(result.recordedAt) <= time(parseCanonical(actionBundle.replayBytes).recordedAt));
         return { state: authorization.decision === 'REPLAY_NOOP' ? 'replay-noop' : noEffect ? 'validated-safe-non-result' : 'validated-migration-candidate',
           firstError: null, effects: zeroEffects(), journalEffects: 0, observedEffectCount: count, configDigest, policyDigest, action,
+          ...(exact ? { executionAuthorized: false } : {}),
           evidenceDigest: sha256(jcs([beforeProof.recordDigest, post.recordDigest, journal.recordDigest, result.recordDigest])) };
-      } catch { return { state: 'blocked', firstError: 'MIGRATION_GRAPH_INVALID', effects: zeroEffects(), journalEffects: 0 }; }
+      } catch { return { state: 'blocked', firstError: 'MIGRATION_GRAPH_INVALID', effects: zeroEffects(), journalEffects: 0, ...(exact ? { executionAuthorized: false } : {}) }; }
     },
   });
 }

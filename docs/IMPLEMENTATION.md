@@ -776,6 +776,15 @@ hold release. Missing reference evidence retains; partial or substituted proofs
 block. No real execution or gate approval is claimed. See `intent/0089/EVIDENCE.md`
 for verification and `intent/0089/PLAN.md` for remaining coverage.
 
+Item `intent/0090` adds an explicit exact-time v2 migration profile through the
+same complete bounded 0062 evidence body. Every preparation/approval/reservation,
+rollback, post-state, journal/result and replay comparison now supports whole
+seconds or exact nanoseconds without rounding. The original v1 stays unchanged.
+All shared and contract-owner proofs, source-byte preservation and independent
+approval pins remain required; outputs explicitly deny execution. Behavioral
+compatibility/concurrency/checkpoint evidence remains open. See
+`intent/0090/EVIDENCE.md` and `intent/0090/PLAN.md`.
+
 ## Local commands
 
 ```sh

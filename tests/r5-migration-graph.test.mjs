@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createHash, createPrivateKey, sign } from 'node:crypto';
 import { createMigrationGraphVerifier, policyDigest } from '../intent/0062/migration-graph.candidate.mjs';
+import { createMigrationTimeVerifier, policyDigest as exactPolicyDigest } from '../intent/0090/migration-time.candidate.mjs';
+import { exactInstant, formatExactInstant } from '../intent/0069/exact-time.candidate.mjs';
 import { humanAuthorityBindingDigest } from '../intent/0058/human-authority.candidate.mjs';
 import { manifestBytes, manifestDigest } from '../intent/0060/protected-actions.candidate.mjs';
 import { makeHumanAuthorityBundle, makeMigrationEvidence } from '../intent/0001/reviews/domain/round-3/remediation/evidence-fixtures.candidate.mjs';
@@ -21,6 +23,8 @@ const scope = { organization: 'steer-platform', tenant: 'steer-platform', reposi
 const target = { examRevision: TARGET_REVISION, examDigest: TARGET_EXAM_SHA, implementationRevision: 'e'.repeat(40), authorizationPolicyPath: AUTHORIZATION_POLICY_PATH,
   authorizationPolicyRevision: TARGET_REVISION, authorizationPolicyDigest: AUTHORIZATION_POLICY_SHA, authorizationPolicyBytes: AUTHORIZATION_POLICY_BYTES };
 function fixture(options = {}) {
+  const at = (second) => formatExactInstant(exactInstant('2026-09-04T12:00:00Z') + BigInt(second) * BigInt(options.tickNanoseconds ?? 1000000000) + BigInt(options.nanoseconds ?? 0));
+  const evaluation = options.evaluationTime ?? at(60), until = at(options.horizon ?? 180), policyDigest = options.exact ? exactPolicyDigest : originalPolicyDigest;
   const phase = options.phase ?? 'expand', edits = options.edits ?? {}, edit = (key, value) => { edits[key]?.(value); return value; };
   const definition = { planId: 'plan-1', executionId: 'execution-1', phase, batch: 'batch-1', checkpoint: 'checkpoint-1', schemaFrom: 'schema-v1', schemaTo: 'schema-v2',
     oldAppVersion: 'app-v1', newAppVersion: 'app-v2', columns: [phase === 'contract' ? 'old' : 'new'],
@@ -32,7 +36,7 @@ function fixture(options = {}) {
     values: phase === 'expand' ? { old: `value-${index}` } : { new: phase === 'contract' ? `value-${index}` : null, old: `value-${index}` } })) };
   const before = { ...Object.fromEntries(sourceFields.map((key) => [key, Buffer.from(`${key}: original e\u0301\n\0`, 'utf8').toString('base64')])), dataBytes: jcs(data) };
   const beforeTruthBytes = jcs(before);
-  const config = { version: 'steer-migration-context/v1', implementationRevision: target.implementationRevision, repositoryId: scope.repositoryId, installationId: scope.installationId,
+  const config = { version: options.exact ? 'steer-migration-context/v2' : 'steer-migration-context/v1', implementationRevision: target.implementationRevision, repositoryId: scope.repositoryId, installationId: scope.installationId,
     database: 'fixture-db', schema: 'public', actorSubject: 'service:schema-migration-runner', upstreamSubject: 'authority:migration', providerBindingId: 'fixture-provider-a-binding',
     approvedDefinitionDigest: sha256(jcs(definition)), approvedBeforeTruthDigest: sha256(beforeTruthBytes) };
   edit('config', config); const configBytes = jcs(config), configDigest = sha256(configBytes);
@@ -102,11 +106,86 @@ function fixture(options = {}) {
   emit('reservation', { reservationId: 'reservation-1', source: 'authoritative-cas-store', requestDigest: request.recordDigest, headId: head.headId, headDigest: head.recordDigest,
     replayDigest: replay.recordDigest, expectedHead: head.head, idempotencyKey: operation.idempotencyKey, winner: !options.replay, status: options.replay ? 'already-committed' : 'reserved' }, 'cas-authority', options.replay ? 25 : 17);
   const actionBundle = edit('action-bundle', { version: 'steer-protected-action-bundle/v1', contextDigest, ...Object.fromEntries(Object.entries(records).map(([kind, record]) => [`${kind}Bytes`, jcs(record)])) });
-  const graph = edit('graph', { version: 'steer-migration-graph/v1', ...inputs, cleanupBundleBytes, actionBundleBytes: jcs(actionBundle), afterTruthBytes, afterProofBytes: jcs(afterProof),
+  const graph = edit('graph', { version: options.exact ? 'steer-migration-graph/v2' : 'steer-migration-graph/v1', ...inputs, cleanupBundleBytes, actionBundleBytes: jcs(actionBundle), afterTruthBytes, afterProofBytes: jcs(afterProof),
     rollbackTruthBytes, rollbackProofBytes: rollback ? jcs(rollback) : '', journalBytes: jcs(journal), resultBytes: jcs(result) });
-  return { bytes: jcs(graph), graph, config, configBytes, verifier: createMigrationGraphVerifier(configBytes) };
+  return { bytes: jcs(graph), graph, config, configBytes, exact: options.exact === true, evaluationTime: evaluation,
+    verifier: (options.exact ? createMigrationTimeVerifier : createMigrationGraphVerifier)(configBytes) };
 }
-const denied = (value, now = evaluation) => assert.deepEqual(value.verifier.verify(value.bytes, now), { state: 'blocked', firstError: 'MIGRATION_GRAPH_INVALID', effects: zeroEffects(), journalEffects: 0 });
+const originalPolicyDigest = policyDigest;
+const denied = (value, now = value.evaluationTime) => assert.deepEqual(value.verifier.verify(value.bytes, now), { state: 'blocked', firstError: 'MIGRATION_GRAPH_INVALID', effects: zeroEffects(), journalEffects: 0,
+  ...(value.exact ? { executionAuthorized: false } : {}) });
+
+test('0090: full nanosecond migration evidence verifies every phase, first/replay and supported interruption', () => {
+  for (const phase of ['expand', 'backfill', 'contract']) for (const replay of [false, true]) for (const interruption of ['none', 'before-effect', 'after-effect']) {
+    const value = fixture({ exact: true, phase, replay, interruption, tickNanoseconds: 1 }), result = value.verifier.verify(value.bytes, value.evaluationTime);
+    assert.equal(result.state, replay ? 'replay-noop' : interruption === 'before-effect' ? 'validated-safe-non-result' : 'validated-migration-candidate');
+    assert.equal(result.executionAuthorized, false); assert.equal(result.journalEffects, 0); assert.deepEqual(result.effects, zeroEffects());
+  }
+  for (const phase of ['expand', 'backfill', 'contract']) for (const replay of [false, true]) for (const rollback of ['before-backfill', 'during-backfill', 'after-backfill']) {
+    const value = fixture({ exact: true, phase, replay, rollback, tickNanoseconds: 1 }), result = value.verifier.verify(value.bytes, value.evaluationTime);
+    assert.equal(result.state, replay ? 'replay-noop' : 'validated-migration-candidate'); assert.equal(result.executionAuthorized, false);
+  }
+});
+
+test('0090: nanosecond chronology rejects preparation, approval, restoration and terminal record inversions', () => {
+  const instant = (second, delta = 0n) => formatExactInstant(exactInstant(at(second)) + delta);
+  for (const [name, field, replacement, extra] of [
+    ['before', 'recordedAt', instant(0, -1n), {}], ['backup', 'recordedAt', instant(1, -1n), {}],
+    ['rehearsal', 'recordedAt', instant(2), {}], ['human', 'decidedAt', instant(3, -1n), { phase: 'contract' }],
+    ['operation', 'requestedAt', instant(3, -1n), {}], ['rollback', 'recordedAt', instant(17), { rollback: 'during-backfill' }],
+    ['after', 'recordedAt', instant(17), {}], ['after', 'recordedAt', instant(20), { rollback: 'after-backfill' }],
+    ['journal', 'recordedAt', instant(21), {}], ['result', 'recordedAt', instant(22), {}],
+    ['result', 'recordedAt', instant(24, 1n), { replay: true }],
+  ]) denied(fixture({ exact: true, ...extra, edits: { [name]: (record) => { record[field] = replacement; } } }));
+  const ordered = fixture({ exact: true, edits: { journal: (record) => { record.recordedAt = instant(21, 1n); }, result: (record) => { record.recordedAt = instant(21, 2n); } } });
+  assert.equal(ordered.verifier.verify(ordered.bytes, ordered.evaluationTime).state, 'validated-migration-candidate');
+});
+
+test('0090: exact 300-second age and half-open plan expiry never round or use an implicit clock', () => {
+  const edge = fixture({ exact: true, edits: { plan: (record) => { record.recordedAt = at(-240); } } });
+  assert.equal(edge.verifier.verify(edge.bytes, edge.evaluationTime).state, 'validated-migration-candidate');
+  denied(fixture({ exact: true, edits: { plan: (record) => { record.recordedAt = formatExactInstant(exactInstant(at(-240)) - 1n); } } }));
+  const alive = fixture({ exact: true, edits: { plan: (record) => { record.validThrough = formatExactInstant(exactInstant(evaluation) + 1n); } } });
+  assert.equal(alive.verifier.verify(alive.bytes, alive.evaluationTime).state, 'validated-migration-candidate');
+  denied(fixture({ exact: true, edits: { plan: (record) => { record.validThrough = evaluation; } } }));
+  const value = fixture({ exact: true });
+  for (const now of [undefined, null, '', '2026-09-04T12:01:00.000Z', '2026-09-04T12:01:00+00:00', '2026-02-30T12:00:00Z', '2026-09-04T12:00:22.999999999Z'])
+    assert.equal(value.verifier.verify(value.bytes, now).state, 'blocked');
+});
+
+test('0090: exact profile retains complete shared authorization and separate contract owner evidence', () => {
+  for (const phase of ['expand', 'backfill', 'contract']) {
+    for (const field of ['requestBytes', 'upstreamBytes', 'downstreamBytes', 'delegationBytes', 'assignmentBytes', 'authorityBytes', 'resourcesBytes', 'replayBytes', 'headBytes', 'reservationBytes'])
+      denied(fixture({ exact: true, phase, tickNanoseconds: 1, edits: { 'action-bundle': (record) => { record[field] = '{}'; } } }));
+    denied(fixture({ exact: true, phase, edits: { 'action-reservation': (record) => { record.winner = false; } } }));
+  }
+  for (const field of ['authorityBytes', 'providerProofBytes', 'identityEvidenceBytes', 'qualificationEvidenceBytes', 'assignmentEvidenceBytes', 'inventoryBytes', 'replayLedgerBytes', 'casHeadBytes', 'casReservationBytes'])
+    denied(fixture({ exact: true, phase: 'contract', edits: { 'human-bundle': (record) => { record[field] = '{}'; } } }));
+});
+
+test('0090: supplied truth, backup, restoration and journal lineage cannot be bypassed by precise timestamps', () => {
+  for (const field of sourceFields) denied(fixture({ exact: true, edits: { 'after-truth': (record) => { record[field] = Buffer.from('changed').toString('base64'); } } }));
+  for (const field of ['beforeProofBytes', 'backupProofBytes', 'rehearsalProofBytes', 'afterProofBytes', 'journalBytes', 'resultBytes'])
+    denied(fixture({ exact: true, edits: { graph: (record) => { record[field] = '{}'; } } }));
+  denied(fixture({ exact: true, edits: { 'after-truth': (record) => { const data = JSON.parse(record.dataBytes); data.rows[0].values.old = 'changed'; record.dataBytes = jcs(data); } } }));
+  denied(fixture({ exact: true, rollback: 'after-backfill', edits: { rollback: (record) => { record.truthDigest = 'f'.repeat(64); } } }));
+  denied(fixture({ exact: true, replay: true, edits: { 'action-replay': (record) => { record.resultDigest = 'f'.repeat(64); } } }));
+});
+
+test('0090: trusted exact context and graph cannot select legacy policy or change the approved starting point', () => {
+  const old = fixture(), exact = fixture({ exact: true });
+  assert.throws(() => createMigrationTimeVerifier(old.configBytes), /MIGRATION_CONFIGURATION_INVALID/);
+  assert.throws(() => createMigrationGraphVerifier(exact.configBytes), /MIGRATION_CONFIGURATION_INVALID/);
+  for (const edits of [
+    { graph: (record) => { record.version = 'steer-migration-graph/v1'; } },
+    { graph: (record) => { record.policyDigest = policyDigest; } },
+    { config: (record) => { record.approvedDefinitionDigest = 'f'.repeat(64); } },
+    { config: (record) => { record.approvedBeforeTruthDigest = 'f'.repeat(64); } },
+  ]) denied(fixture({ exact: true, edits }));
+  assert.equal(old.verifier.verify(old.bytes, old.evaluationTime).state, 'validated-migration-candidate');
+  const fractionalOld = fixture({ nanoseconds: 1 }); denied(fractionalOld);
+  assert.equal(Object.hasOwn(old.verifier.verify(old.bytes, old.evaluationTime), 'executionAuthorized'), false);
+});
 
 test('all three phases verify actual transformed rows, preservation, authoritative replay and no-effect interruption', () => {
   for (const phase of ['expand', 'backfill', 'contract']) for (const replay of [false, true]) for (const interruption of ['none', 'before-effect', 'after-effect']) {
