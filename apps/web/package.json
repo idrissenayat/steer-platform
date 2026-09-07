@@ -4,10 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "node scripts/generate-learn.ts && next dev",
+    "build": "node scripts/generate-learn.ts && next build",
     "start": "next start",
-    "typecheck": "next typegen && tsc --noEmit",
+    "typecheck": "next typegen && node scripts/generate-learn.ts && tsc --noEmit",
     "test": "node --test",
     "check": "pnpm typecheck && pnpm test && pnpm build"
   },

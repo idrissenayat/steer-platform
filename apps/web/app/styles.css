@@ -12,6 +12,33 @@
   --steer-focus: #2f54d1;
 }
 
+.learn-hub { margin-block: 2rem; }
+.learn-heading { display: flex; align-items: start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.learn-reader { margin-top: 1.5rem; }
+.learn-search { display: grid; gap: .5rem; font-weight: 700; }
+.learn-search input { width: 100%; padding: .8rem; border: 1px solid var(--steer-border); border-radius: .75rem; font: inherit; }
+.learn-layout { display: grid; grid-template-columns: minmax(12rem, 1fr) minmax(0, 3fr); gap: 2rem; margin-top: 1.5rem; }
+.learn-navigation { align-self: start; position: sticky; top: 1rem; max-height: calc(100vh - 2rem); overflow-y: auto; }
+.learn-navigation ul, .learn-results ul { list-style: none; margin: 0; padding: 0; }
+.learn-navigation button, .learn-results button { text-align: left; font: inherit; color: #7c1943; background: var(--steer-pink-soft); border: 1px solid var(--steer-border); border-radius: .65rem; padding: .65rem .8rem; cursor: pointer; }
+.learn-navigation button { width: 100%; margin-bottom: .4rem; }
+.learn-navigation button[aria-current] { background: #7c1943; color: white; }
+.learn-navigation a { display: block; padding: .45rem .2rem; color: #7c1943; font-size: .9375rem; }
+.learn-document { min-width: 0; font-size: 1rem; line-height: 1.7; overflow-wrap: anywhere; }
+.learn-document h3 { font-size: 1.7rem; margin-top: 0; }
+.learn-document h4 { font-size: 1.2rem; margin-bottom: .6rem; scroll-margin-top: 1rem; }
+.learn-document section { border-top: 1px solid var(--steer-border); margin-top: 1.5rem; }
+.learn-provenance { background: #fff7f0; padding: 1rem; border-radius: .8rem; }
+.learn-provenance dd { margin: 0 0 .7rem; }
+.learn-provenance pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .875rem; }
+.learn-results { margin-top: 1rem; }
+.learn-results li { padding-block: .7rem; border-bottom: 1px solid var(--steer-border); }
+.learn-results p { font-size: 1rem; }
+.learn-table { overflow-x: auto; max-width: 100%; }
+.learn-table table { border-collapse: collapse; }
+.learn-table th, .learn-table td { text-align: left; vertical-align: top; border: 1px solid var(--steer-border); padding: .6rem; }
+@media (max-width: 760px) { .learn-layout { grid-template-columns: 1fr; } .learn-navigation { position: static; max-height: none; } }
+
 * {
   box-sizing: border-box;
 }

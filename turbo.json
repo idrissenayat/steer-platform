@@ -1,5 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": ["kit/learn-manifest.json", "kit/version.json", "kit/canon/**", "kit/practices/**"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

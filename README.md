@@ -7,6 +7,9 @@ item one, are the framework's pilot evidence.
 
 ## Current delivery
 
+Item [0192](intent/0192/README.md) adds a searchable, source-fingerprinted Learn
+reader for the eight kit documents. This does not complete all Learn requirements.
+
 Item [0191](intent/0191/README.md) brings supporting-document source checks into
 the Next review workspace and Brief dialog. Source availability is not gate approval.
 
@@ -348,7 +351,7 @@ routes but rejects tool requests until trusted runtime identity settings are exp
 | 0001 · Flight Deck foundation | `intent/0001/README.md`, revised `BRIEF.md` and `SPEC.md`, App-authored v3.2 `EXAM.md`, Gate 1 `ARCHITECTURE.md`, and signed-snapshot `PLAN.md` | Phase 0 kit, fixture-backed UX/domain prototype, agent-first assurance and three bounded production-code increments | five R5 findings, protected incorporation and exact-revision reviews/rulings, Gate 2, remaining production integrations, walking skeleton, Gate 3 and pilot outcomes |
 | 0002 · Instrumentation and baselines | `intent/0002/README.md`, `BRIEF.md` | prototype event contract, adapters, privacy validation and baseline computations are implemented | production collection/composition, Product Lead-approved window and representative figures |
 | 0003 · Full brief detail view | `intent/0003/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md` | prototype detail panel and four actions; production authenticated read-only Brief library/navigation/order added in 0053–0055 | production provenance/history and governed actions, 0002 baseline and qualified manual accessibility record |
-| 0004 · Learn STEER hub | `intent/0004/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md` | prototype source-faithful reader, search, glossary, role orientation, agent slices and corpus build guard | production workspace port/composition, 0002 baseline and qualified manual accessibility record |
+| 0004 · Learn STEER hub | `intent/0004/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md` | prototype reader, glossary, role orientation and agent slices; 0192 adds Next canonical reading/search, source fingerprints and corpus build guard | production glossary/orientation/action composition, correction flow, 0002 baseline and qualified manual accessibility record |
 | 0005 · Production workspace and web shell | `intent/0005/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md`, `PLAN.md` | pnpm/Turborepo boundary and visually verified Next.js production shell are implemented without changing the prototype | formal gate records; full stack lock, workers and service composition |
 | 0006 · Provider-free domain extraction | `intent/0006/README.md`, `BRIEF.md`, `SPEC.md`, `EXAM.md`, `PLAN.md` | the existing domain is moved—not copied—into `@steer/domain`; stricter optional/index checks and all consumers are migrated | formal gate records; worker, data and provider integration remain |
 | 0007 · Shared tool registry and API foundation | `intent/0007/README.md`, `BRIEF.md`, `SPEC.md`, `PLAN.md`, development `ACCEPTANCE.md`, `EVIDENCE.md` | Hono, Zod contracts, tenant-scoped context query, generated OpenAPI and 15 focused tests | independent protected Exam, formal gates, actual identity/data/provider integration |

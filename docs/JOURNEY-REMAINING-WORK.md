@@ -1,7 +1,7 @@
 # Remaining first-journey implementation
 
 Code audit on 2026-09-07 against `e320d6e86affd556103dcf9c273daf23dc6695d5`,
-plus increments 0174–0191's owned clients, shared authorization, optional dispatch/recovery runtimes
+plus increments 0174–0192's owned clients, shared authorization, optional dispatch/recovery runtimes
 and joined isolated identity/receipt/projection integration. This is execution planning, not a new
 architecture, signed-scope reduction or gate decision. It supersedes historical
 "next" statements only for sequencing; numbered evidence remains historical.
@@ -78,6 +78,11 @@ lifecycle/decision-input contract or a connected board. No live grant is install
 0191 mounts that coverage as a manual Supporting documents check in the Next review
 workspace and Brief dialog, with request-owned clearing and explicit uncertainty.
 It does not add source authority, body fetching, live grants or lifecycle transitions.
+
+0192 adds independent M5 Learn reading/search in Next from the same eight kit
+sources. It does not close intent/0004: orientation ending in actual actions,
+glossary peeks, governed correction submission, instrumentation and qualified
+accessibility remain open. See `docs/LEARN-READER.md`.
 
 Next address externally governed bootstrap, actual attestor ownership/issuance and
 native review provenance in the complete action-time verification contract. The existing

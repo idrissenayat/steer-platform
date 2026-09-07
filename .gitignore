@@ -8,3 +8,4 @@ dist/
 *.tsbuildinfo
 **/next-env.d.ts
 coverage/
+apps/web/app/generated/

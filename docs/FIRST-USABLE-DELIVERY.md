@@ -63,9 +63,13 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0191
+### Latest development audit — increment 0192
 
 The dependency-ordered current route is `docs/JOURNEY-REMAINING-WORK.md`.
+0192 adds the independent M5 canonical Learn reading/search slice to Next. It does
+not advance live-write authority or claim complete intent/0004. Role orientation,
+glossary peeks and real first-action acceptance remain open. Verification is in
+`intent/0192/EVIDENCE.md`.
 0191 exposes source coverage in the production review workspace and Brief dialog.
 Checks remain manual, exact-revision and read-only, without inferred lifecycle or
 approval. Verification is recorded in `intent/0191/EVIDENCE.md`.

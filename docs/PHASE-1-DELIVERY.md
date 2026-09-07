@@ -3954,3 +3954,39 @@ No live grant/curation, protected artifact, dependency version, provider access,
 spending, deployment, release or real-data deletion changed. All five R5 findings,
 qualified independent protected review/human gates, actual lifecycle authority and
 approved real-user journey acceptance remain open.
+
+## Completed development increment: 0192 — Canonical Learn reader
+
+The authenticated Next workspace now offers a read-only Learn reader for all eight
+operational kit documents. It includes local section search, a document list,
+persistent desktop outline, version/path/source fingerprints and exact Markdown.
+The pink/orange visual system is retained. There are no remote source links,
+images, reading-interest requests, analytics events or per-user progress storage.
+
+The provider-free kit parser runs only during build preparation. A gitignored
+intermediate is generated from the sole canonical kit; no editable copy or runtime
+repository reader is introduced. Invalid UTF-8, empty/oversized or missing source,
+version drift, changed fixed paths and ambiguous anchors stop generation. Kit
+inputs participate in build-cache keys. Runtime start does not reread the kit.
+The badge identifies checkout metadata, not an authenticated release tag.
+
+Keyboard navigation focuses committed document/section headings; closing returns
+focus to Open guide. Reading/search state clears on hiding, restoration, expiry
+and clock regression. This cleanup is not secure erasure of delivered canon.
+The actual browser regression found an intermittent pre-commit focus race, now
+fixed using post-commit effects and covered by a component regression.
+
+All 85 web tests and 47 real-service disposable browser checks pass. Desktop/mobile
+screenshots were inspected, with responsive/200% text and automated accessibility
+checks passing. Final `pnpm check` passed end to end, including 439 repository
+controls and all builds. Details and earlier failed-run corrections are in
+`intent/0192/EVIDENCE.md`.
+User documentation is `docs/LEARN-READER.md`.
+
+This is independent M5 reading/search groundwork, not complete intent/0004. Role
+orientation ending in real actions, contextual glossary peeks, governed correction
+submission, outcome instrumentation and qualified accessibility remain open.
+No kit content, protected EXAM, signature, live authority/configuration, dependency
+version, provider access, spending, deployment, release or real-data deletion changed.
+All five R5 findings, Gate 2, live saving and approved real-user journey acceptance
+remain open. A completed reading increment is not authority to enable them.

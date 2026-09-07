@@ -1253,6 +1253,70 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           throw error;
         } finally { page.off('request', observeEvidence); gateway = bindGateway(web!.rendererOrigin); await source.publish([grant]); await page.goto(origin); }
       });
+      await check('Learn renders the canonical kit with local search, keyboard outline, exact source and responsive reading', async () => {
+        const directory = process.env.STEER_WORKSPACE_SCREENSHOT_DIR;
+        await page.goto(origin);
+        const hub = page.getByRole('region', { name: 'Learn STEER', exact: true });
+        let stage = 'open guide';
+        try {
+          assert.equal(await hub.getByRole('article').count(), 0);
+          await hub.getByRole('button', { name: 'Open guide', exact: true }).focus(); await page.keyboard.press('Enter');
+          const documents = hub.getByRole('navigation', { name: 'Guide documents', exact: true });
+          assert.equal(await documents.getByRole('button').count(), 8);
+          const manifest = JSON.parse(await readFile(new URL('../../../kit/learn-manifest.json', import.meta.url), 'utf8'));
+          for (const [index, doc] of manifest.documents.entries()) {
+            stage = `read canonical document ${index + 1}`;
+            await documents.getByRole('button').nth(index).click();
+            await hub.getByText('Version and exact source', { exact: true }).click();
+            const raw = await readFile(new URL(`../../../${doc.path}`, import.meta.url), 'utf8');
+            assert.equal(await hub.locator('.learn-provenance pre').textContent(), raw);
+            assert.ok((await hub.locator('.learn-provenance').textContent())!.includes(createHash('sha256').update(raw).digest('hex')));
+            await hub.getByText('Version and exact source', { exact: true }).click();
+          }
+          stage = 'search and section focus';
+          await hub.getByLabel('Search the guide', { exact: true }).fill('exam-writability');
+          await hub.locator('.learn-results button').first().click();
+          await page.waitForFunction(() => document.activeElement?.tagName === 'H4');
+          assert.ok((await hub.getByRole('article').textContent())!.toLowerCase().includes('exam-writability'));
+          await hub.getByLabel('Search the guide', { exact: true }).fill('no-such-term-0192');
+          await hub.getByText('No matching sections. Try a different term.', { exact: true }).waitFor();
+          await hub.getByLabel('Search the guide', { exact: true }).fill('');
+          await documents.getByRole('button', { name: 'STEER Guidebook', exact: true }).click();
+          const outline = hub.getByRole('navigation', { name: 'On this guide page', exact: true });
+          await outline.getByRole('link').first().focus(); await page.keyboard.press('Enter');
+          await page.waitForFunction(() => document.activeElement?.tagName === 'H4');
+          stage = 'responsive guide';
+          await hub.scrollIntoViewIfNeeded();
+          if (directory) await hub.screenshot({ path: join(directory, 'learn-desktop.png') });
+          await page.setViewportSize({ width: 390, height: 844 });
+          assert.equal(await hub.evaluate(element => element.scrollWidth <= element.clientWidth), true);
+          if (directory) await hub.locator('.learn-document').screenshot({ path: join(directory, 'learn-mobile.png') });
+          await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+          assert.equal(await hub.evaluate(element => element.scrollWidth <= element.clientWidth), true);
+          await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
+          await page.setViewportSize({ width: 1440, height: 1000 });
+          stage = 'guide accessibility';
+          const axeSource = await readFile(new URL('../../../node_modules/axe-core/axe.min.js', import.meta.url), 'utf8');
+          await page.evaluate(source => { eval(source); }, axeSource);
+          assert.deepEqual(await page.evaluate(async () => (await (window as unknown as { axe: { run(context: string, options: unknown): Promise<{ violations: unknown[] }> } }).axe.run('.learn-hub', { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] } })).violations), []);
+          stage = 'guide lifecycle and closing focus';
+          await hub.getByRole('button', { name: 'Close guide and return', exact: true }).click();
+          await page.waitForFunction(() => document.activeElement?.textContent === 'Open guide');
+          stage = 'guide pagehide clearing';
+          await hub.getByRole('button', { name: 'Open guide', exact: true }).click();
+          await hub.getByLabel('Search the guide', { exact: true }).fill('private reading interest');
+          await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pagehide')));
+          await hub.getByRole('article').waitFor({ state: 'detached' });
+          assert.equal(await hub.getByRole('article').count(), 0);
+          stage = 'guide reset search';
+          await hub.getByRole('button', { name: 'Open guide', exact: true }).click();
+          assert.equal(await hub.getByLabel('Search the guide', { exact: true }).inputValue(), '');
+        } catch (error) {
+          console.error(`Learn UI check failed at ${stage}; error class ${error instanceof Error ? error.name : 'unknown'}; payloads omitted.`);
+          if (directory) await page.screenshot({ path: join(directory, 'learn-failure.png') });
+          throw error;
+        } finally { await page.setViewportSize({ width: 1440, height: 1000 }); await page.goto(origin); }
+      });
       await check('supporting documents bind actual source fingerprints and clear on denial, explicit reset and page lifecycle', async () => {
         assert.ok(storage.createCoverageProjection);
         const seeded = await source.publishCoverage();
