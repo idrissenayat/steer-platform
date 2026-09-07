@@ -35,3 +35,7 @@ All five R5 findings and independent/qualified review/human gates remain open.
 The next integrated boundary is current revocation across the asynchronous receipt
 read itself, followed by explicit failed-workflow status/recovery behavior. Existing
 early denial and successful replay must not be described as proof of those races.
+
+0180 adds the receipt-time revocation check and separate actual terminal-failure
+observation. See [failure boundaries](RECORDED-PROJECTION-FAILURES.md); controlled
+retry is not implemented by either increment.

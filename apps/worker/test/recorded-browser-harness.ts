@@ -35,8 +35,13 @@ export async function createRecordedBrowserHarness(options: { target: { scope: {
   let identity: Awaited<ReturnType<typeof createIdentityRuntime>> | undefined;
   let managed: Awaited<ReturnType<typeof createManagedRecordedBriefScheduler>> | undefined;
   let worker: Worker | undefined, running: Promise<void> | undefined, stopped = false, attempted = false, reads = 0;
+  let revokeAfterReceipt = false;
   const configure = async () => {
-    runtime = await createWorkerRecordedBriefRuntime(options, secrets, { ...ports, readReceipt: async () => { reads++; return ports.readReceipt(); } });
+    runtime = await createWorkerRecordedBriefRuntime(options, secrets, { ...ports, readReceipt: async () => {
+      reads++; const receipt = await ports.readReceipt();
+      if (revokeAfterReceipt) await projector.publish('revoked');
+      return receipt;
+    } });
   };
   const stopWorker = async () => {
     try { if (worker) { worker.shutdown(); await running; } }
@@ -69,30 +74,36 @@ export async function createRecordedBrowserHarness(options: { target: { scope: {
           assert.equal(reads, 0); assert.equal(runtime!.status().database.connections, 0);
         }
         await projector.publish('allowed');
+        // An actual authorized browser read completes, then native Git revocation
+        // lands before the worker's post-receipt identity check or first SQL access.
+        revokeAfterReceipt = true;
+        await assert.rejects(runtime!.activities.projectRecordedBrief(options.target));
+        assert.equal(reads, 1); assert.equal(runtime!.status().database.connections, 0);
+        revokeAfterReceipt = false; await projector.publish('allowed');
         const absent = await call('status'); assert.equal(absent.status, 200); assert.equal((await absent.json()).outcome, 'not-found');
         const started = await call('start'); assert.equal(started.status, 200); assert.equal((await started.json()).outcome, 'started');
         const repeat = await call('start'); assert.equal(repeat.status, 200); assert.equal((await repeat.json()).outcome, 'already-attempted');
         const handle = fixture.environment.client.workflow.getHandle(recordedBriefWorkflowId(options.target));
         const originalRun = (await handle.describe()).runId;
         // Queued work must not consume browser access until a recreated runtime runs it.
-        await stopWorker(); assert.equal(reads, 0); await configure();
+        await stopWorker(); assert.equal(reads, 1); await configure();
         worker = await createRecordedBriefWorker({ connection: fixture.environment.nativeConnection, namespace: 'default', taskQueue: queue,
           workflowBundle: fixture.bundle }, runtime!.activities); running = worker.run();
         assert.deepEqual(await handle.result(), { revision, status: 'observed', outcome: 'applied' });
         const complete = await call('status'); assert.equal(complete.status, 200); assert.equal((await complete.json()).state, 'COMPLETED');
         await dispatch.publish('revoked'); assert.equal((await call('status')).status, 401);
         await dispatch.publish('allowed'); assert.equal((await call('status')).status, 200);
-        assert.equal(reads, 1); assert.equal((await handle.describe()).runId, originalRun);
+        assert.equal(reads, 2); assert.equal((await handle.describe()).runId, originalRun);
         const history = await handle.fetchHistory(), text = historyText(history);
         for (const privateValue of [options.source.subject, dispatch.subject, projector.subject, secrets.databasePassword, 'Browser-created request', 'Requests are entered twice.', 'synthetic-browser-write']) {
           assert.equal(text.includes(privateValue), false);
         }
         await Worker.runReplayHistory({ workflowBundle: fixture.bundle }, history, recordedBriefWorkflowId(options.target));
-        assert.equal(reads, 1);
+        assert.equal(reads, 2);
         await assert.rejects(startRecordedBriefProjection(fixture.environment.client, queue, options.target));
-        assert.equal(reads, 1);
+        assert.equal(reads, 2);
         await projector.publish('revoked'); await assert.rejects(runtime!.activities.projectRecordedBrief(options.target));
-        assert.equal(reads, 1); await projector.publish('allowed');
+        assert.equal(reads, 2); await projector.publish('allowed');
       }, close,
     };
   } catch (error) { await close(); throw error; }

@@ -1,7 +1,7 @@
 # Remaining first-journey implementation
 
 Code audit on 2026-09-07 against `e320d6e86affd556103dcf9c273daf23dc6695d5`,
-plus increments 0174–0179's owned client, shared authorization, optional runtime
+plus increments 0174–0180's owned client, shared authorization, optional runtime
 and joined isolated identity/receipt/projection integration. This is execution planning, not a new
 architecture, signed-scope reduction or gate decision. It supersedes historical
 "next" statements only for sequencing; numbered evidence remains historical.
@@ -22,7 +22,7 @@ source, not verified business lifecycle facts.
 | Package | Existing implementation | Remaining work and observable exit |
 | --- | --- | --- |
 | J1: governed save authority | Held writer, gate-policy collector, GitHub writer factory and identity runtime | Incorporate authorized selection/trust/review-provenance bindings and complete action-time authority. Missing, changed or revoked evidence denies the exact write; a complete approved profile requires independent review. The existing held surface must keep denying, not gain a success switch. |
-| J2: save-to-projection dispatch | Native Git operation store, fixed recorded worker, deterministic owned client, shared grants and opt-in runtime; joined disposable human/dispatcher/projector identity tests through 0179 | Verify current revocation across receipt readback and explicit terminal-failure status/recovery. Complete approved dispatch/receipt/path ownership. Keep current dispatch, human save and projector authority separate. Confirm the approved real operation survives acknowledgment loss/restart and appears once at its exact revision; no second save or rewind follows uncertainty. |
+| J2: save-to-projection dispatch | Native Git operation store, fixed recorded worker, owned client, shared grants/runtime and joined disposable identities; 0180 tests receipt-time revocation and terminal status recovery | Define and implement separately authorized controlled projection recovery; normal start must not become retry. Complete approved dispatch/receipt/path ownership. Keep current dispatch, human save and projector authority separate. Confirm the approved real operation survives acknowledgment loss/restart and appears once at its exact revision; no second save or rewind follows uncertainty. |
 | J3: authenticated operating projections | Curated catalog/Brief readers, source preview, snapshot/change consumer and domain read model | Implement authoritative lifecycle/decision inputs, then connect backlog, Flight Board and Inbox in Next. Verify revision/reset/reconnect and tenant denials. Source-claimed signatures cannot create a verified stage. The current production page still labels these surfaces not connected. |
 | J4: actionable revision-bound review | Current-authorized Brief → decision → curated evidence reads | Complete authenticated proof composition and separately authorized actions. Recheck selected decision, exact source, qualified current human and applicable gate at action time. Literal recorded claims remain distinct from verified approvals. |
 | J5: agent conversation | Deterministic Brief author/interview and shared registry | Add the signed architecture's Mastra/AI SDK conversation and portable model seam, streaming correction, scoped tools and usage controls. Preserve exact human confirmation; agents never sign gates. No model-backed conversation is currently mounted. Actual calls require separate provider/access/spending prerequisites. |
@@ -41,9 +41,12 @@ runtime/factory lifecycle. 0177 joins its signed current dispatcher to actual sa
 operation readback and exact Git/PostgreSQL projection in one disposable scenario.
 0178 adds actual disposable Keycloak service-account dispatch to the browser-created
 journey. 0179 adds a distinct actual projector identity and early grant/token denials.
-Next verify current revocation across the receipt read itself and explicit terminal
-failure/status behavior, preserving independent permissions and approved live
-identity/cluster configuration as separate concerns. Do not
+0180 adds receipt-time revocation and observational terminal-failure recovery.
+Next define the explicit controlled projection-recovery contract; retained failed
+runs currently cannot be restarted through normal start. Preserve exact operation,
+failed-run identity, current authority and idempotent readback rather than inventing
+another save or weakening duplicate rejection. Approved live configuration remains
+separate. Do not
 invent automatic path admission from a browser response or turn test grants into
 live configuration. `projection.ingest` and `intent.brief.save` remain independent
 permissions. Missing actual selection/authority still requires the established

@@ -8,6 +8,12 @@ import { createManagedRecordedBriefScheduler } from '../src/client.ts';
 import { createRecordedBriefWorker } from '../src/worker.ts';
 import { createRecordedBriefActivities } from '../src/activities.ts';
 
+function historyText(value: unknown): string {
+  if (value instanceof Uint8Array) return Buffer.from(value).toString('utf8');
+  if (value && typeof value === 'object') return Object.values(value).map(historyText).join('\n');
+  return typeof value === 'string' ? value : '';
+}
+
 /** Actual signed OIDC/native Git membership -> API runtime -> Temporal. The activity
  * result is explicitly synthetic; real Git/PostgreSQL projection has separate checks. */
 export async function testRecordedIdentityRuntime(env: TestWorkflowEnvironment, bundle: WorkflowBundle,
@@ -43,6 +49,40 @@ export async function testRecordedIdentityRuntime(env: TestWorkflowEnvironment, 
       const reads = f.source.calls.length; assert.equal((await owned.fetch(f.request('status'))).status, 503); assert.equal(f.source.calls.length, reads);
       await assert.rejects(connection.workflowService.describeWorkflowExecution({ namespace: 'default', execution: { workflowId: f.workflowId } }));
       assert.equal((await env.client.workflow.getHandle(f.workflowId).describe()).status.name, 'COMPLETED');
+    });
+    worker!.shutdown(); await running; worker = undefined; running = undefined;
+    await check('failed recorded workflow stays failed through authenticated status and runtime reconstruction without retry or private failure disclosure', async () => {
+      const failure = await recordedRuntimeFixture({ after: run => { cleanup.push(run); } },
+        { selection: { itemId: 'items/0180-failed', idempotencyKey: '18000000-0000-4000-8000-000000000001' } });
+      let attempted = 0, closedConnections = 0;
+      const configure = async () => {
+        const ownedConnection = await Connection.connect({ address: env.address });
+        managed = await createManagedRecordedBriefScheduler(new Client({ connection: ownedConnection, namespace: 'default' }),
+          { namespace: 'default', taskQueue: 'steer-0180-failed', target: failure.target },
+          async () => { await ownedConnection.close(); closedConnections++; });
+        runtime = await createIdentityRuntime(failure.profile, failure.secrets,
+          { ...failure.ports, createRecordedScheduler: async () => managed! });
+      };
+      const status = async () => {
+        const response = await runtime!.fetch(failure.request('status')); assert.equal(response.status, 200);
+        const value = await response.json(); assert.equal(value.outcome, 'found'); assert.equal(value.state, 'FAILED');
+        assert.deepEqual(Object.keys(value).sort(), ['outcome', 'runId', 'state', 'workflowId']);
+      };
+      await configure();
+      const started = await runtime!.fetch(failure.request('start')); assert.equal(started.status, 200); assert.equal((await started.json()).outcome, 'started');
+      worker = await createRecordedBriefWorker({ connection: env.nativeConnection, namespace: 'default', taskQueue: 'steer-0180-failed', workflowBundle: bundle },
+        createRecordedBriefActivities(failure.target, { runOnce: async () => { attempted++; throw new Error('private synthetic receipt transport failure'); } }));
+      running = worker.run();
+      const handle = env.client.workflow.getHandle(failure.workflowId); await assert.rejects(handle.result());
+      assert.equal(attempted, 1); await status();
+      assert.equal((await (await runtime!.fetch(failure.request('start'))).json()).outcome, 'already-attempted');
+      failure.publish({ ...failure.grant, active: false }); assert.equal((await runtime!.fetch(failure.request('status'))).status, 401);
+      failure.publish(); await runtime!.shutdown(); await configure();
+      const repeat = await runtime!.fetch(failure.request('start')); assert.equal(repeat.status, 200); assert.equal((await repeat.json()).outcome, 'duplicate');
+      await status(); assert.equal(attempted, 1); assert.equal(failure.source.mutations(), 0);
+      assert.equal(historyText(await handle.fetchHistory()).includes('private synthetic receipt transport failure'), false);
+      await runtime!.shutdown(); assert.equal(closedConnections, 2);
+      assert.equal((await env.client.workflow.getHandle(failure.workflowId).describe()).status.name, 'FAILED');
     });
   } finally {
     try { if (worker) { worker.shutdown(); await running; } }

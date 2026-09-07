@@ -63,7 +63,7 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0179
+### Latest development audit — increment 0180
 
 The dependency-ordered current route is `docs/JOURNEY-REMAINING-WORK.md`.
 Increment 0174 adds an owned fixed-operation Temporal start/status client with
@@ -87,6 +87,10 @@ in `intent/0178/EVIDENCE.md`; no approved real-user save or live binding is infe
 Keycloak client and current Git authorizer. Early cross-permission, revocation and
 token-substitution negatives are part of the same journey; results are in
 `intent/0179/EVIDENCE.md`. Gate authority is still synthetic in the creation fixture.
+0180 checks revocation after an actual browser receipt read and, separately, failed
+workflow status after owned-runtime reconstruction. Failure remains observable but
+cannot be retried through normal start. Controlled projection recovery is still open;
+see `docs/RECORDED-PROJECTION-FAILURES.md` and `intent/0180/EVIDENCE.md`.
 
 The production UI now supports deterministic describe/correct, exact local review,
 manual prior-operation status and opening the exact recorded Brief. Disposable

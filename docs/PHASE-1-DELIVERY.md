@@ -3712,3 +3712,20 @@ deployment, spending or real deletion changed. All five R5 findings and required
 independent/qualified review/human signatures remain open. The morning handoff is
 already complete and is not repeated. Next verify revocation across receipt I/O and
 truthful terminal-failure/recovery behavior without another save or automatic retry.
+
+## Completed development increment: 0180 — Receipt-time revocation and terminal failure
+
+The actual-Keycloak browser journey now revokes the projector after a successful
+human receipt read but before returning that receipt to the worker. The worker must
+deny before SQL access. Explicit restoration and the first authenticated dispatch
+then preserve exact one-time projection and source opening. The denied direct call
+is not a failed Temporal run, and two receipt reads are expected across the scenario.
+
+A separate actual Temporal scenario verifies FAILED status, revoked observation and
+retained duplicate rejection through owned runtime/connection reconstruction after
+one injected activity failure. No automatic retry, new save or private error output
+is allowed. These distinct execution results are in `intent/0180/EVIDENCE.md`.
+Controlled retry/reset remains unimplemented; next resolve its exact current-authority,
+operation/failed-run and concurrency contract. All five R5 findings, governed live
+saving and independent/qualified review/human gates remain open. No production
+configuration, protected artifact, frontend, deployment, spending or real deletion.

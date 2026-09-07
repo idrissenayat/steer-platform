@@ -7,6 +7,10 @@ item one, are the framework's pilot evidence.
 
 ## Current delivery
 
+Item [0180](intent/0180/README.md) checks revocation after receipt readback and
+truthful failed-workflow status across runtime reconstruction. See
+[failure and recovery limits](docs/RECORDED-PROJECTION-FAILURES.md); no retry is enabled.
+
 Item [0179](intent/0179/README.md) binds the durable local projector to its own
 actual Keycloak service account and current Git grants. See
 [identity separation](docs/PROJECTOR-IDENTITY-JOURNEY.md). Live saving stays closed.

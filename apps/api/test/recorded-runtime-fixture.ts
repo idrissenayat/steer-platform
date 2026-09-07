@@ -5,7 +5,7 @@ import { fixture, binding } from '../../../packages/adapters/test/github-brief-f
 
 /** Actual native Git and signed OIDC/App JWTs, synthetic provider transports only. */
 export async function recordedRuntimeFixture(t: { after(run: () => void): void }, options?: {
-  source: ReturnType<typeof fixture>; selection: { itemId: string; idempotencyKey: string };
+  source?: ReturnType<typeof fixture>; selection: { itemId: string; idempotencyKey: string };
 }) {
   const source = options?.source ?? fixture(t), keys = await generateKeyPair('RS256'), app = await generateKeyPair('RS256', { extractable: true });
   const issuer = 'https://recorded.identity.invalid', jwksUri = `${issuer}/jwks`, epoch = Math.floor(Date.now() / 1000);

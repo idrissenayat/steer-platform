@@ -1971,3 +1971,19 @@ revocation denies another receipt read. Both service subjects remain outside his
 Gate success and provider transports remain synthetic; current real pod approvals,
 complete governed authority and all five R5 findings stay open. Exact verification:
 `intent/0179/EVIDENCE.md`. No frontend, schema, dependency or live binding changed.
+
+## Increment 0180 — Receipt-time revocation and failed status recovery
+
+The browser fixture completes a real human receipt read and then commits projector
+revocation before returning to the production worker. Post-receipt revalidation must
+deny before the worker's first SQL connection. Explicit restoration precedes the
+first authenticated workflow start; its exact saved revision still projects once.
+This is a direct pre-dispatch denial, not a failed workflow reset.
+
+A separate actual Temporal test injects one activity failure and reads FAILED through
+the authenticated owned runtime. Current revocation denies status; fresh connection/
+runtime reconstruction still observes failure and normal start rejects a duplicate.
+No second activity, Git mutation or private failure disclosure is permitted. That
+scenario uses synthetic issuer/activity inputs and no SQL. Controlled retry remains
+unimplemented. Exact evidence: `intent/0180/EVIDENCE.md`; recovery boundary:
+`docs/RECORDED-PROJECTION-FAILURES.md`. No production or live authority changes.
