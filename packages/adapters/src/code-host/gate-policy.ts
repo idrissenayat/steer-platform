@@ -12,6 +12,8 @@ import { nativeCriticHistoryReferenceSchema, verifyNativeCriticHistory } from '.
 import { verifyCriticRunnerAttestation } from '../identity/gate-critic-proof.ts';
 import { collectGateReviewAncestry, gateAncestryLimitsSchema } from './gate-ancestry.ts';
 import { verifyGateSelectionAttestation } from '../identity/gate-selection-proof.ts';
+import { verifySelectionGrantDocuments } from '../identity/gate-selection-authorization.ts';
+import { authorizationRecordSchema } from '../identity/oidc.ts';
 
 const targetSchema = gatePolicyInputSchema.shape.target.omit({ decisionDigest: true });
 const digest = gatePolicyInputSchema.shape.target.shape.decisionDigest;
@@ -35,6 +37,9 @@ const coreConfigurationSchema = z.strictObject({ gates: z.array(entrySchema).min
 const configSchema = coreConfigurationSchema.extend({ selection: ref.extend({ attestation: z.strictObject({
   trust: ref, proof: ref, selectorSubject: taskIdentity, selectionId: taskIdentity,
   selectedAt: z.string().max(30).refine(value => parseUtcInstant(value) !== null),
+  authorization: z.strictObject({ path: ref.shape.path, issuer: authorizationRecordSchema.shape.issuer,
+    type: authorizationRecordSchema.shape.type, historicalRevision: gatePolicyInputSchema.shape.target.shape.artifactRevision,
+    historicalDigest: digest }).optional(),
 }).optional() }).optional() });
 export { configSchema as gitGatePolicyConfigurationSchema };
 export const gitGatePolicySelectionDocumentSchema = z.strictObject({ version: z.literal('steer-gate-policy-selection/v1'),
@@ -82,7 +87,8 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
     };
     visit(config.gates);
     const evidence = config.selection.attestation;
-    const selectionPaths = [config.selection.path, ...(evidence ? [evidence.trust.path, evidence.proof.path] : [])];
+    const selectionPaths = [config.selection.path, ...(evidence ? [evidence.trust.path, evidence.proof.path,
+      ...(evidence.authorization ? [evidence.authorization.path] : [])] : [])];
     if (new Set(selectionPaths).size !== selectionPaths.length || selectionPaths.some(path => paths.has(path)) ||
       (evidence && config.gates.length !== 2) || Buffer.byteLength(configuredSelection, 'utf8') > 512 * 1024) throw new Error('Invalid gate policy selection.');
   }
@@ -152,6 +158,9 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
           let retainedBytes = 0;
           let selectionSource: Readonly<{ path: string; revision: string; contentDigest: string; blobSha: string; configurationDigest: string }> | null = null;
           let selectionAttestation: ReturnType<typeof verifyGateSelectionAttestation> = null;
+          let selectorAuthorization: { binding: NonNullable<ReturnType<typeof verifySelectionGrantDocuments>>;
+            historicalSource: Readonly<{ path: string; revision: string; contentDigest: string; blobSha: string }>;
+            currentSource: Readonly<{ path: string; revision: string; contentDigest: string; blobSha: string }> } | null = null;
           if (config.selection) {
             if (await guarded.readHead() !== input.sourceRevision) throw failure();
             const snapshot = await guarded.readArtifact(config.selection.path, input.sourceRevision);
@@ -172,27 +181,40 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
               blobSha: snapshot.blobSha, configurationDigest: createHash('sha256').update(configuredSelection).digest('hex') });
             const evidence = config.selection.attestation;
             if (evidence) {
-              const readEvidence = async (reference: z.infer<typeof ref>) => {
-                await authorize(); const value = await guarded.readArtifact(reference.path, input.sourceRevision);
+              const readEvidence = async (reference: { path: string; digest?: string }, revision = input.sourceRevision) => {
+                await authorize(); const value = await guarded.readArtifact(reference.path, revision);
                 if (typeof value.content !== 'string') throw failure();
                 const bytes = Buffer.from(value.content, 'utf8'); retainedBytes += bytes.length;
                 if (bytes.length > 65536 || new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes) !== value.content ||
                   value.organizationId !== binding.organizationId || value.repositoryId !== binding.repositoryId || value.path !== reference.path ||
-                  value.revision !== input.sourceRevision || value.contentDigest !== reference.digest ||
-                  createHash('sha256').update(bytes).digest('hex') !== reference.digest ||
+                  value.revision !== revision || (reference.digest !== undefined && value.contentDigest !== reference.digest) ||
+                  createHash('sha256').update(bytes).digest('hex') !== value.contentDigest ||
                   createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex') !== value.blobSha) throw failure();
                 const parsed: unknown = JSON.parse(value.content); if (JSON.stringify(parsed) !== value.content) throw failure();
-                await authorize(); if (await guarded.readHead() !== input.sourceRevision) throw failure(); return parsed;
+                await authorize(); if (await guarded.readHead() !== input.sourceRevision) throw failure();
+                return { document: parsed, source: Object.freeze({ path: value.path, revision: value.revision, contentDigest: value.contentDigest, blobSha: value.blobSha }) };
               };
               const trust = await readEvidence(evidence.trust), proof = await readEvidence(evidence.proof);
-              selectionAttestation = verifyGateSelectionAttestation(proof, trust, {
+              const authorization = evidence.authorization;
+              selectionAttestation = verifyGateSelectionAttestation(proof.document, trust.document, {
                 organizationId: binding.organizationId, repository: `github:${binding.repositoryId}`, branch: binding.branch,
                 selectorSubject: evidence.selectorSubject, recordItem: first.recordItem,
                 platformRevision: config.gates.at(-1)!.signerCollection.gateSource.artifactRevision, decisionDigest: input.decisionDigest,
                 selectionPath: snapshot.path, selectionDigest: snapshot.contentDigest, configurationDigest: selectionSource.configurationDigest,
                 selectionId: evidence.selectionId, selectedAt: evidence.selectedAt, trustDigest: evidence.trust.digest, proofDigest: evidence.proof.digest,
+                ...(authorization ? { selectorIssuer: authorization.issuer, selectorType: authorization.type,
+                  selectorAuthorizationPath: authorization.path, selectorAuthorizationRevision: authorization.historicalRevision,
+                  selectorAuthorizationDigest: authorization.historicalDigest } : {}),
               }, new Date(check()).toISOString());
               if (!selectionAttestation) throw failure();
+              if (authorization) {
+                const historical = await readEvidence({ path: authorization.path, digest: authorization.historicalDigest }, authorization.historicalRevision);
+                const current = await readEvidence({ path: authorization.path });
+                const binding = verifySelectionGrantDocuments(historical.document, current.document, { organizationId: first.scope.organizationId,
+                  subject: evidence.selectorSubject, issuer: authorization.issuer, type: authorization.type, selectedAt: evidence.selectedAt }, new Date(check()).toISOString());
+                if (!binding) throw failure();
+                selectorAuthorization = { binding, historicalSource: historical.source, currentSource: current.source };
+              }
             }
           }
           for (const [index, entry] of config.gates.entries()) {
@@ -338,7 +360,8 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
           const evaluatedAt = new Date(check()).toISOString(), at = parseUtcInstant(evaluatedAt)!;
           const runnerAttestations = [...nativeDomainReviews.flat().flatMap(value => value.runnerAttestation ? [value.runnerAttestation] : []),
             ...nativeCriticRunners.flatMap(value => value ? [value] : [])];
-          const reviewsCurrentAt = (time: bigint) => [...runnerAttestations, ...(selectionAttestation ? [selectionAttestation] : [])]
+          const reviewsCurrentAt = (time: bigint) => [...runnerAttestations, ...(selectionAttestation ? [selectionAttestation] : []),
+            ...(selectorAuthorization ? [selectorAuthorization.binding] : [])]
             .every(value => parseUtcInstant(value.evaluatedAt)! <= time && parseUtcInstant(value.validBefore)! > time);
           if (!reviewsCurrentAt(at)) throw failure();
           for (const observation of observations) {
@@ -353,7 +376,7 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
             return { input: policyInput, evaluation: evaluateGateDecisionPolicy(policyInput) };
           });
           // A target pass can never hide a failed prerequisite's policy evaluation.
-          const result = freeze({ kind: 'git-gate-policy-observation' as const, sourceRevision: input.sourceRevision, evaluatedAt, selectionSource, selectionAttestation,
+          const result = freeze({ kind: 'git-gate-policy-observation' as const, sourceRevision: input.sourceRevision, evaluatedAt, selectionSource, selectionAttestation, selectorAuthorization,
             policyOutcome: evaluations.every((value) => value.evaluation.outcome === 'policy-satisfied') ? 'policy-satisfied' as const : 'blocked' as const,
             gates: evaluations.map((value, index) => ({ ...value, signers: observations[index]!, sources: sources[index]!,
               nativeDomainReviews: nativeDomainReviews[index]!, nativeDomainException: nativeDomainExceptions[index]!, nativeCritic: nativeCritics[index]!,

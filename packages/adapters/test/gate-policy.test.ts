@@ -12,6 +12,7 @@ import { nativeCriticFixture, criticSource } from './native-critic-fixture.ts';
 import { reviewRunnerFixture } from './gate-review-fixture.ts';
 import { criticRunnerFixture } from './gate-critic-proof-fixture.ts';
 import { attestSelection } from './gate-selection-attestation-fixture.ts';
+import { authorizeSelection } from './gate-selection-authorization-fixture.ts';
 
 const failure = /^Error: Gate policy source collection could not be verified\.$/;
 const blob = (text: string) => createHash('sha1').update(`blob ${Buffer.byteLength(text)}\0`).update(text).digest('hex');
@@ -723,6 +724,22 @@ test('held writer selection proof and trust paths cannot alias save destinations
     assert.throws(() => createHeldGitBriefWriterFactory(f.reader.binding, f.configuration, config, f.dependencies));
   }
   assert.equal(f.io.tokens, 0); assert.equal(f.io.reads, 0); assert.equal(f.io.writes, 0);
+});
+
+test('selector grant binding keeps held writes denied and its source cannot alias save or human membership roles', async t => {
+  const f = heldWriter(t), selected = authorizeSelection(f);
+  for (const path of [...f.configuration.paths, f.dependencies.authorizationPath]) {
+    const config = structuredClone(selected.configuration); config.selection.attestation.authorization.path = path;
+    assert.throws(() => createHeldGitBriefWriterFactory(f.reader.binding, f.configuration, config, f.dependencies));
+  }
+  assert.equal(f.io.tokens, 0); assert.equal(f.io.reads, 0);
+  const writer = createHeldGitBriefWriterFactory(f.reader.binding, f.configuration, selected.configuration, f.dependencies)(async () => structuredClone(f.context));
+  t.after(() => writer.close());
+  await assert.rejects(writer.verifyWriteAuthority({ ...f.request, expectedHead: f.state.head }, f.principal));
+  const assessment = writer.assessment(); assert.ok(assessment); assert.equal(assessment.policyOutcome, 'policy-satisfied');
+  assert.deepEqual(assessment.missing, ['governed-selection-unverified', 'review-provenance-unverified', 'action-time-authority-incomplete']);
+  assert.equal(assessment.gateVerified, false); assert.equal(assessment.writeAuthorized, false); assert.equal(f.io.writes, 0);
+  assert.equal('selectorAuthorization' in assessment, false, 'No new selector claims enter the held runtime diagnostic.');
 });
 
 test('real shared preview/save/status flow uses held source collection, returns no receipt, and closes its owned writer', async t => {

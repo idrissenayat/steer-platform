@@ -42,12 +42,9 @@ test('attestation sources reject wrong tuples, raw bytes, blobs and digests befo
   }
 });
 
-test('observer revocation, substitution and head drift deny after attestation reads; expiry during later collection denies final output', async t => {
-  for (const mode of ['revoked', 'subject', 'head', 'expiry'] as const) {
-    const f = chain(t, 2), selected = attestSelection(f), original = f.reader.readArtifact, realNow = Date.now;
-    let now = realNow(); Date.now = () => now;
-    // Expiry is later than the selected proof check but inside the 15-second collection deadline.
-    if (mode === 'expiry') { selected.proof.payload.validBefore = new Date(now + 1000).toISOString(); selected.publish(); }
+test('observer revocation, substitution and head drift deny after attestation reads', async t => {
+  for (const mode of ['revoked', 'subject', 'head'] as const) {
+    const f = chain(t, 2), selected = attestSelection(f), original = f.reader.readArtifact;
     f.reader.readArtifact = async (path, revision) => {
       const value = await original(path, revision);
       if (path === selected.attestation.proof.path) {
@@ -55,13 +52,29 @@ test('observer revocation, substitution and head drift deny after attestation re
         if (mode === 'subject') f.state.identity = { ...principalSchema.parse(f.state.identity), subject: 'other-observer' };
         if (mode === 'head') f.state.head = 'f'.repeat(40);
       }
-      if (mode === 'expiry' && path === f.config.gates[0]!.policy.path) now += 1000;
       return value;
     };
     const collector = f.create(selected.configuration);
     try { await assert.rejects(collector.collect(f.input()), failure); }
-    finally { Date.now = realNow; await collector.shutdown(); }
-    if (mode !== 'expiry') assert.equal(f.reads.length, 3);
+    finally { await collector.shutdown(); }
+    assert.equal(f.reads.length, 3);
+  }
+});
+
+test('selection proof expiry is checked at the final policy cut with a working before-expiry control', async t => {
+  for (const advance of [500, 1000]) {
+    const f = chain(t, 2), selected = attestSelection(f), realNow = Date.now, base = realNow(); let offset = 0;
+    Date.now = () => realNow() + offset;
+    selected.proof.payload.validBefore = new Date(base + 1000).toISOString(); selected.publish();
+    const original = f.reader.readArtifact, boundary = f.config.gates[1]!.domainAssurance!.reviews.at(-1)!.path; let reached = false;
+    f.reader.readArtifact = async (path, revision) => { const result = await original(path, revision);
+      if (path === boundary) { reached = true; offset = Math.max(offset, base + advance - realNow()); } return result; };
+    const collector = f.create(selected.configuration);
+    try {
+      if (advance === 500) assert.ok((await collector.collect(f.input())).selectionAttestation);
+      else await assert.rejects(collector.collect(f.input()), failure);
+      assert.equal(reached, true, 'Late proof expiry must be tested after the final review source, not an earlier clock mismatch.');
+    } finally { Date.now = realNow; await collector.shutdown(); }
   }
 });
 

@@ -8,17 +8,20 @@ const identifier = z.string().min(1).max(200).refine(value => value === value.tr
 const digest = gatePolicyInputSchema.shape.target.shape.decisionDigest;
 const instant = z.string().max(30).refine(value => parseUtcInstant(value) !== null);
 const scope = { organizationId: identifier, repository: identifier, branch: identifier, selectorSubject: identifier };
+const selectorIdentity = { selectorIssuer: authorizationRecordSchema.shape.issuer.optional(), selectorType: z.enum(['human', 'agent']).optional() };
+const selectorAuthorization = { selectorAuthorizationPath: artifactProjectionInputSchema.shape.path.optional(),
+  selectorAuthorizationRevision: gatePolicyInputSchema.shape.target.shape.artifactRevision.optional(), selectorAuthorizationDigest: digest.optional() };
 const bindings = z.strictObject({ ...scope, recordItem: identifier,
   platformRevision: gatePolicyInputSchema.shape.target.shape.artifactRevision, decisionDigest: digest,
   selectionPath: artifactProjectionInputSchema.shape.path, selectionDigest: digest, configurationDigest: digest,
   selectionId: identifier, selectedAt: instant });
-const expectedSchema = bindings.extend({ trustDigest: digest, proofDigest: digest });
+const expectedSchema = bindings.extend({ trustDigest: digest, proofDigest: digest, ...selectorIdentity, ...selectorAuthorization });
 const trustSchema = z.strictObject({ version: z.literal('steer-gate-selection-trust/v1'), ...scope,
   attestor: authorizationRecordSchema.shape.issuer, keyId: identifier, publicKeyHex: digest,
-  notBefore: instant, notAfter: instant, revokedAt: instant.nullable() });
+  notBefore: instant, notAfter: instant, revokedAt: instant.nullable(), ...selectorIdentity });
 const payloadSchema = z.strictObject({ version: z.literal('steer-gate-selection-attestation/v1'),
   attestor: authorizationRecordSchema.shape.issuer, keyId: identifier, ...bindings.shape,
-  recordedAt: instant, validBefore: instant });
+  recordedAt: instant, validBefore: instant, ...selectorIdentity, ...selectorAuthorization });
 const envelopeSchema = z.strictObject({ version: z.literal('steer-gate-selection-proof/v1'),
   payload: z.string().min(1).max(16384), signatureBase64: z.string().length(88).regex(/^[A-Za-z0-9+/]{86}==$/) });
 const hash = (value: string) => createHash('sha256').update(value).digest('hex');
@@ -39,6 +42,14 @@ export function verifyGateSelectionAttestation(rawEnvelope: unknown, rawTrust: u
     const bytes = Buffer.from(envelope.payload, 'utf8');
     if (bytes.length > 16384 || new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes) !== envelope.payload) return null;
     const payload = payloadSchema.parse(JSON.parse(envelope.payload));
+    // Legacy subject-only evidence remains readable, but cannot enter the grant
+    // composition. Identity-aware receipts bind BOTH coordinates independently.
+    for (const value of [payload, trust, expected]) if ((value.selectorIssuer === undefined) !== (value.selectorType === undefined)) return null;
+    for (const key of ['selectorIssuer', 'selectorType'] as const) if (payload[key] !== trust[key] || payload[key] !== expected[key]) return null;
+    for (const key of ['selectorAuthorizationPath', 'selectorAuthorizationRevision', 'selectorAuthorizationDigest'] as const) {
+      if ((payload[key] === undefined) !== (payload.selectorIssuer === undefined) ||
+        (expected[key] === undefined) !== (expected.selectorIssuer === undefined) || payload[key] !== expected[key]) return null;
+    }
     if (JSON.stringify(payload) !== envelope.payload || payload.attestor !== trust.attestor || payload.keyId !== trust.keyId ||
       Object.keys(scope).some(key => payload[key as keyof typeof payload] !== trust[key as keyof typeof trust]) ||
       Object.keys(bindings.shape).some(key => payload[key as keyof typeof payload] !== expected[key as keyof typeof expected])) return null;

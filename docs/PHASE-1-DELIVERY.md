@@ -3846,3 +3846,22 @@ Thirteen new tests and full checks/builds pass; exact verification is recorded i
 `intent/0186/EVIDENCE.md`. All five R5 findings, qualified
 independent protected review and human gates stay open. No live profile/key/grant,
 frontend, provider access, spending, deployment or release was enabled.
+
+## Completed development increment: 0187 — Historical/current selector grant binding
+
+J1's optional signed selection now binds issuer/type and exact historical grant
+path/revision/digest. The collector independently verifies that historical record
+and the current same-path record, requiring the distinct `gate.policy.select`
+capability. Exact scope, source bytes, observer/head checks, current revocation and
+grant expiry after later policy reads deny instead of adopting stale permission.
+
+Legacy subject-only proof remains readable but cannot satisfy this stronger mode.
+No registered tool or live grant was added. Grant evidence stays internal; the held
+writer denies even matching grants and policy-satisfied facts. Actual selector
+identity, approved bootstrap, native review provenance and complete action-time
+authority remain separate. All 28 focused selection tests, the held-writer regression,
+adapter typecheck and full repository checks/builds passed. Verification and cache
+limits are tracked in `intent/0187/EVIDENCE.md`.
+All five R5 findings and independent/qualified protected review/human gates stay open.
+No live profile/key/grant, protected artifact, frontend, provider access, spending,
+deployment, release or real-data deletion changed.

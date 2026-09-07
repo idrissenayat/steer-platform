@@ -1,7 +1,7 @@
 # Remaining first-journey implementation
 
 Code audit on 2026-09-07 against `e320d6e86affd556103dcf9c273daf23dc6695d5`,
-plus increments 0174–0186's owned clients, shared authorization, optional dispatch/recovery runtimes
+plus increments 0174–0187's owned clients, shared authorization, optional dispatch/recovery runtimes
 and joined isolated identity/receipt/projection integration. This is execution planning, not a new
 architecture, signed-scope reduction or gate decision. It supersedes historical
 "next" statements only for sequencing; numbered evidence remains historical.
@@ -58,8 +58,12 @@ current native Git read-through verification. Exact trust/proof pins, manifest/
 configuration and platform/decision bindings do not prove actual key ownership or
 selector authority. Full verification status is recorded in its evidence file.
 
-Next map externally governed bootstrap/selector authorization and native review
-provenance into the complete action-time verification contract. The existing
+0187 binds historical/current selector grants using signed issuer/type and exact
+historical source coordinates. Current revocation/expiry deny; this is not actual
+selector identity or approved ownership of the grant/attestor sources.
+
+Next address actual selector identity, externally governed bootstrap and native
+review provenance in the complete action-time verification contract. The existing
 held writer must remain held; no test callback or matching manifest may unlock it.
 Separate missing engineering from evidence/ownership decisions that require the
 established approval process. Do not expand the recovery loop merely because live

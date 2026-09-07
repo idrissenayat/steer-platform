@@ -51,6 +51,13 @@ does not remove any held requirement. Internal collection retains the attestatio
 held diagnostics still expose only the bounded selection fingerprints, not new
 actor claims or an approval flag. See `intent/0186/EVIDENCE.md`.
 
+0187 can additionally bind the selector's historical and current `gate.policy.select`
+records, with issuer/type and exact historical source covered by the signed receipt.
+Current revocation and final grant expiry deny. These are internal grant observations,
+not actual selector login or approved bootstrap evidence; no new claims enter held
+diagnostics, and even a matching grant pair cannot enable writing. Source roles remain
+disjoint from human membership and save destinations. See `intent/0187/EVIDENCE.md`.
+
 ## Verification and remaining boundaries
 
 Increment 0169 verifies the production runtime using actual signed OIDC and App JWTs,

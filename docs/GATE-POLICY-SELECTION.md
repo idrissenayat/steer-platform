@@ -83,3 +83,40 @@ authenticity and action-time authority remain separate unresolved requirements.
 This optional development format is not a mandate to replace commercial provider
 records or obtain another human signature. No live attestor or trust pin is installed.
 Verification and limitations: `intent/0186/EVIDENCE.md`.
+
+## Optional historical/current selector grants — 0187
+
+`selection.attestation.authorization` accepts `path`, `issuer`, `type`,
+`historicalRevision` and `historicalDigest`. Identity-aware trust/receipts additionally
+bind `selectorIssuer` and `selectorType`; the signed receipt and independent expected
+facts also bind `selectorAuthorizationPath`, `selectorAuthorizationRevision` and
+`selectorAuthorizationDigest`. The complete identity/history set is atomic. Old
+subject-only receipts remain readable without this profile but cannot satisfy it.
+Historical grant coordinates are known before the receipt is created, so they do
+not introduce a self-referential Git commit or unsigned history substitution.
+
+The collector reads the pinned historical authorization document and separately
+reads the same path at the current assessment revision. Each read checks exact
+scope/path/revision, bytes, SHA-256, blob identity, observer authority and current
+head. No current grant digest is borrowed from history or used as a stale fallback.
+The path cannot alias the manifest, trust/proof, existing selected sources, human
+membership or save destinations. No live path or grant is installed here.
+
+Both documents use the existing `steer-authorization/v1` format. An exact active
+issuer/subject/type/organization record must contain `gate.policy.select` at the
+selection instant and now. Duplicate identities, cross-tenant rows, missing or
+inactive records and adjacent grants deny. Agents must have no human hats; a human
+hat alone grants nothing. This internal capability is not a registered tool or gate
+signature. Explicit bootstrap configuration still determines any intended selector.
+
+The collector retains immutable `selectorAuthorization` with historical/current
+source fingerprints and grant-binding evidence. The current grant's exclusive
+expiry also bounds the final result after all later policy reads. Historical expiry
+only bounds the historical event; a later current renewal is independently checked.
+Without the optional authorization profile this property is null.
+
+Source-backed grant matching does not authenticate the selector's actual login or
+approve ownership of the trust/grant sources. Selector identity and bootstrap
+verification requirements stay explicit. Held diagnostics do not expose these new
+claims; all three held-authority gaps and every gate/write flag remain unchanged.
+Exact verification and the corrected test-clock fixture: `intent/0187/EVIDENCE.md`.

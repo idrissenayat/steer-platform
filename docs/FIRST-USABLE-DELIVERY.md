@@ -63,9 +63,13 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0186
+### Latest development audit — increment 0187
 
 The dependency-ordered current route is `docs/JOURNEY-REMAINING-WORK.md`.
+0187 adds historical/current selector grant binding, signed issuer/type/history
+coordinates, current revocation and final grant-expiry checks. This does not prove
+actual selector login or approved bootstrap; held writes remain denied. See
+`intent/0187/EVIDENCE.md` for verification status.
 0186 adds optional signed selection evidence, bound to exact manifest/configuration,
 platform/decision and independently pinned trust/proof bytes in current Git collection.
 It verifies selected-key claims, not actual bootstrap approval or selector authority.

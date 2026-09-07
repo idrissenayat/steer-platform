@@ -7,6 +7,9 @@ item one, are the framework's pilot evidence.
 
 ## Current delivery
 
+Item [0187](intent/0187/README.md) checks historical and current selector grants
+against signed identity/source bindings. The held writer remains closed.
+
 Item [0186](intent/0186/README.md) adds exact signed policy-selection evidence to
 read-only Git collection. Trust-owner approval and live save authority remain separate.
 
