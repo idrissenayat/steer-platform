@@ -4184,3 +4184,15 @@ Data unit suite 28/28 and real disposable PostgreSQL integration 40/40 pass; see
 [0203 evidence](../intent/0203/EVIDENCE.md). No real database migration, budget row,
 provider call, grant or spending was activated. Runtime composition, conservative
 pricing/token bounds, approval verification and recovery remain required.
+
+## Development increment: 0204 — Editable bundle review
+
+The actual conversation now separates generated originals from editable Brief,
+Spec and Exam copies, with source inspection and read/edit/original modes. Switching
+documents preserves corrections; edits are unsaved and not independently re-tested.
+Source/direction locking prevents accidental overwrite while reviewing. Account
+changes clear content, and late old requests cannot publish into a new account.
+
+Full web suite 100/100 and typecheck pass; see [0204 evidence](../intent/0204/EVIDENCE.md).
+This is not durable saving or live-model UI acceptance. Refresh/expiry persistence,
+semantic review, actual source configuration and authorized bundle saving remain open.

@@ -82,6 +82,25 @@ test('real conversation component sends free text, follows up and displays three
     }
     assert.match(document.body.textContent, /NOT RUN/); assert.match(document.body.textContent, /not saved to GitHub/);
     assert.equal(document.querySelector('script, img'), null); assert.equal(window.localStorage.length, 0);
+    const button = async label => act(async () => [...document.querySelectorAll('button')].find(button => button.textContent === label).click());
+    assert.equal(document.getElementById('agent-intent').disabled, true);
+    await button('Edit draft');
+    await set('intent-document-editor', '# Exam\nNOT RUN\nHuman correction — فارسی <script>unsafe()</script>');
+    await button('BRIEF.md'); await set('intent-document-editor', '# Brief\nEdited patient booking outcome');
+    await button('SPEC.md'); await set('intent-document-editor', '');
+    assert.match(document.body.textContent, /This draft is empty/);
+    await set('intent-document-editor', '# Spec\nAC-01: A patient can book an accessible slot.');
+    await button('EXAM.md'); assert.match(document.getElementById('intent-document-editor').value, /Human correction — فارسی/);
+    await button('View generated original'); assert.doesNotMatch(document.body.textContent, /Human correction — فارسی/);
+    await button('Read your draft'); assert.match(document.body.textContent, /Human correction — فارسی/);
+    assert.equal(document.querySelector('script, img'), null);
+    await button('BRIEF.md'); assert.match(document.body.textContent, /Edited patient booking outcome/);
+    await button('View generated original'); assert.match(document.body.textContent, /Booking for patients/);
+    assert.doesNotMatch(document.body.textContent, /Edited patient booking outcome/);
+    assert.equal(requests.length, 3); assert.equal(window.localStorage.length, 0);
+    await act(async () => root.render(createElement(Component, { ...props, subject: 'another-human' })));
+    assert.equal(document.querySelector('.intent-documents'), null); assert.equal(document.getElementById('agent-intent').value, '');
+    assert.doesNotMatch(document.body.textContent, /Human correction|Booking for patients/);
     await act(async () => { Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' }); document.dispatchEvent(new dom.window.Event('visibilitychange')); });
     assert.equal(document.querySelector('textarea'), null); assert.doesNotMatch(document.body.textContent, /Booking for patients/);
   } finally {

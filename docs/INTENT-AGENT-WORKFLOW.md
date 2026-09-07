@@ -21,6 +21,13 @@ evidence and those candidates, then authors an Exam
 marked NOT RUN. The UI displays all three documents for review. It does not report
 a save, signature, executed test or implementation.
 
+0204 adds editable copies alongside the untouched generated originals and original
+source. Switch documents without overwriting corrections, or inspect the original
+without resetting edits. Empty drafts show a warning. Human corrections are not
+independent Test Agent acceptance; no review or model call is automatically rerun.
+Original source/direction are locked while reviewing a bundle to prevent accidental
+replacement. Durable versioned drafts and safe regeneration remain pending.
+
 The current delivery is a bounded request/response workflow, not streaming, voice,
 a durable conversation, Temporal orchestration or a completed Gate 2 workflow.
 The source is limited to 10,000 characters, clarification to 3,000, and the encoded

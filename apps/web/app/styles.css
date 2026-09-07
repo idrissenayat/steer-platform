@@ -451,6 +451,7 @@ summary:focus-visible { outline: .2rem solid var(--steer-focus); outline-offset:
 .intent-document-buttons button { width: auto; }
 .intent-document-buttons button[aria-pressed="true"] { border: 2px solid var(--steer-focus); }
 .intent-documents { margin-top: 1.5rem; overflow-wrap: anywhere; }
+.intent-draft-source { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; line-height: 1.6; }
 .intent-scope-review { margin: 1.5rem 0; padding: 1rem; border: 1px solid var(--steer-border); border-radius: 1rem; background: var(--steer-pink-soft); }
 .intent-scope-matches { list-style: none; padding: 0; display: grid; gap: 1rem; }
 .intent-scope-matches li { border: 1px solid var(--steer-border); border-radius: .75rem; padding: 1rem; background: white; overflow-wrap: anywhere; }
