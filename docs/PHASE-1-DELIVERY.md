@@ -3321,3 +3321,35 @@ Full governed write authority, model conversation, all five R5 findings, indepen
 qualified protected review and human signatures remain unfinished. No deployment,
 release, live writer/scheduler, grants or spending changed. The standing implementation
 loop remains active; candidate remote equality is verified after commit.
+
+## Completed development increment: 0166 — Created Brief to worker and work-list reads
+
+One isolated test now joins actual HTTP preview/confirmation save, native Git
+Brief/operation creation, lost-acknowledgement recovery through a reconstructed
+current-status API, the durable recorded-Brief worker and curated catalog/exact
+Brief reads. The saved pair is not seeded. An unrelated later HEAD does not replace
+the recorded revision. Queued runtime reconstruction, replay and duplicate operations
+preserve one Git mutation and one ingestion event. Human status access and projector
+access remain separate current checks; source curation and exact revision/digest
+are still mandatory for work-list reads.
+
+The actual Temporal/native-Git/PostgreSQL suite passed 25 checks, including three
+new integrated groups; the original three creation regressions also passed. Full
+checks passed with 438 root controls, 99 registry, 24 data, 53 web, 283 adapters,
+91 API and 23 worker tests, remaining workspaces and all builds. The existing browser
+suite passed all 42 checks using actual Keycloak/Chromium. Only owned synthetic
+resources were cleaned. See `intent/0166/EVIDENCE.md` for exact provenance and limits.
+
+This closes a mechanical API-to-worker-to-read-model integration gap, not interactive
+browser saving. Current browser status history is still seeded, and `BriefReview`
+has an unconditionally disabled save button with no submit handler. Next implement
+and exercise the closed-by-default browser confirmation/submission and current status
+path against disposable creation/projection. Keep test-only identity/authority
+explicit, never derive permission from a local checkbox or inspected decision, and
+leave real saving and live scheduling disabled.
+
+No production/frontend source, dependency, schema or live configuration changed in
+0166. Full governed authority, model conversation, all five R5 findings, independent/
+qualified protected review and human signatures remain unfinished. No deployment,
+release, provider grants, real-record deletion or spending changed. The standing
+implementation loop remains active; remote equality is checked after candidate push.

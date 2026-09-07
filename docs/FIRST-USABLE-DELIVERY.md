@@ -63,7 +63,7 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0165
+### Latest development audit — increment 0166
 
 The production UI now supports deterministic describe/correct, exact local review,
 manual prior-operation status and opening the exact recorded Brief. Disposable
@@ -102,10 +102,15 @@ The recorded projection job now runs through a dedicated durable worker, bound t
 one exact save reference. An owned pool, current callback/agent checks, content-free
 history, one-attempt execution and duplicate/no-rewind behavior are exercised with
 actual local Temporal, native Git and PostgreSQL. Its test readback provenance is
-synthetic. Creation and durable dispatch are not yet one integrated browser journey.
+synthetic. An additional actual local test now joins HTTP-confirmed creation (not
+seeded saved data), lost-acknowledgement status recovery, queued durable projection
+and the exact curated catalog/Brief tools. It checks one Git mutation/event across
+reconstruction and duplicate handling. The current human/projector and gate authority
+in that integration remain test doubles. Browser authoring/clicks are not yet joined
+to this newly created record; the existing browser status fixture remains seeded.
 
 Remaining engineering includes the complete governed evidence-selection/action-time
-writer composition, end-to-end creation-to-worker dispatch, authenticated lifecycle
+writer composition, browser creation-to-worker/read-model integration, authenticated lifecycle
 and decision projections, and the model-backed agent conversation. The current
 save button stays disabled. The prototype's supplied signature arrays cannot be
 promoted to verified board stages merely by importing its read-model code.
@@ -113,10 +118,12 @@ promoted to verified board stages merely by importing its read-model code.
 Real membership/runtime configuration, complete live-write authority, all five R5
 findings, independent/qualified protected review and human gate decisions remain
 separate outstanding dependencies. No live writer/scheduler, deployment or spending
-is authorized by this audit. Next join actual disposable HTTP Brief creation and
-authenticated store-status readback to this worker, then verify the existing curated
-work list opens its exact projected revision. Keep test-only authority explicit;
-do not enable a live save button or scheduler to demonstrate this integration.
+is authorized by this audit. The current `BriefReview` save button is unconditionally
+disabled and has no submit handler; a passing API integration does not complete it.
+Next implement and exercise the closed-by-default browser confirmation/submission
+and status path against disposable creation-to-projection, with explicitly test-only
+authority and current session checks. Keep real saving and live scheduling disabled;
+never derive permission from a local checkbox or an inspected decision record.
 
 The **68–132 hours below is the original baseline estimate**, not current remaining
 effort. Re-estimation must use these implementation gaps and separate engineering

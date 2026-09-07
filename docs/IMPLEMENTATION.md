@@ -1661,3 +1661,40 @@ not yet join creation and durable dispatch into one browser journey.
 
 No browser code, schemas, package dependencies or live configuration changed.
 See `intent/0165/EVIDENCE.md` for verification and remaining boundaries.
+
+## 0166 — Created Brief through durable projection and curated reads
+
+`apps/api/test/brief-creation-harness.ts` shares the existing real Hono/request-bound
+writer/native-Git creation scenario with the worker integration. Test cleanup is
+explicitly owned; all request-created writer instances must close. Production code,
+live configuration and provider bindings are unchanged. The additional catalog/read
+grants exist only on the synthetic test principal.
+
+The new `created-brief.integration.ts` scenario begins with no catalog record or
+saved operation. HTTP preview and exact-confirmation save create the Brief/marker
+in disposable native Git; the transport deliberately drops the acknowledgement.
+An unrelated later commit advances HEAD. A reconstructed API's current status
+request is the actual worker readback callback, so it recovers the original receipt
+instead of treating HEAD or a copied response as the saved artifact.
+
+The real Temporal workflow projects that receipt using the existing owned projector
+runtime. A separate `steer_app` pool and curated artifact reader feed the same
+`intent.brief.catalog` and `intent.brief.read` tools used by the work list. Creation
+alone leaves the catalog empty; projection produces exactly the created revision,
+SHA-256, Git blob and original rendered content. Replay, retained workflow duplicate
+denial, duplicate save and reconstructed runtime/readback leave one Git mutation
+and one ingestion event. Read-source curation and wrong revision/digest handling
+remain independent of possession of a receipt.
+
+Current human status access and projector access are denied separately at the bound
+activity. Revocation makes no source/SQL progress; restoration safely observes a
+duplicate. Work-list reads deny foreign scope, unconfigured paths and revoked raw
+read access. These are test-double identity/authority decisions, not real membership
+or gate evidence. Workflow history excludes receipt contents, source text, subject
+and credentials. All owned test resources close even when a cleanup assertion fails.
+
+This joins creation, status, durable projection and read-model tools in one actual
+local integration. It does not join browser authoring/clicks to this newly created
+record: existing browser receipt history is still seeded. No live save button,
+scheduler, GitHub access, gate, deployment or spending is enabled. See
+`intent/0166/EVIDENCE.md` for verification and remaining proof boundaries.

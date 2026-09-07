@@ -162,6 +162,11 @@ bounded Temporal worker. Trusted current readback stays outside workflow history
 operation substitution, duplicates and projection rewind are denied. This is tested
 isolated execution, not an enabled live scheduler or save path.
 
+Item [0166](intent/0166/README.md) verifies actual disposable HTTP creation, current
+status recovery, durable worker projection and exact work-list API reads together.
+Lost acknowledgement does not cause another Git mutation. Identity and gate authority
+remain synthetic in this integration; it is not a live saving or browser-demo claim.
+
 Item [0153](intent/0153/README.md) adds bounded, merge-aware Critic target ancestry
 against the configured Git reader, without upgrading review selection or gate authority.
 

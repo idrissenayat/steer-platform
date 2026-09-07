@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { type TestContext } from 'node:test';
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -17,7 +16,7 @@ export const ref = { organizationId: 'org', repository: 'github:52', branch: bin
 const hash = (content: string) => createHash('sha256').update(content).digest('hex');
 export type Override = (url: URL, init: RequestInit | undefined, result: unknown) => unknown;
 
-export function fixture(t: TestContext) {
+export function fixture(t: { after(run: () => void): void }) {
   // Only an isolated temporary object database is mutated. No credentials/network,
   // repository checkout, global git config or user's actual identity is used.
   const directory = mkdtempSync(join(tmpdir(), 'steer-0124-git-'));
