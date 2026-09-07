@@ -1,5 +1,11 @@
 # Remaining first-journey implementation
 
+**Current sequencing:** [Intent journey plan](INTENT-JOURNEY-PLAN.md) supersedes the
+older preview-first sequencing below. The user requires the actual authenticated
+application, duplicate/overlap checking, useful Brief/Spec/Exam drafts and durable
+save/reopen. 0198 connected the bounded drafting code, but live activation remains
+closed. Historical J1–J6 dependencies and evidence remain valid, not complete.
+
 Code audit on 2026-09-07 against `e320d6e86affd556103dcf9c273daf23dc6695d5`,
 plus increments 0174–0192's owned clients, shared authorization, optional dispatch/recovery runtimes
 and joined isolated identity/receipt/projection integration. This is execution planning, not a new

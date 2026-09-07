@@ -4117,3 +4117,19 @@ local LiteLLM configuration, an explicit drafting-tool grant and actual UI/model
 evaluation are still needed. Durable conversation, streaming/voice, content-free
 model spans, canonical evals and Git saving are not completed by this slice. See
 [the actual-workflow guide](INTENT-AGENT-WORKFLOW.md) for the activation checklist.
+
+## Development increment: 0199 — Existing-scope candidate retrieval and journey loop
+
+The user added duplicate and included-scope checking to the required human journey,
+then requested an implementation plan and continuation loop. The new
+[intent journey plan](INTENT-JOURNEY-PLAN.md) is the current sequencing authority;
+the existing heartbeat now follows it instead of the old local-preview priority.
+
+`intent.overlap.check` reads permitted Brief/Spec projections, verifies exact bytes,
+and returns explained lexical candidates with revision fingerprints. Missing sources,
+limited/truncated search and stale catalog changes are explicit. It never reports
+semantic completeness or clearance to create. Focused HTTP/overlap/boundary checks
+pass 26/26; see [0199 evidence](../intent/0199/EVIDENCE.md).
+
+The actual UI semantic review, explicit disposition, live drafting and durable bundle
+save/reopen remain open. No model budget or new provider/write authority was granted.

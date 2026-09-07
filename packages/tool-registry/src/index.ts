@@ -1,4 +1,7 @@
 import { roles } from '@steer/domain/types';
+import { findIntentOverlap } from '@steer/domain/intent-overlap';
+import { intentOverlapInputSchema, intentOverlapOutputSchema, type IntentOverlapOutput } from './intent-overlap-contracts.ts';
+export * from './intent-overlap-contracts.ts';
 import { agentInputSchema, agentOutputSchema, type AgentOutput, type IntentAgentService } from './agent-contracts.ts';
 import { readBriefDocument } from '@steer/domain/brief-document';
 import { draftBrief } from '@steer/domain/brief-author';
@@ -607,6 +610,66 @@ const catalogQuery = {
   },
 };
 
+const overlapGrant = defineQuery({ name: 'intent.overlap.check', description: 'Authorize permitted existing-intent candidate retrieval.',
+  input: intentOverlapInputSchema, output: principalSchema, handler: (_input, principal) => principal });
+const overlapAuthorization = { invoke(raw: unknown, context: InvocationContext) {
+  const principal = overlapGrant.invoke(raw, context);
+  if (!['intent.brief.catalog', 'intent.brief.read', 'projection.artifact.read'].every(grant => principal.toolGrants.includes(grant))) throw new ToolError('FORBIDDEN');
+  return principal;
+} };
+const overlapQuery = {
+  name: 'intent.overlap.check', description: 'Find possible existing-intent matches in permitted Brief/Spec projections. Bounded lexical candidates with exact source evidence; incomplete search is not proof an intent is new. Never merges, saves or authorizes creation.',
+  kind: 'query' as const, scope: 'organization' as const, authorization: 'explicit-tool-grant' as const,
+  input: intentOverlapInputSchema, output: intentOverlapOutputSchema,
+  async invoke(raw: unknown, context: InvocationContext): Promise<IntentOverlapOutput> {
+    const initial = overlapAuthorization.invoke(raw, context), input = intentOverlapInputSchema.parse(raw);
+    const scope = { organizationId: input.organizationId, repository: input.repository };
+    const reader = context.services?.artifactProjection;
+    if (!reader?.catalog || !context.revalidate) throw new ToolError('UNAVAILABLE');
+    const current = () => freshToolPrincipal(overlapAuthorization, input, initial, context);
+    const catalog = await catalogQuery.invoke(scope, { ...context, principal: await current() });
+    const hash = async (value: unknown) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(value))))]
+      .map(byte => byte.toString(16).padStart(2, '0')).join('');
+    const candidates: IntentOverlapOutput['candidates'] = [], gaps: IntentOverlapOutput['coverage']['gaps'] = [];
+    const inspected: { path: string; revision: string; contentDigest: string }[] = [];
+    let inspectedIntents = 0, bytes = 0, scanLimited = catalog.records.length > 50;
+    scan: for (const record of catalog.records.slice(0, 50)) {
+      inspectedIntents++;
+      const spec = lifecycleArtifactPaths(record.path).find(reference => reference.kind === 'spec')!;
+      for (const reference of [{ path: record.path, document: 'BRIEF' as const }, { path: spec.path, document: 'SPEC' as const }]) {
+        await current();
+        if (!reader.scope.paths.includes(reference.path)) { gaps.push({ path: reference.path, reason: 'not-configured' }); continue; }
+        const artifact = await projectionQuery.invoke({ ...scope, path: reference.path, revision: record.revision }, { ...context, principal: await current() });
+        if (!artifact) { gaps.push({ path: reference.path, reason: 'not-projected' }); continue; }
+        try {
+          await verifyProjectionBytes(artifact);
+          if (reference.document === 'BRIEF' && artifact.contentDigest !== record.contentDigest) throw new Error();
+        } catch { throw new ToolError('INTERNAL_ERROR'); }
+        bytes += new TextEncoder().encode(artifact.content).length;
+        if (bytes > 4 * 1024 * 1024) { scanLimited = true; break scan; }
+        inspected.push({ path: artifact.path, revision: artifact.revision, contentDigest: artifact.contentDigest });
+        const overlap = findIntentOverlap(input.intent, artifact.content);
+        if (overlap) candidates.push({ briefPath: record.path, path: artifact.path, document: reference.document,
+          revision: artifact.revision, contentDigest: artifact.contentDigest, ...overlap });
+        await current();
+      }
+    }
+    // A changing catalog cannot produce a current review. This still is not Git-head clearance.
+    const after = await catalogQuery.invoke(scope, { ...context, principal: await current() });
+    if (JSON.stringify(after.records) !== JSON.stringify(catalog.records)) throw new ToolError('UNAVAILABLE');
+    candidates.sort((a, b) => Number(b.signal === 'matching-text') - Number(a.signal === 'matching-text') ||
+      b.queryTermCoverage - a.queryTermCoverage || (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
+    const sourceDigest = await hash(input.intent), catalogFingerprint = await hash(catalog.records);
+    const reviewFingerprint = await hash({ scope, sourceDigest, catalogFingerprint, inspected, gaps, scanLimited });
+    await current();
+    return intentOverlapOutputSchema.parse({ ...scope, kind: 'intent-overlap-candidates', sourceDigest, catalogFingerprint, reviewFingerprint,
+      method: 'lexical-candidates/v1', coverage: { scope: 'configured-projections-only', catalogCount: catalog.records.length,
+        inspectedIntents, inspectedDocuments: inspected.length, candidateCount: candidates.length,
+        resultsTruncated: candidates.length > 10, scanLimited, gaps }, candidates: candidates.slice(0, 10),
+      semanticReviewComplete: false, authoritativeClearance: false });
+  },
+};
+
 const previewGrant = defineQuery({ name: 'intent.brief.preview', description: 'Authorize stateless human Brief drafting.',
   input: briefPreviewInputSchema, output: principalSchema, handler: (_input, principal) => principal });
 const previewAuthorization = { invoke(raw: unknown, context: InvocationContext) {
@@ -725,7 +788,8 @@ const agentCommand = {
 };
 
 // Frozen definitions are the common source for discovery, dispatch and HTTP contracts.
-const definitions = Object.freeze([Object.freeze(agentCommand), Object.freeze(contextQuery), Object.freeze(projectionQuery), Object.freeze(reconciliationStart), Object.freeze(reconciliationStatus), Object.freeze(recordedBriefStart), Object.freeze(recordedBriefStatus), Object.freeze(recordedBriefRecover), Object.freeze(recordedBriefRecoveryStatus), Object.freeze(changesQuery), Object.freeze(snapshotQuery), Object.freeze(briefQuery), Object.freeze(artifactsQuery), Object.freeze(decisionsQuery), Object.freeze(evidenceQuery), Object.freeze(catalogQuery), Object.freeze(previewQuery), Object.freeze(briefSaveCommand), Object.freeze(briefSaveStatusQuery), Object.freeze(destinationQuery)]);
+const definitions = Object.freeze([Object.freeze(overlapQuery), Object.freeze(agentCommand), Object.freeze(contextQuery), Object.freeze(projectionQuery), Object.freeze(reconciliationStart), Object.freeze(reconciliationStatus), Object.freeze(recordedBriefStart), Object.freeze(recordedBriefStatus), Object.freeze(recordedBriefRecover), Object.freeze(recordedBriefRecoveryStatus), Object.freeze(changesQuery), Object.freeze(snapshotQuery), Object.freeze(briefQuery), Object.freeze(artifactsQuery), Object.freeze(decisionsQuery), Object.freeze(evidenceQuery), Object.freeze(catalogQuery), Object.freeze(previewQuery), Object.freeze(briefSaveCommand), Object.freeze(briefSaveStatusQuery), Object.freeze(destinationQuery)]);
+export function invokeTool(name: 'intent.overlap.check', input: unknown, context: InvocationContext): Promise<IntentOverlapOutput>;
 export function invokeTool(name: 'intent.agent.develop', input: unknown, context: InvocationContext): Promise<AgentOutput>;
 export function invokeTool(name: 'session.context', input: unknown, context: InvocationContext): z.output<typeof contextOutput>;
 export function invokeTool(name: 'projection.artifact.read', input: unknown, context: InvocationContext): Promise<ArtifactProjection | null>;
@@ -745,7 +809,7 @@ export function invokeTool(name: 'intent.brief.catalog', input: unknown, context
 export function invokeTool(name: 'intent.brief.preview', input: unknown, context: InvocationContext): Promise<BriefPreview>;
 export function invokeTool(name: 'intent.brief.destination', input: unknown, context: InvocationContext): Promise<BriefDestination>;
 export function invokeTool(name: 'intent.brief.save' | 'intent.brief.save.status', input: unknown, context: InvocationContext): Promise<BriefSaveOutput>;
-export function invokeTool(name: string, input: unknown, context: InvocationContext): z.output<typeof contextOutput> | Promise<AgentOutput | ArtifactProjection | BriefProjection | BriefArtifacts | BriefDecisions | DecisionEvidence | BriefCatalog | BriefPreview | BriefSaveOutput | BriefDestination | null | ReconciliationStartResult | RecordedBriefStartResult | ReconciliationStatusResult | ProjectionChangesResult | ProjectionSnapshotResult>;
+export function invokeTool(name: string, input: unknown, context: InvocationContext): z.output<typeof contextOutput> | Promise<IntentOverlapOutput | AgentOutput | ArtifactProjection | BriefProjection | BriefArtifacts | BriefDecisions | DecisionEvidence | BriefCatalog | BriefPreview | BriefSaveOutput | BriefDestination | null | ReconciliationStartResult | RecordedBriefStartResult | ReconciliationStatusResult | ProjectionChangesResult | ProjectionSnapshotResult>;
 export function invokeTool(name: string, input: unknown, context: InvocationContext) {
   const definition = definitions.find((tool) => tool.name === name);
   if (!definition) throw new ToolError('TOOL_NOT_FOUND');
