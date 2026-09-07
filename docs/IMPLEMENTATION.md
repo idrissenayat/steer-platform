@@ -2004,3 +2004,23 @@ Five focused tests and actual local recovery before/after SQL commit are tracked
 not claimed. No public recovery tool/grant, managed recovery client or live binding
 is introduced. Normal dispatch, protected artifacts and all five formal R5 findings
 remain unchanged. Next is separate current recovery authorization and owned dispatch.
+
+## Increment 0182 — Separately authorized owned recovery dispatch
+
+The shared registry adds `workflow.recorded-brief.recover` for a current hat-free
+agent and `workflow.recorded-brief.recovery.status` with a separate current read
+grant. A closed original-target/failed-run input must match a closed configured plan
+and derived workflow ID. Identity/binding are rechecked before work and after status
+I/O. No save, ordinary dispatch, ingestion or hat permission can substitute.
+
+The worker-edge managed client owns one separate connection. It snapshots routing,
+consumes one start attempt before parent I/O, preserves unknown/duplicate/not-found
+distinctions, permits manual exact recovery observation and drains real in-flight
+work on close. Retained workflow identities provide cross-instance duplicate denial.
+The worker's parent connection remains independently owned. HTTP/MCP parity and
+actual local committed-start acknowledgment loss/reconstruction are tested separately;
+see `intent/0182/EVIDENCE.md` for execution and synthetic-provenance limits.
+
+No default recovery service or live grant is installed. Next add the explicit owned
+identity-runtime recovery profile/factory and actual disposable identity integration.
+All formal R5 findings and independent/qualified review/human gates remain open.

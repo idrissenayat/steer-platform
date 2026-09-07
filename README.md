@@ -7,6 +7,9 @@ item one, are the framework's pilot evidence.
 
 ## Current delivery
 
+Item [0182](intent/0182/README.md) adds separately granted recovery/status tools
+and an owned one-attempt recovery client. No live service or recovery grant is configured.
+
 Item [0181](intent/0181/README.md) adds an internal fixed-failed-run recovery
 workflow that preserves the original save and idempotent projection. See
 [controlled recovery](docs/CONTROLLED-PROJECTION-RECOVERY.md); no public command is enabled.

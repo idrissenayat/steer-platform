@@ -107,7 +107,20 @@ export interface RecordedBriefScheduler {
   start(): Promise<unknown>;
   inspect(): Promise<unknown>;
 }
-export interface ToolServices { artifactProjection?: ArtifactProjectionReader; reconciliationScheduler?: ReconciliationScheduler; recordedBriefScheduler?: RecordedBriefScheduler; projectionChanges?: ProjectionChangeReader; projectionSnapshot?: ProjectionSnapshotReader; briefWriter?: BriefWriter; briefWriterFactory?: () => ManagedBriefWriter; briefDestination?: BriefDestinationReader }
+export const recordedBriefRecoveryInputSchema = recordedBriefSchedulingInputSchema.extend({
+  failedRunId: z.string().regex(/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/),
+});
+const recordedRecoveryPlanSchema = z.strictObject({
+  target: z.strictObject({ scope: reconciliationScopeSchema, idempotencyKey: recordedBriefSchedulingInputSchema.shape.idempotencyKey }),
+  failedRunId: recordedBriefRecoveryInputSchema.shape.failedRunId,
+});
+export interface RecordedBriefRecoveryScheduler {
+  readonly plan: Readonly<{ target: RecordedBriefScheduler['target']; failedRunId: string }>;
+  readonly workflowId: string;
+  start(): Promise<unknown>;
+  inspect(): Promise<unknown>;
+}
+export interface ToolServices { artifactProjection?: ArtifactProjectionReader; reconciliationScheduler?: ReconciliationScheduler; recordedBriefScheduler?: RecordedBriefScheduler; recordedBriefRecoveryScheduler?: RecordedBriefRecoveryScheduler; projectionChanges?: ProjectionChangeReader; projectionSnapshot?: ProjectionSnapshotReader; briefWriter?: BriefWriter; briefWriterFactory?: () => ManagedBriefWriter; briefDestination?: BriefDestinationReader }
 
 const contextInput = z.strictObject({ organizationId: identifier });
 const contextOutput = principalSchema.omit({ expiresAt: true });
@@ -291,6 +304,57 @@ const recordedBriefStatus = {
     const id = recordedSchedulerBinding(input, scheduler);
     let result: unknown; try { result = await scheduler.inspect(); } catch { result = { workflowId: id, outcome: 'unknown' }; }
     await freshToolPrincipal(recordedStatusAuthorization, input, initial, context); recordedSchedulerBinding(input, scheduler);
+    const output = reconciliationStatusResultSchema.safeParse(result);
+    return output.success && output.data.workflowId === id ? output.data : { workflowId: id, outcome: 'unknown' };
+  },
+};
+
+const recordedRecoveryAuthorization = defineQuery({ name: 'workflow.recorded-brief.recover', description: 'Authorize one configured failed-run recovery.',
+  input: recordedBriefRecoveryInputSchema, output: principalSchema, handler: (_input, principal) => principal });
+const recordedRecoveryStatusAuthorization = defineQuery({ name: 'workflow.recorded-brief.recovery.status', description: 'Authorize observation of one configured recovery.',
+  input: recordedBriefRecoveryInputSchema, output: principalSchema, handler: (_input, principal) => principal });
+function recoverySchedulerBinding(input: z.infer<typeof recordedBriefRecoveryInputSchema>, scheduler: RecordedBriefRecoveryScheduler) {
+  const parsed = recordedRecoveryPlanSchema.safeParse(scheduler.plan);
+  if (!parsed.success) throw new ToolError('UNAVAILABLE');
+  const configured = { ...parsed.data.target.scope, idempotencyKey: parsed.data.target.idempotencyKey, failedRunId: parsed.data.failedRunId };
+  if ((Object.keys(input) as (keyof typeof input)[]).some(key => configured[key] !== input[key])) throw new ToolError('FORBIDDEN');
+  const id = `steer-recorded-brief-recovery/v1/${[input.organizationId, input.repository, input.itemId].map(encodeURIComponent).join('/')}/${input.idempotencyKey}/${input.failedRunId}`;
+  if (scheduler.workflowId !== id) throw new ToolError('UNAVAILABLE');
+  return id;
+}
+function recoverySchedulerFor(input: z.infer<typeof recordedBriefRecoveryInputSchema>, context: InvocationContext) {
+  const scheduler = context.services?.recordedBriefRecoveryScheduler;
+  if (!scheduler || !context.revalidate || typeof scheduler.start !== 'function' || typeof scheduler.inspect !== 'function') throw new ToolError('UNAVAILABLE');
+  recoverySchedulerBinding(input, scheduler); return scheduler;
+}
+const recordedBriefRecover = {
+  name: 'workflow.recorded-brief.recover', description: 'Request one configured failed-run recovery with its separate current agent grant; never reset, save, or retry ordinary dispatch.',
+  kind: 'command' as const, scope: 'organization' as const, authorization: 'explicit-tool-grant' as const,
+  input: recordedBriefRecoveryInputSchema, output: recordedBriefStartResultSchema,
+  async invoke(raw: unknown, context: InvocationContext): Promise<RecordedBriefStartResult> {
+    const initial = recordedRecoveryAuthorization.invoke(raw, context);
+    if (initial.type !== 'agent') throw new ToolError('FORBIDDEN');
+    const input = recordedBriefRecoveryInputSchema.parse(raw), scheduler = recoverySchedulerFor(input, context);
+    await freshToolPrincipal(recordedRecoveryAuthorization, input, initial, context);
+    const id = recoverySchedulerBinding(input, scheduler), uncertain: RecordedBriefStartResult = { workflowId: id, outcome: 'unknown' };
+    // An accepted recovery is not rolled back by a later grant change or lost acknowledgment.
+    try {
+      const result = recordedBriefStartResultSchema.safeParse(await scheduler.start());
+      return result.success && result.data.workflowId === id ? result.data : uncertain;
+    } catch { return uncertain; }
+  },
+};
+const recordedBriefRecoveryStatus = {
+  name: 'workflow.recorded-brief.recovery.status', description: 'Observe the configured recovery with a separate current read grant; completed is not projection verification or gate approval.',
+  kind: 'query' as const, scope: 'organization' as const, authorization: 'explicit-tool-grant' as const,
+  input: recordedBriefRecoveryInputSchema, output: reconciliationStatusResultSchema,
+  async invoke(raw: unknown, context: InvocationContext): Promise<ReconciliationStatusResult> {
+    const initial = recordedRecoveryStatusAuthorization.invoke(raw, context), input = recordedBriefRecoveryInputSchema.parse(raw);
+    const scheduler = recoverySchedulerFor(input, context);
+    await freshToolPrincipal(recordedRecoveryStatusAuthorization, input, initial, context);
+    const id = recoverySchedulerBinding(input, scheduler);
+    let result: unknown; try { result = await scheduler.inspect(); } catch { result = { workflowId: id, outcome: 'unknown' }; }
+    await freshToolPrincipal(recordedRecoveryStatusAuthorization, input, initial, context); recoverySchedulerBinding(input, scheduler);
     const output = reconciliationStatusResultSchema.safeParse(result);
     return output.success && output.data.workflowId === id ? output.data : { workflowId: id, outcome: 'unknown' };
   },
@@ -592,13 +656,15 @@ const destinationQuery = {
 };
 
 // Frozen definitions are the common source for discovery, dispatch and HTTP contracts.
-const definitions = Object.freeze([Object.freeze(contextQuery), Object.freeze(projectionQuery), Object.freeze(reconciliationStart), Object.freeze(reconciliationStatus), Object.freeze(recordedBriefStart), Object.freeze(recordedBriefStatus), Object.freeze(changesQuery), Object.freeze(snapshotQuery), Object.freeze(briefQuery), Object.freeze(decisionsQuery), Object.freeze(evidenceQuery), Object.freeze(catalogQuery), Object.freeze(previewQuery), Object.freeze(briefSaveCommand), Object.freeze(briefSaveStatusQuery), Object.freeze(destinationQuery)]);
+const definitions = Object.freeze([Object.freeze(contextQuery), Object.freeze(projectionQuery), Object.freeze(reconciliationStart), Object.freeze(reconciliationStatus), Object.freeze(recordedBriefStart), Object.freeze(recordedBriefStatus), Object.freeze(recordedBriefRecover), Object.freeze(recordedBriefRecoveryStatus), Object.freeze(changesQuery), Object.freeze(snapshotQuery), Object.freeze(briefQuery), Object.freeze(decisionsQuery), Object.freeze(evidenceQuery), Object.freeze(catalogQuery), Object.freeze(previewQuery), Object.freeze(briefSaveCommand), Object.freeze(briefSaveStatusQuery), Object.freeze(destinationQuery)]);
 export function invokeTool(name: 'session.context', input: unknown, context: InvocationContext): z.output<typeof contextOutput>;
 export function invokeTool(name: 'projection.artifact.read', input: unknown, context: InvocationContext): Promise<ArtifactProjection | null>;
 export function invokeTool(name: 'workflow.reconciliation.start', input: unknown, context: InvocationContext): Promise<ReconciliationStartResult>;
 export function invokeTool(name: 'workflow.reconciliation.status', input: unknown, context: InvocationContext): Promise<ReconciliationStatusResult>;
 export function invokeTool(name: 'workflow.recorded-brief.start', input: unknown, context: InvocationContext): Promise<RecordedBriefStartResult>;
 export function invokeTool(name: 'workflow.recorded-brief.status', input: unknown, context: InvocationContext): Promise<ReconciliationStatusResult>;
+export function invokeTool(name: 'workflow.recorded-brief.recover', input: unknown, context: InvocationContext): Promise<RecordedBriefStartResult>;
+export function invokeTool(name: 'workflow.recorded-brief.recovery.status', input: unknown, context: InvocationContext): Promise<ReconciliationStatusResult>;
 export function invokeTool(name: 'projection.changes.read', input: unknown, context: InvocationContext): Promise<ProjectionChangesResult>;
 export function invokeTool(name: 'projection.snapshot.read', input: unknown, context: InvocationContext): Promise<ProjectionSnapshotResult>;
 export function invokeTool(name: 'intent.brief.read', input: unknown, context: InvocationContext): Promise<BriefProjection | null>;

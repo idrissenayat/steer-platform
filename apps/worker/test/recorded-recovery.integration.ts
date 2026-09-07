@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import type { Pool } from 'pg';
 import type { TestWorkflowEnvironment } from '@temporalio/testing';
 import { Worker, type WorkflowBundle } from '@temporalio/worker';
+import { Client, Connection } from '@temporalio/client';
 import { createGitHubReader, createAppJwtSigner } from '@steer/adapters/github';
 import { createGitAuthorizationResolver } from '@steer/adapters/authorization';
 import { createOidcAuthenticator } from '@steer/adapters/identity';
@@ -11,7 +12,7 @@ import { recordedRuntimeFixture } from '../../api/test/recorded-runtime-fixture.
 import { createWorkerRecordedBriefRuntime, createWorkerRecordedBriefRecoveryRuntime } from '../src/runtime.ts';
 import { createRecordedBriefWorker, createRecordedBriefRecoveryWorker } from '../src/worker.ts';
 import { createRecordedBriefActivities } from '../src/activities.ts';
-import { startRecordedBriefProjection, startRecordedBriefRecovery, createRecordedBriefFailedParentGuard } from '../src/client.ts';
+import { startRecordedBriefProjection, startRecordedBriefRecovery, createRecordedBriefFailedParentGuard, createManagedRecordedBriefRecoveryScheduler } from '../src/client.ts';
 import { recordedBriefRecoveryWorkflowId } from '../src/contracts.ts';
 
 function historyText(value: unknown): string {
@@ -22,10 +23,11 @@ function historyText(value: unknown): string {
 /** Real local Temporal/Git/SQL. Receipt provenance and issuer transports are synthetic. */
 export async function testRecordedBriefRecovery(env: TestWorkflowEnvironment, bundle: WorkflowBundle,
   database: unknown, password: string, admin: Pool, check: (name: string, run: () => Promise<void>) => Promise<void>) {
-  for (const [index, mode] of ['before-sql', 'after-sql'].entries()) {
+  for (const [index, mode] of ['before-sql', 'after-sql', 'owned-lost-ack'].entries()) {
     const cleanup: (() => void)[] = [];
     let original: Awaited<ReturnType<typeof createWorkerRecordedBriefRuntime>> | undefined;
     let recovery: Awaited<ReturnType<typeof createWorkerRecordedBriefRecoveryRuntime>> | undefined;
+    let managed: Awaited<ReturnType<typeof createManagedRecordedBriefRecoveryScheduler>> | undefined;
     let worker: Worker | undefined, running: Promise<void> | undefined;
     const stop = async () => { try { if (worker) { worker.shutdown(); await running; } } finally { worker = undefined; running = undefined; } };
     try {
@@ -65,8 +67,29 @@ export async function testRecordedBriefRecovery(env: TestWorkflowEnvironment, bu
         const plan = { target: f.target, failedRunId }, configuration = { namespace: 'default', sourceTaskQueue, taskQueue, plan };
         const before = reads;
         await assert.rejects(startRecordedBriefRecovery(env.client, { ...configuration, plan: { ...plan, failedRunId: '18100000-0000-4000-8000-000000000099' } }));
-        const starts = await Promise.allSettled([startRecordedBriefRecovery(env.client, configuration), startRecordedBriefRecovery(env.client, configuration)]);
-        assert.equal(starts.filter(r => r.status === 'fulfilled').length, 1); assert.equal(starts.filter(r => r.status === 'rejected').length, 1);
+        if (mode === 'owned-lost-ack') {
+          const connection = await Connection.connect({ address: env.address }), client = new Client({ connection, namespace: 'default' });
+          let dispatched = 0, closed = 0;
+          const uncertain = { options: client.options, workflow: {
+            getHandle: client.workflow.getHandle.bind(client.workflow),
+            start: async (...args: Parameters<typeof client.workflow.start>) => {
+              dispatched++; await client.workflow.start(...args); throw new Error('private synthetic recovery acknowledgment loss');
+            },
+          } } as unknown as Client;
+          managed = await createManagedRecordedBriefRecoveryScheduler(uncertain, configuration, async () => { await connection.close(); closed++; });
+          assert.equal((await managed.scheduler.inspect()).outcome, 'not-found');
+          assert.equal((await managed.scheduler.start()).outcome, 'unknown');
+          assert.equal((await managed.scheduler.start()).outcome, 'already-attempted'); assert.equal(dispatched, 1);
+          const observed = await managed.scheduler.inspect(); assert.equal(observed.outcome, 'found'); assert.equal('state' in observed && observed.state, 'RUNNING');
+          await managed.shutdown(); assert.equal(closed, 1);
+          await assert.rejects(connection.workflowService.describeWorkflowExecution({ namespace: 'default', execution: { workflowId: managed.scheduler.workflowId } }));
+          const replacement = await Connection.connect({ address: env.address });
+          managed = await createManagedRecordedBriefRecoveryScheduler(new Client({ connection: replacement, namespace: 'default' }), configuration, () => replacement.close());
+          assert.equal((await managed.scheduler.start()).outcome, 'duplicate');
+        } else {
+          const starts = await Promise.allSettled([startRecordedBriefRecovery(env.client, configuration), startRecordedBriefRecovery(env.client, configuration)]);
+          assert.equal(starts.filter(r => r.status === 'fulfilled').length, 1); assert.equal(starts.filter(r => r.status === 'rejected').length, 1);
+        }
         assert.equal(reads, before);
         const handle = env.client.workflow.getHandle(recordedBriefRecoveryWorkflowId(plan));
         const parent = createRecordedBriefFailedParentGuard(env.client, { namespace: 'default', taskQueue: sourceTaskQueue, plan });
@@ -75,6 +98,10 @@ export async function testRecordedBriefRecovery(env: TestWorkflowEnvironment, bu
         worker = await createRecordedBriefRecoveryWorker({ connection: env.nativeConnection, namespace: 'default', taskQueue, workflowBundle: bundle }, recovery!.activities);
         running = worker.run();
         assert.deepEqual(await handle.result(), { revision, status: 'observed', outcome: mode === 'after-sql' ? 'duplicate' : 'applied' });
+        if (managed) {
+          const observed = await managed.scheduler.inspect(); assert.equal(observed.outcome, 'found'); assert.equal('state' in observed && observed.state, 'COMPLETED');
+          assert.equal((await managed.scheduler.start()).outcome, 'already-attempted');
+        }
         assert.equal(await events(), 1); assert.equal((await row()).value.content, snapshot.content); assert.equal((await row()).source_revision, revision);
         assert.equal((await failed.describe()).status.name, 'FAILED'); assert.equal((await failed.describe()).runId, failedRunId);
         const completedReads = reads, history = await handle.fetchHistory();
@@ -86,6 +113,6 @@ export async function testRecordedBriefRecovery(env: TestWorkflowEnvironment, bu
         f.publish({ ...grant, active: false }); await assert.rejects(recovery!.activities.recoverRecordedBrief(plan)); assert.equal(reads, completedReads);
         assert.equal(await events(), 1); assert.equal(f.source.mutations(), 0);
       });
-    } finally { try { await stop(); } finally { try { await original?.shutdown(); } finally { try { await recovery?.shutdown(); } finally { for (const close of cleanup.reverse()) close(); } } } }
+    } finally { try { await managed?.shutdown(); } finally { try { await stop(); } finally { try { await original?.shutdown(); } finally { try { await recovery?.shutdown(); } finally { for (const close of cleanup.reverse()) close(); } } } } }
   }
 }

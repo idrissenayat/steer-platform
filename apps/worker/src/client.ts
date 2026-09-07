@@ -129,6 +129,78 @@ export async function createManagedReconciliationScheduler(client: Client,
 const runId = (value: unknown): value is string => typeof value === 'string' && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(value);
 const states = new Set(['RUNNING', 'COMPLETED', 'FAILED', 'CANCELLED', 'TERMINATED', 'CONTINUED_AS_NEW', 'TIMED_OUT']);
 
+/** Owns a separate dispatch connection, not the worker's failed-parent connection.
+ * Current caller authorization belongs to the shared registry, never this adapter. */
+export async function createManagedRecordedBriefRecoveryScheduler(client: Client, rawConfiguration: unknown, closeConnection: () => Promise<void>) {
+  let closing: Promise<void> | undefined;
+  const release = () => closing ??= Promise.resolve().then(closeConnection);
+  let configuration: { namespace: string; sourceTaskQueue: string; taskQueue: string; plan: ReturnType<typeof parseRecordedBriefRecoveryPlan> };
+  try {
+    if (!rawConfiguration || typeof rawConfiguration !== 'object' || Array.isArray(rawConfiguration) ||
+      Object.keys(rawConfiguration).length !== 4 ||
+      !['namespace', 'sourceTaskQueue', 'taskQueue', 'plan'].every(key => Object.hasOwn(rawConfiguration, key))) throw new Error();
+    const supplied = rawConfiguration as Record<string, unknown>;
+    const { namespace, sourceTaskQueue, taskQueue } = supplied;
+    for (const value of [namespace, sourceTaskQueue, taskQueue]) {
+      if (typeof value !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(value)) throw new Error();
+    }
+    if (sourceTaskQueue === taskQueue) throw new Error();
+    const guard = createRecordedBriefFailedParentGuard(client, {
+      namespace: namespace as string, taskQueue: sourceTaskQueue as string, plan: supplied.plan,
+    });
+    configuration = Object.freeze({ namespace: namespace as string, sourceTaskQueue: sourceTaskQueue as string,
+      taskQueue: taskQueue as string, plan: guard.plan });
+  } catch {
+    try { await release(); } catch { throw new Error('Recorded Brief recovery scheduler initialization cleanup could not be confirmed.'); }
+    throw new Error('Recorded Brief recovery scheduler could not be initialized.');
+  }
+  const { namespace, taskQueue, plan } = configuration, workflowId = recordedBriefRecoveryWorkflowId(plan);
+  let state: 'running' | 'draining' | 'stopped' | 'failed' = 'running';
+  let active = false, attempted = false, drained: (() => void) | undefined, shutdown: Promise<void> | undefined;
+  const checkBinding = () => { if (client.options.namespace !== namespace) throw new Error('Recorded Brief recovery scheduler binding changed.'); };
+  const invoke = async <T>(operation: () => Promise<T>): Promise<T> => {
+    if (state !== 'running' || active) throw new Error('Recorded Brief recovery scheduler is not accepting operations.');
+    checkBinding(); active = true;
+    try { return await operation(); } finally { active = false; drained?.(); }
+  };
+  const scheduler = Object.freeze({ plan, workflowId,
+    start: () => invoke(async () => {
+      if (attempted) return { workflowId, outcome: 'already-attempted' as const };
+      // Consume before parent inspection as well as start: uncertainty never unlocks retry.
+      attempted = true;
+      try {
+        const handle = await startRecordedBriefRecovery(client, configuration); checkBinding();
+        if (!runId(handle.firstExecutionRunId)) throw new Error();
+        return { workflowId, outcome: 'started' as const, runId: handle.firstExecutionRunId };
+      } catch (error) {
+        return { workflowId, outcome: client.options.namespace === namespace && error instanceof WorkflowExecutionAlreadyStartedError ? 'duplicate' as const : 'unknown' as const };
+      }
+    }),
+    // Status observes the recovery, even if its original parent is no longer eligible.
+    inspect: () => invoke(async () => {
+      try {
+        const result = await client.workflow.getHandle(workflowId).describe(); checkBinding();
+        if (result.workflowId !== workflowId || result.type !== 'recoverRecordedBrief' || result.taskQueue !== taskQueue ||
+          !runId(result.runId) || !states.has(result.status.name)) throw new Error();
+        return { workflowId, outcome: 'found' as const, runId: result.runId, state: result.status.name };
+      } catch (error) {
+        return { workflowId, outcome: client.options.namespace === namespace && error instanceof WorkflowNotFoundError ? 'not-found' as const : 'unknown' as const };
+      }
+    }),
+  });
+  return Object.freeze({ scheduler, status: () => ({ state, active, attempted }),
+    shutdown(): Promise<void> {
+      if (shutdown) return shutdown;
+      state = 'draining';
+      const wait = active ? new Promise<void>(resolve => { drained = resolve; }) : Promise.resolve();
+      shutdown = wait.then(release).then(() => { drained = undefined; state = 'stopped'; }, () => {
+        drained = undefined; state = 'failed'; throw new Error('Recorded Brief recovery scheduler shutdown could not be confirmed.');
+      });
+      return shutdown;
+    },
+  });
+}
+
 /** Owns one explicitly supplied connection and one fixed operation. This internal
  * client neither authenticates callers nor admits receipts/paths. No public route,
  * polling, automatic retry, worker registration or live runtime binding is added. */

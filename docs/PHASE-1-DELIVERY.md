@@ -3747,3 +3747,23 @@ The primitive is internal only; public grant/tool, owned recovery start/status c
 and live configuration remain absent. No new save, workflow reset/cancellation,
 protected artifact, frontend, dependency, schema, spending or deployment. All five
 R5 findings and independent/qualified review/human gates remain open.
+
+## Completed development increment: 0182 — Separately authorized owned recovery dispatch
+
+Recovery now has separate shared command/status definitions and a fixed-plan owned
+client. Current hat-free agents need `workflow.recorded-brief.recover`; recovery
+observation requires its separate current read grant. Exact original-target/failed-run
+binding, pre-I/O revalidation and post-read authorization keep ordinary start/save/
+projection authority distinct. Without an explicitly configured service it stays
+unavailable through HTTP/MCP; no runtime profile or live grant was installed.
+
+The managed client latches one attempt before parent inspection/start, admits one
+active operation, sanitizes uncertain results and drains its owned connection on
+shutdown. Status never unlocks retries or proves projection success. Tests cover
+closed input, grant/binding drift, lost acknowledgments, reconstruction and transport
+parity; actual results are in `intent/0182/EVIDENCE.md`.
+
+Next is the explicit optional identity-runtime recovery profile/factory and actual
+disposable recovery identity integration. The original workflow/save, signed artifacts,
+five R5 findings and independent/qualified review/human gates remain unchanged. No
+frontend, dependency, schema, provider permission, deployment, release or spending.

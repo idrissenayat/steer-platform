@@ -1,7 +1,9 @@
 # Controlled recorded projection recovery
 
-Increment 0181 provides an **internal primitive**, not an enabled command or live
-permission. It uses the current stack and preserves normal recorded dispatch.
+Increment 0181 provides the internal primitive. 0182 adds separately granted shared
+command/status definitions and an owned dispatch client. Both remain unavailable
+without explicit service configuration; no live recovery permission is installed.
+The current stack and normal recorded dispatch are preserved.
 
 ## Exact reference and lifecycle
 
@@ -50,12 +52,34 @@ Retention of workflow IDs bounds duplicate enforcement; no eternal uniqueness cl
 If recovery itself fails, this first bounded primitive stops rather than recursively
 restarting. Additional recovery policy needs an explicit contract.
 
+## Separate shared command and owned client — 0182
+
+`workflow.recorded-brief.recover` requires its separate current hat-free agent grant.
+`workflow.recorded-brief.recovery.status` requires its own current human/hat-free-agent
+read grant. Saving, ordinary dispatch/status, ingestion and human hats cannot
+substitute. Both bind the exact configured original target/failed run and derived
+recovery ID. Current identity and binding are checked before work, and again after
+status reads. Already accepted effects cannot be undone by later revocation.
+These shared grant checks precede managed parent inspection/start; they do not create
+a durable authorization lease across asynchronous Temporal/Git/SQL operations.
+
+The owned client snapshots trusted routing/plan, admits one active operation and
+latches one start attempt before failed-parent inspection. Parent uncertainty,
+acknowledgment loss, malformed output or duplicates do not release that latch.
+Only the SDK's typed not-found response means absent, and absence never unlocks
+retry. Status describes the exact recovery, independently of parent eligibility;
+COMPLETED is not proof of SQL success. Shutdown drains actual work and closes only
+its separately transferred connection, never the worker guard's connection.
+
+Shared HTTP/OpenAPI/MCP definitions preserve validation and annotations with no
+default service. Exact verification is in `intent/0182/EVIDENCE.md`. Instance-local
+one-attempt admission relies on retained server identities across reconstruction;
+this is not perpetual deduplication beyond Temporal retention.
+
 ## Still to implement before use
 
-Add a separate current `workflow.recorded-brief.recover` permission, exact configured
-plan binding, an owned one-attempt/uncertain-acknowledgment client and truthful status
-through the shared API/MCP runtime. Saving, ordinary dispatch and ingestion grants
-must not substitute. Actual disposable identity/browser integration and approved
-live configuration are later acceptance steps. No public tool or live recovery is
-enabled by 0181. All five R5 findings and independent/qualified review/human gates
-remain open; recovery never grants save, signature, release or spending authority.
+Add the explicit optional recovery profile/factory to the owned identity runtime,
+then actual disposable recovery identity/browser integration and approved live
+configuration. No live recovery is enabled by 0182. All five R5 findings and
+independent/qualified review/human gates remain open; recovery never grants save,
+signature, release or spending authority.
