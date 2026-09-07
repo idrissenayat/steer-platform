@@ -293,6 +293,13 @@ This is UI implementation, not verified live configured access or save enablemen
 Combined authenticated browser-journey evidence remains due; see
 `intent/0149/EVIDENCE.md`.
 
+0150 development update: an isolated composed test now follows cookie login and
+cryptographic token validation through native Git grants/source reads into the
+actual destination display controller. It exposed and fixed premature session-store
+closure during browser-only shutdown. Provider/session/browser fixtures are explicit;
+durable runtime-profile and real browser journey evidence remain due. See
+`intent/0150/EVIDENCE.md`.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

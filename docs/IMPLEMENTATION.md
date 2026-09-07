@@ -1290,6 +1290,14 @@ generic. The current signed-in page identity is presentation, not authorization.
 Local route compilation and isolated controller/markup tests do not prove a real
 configured end-to-end journey. See `intent/0149/EVIDENCE.md`.
 
+Item `intent/0150` exercises isolated cookie/OIDC verification, native Git grants and
+the actual destination display controller as one chain. Browser-only services with
+a destination capability now drain admitted reads and final session revalidation
+before closing session resources. Success, mid-read revocation and source failure
+remain independently enforced. Synthetic provider HTTP and in-memory session stores
+do not prove real Keycloak, durable runtime-profile or browser integration. See
+`intent/0150/EVIDENCE.md`.
+
 ## Local commands
 
 ```sh

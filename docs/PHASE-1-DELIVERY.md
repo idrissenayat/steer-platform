@@ -2926,3 +2926,21 @@ combined authenticated browser journey. Continue lifecycle projections, board an
 review. All five R5 findings, qualified/protected review, human gates and signed
 Phase 1 obligations stay open. No real runtime, grant, writer, gate signature,
 deployment, release, spending or provider access was enabled by this UI increment.
+
+## Completed development increment: 0150 — Destination identity composition and shutdown
+
+Isolated integration now links actual cookie login/RS256 verification, current
+native Git authorization, GitHub read adapter, registry and destination display
+controller. It reproduced a shutdown bug: a browser-only destination read lost
+its session store before post-read authorization. The capability now selects the
+existing drain-first lifecycle. Success, revocation and source errors retain their
+separate results while owned resources close once. All 32 focused groups and the
+full repository check passed, including 437 root controls, 87 API tests and all
+package checks/builds. See `intent/0150/EVIDENCE.md`.
+
+The fixtures do not replace real Keycloak, database or browser evidence. Continue
+durable runtime-profile/browser integration and full action-time authority with
+approved bindings, then gated save/status, lifecycle projections, board and review.
+All five R5 findings, protected/qualified review, human gates and remaining signed
+Phase 1 obligations stay open. No live provider, writer, configuration, deployment,
+release, spending or gate approval was enabled.
