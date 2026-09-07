@@ -1,6 +1,11 @@
 # Learn STEER in the Next workspace
 
-After signing in, find **Learn STEER** and choose **Open guide**. The reader holds
+In the local UX preview, choose **Learn STEER** or **Consult the operating guide**,
+then **Open guide**. You can return to the originating Brief/backlog without losing
+unsaved answers. This exposes only the static operational kit, not workspace data,
+and never saves or signs anything. No fake or infinite session is created.
+
+The existing authenticated workspace also offers **Learn STEER**. The reader holds
 the Methodology, Framework, Operating Model, three numbered practice notes,
 Glossary and Guidebook from the repository's operational kit.
 
@@ -20,6 +25,9 @@ The outline remains beside the article on desktop and moves above it on narrow
 screens. Keyboard selection focuses the destination heading. **Close guide and
 return** restores focus to **Open guide**. Hiding the page clears the reading
 selection and search; session expiry closes the guide and requires refreshed access.
+This session-expiry rule applies to the authenticated reader. The explicit local
+kit reader does not depend on sign-in or a clock, but still clears reading state on
+hiding/navigation. Both use the same rendered corpus and source metadata.
 This UI clearing is not secure erasure of previously delivered canonical bytes.
 
 ## Build contract

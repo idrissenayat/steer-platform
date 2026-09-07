@@ -4046,3 +4046,22 @@ Live authoring, session expiry, repository permissions and gate contracts are
 unchanged. No provider grant, runtime GitHub write, model call, deployment, spending,
 protected EXAM or signature changed. Real saving, Flight Board/Inbox, agent conversation,
 J1–J6, the five R5 findings, Gate 2 and Phase 1 acceptance remain incomplete.
+
+## Development increment: 0195 — Operating guide within the local draft flow
+
+The local UX preview now offers Learn STEER from navigation and the Brief checklist.
+It uses the same eight-document canonical reader, local search, exact source metadata
+and section-focus behavior as the authenticated workspace. Returning to the originating
+Brief/backlog retains the edit buffer without saving it. Reading interests are not stored.
+
+The explicit static-kit entry has no fake identity or deadline. The authenticated
+reader's session expiry, invalid/backwards clock and hide/reset rules remain tested.
+No kit bytes or live identity contracts changed. The actual HTTPS browser passed
+draft correction → guide search → section reading → exact unsaved correction return.
+All 91 web tests, eight architecture checks, typecheck, production build and kit/scope
+checks passed; see `intent/0195/EVIDENCE.md` for evidence and limits.
+
+This advances guidance/navigation, not complete intent/0004, real GitHub saving,
+actionable Inbox/Flight Board, model-backed conversation, Gate 2 or Phase 1 acceptance.
+The standing implementation loop now explicitly follows the user's functionality/UX
+priority, with further account setup deferred and authorization boundaries preserved.

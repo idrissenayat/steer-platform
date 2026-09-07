@@ -14,11 +14,22 @@ function Block({ block }: { block: LearnBlock }) {
 }
 
 export default function LearnHub({ corpus, expiresAt }: { corpus: LearnCorpus; expiresAt: string }) {
+  return <GuideReader corpus={corpus} access={{ kind: 'session', expiresAt }} />;
+}
+
+/** Public operational kit only. No session, workspace data or runtime access is accepted. */
+export function LocalLearnHub({ corpus }: { corpus: LearnCorpus }) {
+  return <GuideReader corpus={corpus} access={{ kind: 'local-kit' }} />;
+}
+
+function GuideReader({ corpus, access }: { corpus: LearnCorpus; access: { kind: 'session'; expiresAt: string } | { kind: 'local-kit' } }) {
   const id = useId(), button = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false), [pageId, setPageId] = useState(corpus.pages[0]?.id ?? ''), [query, setQuery] = useState('');
   const [expired, setExpired] = useState(false);
   const [focusTarget, setFocusTarget] = useState<{ page: string; section?: string } | null>(null);
-  const deadline = Date.parse(expiresAt);
+  const localKit = access.kind === 'local-kit';
+  const deadline = access.kind === 'session' ? Date.parse(access.expiresAt) : Number.NaN;
+  const unavailable = () => !localKit && (expired || !Number.isFinite(Date.now()) || !Number.isFinite(deadline) || Date.now() >= deadline);
   const page = corpus.pages.find(value => value.id === pageId);
   const hits = searchLearn(corpus.pages, query);
   const clear = () => { setOpen(false); setQuery(''); setPageId(corpus.pages[0]?.id ?? ''); setFocusTarget(null); };
@@ -30,15 +41,15 @@ export default function LearnHub({ corpus, expiresAt }: { corpus: LearnCorpus; e
   }, [focusTarget, open, expired, id]);
   useEffect(() => {
     let previous = Date.now();
-    const check = () => { const now = Date.now(); if (!Number.isFinite(now) || !Number.isFinite(deadline) || now >= deadline || now < previous) { setExpired(true); clear(); } previous = now; };
+    const check = () => { if (localKit) return; const now = Date.now(); if (!Number.isFinite(now) || !Number.isFinite(deadline) || now >= deadline || now < previous) { setExpired(true); clear(); } previous = now; };
     const hidden = () => { if (document.visibilityState === 'hidden') clear(); check(); };
     const restored = (event: PageTransitionEvent) => { if (event.persisted) clear(); check(); };
-    check(); const timer = window.setInterval(check, 1000);
+    check(); const timer = localKit ? undefined : window.setInterval(check, 1000);
     document.addEventListener('visibilitychange', hidden); window.addEventListener('pagehide', clear); window.addEventListener('pageshow', restored);
     return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', hidden); window.removeEventListener('pagehide', clear); window.removeEventListener('pageshow', restored); };
-  }, [deadline]);
+  }, [deadline, localKit]);
   function select(nextPage: string, section?: string) {
-    if (expired || !Number.isFinite(Date.now()) || !Number.isFinite(deadline) || Date.now() >= deadline) { setExpired(true); clear(); return; }
+    if (unavailable()) { setExpired(true); clear(); return; }
     setPageId(nextPage);
     setFocusTarget(section === undefined ? { page: nextPage } : { page: nextPage, section });
   }
@@ -46,8 +57,9 @@ export default function LearnHub({ corpus, expiresAt }: { corpus: LearnCorpus; e
     <div className="learn-heading"><div><span className="access-label">THE OPERATING GUIDE</span><h2 id={`${id}-title`}>Learn STEER</h2><p>Methodology, framework, operating model, and practical guidance.</p></div>
       <span className="hat-label">Kit {corpus.tag}</span></div>
     <p className="access-hint">Built from this checkout’s operational canon. This version label is not a release certification or a gate approval.</p>
+    {localKit && <p className="access-hint">Local reference only. Reading does not sign in, save a draft, run an agent or authorize work. Your current draft stays in the preview while you consult this guide.</p>}
     <button ref={button} className="access-secondary" type="button" disabled={expired} aria-expanded={open} aria-controls={`${id}-reader`}
-      onClick={() => { if (!Number.isFinite(Date.now()) || Date.now() >= deadline || !Number.isFinite(deadline)) { setExpired(true); clear(); } else { if (open) clear(); else setOpen(true); } }}>{open ? 'Close guide' : 'Open guide'}</button>
+      onClick={() => { if (unavailable()) { setExpired(true); clear(); } else { if (open) clear(); else setOpen(true); } }}>{open ? 'Close guide' : 'Open guide'}</button>
     {expired && <p role="status">Refresh access to reopen the guide.</p>}
     {open && page && <div id={`${id}-reader`} className="learn-reader">
       <label className="learn-search">Search the guide<input type="search" value={query} maxLength={200} onChange={event => setQuery(event.target.value)} /></label>

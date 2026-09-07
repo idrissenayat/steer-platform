@@ -4,22 +4,23 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { authorFields, emptyAuthorAnswers, type AuthorAnswers } from './brief-author-client';
 import { localDraftPrefix, missingLocalFields, readLocalDrafts, removeLocalDraft, saveLocalDraft, type LocalDraft } from './local-drafts';
 
-export default function LocalWorkspace({ children }: { children: ReactNode }) {
+export default function LocalWorkspace({ children, guide }: { children: ReactNode; guide?: ReactNode }) {
   const [open, setOpen] = useState(false);
-  return open ? <DraftWorkspace onExit={() => setOpen(false)} /> : <>
+  return open ? <DraftWorkspace onExit={() => setOpen(false)} guide={guide} /> : <>
     <aside className="ux-entry" aria-label="UX preview"><div><strong>Try the working experience.</strong><span> No sign-in needed. Test with non-sensitive sample content.</span></div>
       <button type="button" onClick={() => setOpen(true)}>Open UX preview</button></aside>
     {children}
   </>;
 }
 
-function DraftWorkspace({ onExit }: { onExit: () => void }) {
+function DraftWorkspace({ onExit, guide }: { onExit: () => void; guide?: ReactNode }) {
   const [drafts, setDrafts] = useState<LocalDraft[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [answers, setAnswers] = useState<AuthorAnswers>(emptyAuthorAnswers);
   const [id, setId] = useState<string | null>(null);
   const [baseline, setBaseline] = useState<string | null>(null);
-  const [view, setView] = useState<'backlog' | 'edit' | 'review'>('backlog');
+  const [view, setView] = useState<'backlog' | 'edit' | 'review' | 'learn'>('backlog');
+  const [returnView, setReturnView] = useState<'backlog' | 'edit' | 'review'>('backlog');
   const [query, setQuery] = useState('');
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
@@ -52,6 +53,7 @@ function DraftWorkspace({ onExit }: { onExit: () => void }) {
     if (focusField && view === 'edit') { document.getElementById(`local-${focusField}`)?.focus(); setFocusField(null); }
   }, [view, focusField]);
   function guarded(action: () => void) { if (dirty) setPending(() => action); else action(); }
+  function learn() { if (view !== 'learn') { setReturnView(view); setView('learn'); } }
   function start() { setAnswers(emptyAuthorAnswers()); setId(null); setBaseline(null); setView('edit'); setNotice('New draft. Nothing has been saved.'); setError(''); setConfirmRemove(false); }
   function reopen(draft: LocalDraft) {
     setId(draft.id); setAnswers({ ...draft.answers }); setBaseline(JSON.stringify(draft)); setView('review');
@@ -80,17 +82,18 @@ function DraftWorkspace({ onExit }: { onExit: () => void }) {
     <div className="ux-boundary"><strong>A place to try the workflow, not your live workspace.</strong> No sign-in or connected agent. Only “Save on this browser” stores temporary drafts. Use non-sensitive sample content; anyone using this browser profile can read it. No GitHub writes or approvals.</div>
     <div className="ux-layout">
       <aside className="ux-sidebar"><nav aria-label="Preview navigation"><button aria-current={view === 'backlog' ? 'page' : undefined} onClick={() => { setView('backlog'); refresh(); }}>Intent backlog <span>{drafts.length}</span></button>
-        {view === 'backlog' && dirty && <button onClick={() => setView('edit')}>Resume unsaved draft</button>}</nav>
+        {guide && <button aria-current={view === 'learn' ? 'page' : undefined} onClick={learn}>Learn STEER</button>}
+        {(view === 'backlog' || view === 'learn') && dirty && <button onClick={() => setView('edit')}>Resume unsaved draft</button>}</nav>
         <div className="ux-sidebar-note"><strong>Next in the real journey</strong><p>Flight Board and Inbox need verified lifecycle and decision data. This preview does not simulate delivery or gate approvals.</p></div>
       </aside>
       <section className="ux-work" id="ux-work">
-        <div className="ux-title"><div><p className="access-label">INTENT → BRIEF → REVIEW</p><h1 ref={heading} tabIndex={-1}>{view === 'backlog' ? 'Intent backlog' : answers.title || 'Untitled intent'}</h1>
-          <p>{view === 'backlog' ? 'Frame the outcome. Keep the unknowns visible. Pick up where you left off.' : `${missing.length ? `${8 - missing.length} of 8 starting fields supplied` : 'All starting fields supplied'} · ${dirty ? 'Unsaved changes' : baseline ? 'Saved locally' : 'Not saved'}`}</p></div>
+        <div className="ux-title"><div><p className="access-label">INTENT → BRIEF → REVIEW</p><h1 ref={heading} tabIndex={-1}>{view === 'learn' ? 'The operating guide' : view === 'backlog' ? 'Intent backlog' : answers.title || 'Untitled intent'}</h1>
+          <p>{view === 'learn' ? 'Consult the framework, then return to the work.' : view === 'backlog' ? 'Frame the outcome. Keep the unknowns visible. Pick up where you left off.' : `${missing.length ? `${8 - missing.length} of 8 starting fields supplied` : 'All starting fields supplied'} · ${dirty ? 'Unsaved changes' : baseline ? 'Saved locally' : 'Not saved'}`}</p></div>
           <button className="ux-button ux-primary" onClick={() => guarded(start)}>+ New intent</button></div>
         <p className="ux-feedback" role="status">{notice.startsWith('Unsaved changes.') && !dirty ? 'No unsaved changes.' : notice}</p>
         {error && <p role="alert" className="ux-error">{error}</p>}
         {pending && <section className="ux-warning" aria-label="Unsaved changes"><h2>Keep your unsaved changes?</h2><p>You can return to the draft and save it, or discard only these unsaved edits.</p><button className="ux-button" onClick={() => setPending(null)}>Keep editing</button> <button className="ux-button" onClick={() => { const action = pending; setPending(null); action(); }}>Discard unsaved edits</button></section>}
-        {view === 'backlog' ? <>
+        {view === 'learn' ? <><button className="ux-button" onClick={() => setView(returnView)}>Return to {returnView === 'backlog' ? 'backlog' : 'Brief'}</button>{guide}</> : view === 'backlog' ? <>
           <label className="ux-search">Find a local draft<input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search by working title" /></label>
           {!loaded ? <p>Reading local drafts…</p> : !drafts.length ? <section className="ux-empty"><span className="eyebrow">A clear starting point</span><h2>What should become true?</h2><p>Start with a problem worth solving. Turn it into a Brief you can review and revisit.</p><button className="ux-button ux-primary" onClick={() => guarded(start)}>Create your first intent</button></section> : !visible.length ? <p>No local drafts match “{query}”. Try a different title.</p> :
             <ul className="ux-draft-list">{visible.map(draft => <li key={draft.id}><div><span className="ux-chip">Local draft</span><h2><button onClick={() => guarded(() => reopen(draft))}>{draft.answers.title}</button></h2><p>{draft.answers.outcome || 'Outcome still to clarify.'}</p><small>Saved {new Date(draft.updatedAt).toLocaleString()} · {missingLocalFields(draft.answers).length} fields to clarify</small></div><button className="ux-button" aria-label={`Open ${draft.answers.title}`} onClick={() => guarded(() => reopen(draft))}>Open Brief →</button></li>)}</ul>}
@@ -107,6 +110,7 @@ function DraftWorkspace({ onExit }: { onExit: () => void }) {
                 <><h2>{field.label}</h2><p className={answers[field.key].trim() ? 'ux-answer' : 'ux-unknown'}>{answers[field.key].trim() ? answers[field.key] : 'Still to clarify'}</p><button className="ux-text-button" onClick={() => { setView('edit'); setFocusField(field.key); }}>Edit {field.label}</button></>}
             </section>)}
           </article><aside className="ux-review-note"><h2>Before you move forward</h2><p>Does this describe the outcome you actually want?</p><ul>{missing.length ? missing.map(field => <li key={field.key}>{field.label}</li>) : <li>Starting fields supplied. Check the facts and boundaries.</li>}</ul><p>Unknown facts stay open. Filling every field does not clear a gate.</p>
+            {guide && <button className="ux-button" onClick={learn}>Consult the operating guide</button>}
             <hr /><strong>Saved where?</strong><p>Only on this browser when you choose Save. GitHub saving and human signatures are not connected here.</p>
             {baseline && <><p><small>Local identifier: {id}</small></p><button className="ux-button" onClick={() => save(true)}>Save edits as a new draft</button><button className="ux-text-button" onClick={() => setConfirmRemove(true)}>Remove this local draft</button></>}
             {confirmRemove && <section aria-label="Confirm local removal"><p>Remove this browser copy and any unsaved edits? There is no undo. GitHub is unaffected.</p><button className="ux-button" onClick={() => setConfirmRemove(false)}>Keep draft</button><button className="ux-button" onClick={remove}>Confirm removal</button></section>}

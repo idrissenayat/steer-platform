@@ -5,7 +5,7 @@ import ProjectionPanel from './projection-panel';
 import BriefLibrary from './brief-library';
 import BriefAuthor from './brief-author';
 import ReviewWorkspace from './review-workspace';
-import LearnHub from './learn-hub';
+import LearnHub, { LocalLearnHub } from './learn-hub';
 import learnCorpus from './generated/learn.json';
 import type { LearnCorpus } from './learn-reader';
 import LocalWorkspace from './local-workspace';
@@ -17,7 +17,7 @@ export default async function FoundationPage() {
   const session = configured ? sessionView(incoming.get('x-steer-session-view')) : null;
   const repository = session ? repositoryView(incoming.get('x-steer-repository-view')) : null;
   if (session) return (
-    <LocalWorkspace><main className="access-shell workspace-shell">
+    <LocalWorkspace guide={<LocalLearnHub corpus={learnCorpus as LearnCorpus} />}><main className="access-shell workspace-shell">
       <header className="access-brand"><span className="brand-mark" aria-hidden="true">S</span><span>STEER</span><span className="brand-caption">Human direction. Agent execution.</span></header>
       <div className="workspace-heading"><div><div className="eyebrow">Session verified</div><h1>Your workspace.</h1><p className="lede">One place to frame intent, steer the work, and review the evidence.</p></div>
         <form action="/auth/logout" method="post"><button className="access-secondary" type="submit">Sign out</button></form></div>
@@ -48,7 +48,7 @@ export default async function FoundationPage() {
     </main></LocalWorkspace>
   );
   return (
-    <LocalWorkspace><main className="access-shell">
+    <LocalWorkspace guide={<LocalLearnHub corpus={learnCorpus as LearnCorpus} />}><main className="access-shell">
       <header className="access-brand"><span className="brand-mark" aria-hidden="true">S</span><span>STEER</span><span className="brand-caption">Human direction. Agent execution.</span></header>
       <div className="access-grid">
         <section className="access-intro" aria-labelledby="access-title">

@@ -31,14 +31,23 @@ test('actual local workspace opts in, reopens inert content, focuses corrections
   try {
     const draft = { version: 1, id: 'local-11111111-1111-4111-8111-111111111111', updatedAt: '2026-09-07T12:00:00.000Z', answers: { ...emptyAuthorAnswers(), title: 'Sample', problem: '<script>unsafe()</script><img src="https://outside.invalid/x">' } };
     saveLocalDraft(window.localStorage, draft, null);
-    await act(async () => root.render(createElement(Component, {}, createElement('div', {}, 'Separate live workspace'))));
+    await act(async () => root.render(createElement(Component, { guide: createElement('div', {}, 'Canonical guide slot') }, createElement('div', {}, 'Separate live workspace'))));
     assert.match(document.body.textContent, /Separate live workspace/); assert.doesNotMatch(document.body.textContent, /Sample/);
     await click('Open UX preview'); assert.doesNotMatch(document.body.textContent, /Separate live workspace/);
     await click('Open Brief →'); assert.match(document.body.textContent, /<script>unsafe/);
     assert.equal(document.querySelector('script, img'), null);
     await click('Edit What is happening now?'); assert.equal(document.activeElement.id, 'local-problem');
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(dom.window.HTMLTextAreaElement.prototype, 'value').set.call(document.getElementById('local-problem'), 'Unsaved correction');
+      document.getElementById('local-problem').dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+    });
+    assert.match(document.querySelector('[role="status"]').textContent, /Unsaved changes/);
+    await click('Consult the operating guide'); assert.match(document.body.textContent, /Canonical guide slot/);
+    assert.equal(document.querySelector('textarea'), null);
+    await click('Return to Brief'); assert.equal(document.getElementById('local-problem').value, 'Unsaved correction');
+    assert.equal(window.localStorage.length, 1);
     await click('Review Brief'); assert.equal(document.activeElement.tagName, 'H1');
-    await click('+ New intent'); await click('Save on this browser');
+    await click('+ New intent'); await click('Discard unsaved edits'); await click('Save on this browser');
     assert.match(document.querySelector('[role="alert"]').textContent, /working title/);
     assert.equal(document.activeElement.id, 'local-title'); assert.equal(window.localStorage.length, 1);
     await click('Return to sign-in workspace'); assert.match(document.body.textContent, /Separate live workspace/);

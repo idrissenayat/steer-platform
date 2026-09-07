@@ -54,8 +54,12 @@ clears all browser storage or touches GitHub.
 - The live authoring component and its expiry/privacy/authorization rules are unchanged.
 - Real GitHub saving, verified Flight Board/Inbox inputs, actionable reviews and
   model-backed conversation remain separate work in `JOURNEY-REMAINING-WORK.md`.
-- Learn remains on the existing authenticated workspace; the local preview does
-  not duplicate the operating canon or mark intent/0004 complete.
+- Choose **Learn STEER** in the sidebar, or **Consult the operating guide** beside
+  the Brief checklist. The same eight-document canonical reader now works here
+  without sign-in. **Return to Brief/backlog** restores the originating view and
+  preserves unsaved answers. Reading never saves them. Search/selection clears on
+  hiding the page or leaving the guide; no reading interests are persisted.
+  This does not duplicate the canon or mark intent/0004 complete.
 - Next UX work should use user feedback on this flow and reusable presentation
   components, then bind them to authoritative services as the approved contracts
   become available. Do not carry local draft states into verified business stages.

@@ -17,6 +17,11 @@ storage limits and verification. This sequencing change does not authorize a
 weaker live boundary or complete J1–J6. Continue UX feedback and reusable work
 surfaces while preserving the actual-authority dependencies below.
 
+0195 connects the canonical Learn reader to this local draft flow without an
+identity dependency. A person can consult/search the operating model and return
+to their unsaved Brief. This advances navigation and guidance, not actionable
+orientation, governed correction submission or verified business stages.
+
 The intended user's authenticated UI was subsequently exercised using the configured
 real membership; the eight-question server preview and Learn were observed. The
 short session expiry clears drafts and destination discovery remains unavailable.
