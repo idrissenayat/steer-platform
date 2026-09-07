@@ -347,3 +347,9 @@ record classes, compensating restrictions and revised acceptance evidence, then
 obtain the required scope and gate approvals. No such deferral is adopted here.
 The immediate decision is execution order only: journey-enabling development now,
 with unfinished archival/provenance work retained in `intent/0120/PLAN.md`.
+0154 development update: the actual membership and gate-source collectors now join
+the shared preview/save/status path through a held writer factory. Even a satisfied
+policy evaluation cannot replace missing governance/provenance or mint write
+authority. The next overnight priority is the exact-content confirmation/save-status
+interface, with real writes disabled. See `intent/0154/EVIDENCE.md`; this is not a
+live runtime installation or completion of full action-time authorization.

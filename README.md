@@ -115,6 +115,9 @@ Item [0146](intent/0146/README.md) checks complete finding continuity across sel
 native Critic reports. Even resolved findings cannot silently disappear; linked
 accounting does not prove resolution or clear a HOLD.
 
+Item [0154](intent/0154/README.md) joins actual membership and gate-source checks
+to the shared saving path through an explicitly held, non-authorizing writer factory.
+
 Item [0153](intent/0153/README.md) adds bounded, merge-aware Critic target ancestry
 against the configured Git reader, without upgrading review selection or gate authority.
 

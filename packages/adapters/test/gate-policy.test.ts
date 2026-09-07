@@ -5,7 +5,8 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { test, type TestContext } from 'node:test';
-import { briefWriteAuthoritySchema, principalSchema } from '@steer/tool-registry';
+import { briefWriteAuthoritySchema, principalSchema, invokeTool, ToolError, type BriefCreateRequest } from '@steer/tool-registry';
+import { createHeldGitBriefWriterFactory, type HeldBriefAssessment } from '../src/code-host/held-brief-writer.ts';
 import { createGitGatePolicyCollector } from '../src/code-host/gate-policy.ts';
 import { fixture, hash } from './gate-signers-fixture.ts';
 import type { RepositoryReader } from '../src/code-host/github.ts';
@@ -84,7 +85,7 @@ function chain(t: TestContext, count: 1 | 2 | 3 = 3, native = false) {
   const change = (reference: { path: string; digest: string }, edit: (value: any) => void, repin = true) => {
     const value = JSON.parse(sources.get(reference.path)!); edit(value); sources.set(reference.path, JSON.stringify(value)); if (repin) reference.digest = hash(sources.get(reference.path)!);
   };
-  return { config, sources, state, reader, input, reads, change, commit, parts, git,
+  return { config, sources, state, reader, input, reads, change, commit, parts, git, directory,
     create: (configuration: unknown = config) => createGitGatePolicyCollector(reader, configuration, async () => { state.authCalls++; return state.identity; }) };
 }
 
@@ -684,4 +685,155 @@ test('Critic runner startup requires full run/configuration identity and disjoin
     assert.throws(() => f.create({ gates: [selected.gates[0], { ...selected.gates[1], critic: { ...selected.gates[1].critic, runner } }] }));
   }
   assert.equal(f.reads.length, 0);
+});
+function heldWriter(t: TestContext, hold = false) {
+  const critic = hold ? criticHistory(t, true) : null;
+  const f = critic ?? chain(t, 2, true);
+  const policyConfiguration = critic ? critic.configuration() : f.config;
+  const binding = f.reader.binding, issuer = 'https://identity.synthetic.invalid';
+  const principal = principalSchema.parse({ subject: 'synthetic-writer', organizationId: binding.organizationId, type: 'human',
+    hats: ['product-lead'], toolGrants: ['intent.brief.preview', 'intent.brief.save', 'intent.brief.save.status'],
+    expiresAt: new Date(Date.now() + 90000).toISOString() });
+  const context = { issuer, establishedAt: new Date(Date.now() - 1000).toISOString(), sessionBinding: '1'.repeat(64), principal };
+  const authorizationPath = 'access/writers.json';
+  f.sources.set(authorizationPath, JSON.stringify({ version: 'steer-authorization/v1', organizationId: binding.organizationId,
+    records: [{ ...principal, issuer, active: true, validAfter: new Date(Date.now() - 2000).toISOString() }] })); f.commit();
+  const configuration = { organizationId: binding.organizationId, repository: `github:${binding.repositoryId}`, branch: binding.branch,
+    paths: ['items/0154-demo/BRIEF.md'], platformRevision: f.config.gates[1]!.signerCollection.gateSource.artifactRevision,
+    gate2DecisionDigest: f.input().decisionDigest };
+  const io = { reads: 0, tokens: 0, writes: 0, failRead: false, beforeRead: async () => {} };
+  const rawGit = (...args: string[]) => execFileSync('git', ['-C', f.directory!, ...args]);
+  const commit = (revision: string) => {
+    assert.match(revision, /^[a-f0-9]{40}$/);
+    const content = rawGit('cat-file', '-p', revision).toString('utf8');
+    return { sha: revision, tree: { sha: /^tree ([a-f0-9]{40})$/m.exec(content)![1]! },
+      parents: [...content.matchAll(/^parent ([a-f0-9]{40})$/gm)].map(value => ({ sha: value[1]! })) };
+  };
+  const transport: typeof fetch = async (input, init) => {
+    const url = new URL(String(input)), headers = new Headers(init?.headers);
+    assert.equal(url.origin, 'https://api.github.com'); assert.equal(init?.redirect, 'error'); assert.equal(init?.cache, 'no-store');
+    if (url.pathname === '/app/installations/1/access_tokens') {
+      const body = JSON.parse(String(init?.body)); io.tokens++;
+      if (body.permissions.contents !== 'read') io.writes++;
+      assert.equal(init?.method, 'POST'); assert.equal(headers.get('authorization'), 'Bearer synthetic-app-jwt');
+      assert.deepEqual(body, { repository_ids: [1], permissions: { contents: 'read' } });
+      return Response.json({ token: 'synthetic-read', expires_at: new Date(Date.now() + 3600000).toISOString(),
+        permissions: { contents: 'read', metadata: 'read' }, repositories: [{ id: 1, full_name: 'synthetic/synthetic' }] });
+    }
+    if (init?.method !== 'GET') io.writes++;
+    assert.equal(init?.method, 'GET'); assert.equal(headers.get('authorization'), 'Bearer synthetic-read'); io.reads++; await io.beforeRead();
+    if (io.failRead) return new Response(null, { status: 503 });
+    const prefix = '/repos/synthetic/synthetic'; assert.ok(url.pathname.startsWith(prefix + '/'));
+    const route = url.pathname.slice(prefix.length);
+    if (route === '/git/ref/heads/synthetic') return Response.json({ ref: 'refs/heads/synthetic', object: { type: 'commit', sha: f.state.head } });
+    if (route.startsWith('/git/commits/')) return Response.json(commit(route.slice('/git/commits/'.length)));
+    if (route.startsWith('/git/trees/')) {
+      const sha = route.slice('/git/trees/'.length); assert.match(sha, /^[a-f0-9]{40}$/);
+      const tree = rawGit('ls-tree', '-rtz', sha).toString('utf8').split('\0').filter(Boolean).map(row => {
+        const value = /^(\d+) (\w+) ([a-f0-9]{40})\t([\s\S]+)$/.exec(row)!;
+        return { mode: value[1], type: value[2], sha: value[3], path: value[4] };
+      }); return Response.json({ sha, truncated: false, tree });
+    }
+    if (route.startsWith('/git/blobs/')) {
+      const sha = route.slice('/git/blobs/'.length); assert.match(sha, /^[a-f0-9]{40}$/);
+      const bytes = rawGit('cat-file', 'blob', sha);
+      return Response.json({ sha, encoding: 'base64', content: bytes.toString('base64'), size: bytes.length });
+    }
+    assert.equal(route, '/commits'); assert.equal(url.searchParams.get('per_page'), '2');
+    const revision = url.searchParams.get('sha')!; assert.match(revision, /^[a-f0-9]{40}$/);
+    const path = url.searchParams.get('path')!; assert.match(path, /^\.steer\/authoring\/operations\/[a-f0-9-]+\.json$/);
+    const revisions = rawGit('log', '--format=%H', '-2', revision, '--', path).toString('utf8').trim();
+    return Response.json(revisions ? revisions.split('\n').map(commit) : []);
+  };
+  const dependencies = { issuer, authorizationPath, fetch: transport, appJwt: async () => 'synthetic-app-jwt',
+    authenticateObserver: async () => f.state.identity };
+  const make = () => createHeldGitBriefWriterFactory(binding, configuration, policyConfiguration, dependencies)(async () => structuredClone(context));
+  const content = '# Synthetic Brief\n';
+  const request: BriefCreateRequest = { organizationId: binding.organizationId, repository: configuration.repository,
+    branch: binding.branch, path: configuration.paths[0]!, subject: principal.subject,
+    idempotencyKey: '00000000-0000-4000-8000-000000000154', expectedHead: f.state.head,
+    requestDigest: 'd'.repeat(64), content, contentDigest: hash(content), contentBlobSha: blob(content), expectedBlob: null,
+    operationPath: '.steer/authoring/operations/00000000-0000-4000-8000-000000000154.json' };
+  return { ...f, configuration, policyConfiguration, dependencies, context, principal, request, io, make };
+}
+
+test('held writer composes actual current Git membership and source-backed signer/policy collection without minting authority', async t => {
+  for (const hold of [false, true]) {
+    const f = heldWriter(t, hold), writer = f.make(); t.after(() => writer.close());
+    await assert.rejects(writer.verifyWriteAuthority(f.request, f.principal));
+    const assessment = writer.assessment(); assert.ok(assessment);
+    assert.equal(assessment.sourceRevision, f.state.head); assert.equal(assessment.platformRevision, f.configuration.platformRevision);
+    assert.equal(assessment.policyOutcome, hold ? 'blocked' : 'policy-satisfied');
+    assert.equal(assessment.missing.includes('policy-blocked'), hold);
+    assert.ok(assessment.missing.includes('governed-selection-unverified')); assert.ok(assessment.missing.includes('review-provenance-unverified'));
+    assert.ok(assessment.missing.includes('action-time-authority-incomplete')); assert.ok(Object.isFrozen(assessment.missing));
+    assert.equal(assessment.gateVerified, false); assert.equal(assessment.writeAuthorized, false);
+    assert.ok(f.io.tokens >= 2); assert.ok(f.io.reads > 20); assert.equal(f.io.writes, 0);
+    const before = f.io.reads;
+    await assert.rejects(writer.compareAndCreate(f.request, {} as never)); assert.equal(f.io.reads, before); assert.equal(writer.assessment(), null);
+    const closing = writer.close(); assert.equal(writer.close(), closing); await closing;
+    await assert.rejects(writer.verifyWriteAuthority(f.request, f.principal)); assert.equal(f.io.writes, 0);
+  }
+});
+
+test('real shared preview/save/status flow uses held source collection, returns no receipt, and closes its owned writer', async t => {
+  const f = heldWriter(t), draft = { title: 'Reduce duplicate intake', problem: 'Requests are entered twice.', outcome: 'Enter each request once.',
+    users: ['Coordinators'], systems: ['Unverified intake system'], constraints: ['No new spending'], openQuestions: [], successMeasure: 'Duplicate count' };
+  let owned: ReturnType<typeof f.make> | undefined, last: HeldBriefAssessment | null = null, closes = 0;
+  const context = { principal: f.principal, now: new Date(), revalidate: async () => f.principal,
+    services: { briefWriterFactory: () => {
+      owned = f.make(); const current = owned;
+      return { ...current, close: async () => { last = current.assessment(); closes++; await current.close(); } };
+    } } };
+  const preview = await invokeTool('intent.brief.preview', { organizationId: f.principal.organizationId, draft }, context);
+  const input = { organizationId: f.principal.organizationId, repository: f.configuration.repository, branch: f.configuration.branch,
+    path: f.configuration.paths[0]!, idempotencyKey: f.request.idempotencyKey };
+  const status = await invokeTool('intent.brief.save.status', input, context); assert.equal(status.result.outcome, 'not-found');
+  await assert.rejects(invokeTool('intent.brief.save', { ...input, expectedHead: f.state.head, draft,
+    confirmation: { action: 'accept-rendered-brief', templateVersion: preview.templateVersion, contentDigest: preview.contentDigest } }, context),
+  error => error instanceof ToolError && error.code === 'UNAVAILABLE');
+  assert.ok(last); assert.equal((last as HeldBriefAssessment).policyOutcome, 'policy-satisfied');
+  assert.equal(closes, 2); assert.equal(owned?.assessment(), null); assert.equal(f.io.writes, 0);
+  assert.equal(f.git('rev-parse', 'HEAD'), f.state.head);
+});
+
+test('held factory refuses mismatched platform/gate pins before provider I/O and clears stale assessments on failed later attempts', async t => {
+  const f = heldWriter(t);
+  for (const change of [{ platformRevision: 'e'.repeat(40) }, { gate2DecisionDigest: 'f'.repeat(64) }, { repository: 'github:99' }]) {
+    assert.throws(() => createHeldGitBriefWriterFactory(f.reader.binding, { ...f.configuration, ...change }, f.policyConfiguration, f.dependencies));
+  }
+  assert.equal(f.io.tokens, 0); assert.equal(f.io.reads, 0);
+  const writer = f.make(); t.after(() => writer.close());
+  await assert.rejects(writer.verifyWriteAuthority(f.request, f.principal)); assert.ok(writer.assessment());
+  f.io.failRead = true;
+  await assert.rejects(writer.verifyWriteAuthority(f.request, f.principal)); assert.equal(writer.assessment(), null); assert.equal(f.io.writes, 0);
+});
+
+test('held writer shutdown drains a pending policy read and starts no new provider I/O after closing', async t => {
+  const f = heldWriter(t), writer = f.make();
+  let enter!: () => void, release!: () => void;
+  const ready = new Promise<void>(resolve => { enter = resolve; });
+  const pending = new Promise<void>(resolve => { release = resolve; });
+  t.after(async () => { release(); await writer.close(); });
+  f.io.beforeRead = async () => { if (f.io.tokens >= 2) { enter(); await pending; } };
+  const work = assert.rejects(writer.verifyWriteAuthority(f.request, f.principal)); await ready;
+  const reads = f.io.reads; let stopped = false;
+  const closing = writer.close().then(() => { stopped = true; });
+  await Promise.resolve(); assert.equal(stopped, false); assert.equal(writer.assessment(), null);
+  await assert.rejects(writer.verifyWriteAuthority(f.request, f.principal));
+  release(); await work; await closing;
+  assert.equal(stopped, true); assert.equal(f.io.reads, reads); assert.equal(f.io.writes, 0);
+});
+
+test('held collection denies revoked observer authority and a changed source head without retaining an assessment', async t => {
+  for (const mode of ['observer', 'head']) {
+    const f = heldWriter(t), writer = f.make(); t.after(() => writer.close());
+    f.io.beforeRead = async () => {
+      if (f.io.tokens < 2) return;
+      if (mode === 'observer') f.state.identity = { ...principalSchema.parse(f.state.identity), toolGrants: [] };
+      else f.state.head = 'f'.repeat(40);
+    };
+    await assert.rejects(writer.verifyWriteAuthority(f.request, f.principal));
+    assert.equal(writer.assessment(), null); assert.equal(f.io.writes, 0);
+  }
 });

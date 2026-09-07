@@ -31,6 +31,7 @@ const entrySchema = z.strictObject({ signerCollection: gitGateSignerConfiguratio
   buildEvidence: ref.nullable(), domainAssurance: z.strictObject({ reviews: z.array(z.union([ref, nativeReviewRef])).min(1).max(7),
     exceptionBrief: z.union([ref, nativeExceptionRef]) }).nullable() });
 const configSchema = z.strictObject({ gates: z.array(entrySchema).min(1).max(3) });
+export { configSchema as gitGatePolicyConfigurationSchema };
 const inputSchema = z.strictObject({ sourceRevision: gatePolicyInputSchema.shape.target.shape.artifactRevision, decisionDigest: digest });
 const domainSchema = gatePolicyInputSchema.shape.domainAssurance.unwrap();
 // Development source profiles. Digests come from actual file bytes, never a

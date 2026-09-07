@@ -1351,3 +1351,19 @@ raw commits, and a path cannot establish complete/authoritative review selection
 truthful closure or gate/write authority. Standalone history normalization retains
 its ancestry-required flag because it does not itself read the graph. Historical
 HOLDs and all five R5 findings remain open. See `intent/0153/EVIDENCE.md`.
+## Integrated held Brief writer
+
+Item `intent/0154` introduces `createHeldGitBriefWriterFactory`, composing actual
+current Git membership with the complete gate-policy source collector at the exact
+expected head. Startup validates Gate 1/2 configuration and the writer's platform/
+decision pins. Per-invocation collectors use a separate scoped observer identity.
+The shared registry can invoke this managed writer in isolated composition, including
+its normal preview, status, save and cleanup paths.
+
+Current collectors still require governed selection and review provenance. This
+factory consequently denies every write-authority request and every direct mutation;
+it requests no write token. Its immutable internal assessment is diagnostic only,
+not a public current-readiness query or authority lease. Source failures and later
+attempts clear the diagnostic; close drains owned source work and forbids new I/O.
+No live runtime binding is installed. Next: confirmation/save-status UI under the
+approved overnight plan. See `intent/0154/EVIDENCE.md` for verification and limits.

@@ -3010,3 +3010,20 @@ board integration is stretch work. The active implementation loop incorporates
 these priorities and will report at the first safe checkpoint at or after 08:00.
 This is an execution focus, not a completed increment, gate waiver or promise that
 the first usable journey or all of Phase 1 will be complete overnight.
+
+## Completed development increment: 0154 — Integrated held Brief writer
+
+The real shared preview/save/status path now has an isolated integration with
+actual Git membership and complete signed policy-source collection. A dedicated
+held factory reports immutable internal missing-evidence diagnostics but always
+denies write authority and direct dispatch. Tests cover policy-satisfied fixtures,
+native HOLDs, malformed pins, source changes, revocation and draining closure.
+Five focused tests and full repository checks passed, including 437 root controls,
+270 adapter tests and all package checks/builds. See `intent/0154/EVIDENCE.md`.
+
+The factory is not installed in the live runtime. Governed selection, review
+provenance and complete action-time authority remain indispensable; these tests
+do not manufacture them. All five R5 findings and human/protected review remain
+open. Per the overnight focus, next implement exact-content confirmation and
+read-only save-status feedback in the existing authoring screen with disposable
+test data. Keep live saving disabled; no signature, deployment or spending.
