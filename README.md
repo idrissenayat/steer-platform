@@ -11,6 +11,8 @@ Start with the [end-to-end process, workflow and architecture](docs/architecture
 and its [workflow contract / decisions](docs/architecture/WORKFLOW-CONTRACT.md).
 The current [I1–I6 journey plan](docs/INTENT-JOURNEY-PLAN.md) now includes the
 design checkpoint before dependent persistence and bundle-publication work.
+The [revision 2 correction record](docs/architecture/REVIEW-FIXES.md) specifies
+the five review fixes and separates safe contract development from live activation.
 
 Through [0204](intent/0204/EVIDENCE.md), the actual Next conversation has source
 review, explicit direction and editable Brief/Spec/Exam candidate copies.

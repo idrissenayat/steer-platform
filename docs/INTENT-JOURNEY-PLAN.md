@@ -11,12 +11,18 @@ integration rework. Use [the end-to-end blueprint](architecture/END-TO-END.md)
 and [workflow contract](architecture/WORKFLOW-CONTRACT.md) to connect I1–I6.
 They distinguish candidate save, human pull, independent Exam and gate decisions.
 
-Resolve D1 (durable operational records and applicable records policy) and D3
-(candidate bundle versus protected canonical Exam publication) before implementing
-their dependent storage/write paths. These are proposed amendments/contracts,
-not approval to change the signed baseline. Safe read-only integration and
-non-billable contract tests can continue. Do not implement the next persistence
-slice merely because an older checkpoint below calls it “next.”
+Revision 2 addresses the five review findings in [the correction record](architecture/REVIEW-FIXES.md).
+The next safe work is pure contracts and non-billable negative tests for final-edited
+scope invalidation, contextual semantic evidence, operation/step ownership and
+candidate manifests, followed by disabled adapters. D3's publication/discovery layout
+is now specified; it is not a grant to write or promote canonical Exams.
+
+D1's [exact records amendment](architecture/DRAFT-RECORDS-AMENDMENT.md) remains
+unsigned and inactive. Real draft persistence needs qualified exact-revision
+adoption and enforced recovery/retention controls; live publication/promotion needs
+its protection review and current authority. Do not block independent contract
+development on those activation decisions, and do not treat an older “next” note
+as permission to install real persistence under the existing memory-only policy.
 
 ## Completion means a demonstrated human journey
 

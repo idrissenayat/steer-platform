@@ -9,6 +9,10 @@ and [workflow contract](architecture/WORKFLOW-CONTRACT.md). They distinguish
 candidate drafts from pulled work and formal gates, and propose the durable-state
 and protected-publication decisions still needed before those integration paths.
 This document below describes the current implementation, not those proposed paths.
+The [revision 2 corrections](architecture/REVIEW-FIXES.md) define the target's
+final-edited-scope review, contextual retrieval, durable per-step ownership and
+manifest-based publication. The current synchronous two-role implementation does
+not yet implement those contracts; its tested limits below still apply.
 
 ## Human journey
 

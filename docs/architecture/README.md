@@ -5,6 +5,11 @@ intent workflow, system architecture, responsibilities and current implementatio
 boundary. Its [workflow contract and decisions](WORKFLOW-CONTRACT.md) define
 proposed state transitions, persistence, duplicate prevention and failure recovery.
 
+Revision 2's [five review corrections](REVIEW-FIXES.md) specify edit invalidation,
+contextual evidence, durable execution ownership and candidate publication paths.
+The [exact draft-records amendment](DRAFT-RECORDS-AMENDMENT.md) is a separate,
+unsigned adoption proposal, not active retention or deletion policy.
+
 The canonical production architecture for item 0001 remains
 [Architecture revision 2](../../intent/0001/ARCHITECTURE.md). Its historical
 “Gate 1 draft” header is preserved in the signed snapshot; the

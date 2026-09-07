@@ -1,6 +1,6 @@
 # STEER: end-to-end process, workflow and architecture
 
-Design review package · 2026-09-07 · Implementation snapshot: `0f4ee265a51896fbbddaa23063c9933aa4bfba8b`
+Design review package · Revision 2 · 2026-09-07 · Implementation snapshot: `0f4ee265a51896fbbddaa23063c9933aa4bfba8b`
 
 Start here to understand **what happens, when it happens, who owns it, and what
 must be recorded before the next step**. These are target flows, not a claim that
@@ -13,6 +13,12 @@ It does not sign a gate, amend the records policy, enable provider access, or
 authorize spending. The historical architecture's “Gate 1 draft” header is not its
 current approval status: [the detached Gate 1 record](../../intent/0001/signatures/gate-1.json)
 binds revision 2 at `281c9736816ec22fa1209b060b58fa8164519f7c`.
+
+The [five review corrections](REVIEW-FIXES.md) now have explicit design contracts:
+edit invalidation, contextual semantic evidence, durable step ownership, an exact
+records amendment proposal and candidate publication paths. They are not runtime
+completion claims. The [records amendment](DRAFT-RECORDS-AMENDMENT.md) still needs
+qualified approval before real draft persistence can be activated.
 
 ## 1. The human experience
 
@@ -108,9 +114,9 @@ sequenceDiagram
   actor U as Human
   participant W as Actual Next workspace
   participant A as Authorized tool API
-  participant D as Draft store - proposed
+  participant D as Draft and operation stores
   participant S as Scoped source reader
-  participant R as Agent coordinator
+  participant R as Durable worker and agents
   participant G as Gateway and budget permit
   participant H as GitHub adapter
   participant P as Projection worker
@@ -118,18 +124,26 @@ sequenceDiagram
   W->>A: Submit source revision and operation identity
   A->>A: Verify identity, tenant, product and grants
   A->>D: Record draft revision and request ownership
+  Note over A,D: Real persistence requires accepted records amendment
   A->>S: Read permitted Brief and Spec evidence at exact revisions
   S-->>A: Sources, coverage gaps and fingerprints
-  A->>R: Assess scope with cited evidence
+  A->>R: Start fixed scope-review operation
+  A-->>W: Operation accepted, observe its status
   Note over R,G: Reserve before every model call
-  R->>G: Reserve approved cost, then assess or generate
+  R->>D: Atomically claim step and reserve cost
+  D-->>R: Current ownership and reservation
+  R->>D: Commit one-way dispatch state
+  D-->>R: Unambiguous dispatch acknowledgement
+  R->>G: Assess verified sections with heading context
   G-->>R: Bounded structured output, or explicit failure
+  R->>D: Persist validated step result before advancing
   R-->>A: Cited assessment with coverage and uncertainty
   A-->>W: Explain already covered, partial, related or no match found
-  U->>W: Open existing, or confirm proposed direction and reason
+  Note over U,W: Open existing exits without creation
+  U->>W: Confirm proposed candidate direction and reason
   W->>A: Confirm against reviewed source fingerprints
   A->>S: Recheck current scope before drafting
-  A->>R: Develop confirmed intent with source evidence
+  A->>R: Start fixed development operation with current evidence
   R->>G: Architect: clarify, or draft Brief and Spec
   G-->>R: Questions or candidate Brief and Spec
   alt Necessary facts missing
@@ -141,16 +155,30 @@ sequenceDiagram
   else Enough evidence to draft
     R->>G: Fresh Test Agent context: draft Exam, NOT RUN
     G-->>R: Candidate Exam, not executed or approved
+    Note over R,D: Each role uses its own claimed step and result checkpoint
+    R->>S: Resolve contextual evidence for generated Brief and Spec
+    R->>G: Review final generated scope under its own reserved step
+    G-->>R: Final-scope assessment with verified citations
     R-->>A: Bundle plus generation provenance
     A->>S: Recheck scope and authorization before exposing result
     A->>D: Preserve originals and editable revision separately
-    A-->>W: Show Brief, Spec and Exam for correction
+    A-->>W: Show candidate bundle and final-scope review
   end
   Note over W,A: Only complete bundles can be saved
-  U->>W: Correct and confirm Save candidate bundle
+  U->>W: Correct documents
+  W->>A: Preserve new edit revision and invalidate affected reviews
+  A->>D: Acknowledge owner-bound edit revision
+  opt Brief or Spec changed
+    U->>W: Review these corrections
+    W->>A: Request final-scope re-review
+    A->>R: Start fixed re-review operation
+    R-->>A: Fresh assessment bound to edited Brief and Spec
+    A-->>W: Explain changes and proposed direction
+  end
+  U->>W: Confirm reviewed direction and Save candidate bundle
   W->>A: Exact bundle digest, destination and operation identity
-  A->>S: Fresh scope and current-head recheck
-  A->>H: Authorized atomic bundle write at expected Git head
+  A->>S: Recheck edited-scope digest and current source head
+  A->>H: Atomic candidate files, pointer and receipt at expected head
   H-->>A: Verified commit, receipt and content hashes, or uncertainty
   A-->>W: Recorded in Git, or checking save outcome
   A->>P: Request authorized projection of the verified commit
@@ -164,6 +192,14 @@ keeps a link without being merged. No match means *no match within the checked
 scope*, not proof of global uniqueness. Missing, stale or truncated evidence
 must remain visibly incomplete. See the [workflow contract](WORKFLOW-CONTRACT.md)
 for concurrency, failures and the proposed durable state transitions.
+
+The diagram spans immutable review/development operations on one draft; changed
+input creates a linked operation, not mutation of a running request. API responses
+are acknowledgements/status, not a requirement to keep an HTTP request open for
+the whole model job. The durable worker resumes authorized checkpoints. Once a
+model dispatch is possibly sent, timeout never automatically dispatches it again.
+The final-scope review covers the generated/edited Brief and Spec, not only the
+original message. An edited Exam is visibly stale for independent review.
 
 A pre-pull Spec/Exam is a **preliminary candidate**, not completed Frame work.
 After pull, design choices still need Gate 1; the Test Agent must reconcile the
@@ -184,14 +220,15 @@ flowchart TD
   I[Keycloak / normalized OIDC and scoped agent identities] --> A[apps/api: Hono, authorization and policy]
   T --> A
   A --> C[packages/domain: gates, scope, capacity and transitions]
-  A --> R[packages/agents: coordinator and isolated Mastra adapter]
+  A --> F[apps/worker: Temporal draft jobs, waits and recovery]
+  F --> R[packages/agents: coordinator and isolated Mastra adapter]
   R --> B[Durable cost reservation before every call]
   B --> G[LiteLLM gateway: pinned model and provider configuration]
   A --> H[Code-host adapter: GitHub App]
   H --> K[Git: declarations, canonical artifacts, decisions and receipts]
   A -.-> D[Postgres operational state: drafts and operation identities - proposed]
   B --> V[Postgres budget accounting: durable, not a cache]
-  A --> F[apps/worker: Temporal execution, waits and recovery]
+  F -.-> D
   F --> H
   H --> P[Postgres read projections: tenant RLS and rebuildable indexes]
   P --> A
@@ -239,12 +276,14 @@ This is a code/document audit at the snapshot above, not a new live acceptance r
 
 ## 6. Build order and design review exit
 
-1. Settle [D1–D3](WORKFLOW-CONTRACT.md#6-decisions-before-dependent-implementation):
-   storage authority/retention, candidate-to-flight semantics, and protected bundle
-   publication. Incorporate any approved doctrine change through the documented
-   source-sync process; preserve historical signed snapshots.
-2. Establish versioned draft/operation contracts, save provenance and failure
-   semantics; complete non-billable tests before enabling integrations.
+1. Implement pure contracts and non-billable negative tests against the
+   [revision-2 correction record](REVIEW-FIXES.md): final-scope invalidation,
+   contextual evidence, unique step ownership and fixed publication manifests.
+2. Build disabled adapters against those contracts. Before real draft persistence,
+   obtain exact qualified adoption of [D1's records amendment](DRAFT-RECORDS-AMENDMENT.md)
+   and incorporate affected doctrine/Exam through their owners, preserving historical
+   signatures. D3 now specifies paths and promotion; its protection/grant acceptance
+   remains required before live writing.
 3. Compose permitted real source retrieval and evidence-bound semantic review.
 4. Bind the approved capped gateway, clarify/draft, and validate content quality.
 5. Complete correction/restore, atomic save and exact-revision reopening.
@@ -252,8 +291,8 @@ This is a code/document audit at the snapshot above, not a new live acceptance r
    in the actual app. Then continue the remaining signed Phase 1 exit exam, not
    an expanded unrelated feature list.
 
-This package becomes the implementation reference after its open decisions are
-resolved. It is **not** a second product specification or replacement gate policy.
+This package is the reference for authorized contract development. Proposed policy
+changes remain inactive until adopted. It is **not** a replacement gate policy.
 The [I1–I6 plan](../INTENT-JOURNEY-PLAN.md) remains the delivery tracker.
 
 ### Sources

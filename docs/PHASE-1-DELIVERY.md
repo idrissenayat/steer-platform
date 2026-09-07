@@ -22,8 +22,8 @@ inside STEER. Every surface uses the same registry and tenant authorization.
 
 2026-09-07 design checkpoint: [end-to-end blueprint](architecture/END-TO-END.md)
 and [workflow contract](architecture/WORKFLOW-CONTRACT.md) now map the full process
-and the current intent journey. Resolve proposed operational-state/records and
-protected candidate-publication contracts before their dependent implementation;
+and the current intent journey. Review proposed operational-state/records and
+protected candidate-publication contracts before their dependent activation;
 see the controlling checkpoint in [I1–I6](INTENT-JOURNEY-PLAN.md).
 
 The current dependency-ordered first-journey work packages and separate approval
@@ -4224,3 +4224,31 @@ clipped sequence note corrected. All 159 local links/heading anchors across the
 eight changed documents resolved. `pnpm kit:check` passed (95 required artifacts),
 `pnpm security:check` passed, and `git diff --check` passed. This was documentation
 QA, not a new live application, model-provider or Git-saving acceptance run.
+
+## Design correction — End-to-end revision 2, 2026-09-07
+
+Addressed the five findings from the review of `6bc6818` in the blueprint and
+workflow contract. Final edited/generated Brief/Spec hashes now drive review and
+consent invalidation; contextual semantic retrieval has explicit inventory, section
+and citation rules; durable operations have unique step claims, transaction-bound
+reservations, fencing, one-way dispatch and result checkpoints; candidate and
+amendment manifests have fixed paths, discovery, exact reopen and protected
+promotion rules. `docs/architecture/REVIEW-FIXES.md` maps each design correction
+to required acceptance rather than claiming implemented behavior.
+
+`docs/architecture/DRAFT-RECORDS-AMENDMENT.md` proposes exact finite draft/operation/
+accounting classes, access and backup/key handling. It is unsigned and inactive;
+the accepted memory-only rule remains in force. Qualified adoption and controlled
+incorporation remain prerequisites for real persistence. The current I1–I6 plan
+permits pure contracts, non-billable tests and disabled adapters without treating
+those implementation steps as activation or waiting unnecessarily on live approvals.
+
+Verification: all three diagrams render with Mermaid 11.4.1 in local Chromium;
+the revised sequence and architecture were visually inspected. All 182 local links
+and heading anchors across ten documents resolve. Kit validation (95 required
+artifacts), workflow token-scope audit and whitespace checks pass. Hashes remain
+`9e1783a5...` (signed architecture), `84ad1d4c...` (protected Exam), and
+`f8a9cb9a...` (accepted HR-01-R2 records policy). No application code, original Word
+doctrine, live service, secret, grant, budget or formal gate changed. The known
+lexical retrieval counterexamples remain prospective runtime acceptance cases,
+not newly passing tests or evidence of semantic quality.

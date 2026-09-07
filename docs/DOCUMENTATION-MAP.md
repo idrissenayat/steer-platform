@@ -16,6 +16,10 @@ audit above, the signed execution plan or formal gate status.
   sequence, architecture, owners, storage/recovery and current implementation
   boundaries. Proposed operational-state and candidate-publication decisions are
   not adopted doctrine; the signed architecture and protected Exam remain unchanged.
+- [Revision 2 correction record](architecture/REVIEW-FIXES.md) maps all five review
+  findings to concrete design contracts and acceptance cases. The separate
+  [draft-records amendment](architecture/DRAFT-RECORDS-AMENDMENT.md) states an exact
+  proposed policy change; no root doctrine or signed records policy is changed by it.
 - [Current intent journey plan](INTENT-JOURNEY-PLAN.md): I1–I6 implementation and
   the design checkpoint before dependent persistence/publication work.
 - [Phase 1 delivery ledger](PHASE-1-DELIVERY.md): completed development increments
