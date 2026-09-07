@@ -8,6 +8,12 @@ export interface GateWatchPlan { target: GateTarget; rounds: number; intervalMs:
 /** A source checkpoint, not an approval, signer record or globally ordered event offset. */
 export interface GateObservation { sourceRevision: string; artifactRevision: string; decisionDigest: string | null }
 export interface GateWatchActivities { observeGate(target: GateTarget): Promise<GateObservation> }
+/** Save operation reference only; branch, receipt subject and source stay in trusted runtime configuration. */
+export interface RecordedBriefTarget { scope: ReconciliationScope; idempotencyKey: string }
+export type RecordedBriefCheckpoint = { revision: string } & (
+  { status: 'observed'; outcome: 'applied' | 'duplicate' | 'repaired' | 'superseded' } |
+  { status: 'different-revision'; outcome: null });
+export interface RecordedBriefActivities { projectRecordedBrief(target: RecordedBriefTarget): Promise<RecordedBriefCheckpoint> }
 
 const object = (value: unknown): value is Record<string, unknown> => Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 const exact = (value: Record<string, unknown>, keys: string[]) => Object.keys(value).length === keys.length && keys.every((key) => Object.hasOwn(value, key));
@@ -35,7 +41,24 @@ export function parseReceipt(value: unknown): ReconciliationReceipt {
   return { revision: value.revision, status: value.status as ReconciliationReceipt['status'], acknowledged: value.acknowledged as number };
 }
 
-const revision = (value: unknown): value is string => typeof value === 'string' && /^[a-f0-9]{40}$/.test(value);
+const revision = (value: unknown): value is string => typeof value === 'string' && value.length === 40 && /^[a-f0-9]{40}$/.test(value);
+export function parseRecordedBriefTarget(value: unknown): RecordedBriefTarget {
+  if (!object(value) || !exact(value, ['scope', 'idempotencyKey']) || typeof value.idempotencyKey !== 'string' ||
+    value.idempotencyKey.length !== 36 || !/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(value.idempotencyKey)) throw new Error('Invalid recorded Brief target.');
+  return { scope: parseScope(value.scope), idempotencyKey: value.idempotencyKey };
+}
+export function recordedBriefWorkflowId(value: unknown): string {
+  const target = parseRecordedBriefTarget(value);
+  return `${workflowId(target.scope).replace('steer-reconcile/v1/', 'steer-recorded-brief/v1/')}/${target.idempotencyKey}`;
+}
+export function parseRecordedBriefCheckpoint(value: unknown): RecordedBriefCheckpoint {
+  if (!object(value) || !exact(value, ['revision', 'status', 'outcome']) || !revision(value.revision)) throw new Error('Invalid recorded Brief checkpoint.');
+  if (value.status === 'different-revision' && value.outcome === null) return { revision: value.revision, status: value.status, outcome: null };
+  if (value.status === 'observed' && ['applied', 'duplicate', 'repaired', 'superseded'].includes(value.outcome as string)) {
+    return { revision: value.revision, status: value.status, outcome: value.outcome as 'applied' | 'duplicate' | 'repaired' | 'superseded' };
+  }
+  throw new Error('Invalid recorded Brief checkpoint.');
+}
 export function parseGateTarget(value: unknown): GateTarget {
   if (!object(value) || !exact(value, ['scope', 'gate', 'artifactRevision']) || ![1, 2, 3].includes(value.gate as number) || !revision(value.artifactRevision)) throw new Error('Invalid gate target.');
   return { scope: parseScope(value.scope), gate: value.gate as GateTarget['gate'], artifactRevision: value.artifactRevision };

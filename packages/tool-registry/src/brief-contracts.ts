@@ -1,6 +1,6 @@
 import { z } from 'zod';
 export * from './brief-destination.ts';
-export { briefSaveStatusInputSchema, briefSaveOutputSchema, type BriefSaveOutput } from './brief-save-contracts.ts';
+export { briefSaveStatusInputSchema, briefSaveReferenceSchema, briefSaveOutputSchema, type BriefSaveOutput } from './brief-save-contracts.ts';
 import { briefDocumentSchema } from './brief-document.ts';
 import { readableBriefPathSchema } from './brief-paths.ts';
 export { canonicalBriefPathSchema, readableBriefPathSchema } from './brief-paths.ts';

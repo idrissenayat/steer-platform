@@ -3292,3 +3292,32 @@ wrapper. Do not enable a live scheduler, save button, provider access or gate ac
 Full governed write authority, model conversation, all five R5 findings, independent/
 qualified protected review and human signatures remain unfinished. No deployment,
 release, grants or spending changed; the standing implementation loop remains active.
+
+## Completed development increment: 0165 — Durable recorded-Brief projection
+
+The existing exact receipt-projection job now has a dedicated Temporal worker path.
+Trusted configuration binds one canonical Brief and receipt subject to an exact
+UUID save operation. Current readback stays outside workflow history and must match
+all six reference fields. The separately authorized projector retains exact source
+verification, CAS, duplicate behavior and different-revision no-rewind protection.
+One bounded activity attempt is permitted; retained workflow IDs reject duplicates.
+Errors are sanitized and owned shutdown drains actual work before closing its pool.
+
+The actual local Temporal/native-Git/PostgreSQL integration passed 22 checks,
+including four new groups for queued recreation, exact bytes, history replay,
+wrong target/receipt, current committed revocation and no rewind. The three-group
+actual creation regression passed again. Full checks passed: 438 root controls,
+99 registry, 24 data, 53 web, 283 adapter, 91 API and 23 worker tests, remaining
+workspaces and all builds. Owned test resources were cleaned. See
+`intent/0165/EVIDENCE.md` for callback provenance and recovery-test limits.
+
+Next connect actual disposable HTTP Brief creation and authenticated store status
+to this worker, then verify the curated work list opens the exact projected receipt
+revision. These currently pass in separate integrations, not a single end-to-end
+browser journey. Keep all test-only identity/authority explicit and do not enable
+a live save button, scheduler or provider grant for the demonstration.
+
+Full governed write authority, model conversation, all five R5 findings, independent/
+qualified protected review and human signatures remain unfinished. No deployment,
+release, live writer/scheduler, grants or spending changed. The standing implementation
+loop remains active; candidate remote equality is verified after commit.

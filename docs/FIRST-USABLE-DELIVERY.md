@@ -63,7 +63,7 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0164
+### Latest development audit — increment 0165
 
 The production UI now supports deterministic describe/correct, exact local review,
 manual prior-operation status and opening the exact recorded Brief. Disposable
@@ -98,8 +98,14 @@ stale/missing exact selections never open a replacement revision. This completes
 read-only navigation from Brief to recorded decision to permitted evidence, not
 human approval or an actionable decision Inbox.
 
+The recorded projection job now runs through a dedicated durable worker, bound to
+one exact save reference. An owned pool, current callback/agent checks, content-free
+history, one-attempt execution and duplicate/no-rewind behavior are exercised with
+actual local Temporal, native Git and PostgreSQL. Its test readback provenance is
+synthetic. Creation and durable dispatch are not yet one integrated browser journey.
+
 Remaining engineering includes the complete governed evidence-selection/action-time
-writer composition, an owned save-to-projection workflow, authenticated lifecycle
+writer composition, end-to-end creation-to-worker dispatch, authenticated lifecycle
 and decision projections, and the model-backed agent conversation. The current
 save button stays disabled. The prototype's supplied signature arrays cannot be
 promoted to verified board stages merely by importing its read-model code.
@@ -107,10 +113,10 @@ promoted to verified board stages merely by importing its read-model code.
 Real membership/runtime configuration, complete live-write authority, all five R5
 findings, independent/qualified protected review and human gate decisions remain
 separate outstanding dependencies. No live writer/scheduler, deployment or spending
-is authorized by this audit. Next connect the existing receipt-projection job to
-the durable worker workflow with content-free references and current projector
-authorization. The current worker reconciles repository snapshots and watches
-decision sources, but does not yet own a receipt-specific projection activity.
+is authorized by this audit. Next join actual disposable HTTP Brief creation and
+authenticated store-status readback to this worker, then verify the existing curated
+work list opens its exact projected revision. Keep test-only authority explicit;
+do not enable a live save button or scheduler to demonstrate this integration.
 
 The **68–132 hours below is the original baseline estimate**, not current remaining
 effort. Re-estimation must use these implementation gaps and separate engineering
@@ -433,3 +439,10 @@ exact-revision Brief reader. Current catalog/access checks still decide availabi
 newer projected content cannot silently replace the recorded revision. This completes
 the non-writing prior-receipt inspection path in disposable integration, not a live
 save or Phase 1 acceptance. See `intent/0157/EVIDENCE.md` for verification and limits.
+
+0165 development update: exact recorded-Brief projection now has a bounded durable
+worker path with current readback outside history, exact operation binding and no
+automatic retries or projection rewind. Actual Temporal/native-Git/PostgreSQL tests
+pass, alongside the separate real disposable creation regression. Creation-to-worker
+dispatch-to-browser refresh remains to be demonstrated as one isolated journey;
+there is still no enabled live save/scheduler or Phase 1 acceptance.

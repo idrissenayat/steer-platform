@@ -99,3 +99,21 @@ test('scope and reader binding are copied before asynchronous readback can mutat
   configured.organizationId = 'foreign'; configured.paths.length = 0; f.binding.organizationId = 'foreign';
   assert.equal((await job.runOnce()).outcome, 'applied'); await job.shutdown();
 });
+test('optional exact operation binding rejects changed receipt identity before source or sink access', async () => {
+  const { organizationId, repository, branch, path, subject, idempotencyKey } = observation.result;
+  const reference = { organizationId, repository, branch, path, subject, idempotencyKey };
+  for (const change of [{ subject: 'another-human' }, { idempotencyKey: '15900000-0000-4000-8000-000000000002' },
+    { branch: 'other' }, { path: 'items/0159-other/BRIEF.md' }, { organizationId: 'foreign' }, { repository: 'github:2' }]) {
+    const f = fixture(); f.dependencies.readReceipt = async () => ({ ...observation, result: { ...observation.result, ...change } });
+    const job = createRecordedBriefProjectionJob(f.reader, scope, { ...f.dependencies, expectedReference: reference });
+    await assert.rejects(job.runOnce(), /operation changed/);
+    assert.equal(f.counts().reads, 0); assert.equal(f.counts().writes, 0); await job.shutdown();
+  }
+  const f = fixture(), configured = { ...reference };
+  const job = createRecordedBriefProjectionJob(f.reader, scope, { ...f.dependencies, expectedReference: configured });
+  configured.subject = 'mutated'; assert.equal((await job.runOnce()).outcome, 'applied'); await job.shutdown();
+  for (const invalid of [{ ...reference, path: 'items/0159-other/BRIEF.md' }, { ...reference, token: 'private' },
+    { ...reference, subject: '' }, { ...reference, idempotencyKey: 'not-uuid' }]) {
+    assert.throws(() => createRecordedBriefProjectionJob(f.reader, scope, { ...f.dependencies, expectedReference: invalid }));
+  }
+});

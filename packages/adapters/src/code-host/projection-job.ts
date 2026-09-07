@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { principalSchema, artifactProjectionInputSchema, type Principal } from '@steer/tool-registry';
-import { briefDestinationScopeSchema } from '@steer/tool-registry/brief-contracts';
+import { briefDestinationScopeSchema, briefSaveReferenceSchema, briefSaveOutputSchema } from '@steer/tool-registry/brief-contracts';
 import { artifactSelectionSchema, type ArtifactReader, type RepositoryReader } from './github.ts';
 import { reconcileArtifacts, reconcileRepository, reconcileRecordedBrief, type SnapshotProjectionSink, type ProjectionOutcome } from './reconcile.ts';
 
@@ -29,15 +29,21 @@ export function createProjectionJob(reader: RepositoryReader, rawSelector: unkno
  * readReceipt must be prebound to authenticated store readback; parsing its output
  * cannot establish human provenance. The projector never impersonates that human. */
 export function createRecordedBriefProjectionJob(reader: ArtifactReader, rawScope: unknown,
-  dependencies: ProjectionDependencies & { readReceipt: () => Promise<unknown> }) {
+  dependencies: ProjectionDependencies & { readReceipt: () => Promise<unknown>; expectedReference?: unknown }) {
   const scope = briefDestinationScopeSchema.parse(rawScope);
+  const reference = dependencies.expectedReference === undefined ? undefined : briefSaveReferenceSchema.parse(dependencies.expectedReference);
+  if (reference && (reference.organizationId !== scope.organizationId || reference.repository !== scope.repository ||
+      reference.branch !== scope.branch || scope.paths.length !== 1 || reference.path !== scope.paths[0])) throw new Error('Invalid recorded operation binding.');
   const binding = Object.freeze({ ...reader.binding });
   if (scope.organizationId !== binding.organizationId || scope.repository !== `github:${binding.repositoryId}` ||
       scope.branch !== binding.branch) throw new Error('Invalid recorded projection scope.');
   const pinnedReader: ArtifactReader = { binding, readHead: () => reader.readHead(), readArtifact: (path, revision) => reader.readArtifact(path, revision) };
   return createAuthorizedProjectionJob(scope.organizationId, dependencies, async (current, signal) => {
-    const observation = await dependencies.readReceipt();
+    const observation = briefSaveOutputSchema.parse(await dependencies.readReceipt());
     await current();
+    if (reference && (Object.keys(reference) as (keyof typeof reference)[]).some(key => observation.result[key] !== reference[key])) {
+      throw new Error('Recorded operation changed.');
+    }
     const sink = dependencies.sink(current);
     return reconcileRecordedBrief(pinnedReader, scope, observation, {
       currentRevision: async (...args) => { await current(); return sink.currentRevision(...args); },

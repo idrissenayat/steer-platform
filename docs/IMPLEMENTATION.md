@@ -1624,3 +1624,40 @@ browser storage, provider request, content mutation or live configuration was ad
 Sites guidance preserved the existing local Next/OIDC architecture and pink/orange
 review styling. The background run used isolated browser QA, not a foreground demo
 handoff or deployment. See `intent/0164/EVIDENCE.md` for observed tests and limits.
+
+## 0165 — Durable recorded-Brief projection
+
+`createWorkerRecordedBriefRuntime` composes the existing recorded projection job
+and an owned lazy `steer_projector` pool. Trusted source configuration binds branch,
+canonical Brief path and receipt subject; the item must name that path's directory.
+The adapter's optional exact `expectedReference` binding is mandatory here. Current
+readback must match organization, repository, branch, path, subject and idempotency
+key before entering source/SQL work. The callback remains responsible for authenticated
+receipt provenance. Parsing and reference equality do not establish human authority.
+
+`RecordedBriefTarget` contains only the existing bounded scope and UUID-v4 operation
+key. `startRecordedBriefProjection` starts one deterministic, duplicate-rejected
+workflow with a five-minute execution limit. `projectRecordedBrief` makes one activity
+attempt (two-minute execution/three-minute scheduling limits, maximumAttempts 1).
+The dedicated `createRecordedBriefWorker` registers only fixed projection activities.
+No public route, live queue, provider grant, automatic save dispatch or scheduler
+configuration is installed. Trusted callers own worker/connection shutdown; the
+runtime drains its actual job and closes only its own pool.
+
+History receives only the target and a strict content-free checkpoint: exact revision,
+observed/different-revision and applied/duplicate/repaired/superseded/null. Callback
+failures are sanitized. A timeout/cancellation or post-write authorization failure
+does not prove rollback. No automatic retry is permitted; operational recovery must
+inspect the exact current receipt and projection separately. Retained workflow IDs
+cannot be reused, and incompatible fixed bindings must not share a polled queue.
+
+The actual local Temporal/Git/PostgreSQL suite covers queued runtime recreation,
+replay without new activities, retained duplicate denial, exact projected bytes,
+wrong identity/operation, changed receipt subject/key, committed grant revocation,
+and preservation of a newer projection. Receipt provenance in this suite is an
+explicit synthetic callback over native Git source, not a provider-approved save.
+The separate actual HTTP/native-Git creation suite remains a regression; this does
+not yet join creation and durable dispatch into one browser journey.
+
+No browser code, schemas, package dependencies or live configuration changed.
+See `intent/0165/EVIDENCE.md` for verification and remaining boundaries.

@@ -157,6 +157,11 @@ Item [0164](intent/0164/README.md) adds inspection of permitted evidence from th
 decision references, preserving exact source text and fingerprints. References do
 not grant access, and inspection does not verify an approval.
 
+Item [0165](intent/0165/README.md) connects exact recorded-Brief projection to a
+bounded Temporal worker. Trusted current readback stays outside workflow history;
+operation substitution, duplicates and projection rewind are denied. This is tested
+isolated execution, not an enabled live scheduler or save path.
+
 Item [0153](intent/0153/README.md) adds bounded, merge-aware Critic target ancestry
 against the configured Git reader, without upgrading review selection or gate authority.
 

@@ -18,6 +18,7 @@ import { createActivityWorker } from '../src/worker.ts';
 import { startReconciliation } from '../src/client.ts';
 import { workflowId } from '../src/contracts.ts';
 import { startProcessWorker } from './process-harness.ts';
+import { testRecordedBriefWorkflow } from './recorded-brief.integration.ts';
 
 export async function testProjectedWorkflow(env: TestWorkflowEnvironment, bundle: WorkflowBundle, temporary: string,
   check: (name: string, run: () => Promise<void>) => Promise<void>) {
@@ -138,6 +139,7 @@ export async function testProjectedWorkflow(env: TestWorkflowEnvironment, bundle
       const closed = await child.stop('SIGTERM'); child = undefined;
       assert.equal(closed.code, 0); assert.deepEqual(closed.stopped, { type: 'stopped', state: 'stopped', databaseClosed: true, connectionClosed: true });
     });
+    await testRecordedBriefWorkflow(env, bundle, temporary, database, password, admin, check);
   } finally {
     try { if (child) await child.stop('SIGKILL'); if (worker) { worker.shutdown(); await running; } }
     finally { try { await runtime?.shutdown(); await admin?.end(); }

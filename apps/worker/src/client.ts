@@ -1,5 +1,14 @@
 import { type Client, WorkflowIdConflictPolicy, WorkflowIdReusePolicy, WorkflowExecutionAlreadyStartedError, WorkflowNotFoundError } from '@temporalio/client';
-import { parsePlan, parseScope, workflowId, parseGateWatchPlan, gateWatchId } from './contracts.ts';
+import { parsePlan, parseScope, workflowId, parseGateWatchPlan, gateWatchId, parseRecordedBriefTarget, recordedBriefWorkflowId } from './contracts.ts';
+
+/** Trusted internal dispatch only. No public route, scheduler registration or authority derivation. */
+export function startRecordedBriefProjection(client: Client, taskQueue: string, raw: unknown) {
+  const target = parseRecordedBriefTarget(raw);
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(taskQueue)) throw new Error('Invalid recorded Brief task queue.');
+  return client.workflow.start('projectRecordedBrief', { workflowId: recordedBriefWorkflowId(target), taskQueue, args: [target],
+    workflowExecutionTimeout: '5 minutes', workflowIdConflictPolicy: WorkflowIdConflictPolicy.FAIL,
+    workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE });
+}
 
 /** Trusted administrative start only; no public route or unverified tenant input. */
 export function startReconciliation(client: Client, taskQueue: string, raw: unknown) {

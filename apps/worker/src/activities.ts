@@ -1,5 +1,22 @@
 import { parseScope, workflowId, parseReceipt, parseGateTarget, gateWatchId, parseGateObservation,
   type ReconciliationScope, type ReconciliationActivities, type GateTarget, type GateObservation, type GateWatchActivities } from './contracts.ts';
+import { parseRecordedBriefTarget, recordedBriefWorkflowId, parseRecordedBriefCheckpoint,
+  type RecordedBriefTarget, type RecordedBriefActivities } from './contracts.ts';
+
+/** Port must bind current authenticated readback to the exact configured save operation. */
+export interface RecordedBriefPort { runOnce(): Promise<unknown> }
+export function createRecordedBriefActivities(rawTarget: RecordedBriefTarget, port: RecordedBriefPort): RecordedBriefActivities {
+  const target = parseRecordedBriefTarget(rawTarget), expected = recordedBriefWorkflowId(target); let active = false;
+  return { async projectRecordedBrief(raw) {
+    // Parse failures also stay generic: caller-controlled fields are never echoed.
+    if (recordedBriefWorkflowId(raw) !== expected) throw new Error('Recorded Brief scope denied.');
+    if (active) throw new Error('Recorded Brief projection is already active.');
+    active = true;
+    try { return parseRecordedBriefCheckpoint(await port.runOnce()); }
+    catch { throw new Error('Recorded Brief projection did not complete.'); }
+    finally { active = false; }
+  } };
+}
 
 /** Trusted port must reauthorize current agent grants on every run and use idempotent CAS ingestion. */
 export interface ReconciliationPort {
