@@ -1396,3 +1396,25 @@ content hash, expected head and path; it never confirms the current draft or sig
 a gate. Frontend receipt fixtures must not be cited as actual provider persistence.
 See `intent/0155/EVIDENCE.md`; real shared marker-readback integration remains next,
 with all five R5 findings and live authority boundaries unchanged.
+
+## Native Git operation readback in the authenticated browser
+
+Item `intent/0156` closes the intercepted-response gap for committed and absent
+operation readback. The existing no-network GitHub test transport now derives
+commit parents, bounded operation-path history and base/head comparisons from
+native Git. A test-only seeder exclusively creates exactly the Brief and operation
+marker in one real temporary commit; the marker hashes are computed from its bytes.
+This is seeded test history, not an executed platform save or provider attestation.
+
+A separate composed identity service uses the actual request-owned GitHub writer
+factory/store and shared query, authenticated by the existing Keycloak session
+in encrypted PostgreSQL. Gate verification and direct dispatch are denied. No real
+writer profile or permission is installed. Reconstruction shares the parent-owned
+session store while each status invocation closes its own writer.
+
+The actual browser checks its seeded receipt, a genuinely absent marker, subsequent
+branch commits, service reconstruction and committed status-grant denial/restoration.
+The new integration uses no browser-response interception. Older presentation-only
+fixtures remain explicitly labeled for outcomes not produced in this path. The
+receipt stays separate from current draft bytes, and the save button stays disabled.
+See `intent/0156/EVIDENCE.md` for current verification and remaining limitations.

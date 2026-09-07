@@ -16,6 +16,9 @@ import { reserveLocalPort } from './local-tls-harness.ts';
 import { createGitAuthorizationHarness } from './git-authorization-harness.ts';
 import { createNextWebHarness } from './next-web-harness.ts';
 import { createNativeGitHubReadHarness } from './native-github-read-harness.ts';
+import { seedBriefMarker } from './brief-marker-harness.ts';
+import { createAppJwtSigner } from '@steer/adapters/github';
+import { createGitHubBriefWriterFactory } from '@steer/adapters/github-brief-writer-factory';
 import type { SessionTestHarness } from './session-harness.ts';
 import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';
 import { createMcpTestFetch } from './mcp-keycloak.integration.ts';
@@ -525,6 +528,81 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           gateway = bindGateway(web!.rendererOrigin);
           try { await runtime.shutdown(); } finally { await source.publish([grant, deps.agent.grant]); }
         }
+      });
+      await check('browser status reads actual native Git operation history through request-owned writers and Keycloak sessions', async () => {
+        const seeded = await seedBriefMarker(source, deps.subject);
+        const provider = createNativeGitHubReadHarness(source, tls.certificate);
+        const appJwt = createAppJwtSigner('1', tls.key.toString('utf8'));
+        const factory = createGitHubBriefWriterFactory(source.reader.binding, {
+          organizationId: grant.organizationId, repository: 'github:1', branch: 'synthetic', paths: [seeded.reference.path],
+          platformRevision: seeded.receipt.expectedHead, gate2DecisionDigest: 'f'.repeat(64),
+        }, { issuer, authorizationPath: source.authorizationPath, fetch: provider.transport, appJwt,
+          verifyGateAuthority: async () => { throw new Error('Synthetic readback never authorizes saving.'); } });
+        let created = 0, closed = 0;
+        const compose = () => createIdentityService(configuration, { ...dependencies,
+          // These composed services share the existing encrypted store. They own
+          // their request writers, not the parent harness's PostgreSQL lifecycle.
+          sessions: { ...dependencies.sessions, shutdown: async () => {} },
+          services: { ...projection.services, briefDestination: { scope: { organizationId: grant.organizationId, repository: 'github:1',
+            branch: 'synthetic', paths: [seeded.reference.path] }, readHead: () => source.reader.readHead() } },
+          createBriefWriter: authenticate => {
+            const writer = factory(authenticate); created++; let stopped = false;
+            return { ...writer, compareAndCreate: async () => { throw new Error('Read-only fixture.'); },
+              close: () => { if (!stopped) { stopped = true; closed++; } writer.close(); } };
+          },
+        });
+        let service = compose();
+        const author = page.getByRole('region', { name: 'Start with your intent.' });
+        const panel = page.getByRole('region', { name: 'Where this Brief could go' });
+        const review = panel.getByRole('region', { name: 'Review this exact draft' });
+        const originalDigest = await author.getByTestId('author-digest').textContent();
+        const originalAnswers = await author.getByRole('list', { name: 'Your answers so far' }).innerText();
+        let stage = 'first native receipt';
+        const destination = async () => {
+          await panel.getByRole('button', { name: 'Check destination', exact: true }).click();
+          await review.getByLabel('Brief path to review', { exact: true }).selectOption(seeded.reference.path);
+          await review.getByText('Check a previous save operation', { exact: true }).click();
+        };
+        const readStatus = async (operation: string, expectedStatus = 200) => {
+          await review.getByLabel('Previous operation ID', { exact: true }).fill(operation);
+          const response = page.waitForResponse(value => value.url() === `${origin}/v1/tools/intent.brief.save.status`);
+          await review.getByRole('button', { name: 'Check save status', exact: true }).click();
+          const result = await response; assert.equal(result.status(), expectedStatus);
+          if (expectedStatus !== 200) {
+            await page.waitForFunction(() => document.querySelector('[data-testid="save-operation-status"]')?.textContent?.startsWith('Save status could not be verified.'));
+            assert.equal(await review.getByTestId('save-operation-receipt').count(), 0); return null;
+          }
+          const value = await result.json(); assert.equal(value.gateSigned, false); return value.result;
+        };
+        try {
+          gateway = bindGateway(web!.rendererOrigin, service); await destination();
+          assert.deepEqual(await readStatus(seeded.reference.idempotencyKey), seeded.receipt);
+          await review.getByTestId('save-operation-receipt').waitFor();
+          assert.equal(await review.getByTestId('save-operation-receipt').getByText(seeded.receipt.revision, { exact: true }).count(), 1);
+          assert.notEqual(seeded.receipt.contentDigest, originalDigest);
+          assert.ok((await review.getByTestId('save-operation-status').textContent())?.includes('does not confirm the current draft'));
+          stage = 'real operation absence';
+          assert.equal((await readStatus('15600000-0000-4000-8000-000000000002'))?.outcome, 'not-found');
+          stage = 'service reconstruction and later branch head';
+          await service.shutdown(); assert.equal(created, closed); await source.publish([grant, deps.agent.grant]);
+          service = compose(); gateway = bindGateway(web!.rendererOrigin, service); await destination();
+          assert.deepEqual(await readStatus(seeded.reference.idempotencyKey), seeded.receipt);
+          stage = 'current status grant denial';
+          await source.publish([{ ...grant, toolGrants: grant.toolGrants.filter(value => value !== 'intent.brief.save.status') }, deps.agent.grant]);
+          const beforeDenied = provider.stats().reads;
+          await readStatus(seeded.reference.idempotencyKey, 403); assert.equal(provider.stats().reads, beforeDenied);
+          stage = 'grant restoration';
+          await source.publish([grant, deps.agent.grant]); await destination();
+          assert.deepEqual(await readStatus(seeded.reference.idempotencyKey), seeded.receipt);
+          assert.equal(created, closed); assert.ok(provider.stats().histories >= 4); assert.ok(provider.stats().comparisons >= 3);
+          assert.equal(await author.getByTestId('author-digest').textContent(), originalDigest);
+          assert.equal(await author.getByRole('list', { name: 'Your answers so far' }).innerText(), originalAnswers);
+          assert.equal(await review.getByRole('button', { name: 'Save Brief to GitHub — unavailable', exact: true }).isDisabled(), true);
+          assert.deepEqual(await page.evaluate(() => ({ local: Object.keys(localStorage), session: Object.keys(sessionStorage) })), { local: [], session: [] });
+        } catch {
+          console.error(`Native status UI check failed at ${stage}; ${JSON.stringify(provider.stats())}. Payloads omitted.`);
+          throw new Error('Synthetic native status readback failed.');
+        } finally { gateway = bindGateway(web!.rendererOrigin); await service.shutdown(); await source.publish([grant, deps.agent.grant]); }
       });
       await check('authoring discards drafts after committed grant denial and navigation without automatic submission', async () => {
         const author = page.getByRole('region', { name: 'Start with your intent.' });

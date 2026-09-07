@@ -122,6 +122,10 @@ Item [0155](intent/0155/README.md) adds exact-target local draft review and manu
 previous-save status feedback. The save button remains disabled; local review and
 prior receipts do not mark the current draft saved or approve a gate.
 
+Item [0156](intent/0156/README.md) connects browser status readback to the production
+Git marker reader over native disposable Git history, without intercepted browser
+replies or enabling a writer in the live runtime.
+
 Item [0153](intent/0153/README.md) adds bounded, merge-aware Critic target ancestry
 against the configured Git reader, without upgrading review selection or gate authority.
 

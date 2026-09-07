@@ -360,3 +360,11 @@ remains disabled. Prior receipts are explicitly separate from the current draft;
 unknown/not-found results cannot trigger automatic resubmission. This is UI progress,
 not a live writing pilot or Phase 1 acceptance. See `intent/0155/EVIDENCE.md` for
 test evidence and the browser-fixture versus actual-provider distinction.
+
+0156 development update: actual native Git operation history now feeds the browser's
+status query through the shared store and request-owned authenticated writer. The
+receipt survives later branch commits and composed-service reconstruction, while
+current grant denial blocks provider reads. This replaces intercepted successful
+status replies for that integration, but its history is seeded test data, not an
+authorized platform save. Live writer composition and full action-time authority
+remain unfinished; see `intent/0156/EVIDENCE.md`.

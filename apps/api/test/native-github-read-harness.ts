@@ -10,9 +10,14 @@ export function createNativeGitHubReadHarness(source: Awaited<ReturnType<typeof 
   const exec = promisify(execFile), binding = source.reader.binding;
   const publicKey = new X509Certificate(certificate).publicKey;
   const repo = `/repos/${binding.owner}/${binding.repository}`;
-  let assertions = 0, reads = 0;
+  let assertions = 0, reads = 0, histories = 0, comparisons = 0;
   const git = async (...args: string[]) => (await exec('git', ['-C', source.directory,
     '-c', 'core.hooksPath=/dev/null', ...args], { timeout: 10000, encoding: 'buffer' })).stdout;
+  const metadata = async (sha: string) => {
+    const content = (await git('cat-file', '-p', sha)).toString('utf8');
+    return { sha, tree: { sha: /^tree ([a-f0-9]{40})$/m.exec(content)![1] },
+      parents: [...content.matchAll(/^parent ([a-f0-9]{40})$/gm)].map(value => ({ sha: value[1]! })) };
+  };
   const transport: typeof fetch = async (input, init) => {
     const url = new URL(String(input)); assert.equal(url.origin, 'https://api.github.com');
     assert.equal(init?.redirect, 'error'); assert.equal(init?.cache, 'no-store'); assert.ok(init?.signal);
@@ -32,12 +37,30 @@ export function createNativeGitHubReadHarness(source: Awaited<ReturnType<typeof 
     if (url.pathname === `${repo}/git/ref/heads/${binding.branch}`) {
       return Response.json({ ref: `refs/heads/${binding.branch}`, object: { type: 'commit', sha: await source.reader.readHead() } });
     }
+    if (url.pathname === `${repo}/commits`) {
+      const revision = url.searchParams.get('sha'), path = url.searchParams.get('path');
+      assert.match(revision ?? '', /^[a-f0-9]{40}$/);
+      assert.match(path ?? '', /^\.steer\/authoring\/operations\/[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}\.json$/);
+      assert.deepEqual([...url.searchParams.keys()].sort(), ['path', 'per_page', 'sha']); assert.equal(url.searchParams.get('per_page'), '2');
+      histories++;
+      const ids = (await git('log', '--format=%H', '-2', revision!, '--', path!)).toString('utf8').trim().split('\n').filter(Boolean);
+      return Response.json(await Promise.all(ids.map(metadata)));
+    }
+    const comparison = /^\/compare\/([a-f0-9]{40})\.\.\.([a-f0-9]{40})$/.exec(url.pathname.slice(repo.length));
+    if (url.pathname.startsWith(`${repo}/`) && comparison) {
+      assert.equal(url.search, '?per_page=100&page=1'); comparisons++;
+      const [, base, head] = comparison;
+      const common = (await git('merge-base', base!, head!)).toString('utf8').trim();
+      const ids = (await git('rev-list', '--reverse', '--max-count=101', `${base}..${head}`)).toString('utf8').trim().split('\n').filter(Boolean);
+      const behind = Number((await git('rev-list', '--count', `${head}..${base}`)).toString('utf8').trim());
+      return Response.json({ status: behind === 0 && ids.length > 0 ? 'ahead' : 'diverged', ahead_by: ids.length,
+        behind_by: behind, total_commits: ids.length, base_commit: { sha: base }, merge_base_commit: { sha: common }, commits: await Promise.all(ids.map(metadata)) });
+    }
     const match = /^\/git\/(commits|trees|blobs)\/([a-f0-9]{40})$/.exec(url.pathname.slice(repo.length));
     assert.ok(url.pathname.startsWith(`${repo}/`) && match, 'Unexpected synthetic provider route.');
     const [, kind, sha] = match;
     if (kind === 'commits') {
-      const content = (await git('cat-file', '-p', sha!)).toString('utf8');
-      return Response.json({ sha, tree: { sha: /^tree ([a-f0-9]{40})$/m.exec(content)![1] } });
+      return Response.json(await metadata(sha!));
     }
     if (kind === 'trees') {
       assert.equal(url.search, '?recursive=1');
@@ -50,5 +73,5 @@ export function createNativeGitHubReadHarness(source: Awaited<ReturnType<typeof 
     const bytes = await git('cat-file', 'blob', sha!);
     return Response.json({ sha, encoding: 'base64', size: bytes.length, content: bytes.toString('base64') });
   };
-  return { transport, stats: () => ({ assertions, reads }) };
+  return { transport, stats: () => ({ assertions, reads, histories, comparisons }) };
 }

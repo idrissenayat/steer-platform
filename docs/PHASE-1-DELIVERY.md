@@ -3051,3 +3051,26 @@ fixtures as that integration or start unrelated provenance micro-increments.
 Governed source/runner/review selection, full action-time authority, all five R5
 findings, independent/qualified protected review and human gates remain unfinished.
 No live provider permission, writer, deployment, release or spending changed.
+
+## Completed development increment: 0156 — Native Git status browser integration
+
+The browser now has a tested path from its Keycloak/encrypted PostgreSQL session
+through request-owned writers and the shared status query to actual native Git
+marker/Brief bytes and history. The seeded receipt survives later branch commits
+and composed-service reconstruction. Current status-grant denial returns 403
+without provider reads; every request writer closes. This new integration uses no
+intercepted browser replies. Seeded history is still test data, not a platform save
+or provider approval, and no production runtime writer profile was installed.
+
+All 41 actual browser integration checks and full repository validation passed,
+including 437 root controls, 270 adapter/87 API tests and all package builds.
+Owned test services/data were cleaned up. See `intent/0156/EVIDENCE.md` for exact
+composition and fixture limits. The current draft remains separate from prior
+receipts, and live saving remains disabled.
+
+Next connect a validated receipt to the existing exact-revision Brief reader through
+canonical reference navigation and current catalog/access checks. Reject absent or
+stale references without substituting latest content. Use disposable curated
+projections; receipt possession grants no access. This precedes board stretch work.
+Full governed action-time authority, all five R5 findings, protected/qualified review,
+human gates and signed Phase 1 obligations remain open. No deployment or spending.
