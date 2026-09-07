@@ -1,8 +1,31 @@
 'use client';
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { authorFields, emptyAuthorAnswers, type AuthorAnswers } from './brief-author-client';
 import { localDraftPrefix, missingLocalFields, readLocalDrafts, removeLocalDraft, saveLocalDraft, type LocalDraft } from './local-drafts';
+
+function ConfirmDraftAction({ title, children, cancelLabel, confirmLabel, onCancel, onConfirm }: {
+  title: string; children: ReactNode; cancelLabel: string; confirmLabel: string; onCancel: () => void; onConfirm: () => void;
+}) {
+  const id = useId(), dialog = useRef<HTMLDialogElement>(null), cancel = useRef<HTMLButtonElement>(null), confirm = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const element = dialog.current;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    element?.showModal(); cancel.current?.focus();
+    return () => { element?.close(); if (opener?.isConnected) opener.focus(); };
+  }, []);
+  return <dialog ref={dialog} className="ux-confirm" aria-labelledby={`${id}-title`} aria-describedby={`${id}-description`}
+    onCancel={event => { event.preventDefault(); onCancel(); }}
+    onKeyDown={event => {
+      if (event.key !== 'Tab') return;
+      if (event.shiftKey && document.activeElement === cancel.current) { event.preventDefault(); confirm.current?.focus(); }
+      else if (!event.shiftKey && document.activeElement === confirm.current) { event.preventDefault(); cancel.current?.focus(); }
+    }}>
+    <h2 id={`${id}-title`}>{title}</h2><div id={`${id}-description`}>{children}</div>
+    <div className="ux-confirm-actions"><button ref={cancel} type="button" className="ux-button" onClick={onCancel}>{cancelLabel}</button>
+      <button ref={confirm} type="button" className="ux-button ux-primary" onClick={onConfirm}>{confirmLabel}</button></div>
+  </dialog>;
+}
 
 export default function LocalWorkspace({ children, guide }: { children: ReactNode; guide?: ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -92,7 +115,10 @@ function DraftWorkspace({ onExit, guide }: { onExit: () => void; guide?: ReactNo
           <button className="ux-button ux-primary" onClick={() => guarded(start)}>+ New intent</button></div>
         <p className="ux-feedback" role="status">{notice.startsWith('Unsaved changes.') && !dirty ? 'No unsaved changes.' : notice}</p>
         {error && <p role="alert" className="ux-error">{error}</p>}
-        {pending && <section className="ux-warning" aria-label="Unsaved changes"><h2>Keep your unsaved changes?</h2><p>You can return to the draft and save it, or discard only these unsaved edits.</p><button className="ux-button" onClick={() => setPending(null)}>Keep editing</button> <button className="ux-button" onClick={() => { const action = pending; setPending(null); action(); }}>Discard unsaved edits</button></section>}
+        {pending && <ConfirmDraftAction title="Keep your unsaved changes?" cancelLabel="Keep editing" confirmLabel="Discard unsaved edits"
+          onCancel={() => setPending(null)} onConfirm={() => { const action = pending; setPending(null); action(); }}>
+          <p>Your latest edits have not been saved. Keep editing to review and save them, or discard just these unsaved changes.</p>
+        </ConfirmDraftAction>}
         {view === 'learn' ? <><button className="ux-button" onClick={() => setView(returnView)}>Return to {returnView === 'backlog' ? 'backlog' : 'Brief'}</button>{guide}</> : view === 'backlog' ? <>
           <label className="ux-search">Find a local draft<input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search by working title" /></label>
           {!loaded ? <p>Reading local drafts…</p> : !drafts.length ? <section className="ux-empty"><span className="eyebrow">A clear starting point</span><h2>What should become true?</h2><p>Start with a problem worth solving. Turn it into a Brief you can review and revisit.</p><button className="ux-button ux-primary" onClick={() => guarded(start)}>Create your first intent</button></section> : !visible.length ? <p>No local drafts match “{query}”. Try a different title.</p> :
@@ -104,7 +130,7 @@ function DraftWorkspace({ onExit, guide }: { onExit: () => void; guide?: ReactNo
           <div className="ux-editor-layout"><article className="ux-paper" aria-label={view === 'edit' ? 'Brief editor' : 'Brief review'}>
             <p className="access-label">{view === 'edit' ? 'YOUR WORDS. YOUR DIRECTION.' : 'REVIEW THE FACTS, NOT AN APPROVAL.'}</p>
             {authorFields.map((field, index) => <section key={field.key} className="ux-field">
-              {view === 'edit' ? <><label htmlFor={`local-${field.key}`}><span>{String(index + 1).padStart(2, '0')}</span>{field.label}</label><p id={`local-help-${field.key}`}>{field.help}</p>
+              {view === 'edit' ? <><label htmlFor={`local-${field.key}`}><span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>{field.label}</label><p id={`local-help-${field.key}`}>{field.help}</p>
                 {field.key === 'title' ? <input id={`local-${field.key}`} maxLength={field.max} autoComplete="off" aria-describedby={`local-help-${field.key}`} value={answers[field.key]} onChange={event => { setAnswers({ ...answers, [field.key]: event.target.value }); setNotice('Unsaved changes. Review and save when you are ready.'); }} /> :
                   <textarea id={`local-${field.key}`} rows={3} maxLength={field.max} autoComplete="off" aria-describedby={`local-help-${field.key}`} value={answers[field.key]} onChange={event => { setAnswers({ ...answers, [field.key]: event.target.value }); setNotice('Unsaved changes. Review and save when you are ready.'); }} />}</> :
                 <><h2>{field.label}</h2><p className={answers[field.key].trim() ? 'ux-answer' : 'ux-unknown'}>{answers[field.key].trim() ? answers[field.key] : 'Still to clarify'}</p><button className="ux-text-button" onClick={() => { setView('edit'); setFocusField(field.key); }}>Edit {field.label}</button></>}
@@ -113,7 +139,10 @@ function DraftWorkspace({ onExit, guide }: { onExit: () => void; guide?: ReactNo
             {guide && <button className="ux-button" onClick={learn}>Consult the operating guide</button>}
             <hr /><strong>Saved where?</strong><p>Only on this browser when you choose Save. GitHub saving and human signatures are not connected here.</p>
             {baseline && <><p><small>Local identifier: {id}</small></p><button className="ux-button" onClick={() => save(true)}>Save edits as a new draft</button><button className="ux-text-button" onClick={() => setConfirmRemove(true)}>Remove this local draft</button></>}
-            {confirmRemove && <section aria-label="Confirm local removal"><p>Remove this browser copy and any unsaved edits? There is no undo. GitHub is unaffected.</p><button className="ux-button" onClick={() => setConfirmRemove(false)}>Keep draft</button><button className="ux-button" onClick={remove}>Confirm removal</button></section>}
+            {confirmRemove && <ConfirmDraftAction title="Remove this local draft?" cancelLabel="Keep draft" confirmLabel="Confirm removal"
+              onCancel={() => setConfirmRemove(false)} onConfirm={remove}>
+              <p>Remove “{answers.title || 'Untitled intent'}” from this browser, including any unsaved edits? There is no undo. GitHub is unaffected.</p>
+            </ConfirmDraftAction>}
           </aside></div>
         </>}
       </section>

@@ -43,7 +43,11 @@ require reopening or saving edits as a new draft. Browser storage is not transac
 simultaneous cross-tab writes are not guaranteed serializable; this is another reason
 it cannot replace the governed save path.
 
-**Remove this local draft** requires an explicit inline confirmation. It removes
+Unsaved-discard warnings are modal: the safe choice receives focus, Tab stays among
+the choices, Escape cancels and closing restores focus to the triggering control.
+Review/save controls remain visible while scrolling a long Brief.
+
+**Remove this local draft** requires an explicit named-record modal confirmation. It removes
 only that preview record and its unsaved edit buffer, without an undo. It never
 clears all browser storage or touches GitHub.
 
@@ -66,3 +70,6 @@ clears all browser storage or touches GitHub.
 
 This feature does not close J1–J6, Gate 2, the five R5 findings, first-real-user
 acceptance, or Phase 1. No deployment, spend or broader runtime permissions are authorized.
+
+See [the functionality and UX review](UX-FUNCTIONALITY-REVIEW.md) for verified
+behavior, remaining product gaps and a five-minute human test.

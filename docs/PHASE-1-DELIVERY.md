@@ -4065,3 +4065,20 @@ This advances guidance/navigation, not complete intent/0004, real GitHub saving,
 actionable Inbox/Flight Board, model-backed conversation, Gate 2 or Phase 1 acceptance.
 The standing implementation loop now explicitly follows the user's functionality/UX
 priority, with further account setup deferred and authorization boundaries preserved.
+
+## Development increment: 0196 — Human usability checks and safe confirmations
+
+Actual UI QA reproduced a stale inline unsaved-discard warning that did not take
+focus and allowed unrelated navigation. Discard/removal now use labelled native
+modals with safe initial focus, two-way Tab wrapping, Escape cancellation and opener
+restoration. The review/save toolbar stays visible during long-form scrolling;
+decorative field numbers no longer pollute accessible input names.
+
+The actual HTTPS browser passed cancellation, guide-return preservation, explicit
+sample save/reload/search/reopen, and narrow-screen editor inspection. All 91 web
+tests, eight architecture controls, typecheck and final build passed. See the
+0196 evidence and `docs/UX-FUNCTIONALITY-REVIEW.md` for limits and a human test script.
+
+This is preview usability verification, not completion of the agent-led interview,
+real GitHub saving, actionable Flight Board/Inbox, accessibility acceptance or gates.
+The user's own UX acceptance remains open. No live authority or kit content changed.

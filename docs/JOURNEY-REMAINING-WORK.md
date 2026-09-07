@@ -22,6 +22,11 @@ identity dependency. A person can consult/search the operating model and return
 to their unsaved Brief. This advances navigation and guidance, not actionable
 orientation, governed correction submission or verified business stages.
 
+0196 exercises that local flow and fixes confirmation focus/inertness, keyboard
+cancellation and long-form action reachability. See `UX-FUNCTIONALITY-REVIEW.md`.
+The current form remains a fallback, not completion of J5's agent-led interview.
+Human UX acceptance, full accessibility acceptance and the real journey remain open.
+
 The intended user's authenticated UI was subsequently exercised using the configured
 real membership; the eight-question server preview and Learn were observed. The
 short session expiry clears drafts and destination discovery remains unavailable.
