@@ -5,6 +5,7 @@ import { briefPreviewInputSchema, type BriefPreview } from '@steer/tool-registry
 import { authorDraft, authorFields, createBriefAuthorClient, emptyAuthorAnswers, type AuthorAnswers } from './brief-author-client';
 import BriefMarkdown from './brief-markdown';
 import BriefDestination from './brief-destination';
+import BriefReview from './brief-review';
 
 export default function BriefAuthor({ organizationId, subject, expiresAt }: { organizationId: string; subject: string; expiresAt: string }) {
   const [answers, setAnswers] = useState(emptyAuthorAnswers);
@@ -79,7 +80,7 @@ export default function BriefAuthor({ organizationId, subject, expiresAt }: { or
         <h3 ref={heading} tabIndex={-1}>Your draft preview</h3>
         <p role="status" data-testid="author-status">{notice}</p>
         {preview ? <>
-          <p className="author-state">Not saved · Not confirmed · Not signed</p>
+          <p className="author-state">Server preview · Not saved · Not signed</p>
           {preview.missing.length ? <div className="author-missing"><h4>Still to clarify</h4><ul>{preview.missing.map((field) => <li key={field}>{field}</li>)}</ul></div> :
             <p>Starting fields supplied. This is not a completeness, policy or gate approval.</p>}
           <BriefMarkdown content={preview.markdown} />
@@ -87,7 +88,8 @@ export default function BriefAuthor({ organizationId, subject, expiresAt }: { or
           <button className="access-secondary" type="button" onClick={() => { setStep(1); document.getElementById('author-problem')?.focus(); }}>Correct the facts</button>
         </> : <p className="author-empty">Your rendered Brief will appear here. Unknown facts stay open for review.</p>}
         <p className="access-hint">GitHub saving and decision signing are not enabled in this authoring preview.</p>
-        <BriefDestination key={`${organizationId}:${subject}:${expiresAt}`} organizationId={organizationId} expiresAt={expiresAt} />
+        <BriefDestination key={`${organizationId}:${subject}:${expiresAt}`} organizationId={organizationId} expiresAt={expiresAt}
+          renderReview={destination => preview ? <BriefReview key={JSON.stringify([preview, destination, expiresAt])} preview={preview} destination={destination} expiresAt={expiresAt} /> : null} />
       </div>
     </div>
   </section>;

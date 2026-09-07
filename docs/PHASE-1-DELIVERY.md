@@ -3027,3 +3027,27 @@ do not manufacture them. All five R5 findings and human/protected review remain
 open. Per the overnight focus, next implement exact-content confirmation and
 read-only save-status feedback in the existing authoring screen with disposable
 test data. Keep live saving disabled; no signature, deployment or spending.
+
+## Completed development increment: 0155 — Exact review and save-status UI
+
+The authenticated authoring/destination screen now supports explicit canonical-path
+choice and exact-content local review. Changes, fresh destination observations,
+expiry and hiding clear acceptance. The save button remains disabled with missing
+authority explained. A separate previous-operation panel accepts an original UUID
+and performs manual scoped status reads, distinguishing all five outcomes without
+automatic retry or treating old receipts as the current draft's save/signature.
+The pink/orange design and existing stack are preserved.
+
+Full repository checks passed, including 437 root controls, 270 adapter tests,
+46 web tests and all package builds. The final actual Keycloak/Chromium run passed
+40 checks, with keyboard/mobile/automated accessibility checks and inspected
+screenshots. The real writer-less runtime returned 503; successful status displays
+used explicitly intercepted browser-only fixtures, not actual saved records.
+Owned test services were cleaned up. See `intent/0155/EVIDENCE.md` for exact limits.
+
+Next connect browser status readback to the actual shared Git marker reader in an
+isolated composed runtime, preserving live-write denial. Do not count browser
+fixtures as that integration or start unrelated provenance micro-increments.
+Governed source/runner/review selection, full action-time authority, all five R5
+findings, independent/qualified protected review and human gates remain unfinished.
+No live provider permission, writer, deployment, release or spending changed.

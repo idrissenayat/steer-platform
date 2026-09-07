@@ -1,4 +1,4 @@
-const tools = ['projection.snapshot.read', 'projection.changes.read', 'intent.brief.catalog', 'intent.brief.read', 'intent.brief.preview', 'intent.brief.destination'] as const;
+const tools = ['projection.snapshot.read', 'projection.changes.read', 'intent.brief.catalog', 'intent.brief.read', 'intent.brief.preview', 'intent.brief.destination', 'intent.brief.save.status'] as const;
 const TIMEOUT_MS = 10000;
 /** Fixed, read-only same-origin endpoints. Scope is input, never authority or a URL. */
 export function createReadTransport(origin: string, transport: typeof fetch = globalThis.fetch) {

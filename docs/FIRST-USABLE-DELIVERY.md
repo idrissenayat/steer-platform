@@ -353,3 +353,10 @@ policy evaluation cannot replace missing governance/provenance or mint write
 authority. The next overnight priority is the exact-content confirmation/save-status
 interface, with real writes disabled. See `intent/0154/EVIDENCE.md`; this is not a
 live runtime installation or completion of full action-time authorization.
+
+0155 development update: the authoring screen now includes configured-path choice,
+exact-target local review and manual previous-operation status feedback. Live saving
+remains disabled. Prior receipts are explicitly separate from the current draft;
+unknown/not-found results cannot trigger automatic resubmission. This is UI progress,
+not a live writing pilot or Phase 1 acceptance. See `intent/0155/EVIDENCE.md` for
+test evidence and the browser-fixture versus actual-provider distinction.

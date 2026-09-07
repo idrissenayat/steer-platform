@@ -1367,3 +1367,32 @@ not a public current-readiness query or authority lease. Source failures and lat
 attempts clear the diagnostic; close drains owned source work and forbids new I/O.
 No live runtime binding is installed. Next: confirmation/save-status UI under the
 approved overnight plan. See `intent/0154/EVIDENCE.md` for verification and limits.
+
+## Exact draft review and previous-operation status
+
+Item `intent/0155` connects `BriefReview` to the authenticated authoring preview and
+current destination observation. The author explicitly chooses a configured path
+and may acknowledge the exact content locally. `briefReviewBinding` captures the
+content digest, template, organization/subject, repository/branch/path, observed
+head and observation/session expiry. Changed content, destination observations,
+paths or sessions invalidate that acknowledgment. Hidden/navigated/expired views
+clear it. The existing 15-second destination display bound is not a head lease or
+authorization lifetime.
+
+The live save control is always disabled and has no handler. Missing governed
+selection, review provenance and complete action-time authority are explained
+in the interface. No writer, provider grant or signing capability was added.
+
+The optional previous-operation panel accepts an original UUIDv4 and makes only
+an explicit `intent.brief.save.status` read through the fixed, bounded, same-origin
+transport. There is no command endpoint, generated operation ID, automatic polling,
+browser persistence or retry. The portable strict response contract and complete
+subject/scope/operation comparison reject foreign receipts. Editing, expiry,
+closure and overlapping reads fence stale results and clear previous output.
+
+Not-found, unknown, pending, conflict and committed are distinct. Unknown and absence
+never authorize resubmission. A receipt shows the prior operation's revision,
+content hash, expected head and path; it never confirms the current draft or signs
+a gate. Frontend receipt fixtures must not be cited as actual provider persistence.
+See `intent/0155/EVIDENCE.md`; real shared marker-readback integration remains next,
+with all five R5 findings and live authority boundaries unchanged.

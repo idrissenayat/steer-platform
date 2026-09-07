@@ -110,7 +110,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         assert.deepEqual(await storage.counts(), { transactions: 0, sessions: 0 });
       });
       const grant: AuthorizationRecord = { issuer, subject: deps.subject, organizationId: 'synthetic-org', type: 'human',
-        hats: ['product-lead'], toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'intent.brief.read', 'intent.brief.catalog', 'intent.brief.preview', 'intent.brief.destination'], active: true,
+        hats: ['product-lead'], toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'intent.brief.read', 'intent.brief.catalog', 'intent.brief.preview', 'intent.brief.destination', 'intent.brief.save.status'], active: true,
         validAfter: new Date(0).toISOString(), expiresAt: new Date(Date.now() + 600000).toISOString() };
       const source = await createGitAuthorizationHarness(tls.temporary, grant, 'canonical');
       assert.ok(storage.createProjectionFixture);
@@ -380,7 +380,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         assert.notEqual(await author.getByTestId('author-digest').textContent(), firstDigest);
         assert.equal(await author.getByRole('heading', { name: 'Still to clarify' }).count(), 0);
         assert.equal(await author.getByRole('link').count(), 0);
-        assert.equal(await author.getByText('Not saved · Not confirmed · Not signed', { exact: true }).count(), 1);
+        assert.equal(await author.getByText('Server preview · Not saved · Not signed', { exact: true }).count(), 1);
         authorStage = 'screenshots and mobile';
         const directory = process.env.STEER_WORKSPACE_SCREENSHOT_DIR;
         if (directory) await author.screenshot({ path: join(directory, 'author-desktop.png') });
@@ -438,16 +438,76 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           const first = await checkDestination(200);
           stage = 'path disclosure';
           await panel.getByText('Configured Brief paths (1)', { exact: true }).click();
-          assert.equal(await panel.getByText(source.artifactPath, { exact: true }).isVisible(), true);
+          assert.equal(await panel.locator('.destination-details code').filter({ hasText: source.artifactPath }).isVisible(), true);
+          stage = 'local exact-content confirmation';
+          const review = panel.getByRole('region', { name: 'Review this exact draft' });
+          await review.getByLabel('Brief path to review', { exact: true }).selectOption(source.artifactPath);
+          assert.equal(await review.getByTestId('review-selected-path').textContent(), source.artifactPath);
+          await review.getByRole('checkbox').focus(); await page.keyboard.press('Space');
+          assert.equal(await review.getByRole('checkbox').isChecked(), true);
+          assert.ok((await review.getByTestId('brief-review-status').textContent())?.startsWith('Reviewed locally'));
+          assert.equal(await review.getByRole('button', { name: 'Save Brief to GitHub — unavailable', exact: true }).isDisabled(), true);
           stage = 'runtime reconstruction';
           await runtime.shutdown(); assert.equal(runtime.status().database.closed, true);
           await source.publish([grant]); runtime = await create(); gateway = bindGateway(web!.rendererOrigin, runtime);
           assert.notEqual(await checkDestination(200), first);
+          assert.equal(await review.getByLabel('Brief path to review', { exact: true }).inputValue(), '');
+          assert.equal(await review.getByRole('checkbox').count(), 0);
           stage = 'grant denial';
           await source.publish([{ ...grant, toolGrants: grant.toolGrants.filter(name => name !== 'intent.brief.destination') }]);
           await checkDestination(403);
           stage = 'grant restoration';
           await source.publish([grant]); await checkDestination(200);
+          stage = 'real held status endpoint';
+          await review.getByLabel('Brief path to review', { exact: true }).selectOption(source.artifactPath);
+          await review.getByText('Check a previous save operation', { exact: true }).click();
+          const operation = '12345678-1234-4123-8123-123456789012';
+          await review.getByLabel('Previous operation ID', { exact: true }).fill(operation);
+          const statusUrl = `${origin}/v1/tools/intent.brief.save.status`;
+          const deniedStatus = page.waitForResponse(value => value.url() === statusUrl);
+          await review.getByRole('button', { name: 'Check save status', exact: true }).click();
+          assert.equal((await deniedStatus).status(), 503);
+          await page.waitForFunction(() => document.querySelector('[data-testid="save-operation-status"]')?.textContent?.startsWith('Save status could not be verified.'));
+          assert.equal(await review.getByTestId('save-operation-receipt').count(), 0);
+          stage = 'explicit browser-only receipt fixtures';
+          // These intercepted replies verify frontend presentation only, not real
+          // provider persistence or authority. The actual runtime stays writer-less.
+          let outcome = 'unknown', statusReads = 0, saveRequests = 0;
+          const observeSave = (request: import('playwright').Request) => { if (request.url() === `${origin}/v1/tools/intent.brief.save`) saveRequests++; };
+          page.on('request', observeSave);
+          await page.route(statusUrl, async route => {
+            statusReads++;
+            assert.deepEqual(route.request().postDataJSON(), { organizationId: grant.organizationId, repository: 'github:1', branch: 'synthetic', path: source.artifactPath, idempotencyKey: operation });
+            const result = { organizationId: grant.organizationId, repository: 'github:1', branch: 'synthetic', path: source.artifactPath, idempotencyKey: operation, subject: deps.subject, outcome,
+              ...(outcome === 'pending' || outcome === 'committed' ? { requestDigest: 'd'.repeat(64) } : {}),
+              ...(outcome === 'committed' ? { expectedHead: 'a'.repeat(40), revision: 'b'.repeat(40), blobSha: 'c'.repeat(40), contentDigest: 'e'.repeat(64) } : {}) };
+            await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ result, gateSigned: false }) });
+          });
+          try {
+            for (const [next, message] of [['not-found', 'No operation marker found.'], ['unknown', 'Save outcome is unknown.'],
+              ['pending', 'An operation is pending.'], ['conflict', 'The operation conflicts'], ['committed', 'A recorded save was found']]) {
+              outcome = next!;
+              await review.getByRole('button', { name: 'Check save status', exact: true }).click();
+              await page.waitForFunction(text => document.querySelector('[data-testid="save-operation-status"]')?.textContent?.startsWith(text!), message);
+            }
+            assert.equal(statusReads, 5); assert.equal(saveRequests, 0);
+            assert.equal(await review.getByTestId('save-operation-receipt').getByText('b'.repeat(40), { exact: true }).count(), 1);
+            assert.equal(await review.getByRole('button', { name: 'Save Brief to GitHub — unavailable', exact: true }).isDisabled(), true);
+            const directory = process.env.STEER_WORKSPACE_SCREENSHOT_DIR;
+            if (directory) await review.screenshot({ path: join(directory, 'review-desktop.png') });
+            await page.setViewportSize({ width: 390, height: 844 });
+            assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+            if (directory) await review.screenshot({ path: join(directory, 'review-mobile.png') });
+            await page.setViewportSize({ width: 1440, height: 1000 });
+            const violations = await page.evaluate(async () => {
+              const axe = (window as unknown as { axe: { run: (node: Document, options: unknown) => Promise<{ violations: { id: string }[] }> } }).axe;
+              return (await axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] } })).violations.map(({ id }) => id);
+            });
+            assert.deepEqual(violations, []);
+            await review.getByLabel('Previous operation ID', { exact: true }).fill('invalid');
+            assert.equal(await review.getByTestId('save-operation-receipt').count(), 0);
+            assert.equal(await review.getByRole('button', { name: 'Check save status', exact: true }).isDisabled(), true);
+          } finally { await page.unroute(statusUrl); page.off('request', observeSave); }
           stage = 'real display expiry';
           // Use real elapsed time: no browser clock, token or ingress-limit override.
           await panel.locator('.destination-details').waitFor({ state: 'detached', timeout: 20000 });

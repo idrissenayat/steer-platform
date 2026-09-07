@@ -118,6 +118,10 @@ accounting does not prove resolution or clear a HOLD.
 Item [0154](intent/0154/README.md) joins actual membership and gate-source checks
 to the shared saving path through an explicitly held, non-authorizing writer factory.
 
+Item [0155](intent/0155/README.md) adds exact-target local draft review and manual
+previous-save status feedback. The save button remains disabled; local review and
+prior receipts do not mark the current draft saved or approve a gate.
+
 Item [0153](intent/0153/README.md) adds bounded, merge-aware Critic target ancestry
 against the configured Git reader, without upgrading review selection or gate authority.
 

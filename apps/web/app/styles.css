@@ -199,6 +199,18 @@ button:focus-visible, .access-footer a:focus-visible { outline: .2rem solid var(
 .destination-details summary { cursor: pointer; }
 .destination-details summary:focus-visible { outline: .2rem solid var(--steer-focus); outline-offset: .2rem; }
 .destination-details ul { padding-left: 1.2rem; }
+.brief-review { margin-top: 1.5rem; padding: 1.2rem; background: var(--steer-surface, #fff5f7); border: 1px solid var(--steer-border); border-radius: .8rem; overflow-wrap: anywhere; }
+.brief-review fieldset { border: 0; padding: 0; margin: 0 0 1rem; min-width: 0; }
+.brief-review legend { font-weight: 700; margin-bottom: 1rem; }
+.brief-review select { width: 100%; min-height: 2.8rem; padding: .65rem; font: inherit; color: var(--steer-ink); background: white; border: 1px solid #9b7d8e; border-radius: .65rem; }
+.brief-review select:focus-visible, .brief-review input:focus-visible, .previous-save-status summary:focus-visible { outline: .2rem solid var(--steer-focus); outline-offset: .2rem; }
+.brief-review-check { display: flex; gap: .7rem; align-items: flex-start; line-height: 1.6; cursor: pointer; }
+.brief-review-check input { margin-top: .35rem; flex: 0 0 auto; width: 1.2rem; height: 1.2rem; accent-color: #a33163; }
+.previous-save-status { border-top: 1px solid var(--steer-border); margin-top: 1.2rem; padding-top: 1.2rem; }
+.previous-save-status summary { cursor: pointer; font-weight: 700; }
+.save-receipt { font-size: .85rem; padding: 1rem; border-radius: .7rem; background: white; }
+.save-receipt dt { font-weight: 700; }
+.save-receipt dd { margin: .3rem 0 1rem; }
 .brief-library-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .brief-library-heading button { width: auto; padding: .6rem 1rem; }
 .brief-cards { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 1rem; }

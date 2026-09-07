@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import type { BriefDestination as Destination } from '@steer/tool-registry/brief-contracts';
 import { createDestinationController, destinationMessages, type DestinationState } from './brief-destination-client';
 
-export default function BriefDestination({ organizationId, expiresAt }: { organizationId: string; expiresAt: string }) {
+export default function BriefDestination({ organizationId, expiresAt, renderReview }: { organizationId: string; expiresAt: string; renderReview?: (destination: Destination) => ReactNode }) {
   const [state, setState] = useState<DestinationState>({ kind: 'idle' });
   const [enabled, setEnabled] = useState(false);
   const owner = useRef<ReturnType<typeof createDestinationController> | null>(null);
@@ -44,10 +45,11 @@ export default function BriefDestination({ organizationId, expiresAt }: { organi
         <div><dt>Checked at (UTC)</dt><dd><time dateTime={result.observedAt}>{result.observedAt.replace('T', ' ').replace('Z', ' UTC')}</time></dd></div></dl>
       <details><summary>Configured Brief paths ({result.paths.length})</summary>
         <ul>{result.paths.map((path) => <li key={path}><code>{path}</code></li>)}</ul></details>
-      <p>These paths may already exist. No path is selected, and this check does not grant permission to save.</p>
+      <p>These paths may already exist. This observation does not select a path or grant permission to save.</p>
     </div>}
     <button className="access-secondary" type="button" disabled={!enabled || state.kind === 'loading'} onClick={check}>
       {state.kind === 'loading' ? 'Checking destination…' : 'Check destination'}</button>
     <p className="access-hint">Saving is not enabled. Observations expire after 15 seconds; details clear on expiry or when this page is hidden. Checking does not change your draft.</p>
+    {result && renderReview?.(result)}
   </section>;
 }
