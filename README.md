@@ -140,6 +140,10 @@ draining shutdown. Human readback and projector identity remain separate.
 Item [0160](intent/0160/README.md) composes that job with an explicitly owned,
 bounded PostgreSQL projector runtime. Construction is lazy; live dispatch is absent.
 
+Item [0161](intent/0161/README.md) makes the existing Brief library a revision-linked
+work list with source paths, selected revisions and expandable fingerprints. It is
+read-only projected work, not lifecycle or approval status.
+
 Item [0153](intent/0153/README.md) adds bounded, merge-aware Critic target ancestry
 against the configured Git reader, without upgrading review selection or gate authority.
 

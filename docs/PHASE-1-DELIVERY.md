@@ -3175,3 +3175,29 @@ Brief library first to avoid adding a redundant list or unrelated wrapper increm
 Full governed write authority/configuration, model conversation, lifecycle/decision
 data, all five R5 findings, qualified/independent protected review and human gates
 remain open. No deployment, release, provider permission or spending changed.
+
+## Completed development increment: 0161 — Revision-linked Brief work list
+
+The existing authenticated Brief library now shows responsive work rows with full
+source paths, selected revisions, expandable fingerprints and returned-count/page
+ranges. Native revision links use the existing exact-reference/current-access
+reader and restore keyboard focus after catalog replacement. This extends one
+library rather than adding a redundant board; no lifecycle status is inferred.
+
+Full repository checks passed, including 437 root controls, 282 adapter/91 API/
+47 web tests and all builds. The final actual browser run passed 41 checks with
+native Git/PostgreSQL/Keycloak, including metadata equality, link/focus behavior,
+mobile and enlarged-text wrapping and automated accessibility. An initial enlarged-
+text overflow was corrected without weakening assertions. Desktop/mobile images
+were inspected; only owned synthetic services/data were cleaned up. The existing
+pink/orange design is retained. See `intent/0161/EVIDENCE.md` for exact limits.
+
+Overnight stretch now includes revision-level projected-work inspection, not the
+signed P1-06 lifecycle Flight Board or decision Inbox. Next audit the remaining
+signed first-journey requirements against the actual runtime and choose one
+demonstrable missing capability; do not keep adding wrapper or duplicate-list
+increments. P1-06 still requires production lifecycle surfaces and design-system
+coverage; P1-07 still requires model-backed conversation and one-confirmation
+onboarding. Full live-write authority/configuration, all five R5 findings, qualified/
+independent protected review and human gates remain unfinished. No live save,
+deployment, release, provider permission or spending was enabled.

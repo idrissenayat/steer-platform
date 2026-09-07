@@ -63,7 +63,7 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0160
+### Latest development audit — increment 0161
 
 The production UI now supports deterministic describe/correct, exact local review,
 manual prior-operation status and opening the exact recorded Brief. Disposable
@@ -73,6 +73,8 @@ An owned single-flight job now joins authenticated human status readback to a
 separately authorized projector, with current-identity checks and draining shutdown.
 An explicit lazy runtime now owns the real bounded PostgreSQL projector pool for
 that connection; live dispatch and automatic path admission remain absent.
+The existing Brief library now exposes a revision-linked projected work list with
+exact source metadata. It is not an authenticated lifecycle board or decision inbox.
 These capabilities do not establish a real authorized save or agent conversation.
 
 Remaining engineering includes the complete governed evidence-selection/action-time
@@ -84,8 +86,8 @@ promoted to verified board stages merely by importing its read-model code.
 Real membership/runtime configuration, complete live-write authority, all five R5
 findings, independent/qualified protected review and human gate decisions remain
 separate outstanding dependencies. No live writer/scheduler, deployment or spending
-is authorized by this audit. Next develop the revision-linked authenticated work-list
-as overnight stretch, using actual curated references and no inferred lifecycle state.
+is authorized by this audit. Next audit the remaining signed first-journey obligations
+against these integrated capabilities and select a demonstrable missing requirement.
 
 The **68–132 hours below is the original baseline estimate**, not current remaining
 effort. Re-estimation must use these implementation gaps and separate engineering

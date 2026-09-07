@@ -40,6 +40,8 @@ export default function BriefLibrary({ organizationId, repository, expiresAt }: 
     const initiator = document.activeElement;
     const receiptTrigger = initiator instanceof HTMLAnchorElement && initiator.hasAttribute('data-brief-receipt-link') &&
       initiator.getAttribute('href') === window.location.hash ? initiator : null;
+    const catalogTrigger = initiator instanceof HTMLAnchorElement && initiator.hasAttribute('data-brief-revision-link') &&
+      initiator.getAttribute('href') === window.location.hash;
     clear('Checking current access and discovering Briefs…');
     if (document.hidden) { setNotice('Briefs cleared while this page was hidden. Refresh Briefs to recheck access.'); return; }
     if (Date.parse(expiresAt) <= Date.now()) { setEnabled(false); setNotice('Session display expired. Refresh access to continue.'); return; }
@@ -60,7 +62,9 @@ export default function BriefLibrary({ organizationId, repository, expiresAt }: 
         if (owner.current !== current) return;
         if (Date.parse(expiresAt) <= Date.now()) { clear('Session display expired. Refresh access to continue.'); return; }
         if (!linked) { clear('This Brief revision is no longer available. Refresh Briefs to discover the current projection.'); return; }
-        trigger.current = receiptTrigger ?? [...document.querySelectorAll<HTMLButtonElement>('[data-brief-path]')].find((button) => button.dataset.briefPath === linked.path) ?? null;
+        trigger.current = receiptTrigger ?? (catalogTrigger ? [...document.querySelectorAll<HTMLAnchorElement>('[data-brief-revision-link]')]
+          .find(anchor => anchor.getAttribute('href') === window.location.hash) : null) ??
+          [...document.querySelectorAll<HTMLButtonElement>('[data-brief-path]')].find((button) => button.dataset.briefPath === linked.path) ?? null;
         setDetail(linked); setNotice('Linked revision loaded. Access was checked again; this link does not grant permission.');
       }
     } catch { if (owner.current === current) clear(failed); }
@@ -104,13 +108,23 @@ export default function BriefLibrary({ organizationId, repository, expiresAt }: 
     return () => document.documentElement.classList.remove('brief-is-open');
   }, [detail]);
   return <section className="access-card brief-library" aria-labelledby="briefs-title">
-    <div className="brief-library-heading"><div><span className="access-label">READ THE INTENT</span><h2 id="briefs-title">Brief library</h2></div>
+    <div className="brief-library-heading"><div><span className="access-label">PROJECTED WORK · READ ONLY</span><h2 id="briefs-title">Brief library</h2></div>
       <button type="button" className="access-secondary" disabled={!enabled || busy} onClick={() => void load()}>Refresh Briefs</button></div>
-    <p>Your permitted Briefs, discovered from the configured workspace. No paths or fingerprints to enter.</p>
+    <p>Browse the permitted Briefs and exact revisions selected by this workspace’s projection. Refresh to discover changes.</p>
     <p role="status" data-testid="brief-status">{notice}</p>
-    <ul className="brief-cards" data-testid="brief-catalog">{records.slice(page * 20, (page + 1) * 20).map((reference) => <li key={reference.path}>
-      <span className="access-label">BRIEF</span><h3>{label(reference.path)}</h3><p>Read the source’s problem, outcome, constraints, and open questions.</p>
-      <button type="button" className="access-secondary" data-brief-path={reference.path} disabled={!enabled || busy} onClick={() => void open(reference)}>Read {label(reference.path)}</button>
+    {records.length > 0 && <p className="brief-work-count" data-testid="brief-work-count">{records.length} projected {records.length === 1 ? 'Brief' : 'Briefs'} · Showing {page * 20 + 1}–{Math.min((page + 1) * 20, records.length)}</p>}
+    <ul className="brief-work-list" aria-label="Projected Brief work list" data-testid="brief-catalog">{records.slice(page * 20, (page + 1) * 20).map((reference) => <li key={reference.path}>
+      <div className="brief-work-identity"><h3>{label(reference.path)}</h3><p className="brief-work-path">{reference.path}</p></div>
+      <div className="brief-work-revision"><span className="access-label">SELECTED SOURCE REVISION</span>
+        <a data-brief-revision-link href={briefFragment({ organizationId, repository, ...reference })}
+          aria-label={`Open selected revision for ${label(reference.path)}`} aria-disabled={!enabled || busy}
+          tabIndex={!enabled || busy ? -1 : 0} onClick={event => {
+            if (!enabled || busy || document.hidden || Date.parse(expiresAt) <= Date.now()) {
+              event.preventDefault(); clear('Refresh access before opening a Brief.');
+            }
+          }}><code>{reference.revision}</code></a>
+        <details className="brief-work-fingerprint"><summary>Content fingerprint</summary><code>{reference.contentDigest}</code></details></div>
+      <button type="button" className="access-secondary brief-work-open" data-brief-path={reference.path} disabled={!enabled || busy} onClick={() => void open(reference)}>Read {label(reference.path)}</button>
     </li>)}</ul>
     {records.length > 20 && <nav className="reference-controls" aria-label="Brief pages">
       <button className="access-secondary" disabled={page === 0 || busy} onClick={() => setPage(page - 1)}>Previous Briefs</button>

@@ -1513,3 +1513,23 @@ no active leases before exclusive fixture cleanup. Exact owned source event iden
 is registered before dispatch so uncertain acknowledgment cannot strand synthetic
 data. This cleanup is test-only, not permission to delete real records. See
 `intent/0160/EVIDENCE.md` for verification and the remaining live-use boundaries.
+
+## Revision-linked projected work
+
+Item `intent/0161` extends the existing Brief library rather than creating a second
+board or moving opaque diagnostic record keys into a lifecycle view. The same
+authenticated catalog feeds responsive rows with source path, full selected revision,
+expandable fingerprint and returned-count/page range. Existing Read buttons and
+20-row pagination remain. No additional endpoint, storage, polling or search is added.
+
+The revision itself is a native canonical fragment link. Its current-access location
+handler reloads the catalog and opens only the matching path/revision/digest. Links
+do not grant access or substitute newer content. The initiating revision link is
+resolved again after catalog DOM replacement so modal dismissal restores keyboard
+focus; receipt-link and Read-button behavior remain. Hidden/expired/disabled display
+guards and shared library clearing apply to metadata as well as source details.
+
+The pink/orange theme and current stack are preserved. No lifecycle stage, approval,
+current-HEAD guarantee or platform-save success is inferred from a projected row.
+See `intent/0161/EVIDENCE.md` for actual browser/visual verification and remaining
+limits. This surface does not complete the Flight Board, Inbox or real first journey.

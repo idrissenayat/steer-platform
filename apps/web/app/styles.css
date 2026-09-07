@@ -213,9 +213,25 @@ button:focus-visible, .access-footer a:focus-visible { outline: .2rem solid var(
 .save-receipt dd { margin: .3rem 0 1rem; }
 .brief-library-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .brief-library-heading button { width: auto; padding: .6rem 1rem; }
-.brief-cards { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 1rem; }
-.brief-cards li { padding: 1.25rem; background: #fff7f0; border: 1px solid var(--steer-border); border-radius: 1rem; }
-.brief-cards h3 { margin-top: .7rem; font-size: 1.1rem; }
+.brief-work-count { font-size: .875rem; color: var(--steer-muted); }
+.brief-work-list { list-style: none; padding: 0; display: grid; gap: .75rem; }
+.brief-work-list li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; align-items: start; min-width: 0; overflow-wrap: anywhere; gap: 1.25rem; padding: 1.25rem; background: linear-gradient(110deg, #fff1f6, #fff8f0); border: 1px solid var(--steer-border); border-left: .25rem solid #ba5078; border-radius: .75rem; }
+.brief-work-list h3 { margin: 0 0 .5rem; font-size: 1.1rem; }
+.brief-work-path { margin: 0; font-size: .875rem; overflow-wrap: anywhere; }
+.brief-work-revision { min-width: 0; }
+.brief-work-revision .access-label { font-size: .875rem; letter-spacing: .04em; }
+.brief-work-revision a { display: block; color: #7c1943; margin-top: .5rem; line-height: 1.5; text-underline-offset: .2em; }
+.brief-work-revision code { font-size: .875rem; overflow-wrap: anywhere; }
+.brief-work-revision a[aria-disabled="true"] { opacity: .6; cursor: not-allowed; }
+.brief-work-revision a:focus-visible, .brief-work-fingerprint summary:focus-visible { outline: .2rem solid var(--steer-focus); outline-offset: .2rem; }
+.brief-work-fingerprint { margin-top: .65rem; font-size: .875rem; }
+.brief-work-fingerprint summary { cursor: pointer; }
+.brief-work-fingerprint code { display: block; margin-top: .5rem; }
+.brief-work-open { min-width: 0; max-width: 15rem; padding: .6rem 1rem; font-size: .875rem; overflow-wrap: anywhere; }
+@media (max-width: 900px) {
+  .brief-work-list li { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+  .brief-work-open { max-width: none; justify-self: start; }
+}
 .brief-is-open { overflow: hidden; }
 .brief-dialog { position: fixed; inset: 0 0 0 auto; margin: 0; width: min(52rem, 90vw); max-width: 100vw; height: 100dvh; max-height: 100dvh; padding: 0; border: 1px solid var(--steer-border); background: #fffdfb; color: var(--steer-ink); box-shadow: -1rem 0 4rem #51203b25; }
 .brief-dialog[open] { display: flex; flex-direction: column; }
