@@ -1307,6 +1307,17 @@ launch; no runtime fallback or database authority leaves the fixture. Run
 `pnpm test:destination:integration` explicitly. Actual Keycloak/browser evidence is
 still separate; see `intent/0151/EVIDENCE.md`.
 
+Item `intent/0152` extends `pnpm test:auth:browser` with the destination UI against
+the actual runtime profile. The browser's real Keycloak session, stored in encrypted
+PostgreSQL, is reused across destination-runtime reconstruction. A strict synthetic
+GitHub HTTP transport verifies generated App assertions and read-only token scope,
+then serves native commit/tree/blob data to the production reader. The panel must
+show current heads, clear grant-denied/expired metadata and preserve the unsaved
+answer summary/preview fingerprint. No browser session cookies, responses or clocks
+are injected, and no production limiter is bypassed. The test restores the original
+composed service and closes all owned resources. Actual live GitHub authority and
+writer binding remain absent; see `intent/0152/EVIDENCE.md` for results and limits.
+
 ## Local commands
 
 ```sh

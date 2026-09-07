@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
 import type { BrowserSessionStore, BrowserSession, LoginTransaction, BrowserSessionConfiguration } from '@steer/adapters/browser-session';
-import type { RepositoryReader } from '@steer/adapters/github';
+import type { GitHubBinding, RepositoryReader } from '@steer/adapters/github';
+import type { createIdentityRuntime } from '../src/runtime.ts';
 import type { ArtifactProjectionInput, ToolServices } from '@steer/tool-registry';
 
 export interface SessionTestHarness {
@@ -18,6 +19,8 @@ export interface SessionTestHarness {
   verifyRuntimeBootstrap?: (configuration: BrowserSessionConfiguration, privateKeyPem: string) => Promise<void>;
   verifySecretBootstrap?: (configuration: BrowserSessionConfiguration, tls: { key: string; cert: string }) => Promise<void>;
   createProjectionFixture?: (reader: RepositoryReader, paths: string[]) => Promise<{ services: ToolServices; input: ArtifactProjectionInput }>;
+  createDestinationRuntime?: (configuration: BrowserSessionConfiguration, github: GitHubBinding, paths: string[], privateKeyPem: string,
+    transports: { identity: typeof fetch; github: typeof fetch }) => Promise<Awaited<ReturnType<typeof createIdentityRuntime>>>;
 }
 
 /** Explicit provider-only test fixture; never exported by a production package. */

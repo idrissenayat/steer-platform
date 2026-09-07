@@ -306,6 +306,13 @@ service replacement while destination reads use current native Git grants/heads.
 Provider HTTP and the cookie jar are synthetic; actual Keycloak/browser and live
 provider evidence are not claimed. See `intent/0151/EVIDENCE.md`.
 
+0152 development update: the explicit browser suite now connects the actual
+Keycloak-authenticated cookie and PostgreSQL session to the production destination
+runtime/Git reader. It exercises current-head display, reconstruction, committed
+grant denial/restoration, real display expiry and unsaved draft preservation.
+GitHub HTTP remains a read-only native Git fixture; this does not authorize saving
+or close the remaining findings. Validation is recorded in `intent/0152/EVIDENCE.md`.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

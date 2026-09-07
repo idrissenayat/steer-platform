@@ -115,6 +115,9 @@ Item [0146](intent/0146/README.md) checks complete finding continuity across sel
 native Critic reports. Even resolved findings cannot silently disappear; linked
 accounting does not prove resolution or clear a HOLD.
 
+Item [0152](intent/0152/README.md) connects the actual Keycloak browser session to
+the durable destination runtime, exercising reconstruction, grant denial and UI expiry.
+
 Item [0151](intent/0151/README.md) verifies destination runtime reconstruction with
 encrypted PostgreSQL 16 sessions through an explicit isolated integration command.
 

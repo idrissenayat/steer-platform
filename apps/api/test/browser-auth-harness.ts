@@ -15,6 +15,7 @@ import { startLocalIdentityListener } from '../src/identity-listener.ts';
 import { reserveLocalPort } from './local-tls-harness.ts';
 import { createGitAuthorizationHarness } from './git-authorization-harness.ts';
 import { createNextWebHarness } from './next-web-harness.ts';
+import { createNativeGitHubReadHarness } from './native-github-read-harness.ts';
 import type { SessionTestHarness } from './session-harness.ts';
 import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';
 import { createMcpTestFetch } from './mcp-keycloak.integration.ts';
@@ -109,7 +110,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         assert.deepEqual(await storage.counts(), { transactions: 0, sessions: 0 });
       });
       const grant: AuthorizationRecord = { issuer, subject: deps.subject, organizationId: 'synthetic-org', type: 'human',
-        hats: ['product-lead'], toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'intent.brief.read', 'intent.brief.catalog', 'intent.brief.preview'], active: true,
+        hats: ['product-lead'], toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'intent.brief.read', 'intent.brief.catalog', 'intent.brief.preview', 'intent.brief.destination'], active: true,
         validAfter: new Date(0).toISOString(), expiresAt: new Date(Date.now() + 600000).toISOString() };
       const source = await createGitAuthorizationHarness(tls.temporary, grant, 'canonical');
       assert.ok(storage.createProjectionFixture);
@@ -122,9 +123,9 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         sessions: { store: storage.store, binding: { issuer, clientId: configuration.clientId, redirectUri: configuration.redirectUri }, shutdown: storage.shutdown } };
       api = createIdentityService(configuration, dependencies);
       let injectCspProbe = false;
-      const bindGateway = (rendererOrigin: string) => createIdentityGateway({ publicOrigin: origin, rendererOrigin, issuer,
+      const bindGateway = (rendererOrigin: string, identity: { fetch: (request: Request) => Promise<Response> } = { fetch: (request) => api!.fetch(request) }) => createIdentityGateway({ publicOrigin: origin, rendererOrigin, issuer,
         workspace: { organizationId: projection.input.organizationId, repository: projection.input.repository } },
-        { identity: { fetch: (request) => api!.fetch(request) }, fetch: async (input, init) => {
+        { identity, fetch: async (input, init) => {
           const response = await fetch(input, init);
           if (!injectCspProbe || new URL(String(input)).pathname !== '/') return response;
           // Test-only parser-inserted probes. Dynamic injection by trusted scripts is
@@ -400,6 +401,70 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           if (directory) await page.screenshot({ path: join(directory, 'author-failure.png'), fullPage: true });
           throw new Error('Synthetic author UI check failed.');
         } finally { page.off('response', observePreview); }
+      });
+      await check('destination UI uses the actual runtime profile, Keycloak session, encrypted PostgreSQL and native Git reader', async () => {
+        assert.ok(storage.createDestinationRuntime);
+        const provider = createNativeGitHubReadHarness(source, tls.certificate);
+        const create = () => storage.createDestinationRuntime!(configuration, source.reader.binding, [source.artifactPath],
+          tls.key.toString('utf8'), { identity: deps.fetch, github: provider.transport });
+        let runtime = await create();
+        const author = page.getByRole('region', { name: 'Start with your intent.' });
+        const panel = page.getByRole('region', { name: 'Where this Brief could go' });
+        const answers = await author.getByRole('list', { name: 'Your answers so far' }).innerText();
+        const digest = await author.getByTestId('author-digest').textContent();
+        let stage = 'first observation'; let httpStatus: number | undefined;
+        const checkDestination = async (expectedStatus: number) => {
+          const response = page.waitForResponse(value => value.url() === `${origin}/v1/tools/intent.brief.destination`);
+          await panel.getByRole('button', { name: 'Check destination', exact: true }).click();
+          const result = await response; httpStatus = result.status(); assert.equal(httpStatus, expectedStatus);
+          if (expectedStatus === 200) {
+            const value = await result.json();
+            assert.equal(value.observedHead, await source.reader.readHead());
+            assert.equal(value.writeAuthorized, false); assert.equal(value.gateVerified, false);
+            await panel.locator('.destination-details').waitFor();
+            assert.equal(await panel.getByText(value.observedHead, { exact: true }).count(), 1);
+            assert.equal(await panel.getByText('github:1', { exact: true }).count(), 1);
+            assert.equal(await panel.getByText('synthetic', { exact: true }).count(), 1);
+            assert.deepEqual(value.paths, [source.artifactPath]);
+            return value.observedHead as string;
+          }
+          await page.waitForFunction(() => document.querySelector('[data-testid="destination-status"]')?.textContent?.startsWith('Destination unavailable.'));
+          assert.equal(await panel.locator('.destination-details').count(), 0);
+          return null;
+        };
+        try {
+          gateway = bindGateway(web!.rendererOrigin, runtime);
+          assert.equal(runtime.status().database.connections, 0);
+          const first = await checkDestination(200);
+          stage = 'path disclosure';
+          await panel.getByText('Configured Brief paths (1)', { exact: true }).click();
+          assert.equal(await panel.getByText(source.artifactPath, { exact: true }).isVisible(), true);
+          stage = 'runtime reconstruction';
+          await runtime.shutdown(); assert.equal(runtime.status().database.closed, true);
+          await source.publish([grant]); runtime = await create(); gateway = bindGateway(web!.rendererOrigin, runtime);
+          assert.notEqual(await checkDestination(200), first);
+          stage = 'grant denial';
+          await source.publish([{ ...grant, toolGrants: grant.toolGrants.filter(name => name !== 'intent.brief.destination') }]);
+          await checkDestination(403);
+          stage = 'grant restoration';
+          await source.publish([grant]); await checkDestination(200);
+          stage = 'real display expiry';
+          // Use real elapsed time: no browser clock, token or ingress-limit override.
+          await panel.locator('.destination-details').waitFor({ state: 'detached', timeout: 20000 });
+          assert.ok((await panel.getByTestId('destination-status').textContent())?.startsWith('Destination details cleared.'));
+          stage = 'draft and boundary preservation';
+          assert.equal(await author.getByRole('list', { name: 'Your answers so far' }).innerText(), answers);
+          assert.equal(await author.getByTestId('author-digest').textContent(), digest);
+          assert.deepEqual(await page.evaluate(() => ({ local: Object.keys(localStorage), session: Object.keys(sessionStorage) })), { local: [], session: [] });
+          assert.equal((await runtime.fetch(new Request(`${origin}/health/ready`))).status, 503);
+          assert.ok(provider.stats().assertions >= 2); assert.ok(provider.stats().reads > 0);
+        } catch {
+          console.error(`Destination UI check failed at ${stage}; HTTP ${httpStatus ?? 'not observed'}; ${JSON.stringify(provider.stats())}. Payloads omitted.`);
+          throw new Error('Synthetic destination UI check failed.');
+        } finally {
+          gateway = bindGateway(web!.rendererOrigin);
+          try { await runtime.shutdown(); } finally { await source.publish([grant, deps.agent.grant]); }
+        }
       });
       await check('authoring discards drafts after committed grant denial and navigation without automatic submission', async () => {
         const author = page.getByRole('region', { name: 'Start with your intent.' });

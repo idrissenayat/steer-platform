@@ -2963,3 +2963,21 @@ save/status, verified lifecycle projections, board and review. The five R5 findi
 protected/qualified review, human gates and remaining signed Phase 1 obligations
 remain open. No live database, account configuration, provider, gate, deployment,
 release, spending or live writer was enabled.
+
+## Completed development increment: 0152 — Browser destination runtime journey
+
+The actual Keycloak-authenticated browser session now has combined coverage with
+the encrypted PostgreSQL destination runtime and production GitHub reader over
+native test Git. The rendered panel observes current repository/branch/head/path
+information, reuses its cookie after runtime reconstruction, clears grant-denied
+and expired metadata, and preserves the unsaved draft. The synthetic provider
+verifies generated App assertions and allows read-only requests only. All 40
+explicit browser checks and full repository validation passed, including 437 root
+controls and all package checks/builds. Owned test resources were cleaned up.
+See `intent/0152/EVIDENCE.md` for the service-composition and provider limits.
+
+Continue full action-time authority and approved source/runner/provider bindings
+before gated save/status, then verified lifecycle projections, board and review.
+All five R5 findings, protected/qualified review, human gates and signed Phase 1
+obligations remain open. No live account, provider, writer, signature, deployment,
+release or spending was enabled.
