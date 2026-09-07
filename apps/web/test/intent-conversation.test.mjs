@@ -16,7 +16,8 @@ test('real conversation component sends free text, follows up and displays three
     return `data:text/javascript;base64,${Buffer.from(code).toString('base64')}`;
   };
   const markdown = await compile('brief-markdown', { './brief-reading-order': new URL('../app/brief-reading-order.ts', import.meta.url).href });
-  const Component = (await import(await compile('intent-conversation', { './agent-transport': new URL('../app/agent-transport.ts', import.meta.url).href, './brief-markdown': markdown }))).default;
+  const scopeReview = await compile('intent-scope-review', { './intent-scope-reader': new URL('../app/intent-scope-reader.ts', import.meta.url).href, './brief-location': new URL('../app/brief-location.ts', import.meta.url).href });
+  const Component = (await import(await compile('intent-conversation', { './agent-transport': new URL('../app/agent-transport.ts', import.meta.url).href, './brief-markdown': markdown, './intent-scope-review': scopeReview }))).default;
   const dom = new JSDOM('<!doctype html><div id="root"></div>', { url: 'https://steer.example', pretendToBeVisual: true });
   const keys = ['window', 'document', 'HTMLElement', 'IS_REACT_ACT_ENVIRONMENT', 'fetch'];
   const saved = Object.fromEntries(keys.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));

@@ -31,7 +31,7 @@ export default async function FoundationPage() {
         <p className="access-hint session-snapshot">Checked for this page load. Refresh to recheck access. Every action is authorized again; this display is not a gate signature.</p>
       </section>
       <IntentConversation key={`agent:${session.subject}:${session.organizationId}:${session.expiresAt}`} organizationId={session.organizationId} subject={session.subject} expiresAt={session.expiresAt}
-        enabled={process.env.STEER_WEB_INTENT_AGENT === 'enabled'} />
+        enabled={process.env.STEER_WEB_INTENT_AGENT === 'enabled'} repository={repository} />
       <details className="workspace-diagnostics"><summary>Manual Brief tools</summary>
         <BriefAuthor key={`author:${session.subject}:${session.organizationId}:${session.expiresAt}`} organizationId={session.organizationId} subject={session.subject} expiresAt={session.expiresAt}
           submissionEnabled={process.env.STEER_WEB_BRIEF_SUBMISSION === 'enabled'} />

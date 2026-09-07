@@ -4133,3 +4133,15 @@ pass 26/26; see [0199 evidence](../intent/0199/EVIDENCE.md).
 
 The actual UI semantic review, explicit disposition, live drafting and durable bundle
 save/reopen remain open. No model budget or new provider/write authority was granted.
+
+## Development increment: 0200 — Existing-scope source review in the conversation
+
+The actual signed-in free-text component now includes a permitted Brief/Spec scope
+check. Results display source passages, exact revisions, gaps and search limits;
+Spec matches link to the correct parent Brief fingerprint in the existing library.
+No-match and failure states never infer newness. Changed input invalidates results.
+
+Focused checks 23/23, web suite 100/100, registry suite, typechecks and production
+build passed; see [0200 evidence](../intent/0200/EVIDENCE.md). This is tested UI wiring,
+not real repository/grant configuration, semantic duplicate review or full intake
+acceptance. No model calls, spend, runtime writes or gate permissions were enabled.

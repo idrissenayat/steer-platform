@@ -649,7 +649,7 @@ const overlapQuery = {
         if (bytes > 4 * 1024 * 1024) { scanLimited = true; break scan; }
         inspected.push({ path: artifact.path, revision: artifact.revision, contentDigest: artifact.contentDigest });
         const overlap = findIntentOverlap(input.intent, artifact.content);
-        if (overlap) candidates.push({ briefPath: record.path, path: artifact.path, document: reference.document,
+        if (overlap) candidates.push({ briefPath: record.path, briefContentDigest: record.contentDigest, path: artifact.path, document: reference.document,
           revision: artifact.revision, contentDigest: artifact.contentDigest, ...overlap });
         await current();
       }

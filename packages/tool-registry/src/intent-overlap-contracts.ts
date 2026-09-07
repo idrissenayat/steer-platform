@@ -18,6 +18,7 @@ export const intentOverlapOutputSchema = briefCatalogInputSchema.extend({
   }),
   candidates: z.array(z.strictObject({
     briefPath: briefProjectionInputSchema.shape.path,
+    briefContentDigest: digest,
     path: artifactProjectionInputSchema.shape.path, revision: artifactProjectionInputSchema.shape.revision, contentDigest: digest,
     document: z.enum(['BRIEF', 'SPEC']), signal: z.enum(['matching-text', 'shared-terms']),
     queryTermCoverage: z.number().min(0).max(1), matchedTerms: z.array(z.string().min(1).max(10000)).max(12),

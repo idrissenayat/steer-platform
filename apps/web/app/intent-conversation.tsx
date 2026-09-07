@@ -4,9 +4,10 @@ import { useEffect, useRef, useState } from 'react';
 import type { AgentOutput } from '@steer/tool-registry/agent-contracts';
 import { createAgentTransport } from './agent-transport';
 import BriefMarkdown from './brief-markdown';
+import IntentScopeReview from './intent-scope-review';
 
-export default function IntentConversation({ organizationId, subject, expiresAt, enabled }: {
-  organizationId: string; subject: string; expiresAt: string; enabled: boolean;
+export default function IntentConversation({ organizationId, subject, expiresAt, enabled, repository = null }: {
+  organizationId: string; subject: string; expiresAt: string; enabled: boolean; repository?: string | null;
 }) {
   const [intent, setIntent] = useState(''); const [clarification, setClarification] = useState('');
   const [result, setResult] = useState<AgentOutput | null>(null); const [error, setError] = useState('');
@@ -48,6 +49,7 @@ export default function IntentConversation({ organizationId, subject, expiresAt,
         <label htmlFor="agent-intent">Your intent</label>
         <textarea id="agent-intent" rows={7} maxLength={10000} value={intent} disabled={busy}
           placeholder="I want to…" onChange={event => { setIntent(event.target.value); setResult(null); setClarification(''); }} />
+        <IntentScopeReview organizationId={organizationId} repository={repository} intent={intent} expiresAt={expiresAt} />
         {result && <div className="intent-agent-reply"><h3>STEER agent</h3><p>{result.message}</p>
           {result.questions.length > 0 && <><ul>{result.questions.map((question, index) => <li key={index}>{question}</li>)}</ul>
             <label htmlFor="agent-clarification">Add details in your own words</label>

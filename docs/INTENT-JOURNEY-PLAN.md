@@ -16,7 +16,7 @@ No separate local preview, synthetic success, silent merging or lost work counts
 
 | Step | Deliverable and acceptance | Status |
 | --- | --- | --- |
-| I1 Existing-scope review | Search permitted existing intents and their Brief/Spec scope before drafting; show exact sources, revision, matching passages, coverage and uncertainty. Distinguish already covered, partially covered, related, and no match found. Incomplete or unavailable search must never be presented as a new intent. | In progress: non-model candidate retrieval first; semantic judgments and UI wiring follow |
+| I1 Existing-scope review | Search permitted existing intents and their Brief/Spec scope before drafting; show exact sources, revision, matching passages, coverage and uncertainty. Distinguish already covered, partially covered, related, and no match found. Incomplete or unavailable search must never be presented as a new intent. | Candidate query and actual conversation UI wired (0199–0200); live read configuration, semantic judgments and intake orchestration pending |
 | I2 Explicit disposition | Open existing, propose adding missing scope, or create a distinct linked intent with a reason. Keep original text. No automatic merge, discard, update or item creation. Record the human choice against reviewed source revisions; changed scope invalidates it. | Pending |
 | I3 Reliable drafting | Activate the configured Mastra/LiteLLM path with an approved capped budget and durable reservation ledger. Clarify conversationally, then produce source-faithful canonical Brief/Spec drafts and a fresh-context Test Agent Exam. Reject refusals, invalid outputs and invented facts; preserve unknowns explicitly. | 0198 code exists; live activation and content/eval acceptance pending |
 | I4 Review without loss | Show and edit all three documents, connect corrections to the source, expose conflicts/assumptions, preserve durable draft state across navigation, expiry, refresh and restart within the approved records policy. Never silently erase user work. Support retry without duplicate paid runs. | Pending |
@@ -66,6 +66,9 @@ changes direction. The app must be running and able to resume scheduled work.
 Plan and existing heartbeat updated. I1's bounded lexical candidate query is
 implemented as `intent.overlap.check` with source evidence, permission checks,
 coverage gaps and revision fingerprints; see `intent/0199/EVIDENCE.md`.
-All six user-facing acceptance steps are still open. Next connect the permitted
-search to the actual conversation UI and add evidence-bound semantic review and
-explicit disposition. Completion requires I6's actual UI and repository evidence.
+0200 mounts source review inside the actual conversation UI, with exact-revision
+Brief links and visible coverage gaps. All six user-facing acceptance steps remain
+open. Next implement evidence-bound semantic review and explicit disposition, and
+resolve the existing read-model configuration without weakening grants. Durable
+draft and budget bindings can proceed without paid calls. Completion requires I6's
+actual UI and repository evidence.
