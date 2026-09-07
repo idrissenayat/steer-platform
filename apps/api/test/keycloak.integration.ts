@@ -203,7 +203,14 @@ try {
     const storage = await createPostgresSessionHarness(binding); closeSessions = storage.close; return storage;
   };
   if (browserHarness) await browserHarness.run({ ...humanDependencies, createSessions,
-    agent: { bearer, clientId: 'steer-test-agent', grant: { ...grant, active: true, toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'intent.brief.read', 'intent.brief.catalog'] } } });
+    agent: { bearer, clientId: 'steer-test-agent', grant: { ...grant, active: true, toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'intent.brief.read', 'intent.brief.catalog'] },
+      issueBearer: async () => {
+        const response = await scopedFetch(`${issuer}/protocol/openid-connect/token`, {
+          method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ grant_type: 'client_credentials', client_id: 'steer-test-agent', client_secret: clientSecret }).toString(),
+        });
+        assert.equal(response.status, 200); const token = await response.json(); assert.equal(typeof token.access_token, 'string'); return token.access_token as string;
+      } } });
   else await testKeycloakHumanFlow({ ...humanDependencies, ...(durable ? { createSessions } : {}) });
   console.log(`Keycloak integration: ${passed} checks passed; server 26.7.3; no real user or provider credentials used.`);
 } catch {

@@ -63,7 +63,7 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0171
+### Latest development audit — increment 0172
 
 The production UI now supports deterministic describe/correct, exact local review,
 manual prior-operation status and opening the exact recorded Brief. Disposable
@@ -141,6 +141,13 @@ Runtime reconstruction preserves manual not-found status; refreshed local review
 cannot unlock a second submission. Current observer loss and committed human
 revocation deny access. Historical gate evidence and the observer remain synthetic;
 this closes a browser-session composition gap, not real governed write authority.
+
+Increment 0172 replaces the direct observer principal with an actual disposable
+Keycloak service account verified by the existing OIDC adapter against current Git
+grants. Revocation, missing gate.observe and invalid tokens deny independently; a
+fresh verified observer is restored before human revocation is tested. The current
+human and observer now both cross actual local provider checks. This still does not
+authenticate historical gate reviews or establish approved live trust/selection.
 Optional policy selection is now bound to the complete matching current Git manifest,
 with exact source/configuration fingerprints and mismatch rejection. This is a source
 binding, not proof of approved selection, trusted runner ownership or truthful review.

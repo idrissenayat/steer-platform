@@ -184,6 +184,11 @@ identity runtime with separate observer and request-bound human identities. Inte
 diagnostics remain historical and non-authorizing; satisfied policy still cannot save.
 See [the held runtime boundary](docs/HELD-BRIEF-RUNTIME.md). No live binding is enabled.
 
+Item [0172](intent/0172/README.md) replaces the direct held-journey observer with
+an actual disposable Keycloak service account and current read-only Git grants.
+Observer revocation, missing grants and invalid tokens deny without write authority.
+Historical gate evidence and real approval requirements remain unchanged.
+
 Item [0171](intent/0171/README.md) tests held saving through the actual disposable
 browser/Keycloak and encrypted-session boundary: exact review reaches a denied save,
 reconstruction preserves status, and current access is rechecked. Historical gate

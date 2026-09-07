@@ -3511,3 +3511,39 @@ selection, review provenance, full action-time authority, model conversation,
 authenticated lifecycle/decision projections and human signatures remain open.
 No deployment, release, spending or real-record deletion is authorized. The standing
 implementation loop remains active; exact remote equality is verified after push.
+
+## Completed development increment: 0172 — Verified current observer in the held journey
+
+The held browser integration now verifies both current actors through actual local
+Keycloak. The service observer obtains a fresh disposable client-credentials token,
+uses the existing OIDC verifier and resolves its separate current Git grant through
+the read-only App adapter. The successful collection makes zero calls to the former
+direct-principal callback or synthetic identity JWKS port. No gate validity window
+or production deadline is extended.
+
+Committed observer revocation, removed gate.observe and an invalid token each deny
+with no retained assessment or mutation. A freshly verified hat-free agent is restored
+before independently checking human revocation. Exact browser review, denied saving,
+runtime reconstruction, not-found status and persistent attempt lock still pass.
+Historical signers, qualifications, reviews, trust roots and selection approval remain
+synthetic/unverified real evidence, not qualified gate approval.
+
+All 44 actual Keycloak/Chromium browser checks passed, including the separate
+test-authorized creation/Temporal replay/readback journey. All 438 repository controls,
+88 prototype tests and workspace tests (99 registry, 24 data, 61 web, 289 adapter,
+96 API, 23 worker, 13 domain), typechecks and builds passed. Owned test resources
+were cleaned. See `intent/0172/EVIDENCE.md` for the phased verification and limits.
+
+The integrated held path now exercises both current identity boundaries. Remaining
+work must distinguish governed historical trust/selection and review-provenance
+requirements from current authentication. Continue the approved independent journey
+work when real evidence/approval is unavailable; do not manufacture trust roots,
+reinterpret fixture signatures or start repeated broad Critic loops to clear a hold.
+
+No production code, live grant/profile, provider access, protected artifact, schema,
+dependency or pink/orange design changed. All five R5 findings, full governed
+action-time authority, model conversation, authenticated lifecycle/decision
+projections and independent/qualified review/human signatures remain open. No live
+save, spending, deployment, release or real-record deletion is authorized. The
+standing implementation loop remains active; exact remote equality is verified
+after the candidate push.

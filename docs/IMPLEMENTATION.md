@@ -1823,3 +1823,20 @@ No production code, UI design, live configuration, provider grant, protected art
 schema or dependency is changed. `intent/0171/EVIDENCE.md` records verification;
 all five R5 findings, real trust-root/selection approval, independent/qualified review,
 full action-time authority and human gate signatures remain open.
+
+## Increment 0172 — Verified current observer in the held browser integration
+
+Both current actors now cross actual local Keycloak authentication in the isolated
+held journey. The browser human keeps the encrypted session path; the service
+observer uses a fresh client-credentials token, the existing normalized OIDC verifier
+and read-through Git authorization resolver. The observer grant is a separate native
+Git file, read through the real read-only App adapter and current source checks.
+There is no direct-principal fallback or synthetic identity JWKS substitution.
+
+The harness commits observer revocation and removal of gate.observe, and supplies an
+invalid token as independent denials. It restores a genuinely verified, hat-free agent
+before the human revocation check. No token/gate validity window is extended, no live
+client or grant is provisioned, and no full-authority proof is minted. Historical
+signers, qualifications, review claims, trust roots and selection approval remain
+synthetic/unverified real evidence. Existing false-authority flags and R5 requirements
+are unchanged. See `intent/0172/EVIDENCE.md` for actual regression results.

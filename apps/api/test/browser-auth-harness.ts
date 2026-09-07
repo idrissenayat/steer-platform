@@ -93,7 +93,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
     const badOrigin = `https://localhost:${badPort}`;
     return { origin, close, async run(deps: { issuer: string; clientSecret: string; subject: string;
       username: string; password: string; fetch: typeof fetch;
-      agent: { bearer: string; clientId: string; grant: AuthorizationRecord };
+      agent: { bearer: string; clientId: string; grant: AuthorizationRecord; issueBearer: () => Promise<string> };
       createSessions: (binding: { issuer: string; clientId: string; redirectUri: string }) => Promise<SessionTestHarness>;
       check: (label: string, run: () => Promise<void>) => Promise<void> }) {
       const { issuer, check } = deps;
@@ -534,7 +534,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
       });
       await check('held saving crosses real browser and Keycloak sessions with exact policy selection but no Git mutation', async () => {
         try { await runHeldBrowserJourney({ browser: browser!, origin, configuration, username: deps.username, password: deps.password,
-          subject: deps.subject, identity: deps.fetch, storage, install: (renderer, runtime) => { gateway = bindGateway(renderer, runtime); } }); }
+          subject: deps.subject, identity: deps.fetch, storage, agent: deps.agent, install: (renderer, runtime) => { gateway = bindGateway(renderer, runtime); } }); }
         finally { gateway = bindGateway(web!.rendererOrigin); }
       });
       await check('browser status reads actual native Git operation history through request-owned writers and Keycloak sessions', async () => {

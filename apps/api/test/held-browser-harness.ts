@@ -2,16 +2,20 @@ import assert from 'node:assert/strict';
 import { setTimeout as delay } from 'node:timers/promises';
 import type { Browser } from 'playwright';
 import type { BrowserSessionConfiguration } from '@steer/adapters/browser-session';
+import { createOidcAuthenticator, type AuthorizationRecord } from '@steer/adapters/identity';
+import { createGitAuthorizationResolver } from '@steer/adapters/authorization';
+import { createAppJwtSigner, createGitHubReader } from '@steer/adapters/github';
 import type { SessionTestHarness } from './session-harness.ts';
 import type { createIdentityRuntime } from '../src/runtime.ts';
 import { heldRuntimeFixture } from './held-runtime-fixture.ts';
 import { selectChain } from '../../../packages/adapters/test/gate-selection-fixture.ts';
 import { createNextWebHarness } from './next-web-harness.ts';
 
-/** Real disposable browser/Keycloak session; gate attestors and observer remain synthetic. */
+/** Real disposable browser and service-account sessions; historical gate attestors remain synthetic. */
 export async function runHeldBrowserJourney(options: {
   browser: Browser; origin: string; configuration: BrowserSessionConfiguration;
   username: string; password: string; subject: string; identity: typeof fetch; storage: SessionTestHarness;
+  agent: { clientId: string; grant: AuthorizationRecord; issueBearer: () => Promise<string> };
   install: (renderer: string, runtime: Awaited<ReturnType<typeof createIdentityRuntime>>) => void;
 }) {
   const cleanup: (() => void)[] = [];
@@ -34,13 +38,29 @@ export async function runHeldBrowserJourney(options: {
   try {
     const f = await heldRuntimeFixture({ after: fn => { cleanup.push(fn); } }, false,
       { organizationId: 'synthetic-org', issuer: options.configuration.issuer, subject: options.subject });
+    const observerPath = 'access/observer.json';
+    const observerGrant = { ...options.agent.grant, toolGrants: ['gate.observe'], active: true,
+      validAfter: new Date(Date.now() - 30000).toISOString(), expiresAt: new Date(Date.now() + 180000).toISOString() };
+    const publishObserver = (record: AuthorizationRecord) => {
+      f.sources.set(observerPath, JSON.stringify({ version: 'steer-authorization/v1', organizationId: f.reader.binding.organizationId, records: [record] })); f.commit();
+    };
+    publishObserver(observerGrant);
     const selected = selectChain(f), path = f.profile.heldBrief.writer.paths[0]!;
+    const observerReader = createGitHubReader(f.reader.binding, { appJwt: createAppJwtSigner('1', f.secrets.githubPrivateKeyPem), fetch: f.ports.github });
+    const verifyObserver = createOidcAuthenticator({ issuer: options.configuration.issuer, jwksUri: options.configuration.jwksUri,
+      audience: options.configuration.audience, clientIds: [options.agent.clientId] },
+      { fetch: options.identity, resolveAuthorization: createGitAuthorizationResolver(observerReader, observerPath) });
+    let observerBearer = await options.agent.issueBearer(), observerCalls = 0;
+    const authenticateObserver = async () => {
+      observerCalls++;
+      return verifyObserver(new Request(options.origin, { headers: { authorization: `Bearer ${observerBearer}` } }));
+    };
     assert.ok(options.storage.createDestinationRuntime);
     const create = () => options.storage.createDestinationRuntime!(options.configuration, f.reader.binding, [path],
       f.secrets.githubPrivateKeyPem, { identity: options.identity, github: f.ports.github }, {
         authorizationPath: f.profile.github.authorizationPath,
         profile: { ...f.profile.heldBrief, policy: selected.configuration },
-        authenticateGateObserver: f.ports.authenticateGateObserver,
+        authenticateGateObserver: authenticateObserver,
       });
     web = await createNextWebHarness(options.origin, options.configuration.issuer, true, true);
     runtime = await create(); options.install(web.rendererOrigin, runtime);
@@ -79,6 +99,7 @@ export async function runHeldBrowserJourney(options: {
     assert.ok(assessment?.selectionSource); assert.equal(assessment.selectionSource.contentDigest, selected.reference.digest);
     assert.equal(assessment.sourceRevision, before); stage = 'policy outcome'; assert.equal(assessment.policyOutcome, 'policy-satisfied');
     assert.equal(assessment.gateVerified, false); assert.equal(assessment.writeAuthorized, false);
+    assert.ok(observerCalls > 1); assert.equal(f.io.observerCalls, 0); assert.equal(f.io.jwks, 0);
     for (const code of ['governed-selection-unverified', 'review-provenance-unverified', 'action-time-authority-incomplete'] as const) assert.ok(assessment.missing.includes(code));
     stage = 'zero mutation'; assert.equal(f.io.writes, 0); assert.equal(f.git('rev-parse', 'HEAD'), before);
     assert.equal(f.git('ls-tree', '-r', '--name-only', 'HEAD', '--', path, '.steer/authoring/operations'), '');
@@ -107,12 +128,23 @@ export async function runHeldBrowserJourney(options: {
     await review.getByLabel('Brief path to review', { exact: true }).selectOption(path);
     await review.getByLabel('I reviewed the displayed Brief for this destination.', { exact: true }).check();
     assert.equal(await submit.isDisabled(), true);
-    stage = 'current observer denial'; f.state.identity = null;
+    stage = 'current observer denial';
     const call = (name: string, body: unknown) => page.evaluate(async ({ name, body }) => {
       const response = await fetch(`/v1/tools/${name}`, { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify(body) });
       return response.status;
     }, { name, body });
-    assert.equal(await call('intent.brief.save', input), 503); assert.equal(runtime.status().heldBrief!.lastAssessment, null);
+    publishObserver({ ...observerGrant, active: false });
+    assert.equal(await call('intent.brief.save', { ...input, expectedHead: f.state.head }), 503);
+    assert.equal(runtime.status().heldBrief!.lastAssessment, null);
+    stage = 'missing observer grant'; publishObserver({ ...observerGrant, toolGrants: [] });
+    assert.equal(await call('intent.brief.save', { ...input, expectedHead: f.state.head }), 503);
+    assert.equal(runtime.status().heldBrief!.lastAssessment, null);
+    stage = 'invalid observer token'; publishObserver(observerGrant); observerBearer = 'invalid';
+    assert.equal(await call('intent.brief.save', { ...input, expectedHead: f.state.head }), 503);
+    assert.equal(runtime.status().heldBrief!.lastAssessment, null);
+    stage = 'restore actual observer'; observerBearer = await options.agent.issueBearer();
+    const restored = await authenticateObserver(); assert.ok(restored); assert.equal(restored.subject, observerGrant.subject);
+    assert.equal(restored.type, 'agent'); assert.deepEqual(restored.hats, []);
     stage = 'current human revocation'; f.publishGrant({ ...f.grant, active: false });
     assert.equal(await call('intent.brief.save', { ...input, expectedHead: f.state.head }), 401);
     assert.equal(f.io.writes, 0); assert.equal(runtime.status().heldBrief!.lastAssessment, null);

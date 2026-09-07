@@ -62,6 +62,14 @@ callback. Its historical gate signers, qualifications, review facts and current
 observer remain explicitly synthetic, so this is not independent gate evidence.
 See `intent/0171/EVIDENCE.md` for current verification results and limitations.
 
+Increment 0172 replaces that journey's direct observer-principal callback with a
+fresh actual disposable Keycloak service token. The existing OIDC adapter verifies
+it, and the existing Git authorization resolver reads a separate current observer
+grant through the read-only App adapter. Committed revocation, missing gate.observe
+and invalid-token cases stay separate from current-human revocation. Historical
+gate evidence is unchanged and synthetic; this is not a live observer grant or
+independent historical review approval. See `intent/0172/EVIDENCE.md`.
+
 No live `heldBrief` configuration, observer grant, GitHub permission or display flag
 has been enabled. Full governed selection, review provenance, action-time authority,
 all five R5 findings, qualified/independent protected review and human signatures
