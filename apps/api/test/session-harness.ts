@@ -20,6 +20,7 @@ export interface SessionTestHarness {
   verifySecretBootstrap?: (configuration: BrowserSessionConfiguration, tls: { key: string; cert: string }) => Promise<void>;
   createProjectionFixture?: (reader: RepositoryReader, paths: string[]) => Promise<{ services: ToolServices; input: ArtifactProjectionInput }>;
   createDecisionProjection?: (reader: RepositoryReader, paths: string[], revision: string) => Promise<ToolServices>;
+  createCoverageProjection?: (reader: RepositoryReader, paths: string[], revision: string) => Promise<ToolServices>;
   createReceiptProjection?: (reader: ArtifactReader, path: string, revision: string, readReceipt: () => Promise<unknown>,
     durable?: { idempotencyKey: string; subject: string; dispatch: RecordedDispatchTestProfile; projector: RecordedProjectorTestProfile;
       recovery?: RecordedRecoveryTestProfile }) => Promise<{ services: ToolServices; project(): Promise<void>; advance(): Promise<void>; close(): Promise<void> }>;

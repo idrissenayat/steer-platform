@@ -302,6 +302,14 @@ summary:focus-visible { outline: .2rem solid var(--steer-focus); outline-offset:
   .workspace-session, .workspace-surfaces ul { grid-template-columns: 1fr; }
 }
 .brief-decisions { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--steer-border); overflow-wrap: anywhere; }
+.artifact-coverage { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--steer-border); overflow-wrap: anywhere; }
+.artifact-coverage h3 { margin: 0; }
+.artifact-coverage-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: 1rem; padding: 0; list-style: none; }
+.artifact-coverage-list li { min-width: 0; padding: 1rem; border: 1px solid var(--steer-border); border-radius: .75rem; background: linear-gradient(125deg, #fff2fa, #fff4e7); }
+.artifact-coverage-list h4 { margin: 0; font-size: 1.125rem; }
+.artifact-coverage-list dd { margin: .25rem 0 1rem; }
+.artifact-coverage-list dt, .artifact-coverage-status { font-weight: 600; }
+.artifact-coverage-list summary { cursor: pointer; }
 .brief-decisions h3 { margin: 0; }
 .decision-record { margin-top: 1rem; padding: 1.25rem; border: 1px solid var(--steer-border); border-radius: 1rem; background: linear-gradient(125deg, #fff2fa, #fff4e7); }
 .decision-record h4 { font-size: 1.125rem; margin: 0 0 .75rem; }

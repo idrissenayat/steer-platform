@@ -63,9 +63,12 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0190
+### Latest development audit — increment 0191
 
 The dependency-ordered current route is `docs/JOURNEY-REMAINING-WORK.md`.
+0191 exposes source coverage in the production review workspace and Brief dialog.
+Checks remain manual, exact-revision and read-only, without inferred lifecycle or
+approval. Verification is recorded in `intent/0191/EVIDENCE.md`.
 0190 adds bounded exact-revision Spec/Exam/Plan projection coverage. This is backend
 source inventory with unknown stage, not verified lifecycle inputs or a connected
 board. Verification and limitations are recorded in `intent/0190/EVIDENCE.md`.

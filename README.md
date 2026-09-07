@@ -7,6 +7,9 @@ item one, are the framework's pilot evidence.
 
 ## Current delivery
 
+Item [0191](intent/0191/README.md) brings supporting-document source checks into
+the Next review workspace and Brief dialog. Source availability is not gate approval.
+
 Item [0190](intent/0190/README.md) adds bounded exact-revision Spec/Exam/Plan
 projection coverage. It supplies backend source inventory, not verified lifecycle state.
 

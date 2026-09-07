@@ -1,7 +1,7 @@
 # Remaining first-journey implementation
 
 Code audit on 2026-09-07 against `e320d6e86affd556103dcf9c273daf23dc6695d5`,
-plus increments 0174–0190's owned clients, shared authorization, optional dispatch/recovery runtimes
+plus increments 0174–0191's owned clients, shared authorization, optional dispatch/recovery runtimes
 and joined isolated identity/receipt/projection integration. This is execution planning, not a new
 architecture, signed-scope reduction or gate decision. It supersedes historical
 "next" statements only for sequencing; numbered evidence remains historical.
@@ -74,6 +74,10 @@ reads. It is not an assigned/actionable Inbox or verified lifecycle projection.
 the shared registry. It distinguishes unconfigured paths from absent projections;
 stage remains unknown. This is source inventory groundwork, not the authoritative
 lifecycle/decision-input contract or a connected board. No live grant is installed.
+
+0191 mounts that coverage as a manual Supporting documents check in the Next review
+workspace and Brief dialog, with request-owned clearing and explicit uncertainty.
+It does not add source authority, body fetching, live grants or lifecycle transitions.
 
 Next address externally governed bootstrap, actual attestor ownership/issuance and
 native review provenance in the complete action-time verification contract. The existing

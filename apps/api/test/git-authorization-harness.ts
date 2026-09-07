@@ -44,6 +44,15 @@ export async function createGitAuthorizationHarness(temporary: string, record: A
     await git('add', '--', ...decisionPaths); await git('commit', '-m', 'Synthetic unverified decision records');
     return { paths: decisionPaths, revision: await git('rev-parse', 'HEAD') };
   };
+  const coveragePaths = ['items/0191-support/BRIEF.md', 'items/0191-support/SPEC.md'];
+  const publishCoverage = async () => {
+    await mkdir(join(directory, 'items/0191-support'), { recursive: true, mode: 0o700 });
+    for (const path of coveragePaths) await writeFile(join(directory, path), path.endsWith('BRIEF.md')
+      ? '# Brief: Supporting document inspection\n\nRead-only synthetic source coverage.\n'
+      : '# Spec\n\nSource presence never establishes gate approval.\n', { mode: 0o600 });
+    await git('add', '--', ...coveragePaths); await git('commit', '-m', 'Synthetic supporting document sources');
+    return { paths: [...coveragePaths], revision: await git('rev-parse', 'HEAD') };
+  };
   let fault: 'none' | 'unavailable' | 'moving-head' | 'digest' = 'none';
   let headReads = 0;
   const reader: RepositoryReader = {
@@ -71,13 +80,13 @@ export async function createGitAuthorizationHarness(temporary: string, record: A
         treeSha: await git('rev-parse', `${revision}^{tree}`), entries };
     },
     async readArtifact(path, revision) {
-      if (![authorizationPath, artifactPath, secondArtifactPath, ...decisionPaths].includes(path) || !/^[a-f0-9]{40}$/.test(revision)) throw new Error('Invalid synthetic source request.');
+      if (![authorizationPath, artifactPath, secondArtifactPath, ...coveragePaths, ...decisionPaths].includes(path) || !/^[a-f0-9]{40}$/.test(revision)) throw new Error('Invalid synthetic source request.');
       const content = (await exec('git', ['show', `${revision}:${path}`], { cwd: directory, timeout: 10000 })).stdout;
       return { organizationId: record.organizationId, repositoryId: 1, revision, path, content,
         contentDigest: fault === 'digest' ? '0'.repeat(64) : createHash('sha256').update(content).digest('hex'),
         blobSha: await git('rev-parse', `${revision}:${path}`) };
     },
   };
-  return { directory, reader, authorizationPath, artifactPath, secondArtifactPath, publish, publishDecisions, setFault(value: typeof fault) { fault = value; headReads = 0; } };
+  return { directory, reader, authorizationPath, artifactPath, secondArtifactPath, publish, publishDecisions, publishCoverage, setFault(value: typeof fault) { fault = value; headReads = 0; } };
 }
 function assertRevision(value: string) { if (!/^[a-f0-9]{40}$/.test(value)) throw new Error('Invalid synthetic revision.'); }

@@ -2,8 +2,9 @@
 
 `intent.brief.artifacts` is a read-only shared-registry query. It supplies J3 source
 inventory groundwork, not authoritative lifecycle/decision inputs. It is available
-through existing HTTP, MCP and internal dispatch; it is not mounted in the Next UI
-or granted to any live identity by increment 0190.
+through existing HTTP, MCP and internal dispatch. Increment 0191 mounts a manual
+**Supporting documents** check in the Next review workspace and Brief dialog.
+Neither increment grants it to any live identity.
 
 ## Contract
 
@@ -46,8 +47,8 @@ authority fields and inconsistent entry ordering/status/fingerprint combinations
 
 This is a bounded observational read, not an atomic database snapshot or a Git
 currentness guarantee. It does not assemble cross-revision approved artifact chains;
-those need the verified lifecycle contract. Refreshing must remain explicit in a
-future UI, with its established expiry/reset/visibility clearing. The prototype's
+those need the verified lifecycle contract. The 0191 UI refreshes only on explicit
+request and clears on expiry, reset, visibility loss and navigation. The prototype's
 claim-derived `buildReadModel` must not be fed these records as verified approvals.
 
 Next: compose authenticated lifecycle/decision authority before connecting real
@@ -55,3 +56,20 @@ board stages and review actions. Approved configuration, trust-owner provenance,
 independent review and exact human gate signatures remain separate prerequisites.
 No curation, live grant, provider access, spending, deployment or gate change follows
 from this query's registration or tests.
+
+## Browser display
+
+The portable `@steer/tool-registry/lifecycle-contracts` export contains schemas only,
+not registry handlers or providers. The browser uses a fixed same-origin read
+endpoint, closed exact-tuple/status/fingerprint validation and a request-owned
+display lifetime. Server authorization remains mandatory; a successful JSON parse
+is not independent source verification or approval. No body content is returned by
+this inventory. Scope, revision, injected authority and malformed responses clear
+previous results rather than silently substituting content.
+
+The three status labels are **Available in projection**, **No projection at this
+revision** and **Outside configured sources**. These are observations, not red/green
+gate indicators, work assignments, readiness claims or an automatic request for access.
+No local/session storage or background collection is used. Cancelling or clearing a
+check restores focus to the check button. No expired display instance can restart
+itself merely because its clock moves backward or later becomes valid.

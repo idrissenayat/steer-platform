@@ -162,6 +162,18 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
         // Rows remain owned by this disposable container and its final cleanup.
         return { artifactProjection: createArtifactProjectionReader(app, { organizationId, repository, paths: [briefPath, 'SPEC.md', ...paths] }) };
       },
+      createCoverageProjection: async (reader, paths, revision) => {
+        assert.deepEqual(paths, ['items/0191-support/BRIEF.md', 'items/0191-support/SPEC.md']);
+        const organizationId = reader.binding.organizationId, repository = `github:${reader.binding.repositoryId}`;
+        const projector = runtime('steer_projector'), app = runtime('steer_app');
+        const principal: Principal = { subject: 'synthetic-coverage-projector', organizationId, type: 'agent', hats: [],
+          toolGrants: ['projection.ingest'], expiresAt: new Date(Date.now() + 300000).toISOString() };
+        for (const path of paths) {
+          const { repositoryId, ...artifact } = await reader.readArtifact(path, revision);
+          assert.equal(await ingestVerifiedArtifact(projector, principal, { ...artifact, repository }, null), 'applied');
+        }
+        return { artifactProjection: createArtifactProjectionReader(app, { organizationId, repository, paths: [...paths, 'items/0191-support/EXAM.md'] }) };
+      },
       createReceiptProjection: async (reader, path, revision, readReceipt, durable) => {
         // Only the dedicated fixture artifact in this disposable database is owned
         // here. Other projection rows/events remain untouched for the broader suite.

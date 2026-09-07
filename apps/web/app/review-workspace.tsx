@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createReviewWorkspaceReader } from './review-workspace-reader';
 import BriefDecisionRecords from './brief-decisions';
+import ArtifactCoverage from './artifact-coverage';
 import { briefFragment } from './brief-location';
 
 type Reader = ReturnType<typeof createReviewWorkspaceReader>;
@@ -49,6 +50,7 @@ export default function ReviewWorkspace({ organizationId, repository, expiresAt 
     {view?.selected && <div ref={selection} tabIndex={-1} className="review-selection" role="region" aria-label="Selected review source">
       <h3>{view.selected.document.title ?? label(view.selected.path)}</h3><p><code>{view.selected.path}</code> at <code>{view.selected.revision}</code></p>
       <a href={briefFragment({ organizationId, repository, path: view.selected.path, revision: view.selected.revision, contentDigest: view.selected.contentDigest })}>Read this exact Brief</a>
+      <ArtifactCoverage key={`coverage:${view.selected.path}:${view.selected.revision}:${view.selected.contentDigest}`} brief={view.selected} expiresAt={expiresAt} />
       <BriefDecisionRecords key={`${view.selected.path}:${view.selected.revision}:${view.selected.contentDigest}`} brief={view.selected} expiresAt={expiresAt} />
     </div>}
     <button className="access-secondary" disabled={!records.length && !view?.selected && view?.phase !== 'loading'} onClick={clear}>Clear review records</button>

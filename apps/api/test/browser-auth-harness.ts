@@ -118,7 +118,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         assert.deepEqual(await storage.counts(), { transactions: 0, sessions: 0 });
       });
       const grant: AuthorizationRecord = { issuer, subject: deps.subject, organizationId: 'synthetic-org', type: 'human',
-        hats: ['product-lead'], toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'intent.brief.read', 'intent.brief.catalog', 'intent.brief.decisions', 'intent.brief.decision.evidence', 'intent.brief.preview', 'intent.brief.destination', 'intent.brief.save.status'], active: true,
+        hats: ['product-lead'], toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'intent.brief.read', 'intent.brief.catalog', 'intent.brief.artifacts', 'intent.brief.decisions', 'intent.brief.decision.evidence', 'intent.brief.preview', 'intent.brief.destination', 'intent.brief.save.status'], active: true,
         validAfter: new Date(0).toISOString(), expiresAt: new Date(Date.now() + 600000).toISOString() };
       const source = await createGitAuthorizationHarness(tls.temporary, grant, 'canonical');
       assert.ok(storage.createProjectionFixture);
@@ -767,7 +767,9 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         assert.equal(await detail.locator('.brief-detail-body').evaluate((element) => element.scrollWidth <= element.clientWidth), true);
         await detail.locator('.brief-detail-body').evaluate((element) => { element.scrollTop = 0; });
         if (directory) await page.screenshot({ path: join(directory, 'brief-detail-mobile.png') });
-        await detail.locator('.brief-detail-body').evaluate((element) => { element.scrollTop = element.scrollHeight; });
+        // Supporting/review sections can follow source details. Scroll to the
+        // exact fingerprint being checked, not an assumed end-of-dialog position.
+        await detail.locator('.brief-source code').last().scrollIntoViewIfNeeded();
         assert.equal(await detail.locator('.brief-source code').last().evaluate((element) => {
           const body = element.closest('.brief-detail-body')!.getBoundingClientRect(); const target = element.getBoundingClientRect();
           return target.top >= body.top && target.bottom <= body.bottom;
@@ -1250,6 +1252,92 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           if (directory) await page.screenshot({ path: join(directory, 'brief-decisions-failure.png') });
           throw error;
         } finally { page.off('request', observeEvidence); gateway = bindGateway(web!.rendererOrigin); await source.publish([grant]); await page.goto(origin); }
+      });
+      await check('supporting documents bind actual source fingerprints and clear on denial, explicit reset and page lifecycle', async () => {
+        assert.ok(storage.createCoverageProjection);
+        const seeded = await source.publishCoverage();
+        const coverageServices = await storage.createCoverageProjection(source.reader, seeded.paths, seeded.revision);
+        const coverageApi = createIdentityService(configuration, { ...dependencies, services: { ...projection.services, ...coverageServices } });
+        services.push(coverageApi); gateway = bindGateway(web!.rendererOrigin, coverageApi);
+        let stage = 'open coverage Brief', coverageRequests = 0;
+        const observeCoverage = (request: import('playwright').Request) => { if (request.url() === origin + '/v1/tools/intent.brief.artifacts') coverageRequests++; };
+        page.on('request', observeCoverage);
+        const directory = process.env.STEER_WORKSPACE_SCREENSHOT_DIR;
+        try {
+          await page.goto(origin);
+          await page.getByRole('button', { name: 'Read Intent 0191-support', exact: true }).click();
+          const dialog = page.getByRole('dialog'); await dialog.waitFor();
+          const dialogCoverage = dialog.getByRole('region', { name: 'Supporting documents', exact: true });
+          await dialogCoverage.waitFor(); assert.equal(await dialogCoverage.getByRole('listitem').count(), 0);
+          assert.equal(coverageRequests, 0);
+          await page.getByRole('button', { name: 'Close Brief', exact: true }).click(); await dialog.waitFor({ state: 'hidden' });
+          const workspace = page.getByRole('region', { name: 'Review records', exact: true });
+          await workspace.getByRole('button', { name: 'Refresh review list', exact: true }).click();
+          const chooseReview = workspace.getByRole('button', { name: 'Inspect records for Intent 0191-support', exact: true });
+          await chooseReview.click();
+          const selectedReview = workspace.getByRole('region', { name: 'Selected review source', exact: true });
+          await selectedReview.waitFor();
+          stage = 'explicit supporting document coverage';
+          assert.equal(coverageRequests, 0, 'opening Briefs or reviews must not fetch supporting document coverage');
+          const coverage = selectedReview.getByRole('region', { name: 'Supporting documents', exact: true });
+          const checkDocuments = coverage.getByRole('button', { name: 'Check supporting documents', exact: true });
+          const checkCoverage = async () => {
+            const pending = page.waitForResponse(value => value.url() === `${origin}/v1/tools/intent.brief.artifacts`);
+            await checkDocuments.click(); const response = await pending; assert.equal(response.status(), 200);
+            const result = await response.json(); assert.equal(result.stage, null); assert.equal(result.gateVerified, false); assert.equal(result.writeAuthorized, false);
+            assert.deepEqual(result.artifacts.map((ref: { status: string }) => ref.status), ['projected', 'not-projected', 'not-configured']);
+            await coverage.getByTestId('artifact-coverage-status').filter({ hasText: 'Source check complete.' }).waitFor();
+            assert.equal(await coverage.getByRole('listitem').count(), 3); return result;
+          };
+          const coverageResult = await checkCoverage();
+          const coverageSource = await source.reader.readArtifact(coverageResult.artifacts[0].path, seeded.revision);
+          assert.equal(coverageResult.artifacts[0].fingerprint.contentDigest, coverageSource.contentDigest);
+          assert.equal(coverageResult.artifacts[0].fingerprint.blobSha, coverageSource.blobSha);
+          assert.equal(coverageResult.brief.revision, seeded.revision);
+          await coverage.getByText('Source fingerprints', { exact: true }).click();
+          assert.ok((await coverage.textContent())!.includes(coverageSource.contentDigest));
+          assert.ok(!(await coverage.textContent())!.includes(coverageSource.content), 'the inventory never renders source bodies');
+          stage = 'clear supporting document coverage and restore keyboard focus';
+          await coverage.getByRole('button', { name: 'Clear document check', exact: true }).focus();
+          await page.keyboard.press('Enter');
+          await page.waitForFunction(() => document.activeElement?.textContent === 'Check supporting documents');
+          assert.equal(await coverage.getByRole('listitem').count(), 0);
+          stage = 'coverage revocation and recovery';
+          await checkCoverage();
+          await source.publish([{ ...grant, toolGrants: grant.toolGrants.filter(name => name !== 'intent.brief.artifacts') }]);
+          const deniedCoverage = page.waitForResponse(value => value.url() === `${origin}/v1/tools/intent.brief.artifacts`);
+          await checkDocuments.click(); assert.equal((await deniedCoverage).status(), 403);
+          await coverage.getByTestId('artifact-coverage-status').filter({ hasText: 'Supporting documents could not be checked.' }).waitFor();
+          assert.equal(await coverage.getByRole('listitem').count(), 0);
+          await source.publish([grant]); await checkCoverage();
+          stage = 'responsive supporting documents and accessibility';
+          await coverage.getByText('Source fingerprints', { exact: true }).click();
+          if (directory) await coverage.screenshot({ path: join(directory, 'supporting-documents-desktop.png') });
+          await page.setViewportSize({ width: 390, height: 844 });
+          assert.equal(await coverage.evaluate(element => element.scrollWidth <= element.clientWidth), true);
+          if (directory) await coverage.screenshot({ path: join(directory, 'supporting-documents-mobile.png') });
+          await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+          assert.equal(await coverage.evaluate(element => element.scrollWidth <= element.clientWidth), true);
+          await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
+          await page.setViewportSize({ width: 1440, height: 1000 });
+          const axe = await readFile(new URL('../../../node_modules/axe-core/axe.min.js', import.meta.url), 'utf8');
+          await page.evaluate(source => { eval(source); }, axe);
+          assert.deepEqual(await page.evaluate(async () => (await (window as unknown as { axe: { run(context: string, options: unknown): Promise<{ violations: unknown[] }> } }).axe.run('.review-workspace', { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] } })).violations), []);
+          stage = 'coverage page lifecycle clearing';
+          await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pagehide')));
+          await workspace.getByRole('listitem').first().waitFor({ state: 'hidden' });
+          assert.equal(await workspace.locator('.artifact-coverage-list').count(), 0);
+          await workspace.getByRole('button', { name: 'Refresh review list', exact: true }).click();
+          await chooseReview.click(); await selectedReview.waitFor();
+          assert.equal(await selectedReview.locator('.artifact-coverage-list').count(), 0, 'reopened review does not reuse retained fingerprints');
+        } catch (error) {
+          console.error('Supporting document UI failed at ' + stage + '; error class ' + (error instanceof Error ? error.name : 'unknown') + '; payloads omitted.');
+          if (directory) await page.screenshot({ path: join(directory, 'supporting-documents-failure.png') });
+          throw error;
+        } finally {
+          page.off('request', observeCoverage); gateway = bindGateway(web!.rendererOrigin); await source.publish([grant]);
+          await page.setViewportSize({ width: 1440, height: 1000 }); await page.goto(origin);
+        }
       });
       await check(`opt-in browser creates a native Brief once and reaches ${deps.recovery ? 'fixed-failed-run recovery' : 'durable projection'}, replay and exact source reads with real Keycloak membership`, async () => {
         const path = 'items/0167-created-fixture/BRIEF.md';

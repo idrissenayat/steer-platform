@@ -3927,3 +3927,30 @@ even when all artifacts are projected. No UI, live grants/curation, protected
 artifact, provider access, spending, deployment, release or real-data deletion
 changed. All five R5 findings and qualified independent protected review/human
 gates remain open.
+
+## Completed development increment: 0191 — Supporting documents in review
+
+The actual Next Brief dialog and direct review workspace now offer an explicit
+Supporting documents check. Three responsive cards distinguish projected Spec,
+Exam and Plan sources, unavailable exact-revision projections and unconfigured
+paths. Available fingerprints can be expanded without fetching or rendering body
+content. No stage, readiness, assignment or gate approval is inferred.
+
+The schema-only contract has a dedicated browser export and narrow import-boundary
+coverage. The display owner pins the exact Brief, rejects substituted/invalid
+responses and clears fingerprints on failure, expiry, clock regression, cancellation
+and page lifecycle changes. Clear/cancel restores keyboard focus; opening a Brief
+or review never automatically requests this inventory. Existing pink/orange tokens,
+session ownership and server grants remain in place.
+
+Scope and verification, including the fixture isolation and mobile assertion
+corrections, are recorded in `intent/0191/EVIDENCE.md`. User-facing behavior is
+documented in `docs/REVIEW-WORKSPACE.md` and `docs/LIFECYCLE-SOURCE-COVERAGE.md`.
+All 46 browser checks, 78 web tests, 439 repository controls and the full-check
+components/final builds passed. Desktop/mobile screenshots were inspected;
+responsive and automated accessibility checks passed without claiming qualified
+manual acceptance.
+No live grant/curation, protected artifact, dependency version, provider access,
+spending, deployment, release or real-data deletion changed. All five R5 findings,
+qualified independent protected review/human gates, actual lifecycle authority and
+approved real-user journey acceptance remain open.
