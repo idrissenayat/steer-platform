@@ -63,7 +63,7 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0161
+### Latest development audit — increment 0162
 
 The production UI now supports deterministic describe/correct, exact local review,
 manual prior-operation status and opening the exact recorded Brief. Disposable
@@ -76,6 +76,13 @@ that connection; live dispatch and automatic path admission remain absent.
 The existing Brief library now exposes a revision-linked projected work list with
 exact source metadata. It is not an authenticated lifecycle board or decision inbox.
 These capabilities do not establish a real authorized save or agent conversation.
+
+An additional opt-in integration now starts with actual HTTP preview/save calls,
+creates the Brief/marker in disposable native Git, reconstructs status and projects
+that receipt into PostgreSQL. It does not seed the saved pair. This closes a
+mechanical integration gap, but its identity/full-authority callbacks are explicit
+test doubles; the existing browser proof still begins with seeded operation history.
+Neither substitutes for an approved real-member, fully governed save journey.
 
 Remaining engineering includes the complete governed evidence-selection/action-time
 writer composition, an owned save-to-projection workflow, authenticated lifecycle

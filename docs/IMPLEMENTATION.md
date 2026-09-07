@@ -1533,3 +1533,29 @@ The pink/orange theme and current stack are preserved. No lifecycle stage, appro
 current-HEAD guarantee or platform-save success is inferred from a projected row.
 See `intent/0161/EVIDENCE.md` for actual browser/visual verification and remaining
 limits. This surface does not complete the Flight Board, Inbox or real first journey.
+
+## Isolated actual-creation integration
+
+Item `intent/0162` adds the opt-in `pnpm test:brief:integration` command. Unlike the
+browser fixture's seeded prior operation, this suite submits facts to the actual
+Hono/shared preview tool, submits its exact digest to the save tool, and uses the
+production request-bound GitHub writer/store to create one native temporary Git
+commit with exactly a Brief and immutable operation marker. A reconstructed API
+recovers the receipt, and the production owned PostgreSQL runtime projects those
+actually-created source bytes. Duplicate requests/replays create no second mutation.
+
+The code-host transport is entirely local and reuses the existing native Git
+fixture; synthetic identity context and full-authority callbacks are explicit test
+doubles. They do not prove OIDC, live membership, policy-source governance, review
+provenance or human gate approval. The always-held production factory and disabled
+UI are unchanged. No synthetic verifier is exported from production or installable
+through user request data. The existing independent browser suite continues to prove
+Keycloak/readback behavior using its clearly labeled seeded operation.
+
+The integration covers lost acknowledgment/reconstructed status, current grant
+denial, agent rejection, malformed confirmation and unavailable authority. It uses
+only the cached disposable PostgreSQL image (`--pull=never`), native temporary Git
+and synthetic values, with no provider network calls or real credentials. The
+database fixture admits only its two explicitly named test paths and cleans its
+exclusive source record/events after the owned runtime drains. See
+`intent/0162/EVIDENCE.md`; this is mechanics evidence, not Gate 2 or live-save readiness.

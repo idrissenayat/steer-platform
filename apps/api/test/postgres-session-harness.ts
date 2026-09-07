@@ -147,7 +147,7 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
       createReceiptProjection: async (reader, path, revision, readReceipt) => {
         // Only the dedicated seeded artifact in this disposable database is owned
         // here. Other projection rows/events remain untouched for the broader suite.
-        assert.equal(path, 'items/0156-recorded-fixture/BRIEF.md');
+        assert.ok(['items/0156-recorded-fixture/BRIEF.md', 'items/0001-demo/BRIEF.md'].includes(path));
         const organizationId = reader.binding.organizationId, repository = `github:${reader.binding.repositoryId}`;
         const projector = runtime('steer_projector'), app = runtime('steer_app'), recordKey = projectionKey(repository, path);
         const principal: Principal = { subject: 'synthetic-receipt-projector', organizationId, type: 'agent', hats: [],

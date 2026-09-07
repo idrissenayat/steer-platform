@@ -144,6 +144,11 @@ Item [0161](intent/0161/README.md) makes the existing Brief library a revision-l
 work list with source paths, selected revisions and expandable fingerprints. It is
 read-only projected work, not lifecycle or approval status.
 
+Item [0162](intent/0162/README.md) adds `pnpm test:brief:integration`: HTTP preview
+and exact-confirmation save produce a real disposable Git commit, then recover and
+project its receipt through PostgreSQL. Identity/gate trust is explicitly simulated;
+the live writer and UI remain disabled.
+
 Item [0153](intent/0153/README.md) adds bounded, merge-aware Critic target ancestry
 against the configured Git reader, without upgrading review selection or gate authority.
 

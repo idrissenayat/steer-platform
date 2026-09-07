@@ -3201,3 +3201,33 @@ coverage; P1-07 still requires model-backed conversation and one-confirmation
 onboarding. Full live-write authority/configuration, all five R5 findings, qualified/
 independent protected review and human gates remain unfinished. No live save,
 deployment, release, provider permission or spending was enabled.
+
+## Completed development increment: 0162 — Actual isolated creation journey
+
+The first-journey audit identified a remaining evidence gap: browser projection
+began from seeded history, while actual creation was tested separately. The new
+opt-in `pnpm test:brief:integration` connects HTTP preview/exact-confirmation save
+to the production request-bound writer/store, creates exactly the Brief and marker
+in native disposable Git, recovers the operation through a reconstructed API and
+projects the actual-created receipt through the owned PostgreSQL runtime.
+
+All three explicit integration groups passed, including no-second-mutation duplicate
+requests, lost acknowledgment/status recovery, wrong confirmation, agent/grant denial
+and unavailable authority. Every request-owned writer closes. Identity context and
+full Gate 2 authority are explicitly simulated test callbacks; this does not enable
+the held production factory or prove live membership/governance. No provider network
+access or real credentials were used, and only owned disposable resources were cleaned.
+
+Full repository checks passed (437 root controls, 282 adapter/91 API tests and all
+package builds). The separate actual Keycloak/Chromium regression suite passed 41
+checks and retains its labeled seeded-history limitation. Protected artifacts remain
+unchanged. See `intent/0162/EVIDENCE.md`; there is still no authorized live save.
+
+Next advance the missing review step with a read-only, revision-bound decision
+record view through the existing curated source/API path, verifying the backend
+contract and exact Brief/evidence linkage together. Recorded decision/signer text
+must remain explicitly unverified until full governed verification exists. Do not
+enable signatures, infer lifecycle stages, expose unconfigured records or add
+another policy-only wrapper. Real configuration/write authority, model conversation,
+all five R5 findings, qualified/independent review and human gates remain unfinished.
+No deployment, release, provider permission or spending changed.
