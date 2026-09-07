@@ -184,6 +184,11 @@ identity runtime with separate observer and request-bound human identities. Inte
 diagnostics remain historical and non-authorizing; satisfied policy still cannot save.
 See [the held runtime boundary](docs/HELD-BRIEF-RUNTIME.md). No live binding is enabled.
 
+Item [0170](intent/0170/README.md) binds the complete configured policy selection to
+an exact current Git manifest and exposes fingerprints only. Scope, source and nested
+selection mismatches deny; a matching file still does not establish governance or
+write authority. See [selection source binding](docs/GATE-POLICY-SELECTION.md).
+
 Item [0153](intent/0153/README.md) adds bounded, merge-aware Critic target ancestry
 against the configured Git reader, without upgrading review selection or gate authority.
 

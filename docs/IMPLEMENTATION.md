@@ -1778,3 +1778,27 @@ claim a real-person/Keycloak held-profile flow or qualified independent evidence
 See `docs/HELD-BRIEF-RUNTIME.md` and `intent/0169/EVIDENCE.md`. Full governed selection,
 review provenance/action-time authority, all five R5 findings, model conversation,
 qualified/independent protected review and human signatures remain open.
+
+## 0170 — Exact policy-selection source binding
+
+The configured gate chain can require an exact current `steer-gate-policy-selection/v1`
+manifest via optional `policy.selection`. Its entire parsed gates configuration must
+match startup configuration, including nested signer/proof/policy/reviewer/evidence
+and optional runner/history/ancestry choices. The manifest does not select itself or
+replace supplied configuration. Compact JSON and all native source hashes/tuple fields
+are checked; collisions with selected file roles, the human grant or authoring paths
+are rejected. Missing/mismatched configured sources fail closed, without a fallback.
+
+The collector reads it under the existing current observer, head checks, single-flight,
+15-second deadline and draining shutdown. Its 512 KiB limit also contributes to the
+existing aggregate byte budget. Only immutable manifest/configuration fingerprints
+reach the held runtime diagnostic; absent selection remains null for legacy callers.
+
+No governed-selection, review-provenance, source or action-time authority requirement
+is cleared. This binds declared policy sources, not approved bootstrap roots, actual
+runner isolation, correct review conclusions or authoring destination authority. The
+held factory still denies every mutation and requests no write token. No live manifest,
+profile, grant, public endpoint, UI, dependency or schema migration is installed.
+
+See `docs/GATE-POLICY-SELECTION.md` and `intent/0170/EVIDENCE.md`. All five R5 findings,
+qualified/independent protected review and human signatures remain open.

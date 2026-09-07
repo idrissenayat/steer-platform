@@ -30,8 +30,12 @@ const nativeExceptionRef = ref.extend({ format: z.literal('steer-domain-exceptio
 const entrySchema = z.strictObject({ signerCollection: gitGateSignerConfigurationSchema, policy: ref, critic: z.union([ref, nativeCriticRef]),
   buildEvidence: ref.nullable(), domainAssurance: z.strictObject({ reviews: z.array(z.union([ref, nativeReviewRef])).min(1).max(7),
     exceptionBrief: z.union([ref, nativeExceptionRef]) }).nullable() });
-const configSchema = z.strictObject({ gates: z.array(entrySchema).min(1).max(3) });
+const coreConfigurationSchema = z.strictObject({ gates: z.array(entrySchema).min(1).max(3) });
+const configSchema = coreConfigurationSchema.extend({ selection: ref.optional() });
 export { configSchema as gitGatePolicyConfigurationSchema };
+export const gitGatePolicySelectionDocumentSchema = z.strictObject({ version: z.literal('steer-gate-policy-selection/v1'),
+  organizationId: targetSchema.shape.organizationId, repository: targetSchema.shape.repository,
+  branch: z.string().min(1).max(200), configuration: coreConfigurationSchema });
 const inputSchema = z.strictObject({ sourceRevision: gatePolicyInputSchema.shape.target.shape.artifactRevision, decisionDigest: digest });
 const domainSchema = gatePolicyInputSchema.shape.domainAssurance.unwrap();
 // Development source profiles. Digests come from actual file bytes, never a
@@ -61,6 +65,20 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
   const config = configSchema.parse(rawConfiguration), binding = Object.freeze({ ...reader.binding });
   const first = config.gates[0]!.signerCollection.gateSource;
   if (typeof authenticate !== 'function') throw new Error('Invalid gate policy sources.');
+  const configuredSelection = JSON.stringify({ gates: config.gates });
+  if (config.selection) {
+    const paths = new Set<string>();
+    const visit = (value: unknown) => {
+      if (!value || typeof value !== 'object') return;
+      for (const [key, child] of Object.entries(value)) {
+        if ((key === 'path' || key.endsWith('Path')) && typeof child === 'string') paths.add(child);
+        if ((key === 'paths' || key.endsWith('Paths')) && Array.isArray(child)) for (const path of child) if (typeof path === 'string') paths.add(path);
+        visit(child);
+      }
+    };
+    visit(config.gates);
+    if (paths.has(config.selection.path) || Buffer.byteLength(configuredSelection, 'utf8') > 512 * 1024) throw new Error('Invalid gate policy selection.');
+  }
   const recordPaths = new Set<string>();
   for (const [index, entry] of config.gates.entries()) {
     const source = entry.signerCollection.gateSource;
@@ -125,6 +143,26 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
           const nativeCriticAncestries: (Awaited<ReturnType<typeof collectGateReviewAncestry>> | null)[] = [];
           const nativeCriticRunners: ReturnType<typeof verifyCriticRunnerAttestation>[] = [];
           let retainedBytes = 0;
+          let selectionSource: Readonly<{ path: string; revision: string; contentDigest: string; blobSha: string; configurationDigest: string }> | null = null;
+          if (config.selection) {
+            if (await guarded.readHead() !== input.sourceRevision) throw failure();
+            const snapshot = await guarded.readArtifact(config.selection.path, input.sourceRevision);
+            if (typeof snapshot.content !== 'string') throw failure();
+            const bytes = Buffer.from(snapshot.content, 'utf8'); retainedBytes += bytes.length;
+            if (bytes.length > 512 * 1024 || new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes) !== snapshot.content ||
+              snapshot.organizationId !== binding.organizationId || snapshot.repositoryId !== binding.repositoryId || snapshot.path !== config.selection.path ||
+              snapshot.revision !== input.sourceRevision || snapshot.contentDigest !== config.selection.digest ||
+              createHash('sha256').update(bytes).digest('hex') !== config.selection.digest ||
+              createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex') !== snapshot.blobSha) throw failure();
+            const raw: unknown = JSON.parse(snapshot.content);
+            if (JSON.stringify(raw) !== snapshot.content) throw failure();
+            const document = gitGatePolicySelectionDocumentSchema.parse(raw);
+            if (document.organizationId !== binding.organizationId || document.repository !== `github:${binding.repositoryId}` || document.branch !== binding.branch ||
+              JSON.stringify(document.configuration) !== configuredSelection) throw failure();
+            await authorize(); if (await guarded.readHead() !== input.sourceRevision) throw failure();
+            selectionSource = Object.freeze({ path: snapshot.path, revision: snapshot.revision, contentDigest: snapshot.contentDigest,
+              blobSha: snapshot.blobSha, configurationDigest: createHash('sha256').update(configuredSelection).digest('hex') });
+          }
           for (const [index, entry] of config.gates.entries()) {
             const selected = entry.signerCollection, target = { ...selected.gateSource.scope, gate: selected.gateSource.gate,
               artifactRevision: selected.gateSource.artifactRevision };
@@ -282,7 +320,7 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
             return { input: policyInput, evaluation: evaluateGateDecisionPolicy(policyInput) };
           });
           // A target pass can never hide a failed prerequisite's policy evaluation.
-          const result = freeze({ kind: 'git-gate-policy-observation' as const, sourceRevision: input.sourceRevision, evaluatedAt,
+          const result = freeze({ kind: 'git-gate-policy-observation' as const, sourceRevision: input.sourceRevision, evaluatedAt, selectionSource,
             policyOutcome: evaluations.every((value) => value.evaluation.outcome === 'policy-satisfied') ? 'policy-satisfied' as const : 'blocked' as const,
             gates: evaluations.map((value, index) => ({ ...value, signers: observations[index]!, sources: sources[index]!,
               nativeDomainReviews: nativeDomainReviews[index]!, nativeDomainException: nativeDomainExceptions[index]!, nativeCritic: nativeCritics[index]!,

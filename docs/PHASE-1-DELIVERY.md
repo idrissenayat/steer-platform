@@ -3445,3 +3445,34 @@ lifecycle/decision projections, independent/qualified protected review and human
 signatures remain open. No provider grant, spending, deployment, release, real-record
 deletion, schema or new dependency was introduced. The standing implementation loop
 remains active, with exact remote equality verified after the candidate push.
+
+## Completed development increment: 0170 — Exact policy-selection source binding
+
+The optional held policy profile now pins one complete selection manifest to exact
+current Git bytes and scope. Every configured signer, trust/proof, policy, Critic,
+review set and optional runner/history selection must match; the manifest cannot
+replace startup configuration or fall back to older source. Integrity, bounded size,
+source-role separation, current observer/head and draining shutdown checks apply.
+Held diagnostics retain fingerprints only and all authority paths remain denied.
+
+Eleven focused adapter/runtime tests passed, including native Git, repinned hostile
+selection, malformed bytes, changed identity/head, timeout and startup collisions.
+Full checks passed with 438 repository controls, 99 registry, 24 data, 61 web, 289
+adapter, 96 API, 23 worker and remaining workspace/prototype tests and all builds.
+Actual creation regression passed three groups, Temporal integration 25 checks and
+the final Keycloak/Chromium browser integration all 43 checks. Disposable resources
+were cleaned. See `intent/0170/EVIDENCE.md` and `docs/GATE-POLICY-SELECTION.md`.
+
+This closes exact declared-selection source binding, not governed selection approval.
+No authority owner, trusted live configuration or independent review conclusion is
+established by matching a manifest. The next integration target is the held profile
+through the actual isolated browser/Keycloak session boundary, while retaining the
+explicit missing approvals and zero mutations. Do not invent trust roots to make
+the positive policy fixture a live authorization proof.
+
+All five R5 findings, full action-time authority, model conversation, authenticated
+lifecycle/decision projections, independent/qualified protected review and human
+signatures remain open. No live profile, manifest, provider grant, frontend, schema,
+dependency, spending, deployment, release or real-record deletion changed. The
+standing implementation loop remains active; exact remote equality is verified
+after the candidate push.

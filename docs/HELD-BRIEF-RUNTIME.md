@@ -37,6 +37,13 @@ the historical observation or upgrade its authority. Shutdown clears the diagnos
 immediately, drains admitted requests and cannot repopulate it from a late result.
 The stopped runtime rejects new requests without provider access.
 
+Optional `heldBrief.policy.selection` now binds the complete configured policy chain
+to one exact current Git manifest. A missing/mismatched configured source fails the
+assessment; a match contributes only `selectionSource` fingerprints. This neither
+adopts file-supplied configuration nor clears `governed-selection-unverified` or any
+other authority requirement. No live manifest or pin is installed. See
+`docs/GATE-POLICY-SELECTION.md` and `intent/0170`.
+
 ## Verification and remaining boundaries
 
 Increment 0169 verifies the production runtime using actual signed OIDC and App JWTs,

@@ -15,6 +15,7 @@ export interface HeldBriefAssessment {
   readonly platformRevision: string;
   readonly gate2DecisionDigest: string;
   readonly policyOutcome: 'blocked' | 'policy-satisfied';
+  readonly selectionSource: Readonly<{ path: string; revision: string; contentDigest: string; blobSha: string; configurationDigest: string }> | null;
   readonly missing: readonly MissingEvidence[];
   readonly gateVerified: false;
   readonly writeAuthorized: false;
@@ -35,6 +36,8 @@ export function createHeldGitBriefWriterFactory(binding: GitHubBinding, rawWrite
     source.scope.repository !== configuration.repository || source.artifactRevision !== configuration.platformRevision ||
     gate.signerCollection.signers.some(value => value.proof.expected.decisionDigest !== configuration.gate2DecisionDigest) ||
     typeof dependencies.authenticateObserver !== 'function') throw new CodeHostError();
+  if (policyConfiguration.selection && (configuration.paths.includes(policyConfiguration.selection.path) ||
+    policyConfiguration.selection.path === dependencies.authorizationPath)) throw new CodeHostError();
   const sourceBinding = Object.freeze({ ...binding });
   // Validate the whole configured chain before returning a usable factory.
   createGitGatePolicyCollector(createGitHubReader(sourceBinding, dependencies), policyConfiguration, dependencies.authenticateObserver);
@@ -59,7 +62,8 @@ export function createHeldGitBriefWriterFactory(binding: GitHubBinding, rawWrite
         missing.push('action-time-authority-incomplete');
         assessment = Object.freeze({ kind: 'held-brief-gate-assessment', sourceRevision: observation.sourceRevision,
           platformRevision: configuration.platformRevision, gate2DecisionDigest: configuration.gate2DecisionDigest,
-          policyOutcome: observation.policyOutcome, missing: Object.freeze(missing), gateVerified: false, writeAuthorized: false });
+          policyOutcome: observation.policyOutcome, selectionSource: observation.selectionSource,
+          missing: Object.freeze(missing), gateVerified: false, writeAuthorized: false });
         throw new CodeHostError();
       },
     })(authenticateHuman);

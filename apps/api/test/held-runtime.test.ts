@@ -2,10 +2,27 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createIdentityRuntime } from '../src/runtime.ts';
 import { heldRuntimeFixture } from './held-runtime-fixture.ts';
+import { selectChain } from '../../../packages/adapters/test/gate-selection-fixture.ts';
 
 const draft = { title: 'Held runtime draft', problem: 'Duplicate entry', outcome: 'Enter once', users: ['Coordinators'], systems: ['Unverified intake system'], constraints: ['No new subscription'], openQuestions: ['Confirm the system name'], successMeasure: 'Duplicate count' };
 const request = (name: string, input: unknown, token: string) => new Request(`https://steer.example/v1/tools/${name}`, {
   method: 'POST', headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify(input),
+});
+
+test('held runtime binds a native whole-selection manifest and retains only fingerprints without granting a save', async t => {
+  const f = await heldRuntimeFixture(t), selected = selectChain(f);
+  const runtime = await createIdentityRuntime({ ...f.profile, heldBrief: { ...f.profile.heldBrief, policy: selected.configuration } }, f.secrets, f.ports);
+  t.after(() => runtime.shutdown()); const input = await saveInput(runtime, f);
+  assert.equal((await runtime.fetch(request('intent.brief.save', input, f.token))).status, 503);
+  const assessment = runtime.status().heldBrief!.lastAssessment; assert.ok(assessment?.selectionSource);
+  assert.equal(assessment.selectionSource.path, selected.reference.path); assert.equal(assessment.selectionSource.revision, f.state.head);
+  assert.equal(assessment.selectionSource.contentDigest, selected.reference.digest);
+  assert.equal('content' in assessment.selectionSource, false); assert.equal(assessment.writeAuthorized, false); assert.equal(assessment.gateVerified, false);
+  assert.ok(assessment.missing.includes('governed-selection-unverified')); assert.ok(assessment.missing.includes('review-provenance-unverified'));
+  assert.equal(f.io.writes, 0);
+  f.sources.set(selected.reference.path, JSON.stringify({ ...selected.document, branch: 'foreign' })); f.commit();
+  assert.equal((await runtime.fetch(request('intent.brief.save', { ...input, expectedHead: f.state.head }, f.token))).status, 503);
+  assert.equal(runtime.status().heldBrief!.lastAssessment, null); assert.equal(f.io.writes, 0);
 });
 async function saveInput(runtime: Awaited<ReturnType<typeof createIdentityRuntime>>, f: Awaited<ReturnType<typeof heldRuntimeFixture>>) {
   const preview = await runtime.fetch(request('intent.brief.preview', { organizationId: f.grant.organizationId, draft }, f.token)); assert.equal(preview.status, 200);
@@ -47,6 +64,9 @@ test('held runtime configuration is explicit, source-bound and startup-lazy with
     [{ ...f.profile, heldBrief: { ...heldBrief, writeAuthorized: true } }, f.ports],
     [{ ...f.profile, heldBrief: { ...heldBrief, writer: { ...heldBrief.writer, platformRevision: 'f'.repeat(40) } } }, f.ports],
     [{ ...f.profile, heldBrief: { ...heldBrief, policy: { gates: [] } } }, f.ports],
+    ...[f.profile.github.authorizationPath, heldBrief.writer.paths[0]!].map(path => [
+      { ...f.profile, heldBrief: { ...heldBrief, policy: { ...heldBrief.policy, selection: { path, digest: 'f'.repeat(64) } } } }, f.ports,
+    ] as const),
     [f.profile, { ...f.ports, authenticateGateObserver: 'human' }],
   ] as const) await assert.rejects(createIdentityRuntime(profile, f.secrets, ports as Parameters<typeof createIdentityRuntime>[2]), /configuration could not be initialized/);
   assert.equal(f.io.reads + f.io.tokens + f.io.observerCalls + f.io.jwks, 0);
