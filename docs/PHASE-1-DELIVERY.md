@@ -4082,3 +4082,20 @@ tests, eight architecture controls, typecheck and final build passed. See the
 This is preview usability verification, not completion of the agent-led interview,
 real GitHub saving, actionable Flight Board/Inbox, accessibility acceptance or gates.
 The user's own UX acceptance remains open. No live authority or kit content changed.
+
+## Development increment: 0197 — Open intent instead of eight questions
+
+The user rejected the questionnaire. New local intents now open a spacious free-text
+composer, with no mandatory title or field-count checklist. Save derives a simple
+label while preserving exact original text in version-2 local records. Version-1
+Briefs still read without mutation; explicit save retains their structured details.
+Review provides individual corrections without restoring an eight-input intake.
+
+The actual HTTPS sample passed free-text → review → guide return → save → reload →
+reopen. Narrow-screen composition was visually checked. Web tests 92/92, architecture
+controls 8/8, typecheck, build and kit/scope checks passed; see 0197 evidence.
+
+Device dictation can enter text, but live agent conversation, audio capture and
+automatic Brief generation are not connected. Current user guidance now reflects
+free expression and agent-led clarification as the intended experience. No protected
+canon, EXAM, authorization, model usage, runtime write, deployment or spending changed.

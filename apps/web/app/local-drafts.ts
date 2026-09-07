@@ -2,15 +2,18 @@ import { authorFields, emptyAuthorAnswers, type AuthorAnswers } from './brief-au
 
 // Temporary device-local drafts are not repository artifacts, identities or gate records.
 export const localDraftPrefix = 'steer:ux-draft:v1:';
-export type LocalDraft = { version: 1; id: string; updatedAt: string; answers: AuthorAnswers };
+export const localIntentLimit = 100000;
+export type LocalDraft = { id: string; updatedAt: string; answers: AuthorAnswers } & ({ version: 1 } | { version: 2; intent: string });
+export const draftIntent = (draft: LocalDraft) => draft.version === 2 ? draft.intent : '';
 export type DraftStorage = Pick<Storage, 'length' | 'key' | 'getItem' | 'setItem' | 'removeItem'>;
 const validId = (id: string) => /^local-[a-f0-9-]{36}$/.test(id);
 export function parseLocalDraft(raw: string): LocalDraft {
-  if (raw.length > 180000) throw new Error('Draft is too large.');
+  if (raw.length > 800000) throw new Error('Draft is too large.');
   const value = JSON.parse(raw);
-  if (!value || value.version !== 1 || typeof value.id !== 'string' || !validId(value.id) ||
+  if (!value || ![1, 2].includes(value.version) || typeof value.id !== 'string' || !validId(value.id) ||
       typeof value.updatedAt !== 'string' || !Number.isFinite(Date.parse(value.updatedAt)) ||
-      !value.answers || Object.keys(value).sort().join() !== 'answers,id,updatedAt,version' ||
+      !value.answers || Object.keys(value).sort().join() !== (value.version === 1 ? 'answers,id,updatedAt,version' : 'answers,id,intent,updatedAt,version') ||
+      (value.version === 2 && (typeof value.intent !== 'string' || value.intent.length > localIntentLimit)) ||
       Object.keys(value.answers).sort().join() !== Object.keys(emptyAuthorAnswers()).sort().join() ||
       !authorFields.every(field => typeof value.answers[field.key] === 'string' && value.answers[field.key].length <= field.max)) {
     throw new Error('This local draft is not supported.');

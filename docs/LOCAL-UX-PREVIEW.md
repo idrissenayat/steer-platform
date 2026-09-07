@@ -8,11 +8,16 @@ inside the existing Next frontend, not a replacement architecture or live worksp
 
 1. Open `https://localhost:8443/` and choose **Open UX preview**. The existing
    unconfigured preview at `http://127.0.0.1:3000/` offers the same entry.
-2. Choose **Create your first intent** or **New intent**. Supply a working title
-   and whatever you know in the eight Brief fields. Use non-sensitive sample data.
-3. Switch to **Review Brief**. Unknown fields stay visible. Each correction link
-   returns focus to its corresponding field.
-4. Choose **Save on this browser**. A title is required; other facts can remain open.
+2. Choose **Create your first intent** or **New intent**. Write freely in one large
+   **Write your intent** box: paste notes or describe the idea in your own words.
+   No questionnaire or separate title is required. Use non-sensitive sample data.
+   The explicit local limit is 100,000 characters. Device dictation can enter text;
+   STEER does not record audio or provide a connected voice agent here.
+3. Switch to **Review Brief** to read the exact original text. No automatic Brief
+   extraction or agent response is claimed. Existing saved Brief details remain
+   available for individual corrections, rather than another eight-field form.
+4. Choose **Save on this browser**. Nonempty intent or existing notes are required.
+   A missing title is labelled from the first nonempty line, without summarizing the text.
    Only a confirmed browser-storage write displays the saved state.
 5. Choose **Intent backlog**, find the draft by title, and open it. Reloading the
    page requires reopening UX preview; explicitly saved drafts remain available
@@ -26,8 +31,11 @@ and exit actions warn before discarding edits. Reload/close requests the browser
 standard unsaved-change warning, which browsers may suppress; this is not autosave.
 Returning a field to its saved value clears the dirty state.
 
-Each local record contains only version, local identifier, save time and answers,
-under a `steer:ux-draft:v1:` key. No account/session, repository binding, signature,
+New records use format version 2: version, local identifier, save time, exact free-text
+intent and preserved structured answers. Version 1 records still read unchanged;
+only an explicit save upgrades a record. The historical `steer:ux-draft:v1:` key
+namespace stays stable for collision/stale-write protection across versions.
+No account/session, repository binding, signature,
 approval, lifecycle stage, provider receipt or token is stored. Authenticated
 workspace content is never imported into these drafts. No model or provider is called.
 
@@ -53,8 +61,8 @@ clears all browser storage or touches GitHub.
 
 ## Deliberate boundaries and next work
 
-- Review is a visual review of supplied facts, not a gate signature or independent
-  assessment. Eight completed fields do not imply a complete or approved Brief.
+- Review is a visual review of supplied words, not a gate signature, independent
+  assessment or automatically generated Brief. No completion-by-field-count is shown.
 - The live authoring component and its expiry/privacy/authorization rules are unchanged.
 - Real GitHub saving, verified Flight Board/Inbox inputs, actionable reviews and
   model-backed conversation remain separate work in `JOURNEY-REMAINING-WORK.md`.

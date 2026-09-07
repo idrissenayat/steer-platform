@@ -27,6 +27,13 @@ cancellation and long-form action reachability. See `UX-FUNCTIONALITY-REVIEW.md`
 The current form remains a fallback, not completion of J5's agent-led interview.
 Human UX acceptance, full accessibility acceptance and the real journey remain open.
 
+0197 supersedes the eight-field intake after explicit user rejection: one open text
+box captures exact intent, with optional device dictation, local save and review.
+Existing Brief details are preserved and individually editable only from review.
+No mandatory title or field-completion checklist remains. A future agent should
+derive the structured Brief from this source and ask contextual follow-ups, never
+reintroduce a mandatory questionnaire. Live conversation/voice is still unconnected.
+
 The intended user's authenticated UI was subsequently exercised using the configured
 real membership; the eight-question server preview and Learn were observed. The
 short session expiry clears drafts and destination discovery remains unavailable.

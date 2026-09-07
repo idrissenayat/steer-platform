@@ -65,23 +65,36 @@ test('actual local workspace opts in, reopens inert content, focuses corrections
     assert.equal(document.querySelector('dialog'), null); assert.equal(document.activeElement.textContent, '+ New intent');
     assert.match(document.querySelector('article').textContent, /Unsaved correction/);
     await click('+ New intent'); await click('Discard unsaved edits'); await click('Save on this browser');
-    assert.match(document.querySelector('[role="alert"]').textContent, /working title/);
-    assert.equal(document.activeElement.id, 'local-title'); assert.equal(window.localStorage.length, 1);
+    assert.match(document.querySelector('[role="alert"]').textContent, /Write your intent/);
+    assert.equal(document.activeElement.id, 'local-intent'); assert.equal(window.localStorage.length, 1);
+    assert.equal(document.querySelectorAll('textarea').length, 1);
+    assert.equal(document.querySelector('input'), null);
+    assert.doesNotMatch(document.body.textContent, /of 8|fields to clarify/);
+    const freeText = 'Storage failure test\n\nMy unstructured ideas. <script>literal</script>\n' + 'Keep every word. '.repeat(1000);
     await act(async () => {
-      Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set.call(document.getElementById('local-title'), 'Storage failure test');
-      document.getElementById('local-title').dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+      Object.getOwnPropertyDescriptor(dom.window.HTMLTextAreaElement.prototype, 'value').set.call(document.getElementById('local-intent'), freeText);
+      document.getElementById('local-intent').dispatchEvent(new dom.window.Event('input', { bubbles: true }));
     });
+    await click('Consult the operating guide'); await click('Return to Brief');
+    assert.equal(document.getElementById('local-intent').value, freeText);
+    assert.equal(document.querySelector('[role="alert"]'), null);
     const setItem = dom.window.Storage.prototype.setItem;
     try {
       dom.window.Storage.prototype.setItem = () => { throw new Error('Quota exceeded'); };
       await click('Save on this browser');
       assert.match(document.querySelector('[role="alert"]').textContent, /Could not save/);
-      assert.equal(document.getElementById('local-title').value, 'Storage failure test');
+      assert.equal(document.getElementById('local-intent').value, freeText);
       assert.equal(window.localStorage.length, 1);
     } finally { dom.window.Storage.prototype.setItem = setItem; }
     await click('Save on this browser'); assert.equal(window.localStorage.length, 2);
     assert.match(document.querySelector('[role="status"]').textContent, /Saved on this browser only/);
+    const stored = Array.from({ length: window.localStorage.length }, (_, i) => JSON.parse(window.localStorage.getItem(window.localStorage.key(i)))).find(item => item.version === 2);
+    assert.equal(stored.intent, freeText); assert.equal(stored.answers.title, 'Storage failure test');
+    await click('Review Brief'); assert.match(document.querySelector('article').textContent, /My unstructured ideas/);
+    assert.equal(document.querySelector('script'), null);
     await click('Return to sign-in workspace'); assert.match(document.body.textContent, /Separate live workspace/);
+    await click('Open UX preview'); await click('Storage failure test');
+    await click('Edit your intent'); assert.equal(document.getElementById('local-intent').value, freeText);
   } finally {
     await act(async () => root.unmount()); dom.window.close();
     for (const key of keys) { if (saved[key]) Object.defineProperty(globalThis, key, saved[key]); else delete globalThis[key]; }

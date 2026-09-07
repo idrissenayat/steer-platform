@@ -36,6 +36,7 @@
 .ux-title .access-label { color: #7c1943; font-size: .7rem; }
 .ux-title > button { flex-shrink: 0; }
 .ux-feedback { color: #55475d; font-size: .9rem; min-height: 1.5rem; }
+.ux-feedback:empty { display: none; }
 .ux-error, .ux-warning { padding: 1rem; border: 1px solid #be6c51; border-radius: .75rem; background: #fff0e5; color: #803424; line-height: 1.6; }
 .ux-warning h2 { font-size: 1.1rem; }
 .ux-confirm { width: min(32rem, calc(100% - 2rem)); max-height: calc(100svh - 2rem); overflow-y: auto; border: 1px solid var(--steer-border); border-radius: 1.2rem; padding: 1.5rem; background: #fff9fc; color: var(--steer-ink); box-shadow: 0 1rem 4rem #51203b33; }
@@ -64,7 +65,14 @@
 .ux-view-switch button { min-height: 44px; background: none; border: 0; border-radius: .5rem; padding: .6rem 1rem; font: inherit; font-weight: 650; color: var(--steer-muted); cursor: pointer; }
 .ux-view-switch button[aria-pressed=true] { background: #ffdeeb; color: #752245; }
 .ux-editor-layout { display: grid; grid-template-columns: minmax(0, 1fr) 16rem; align-items: start; gap: 1.5rem; }
+.ux-editor-layout.ux-intent-layout { grid-template-columns: minmax(0, 1fr); }
+.ux-intent-layout .ux-review-note { max-width: 48rem; }
 .ux-paper { background: white; border: 1px solid var(--steer-border); border-radius: 1rem; padding: clamp(1rem, 3vw, 2rem); }
+.ux-compose { margin-top: 0; }
+.ux-compose label { font-size: 1.35rem; }
+.ux-compose textarea { min-height: 20rem; font-size: 1.05rem; padding: 1.25rem; background: linear-gradient(150deg, #fff 80%, #fff4ed); }
+.ux-compose-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .75rem; margin-top: .8rem; color: var(--steer-muted); font-size: .875rem; line-height: 1.6; }
+.ux-agent-state { border-top: 1px solid var(--steer-border); padding-top: 1rem; }
 .ux-field { margin-top: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #f0e1e9; }
 .ux-field:last-child { border: 0; padding-bottom: 0; }
 .ux-field label { display: flex; gap: .7rem; align-items: baseline; font-weight: 700; }
@@ -82,7 +90,7 @@
 .ux-review-note li { margin-bottom: .6rem; }
 .ux-review-note hr { border: 0; border-top: 1px solid #dbb599; margin-block: 1.5rem; }
 @media (max-width: 1000px) { .ux-layout { grid-template-columns: 11rem minmax(0, 1fr); } .ux-editor-layout { grid-template-columns: 1fr; } }
-@media (max-width: 640px) {
+@media (max-width: 880px) {
   .ux-entry, .ux-title, .ux-toolbar, .ux-draft-list li { flex-direction: column; align-items: stretch; }
   .ux-topbar { padding: 1rem; flex-wrap: wrap; } .ux-topbar > button { margin-left: 0; width: 100%; }
   .ux-boundary { padding: 1rem; } .ux-layout { grid-template-columns: 1fr; }
