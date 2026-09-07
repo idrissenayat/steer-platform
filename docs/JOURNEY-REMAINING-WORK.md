@@ -10,8 +10,8 @@ architecture, signed-scope reduction or gate decision. It supersedes historical
 
 0193 adds the separately approved persistent local Keycloak/PostgreSQL bootstrap
 and narrow real initial membership. TLS discovery, durable login transaction and
-the real password form are verified; the user's certificate-trust/password setup
-and completed authenticated UI acceptance are pending. This is not a write grant.
+the real password form and browser certificate trust are verified; the user's
+password setup and completed authenticated UI acceptance are pending. This is not a write grant.
 See `docs/LOCAL-WORKSPACE-SETUP.md`.
 
 Actual disposable Keycloak/encrypted PostgreSQL sessions reach the production Next

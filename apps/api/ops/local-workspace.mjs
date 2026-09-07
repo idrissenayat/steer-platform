@@ -32,9 +32,22 @@ function command(program, args, options = {}) {
 }
 function compose(...args) { return command('docker', ['compose', '-p', 'steer-local-workspace', '-f', join(directory, 'compose.json'), ...args]); }
 const newSecret = () => randomBytes(32).toString('hex');
+function createBrowserCertificate() {
+  // New private directory: never overwrite a previous or partially created key.
+  const target = join(directory, 'browser-tls');
+  mkdirSync(target, { mode: 0o700 }); privateDirectory(target);
+  command('openssl', ['req', '-x509', '-newkey', 'rsa:3072', '-noenc', '-days', '30', '-subj', '/CN=localhost',
+    '-addext', 'subjectAltName=DNS:localhost', '-addext', 'basicConstraints=critical,CA:FALSE',
+    '-addext', 'keyUsage=critical,digitalSignature,keyEncipherment', '-addext', 'extendedKeyUsage=serverAuth',
+    '-keyout', join(target, 'server.key'), '-out', join(target, 'server.crt')]);
+  chmodSync(join(target, 'server.key'), 0o600); chmodSync(join(target, 'server.crt'), 0o600);
+  const cert = new X509Certificate(privateRead(join(target, 'server.crt')));
+  if (cert.ca || cert.subjectAltName !== 'DNS:localhost' || !cert.verify(cert.publicKey)) throw new Error('Invalid browser certificate.');
+  console.log(JSON.stringify({ browserCertificateSha256: cert.fingerprint256, names: cert.subjectAltName, certificateAuthority: cert.ca, expires: cert.validTo }));
+}
 async function main() {
   if (!uid || Number(process.versions.node.split('.')[0]) < 24) throw new Error('Use Node 24+ as the non-root workspace owner.');
-  if (!['init', 'configure', 'up', 'migrate', 'verify', 'verify-github', 'start', 'status', 'stop-services'].includes(action)) throw new Error('Usage: local-workspace.mjs init|configure|up|migrate|verify|verify-github|start|status|stop-services');
+  if (!['init', 'prepare-browser-tls', 'configure', 'up', 'migrate', 'verify', 'verify-github', 'start', 'status', 'stop-services'].includes(action)) throw new Error('Usage: local-workspace.mjs init|prepare-browser-tls|configure|up|migrate|verify|verify-github|start|status|stop-services');
   if (action === 'init') {
     // Refuse overwrite, including a partially completed initialization.
     if (existsSync(directory)) throw new Error('Private workspace already exists; initialization will not overwrite it.');
@@ -50,6 +63,7 @@ async function main() {
       '-addext', 'basicConstraints=critical,CA:FALSE', '-addext', 'keyUsage=critical,digitalSignature,keyEncipherment',
       '-addext', 'extendedKeyUsage=serverAuth', '-keyout', join(directory, 'tls.key'), '-out', join(directory, 'tls.crt')]);
     chmodSync(join(directory, 'tls.key'), 0o600); chmodSync(join(directory, 'tls.crt'), 0o600);
+    createBrowserCertificate();
     save('postgres.env', `POSTGRES_PASSWORD=${secrets.databaseAdmin}\nPOSTGRES_DB=steer\n`);
     save('pg_hba.conf', postgresHba);
     save('keycloak.env', `KC_DB_PASSWORD=${secrets.keycloakDatabase}\nKC_BOOTSTRAP_ADMIN_USERNAME=local-recovery-admin\nKC_BOOTSTRAP_ADMIN_PASSWORD=${secrets.admin}\n`);
@@ -65,6 +79,10 @@ async function main() {
   privateDirectory(directory);
   const secrets = JSON.parse(privateRead(join(directory, 'secrets.json')));
   const certificate = privateRead(join(directory, 'tls.crt'));
+  if (action === 'prepare-browser-tls') {
+    createBrowserCertificate();
+    console.log('New localhost-only browser leaf created. Database certificate, identity, data and system trust unchanged.'); return;
+  }
   if (action === 'configure') {
     privateRead(join(directory, 'compose.json'));
     if (!existsSync(join(directory, 'pg_hba.conf'))) save('pg_hba.conf', postgresHba);
@@ -74,7 +92,9 @@ async function main() {
   }
   if (action === 'status') {
     const cert = new X509Certificate(certificate);
-    console.log(JSON.stringify({ certificateSha256: cert.fingerprint256, certificateExpires: cert.validTo,
+    const browserCert = new X509Certificate(privateRead(join(directory, 'browser-tls/server.crt')));
+    console.log(JSON.stringify({ databaseCertificateSha256: cert.fingerprint256, databaseCertificateExpires: cert.validTo,
+      browserCertificateSha256: browserCert.fingerprint256, browserCertificateExpires: browserCert.validTo,
       containers: compose('ps', '--all', '--format', 'json').split('\n').filter(Boolean).flatMap(line => JSON.parse(line)), liveSaving: 'disabled' }, null, 2)); return;
   }
   if (action === 'stop-services') { compose('stop'); console.log('Owned containers stopped. All persistent volumes and private files retained.'); return; }
@@ -167,7 +187,10 @@ async function main() {
     return;
   }
   if (action === 'start') {
-    if (process.env.NODE_EXTRA_CA_CERTS !== join(directory, 'tls.crt')) throw new Error('Start with NODE_EXTRA_CA_CERTS pointing to the exact private local certificate.');
+    if (process.env.NODE_EXTRA_CA_CERTS !== join(directory, 'browser-tls/server.crt')) throw new Error('Start with NODE_EXTRA_CA_CERTS pointing to the exact private browser certificate.');
+    const browserCertificate = privateRead(join(directory, 'browser-tls/server.crt'));
+    const browserCert = new X509Certificate(browserCertificate);
+    if (browserCert.ca || browserCert.subjectAltName !== 'DNS:localhost' || Date.parse(browserCert.validTo) <= Date.now()) throw new Error('Invalid browser certificate scope or expiry.');
     const { startLocalIdentityRuntime } = await import('../src/runtime.ts');
     const profile = JSON.parse(privateRead(join(directory, 'profile.json')));
     const next = createRequire(new URL('../../web/package.json', import.meta.url)).resolve('next/dist/bin/next');
@@ -187,7 +210,7 @@ async function main() {
       runtime = await startLocalIdentityRuntime(profile, { identity: { browserClientSecret: secrets.client,
         githubPrivateKeyPem: privateRead(runtimeKey), databasePassword: secrets.authDatabase,
         sessionKeys: { 'local-v1': Uint8Array.from(Buffer.from(secrets.sessionKey, 'base64')) } },
-        tls: { key: privateRead(join(directory, 'tls.key')), cert: certificate } });
+        tls: { key: privateRead(join(directory, 'browser-tls/server.key')), cert: browserCertificate } });
       process.once('SIGINT', () => { void shutdown(); }); process.once('SIGTERM', () => { void shutdown(); });
       console.log('Local HTTPS sign-in gateway listening at https://localhost:8443/. GitHub saving disabled.');
     } catch { await shutdown(); throw new Error('Local gateway startup failed.'); }

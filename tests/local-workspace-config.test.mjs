@@ -36,6 +36,10 @@ test('owned compose is digest-pinned, persistent, loopback only, and production-
   assert.deepEqual(config.services.keycloak.command, ['start', '--import-realm']);
   assert.match(config.services.keycloak.environment.KC_DB_URL, /sslmode=verify-full/);
   assert.equal(config.services.keycloak.environment.KC_HTTP_ENABLED, 'false');
+  assert.equal(config.services.keycloak.environment.KC_HTTPS_CERTIFICATE_FILE, '/steer-local/browser.crt');
+  assert.ok(config.services.keycloak.volumes.includes('/private/example/browser-tls/server.crt:/steer-local/browser.crt:ro'));
+  assert.ok(config.services.keycloak.volumes.includes('/private/example/tls.crt:/steer-local/tls.crt:ro'));
+  assert.ok(!config.services.keycloak.volumes.some(mount => mount.includes('/tls.key:')));
   assert.equal(config.networks.identity.internal, true);
   assert.match(postgresHba, /hostnossl all all all reject/);
   assert.match(postgresHba, /hostssl all all all scram-sha-256/);

@@ -67,7 +67,8 @@ measurement window follows an approved release; it does not delay first use by
 
 0193 provisions the approved persistent local real-identity sign-in workspace.
 The intended user's completed password setup/login is not yet observed. Browser
-trust and the personal password step remain pending; real saving remains disabled.
+trust is now verified in both browsers; the personal password step remains pending
+and real saving remains disabled.
 See `docs/LOCAL-WORKSPACE-SETUP.md` and `intent/0193/EVIDENCE.md`.
 
 The dependency-ordered current route is `docs/JOURNEY-REMAINING-WORK.md`.

@@ -63,3 +63,31 @@ failed. The successful macOS check is not a browser pass. Chromium's
 explicitly skips hostname-specific keychain trust entries. A separate localhost-only
 browser leaf with SSL-only user trust is proposed, pending approval; no broader
 trust, replacement certificate, password submission or GitHub write was performed.
+
+## Approved browser-certificate replacement
+
+The user subsequently approved the localhost-only browser leaf and SSL-only user
+trust. A new 0700 directory holds a new 0600 key/certificate pair; the original
+database certificate, accounts, session keys and data were preserved. The new
+leaf's sole SAN is DNS:localhost, basic constraints CA:FALSE, usage serverAuth;
+its fingerprint/expiry are in the operations guide. No CA trust was installed.
+
+The exact user-keychain entry was independently exported and checked: SSL-server
+policy only, no hostname-policy string and no allowed-error override. macOS
+validates localhost and rejects 127.0.0.1, postgres and an unrelated hostname.
+The unchanged database certificate fingerprint was verified after replacement.
+
+Only the owned Keycloak container and gateway/renderer were recreated/restarted.
+Database role isolation, plaintext rejection, five migrations, persistent actual
+subject, pending password update, TLS discovery and durable PKCE form checks all
+pass with the split certificates. No passwords were submitted.
+
+Actual Chrome and in-app browser navigation now succeeds without certificate
+warnings. In the in-app browser, clicking the actual Sign in button reaches the
+real Keycloak username/password form. This resolves the prior browser certificate
+blocker, not intended-human first-login acceptance or real saving.
+
+The four configuration tests (including independent database/browser mounts) and
+eight architecture-boundary tests pass. The prior full-control run remains the
+earlier bootstrap evidence, not a claim it was rerun for this certificate change.
+All 109 API tests were rerun and pass; kit validation and `git diff --check` pass.

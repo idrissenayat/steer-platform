@@ -50,8 +50,8 @@ export function composeConfiguration(directory, uid) {
       labels, restart: 'unless-stopped', user: `${uid}:0`, mem_limit: '1g', ports: ['127.0.0.1:8444:8443'],
       env_file: [`${directory}/keycloak.env`], environment: { KC_DB: 'postgres', KC_DB_URL: 'jdbc:postgresql://postgres:5432/steer_keycloak?sslmode=verify-full&sslrootcert=/steer-local/tls.crt',
         KC_DB_USERNAME: 'steer_keycloak', KC_HOSTNAME: 'https://localhost:8444', KC_HTTP_ENABLED: 'false',
-        KC_HTTPS_CERTIFICATE_FILE: '/steer-local/tls.crt', KC_HTTPS_CERTIFICATE_KEY_FILE: '/steer-local/tls.key' },
-      volumes: [`${directory}/tls.key:/steer-local/tls.key:ro`, `${directory}/tls.crt:/steer-local/tls.crt:ro`, `${directory}/import:/opt/keycloak/data/import:ro`],
+        KC_HTTPS_CERTIFICATE_FILE: '/steer-local/browser.crt', KC_HTTPS_CERTIFICATE_KEY_FILE: '/steer-local/browser.key' },
+      volumes: [`${directory}/browser-tls/server.key:/steer-local/browser.key:ro`, `${directory}/browser-tls/server.crt:/steer-local/browser.crt:ro`, `${directory}/tls.crt:/steer-local/tls.crt:ro`, `${directory}/import:/opt/keycloak/data/import:ro`],
       command: ['start', '--import-realm'], networks: ['identity', 'loopback'] },
   }, volumes: { database: { labels } }, networks: { identity: { internal: true, labels }, loopback: { labels } } };
 }

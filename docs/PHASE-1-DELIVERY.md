@@ -4001,7 +4001,7 @@ discovery, durable PKCE login transaction and actual password form are verified.
 Private credentials remain outside Git. Narrow 30-day real membership identifies
 Idriss as org-admin/Product Lead/Product Designer, with session/preview/status only.
 
-Browser-compatible certificate trust and personal password setup remain pending;
+Browser-compatible certificate trust is verified; personal password setup remains pending;
 completed authenticated UI acceptance has not been observed. See
 `intent/0193/EVIDENCE.md` and `docs/LOCAL-WORKSPACE-SETUP.md`. The current local
 credential-file boundary is not a claimed KMS/regulated deployment. The gateway
@@ -4017,6 +4017,8 @@ This does not replace the pending intended-human browser/password acceptance.
 
 Subsequent explicit approval installed the exact certificate in the user's login
 keychain with SSL/localhost constraints. macOS verifies it, but both Chromium
-browsers reject that hostname-scoped trust entry. A browser-compatible localhost-only
-leaf is proposed, not yet approved or installed. No certificate warning or trust
-restriction was bypassed. See the 0193 evidence follow-up for the observed failure.
+browsers rejected that hostname-scoped trust entry. The user then approved a
+separate localhost-only server leaf and SSL-only user trust. That replacement now
+opens normally in both browsers; Sign in reaches real Keycloak. No certificate
+warning was bypassed; the database certificate and write restrictions are unchanged.
+See the 0193 evidence follow-up for the original failure and verified correction.

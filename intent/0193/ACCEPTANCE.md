@@ -8,7 +8,7 @@
 - [x] No runtime write/signer grant, cloud spending or machine-wide trust modification.
 - [x] Runtime App readback of the incorporated real membership verified.
 - [x] Separately approved exact user-keychain SSL/localhost trust installed and verified by macOS.
-- [ ] Browser-compatible certificate trust: Chromium rejects the hostname-scoped keychain entry.
+- [x] Approved localhost-only replacement leaf with SSL-only user trust opens in Chrome and the in-app browser.
 - [ ] Personal password setup.
 - [ ] Intended user's authenticated organization/hats verified in the UI.
 

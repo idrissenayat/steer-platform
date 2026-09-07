@@ -17,30 +17,32 @@ complete their own profile as well as choosing a new password.
 The real account and databases exist. Verified TLS requests reach STEER, create a
 durable PKCE login transaction and reach the real Keycloak password form.
 **The intended user's completed first login has not been observed.** Browser
-certificate trust and personal password setup remain user-assisted prerequisites.
+certificate trust is now verified in both browsers; personal password setup remains.
 Never click through a certificate warning or disable certificate validation.
 
-Following the user's separate approval, the exact certificate was installed in
+Initially, following the user's separate approval, the original certificate was installed in
 their login keychain with SSL-server policy restricted to `localhost`. macOS
 certificate verification now succeeds, but Chrome and the in-app Chromium browser
-both reject the page with `ERR_CERT_AUTHORITY_INVALID`. Chromium explicitly skips
+both rejected the page with `ERR_CERT_AUTHORITY_INVALID`. Chromium explicitly skips
 keychain entries containing a policy-specific hostname string; this limitation is
 confirmed in its [trust-store implementation](https://chromium.googlesource.com/chromium/src/+/main/net/cert/internal/trust_store_mac.cc).
-The browser blocker is therefore still open, not solved by the successful macOS
-check. No warning was bypassed and no trust restriction was broadened.
+That macOS check did not solve browser access. No warning was bypassed.
 
-Proposed next step, not yet authorized or performed: issue a separate browser-facing
-server-only leaf containing **only `localhost`** in its certificate names, then
-apply user-keychain SSL-only trust without the unsupported policy-string rule.
-Keep the existing pinned database certificate separate. Do not install a general
-certificate authority or weaken hostname/expiry validation. Obtain approval for
-this replacement before modifying certificates or trust settings again.
+The user then approved a separate browser-facing server-only leaf containing
+**only `localhost`** in its certificate names. That leaf is now installed with
+user-keychain SSL-only trust, without the unsupported policy-string rule. Both
+Chrome and the in-app browser open STEER normally, and clicking Sign in reaches
+the actual Keycloak username/password form. No password was entered. The database
+certificate remains separate and byte-identical; no general certificate authority
+was installed and hostname/expiry validation remains enabled.
 
 ## Storage and credentials
 
 The private directory is `~/.config/steer/local-workspace` (0700); generated files
 are 0600. It contains the deployment descriptor, server-only TLS leaf certificate,
-private key, database/client/session secrets, realm bootstrap and `FIRST-LOGIN.txt`.
+private keys, database/client/session secrets, realm bootstrap and `FIRST-LOGIN.txt`.
+The browser-only pair is `browser-tls/server.crt` and `browser-tls/server.key`;
+`tls.crt`/`tls.key` remain the separately pinned database pair.
 The latter holds a temporary password that Keycloak requires the user to replace.
 Do not paste any of these files into chat, issue trackers or Git.
 
@@ -56,22 +58,35 @@ Actual App readback of the incorporated membership was verified at
 `4a39a935359631a6c50b10489df2c9192c81e807`, including unknown-subject denial and
 the App/installation's unchanged Contents/Metadata read-only permissions.
 
-The local membership and certificate expire after 30 days. They must be reviewed
+The local membership and certificates expire after 30 days. They must be reviewed
 and renewed explicitly; the setup command never silently rotates them. The
 certificate is a server-only leaf, not a general-purpose certificate authority.
 No macOS trust setting is changed by these commands. Any user-keychain trust
-installation must be separately confirmed and constrained to SSL for localhost.
+installation must be separately confirmed and limited to SSL for a server-only
+leaf whose names contain only localhost. Do not use an unrestricted CA or a
+hostname-scoped keychain policy that Chromium ignores.
 `NODE_EXTRA_CA_CERTS` below adds this exact leaf only to the explicitly launched
-process; ordinary TLS verification remains enabled.
+process for Keycloak requests; database clients explicitly pin their separate
+database certificate. Ordinary TLS verification remains enabled.
 
-Provisioned leaf SHA-256 fingerprint (public, not a credential):
+Current browser leaf SHA-256 fingerprint (public, not a credential):
+`A7:8B:DD:85:34:C6:3E:86:9A:0F:76:57:26:DC:D4:65:64:7B:E9:1C:5F:A8:CA:D9:59:99:49:9B:11:49:42:2E`.
+It expires 2026-10-07 18:02:24 UTC. Its only name is `localhost`, its basic
+constraints are `CA:FALSE`, and its purpose is server authentication. macOS
+validates localhost and rejects 127.0.0.1, postgres and an unrelated hostname.
+The exact exported user trust record is SSL-server only, without allowed-error
+overrides. This certificate is verified in the actual browsers, not just curl.
+
+Retained database/original leaf SHA-256 fingerprint:
 `CD:F0:35:78:1C:37:04:66:3F:9C:96:69:FD:6A:52:A0:72:E4:6B:59:12:DE:67:AE:5E:AA:C8:93:B0:FA:3E:EE`.
 It expires 2026-10-07 17:40:36 UTC. Before approval, read-only macOS verification
 returned `CSSMERR_TP_NOT_TRUSTED`. After the approved user-keychain installation,
 `security verify-cert` succeeds for localhost and denies an unapproved hostname.
-The exact exported user trust entry contains only `sslServer` and `localhost`,
+The original exported user trust entry contains only `sslServer` and `localhost`,
 with no broad/all-purpose trust or allowed-error override. Browser verification
-still fails as described above; hostname/expiry exceptions are not permitted.
+failed for that original leaf as described above. It is no longer served to
+browsers. The original narrow trust entry and private files are retained, not
+deleted as part of this replacement. Hostname/expiry exceptions are not permitted.
 
 The volume `steer-local-workspace_database` persists both the STEER and isolated
 Keycloak databases. Database/client/session secrets are plaintext owner-only files
@@ -92,7 +107,7 @@ node apps/api/ops/local-workspace.mjs init
 node apps/api/ops/local-workspace.mjs up
 node apps/api/ops/local-workspace.mjs migrate
 pnpm --filter @steer/web build
-NODE_EXTRA_CA_CERTS="$HOME/.config/steer/local-workspace/tls.crt" node apps/api/ops/local-workspace.mjs start
+NODE_EXTRA_CA_CERTS="$HOME/.config/steer/local-workspace/browser-tls/server.crt" node apps/api/ops/local-workspace.mjs start
 ```
 
 `init` is first-time only and refuses any existing private directory, including a
@@ -120,7 +135,7 @@ calling sign-in available. Do not rebuild Next while the owned renderer is activ
 ```sh
 node apps/api/ops/local-workspace.mjs status
 node apps/api/ops/local-workspace.mjs verify-github
-NODE_EXTRA_CA_CERTS="$HOME/.config/steer/local-workspace/tls.crt" node apps/api/ops/local-workspace.mjs verify
+NODE_EXTRA_CA_CERTS="$HOME/.config/steer/local-workspace/browser-tls/server.crt" node apps/api/ops/local-workspace.mjs verify
 node apps/api/ops/local-workspace.mjs stop-services
 ```
 
@@ -136,9 +151,16 @@ the approved local bootstrap and that an unknown subject has no grant. It writes
 nothing to GitHub and requires the non-secret membership to have been committed
 and pushed through the ordinary development workflow first.
 
+Existing bootstrap upgrade: `prepare-browser-tls` creates the new pair only in a
+new private directory, refusing any existing/partial pair. Then run `configure`,
+recreate only the owned Keycloak service with Compose `up -d --pull never --no-deps
+keycloak`, and restart the owned gateway with the new certificate path above.
+This is already complete on Idriss's Mac; do not run it again to rotate a key.
+These commands never change keychain trust themselves.
+
 ## Remaining before the usable journey
 
-Browser trust and user-selected password come first. Next verify that actual
+Browser trust is verified. The user must now select their password. Next verify that actual
 sign-in displays the correct organization/hats and current Git-backed grants.
 Sessions currently expire with the short-lived access token (180 seconds); this
 bootstrap does not invent a refresh-token/session-renewal implementation.
