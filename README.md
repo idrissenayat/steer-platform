@@ -7,6 +7,9 @@ item one, are the framework's pilot evidence.
 
 ## Current delivery
 
+Item [0186](intent/0186/README.md) adds exact signed policy-selection evidence to
+read-only Git collection. Trust-owner approval and live save authority remain separate.
+
 Item [0185](intent/0185/README.md) verifies disposable browser-created receipt
 recovery without a second save or rewriting the original failure. Live authority remains gated.
 

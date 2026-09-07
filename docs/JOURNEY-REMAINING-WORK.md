@@ -1,7 +1,7 @@
 # Remaining first-journey implementation
 
 Code audit on 2026-09-07 against `e320d6e86affd556103dcf9c273daf23dc6695d5`,
-plus increments 0174–0185's owned clients, shared authorization, optional dispatch/recovery runtimes
+plus increments 0174–0186's owned clients, shared authorization, optional dispatch/recovery runtimes
 and joined isolated identity/receipt/projection integration. This is execution planning, not a new
 architecture, signed-scope reduction or gate decision. It supersedes historical
 "next" statements only for sequencing; numbered evidence remains historical.
@@ -21,7 +21,7 @@ source, not verified business lifecycle facts.
 
 | Package | Existing implementation | Remaining work and observable exit |
 | --- | --- | --- |
-| J1: governed save authority | Held writer, gate-policy collector, GitHub writer factory and identity runtime | Incorporate authorized selection/trust/review-provenance bindings and complete action-time authority. Missing, changed or revoked evidence denies the exact write; a complete approved profile requires independent review. The existing held surface must keep denying, not gain a success switch. |
+| J1: governed save authority | Held writer, gate-policy collector, GitHub writer factory, identity runtime and exact selected-key selection proof/read-through | Incorporate authorized selection/trust/review-provenance bindings and complete action-time authority. Missing, changed or revoked evidence denies the exact write; a complete approved profile requires independent review. The existing held surface must keep denying, not gain a success switch. |
 | J2: save-to-projection dispatch | Native Git operation store, fixed recorded worker, owned client, shared grants/runtime and joined disposable identities; 0181–0185 add fixed-failed-run recovery, separate grants/client/runtime and a browser-created receipt recovery scenario (verification in 0185 evidence) | Complete approved dispatch/receipt/path ownership and live identity configuration. Keep dispatch, recovery, human save and projector authority separate; normal start must not become retry. Confirm approved operations survive uncertainty once at the exact revision without another save or rewind. |
 | J3: authenticated operating projections | Curated catalog/Brief readers, source preview, snapshot/change consumer and domain read model | Implement authoritative lifecycle/decision inputs, then connect backlog, Flight Board and Inbox in Next. Verify revision/reset/reconnect and tenant denials. Source-claimed signatures cannot create a verified stage. The current production page still labels these surfaces not connected. |
 | J4: actionable revision-bound review | Current-authorized Brief → decision → curated evidence reads | Complete authenticated proof composition and separately authorized actions. Recheck selected decision, exact source, qualified current human and applicable gate at action time. Literal recorded claims remain distinct from verified approvals. |
@@ -53,9 +53,13 @@ projector identities; receipt provenance remains synthetic in that isolated case
 preserving the ordinary successful path. Its evidence file records verification and
 the explicit synthetic GitHub/full-authority limits.
 
-Next return to J1: audit the held collector's remaining governed-selection,
-review-provenance and action-time-authority inputs, then define a bounded, testable
-verification composition against explicitly configured trust roots. The existing
+0186 advances J1 with an optional selected-key policy-selection attestation and
+current native Git read-through verification. Exact trust/proof pins, manifest/
+configuration and platform/decision bindings do not prove actual key ownership or
+selector authority. Full verification status is recorded in its evidence file.
+
+Next map externally governed bootstrap/selector authorization and native review
+provenance into the complete action-time verification contract. The existing
 held writer must remain held; no test callback or matching manifest may unlock it.
 Separate missing engineering from evidence/ownership decisions that require the
 established approval process. Do not expand the recovery loop merely because live

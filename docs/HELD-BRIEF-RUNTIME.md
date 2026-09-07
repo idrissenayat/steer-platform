@@ -44,6 +44,13 @@ adopts file-supplied configuration nor clears `governed-selection-unverified` or
 other authority requirement. No live manifest or pin is installed. See
 `docs/GATE-POLICY-SELECTION.md` and `intent/0170`.
 
+0186 optionally verifies `selection.attestation` from separately pinned current Git
+trust/proof files. Those roles cannot alias membership records or save destinations.
+A valid selected-key proof does not approve the trust bootstrap or selector and
+does not remove any held requirement. Internal collection retains the attestation;
+held diagnostics still expose only the bounded selection fingerprints, not new
+actor claims or an approval flag. See `intent/0186/EVIDENCE.md`.
+
 ## Verification and remaining boundaries
 
 Increment 0169 verifies the production runtime using actual signed OIDC and App JWTs,

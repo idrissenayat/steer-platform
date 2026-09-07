@@ -11,6 +11,7 @@ import { nativeDomainExceptionFixture } from './native-domain-exception-fixture.
 import { nativeCriticFixture, criticSource } from './native-critic-fixture.ts';
 import { reviewRunnerFixture } from './gate-review-fixture.ts';
 import { criticRunnerFixture } from './gate-critic-proof-fixture.ts';
+import { attestSelection } from './gate-selection-attestation-fixture.ts';
 
 const failure = /^Error: Gate policy source collection could not be verified\.$/;
 const blob = (text: string) => createHash('sha1').update(`blob ${Buffer.byteLength(text)}\0`).update(text).digest('hex');
@@ -701,6 +702,27 @@ test('held writer composes actual current Git membership and source-backed signe
     const closing = writer.close(); assert.equal(writer.close(), closing); await closing;
     await assert.rejects(writer.verifyWriteAuthority(f.request, f.principal)); assert.equal(f.io.writes, 0);
   }
+});
+
+test('a valid selected-key selection proof still cannot unlock the held writer or mint a save receipt', async t => {
+  const f = heldWriter(t), selected = attestSelection(f);
+  const writer = createHeldGitBriefWriterFactory(f.reader.binding, f.configuration, selected.configuration, f.dependencies)(async () => structuredClone(f.context));
+  t.after(() => writer.close());
+  await assert.rejects(writer.verifyWriteAuthority({ ...f.request, expectedHead: f.state.head }, f.principal));
+  const assessment = writer.assessment(); assert.ok(assessment); assert.equal(assessment.policyOutcome, 'policy-satisfied');
+  assert.equal(assessment.selectionSource!.contentDigest, selected.reference.digest);
+  assert.deepEqual(assessment.missing, ['governed-selection-unverified', 'review-provenance-unverified', 'action-time-authority-incomplete']);
+  assert.equal(assessment.gateVerified, false); assert.equal(assessment.writeAuthorized, false); assert.equal(f.io.writes, 0);
+  const reads = f.io.reads; await assert.rejects(writer.compareAndCreate(f.request, {} as never)); assert.equal(f.io.reads, reads);
+});
+
+test('held writer selection proof and trust paths cannot alias save destinations or membership records', t => {
+  const f = heldWriter(t), selected = attestSelection(f);
+  for (const role of ['trust', 'proof'] as const) for (const path of [...f.configuration.paths, f.dependencies.authorizationPath]) {
+    const config = structuredClone(selected.configuration); config.selection.attestation[role].path = path;
+    assert.throws(() => createHeldGitBriefWriterFactory(f.reader.binding, f.configuration, config, f.dependencies));
+  }
+  assert.equal(f.io.tokens, 0); assert.equal(f.io.reads, 0); assert.equal(f.io.writes, 0);
 });
 
 test('real shared preview/save/status flow uses held source collection, returns no receipt, and closes its owned writer', async t => {

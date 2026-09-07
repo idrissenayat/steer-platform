@@ -11,6 +11,7 @@ import { verifyDomainReviewRunnerAttestation } from '../identity/gate-review-pro
 import { nativeCriticHistoryReferenceSchema, verifyNativeCriticHistory } from './gate-critic-history.ts';
 import { verifyCriticRunnerAttestation } from '../identity/gate-critic-proof.ts';
 import { collectGateReviewAncestry, gateAncestryLimitsSchema } from './gate-ancestry.ts';
+import { verifyGateSelectionAttestation } from '../identity/gate-selection-proof.ts';
 
 const targetSchema = gatePolicyInputSchema.shape.target.omit({ decisionDigest: true });
 const digest = gatePolicyInputSchema.shape.target.shape.decisionDigest;
@@ -31,7 +32,10 @@ const entrySchema = z.strictObject({ signerCollection: gitGateSignerConfiguratio
   buildEvidence: ref.nullable(), domainAssurance: z.strictObject({ reviews: z.array(z.union([ref, nativeReviewRef])).min(1).max(7),
     exceptionBrief: z.union([ref, nativeExceptionRef]) }).nullable() });
 const coreConfigurationSchema = z.strictObject({ gates: z.array(entrySchema).min(1).max(3) });
-const configSchema = coreConfigurationSchema.extend({ selection: ref.optional() });
+const configSchema = coreConfigurationSchema.extend({ selection: ref.extend({ attestation: z.strictObject({
+  trust: ref, proof: ref, selectorSubject: taskIdentity, selectionId: taskIdentity,
+  selectedAt: z.string().max(30).refine(value => parseUtcInstant(value) !== null),
+}).optional() }).optional() });
 export { configSchema as gitGatePolicyConfigurationSchema };
 export const gitGatePolicySelectionDocumentSchema = z.strictObject({ version: z.literal('steer-gate-policy-selection/v1'),
   organizationId: targetSchema.shape.organizationId, repository: targetSchema.shape.repository,
@@ -77,7 +81,10 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
       }
     };
     visit(config.gates);
-    if (paths.has(config.selection.path) || Buffer.byteLength(configuredSelection, 'utf8') > 512 * 1024) throw new Error('Invalid gate policy selection.');
+    const evidence = config.selection.attestation;
+    const selectionPaths = [config.selection.path, ...(evidence ? [evidence.trust.path, evidence.proof.path] : [])];
+    if (new Set(selectionPaths).size !== selectionPaths.length || selectionPaths.some(path => paths.has(path)) ||
+      (evidence && config.gates.length !== 2) || Buffer.byteLength(configuredSelection, 'utf8') > 512 * 1024) throw new Error('Invalid gate policy selection.');
   }
   const recordPaths = new Set<string>();
   for (const [index, entry] of config.gates.entries()) {
@@ -144,6 +151,7 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
           const nativeCriticRunners: ReturnType<typeof verifyCriticRunnerAttestation>[] = [];
           let retainedBytes = 0;
           let selectionSource: Readonly<{ path: string; revision: string; contentDigest: string; blobSha: string; configurationDigest: string }> | null = null;
+          let selectionAttestation: ReturnType<typeof verifyGateSelectionAttestation> = null;
           if (config.selection) {
             if (await guarded.readHead() !== input.sourceRevision) throw failure();
             const snapshot = await guarded.readArtifact(config.selection.path, input.sourceRevision);
@@ -162,6 +170,30 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
             await authorize(); if (await guarded.readHead() !== input.sourceRevision) throw failure();
             selectionSource = Object.freeze({ path: snapshot.path, revision: snapshot.revision, contentDigest: snapshot.contentDigest,
               blobSha: snapshot.blobSha, configurationDigest: createHash('sha256').update(configuredSelection).digest('hex') });
+            const evidence = config.selection.attestation;
+            if (evidence) {
+              const readEvidence = async (reference: z.infer<typeof ref>) => {
+                await authorize(); const value = await guarded.readArtifact(reference.path, input.sourceRevision);
+                if (typeof value.content !== 'string') throw failure();
+                const bytes = Buffer.from(value.content, 'utf8'); retainedBytes += bytes.length;
+                if (bytes.length > 65536 || new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes) !== value.content ||
+                  value.organizationId !== binding.organizationId || value.repositoryId !== binding.repositoryId || value.path !== reference.path ||
+                  value.revision !== input.sourceRevision || value.contentDigest !== reference.digest ||
+                  createHash('sha256').update(bytes).digest('hex') !== reference.digest ||
+                  createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex') !== value.blobSha) throw failure();
+                const parsed: unknown = JSON.parse(value.content); if (JSON.stringify(parsed) !== value.content) throw failure();
+                await authorize(); if (await guarded.readHead() !== input.sourceRevision) throw failure(); return parsed;
+              };
+              const trust = await readEvidence(evidence.trust), proof = await readEvidence(evidence.proof);
+              selectionAttestation = verifyGateSelectionAttestation(proof, trust, {
+                organizationId: binding.organizationId, repository: `github:${binding.repositoryId}`, branch: binding.branch,
+                selectorSubject: evidence.selectorSubject, recordItem: first.recordItem,
+                platformRevision: config.gates.at(-1)!.signerCollection.gateSource.artifactRevision, decisionDigest: input.decisionDigest,
+                selectionPath: snapshot.path, selectionDigest: snapshot.contentDigest, configurationDigest: selectionSource.configurationDigest,
+                selectionId: evidence.selectionId, selectedAt: evidence.selectedAt, trustDigest: evidence.trust.digest, proofDigest: evidence.proof.digest,
+              }, new Date(check()).toISOString());
+              if (!selectionAttestation) throw failure();
+            }
           }
           for (const [index, entry] of config.gates.entries()) {
             const selected = entry.signerCollection, target = { ...selected.gateSource.scope, gate: selected.gateSource.gate,
@@ -306,7 +338,8 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
           const evaluatedAt = new Date(check()).toISOString(), at = parseUtcInstant(evaluatedAt)!;
           const runnerAttestations = [...nativeDomainReviews.flat().flatMap(value => value.runnerAttestation ? [value.runnerAttestation] : []),
             ...nativeCriticRunners.flatMap(value => value ? [value] : [])];
-          const reviewsCurrentAt = (time: bigint) => runnerAttestations.every(value => parseUtcInstant(value.evaluatedAt)! <= time && parseUtcInstant(value.validBefore)! > time);
+          const reviewsCurrentAt = (time: bigint) => [...runnerAttestations, ...(selectionAttestation ? [selectionAttestation] : [])]
+            .every(value => parseUtcInstant(value.evaluatedAt)! <= time && parseUtcInstant(value.validBefore)! > time);
           if (!reviewsCurrentAt(at)) throw failure();
           for (const observation of observations) {
             if (parseUtcInstant(observation.evaluatedAt)! > at || parseUtcInstant(observation.currentEvidenceValidity.validBefore)! <= at) throw failure();
@@ -320,7 +353,7 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
             return { input: policyInput, evaluation: evaluateGateDecisionPolicy(policyInput) };
           });
           // A target pass can never hide a failed prerequisite's policy evaluation.
-          const result = freeze({ kind: 'git-gate-policy-observation' as const, sourceRevision: input.sourceRevision, evaluatedAt, selectionSource,
+          const result = freeze({ kind: 'git-gate-policy-observation' as const, sourceRevision: input.sourceRevision, evaluatedAt, selectionSource, selectionAttestation,
             policyOutcome: evaluations.every((value) => value.evaluation.outcome === 'policy-satisfied') ? 'policy-satisfied' as const : 'blocked' as const,
             gates: evaluations.map((value, index) => ({ ...value, signers: observations[index]!, sources: sources[index]!,
               nativeDomainReviews: nativeDomainReviews[index]!, nativeDomainException: nativeDomainExceptions[index]!, nativeCritic: nativeCritics[index]!,

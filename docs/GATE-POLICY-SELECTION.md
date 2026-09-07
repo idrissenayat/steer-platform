@@ -50,3 +50,36 @@ requirements stay true. Held diagnostics and every gate/write flag remain false
 for authority. No live profile, manifest, provider grant, API action, UI, signature,
 deployment or spending is enabled. All five R5 findings remain open. See
 `intent/0170/EVIDENCE.md` and `docs/HELD-BRIEF-RUNTIME.md`.
+
+## Optional selected-key evidence — 0186
+
+`selection.attestation` can additionally specify `trust: { path, digest }`,
+`proof: { path, digest }`, `selectorSubject`, `selectionId` and `selectedAt` for
+the two-gate save-policy chain. Both files are read at the same current source
+revision after the manifest, before gate sources. Each role must be disjoint from
+the manifest, other configured source roles, membership records and save targets.
+Raw source bytes, SHA-256, native Git blob and current observer/head must agree.
+
+The internal `verifyGateSelectionAttestation` contract uses Ed25519 with the domain
+`steer-gate-selection-attestation/v1` followed by a NUL byte. Its closed trust,
+payload and envelope schemas are in `packages/adapters/src/identity/gate-selection-proof.ts`.
+Both trust and proof digests are independently pinned, and payload bytes use
+schema-ordered compact JSON. This is not general JSON canonicalization.
+
+Signed claims bind the exact organization/repository/branch, selector, record item,
+platform revision, decision digest, manifest path/digest, complete configuration
+digest and selection event/time. The signed manifest digest is content-addressed;
+the envelope does not claim its own containing commit, avoiding a Git hash cycle.
+Later commits can retain identical manifest/proof bytes, but the collector must
+still verify their current source and key state. Proof expiry is finite and no later
+than key expiry; current key revocation can shorten it. Expiry is rechecked after
+the complete policy collection before an observation can return.
+
+An immutable `selectionAttestation` appears only in the internal collector result;
+it is null without this profile. Held runtime diagnostics still expose only the
+bounded manifest fingerprints, not the attestation's actor claims. No valid proof
+can unlock the held writer: trust bootstrap, actual selector authorization, review
+authenticity and action-time authority remain separate unresolved requirements.
+This optional development format is not a mandate to replace commercial provider
+records or obtain another human signature. No live attestor or trust pin is installed.
+Verification and limitations: `intent/0186/EVIDENCE.md`.

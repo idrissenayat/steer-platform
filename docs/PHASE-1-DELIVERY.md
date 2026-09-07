@@ -3828,3 +3828,21 @@ GitHub responses and full gate authority remain synthetic. All five R5 findings,
 approved live configuration, full governed authority and independent/qualified
 review/human gates remain open. No live profile/grant, provider access, spending,
 deployment, release or real-data deletion is authorized by these tests.
+
+## Completed development increment: 0186 — Signed policy-selection evidence
+
+J1 now has an optional selected-key signature contract and current native Git
+collection for the exact policy manifest/configuration, platform revision and
+decision. Independent trust/proof pins, actor/event binding, strict bounded bytes,
+finite validity, current observer/head checks and role separation fail closed.
+Collection rechecks proof expiry after all later policy sources. Existing profiles
+without this evidence remain supported and return no selection attestation.
+
+The held writer still denies even a valid selected-key proof with policy-satisfied
+facts. Trust bootstrap, actual selector authorization, review authenticity and
+complete action-time authority remain unresolved. This is an optional development
+evidence profile, not a new governance requirement or approval-format migration.
+Thirteen new tests and full checks/builds pass; exact verification is recorded in
+`intent/0186/EVIDENCE.md`. All five R5 findings, qualified
+independent protected review and human gates stay open. No live profile/key/grant,
+frontend, provider access, spending, deployment or release was enabled.

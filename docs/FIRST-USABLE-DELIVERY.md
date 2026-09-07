@@ -63,9 +63,13 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0185
+### Latest development audit — increment 0186
 
 The dependency-ordered current route is `docs/JOURNEY-REMAINING-WORK.md`.
+0186 adds optional signed selection evidence, bound to exact manifest/configuration,
+platform/decision and independently pinned trust/proof bytes in current Git collection.
+It verifies selected-key claims, not actual bootstrap approval or selector authority.
+The held writer still denies. See `intent/0186/EVIDENCE.md` for verification status.
 Increment 0174 adds an owned fixed-operation Temporal start/status client with
 uncertain-start recovery and connection draining. It is not installed live and
 does not supply dispatcher authority or automatic receipt/path admission.

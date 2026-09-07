@@ -36,8 +36,11 @@ export function createHeldGitBriefWriterFactory(binding: GitHubBinding, rawWrite
     source.scope.repository !== configuration.repository || source.artifactRevision !== configuration.platformRevision ||
     gate.signerCollection.signers.some(value => value.proof.expected.decisionDigest !== configuration.gate2DecisionDigest) ||
     typeof dependencies.authenticateObserver !== 'function') throw new CodeHostError();
-  if (policyConfiguration.selection && (configuration.paths.includes(policyConfiguration.selection.path) ||
-    policyConfiguration.selection.path === dependencies.authorizationPath)) throw new CodeHostError();
+  if (policyConfiguration.selection) {
+    const selection = policyConfiguration.selection, proof = selection.attestation;
+    if ([selection.path, ...(proof ? [proof.trust.path, proof.proof.path] : [])].some(path =>
+      configuration.paths.includes(path) || path === dependencies.authorizationPath)) throw new CodeHostError();
+  }
   const sourceBinding = Object.freeze({ ...binding });
   // Validate the whole configured chain before returning a usable factory.
   createGitGatePolicyCollector(createGitHubReader(sourceBinding, dependencies), policyConfiguration, dependencies.authenticateObserver);
