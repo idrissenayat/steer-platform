@@ -1,5 +1,6 @@
-import { intentOverlapInputSchema, intentOverlapOutputSchema } from '@steer/tool-registry/intent-overlap-contracts';
+import { bindIntentDisposition, intentOverlapInputSchema, intentOverlapOutputSchema } from '@steer/tool-registry/intent-overlap-contracts';
 import { createReadTransport } from './read-transport.ts';
+export { bindIntentDisposition };
 
 /** Scope is fixed by the caller's verified display; the API independently reauthorizes. */
 export function createIntentScopeReader(scope: { organizationId: string; repository: string }, origin: string, transport: typeof fetch = fetch) {

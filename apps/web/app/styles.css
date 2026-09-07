@@ -458,3 +458,7 @@ summary:focus-visible { outline: .2rem solid var(--steer-focus); outline-offset:
 .intent-scope-matches blockquote { margin: .75rem 0; padding-left: .75rem; border-left: 3px solid var(--steer-border); white-space: pre-wrap; }
 .intent-scope-results code { overflow-wrap: anywhere; }
 .intent-scope-results h4:focus { outline: 3px solid var(--steer-focus); outline-offset: 3px; }
+.intent-scope-choice { display: grid; gap: .65rem; margin-top: 1rem; border: 1px solid var(--steer-border); border-radius: .8rem; min-width: 0; }
+.intent-scope-choice select, .intent-scope-choice textarea { width: 100%; min-width: 0; box-sizing: border-box; font: inherit; padding: .65rem; }
+.intent-scope-choice select { border: 1px solid var(--steer-border); border-radius: .65rem; background: white; color: var(--steer-ink); }
+.intent-scope-choice select:focus-visible { outline: 3px solid var(--steer-focus); outline-offset: 2px; }

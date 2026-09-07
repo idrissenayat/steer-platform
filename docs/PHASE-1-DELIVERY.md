@@ -4145,3 +4145,16 @@ Focused checks 23/23, web suite 100/100, registry suite, typechecks and producti
 build passed; see [0200 evidence](../intent/0200/EVIDENCE.md). This is tested UI wiring,
 not real repository/grant configuration, semantic duplicate review or full intake
 acceptance. No model calls, spend, runtime writes or gate permissions were enabled.
+
+## Development increment: 0201 — Explicit direction with scope recheck
+
+After reviewing scope, people can propose extending an existing intent, a linked
+distinct intent or a distinct new intent, explaining why in their own words. The
+component rereads authorized sources before confirming; changed fingerprints or
+targets reject confirmation and preserve the explanation for retry. Proposals are
+explicitly unsaved, non-authorizing and not yet consumed by drafting or saving.
+
+Web suite 100/100 and registry suite pass, with contract and actual-component
+coverage; see [0201 evidence](../intent/0201/EVIDENCE.md). Actual source configuration,
+semantic assessment, durable state and server draft/save integration remain open.
+No model spending, runtime writing or additional grants were activated.

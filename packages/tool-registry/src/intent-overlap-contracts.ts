@@ -28,3 +28,30 @@ export const intentOverlapOutputSchema = briefCatalogInputSchema.extend({
 });
 export type IntentOverlapInput = z.infer<typeof intentOverlapInputSchema>;
 export type IntentOverlapOutput = z.infer<typeof intentOverlapOutputSchema>;
+
+const dispositionTarget = z.strictObject({ path: briefProjectionInputSchema.shape.path,
+  revision: artifactProjectionInputSchema.shape.revision, contentDigest: digest });
+const reason = z.string().min(1).max(3000).refine(value => value.trim().length > 0);
+export const intentDispositionChoiceSchema = z.discriminatedUnion('action', [
+  z.strictObject({ action: z.literal('extend-existing'), target: dispositionTarget, reason }),
+  z.strictObject({ action: z.literal('new-linked'), target: dispositionTarget, reason }),
+  z.strictObject({ action: z.literal('new-distinct'), reason }),
+]);
+export type IntentDispositionChoice = z.infer<typeof intentDispositionChoiceSchema>;
+
+/** A proposed human direction, not authority, persistence or a semantic duplicate verdict. */
+export function bindIntentDisposition(previousRaw: unknown, currentRaw: unknown, rawChoice: unknown) {
+  const previous = intentOverlapOutputSchema.parse(previousRaw), current = intentOverlapOutputSchema.parse(currentRaw);
+  const choice = intentDispositionChoiceSchema.parse(rawChoice);
+  if (previous.organizationId !== current.organizationId || previous.repository !== current.repository ||
+      previous.sourceDigest !== current.sourceDigest || previous.catalogFingerprint !== current.catalogFingerprint ||
+      previous.reviewFingerprint !== current.reviewFingerprint) throw new Error('Scope changed. Review the current sources before choosing again.');
+  if ('target' in choice && !current.candidates.some(candidate => candidate.briefPath === choice.target.path &&
+      candidate.revision === choice.target.revision && candidate.briefContentDigest === choice.target.contentDigest)) {
+    throw new Error('Choose an existing Brief from the current reviewed matches.');
+  }
+  return { kind: 'intent-disposition-proposal' as const, organizationId: current.organizationId, repository: current.repository,
+    sourceDigest: current.sourceDigest, catalogFingerprint: current.catalogFingerprint, reviewFingerprint: current.reviewFingerprint,
+    choice, semanticReviewComplete: false as const, authoritativeClearance: false as const, persisted: false as const };
+}
+export type IntentDispositionProposal = ReturnType<typeof bindIntentDisposition>;
