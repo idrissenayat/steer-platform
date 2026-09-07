@@ -12,6 +12,8 @@ export * from './brief-contracts.ts';
 import { decisionReferencesSchema, decisionClaimsSchema, decisionPaths, verifyProjectionBytes,
   briefDecisionsOutputSchema, decisionEvidenceInputSchema, decisionEvidenceOutputSchema, type DecisionEvidence, type BriefDecisions } from './decision-contracts.ts';
 export * from './decision-contracts.ts';
+import { briefArtifactsOutputSchema, lifecycleArtifactPaths, type BriefArtifacts } from './lifecycle-contracts.ts';
+export * from './lifecycle-contracts.ts';
 import { z } from 'zod';
 import { briefDestinationInputSchema, briefDestinationScopeSchema, briefDestinationOutputSchema,
   type BriefDestination, type BriefDestinationReader } from './brief-destination.ts';
@@ -457,6 +459,49 @@ const briefQuery = {
   },
 };
 
+const artifactsGrant = defineQuery({ name: 'intent.brief.artifacts', description: 'Authorize exact-revision lifecycle source coverage.',
+  input: briefProjectionInputSchema, output: principalSchema, handler: (_input, principal) => principal });
+const artifactsAuthorization = { invoke(raw: unknown, context: InvocationContext) {
+  const principal = artifactsGrant.invoke(raw, context);
+  if (!['intent.brief.read', 'projection.artifact.read'].every(grant => principal.toolGrants.includes(grant))) throw new ToolError('FORBIDDEN');
+  return principal;
+} };
+const artifactsQuery = {
+  name: 'intent.brief.artifacts', description: 'Inspect curated Spec, Exam and Plan projection coverage at the exact selected Brief commit. Not-projected is not Git absence; coverage is not verified lifecycle state, gate readiness or approval.',
+  kind: 'query' as const, scope: 'organization' as const, authorization: 'explicit-tool-grant' as const,
+  input: briefProjectionInputSchema, output: briefArtifactsOutputSchema.nullable(),
+  async invoke(raw: unknown, context: InvocationContext): Promise<BriefArtifacts | null> {
+    const initial = artifactsAuthorization.invoke(raw, context), input = briefProjectionInputSchema.parse(raw);
+    const reader = context.services?.artifactProjection;
+    if (!reader || !context.revalidate) throw new ToolError('UNAVAILABLE');
+    const principal = await freshToolPrincipal(artifactsAuthorization, input, initial, context);
+    const brief = await briefQuery.invoke(input, { ...context, principal });
+    await freshToolPrincipal(artifactsAuthorization, input, initial, context);
+    if (!brief) return null;
+    // Never discover paths or fall forward to a newer revision. Cap I/O at the Brief
+    // plus these three fixed sources. Retain only fingerprints, never body content.
+    const artifacts: BriefArtifacts['artifacts'] = [];
+    for (const reference of lifecycleArtifactPaths(input.path)) {
+      const current = await freshToolPrincipal(artifactsAuthorization, input, initial, context);
+      if (!reader.scope.paths.includes(reference.path)) {
+        artifacts.push({ ...reference, status: 'not-configured', fingerprint: null });
+        continue;
+      }
+      const artifact = await projectionQuery.invoke({ organizationId: input.organizationId, repository: input.repository,
+        path: reference.path, revision: input.revision }, { ...context, principal: current });
+      if (artifact) {
+        try { await verifyProjectionBytes(artifact); } catch { throw new ToolError('INTERNAL_ERROR'); }
+      }
+      await freshToolPrincipal(artifactsAuthorization, input, initial, context);
+      artifacts.push({ ...reference, status: artifact ? 'projected' : 'not-projected',
+        fingerprint: artifact ? { blobSha: artifact.blobSha, contentDigest: artifact.contentDigest } : null });
+    }
+    await freshToolPrincipal(artifactsAuthorization, input, initial, context);
+    return briefArtifactsOutputSchema.parse({ kind: 'brief-artifact-coverage', brief: input, artifacts,
+      stage: null, gateVerified: false, writeAuthorized: false });
+  },
+};
+
 const decisionsGrant = defineQuery({ name: 'intent.brief.decisions', description: 'Authorize exact Brief decision source inspection.',
   input: briefProjectionInputSchema, output: principalSchema, handler: (_input, principal) => principal });
 const decisionsAuthorization = { invoke(raw: unknown, context: InvocationContext) {
@@ -656,7 +701,7 @@ const destinationQuery = {
 };
 
 // Frozen definitions are the common source for discovery, dispatch and HTTP contracts.
-const definitions = Object.freeze([Object.freeze(contextQuery), Object.freeze(projectionQuery), Object.freeze(reconciliationStart), Object.freeze(reconciliationStatus), Object.freeze(recordedBriefStart), Object.freeze(recordedBriefStatus), Object.freeze(recordedBriefRecover), Object.freeze(recordedBriefRecoveryStatus), Object.freeze(changesQuery), Object.freeze(snapshotQuery), Object.freeze(briefQuery), Object.freeze(decisionsQuery), Object.freeze(evidenceQuery), Object.freeze(catalogQuery), Object.freeze(previewQuery), Object.freeze(briefSaveCommand), Object.freeze(briefSaveStatusQuery), Object.freeze(destinationQuery)]);
+const definitions = Object.freeze([Object.freeze(contextQuery), Object.freeze(projectionQuery), Object.freeze(reconciliationStart), Object.freeze(reconciliationStatus), Object.freeze(recordedBriefStart), Object.freeze(recordedBriefStatus), Object.freeze(recordedBriefRecover), Object.freeze(recordedBriefRecoveryStatus), Object.freeze(changesQuery), Object.freeze(snapshotQuery), Object.freeze(briefQuery), Object.freeze(artifactsQuery), Object.freeze(decisionsQuery), Object.freeze(evidenceQuery), Object.freeze(catalogQuery), Object.freeze(previewQuery), Object.freeze(briefSaveCommand), Object.freeze(briefSaveStatusQuery), Object.freeze(destinationQuery)]);
 export function invokeTool(name: 'session.context', input: unknown, context: InvocationContext): z.output<typeof contextOutput>;
 export function invokeTool(name: 'projection.artifact.read', input: unknown, context: InvocationContext): Promise<ArtifactProjection | null>;
 export function invokeTool(name: 'workflow.reconciliation.start', input: unknown, context: InvocationContext): Promise<ReconciliationStartResult>;
@@ -668,13 +713,14 @@ export function invokeTool(name: 'workflow.recorded-brief.recovery.status', inpu
 export function invokeTool(name: 'projection.changes.read', input: unknown, context: InvocationContext): Promise<ProjectionChangesResult>;
 export function invokeTool(name: 'projection.snapshot.read', input: unknown, context: InvocationContext): Promise<ProjectionSnapshotResult>;
 export function invokeTool(name: 'intent.brief.read', input: unknown, context: InvocationContext): Promise<BriefProjection | null>;
+export function invokeTool(name: 'intent.brief.artifacts', input: unknown, context: InvocationContext): Promise<BriefArtifacts | null>;
 export function invokeTool(name: 'intent.brief.decisions', input: unknown, context: InvocationContext): Promise<BriefDecisions | null>;
 export function invokeTool(name: 'intent.brief.decision.evidence', input: unknown, context: InvocationContext): Promise<DecisionEvidence | null>;
 export function invokeTool(name: 'intent.brief.catalog', input: unknown, context: InvocationContext): Promise<BriefCatalog>;
 export function invokeTool(name: 'intent.brief.preview', input: unknown, context: InvocationContext): Promise<BriefPreview>;
 export function invokeTool(name: 'intent.brief.destination', input: unknown, context: InvocationContext): Promise<BriefDestination>;
 export function invokeTool(name: 'intent.brief.save' | 'intent.brief.save.status', input: unknown, context: InvocationContext): Promise<BriefSaveOutput>;
-export function invokeTool(name: string, input: unknown, context: InvocationContext): z.output<typeof contextOutput> | Promise<ArtifactProjection | BriefProjection | BriefDecisions | DecisionEvidence | BriefCatalog | BriefPreview | BriefSaveOutput | BriefDestination | null | ReconciliationStartResult | RecordedBriefStartResult | ReconciliationStatusResult | ProjectionChangesResult | ProjectionSnapshotResult>;
+export function invokeTool(name: string, input: unknown, context: InvocationContext): z.output<typeof contextOutput> | Promise<ArtifactProjection | BriefProjection | BriefArtifacts | BriefDecisions | DecisionEvidence | BriefCatalog | BriefPreview | BriefSaveOutput | BriefDestination | null | ReconciliationStartResult | RecordedBriefStartResult | ReconciliationStatusResult | ProjectionChangesResult | ProjectionSnapshotResult>;
 export function invokeTool(name: string, input: unknown, context: InvocationContext) {
   const definition = definitions.find((tool) => tool.name === name);
   if (!definition) throw new ToolError('TOOL_NOT_FOUND');

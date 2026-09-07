@@ -28,6 +28,45 @@ const toolError = (result: Awaited<ReturnType<Client['callTool']>>) => {
   return JSON.parse((first as { text: string }).text).error.code;
 };
 
+test('exact Brief artifact coverage has HTTP/MCP parity, explicit grants and revocation clearing', async () => {
+  const path = 'intent/0190/BRIEF.md';
+  const args = { ...input, path, contentDigest: output.contentDigest };
+  let actor: typeof principal | null = { ...principal, toolGrants: ['intent.brief.artifacts', 'intent.brief.read', 'projection.artifact.read'] };
+  let reads = 0, revoke = false;
+  const dependencies = { now: () => now, authenticate: async () => actor, services: { artifactProjection: {
+    scope: { ...scope, paths: [path, 'intent/0190/SPEC.md', 'intent/0190/EXAM.md'] },
+    read: async (value: { path: string }) => {
+      reads++; if (revoke && value.path.endsWith('SPEC.md')) actor = null;
+      return value.path.endsWith('EXAM.md') ? null : { ...output, path: value.path };
+    },
+  } } };
+  const api = createApi(dependencies), endpoint = createMcpEndpoint(origin, dependencies), client = await connect(endpoint);
+  const name = 'intent.brief.artifacts';
+  const request = { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(args) };
+  try {
+    const tool = (await client.listTools()).tools.find(tool => tool.name === name)!;
+    assert.equal(tool.annotations?.readOnlyHint, true); assert.equal(tool.annotations?.idempotentHint, true);
+    const mcp = await client.callTool({ name, arguments: args }); assert.ok(!mcp.isError);
+    const response = await api.request(`/v1/tools/${name}`, request); assert.equal(response.status, 200);
+    const result = await response.json(); assert.deepEqual(mcp.structuredContent, { result });
+    assert.deepEqual(result.artifacts.map((ref: { status: string }) => ref.status), ['projected', 'not-projected', 'not-configured']);
+    assert.equal(result.stage, null); assert.equal(result.gateVerified, false); assert.equal(result.writeAuthorized, false);
+    assert.ok(!JSON.stringify(result).includes(content)); assert.equal(reads, 6);
+    const allowed = actor!;
+    for (const removed of allowed.toolGrants) {
+      actor = { ...allowed, toolGrants: allowed.toolGrants.filter(grant => grant !== removed) };
+      assert.equal((await api.request(`/v1/tools/${name}`, request)).status, 403);
+      assert.equal(toolError(await client.callTool({ name, arguments: args })), 'FORBIDDEN');
+    }
+    assert.equal(reads, 6); actor = allowed; revoke = true;
+    const denied = await api.request(`/v1/tools/${name}`, request); assert.equal(denied.status, 401);
+    assert.ok(!JSON.stringify(await denied.json()).includes('fingerprint'));
+    actor = allowed;
+    assert.equal(toolError(await client.callTool({ name, arguments: args })), 'UNAUTHENTICATED');
+    assert.equal(reads, 10, 'revocation stops each transport before Exam and never returns partial metadata');
+  } finally { await client.close(); await endpoint.shutdown(); }
+});
+
 test('Brief destination observes real native Git heads through read-only GitHub adapter with HTTP/MCP parity', async (t) => {
   const source = gitFixture(t), credentials: unknown[] = [];
   const reader = createGitHubReader(gitBinding, { appJwt: async () => 'synthetic-app-jwt', now: () => gitNow,

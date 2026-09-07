@@ -10,7 +10,7 @@ import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { withTenant, readProjection } from '../src/index.ts';
 import { ingestVerifiedArtifact, projectionKey } from '../src/ingestion.ts';
 import { createArtifactProjectionReader } from '../src/artifact-reader.ts';
-import type { Principal } from '@steer/tool-registry';
+import { invokeTool, ToolError, type Principal, type InvocationContext } from '@steer/tool-registry';
 import { testBrowserSessionStorage } from './session-storage.integration.ts';
 import { testRuntimePool } from './runtime-pool.integration.ts';
 import { testProjectionChanges } from './projection-changes.integration.ts';
@@ -163,6 +163,42 @@ try {
     await assert.rejects(reader.read(input, principal), /Invalid artifact projection/);
     assert.equal(await ingestVerifiedArtifact(projector, agent, second, second.revision), 'repaired');
     assert.equal((await reader.read(input, principal) as { content: string }).content, second.content);
+  });
+  await check('lifecycle coverage uses actual read-only RLS projections, exact revisions and current grants', async () => {
+    const organizationId = 'org-coverage', repository = 'github:190', revision = 'c'.repeat(40);
+    const path = 'items/0190-coverage/BRIEF.md', specPath = 'items/0190-coverage/SPEC.md', examPath = 'items/0190-coverage/EXAM.md';
+    const writer = { ...agent, organizationId };
+    const brief = { ...snapshot(revision, '# Brief: Synthetic coverage\n'), organizationId, repository, path };
+    const spec = { ...snapshot(revision, '# Spec\nRecorded approval is not authority.'), organizationId, repository, path: specPath };
+    for (const value of [brief, spec]) await ingestVerifiedArtifact(projector, writer, value, null);
+    const binding = { organizationId, repository, paths: [path, specPath, examPath] };
+    const allowed = { ...identity(organizationId), toolGrants: ['intent.brief.artifacts', 'intent.brief.read', 'projection.artifact.read'] };
+    let current: Principal | null = allowed;
+    const context: InvocationContext = { principal: allowed, now: new Date(), clock: () => new Date(), revalidate: async () => current,
+      services: { artifactProjection: createArtifactProjectionReader(app, binding) } };
+    const input = { organizationId, repository, path, revision, contentDigest: brief.contentDigest };
+    const read = () => invokeTool('intent.brief.artifacts', input, context);
+    const result = await read(); assert.ok(result);
+    assert.deepEqual(result.artifacts.map(ref => ref.status), ['projected', 'not-projected', 'not-configured']);
+    assert.equal(result.artifacts[0]!.fingerprint!.contentDigest, spec.contentDigest);
+    assert.equal(result.stage, null); assert.equal(result.gateVerified, false); assert.equal(result.writeAuthorized, false);
+    // The projection store retains the newest row, not an arbitrary historical document.
+    const later = { ...spec, revision: 'd'.repeat(40) };
+    await ingestVerifiedArtifact(projector, writer, later, revision);
+    assert.equal((await read())!.artifacts[0]!.status, 'not-projected', 'never substitute the latest Spec for the selected commit');
+    const foreign = { ...allowed, organizationId: 'org-coverage-other' };
+    assert.equal(await invokeTool('intent.brief.artifacts', { ...input, organizationId: foreign.organizationId }, {
+      ...context, principal: foreign, revalidate: async () => foreign,
+      services: { artifactProjection: createArtifactProjectionReader(app, { ...binding, organizationId: foreign.organizationId }) },
+    }), null, 'actual RLS yields no foreign Brief');
+    const reader = createArtifactProjectionReader(app, binding);
+    context.services = { artifactProjection: { ...reader, read: async (...args) => {
+      const value = await reader.read(...args); if (args[0].path === specPath) current = { ...allowed, toolGrants: [] }; return value;
+    } } };
+    await assert.rejects(read(), error => error instanceof ToolError && error.code === 'FORBIDDEN');
+    current = allowed;
+    context.services = { artifactProjection: createArtifactProjectionReader(projector, binding) };
+    await assert.rejects(read(), error => error instanceof ToolError && error.code === 'INTERNAL_ERROR');
   });
   await check('Brief catalog returns complete curated references with actual RLS, restricted role and corruption rejection', async () => {
     const organizationId = 'org-catalog'; const repository = 'github:52';

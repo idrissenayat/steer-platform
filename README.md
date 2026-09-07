@@ -7,6 +7,9 @@ item one, are the framework's pilot evidence.
 
 ## Current delivery
 
+Item [0190](intent/0190/README.md) adds bounded exact-revision Spec/Exam/Plan
+projection coverage. It supplies backend source inventory, not verified lifecycle state.
+
 Item [0189](intent/0189/README.md) adds a direct read-only review-record workspace
 for exact Brief revisions, decision sources and evidence. Approval remains unverified.
 

@@ -3904,3 +3904,26 @@ ordering are retained in the evidence. Usage: `docs/REVIEW-WORKSPACE.md`. Verifi
 `intent/0189/EVIDENCE.md`. No live grant/provider, protected artifact, spending,
 deployment, release or real-data deletion changed. All five R5 findings and qualified
 independent protected review/human gates remain open.
+
+## Completed development increment: 0190 — Exact-revision lifecycle source coverage
+
+A separately granted read-only query now checks the selected Brief and its fixed
+Spec, Exam and Plan siblings at one exact commit. It reuses current identity,
+curation and byte-verified projection reads, with at most four reads and only
+fingerprints in the returned inventory. Unconfigured paths are never read;
+unavailable exact-revision projections are not misreported as missing Git files.
+Corruption, substituted scope/revisions and revoked access deny the whole response.
+
+Shared HTTP/MCP discovery and dispatch expose the same bounded contract. Actual
+disposable PostgreSQL checks verify RLS, read-only role, newer-revision rejection
+and current grant denial. The guide is `docs/LIFECYCLE-SOURCE-COVERAGE.md`;
+verification details and initial test corrections are in `intent/0190/EVIDENCE.md`.
+All 11 focused cases, 35 PostgreSQL integration checks, HTTP/MCP parity and the full
+repository checks/builds passed, including 121 registry and 109 API tests.
+
+This is J3 backend source inventory, not its authoritative lifecycle/decision-input
+contract or a connected board. Stage stays unknown and gate/write flags stay false,
+even when all artifacts are projected. No UI, live grants/curation, protected
+artifact, provider access, spending, deployment, release or real-data deletion
+changed. All five R5 findings and qualified independent protected review/human
+gates remain open.
