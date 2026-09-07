@@ -2909,3 +2909,20 @@ then gated save/status and verified lifecycle projections/board/review. A destin
 observation does not check path availability or grant write authority. All five R5
 findings, protected review and human gates stay open. No real runtime configuration,
 source access, provider, signature, deployment, release or spending changed.
+
+## Completed development increment: 0149 — Destination check in Brief authoring
+
+The authenticated authoring screen now has a user-initiated destination check
+using the shared read-only query. It shows candidate paths, branch, repository ID,
+observed revision and timestamp, with no path selection or save action. Failed or
+stale checks clear metadata; request/timer ownership suppresses late responses on
+refresh, expiry, hiding and departure. Existing draft editing and pink/orange design
+remain. Nine new tests plus six architecture checks passed, followed by the full
+repository check: 437 root controls, 38 web tests and all package checks/builds.
+See `intent/0149/EVIDENCE.md` for focused/full validation and remaining limitations.
+
+Next: full action-time authority/approved bindings and gated save/status, plus the
+combined authenticated browser journey. Continue lifecycle projections, board and
+review. All five R5 findings, qualified/protected review, human gates and signed
+Phase 1 obligations stay open. No real runtime, grant, writer, gate signature,
+deployment, release, spending or provider access was enabled by this UI increment.

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { briefPreviewInputSchema, type BriefPreview } from '@steer/tool-registry/brief-contracts';
 import { authorDraft, authorFields, createBriefAuthorClient, emptyAuthorAnswers, type AuthorAnswers } from './brief-author-client';
 import BriefMarkdown from './brief-markdown';
+import BriefDestination from './brief-destination';
 
 export default function BriefAuthor({ organizationId, subject, expiresAt }: { organizationId: string; subject: string; expiresAt: string }) {
   const [answers, setAnswers] = useState(emptyAuthorAnswers);
@@ -86,6 +87,7 @@ export default function BriefAuthor({ organizationId, subject, expiresAt }: { or
           <button className="access-secondary" type="button" onClick={() => { setStep(1); document.getElementById('author-problem')?.focus(); }}>Correct the facts</button>
         </> : <p className="author-empty">Your rendered Brief will appear here. Unknown facts stay open for review.</p>}
         <p className="access-hint">GitHub saving and decision signing are not enabled in this authoring preview.</p>
+        <BriefDestination key={`${organizationId}:${subject}:${expiresAt}`} organizationId={organizationId} expiresAt={expiresAt} />
       </div>
     </div>
   </section>;

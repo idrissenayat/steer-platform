@@ -187,6 +187,18 @@ button:focus-visible, .access-footer a:focus-visible { outline: .2rem solid var(
 .author-missing h4 { margin: 0; }
 .author-missing ul { margin-bottom: 0; padding-left: 1.2rem; }
 .author-preview code { font-size: .75rem; overflow-wrap: anywhere; }
+.author-destination { border-top: 1px solid var(--steer-border); margin-top: 1.5rem; padding-top: 1.5rem; }
+.author-destination h4 { margin: 0 0 .75rem; font-size: 1.05rem; }
+.author-destination p, .author-destination dt, .author-destination dd, .author-destination summary { font-size: .9rem; line-height: 1.6; }
+.destination-details { padding: 1rem; margin-bottom: 1rem; border: 1px solid var(--steer-border); border-radius: .8rem; background: white; overflow-wrap: anywhere; }
+.destination-details dl { margin: 0; display: grid; gap: .75rem; }
+.destination-details dt { font-weight: 700; }
+.destination-details dd { margin: .2rem 0 0; }
+.destination-details code { font-size: .875rem; }
+.destination-details details { margin-top: 1rem; }
+.destination-details summary { cursor: pointer; }
+.destination-details summary:focus-visible { outline: .2rem solid var(--steer-focus); outline-offset: .2rem; }
+.destination-details ul { padding-left: 1.2rem; }
 .brief-library-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .brief-library-heading button { width: auto; padding: .6rem 1rem; }
 .brief-cards { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 1rem; }

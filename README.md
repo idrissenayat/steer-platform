@@ -115,6 +115,9 @@ Item [0146](intent/0146/README.md) checks complete finding continuity across sel
 native Critic reports. Even resolved findings cannot silently disappear; linked
 accounting does not prove resolution or clear a HOLD.
 
+Item [0149](intent/0149/README.md) connects destination checking to the authenticated
+Brief authoring screen with clear unavailable/expired states and no save capability.
+
 Item [0148](intent/0148/README.md) adds authenticated read-only discovery of
 configured Brief destinations and the actual Git head. It is opt-in, shared by
 HTTP/MCP and does not enable saving or approve a gate.

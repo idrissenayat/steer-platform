@@ -286,6 +286,13 @@ heads without write calls. UI consumption and real configuration remain; the
 observation is neither path availability nor write/gate authority. See
 `intent/0148/EVIDENCE.md`.
 
+0149 development update: the authoring screen now includes an explicit read-only
+destination check. Its display controller validates the shared contract, clears
+stale/hidden/expired data and suppresses late responses without automatic refetch.
+This is UI implementation, not verified live configured access or save enablement.
+Combined authenticated browser-journey evidence remains due; see
+`intent/0149/EVIDENCE.md`.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

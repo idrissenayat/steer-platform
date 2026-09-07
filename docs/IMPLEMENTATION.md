@@ -1281,6 +1281,15 @@ HTTP/MCP share authorization, revalidation and bounded observation contracts.
 Projection references are never substituted for current Git head. No UI integration
 or real configuration is claimed; see `intent/0148/SPEC.md` and `EVIDENCE.md`.
 
+Item `intent/0149` consumes that query in the authenticated Brief authoring screen.
+The read-only section uses a fixed HTTPS endpoint and a cancellable display owner;
+it does not submit arbitrary targets, persist metadata, poll or enable a writer.
+Observations have a 15-second display expiry and clear on timer/expiry/hiding/navigation; older requests
+and timers cannot repopulate cleared or replaced details. Unavailable access stays
+generic. The current signed-in page identity is presentation, not authorization.
+Local route compilation and isolated controller/markup tests do not prove a real
+configured end-to-end journey. See `intent/0149/EVIDENCE.md`.
+
 ## Local commands
 
 ```sh
