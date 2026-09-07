@@ -133,6 +133,10 @@ Item [0158](intent/0158/README.md) adds exact-receipt source verification and
 compare-and-swap projection ingestion without rewinding a different selected revision.
 The integration remains disposable; no live save or scheduler is enabled.
 
+Item [0159](intent/0159/README.md) connects authenticated receipt readback to an
+owned projection job with current projector checks, single-flight admission and
+draining shutdown. Human readback and projector identity remain separate.
+
 Item [0153](intent/0153/README.md) adds bounded, merge-aware Critic target ancestry
 against the configured Git reader, without upgrading review selection or gate authority.
 

@@ -63,12 +63,14 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0158
+### Latest development audit — increment 0159
 
 The production UI now supports deterministic describe/correct, exact local review,
 manual prior-operation status and opening the exact recorded Brief. Disposable
 integration connects actual Keycloak/encrypted PostgreSQL sessions, native Git
 operation history, receipt-to-source verification and curated projection ingestion.
+An owned single-flight job now joins authenticated human status readback to a
+separately authorized projector, with current-identity checks and draining shutdown.
 These capabilities do not establish a real authorized save or agent conversation.
 
 Remaining engineering includes the complete governed evidence-selection/action-time

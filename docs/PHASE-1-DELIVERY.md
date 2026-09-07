@@ -3122,3 +3122,31 @@ stretch, and Brief projection presence must not imply verified lifecycle status.
 Complete governed action-time write authority, actual runtime membership, model
 conversation, lifecycle/decision projection, five R5 findings, qualified/independent
 protected review and human gates remain open. No deployment, release or spending.
+
+## Completed development increment: 0159 — Owned receipt projection job
+
+The recorded-source adapter now runs under the shared single-flight and draining
+projection lifecycle. The job captures configured scope, authenticates a separate
+projector agent, obtains a receipt through a trusted prebound readback callback and
+rechecks current identity around storage and completion. Subject substitution,
+revocation and shutdown deny further work. Post-ingest failure is not rollback.
+
+The disposable browser composition now obtains those receipts from the actual
+status endpoint with the human's existing Keycloak browser session and native Git
+history. The projector uses its own synthetic identity for real PostgreSQL ingestion.
+Initial/duplicate projection and replay after advancement pass without extra feed
+events or revision rewind. Human status-grant denial blocks callback readback before
+provider reads. This is seeded operation history, not a successful platform save.
+
+Fifteen focused tests, full repository validation (437 root controls, 282 adapter,
+87 API and 47 web tests plus all package builds), and the final 41-check browser run
+passed. The first browser bridge failure was corrected with actual browser-native
+same-origin fetch; security checks were not weakened. Owned resources were cleaned
+up. See `intent/0159/EVIDENCE.md` for exact evidence and limits.
+
+Next compose the job into an explicit owned runtime using existing source/database
+adapters and trusted receipt readback, then verify the combined held journey. No live
+trigger, writer or scheduler is installed. Revision-linked work-list remains stretch.
+Complete governed write authority, approved real configuration, model conversation,
+lifecycle/decision projection, five R5 findings, independent/qualified protected
+review and human gates remain open. No deployment, release or spending changed.

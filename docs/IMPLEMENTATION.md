@@ -1464,3 +1464,27 @@ including duplicate replay and replay after advancing the projection. Its exclus
 synthetic record is still curated by test setup. This is not live creation or
 automatic path admission, and a projected Brief confers no lifecycle/gate status.
 See `intent/0158/EVIDENCE.md` for verification and remaining boundaries.
+
+## Owned receipt projection job
+
+Item `intent/0159` adds `createRecordedBriefProjectionJob` on the existing projection
+job export. Its no-argument `runOnce` invokes a trusted prebound receipt-readback
+callback, not a public payload-submission route. Configured scope and reader binding
+are captured. A separate current projector agent must have `projection.ingest`, no
+human hats and an unexpired same-organization identity. Authority is checked before
+readback, after it, at sink reads/writes and after reconciliation; subject substitution
+within a run fails. The actual sink still enforces transaction-time identity and CAS.
+
+The existing path/inventory job and this new job share single-flight admission,
+cancellation checks and idempotent draining shutdown. Resource disposal waits for
+actual admitted work; errors or post-write cancellation do not imply rollback or
+automatic retry. There is no new public route, polling schedule or live binding.
+
+The disposable browser fixture now obtains job receipts through the real status
+endpoint with the human's authenticated browser-context cookie, native Git marker
+readback and request-owned writer closure. The projection job uses a different
+synthetic service identity and real PostgreSQL ingestion. Revoking the human's
+status grant blocks readback before provider reads. The operation was still seeded
+test history, not a platform save. Parent-owned test database pools are not closed
+by the child job; its own admission is drained before exclusive fixture cleanup.
+See `intent/0159/EVIDENCE.md`; live runtime composition and authority remain separate.

@@ -535,9 +535,19 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         const provider = createNativeGitHubReadHarness(source, tls.certificate);
         const appJwt = createAppJwtSigner('1', tls.key.toString('utf8'));
         assert.ok(storage.createReceiptProjection);
-        const recordedProjection = await storage.createReceiptProjection(createGitHubReader(source.reader.binding, { fetch: provider.transport, appJwt }), seeded.reference.path, seeded.receipt.revision, { result: seeded.receipt, gateSigned: false });
+        const { subject: _receiptSubject, ...statusInput } = seeded.reference;
+        const recordedProjection = await storage.createReceiptProjection(createGitHubReader(source.reader.binding, { fetch: provider.transport, appJwt }), seeded.reference.path, seeded.receipt.revision, async () => {
+          // Same authenticated browser-context cookies, actual gateway/service/store;
+          // the projector's service identity is never substituted for this human.
+          const response = await page.evaluate(async input => {
+            const result = await fetch('/v1/tools/intent.brief.save.status', { method: 'POST', credentials: 'same-origin',
+              headers: { 'content-type': 'application/json' }, body: JSON.stringify(input) });
+            return { status: result.status, body: await result.json() };
+          }, statusInput);
+          assert.equal(response.status, 200); const observed = response.body;
+          assert.deepEqual(observed, { result: seeded.receipt, gateSigned: false }); return observed;
+        });
         const recordedKey = `artifact:${createHash('sha256').update(JSON.stringify([seeded.reference.repository, seeded.reference.path])).digest('hex')}`;
-        receiptProjectionEvents.push({ recordKey: recordedKey, sourceRevision: seeded.receipt.revision, contentDigest: seeded.receipt.contentDigest });
         const factory = createGitHubBriefWriterFactory(source.reader.binding, {
           organizationId: grant.organizationId, repository: 'github:1', branch: 'synthetic', paths: [seeded.reference.path],
           platformRevision: seeded.receipt.expectedHead, gate2DecisionDigest: 'f'.repeat(64),
@@ -582,6 +592,8 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         try {
           gateway = bindGateway(web!.rendererOrigin, service); await destination();
           assert.deepEqual(await readStatus(seeded.reference.idempotencyKey), seeded.receipt);
+          await recordedProjection.project();
+          receiptProjectionEvents.push({ recordKey: recordedKey, sourceRevision: seeded.receipt.revision, contentDigest: seeded.receipt.contentDigest });
           await review.getByTestId('save-operation-receipt').waitFor();
           assert.equal(await review.getByTestId('save-operation-receipt').getByText(seeded.receipt.revision, { exact: true }).count(), 1);
           assert.notEqual(seeded.receipt.contentDigest, originalDigest);
@@ -596,6 +608,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           await source.publish([{ ...grant, toolGrants: grant.toolGrants.filter(value => value !== 'intent.brief.save.status') }, deps.agent.grant]);
           const beforeDenied = provider.stats().reads;
           await readStatus(seeded.reference.idempotencyKey, 403); assert.equal(provider.stats().reads, beforeDenied);
+          await assert.rejects(recordedProjection.project()); assert.equal(provider.stats().reads, beforeDenied);
           stage = 'grant restoration';
           await source.publish([grant, deps.agent.grant]); await destination();
           assert.deepEqual(await readStatus(seeded.reference.idempotencyKey), seeded.receipt);
