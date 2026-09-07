@@ -6,12 +6,13 @@ import { pathToFileURL } from 'node:url';
 import { transformWithOxc } from 'vite';
 import { createElement, act } from 'react';
 import { JSDOM } from 'jsdom';
+import { createHash } from 'node:crypto';
 
 test('real conversation component sends free text, follows up and displays three inert candidates without saving', async () => {
   const require = createRequire(import.meta.url);
   const compile = async (name, replacements) => {
     let code = (await transformWithOxc(readFileSync(new URL(`../app/${name}.tsx`, import.meta.url), 'utf8'), `/synthetic/${name}.tsx`, { jsx: { runtime: 'automatic' } })).code;
-    for (const specifier of ['react', 'react/jsx-runtime', 'react-markdown']) for (const quote of ['"', "'"]) code = code.replaceAll(`${quote}${specifier}${quote}`, JSON.stringify(pathToFileURL(require.resolve(specifier)).href));
+    for (const specifier of ['react', 'react/jsx-runtime', 'react-markdown', '@steer/tool-registry/agent-contracts']) for (const quote of ['"', "'"]) code = code.replaceAll(`${quote}${specifier}${quote}`, JSON.stringify(pathToFileURL(require.resolve(specifier)).href));
     for (const [specifier, target] of Object.entries(replacements)) for (const quote of ['"', "'"]) code = code.replaceAll(`${quote}${specifier}${quote}`, JSON.stringify(target));
     return `data:text/javascript;base64,${Buffer.from(code).toString('base64')}`;
   };
@@ -22,30 +23,59 @@ test('real conversation component sends free text, follows up and displays three
   const keys = ['window', 'document', 'HTMLElement', 'IS_REACT_ACT_ENVIRONMENT', 'fetch'];
   const saved = Object.fromEntries(keys.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
   for (const [key, value] of Object.entries({ window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, IS_REACT_ACT_ENVIRONMENT: true })) Object.defineProperty(globalThis, key, { configurable: true, value });
-  const requests = [];
+  const requests = [], scopeRequests = [];
+  let conflict = false;
   globalThis.fetch = async (url, init) => {
+    if (url.endsWith('/intent.overlap.check')) {
+      const input = JSON.parse(init.body); scopeRequests.push(input);
+      return Response.json({ kind: 'intent-overlap-candidates', organizationId: 'org', repository: 'github:1',
+        sourceDigest: createHash('sha256').update(JSON.stringify(input.intent)).digest('hex'), catalogFingerprint: 'c'.repeat(64), reviewFingerprint: 'd'.repeat(64),
+        method: 'lexical-candidates/v1', semanticReviewComplete: false, authoritativeClearance: false,
+        coverage: { scope: 'configured-projections-only', catalogCount: 0, inspectedIntents: 0, inspectedDocuments: 0, candidateCount: 0,
+          scanLimited: false, resultsTruncated: false, gaps: [] }, candidates: [] });
+    }
     requests.push({ url, input: JSON.parse(init.body) });
+    if (conflict) { conflict = false; return Response.json({ error: { code: 'SCOPE_REVIEW_CHANGED' } }, { status: 409 }); }
     return Response.json({ kind: 'intent-agent-candidate', organizationId: 'org', subject: 'human', sourceDigest: 'a'.repeat(64), configurationRevision: 'test', saved: false, gateSigned: false, executionAuthorized: false,
       ...(requests.length === 1 ? { message: 'One question.', questions: ['Who books appointments?'], documents: null }
         : { message: 'Your drafts are ready to review.', questions: [], documents: { brief: '# Brief\nBooking for patients', spec: '# Spec\nAC-01 book a slot', exam: '# Exam\nNOT RUN\n<script>unsafe()</script>\n![image](https://outside.invalid/image)' } }) });
   };
   const { createRoot } = await import('react-dom/client'); const root = createRoot(document.getElementById('root'));
-  const props = { organizationId: 'org', subject: 'human', expiresAt: new Date(Date.now() + 60000).toISOString(), enabled: true };
+  const props = { organizationId: 'org', subject: 'human', repository: 'github:1', expiresAt: new Date(Date.now() + 60000).toISOString(), enabled: true };
   const set = async (id, text) => act(async () => {
     const element = document.getElementById(id);
     Object.getOwnPropertyDescriptor(dom.window.HTMLTextAreaElement.prototype, 'value').set.call(element, text);
     element.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
   });
   const submit = async () => act(async () => document.querySelector('form').dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true })));
+  const direction = async () => {
+    await act(async () => { document.querySelector('.intent-scope-review > button').click(); await new Promise(resolve => setTimeout(resolve, 20)); });
+    await act(async () => {
+      const select = document.getElementById('scope-direction'); select.value = 'new-distinct';
+      select.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    });
+    await set('scope-reason', 'This booking service is for a distinct audience.');
+    await act(async () => { document.querySelector('.intent-scope-choice button').click(); await new Promise(resolve => setTimeout(resolve, 20)); });
+  };
   try {
     await act(async () => root.render(createElement(Component, props)));
     assert.equal(document.querySelectorAll('textarea').length, 1);
     assert.doesNotMatch(document.body.textContent, /8 questions|Open UX preview/);
-    await set('agent-intent', 'I want a patient booking service.'); await submit();
+    await set('agent-intent', 'I want a patient booking service.'); await submit(); assert.equal(requests.length, 0);
+    await direction(); await submit();
     assert.match(document.body.textContent, /Who books appointments/);
-    await set('agent-clarification', 'Patients book for themselves.'); await submit();
-    assert.equal(requests.length, 2); assert.equal(requests[1].input.clarification, 'Patients book for themselves.');
+    await set('agent-clarification', 'Patients book for themselves.'); await submit(); assert.equal(requests.length, 1);
+    await direction(); conflict = true; await submit();
+    assert.match(document.body.textContent, /Existing scope changed/); assert.doesNotMatch(document.body.textContent, /Direction checked against/);
+    assert.equal(document.getElementById('agent-intent').value, 'I want a patient booking service.');
+    assert.equal(document.getElementById('agent-clarification').value, 'Patients book for themselves.');
+    await submit(); assert.equal(requests.length, 2);
+    await direction(); await submit();
+    assert.equal(requests.length, 3); assert.equal(requests[1].input.clarification, 'Patients book for themselves.');
     assert.ok(requests.every(item => item.url.endsWith('/v1/tools/intent.agent.develop')));
+    assert.equal(scopeRequests.length, 6); assert.match(scopeRequests[2].intent, /Clarification:\nPatients book for themselves/);
+    assert.equal(requests[1].input.disposition.choice.reason, 'This booking service is for a distinct audience.');
+    assert.notEqual(requests[0].input.disposition.sourceDigest, requests[1].input.disposition.sourceDigest);
     for (const name of ['BRIEF.md', 'SPEC.md', 'EXAM.md']) {
       const button = [...document.querySelectorAll('button')].find(button => button.textContent === name); assert.ok(button);
       await act(async () => button.click()); assert.equal(button.getAttribute('aria-pressed'), 'true');

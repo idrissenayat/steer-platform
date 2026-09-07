@@ -1,7 +1,8 @@
 # Authenticated intent development
 
 Status: integration implemented and tested with synthetic provider responses;
-**live activation and real-model acceptance remain open**. This is increment 0198.
+**live activation and real-model acceptance remain open**. Initial integration 0198;
+revision-bound source review/direction composition added in 0202.
 
 ## Human journey
 
@@ -10,10 +11,13 @@ one free-text intent composer, not eight intake questions or a separate local
 preview. Manual Brief tools remain collapsed below it. Previously saved browser
 records are not deleted, migrated, promoted to Git or sent to a model.
 
-When explicitly activated, **Review my intent** sends the source to the authenticated
+Before sending, check existing scope and explicitly confirm a direction and reason.
+Added clarification invalidates the previous review: search uses the original text
+plus the exact clarification. When explicitly activated, **Review my intent** sends the source and proposal to the authenticated
 `intent.agent.develop` command. The Architect either asks up to three necessary
 questions or drafts a candidate Brief and Spec. A fresh-context Test Agent receives
-only the original source/clarification and those candidates, then authors an Exam
+only the original source/clarification, human direction, server-retrieved scope
+evidence and those candidates, then authors an Exam
 marked NOT RUN. The UI displays all three documents for review. It does not report
 a save, signature, executed test or implementation.
 
@@ -29,6 +33,13 @@ conversation. Do not enter sensitive source while evaluating the new interaction
   contracts. The registry exposes a **command**, not a read-preview query, to the
   existing HTTP, internal and MCP discovery paths.
 - Exact organization, human identity and `intent.agent.develop` grant required.
+  The same current identity must also hold `intent.overlap.check`,
+  `intent.brief.catalog`, `intent.brief.read` and `projection.artifact.read`, and
+  a curated projection reader must be configured. Browser fingerprints are not
+  trusted evidence: the server reads actual projections before generation and
+  after it, comparing the proposal's input/catalog/review fingerprints and target
+  Brief revision/digest. Stale scope returns 409 without a draft response. Changes
+  detected after generation can consume budget; they are not automatically retried.
   Existing Brief-preview permission cannot authorize model usage. Revalidate before
   and after I/O, including between the Architect and Test Agent calls.
 - `packages/agents`: provider-free coordinator plus an isolated Mastra runtime
@@ -67,8 +78,10 @@ Before a live test:
    Implement and verify the durable, atomic budget-reservation binding for the
    approved session and conservative per-call upper bound. The current coordinator
    defines/tests that required port but does not ship a live budget ledger.
-3. Bind `modelGateway` at local API startup, configure the UI display flag, and
-   authorize only the new drafting tool for the intended human. This does not grant
+3. Bind curated source projections and explicitly scoped read grants as above,
+   bind `modelGateway` at local API startup and configure the UI display flag.
+   Authorize drafting for the intended human at the current prompt/configuration
+   revision. This does not grant
    signing, provider administration, code-host writes or deployment authority.
 4. Run the real signed-in UI journey with non-sensitive source; inspect actual
    model output, clarification quality, independent Exam coverage, refusal/failure

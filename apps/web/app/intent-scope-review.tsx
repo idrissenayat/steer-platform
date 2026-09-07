@@ -6,8 +6,11 @@ import { bindIntentDisposition, createIntentScopeReader } from './intent-scope-r
 import { briefFragment } from './brief-location';
 
 /** Read-only comparison inside the real conversation. Never a duplicate verdict or save grant. */
-export default function IntentScopeReview({ organizationId, repository, intent, expiresAt }: {
+export default function IntentScopeReview({ organizationId, repository, intent, expiresAt, onProposalChange, locked = false, reviewVersion = 0 }: {
   organizationId: string; repository: string | null; intent: string; expiresAt: string;
+  locked?: boolean;
+  reviewVersion?: number;
+  onProposalChange?: (value: IntentDispositionProposal | null) => void;
 }) {
   const owner = useRef<ReturnType<typeof createIntentScopeReader> | null>(null);
   const [result, setResult] = useState<{ intent: string; value: IntentOverlapOutput } | null>(null);
@@ -15,6 +18,7 @@ export default function IntentScopeReview({ organizationId, repository, intent, 
   const [action, setAction] = useState<IntentDispositionChoice['action'] | ''>('');
   const [targetPath, setTargetPath] = useState(''); const [reason, setReason] = useState('');
   const [proposal, setProposal] = useState<IntentDispositionProposal | null>(null);
+  useEffect(() => { onProposalChange?.(proposal); }, [proposal, onProposalChange]);
   const heading = useRef<HTMLHeadingElement>(null);
   const review = result?.intent === intent && result.value.organizationId === organizationId && result.value.repository === repository ? result.value : null;
   useEffect(() => { setAction(''); setTargetPath(''); setReason(''); }, [organizationId, repository]);
@@ -25,10 +29,10 @@ export default function IntentScopeReview({ organizationId, repository, intent, 
     const check = () => { const now = Date.now(), expiry = Date.parse(expiresAt); if (!Number.isFinite(expiry) || now < last || now >= expiry || document.hidden) clear(); last = now; };
     check(); const timer = setInterval(check, 1000); document.addEventListener('visibilitychange', check);
     return () => { clearInterval(timer); document.removeEventListener('visibilitychange', check); owner.current?.close(); owner.current = null; };
-  }, [organizationId, repository, intent, expiresAt]);
+  }, [organizationId, repository, intent, expiresAt, reviewVersion]);
   useEffect(() => { if (review) heading.current?.focus(); }, [review]);
   async function checkScope(choice?: IntentDispositionChoice) {
-    if (!repository || !intent.trim() || owner.current || expired || document.hidden || Date.now() >= Date.parse(expiresAt)) return;
+    if (locked || !repository || !intent.trim() || owner.current || expired || document.hidden || Date.now() >= Date.parse(expiresAt)) return;
     const current = createIntentScopeReader({ organizationId, repository }, window.location.origin); owner.current = current;
     const previous = review;
     setBusy(true); setError(''); setProposal(null); if (!choice) setResult(null);
@@ -54,7 +58,7 @@ export default function IntentScopeReview({ organizationId, repository, intent, 
     <p>Check permitted Briefs and Specs for matching scope before starting another intent.</p>
     {!repository && <p className="access-note">Repository search is not configured for this workspace yet.</p>}
     {expired ? <p role="status">Scope results cleared. Refresh access to check again.</p> : <>
-      <button type="button" className="access-secondary" disabled={!repository || !intent.trim() || busy} onClick={() => { void checkScope(); }}>
+      <button type="button" className="access-secondary" disabled={locked || !repository || !intent.trim() || busy} onClick={() => { void checkScope(); }}>
         {busy ? 'Checking existing scope…' : review ? 'Check scope again' : 'Check existing scope'}</button>
       {busy && <p role="status">Checking permitted source documents. No intent is being created or changed.</p>}
       {error && <p role="alert">{error}</p>}
@@ -75,7 +79,7 @@ export default function IntentScopeReview({ organizationId, repository, intent, 
         {review.coverage.gaps.length > 0 && <details><summary>Unavailable sources ({review.coverage.gaps.length})</summary><ul>
           {review.coverage.gaps.map(gap => <li key={gap.path}><code>{gap.path}</code>: {gap.reason === 'not-configured' ? 'not configured for reading' : 'not available in the projection'}</li>)}
         </ul></details>}
-        <fieldset disabled={busy} className="intent-scope-choice">
+        <fieldset disabled={busy || locked} className="intent-scope-choice">
           <legend>How should this intent proceed?</legend>
           <p>Choose a proposed direction. This does not create, merge, update or save anything.</p>
           <label htmlFor="scope-direction">Your direction</label>
@@ -98,7 +102,7 @@ export default function IntentScopeReview({ organizationId, repository, intent, 
             <button type="button" className="access-secondary" disabled={!reason.trim() || (action !== 'new-distinct' && !review.candidates.some(candidate => candidate.briefPath === targetPath))}
               onClick={propose}>Recheck scope and confirm direction</button></>}
         </fieldset>
-        {proposal && <p role="status">Direction checked against the reviewed source revisions. This is an unsaved proposal for this conversation only; drafting and saving do not yet use it. Semantic duplicate review is still needed.</p>}
+        {proposal && <p role="status">Direction checked against the reviewed source revisions. The agent will use your direction and explanation after checking these sources again. Nothing is saved; semantic duplicate review is still needed.</p>}
       </div>}
     </>}
   </section>;

@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createAgentTransport } from '../app/agent-transport.ts';
-const input = { organizationId: 'org', intent: 'Build a booking flow', clarification: '' };
+import { intentAgentFixture } from '../../../tests/fixtures/intent-agent.ts';
+const { input } = await intentAgentFixture('Build a booking flow');
 const output = { kind: 'intent-agent-candidate', organizationId: 'org', subject: 'human', sourceDigest: 'a'.repeat(64), configurationRevision: 'test', message: 'Who books?', questions: ['Who books?'], documents: null, saved: false, gateSigned: false, executionAuthorized: false };
 
 test('only fixed same-origin authenticated command is called; no retries or read-preview substitution', async () => {
@@ -15,7 +16,7 @@ test('only fixed same-origin authenticated command is called; no retries or read
   await assert.rejects(transport.develop(input)); assert.equal(calls, 1);
 });
 test('errors have actionable messages, not server content, and UTF-8 body bounds run before I/O', async () => {
-  for (const [status, message] of [[401, /session ended/], [403, /not enabled/], [503, /budget may be unavailable/]] as const) {
+  for (const [status, message] of [[401, /session ended/], [403, /not enabled/], [409, /Existing scope changed/], [503, /budget may be unavailable/]] as const) {
     let calls = 0; const transport = createAgentTransport('https://steer.example', async () => { calls++; return Response.json({ secret: 'provider text' }, { status }); });
     await assert.rejects(transport.develop(input), message); assert.equal(calls, 1);
   }

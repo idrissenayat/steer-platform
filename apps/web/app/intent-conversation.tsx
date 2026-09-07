@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { AgentOutput } from '@steer/tool-registry/agent-contracts';
-import { createAgentTransport } from './agent-transport';
+import { agentScopeText } from '@steer/tool-registry/agent-contracts';
+import type { IntentDispositionProposal } from '@steer/tool-registry/intent-overlap-contracts';
+import { AgentScopeChangedError, createAgentTransport } from './agent-transport';
 import BriefMarkdown from './brief-markdown';
 import IntentScopeReview from './intent-scope-review';
 
@@ -12,6 +14,8 @@ export default function IntentConversation({ organizationId, subject, expiresAt,
   const [intent, setIntent] = useState(''); const [clarification, setClarification] = useState('');
   const [result, setResult] = useState<AgentOutput | null>(null); const [error, setError] = useState('');
   const [busy, setBusy] = useState(false); const [expired, setExpired] = useState(false);
+  const [disposition, setDisposition] = useState<IntentDispositionProposal | null>(null);
+  const [scopeReviewVersion, setScopeReviewVersion] = useState(0);
   const [selected, setSelected] = useState<'brief' | 'spec' | 'exam'>('brief');
   const transport = useRef<ReturnType<typeof createAgentTransport> | null>(null);
   const live = useRef(true); const pending = useRef(false);
@@ -29,14 +33,14 @@ export default function IntentConversation({ organizationId, subject, expiresAt,
     return () => { live.current = false; clearInterval(timer); transport.current?.close(); document.removeEventListener('visibilitychange', hide); window.removeEventListener('pagehide', expire); };
   }, [expiresAt]);
   async function send() {
-    if (pending.current || !live.current || !enabled || !intent.trim()) return;
+    if (pending.current || !live.current || !enabled || !intent.trim() || !disposition) return;
     pending.current = true; setBusy(true); setError('');
     try {
-      const output = await transport.current!.develop({ organizationId, intent, clarification });
+      const output = await transport.current!.develop({ organizationId, intent, clarification, disposition });
       if (!live.current) return;
       if (output.organizationId !== organizationId || output.subject !== subject || Date.now() >= Date.parse(expiresAt)) throw new Error('Workspace access changed. Refresh access before continuing.');
       setResult(output); setSelected('brief');
-    } catch (cause) { if (live.current) setError(cause instanceof Error && cause.message.length < 300 && !cause.message.startsWith('[')
+    } catch (cause) { if (live.current && cause instanceof AgentScopeChangedError) { setDisposition(null); setScopeReviewVersion(version => version + 1); } if (live.current) setError(cause instanceof Error && cause.message.length < 300 && !cause.message.startsWith('[')
       ? cause.message : 'The agent could not finish. Your text is still here. Nothing was saved.'); }
     finally { pending.current = false; if (live.current) setBusy(false); }
   }
@@ -49,14 +53,15 @@ export default function IntentConversation({ organizationId, subject, expiresAt,
         <label htmlFor="agent-intent">Your intent</label>
         <textarea id="agent-intent" rows={7} maxLength={10000} value={intent} disabled={busy}
           placeholder="I want to…" onChange={event => { setIntent(event.target.value); setResult(null); setClarification(''); }} />
-        <IntentScopeReview organizationId={organizationId} repository={repository} intent={intent} expiresAt={expiresAt} />
+        <IntentScopeReview organizationId={organizationId} repository={repository} intent={agentScopeText({ intent, clarification })} expiresAt={expiresAt} onProposalChange={setDisposition} locked={busy} reviewVersion={scopeReviewVersion} />
         {result && <div className="intent-agent-reply"><h3>STEER agent</h3><p>{result.message}</p>
           {result.questions.length > 0 && <><ul>{result.questions.map((question, index) => <li key={index}>{question}</li>)}</ul>
             <label htmlFor="agent-clarification">Add details in your own words</label>
             <textarea id="agent-clarification" rows={4} maxLength={3000} value={clarification} disabled={busy} onChange={event => setClarification(event.target.value)} /></>}
         </div>}
         <p className="access-hint">Not saved. Hiding or refreshing the page clears this conversation. Sending uses the configured model provider.</p>
-        <button className="access-primary" type="submit" disabled={!enabled || busy || !intent.trim() || Boolean(result?.documents) || Boolean(result?.questions.length && !clarification.trim())}>
+        {!disposition && <p className="access-hint">Check existing scope and confirm your direction before sending. Added clarification needs a fresh scope review.</p>}
+        <button className="access-primary" type="submit" disabled={!enabled || busy || !intent.trim() || !disposition || Boolean(result?.documents) || Boolean(result?.questions.length && !clarification.trim())}>
           {busy ? 'Agent is working…' : result?.questions.length ? 'Continue with these details' : 'Review my intent'}</button>
       </form>
       {busy && <p role="status">Reviewing your intent and preparing the next response. This can take up to 90 seconds. Please keep this page open.</p>}

@@ -55,7 +55,7 @@ test('actual scope component shows evidence, exact Brief links, gaps and errors 
     assert.equal(document.querySelector('.intent-scope-choice button').disabled, true);
     await change('#scope-reason', 'Reminder work is separate from booking.'); await confirm();
     assert.match(document.body.textContent, /Direction checked against/); assert.equal(requests.length, 2);
-    assert.match(document.body.textContent, /drafting and saving do not yet use it/);
+    assert.match(document.body.textContent, /agent will use your direction/);
     await change('#scope-reason', 'Changed explanation'); assert.doesNotMatch(document.body.textContent, /Direction checked against/);
     fingerprint = 'f'.repeat(64); await confirm();
     assert.match(document.querySelector('[role="alert"]').textContent, /Scope changed/);

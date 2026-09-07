@@ -12,7 +12,7 @@ function terms(value: string) {
 }
 
 export function findIntentOverlap(intent: string, content: string): IntentOverlap | null {
-  if (typeof intent !== 'string' || typeof content !== 'string' || intent.length > 10000 || content.length > 512 * 1024) throw new Error('Invalid overlap input.');
+  if (typeof intent !== 'string' || typeof content !== 'string' || intent.length > 13050 || content.length > 512 * 1024) throw new Error('Invalid overlap input.');
   const query = normalize(intent); if (!query) return null;
   const queryTerms = terms(intent); const sourceTerms = new Set(terms(content));
   const matchedTerms = queryTerms.filter(term => sourceTerms.has(term));

@@ -1,6 +1,7 @@
 import { roles } from '@steer/domain/types';
 import { findIntentOverlap } from '@steer/domain/intent-overlap';
-import { intentOverlapInputSchema, intentOverlapOutputSchema, type IntentOverlapOutput } from './intent-overlap-contracts.ts';
+import { intentOverlapInputSchema, intentOverlapOutputSchema, recheckIntentDisposition, type IntentOverlapOutput } from './intent-overlap-contracts.ts';
+import { agentScopeText } from './agent-contracts.ts';
 export * from './intent-overlap-contracts.ts';
 import { agentInputSchema, agentOutputSchema, type AgentOutput, type IntentAgentService } from './agent-contracts.ts';
 import { readBriefDocument } from '@steer/domain/brief-document';
@@ -45,6 +46,7 @@ const failures = {
   UNAUTHENTICATED: { status: 401, message: 'A current authenticated identity is required.' },
   FORBIDDEN: { status: 403, message: 'This identity cannot perform this operation.' },
   TOOL_NOT_FOUND: { status: 404, message: 'Tool not found.' },
+  SCOPE_REVIEW_CHANGED: { status: 409, message: 'Existing scope changed. Review current sources and confirm a direction again.' },
   INVALID_INPUT: { status: 422, message: 'Input does not match the tool contract.' },
   INTERNAL_ERROR: { status: 500, message: 'The operation could not be completed.' },
   UNAVAILABLE: { status: 503, message: 'The required service is not configured or available.' },
@@ -776,12 +778,23 @@ const agentCommand = {
     const service = context.services?.intentAgent;
     if (!service || !context.revalidate) throw new ToolError('UNAVAILABLE');
     if (service.organizationId !== input.organizationId) throw new ToolError('FORBIDDEN');
-    const revalidate = async () => { await freshToolPrincipal(agentAuthorization, input, initial, context); };
+    const scopeInput = { organizationId: input.organizationId, repository: input.disposition.repository, intent: agentScopeText(input) };
+    const revalidate = async () => {
+      const current = await freshToolPrincipal(agentAuthorization, input, initial, context);
+      overlapAuthorization.invoke(scopeInput, { ...context, principal: current });
+    };
     await revalidate();
+    const checkScope = async () => {
+      const review = await overlapQuery.invoke(scopeInput, { ...context, principal: await freshToolPrincipal(agentAuthorization, input, initial, context) });
+      try { recheckIntentDisposition(input.disposition, review); } catch { throw new ToolError('SCOPE_REVIEW_CHANGED'); }
+      return review;
+    };
+    const scopeReview = await checkScope();
     let output: AgentOutput;
-    try { output = agentOutputSchema.parse(await service.develop(input, initial.subject, revalidate)); }
+    try { output = agentOutputSchema.parse(await service.develop(input, initial.subject, revalidate, scopeReview)); }
     catch (cause) { if (cause instanceof ToolError) throw cause; throw new ToolError('UNAVAILABLE'); }
     await revalidate();
+    await checkScope();
     if (output.organizationId !== input.organizationId || output.subject !== initial.subject) throw new ToolError('INTERNAL_ERROR');
     return output;
   },
@@ -844,7 +857,7 @@ export function createOpenApiDocument() {
           requestBody: { required: true, content: { 'application/json': { schema: tool.inputSchema } } },
           responses: {
             '200': { description: 'Validated tool result', content: { 'application/json': { schema: tool.outputSchema } } },
-            ...Object.fromEntries([400, 401, 403, 404, 413, 415, 422, 500, 503].map((status) => [
+            ...Object.fromEntries([400, 401, 403, 404, 409, 413, 415, 422, 500, 503].map((status) => [
               String(status), { description: 'Request rejected', content: { 'application/json': { schema: { $ref: '#/components/schemas/ToolError' } } } },
             ])),
           },

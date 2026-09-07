@@ -1,5 +1,6 @@
-import { agentInputSchema, agentOutputSchema, architectOutputSchema, examOutputSchema,
+import { agentInputSchema, agentOutputSchema, agentScopeText, architectOutputSchema, examOutputSchema,
   type IntentAgentService } from '@steer/tool-registry/agent-contracts';
+import { recheckIntentDisposition } from '@steer/tool-registry/intent-overlap-contracts';
 
 export interface DevelopmentRuntime {
   generate(role: 'architect' | 'test-agent', source: string, signal: AbortSignal): Promise<unknown>;
@@ -16,16 +17,18 @@ export function createIntentDevelopment(options: {
 }): IntentAgentService {
   if (!options.organizationId || !options.configurationRevision) throw new Error('Agent configuration required.');
   let busy = false;
-  return { organizationId: options.organizationId, async develop(raw, subject, revalidate) {
+  return { organizationId: options.organizationId, async develop(raw, subject, revalidate, scopeReview) {
     const input = agentInputSchema.parse(raw);
-    if (input.organizationId !== options.organizationId || !subject || busy) throw new Error('Agent unavailable.');
+    const disposition = recheckIntentDisposition(input.disposition, scopeReview);
+    if (input.organizationId !== options.organizationId || scopeReview.organizationId !== input.organizationId || !subject || busy) throw new Error('Agent unavailable.');
     busy = true;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 90000);
     let abort!: () => void;
     const stopped = new Promise<never>((_, reject) => { abort = () => reject(new Error('Agent request expired.')); });
     controller.signal.addEventListener('abort', abort, { once: true });
-    const source = JSON.stringify({ intent: input.intent, clarification: input.clarification });
+    const source = JSON.stringify({ intent: input.intent, clarification: input.clarification, disposition,
+      scopeEvidence: scopeReview });
     const call = async (role: 'architect' | 'test-agent', data: string) => {
       controller.signal.throwIfAborted();
       await revalidate();
@@ -36,6 +39,9 @@ export function createIntentDevelopment(options: {
       controller.signal.throwIfAborted(); await revalidate(); return result;
     };
     const work = async () => {
+      const scopeDigest = [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(agentScopeText(input)))))]
+        .map(n => n.toString(16).padStart(2, '0')).join('');
+      if (scopeDigest !== scopeReview.sourceDigest) throw new Error('Scope review does not match this intent.');
       const drafted = architectOutputSchema.parse(await call('architect', source));
       const needsClarification = drafted.questions.length > 0;
       // Do not accept contradictory output or fabricate missing documents.

@@ -24,7 +24,8 @@ test('negation and exclusions remain in evidence rather than becoming an already
 test('Unicode source remains readable and limits do not silently truncate the input', () => {
   const result = findIntentOverlap('خدمات آنلاین برای بیماران و ثبت نوبت پزشکی', '# برنامه\n\nخدمات آنلاین برای بیماران و ثبت نوبت پزشکی');
   assert.equal(result.signal, 'matching-text'); assert.match(result.excerpt, /بیماران/);
-  assert.throws(() => findIntentOverlap('x'.repeat(10001), 'content'));
+  assert.throws(() => findIntentOverlap('x'.repeat(13051), 'content'));
+  assert.equal(findIntentOverlap('x'.repeat(13050), 'content'), null);
   assert.throws(() => findIntentOverlap('query', 'x'.repeat(512 * 1024 + 1)));
 });
 test('instruction-like source is returned as data, with bounded excerpts', () => {

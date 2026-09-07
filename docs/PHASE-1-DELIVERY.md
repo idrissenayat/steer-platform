@@ -4158,3 +4158,16 @@ Web suite 100/100 and registry suite pass, with contract and actual-component
 coverage; see [0201 evidence](../intent/0201/EVIDENCE.md). Actual source configuration,
 semantic assessment, durable state and server draft/save integration remain open.
 No model spending, runtime writing or additional grants were activated.
+
+## Development increment: 0202 — Reviewed direction feeds server drafting
+
+The actual command now requires the confirmed human direction, independently reads
+current scope before generation and rechecks it before releasing output. Missing
+read grants, altered source/clarification and stale fingerprints cannot bypass the
+preflight. Both isolated drafting roles receive the original text, exact explanation
+and server-derived evidence as data. Actual UI submission requires review and
+invalidates it after clarification; scope conflicts ask for re-review, not auto-retry.
+
+Synthetic HTTP/registry/coordinator/React checks pass; see [0202 evidence](../intent/0202/EVIDENCE.md).
+No live model, read-model grant, runtime write or gate was enabled. Semantic assessment,
+durable budget/draft bindings, save-time atomic rechecks and real UI acceptance remain open.

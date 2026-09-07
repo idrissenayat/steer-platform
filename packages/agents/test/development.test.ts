@@ -2,8 +2,9 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createIntentDevelopment, type DevelopmentPermit } from '../src/development.ts';
 import { createMastraDevelopmentRuntime } from '../src/mastra.ts';
+import { intentAgentFixture } from '../../../tests/fixtures/intent-agent.ts';
 
-const input = { organizationId: 'org', intent: 'Build an accessible appointment booking flow.', clarification: '' };
+const { input, review } = await intentAgentFixture('Build an accessible appointment booking flow.');
 const ready = { message: 'Here are your drafts.', questions: [], brief: '# Brief\nBooking intent', spec: '# Spec\nAC-01: Book a slot' };
 const allow: DevelopmentPermit = { reserve: async () => true };
 const create = (generate: Parameters<typeof createIntentDevelopment>[0]['runtime']['generate'], permit = allow) =>
@@ -13,7 +14,7 @@ test('clarification is one bounded call, not a standard questionnaire or pretend
   let calls = 0;
   const service = create(async role => { calls++; assert.equal(role, 'architect');
     return { message: 'One detail would help.', questions: ['Who books?'], brief: null, spec: null }; });
-  const result = await service.develop(input, 'human', async () => {});
+  const result = await service.develop(input, 'human', async () => {}, review);
   assert.equal(calls, 1); assert.equal(result.documents, null); assert.equal(result.saved, false);
   assert.deepEqual(result.questions, ['Who books?']);
 });
@@ -22,9 +23,9 @@ test('ready intent creates Brief and Spec then an isolated Test Agent Exam; no a
   const calls: { role: string; source: string }[] = []; let reservations = 0; let checks = 0;
   const result = await create(async (role, source) => {
     calls.push({ role, source }); return role === 'architect' ? ready : { exam: '# Exam\nNOT RUN: AC-01' };
-  }, { reserve: async () => { reservations++; return true; } }).develop(input, 'human', async () => { checks++; });
+  }, { reserve: async () => { reservations++; return true; } }).develop(input, 'human', async () => { checks++; }, review);
   assert.deepEqual(calls.map(call => call.role), ['architect', 'test-agent']);
-  assert.deepEqual(JSON.parse(calls[1]!.source), { source: { intent: input.intent, clarification: '' }, brief: ready.brief, spec: ready.spec });
+  assert.deepEqual(JSON.parse(calls[1]!.source), { source: { intent: input.intent, clarification: '', disposition: input.disposition, scopeEvidence: review }, brief: ready.brief, spec: ready.spec });
   assert.equal(calls[1]!.source.includes(ready.message), false);
   assert.equal(reservations, 2); assert.ok(checks >= 7); assert.match(result.sourceDigest, /^[a-f0-9]{64}$/);
   assert.equal(result.documents?.exam, '# Exam\nNOT RUN: AC-01');
@@ -33,25 +34,27 @@ test('ready intent creates Brief and Spec then an isolated Test Agent Exam; no a
 
 test('missing budget, wrong organization and revoked access cause no model calls', async () => {
   let calls = 0; const generate = async () => { calls++; return ready; };
-  await assert.rejects(create(generate, { reserve: async () => false }).develop(input, 'human', async () => {}));
-  await assert.rejects(create(generate).develop({ ...input, organizationId: 'other' }, 'human', async () => {}));
-  await assert.rejects(create(generate).develop(input, 'human', async () => { throw new Error('revoked'); }));
+  await assert.rejects(create(generate, { reserve: async () => false }).develop(input, 'human', async () => {}, review));
+  await assert.rejects(create(generate).develop({ ...input, organizationId: 'other' }, 'human', async () => {}, review));
+  await assert.rejects(create(generate).develop(input, 'human', async () => { throw new Error('revoked'); }, review));
+  await assert.rejects(create(generate).develop({ ...input, clarification: 'Changed scope' }, 'human', async () => {}, review));
+  await assert.rejects(create(generate).develop({ ...input, disposition: { ...input.disposition, reviewFingerprint: '0'.repeat(64) } }, 'human', async () => {}, review));
   assert.equal(calls, 0);
 });
 
 test('rechecks budget and identity before independent Exam; never returns partial success', async () => {
   let calls = 0; let reservations = 0;
-  await assert.rejects(create(async () => { calls++; return ready; }, { reserve: async () => ++reservations < 2 }).develop(input, 'human', async () => {}));
+  await assert.rejects(create(async () => { calls++; return ready; }, { reserve: async () => ++reservations < 2 }).develop(input, 'human', async () => {}, review));
   assert.equal(calls, 1);
   let revoked = false; calls = 0;
-  await assert.rejects(create(async () => { revoked = true; calls++; return ready; }).develop(input, 'human', async () => { if (revoked) throw new Error(); }));
+  await assert.rejects(create(async () => { revoked = true; calls++; return ready; }).develop(input, 'human', async () => { if (revoked) throw new Error(); }, review));
   assert.equal(calls, 1);
 });
 
 test('malformed, contradictory, incomplete and excessive model output are rejected, not fabricated', async () => {
   for (const output of [{ ...ready, brief: null }, { ...ready, questions: ['Who?'] }, { ...ready, questions: Array(4).fill('Who?') }, { ...ready, spec: 'x'.repeat(30001) }, { secret: 'not a document' }]) {
     let calls = 0;
-    await assert.rejects(create(async () => { calls++; return output; }).develop(input, 'human', async () => {}));
+    await assert.rejects(create(async () => { calls++; return output; }).develop(input, 'human', async () => {}, review));
     assert.equal(calls, 1);
   }
 });
@@ -59,8 +62,8 @@ test('malformed, contradictory, incomplete and excessive model output are reject
 test('busy service does not duplicate calls; rejected operation can be explicitly attempted later', async () => {
   let release!: () => void; const wait = new Promise<void>(resolve => { release = resolve; });
   const service = create(async () => { await wait; throw new Error('provider failed'); });
-  const first = service.develop(input, 'human', async () => {});
-  await assert.rejects(service.develop(input, 'human', async () => {})); release(); await assert.rejects(first);
+  const first = service.develop(input, 'human', async () => {}, review);
+  await assert.rejects(service.develop(input, 'human', async () => {}, review)); release(); await assert.rejects(first);
 });
 
 test('Mastra uses only the configured LiteLLM endpoint, native schema, one call, bounded tokens and no storage', async () => {
