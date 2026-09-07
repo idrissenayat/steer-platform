@@ -2944,3 +2944,22 @@ approved bindings, then gated save/status, lifecycle projections, board and revi
 All five R5 findings, protected/qualified review, human gates and remaining signed
 Phase 1 obligations stay open. No live provider, writer, configuration, deployment,
 release, spending or gate approval was enabled.
+
+## Completed development increment: 0151 — Durable destination runtime reconstruction
+
+The actual identity runtime now has explicit isolated reconstruction coverage with
+encrypted PostgreSQL 16 sessions and native Git destination reads. Login state
+survives one runtime replacement, the session survives another, current source/grant
+changes are observed, and logout remains revoked after a final replacement. Tests
+verify the runtime's generated GitHub App assertions and read-only token scope.
+No in-memory session substitute or database projection supplies these observations.
+The explicit Docker integration and full repository check passed, including 437 root
+controls, 87 API tests and all package checks/builds. See `intent/0151/EVIDENCE.md`
+for validation and the exact local test-image handling.
+
+Actual Keycloak/browser and approved live provider evidence remain separate, along
+with full action-time gate authority and write installation scope. Continue gated
+save/status, verified lifecycle projections, board and review. The five R5 findings,
+protected/qualified review, human gates and remaining signed Phase 1 obligations
+remain open. No live database, account configuration, provider, gate, deployment,
+release, spending or live writer was enabled.

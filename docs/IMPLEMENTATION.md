@@ -1298,6 +1298,15 @@ remain independently enforced. Synthetic provider HTTP and in-memory session sto
 do not prove real Keycloak, durable runtime-profile or browser integration. See
 `intent/0150/EVIDENCE.md`.
 
+Item `intent/0151` adds an opt-in disposable PostgreSQL 16 integration for the actual
+identity-runtime profile. Login transactions and encrypted sessions survive service
+reconstruction; destination reads use the real App signer/Git reader against native
+test commits. Scope, grant removal/revocation, callback replay and durable logout
+are checked. The exact existing local image ID is verified before `--pull=never`
+launch; no runtime fallback or database authority leaves the fixture. Run
+`pnpm test:destination:integration` explicitly. Actual Keycloak/browser evidence is
+still separate; see `intent/0151/EVIDENCE.md`.
+
 ## Local commands
 
 ```sh

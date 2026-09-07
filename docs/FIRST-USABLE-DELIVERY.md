@@ -300,6 +300,12 @@ closure during browser-only shutdown. Provider/session/browser fixtures are expl
 durable runtime-profile and real browser journey evidence remain due. See
 `intent/0150/EVIDENCE.md`.
 
+0151 development update: the actual runtime profile now has isolated PostgreSQL 16
+reconstruction evidence. Original login state, encrypted sessions and logout survive
+service replacement while destination reads use current native Git grants/heads.
+Provider HTTP and the cookie jar are synthetic; actual Keycloak/browser and live
+provider evidence are not claimed. See `intent/0151/EVIDENCE.md`.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

@@ -9,7 +9,8 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { createPostgresBrowserSessionStore, sessionNamespace, type SessionIdentityBinding } from '@steer/data/browser-session';
 import { createRuntimePool } from '@steer/data/runtime-pool';
-import type { BrowserSession, LoginTransaction } from '@steer/adapters/browser-session';
+import type { BrowserSession, LoginTransaction, BrowserSessionConfiguration } from '@steer/adapters/browser-session';
+import type { GitHubBinding } from '@steer/adapters/github';
 import type { SessionTestHarness } from './session-harness.ts';
 import { createIdentityRuntime, startLocalIdentityFromSecretProvider } from '../src/runtime.ts';
 import { createEncryptedFileSecretProvider } from '@steer/adapters/secrets';
@@ -24,28 +25,41 @@ import { reconcileRepository, type SnapshotProjectionSink, type ProjectionOutcom
 import type { Principal } from '@steer/tool-registry';
 
 /** Two disposable services only; no externally supplied connection or credential. */
-export async function createPostgresSessionHarness(binding: SessionIdentityBinding): Promise<SessionTestHarness & { close(): Promise<void> }> {
-  const image = 'postgres@sha256:16bc17c64a573ef34162af9298258d1aec548232985b33ed7b1eac33ba35c229';
+export async function createPostgresSessionHarness(binding: SessionIdentityBinding): Promise<SessionTestHarness & {
+  close(): Promise<void>;
+  createDestinationRuntime(configuration: BrowserSessionConfiguration, github: GitHubBinding, paths: string[], privateKeyPem: string,
+    transports: { identity: typeof fetch; github: typeof fetch }): Promise<Awaited<ReturnType<typeof createIdentityRuntime>>>;
+}> {
+  // Use the verified local image configuration ID directly. The existing pinned
+  // bits are unchanged; no registry name or floating tag needs resolution.
+  const image = 'sha256:16bc17c64a573ef34162af9298258d1aec548232985b33ed7b1eac33ba35c229';
   const exec = promisify(execFile);
   const docker = async (...args: string[]) => (await exec('docker', args, { timeout: 30000 })).stdout.trim();
   const name = `steer-0018-${randomUUID()}`; const password = randomBytes(24).toString('hex');
   const encryptionKey = randomBytes(32); const namespace = sessionNamespace(binding);
   const pools: { end(): Promise<void> }[] = []; let containerId: string | undefined; let closed = false;
   const runtimePools: ReturnType<typeof createRuntimePool>[] = [];
+  const identityRuntimes: Awaited<ReturnType<typeof createIdentityRuntime>>[] = [];
   let runtimeClosed = false; let runtimeShutdown: Promise<void> | undefined;
   const close = async () => {
     if (closed) return;
-    try { await Promise.all(pools.map((pool) => pool.end())); }
-    finally {
-      if (containerId && /^[a-f0-9]{64}$/.test(containerId)) {
-        assert.equal(await docker('inspect', '--format', '{{index .Config.Labels "steer.integration"}}', containerId), '0018');
-        await docker('stop', '--time', '5', containerId);
+    try {
+      const results = await Promise.allSettled(identityRuntimes.map(instance => instance.shutdown()));
+      if (results.some(result => result.status === 'rejected')) throw new Error('Synthetic identity runtime cleanup failed.');
+    } finally {
+      try { await Promise.all(pools.map((pool) => pool.end())); }
+      finally {
+        if (containerId && /^[a-f0-9]{64}$/.test(containerId)) {
+          assert.equal(await docker('inspect', '--format', '{{index .Config.Labels "steer.integration"}}', containerId), '0018');
+          await docker('stop', '--time', '5', containerId);
+        }
+        encryptionKey.fill(0); closed = true;
       }
-      encryptionKey.fill(0); closed = true;
     }
     console.log('Removed only this run\'s synthetic authentication PostgreSQL container and tmpfs data.');
   };
   try {
+    assert.equal(await docker('image', 'inspect', image, '--format', '{{.Id}}'), image);
     containerId = await docker('run', '--detach', '--rm', '--pull=never', '--name', name,
       '--label', 'steer.integration=0018', '--memory', '512m', '--tmpfs', '/var/lib/postgresql/data',
       '-e', `POSTGRES_PASSWORD=${password}`, '-e', 'POSTGRES_DB=steer_auth_test', '-p', '127.0.0.1::5432', image);
@@ -63,6 +77,8 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
       pools.push(pool); return pool;
     };
     const admin = connect('postgres');
+    const serverVersion = Number((await admin.query("SELECT current_setting('server_version_num') AS version")).rows[0].version);
+    assert.ok(serverVersion >= 160000 && serverVersion < 170000, 'The isolated authentication database must be PostgreSQL 16');
     for (const role of ['steer_app', 'steer_projector', 'steer_auth_runtime']) {
       await admin.query(`CREATE ROLE ${role} LOGIN PASSWORD '${password}' NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS`);
     }
@@ -81,6 +97,20 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
     const transactionKeys = async () => (await admin.query<{ key_hash: string }>(
       'SELECT key_hash FROM steer_auth.login_transactions WHERE namespace=$1', [namespace])).rows;
     return { kind: 'postgres', store, freshStore, close,
+      createDestinationRuntime: async (configuration, github, paths, privateKeyPem, transports) => {
+        if (closed || runtimeClosed) throw new Error('Synthetic runtime resources are closed.');
+        if (typeof transports?.identity !== 'function' || typeof transports?.github !== 'function') throw new Error('Synthetic transports are required.');
+        // All database authority remains inside this disposable harness. Callers
+        // must provide both synthetic HTTP transports; no real provider fallback.
+        const { clientSecret, ...browser } = configuration;
+        const instance = await createIdentityRuntime({ version: 'steer-identity-runtime/v1', browser,
+          github: { appId: '1', authorizationPath: 'access/authorization.json', binding: github },
+          database: { host: '127.0.0.1', port: Number(mapping.split(':')[1]), database: 'steer_auth_test', transport: { kind: 'isolated-loopback-test' } },
+          briefDestination: { paths }, sessionKeyId: 'synthetic',
+        }, { browserClientSecret: clientSecret, githubPrivateKeyPem: privateKeyPem, databasePassword: password,
+          sessionKeys: { synthetic: encryptionKey } }, transports);
+        identityRuntimes.push(instance); return instance;
+      },
       createProjectionFixture: async (reader, paths) => {
         const projector = runtime('steer_projector'); const app = runtime('steer_app');
         const organizationId = reader.binding.organizationId; const repository = `github:${reader.binding.repositoryId}`;
