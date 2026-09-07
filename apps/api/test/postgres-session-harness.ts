@@ -180,7 +180,22 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
         if (job) assert.equal(job.status().database.connections, 0);
         const durableJob = durable ? await createRecordedBrowserHarness({ database,
           target: { scope: { organizationId, repository, itemId: path.slice(0, -'/BRIEF.md'.length) }, idempotencyKey: durable.idempotencyKey },
-          source: { branch: reader.binding.branch, path, subject: durable.subject } }, { databasePassword: password }, ports) : undefined;
+          source: { branch: reader.binding.branch, path, subject: durable.subject } }, { databasePassword: password }, ports, {
+            subject: durable.dispatch.subject, publish: durable.dispatch.publish,
+            create: async managed => {
+              const { clientSecret, ...browser } = durable.dispatch.configuration;
+              const instance = await createIdentityRuntime({ version: 'steer-identity-runtime/v1', browser,
+                github: { appId: '1', authorizationPath: durable.dispatch.authorizationPath, binding: reader.binding }, database,
+                sessionKeyId: 'synthetic', recordedScheduling: { itemId: path.slice(0, -'/BRIEF.md'.length), idempotencyKey: durable.idempotencyKey },
+              }, { browserClientSecret: clientSecret, githubPrivateKeyPem: durable.dispatch.privateKeyPem, databasePassword: password,
+                sessionKeys: { synthetic: encryptionKey } }, { ...durable.dispatch.transports, createRecordedScheduler: async () => managed });
+              identityRuntimes.push(instance); return instance;
+            },
+            request: async name => new Request(new URL(`/v1/tools/workflow.recorded-brief.${name}`, durable.dispatch.configuration.redirectUri), {
+              method: 'POST', headers: { authorization: `Bearer ${await durable.dispatch.issueBearer()}`, 'content-type': 'application/json' },
+              body: JSON.stringify({ organizationId, repository, itemId: path.slice(0, -'/BRIEF.md'.length), idempotencyKey: durable.idempotencyKey }),
+            }),
+          }) : undefined;
         const ingest = async (target: string) => {
           assert.equal(stopped, false);
           const { repositoryId, ...artifact } = await reader.readArtifact(path, target);

@@ -20,6 +20,8 @@ audit above, the signed execution plan or formal gate status.
   manual recovery and connection ownership; no live scheduler activation.
 - [Authorized recorded dispatch](AUTHORIZED-RECORDED-DISPATCH.md): separate current
   dispatch/status grants and shared HTTP/MCP contracts, without live configuration.
+- [Keycloak recorded journey](KEYCLOAK-RECORDED-JOURNEY.md): actual disposable
+  service-account dispatch in the browser-created Brief/receipt/projection path.
 - [Authenticated recorded journey](AUTHENTICATED-RECORDED-JOURNEY.md): joined signed
   dispatch, actual local operation readback and exact Git/PostgreSQL projection.
 - [Recorded scheduler runtime](RECORDED-SCHEDULER-RUNTIME.md): explicit profile/

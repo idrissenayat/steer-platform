@@ -7,6 +7,10 @@ item one, are the framework's pilot evidence.
 
 ## Current delivery
 
+Item [0178](intent/0178/README.md) connects an actual disposable Keycloak service
+account to owned runtime dispatch in the browser-created Brief journey. See
+[the integration and limits](docs/KEYCLOAK-RECORDED-JOURNEY.md); live saving stays closed.
+
 Item [0177](intent/0177/README.md) joins signed current-authorized runtime dispatch
 to actual local Git receipt readback and PostgreSQL projection in one isolated
 [recorded-Brief journey](docs/AUTHENTICATED-RECORDED-JOURNEY.md). Live saving stays closed.

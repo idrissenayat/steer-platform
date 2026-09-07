@@ -1939,3 +1939,19 @@ preserves the writer's fixed clock and fault hooks; only the signed dispatch rea
 uses current synthetic token expiry. No production code or live configuration changes.
 Evidence and explicit synthetic authority/provider limits: `intent/0177/EVIDENCE.md`.
 All five R5 findings and independent review/human gates remain open.
+
+## Increment 0178 — Actual Keycloak dispatcher in the browser journey
+
+The durable browser receipt harness now owns a separate managed scheduler connection
+and supplies it to the production identity runtime through an explicit test-only
+factory. Fresh tokens come from the actual local Keycloak service account; current
+dispatch grants are committed alongside human membership in the same native Git
+source. Projection-only permission denies before start, repeated dispatch stays
+locked, and revoked membership denies status after workflow completion.
+
+The worker still recreates before its first current browser receipt read and projects
+the actual created Brief once into disposable PostgreSQL. Existing replay, exact
+source opening, privacy and cleanup assertions remain. Gate/projector authority and
+GitHub response adapters are synthetic. This changes test composition only; no live
+provider, production profile, frontend, protected artifact or schema is altered.
+Exact verification and remaining boundaries: `intent/0178/EVIDENCE.md`.

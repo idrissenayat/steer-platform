@@ -33,3 +33,7 @@ dispatch/receipt/path ownership and real configuration still require completion.
 Next replace the remaining identity doubles in this joined journey using the
 existing disposable identity harness, without converting test grants into live
 permission. All five R5 findings and independent review/human gates remain open.
+
+0178 extends the separate actual-Keycloak browser journey with owned runtime
+dispatch. See [that composition](KEYCLOAK-RECORDED-JOURNEY.md) and its exact execution
+evidence; this document's 0177 scenario remains synthetic at the issuer boundary.

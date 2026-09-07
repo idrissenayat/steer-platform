@@ -1302,7 +1302,17 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
               if (response.status !== 200) throw new Error('Synthetic status unavailable'); return response.json();
             }, { organizationId: grant.organizationId, repository: 'github:1', branch: 'synthetic', path, idempotencyKey: operation });
             return value;
-          }, { idempotencyKey: operation, subject: deps.subject });
+          }, { idempotencyKey: operation, subject: deps.subject, dispatch: {
+            // Bearer-only service-account runtime. No browser login or token exchange
+            // uses this placeholder client secret; issueBearer owns the actual credential.
+            configuration: { ...configuration, clientId: deps.agent.clientId, clientSecret: 'synthetic-unused-browser-secret' },
+            authorizationPath: source.authorizationPath, privateKeyPem: tls.key.toString('utf8'), subject: deps.agent.grant.subject,
+            transports: { identity: deps.fetch, github: provider.transport }, issueBearer: deps.agent.issueBearer,
+            publish: async mode => { await source.publish([savingGrant, { ...deps.agent.grant,
+              active: mode !== 'revoked', validAfter: new Date(Date.now() - 30000).toISOString(), expiresAt: new Date(Date.now() + 180000).toISOString(),
+              toolGrants: mode === 'projection-only' ? ['projection.ingest'] : ['workflow.recorded-brief.start', 'workflow.recorded-brief.status'],
+            }]); },
+          } });
           await projected.project(); await service.shutdown(); service = compose(); gateway = bindGateway(submitWeb.rendererOrigin, service);
           await operationPanel.locator('[data-submission-receipt-link]').click();
           await page.getByRole('dialog', { name: 'Browser-created request' }).waitFor();

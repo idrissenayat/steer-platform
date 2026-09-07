@@ -3679,3 +3679,18 @@ separate work. No live save, grant, automatic source admission, protected artifa
 frontend, dependency, migration, deployment, spending or real deletion changes.
 Final exact-code results are recorded in `intent/0177/EVIDENCE.md`. All five R5
 findings and complete authority/independent review/human gates remain open.
+
+## Completed development increment: 0178 — Actual service-account recorded dispatch
+
+The actual Keycloak/Chromium browser-created Brief journey now invokes recorded
+dispatch through the owned identity runtime, not a direct SDK starter. Fresh actual
+service-account tokens, separate current Git grants and fixed operation binding
+precede the queued/recreated worker and human receipt readback. Tests require
+projection-only dispatch denial, one attempted start, revocation denial, exact
+recorded-source projection/read/replay and owned resource cleanup.
+
+See `intent/0178/EVIDENCE.md` for final execution results. Gate and projector authority
+remain synthetic; this adds no live configuration, write permission, automatic path
+admission, frontend change, protected incorporation, spending, deployment or real
+deletion. All five R5 findings and full authority/independent review/human signatures
+remain open. The next local slice is the current projector identity boundary.
