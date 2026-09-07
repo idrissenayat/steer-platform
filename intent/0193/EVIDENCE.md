@@ -24,6 +24,19 @@ Observed against the new owned `steer-local-workspace` Compose project:
   restart left stale Keycloak connections; owned Keycloak restart restored the
   discovery/login checks. Neither failure is reported as an earlier pass.
 - Four new configuration tests and eight existing architecture-boundary tests pass.
+- Kit validation (95 required artifacts), workflow scope audit, prototype and all
+  seven workspace type checks, all 443 repository controls and all 109 API tests
+  pass. No frontend code changed; no new full build/browser suite or authenticated
+  visual acceptance is claimed for this operational increment.
+- Implementation and real membership were pushed at
+  `4a39a935359631a6c50b10489df2c9192c81e807`. The actual runtime App reads and
+  verifies the exact current Git grant; an unknown subject receives no grant.
+  Actual App and installation permission records both remain Contents/Metadata
+  read-only, with the installation not suspended. No write permission was requested.
+- Restarted the owned gateway/renderer and reran the live TLS/database/login-form
+  verification successfully. The intended user's password setup remains pending.
+- The staged change was checked against every generated credential value and
+  private-key markers; none are present. Unrelated untracked user files are untouched.
 
 The private local files, passwords, cookies, TLS private key and App private key
 are not evidence attachments. The GitHub write boundary, all five R5 findings,

@@ -6,7 +6,7 @@
 - [x] Actual persistent user subject, mandatory personal password setup.
 - [x] Gateway, durable PKCE transaction and actual Keycloak login form verified.
 - [x] No runtime write/signer grant, cloud spending or system trust modification.
-- [ ] Runtime App readback of the incorporated real membership verified.
+- [x] Runtime App readback of the incorporated real membership verified.
 - [ ] User-approved browser certificate trust and personal password setup.
 - [ ] Intended user's authenticated organization/hats verified in the UI.
 

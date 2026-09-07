@@ -4009,3 +4009,8 @@ is foreground-owned, not an installed boot daemon. No existing preview or other
 project's containers/volumes are removed. No system trust, runtime App permissions,
 protected canon, signatures, spending or deletion authorization changed.
 All five R5 findings, Gate 2, real saving and full first-journey acceptance stay open.
+
+Verification: 443 repository controls, 109 API tests, kit/scope checks and all
+type checks pass. Runtime App readback of the actual membership and unknown-user
+denial pass at pushed implementation `4a39a93`; App/installation remain read-only.
+This does not replace the pending intended-human browser/password acceptance.

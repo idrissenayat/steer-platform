@@ -36,6 +36,10 @@ at current GitHub branch head. It grants session context, Brief preview and save
 status only. It does **not** grant save, dispatch, projector, recovery or signature
 authority. Unknown subjects and revoked/expired membership fail closed.
 
+Actual App readback of the incorporated membership was verified at
+`4a39a935359631a6c50b10489df2c9192c81e807`, including unknown-subject denial and
+the App/installation's unchanged Contents/Metadata read-only permissions.
+
 The local membership and certificate expire after 30 days. They must be reviewed
 and renewed explicitly; the setup command never silently rotates them. The
 certificate is a server-only leaf, not a general-purpose certificate authority.
