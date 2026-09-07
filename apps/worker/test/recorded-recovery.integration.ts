@@ -9,6 +9,7 @@ import { createGitAuthorizationResolver } from '@steer/adapters/authorization';
 import { createOidcAuthenticator } from '@steer/adapters/identity';
 import { projectionKey } from '@steer/data/ingestion';
 import { recordedRuntimeFixture } from '../../api/test/recorded-runtime-fixture.ts';
+import { createIdentityRuntime } from '../../api/src/runtime.ts';
 import { createWorkerRecordedBriefRuntime, createWorkerRecordedBriefRecoveryRuntime } from '../src/runtime.ts';
 import { createRecordedBriefWorker, createRecordedBriefRecoveryWorker } from '../src/worker.ts';
 import { createRecordedBriefActivities } from '../src/activities.ts';
@@ -23,11 +24,13 @@ function historyText(value: unknown): string {
 /** Real local Temporal/Git/SQL. Receipt provenance and issuer transports are synthetic. */
 export async function testRecordedBriefRecovery(env: TestWorkflowEnvironment, bundle: WorkflowBundle,
   database: unknown, password: string, admin: Pool, check: (name: string, run: () => Promise<void>) => Promise<void>) {
-  for (const [index, mode] of ['before-sql', 'after-sql', 'owned-lost-ack'].entries()) {
+  for (const [index, mode] of ['before-sql', 'after-sql', 'owned-lost-ack', 'authenticated-runtime'].entries()) {
     const cleanup: (() => void)[] = [];
     let original: Awaited<ReturnType<typeof createWorkerRecordedBriefRuntime>> | undefined;
     let recovery: Awaited<ReturnType<typeof createWorkerRecordedBriefRecoveryRuntime>> | undefined;
     let managed: Awaited<ReturnType<typeof createManagedRecordedBriefRecoveryScheduler>> | undefined;
+    let identity: Awaited<ReturnType<typeof createIdentityRuntime>> | undefined;
+    let verifyAuthenticatedResult: (() => Promise<void>) | undefined;
     let worker: Worker | undefined, running: Promise<void> | undefined;
     const stop = async () => { try { if (worker) { worker.shutdown(); await running; } } finally { worker = undefined; running = undefined; } };
     try {
@@ -67,7 +70,50 @@ export async function testRecordedBriefRecovery(env: TestWorkflowEnvironment, bu
         const plan = { target: f.target, failedRunId }, configuration = { namespace: 'default', sourceTaskQueue, taskQueue, plan };
         const before = reads;
         await assert.rejects(startRecordedBriefRecovery(env.client, { ...configuration, plan: { ...plan, failedRunId: '18100000-0000-4000-8000-000000000099' } }));
-        if (mode === 'owned-lost-ack') {
+        if (mode === 'authenticated-runtime') {
+          const recoverer = await recordedRuntimeFixture({ after: fn => { cleanup.push(fn); } }, {
+            source: f.source, selection: { itemId: f.target.scope.itemId, idempotencyKey: f.target.idempotencyKey },
+            actor: { subject: 'synthetic-separate-recovery-agent', authorizationPath: 'access/recovery.json',
+              toolGrants: ['workflow.recorded-brief.recover', 'workflow.recorded-brief.recovery.status'] },
+          });
+          assert.notEqual(recoverer.grant.subject, grant.subject);
+          const { recordedScheduling, ...base } = recoverer.profile;
+          const profile = { ...base, recordedRecovery: { ...recordedScheduling, failedRunId } };
+          const input = { ...recoverer.input, failedRunId }; let closed = 0;
+          const configureIdentity = async () => {
+            const connection = await Connection.connect({ address: env.address });
+            managed = await createManagedRecordedBriefRecoveryScheduler(new Client({ connection, namespace: 'default' }), configuration,
+              async () => { await connection.close(); closed++; });
+            identity = await createIdentityRuntime(profile, recoverer.secrets, { ...recoverer.ports, createRecoveryScheduler: async () => managed! });
+            return connection;
+          };
+          const connection = await configureIdentity();
+          assert.equal(identity!.status().database.connections, 0);
+          const request = (name: 'recover' | 'recovery.status', body: unknown = input) => identity!.fetch(recoverer.request(name, body));
+          const absent = await request('recovery.status'); assert.equal(absent.status, 200); assert.equal((await absent.json()).outcome, 'not-found');
+          assert.equal((await request('recover', { ...input, failedRunId: '18300000-0000-4000-8000-000000000099' })).status, 403);
+          for (const toolGrants of [['projection.ingest'], ['workflow.recorded-brief.start', 'workflow.recorded-brief.status']]) {
+            recoverer.publish({ ...recoverer.grant, toolGrants });
+            assert.equal((await request('recover')).status, 403); assert.equal(managed!.status().attempted, false);
+          }
+          recoverer.publish();
+          const started = await request('recover'); assert.equal(started.status, 200); assert.equal((await started.json()).outcome, 'started');
+          assert.equal((await (await request('recover')).json()).outcome, 'already-attempted');
+          await identity!.shutdown(); assert.equal(closed, 1);
+          await assert.rejects(connection.workflowService.describeWorkflowExecution({ namespace: 'default', execution: { workflowId: managed!.scheduler.workflowId } }));
+          await configureIdentity();
+          const duplicate = await request('recover'); assert.equal(duplicate.status, 200); assert.equal((await duplicate.json()).outcome, 'duplicate');
+          verifyAuthenticatedResult = async () => {
+            const response = await request('recovery.status'); assert.equal(response.status, 200); assert.equal((await response.json()).state, 'COMPLETED');
+            recoverer.publish({ ...recoverer.grant, active: false });
+            assert.equal((await request('recovery.status')).status, 401); assert.equal((await request('recover')).status, 401);
+            // Recovery revocation never changes the separately recorded projector grant.
+            assert.equal((await ports.authenticate())?.subject, grant.subject);
+            await identity!.shutdown(); assert.equal(closed, 2);
+            assert.equal(identity!.status().database.closed, true);
+            assert.equal((await env.client.workflow.getHandle(recordedBriefRecoveryWorkflowId(plan)).describe()).status.name, 'COMPLETED');
+          };
+        } else if (mode === 'owned-lost-ack') {
           const connection = await Connection.connect({ address: env.address }), client = new Client({ connection, namespace: 'default' });
           let dispatched = 0, closed = 0;
           const uncertain = { options: client.options, workflow: {
@@ -102,6 +148,7 @@ export async function testRecordedBriefRecovery(env: TestWorkflowEnvironment, bu
           const observed = await managed.scheduler.inspect(); assert.equal(observed.outcome, 'found'); assert.equal('state' in observed && observed.state, 'COMPLETED');
           assert.equal((await managed.scheduler.start()).outcome, 'already-attempted');
         }
+        await verifyAuthenticatedResult?.();
         assert.equal(await events(), 1); assert.equal((await row()).value.content, snapshot.content); assert.equal((await row()).source_revision, revision);
         assert.equal((await failed.describe()).status.name, 'FAILED'); assert.equal((await failed.describe()).runId, failedRunId);
         const completedReads = reads, history = await handle.fetchHistory();
@@ -113,6 +160,6 @@ export async function testRecordedBriefRecovery(env: TestWorkflowEnvironment, bu
         f.publish({ ...grant, active: false }); await assert.rejects(recovery!.activities.recoverRecordedBrief(plan)); assert.equal(reads, completedReads);
         assert.equal(await events(), 1); assert.equal(f.source.mutations(), 0);
       });
-    } finally { try { await managed?.shutdown(); } finally { try { await stop(); } finally { try { await original?.shutdown(); } finally { try { await recovery?.shutdown(); } finally { for (const close of cleanup.reverse()) close(); } } } } }
+    } finally { try { await identity?.shutdown(); } finally { try { await managed?.shutdown(); } finally { try { await stop(); } finally { try { await original?.shutdown(); } finally { try { await recovery?.shutdown(); } finally { for (const close of cleanup.reverse()) close(); } } } } } }
   }
 }

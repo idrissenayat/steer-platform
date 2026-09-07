@@ -3767,3 +3767,24 @@ Next is the explicit optional identity-runtime recovery profile/factory and actu
 disposable recovery identity integration. The original workflow/save, signed artifacts,
 five R5 findings and independent/qualified review/human gates remain unchanged. No
 frontend, dependency, schema, provider permission, deployment, release or spending.
+
+## Completed development increment: 0183 — Owned authenticated recovery runtime
+
+An exact optional `recordedRecovery` profile now pairs with an explicitly owned
+`createRecoveryScheduler` factory. Organization/repository derive from the Git binding;
+the full closed plan, every failed-run coordinate and derived workflow ID must match
+before registration. No default recovery grant/profile or routing inference was added.
+
+Recovery-only requests drain before scheduler/session-pool cleanup, including without
+MCP. Independent resources still close if one fails, and initialization/shutdown
+errors stay sanitized. The actual local integration now joins signed synthetic
+recovery identity/current native Git grants through the owned API runtime to
+Temporal/Git/PostgreSQL recovery, exact one-event projection and reconstruction.
+Recovery and projector subjects/grant records remain separate. Full verification
+and the initial nullable test-assertion correction are in `intent/0183/EVIDENCE.md`.
+
+Next is actual disposable Keycloak recovery identity in this fixed-failed-run journey.
+Synthetic issuer/receipt evidence does not establish that acceptance or live authority.
+No protected artifact, frontend, dependency, schema, live profile/grant, provider access,
+deployment, release, spending or real-data deletion changed. All five R5 findings and
+independent/qualified review/human gates remain open.

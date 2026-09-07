@@ -24,7 +24,8 @@ audit above, the signed execution plan or formal gate status.
   outcomes, exact candidate commits, tests, preview availability and remaining boundaries.
 - [Controlled projection recovery](CONTROLLED-PROJECTION-RECOVERY.md): internal
   fixed-failed-run workflow, current guard, idempotent SQL, separate shared grants and
-  owned dispatch client; actual runtime identity/live binding remains open.
+  owned dispatch client and optional authenticated runtime; actual Keycloak recovery
+  identity/live binding remains open.
 - [Recorded projection failures](RECORDED-PROJECTION-FAILURES.md): post-receipt
   revocation and terminal status at the historical 0180 boundary; normal start still
   refuses retry, with the separate internal recovery primitive linked above.

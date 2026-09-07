@@ -7,6 +7,9 @@ item one, are the framework's pilot evidence.
 
 ## Current delivery
 
+Item [0183](intent/0183/README.md) composes recovery into the authenticated runtime
+with an exact optional profile and separately owned connection. Live recovery stays disabled.
+
 Item [0182](intent/0182/README.md) adds separately granted recovery/status tools
 and an owned one-attempt recovery client. No live service or recovery grant is configured.
 

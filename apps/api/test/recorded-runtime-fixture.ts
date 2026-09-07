@@ -6,13 +6,14 @@ import { fixture, binding } from '../../../packages/adapters/test/github-brief-f
 /** Actual native Git and signed OIDC/App JWTs, synthetic provider transports only. */
 export async function recordedRuntimeFixture(t: { after(run: () => void): void }, options?: {
   source?: ReturnType<typeof fixture>; selection: { itemId: string; idempotencyKey: string };
+  actor?: { subject: string; toolGrants: string[]; authorizationPath: string };
 }) {
   const source = options?.source ?? fixture(t), keys = await generateKeyPair('RS256'), app = await generateKeyPair('RS256', { extractable: true });
   const issuer = 'https://recorded.identity.invalid', jwksUri = `${issuer}/jwks`, epoch = Math.floor(Date.now() / 1000);
-  const grant = { issuer, subject: 'synthetic-recorded-dispatcher', organizationId: binding.organizationId, type: 'agent', hats: [],
-    toolGrants: ['workflow.recorded-brief.start', 'workflow.recorded-brief.status'], active: true,
+  const grant = { issuer, subject: options?.actor?.subject ?? 'synthetic-recorded-dispatcher', organizationId: binding.organizationId, type: 'agent', hats: [],
+    toolGrants: options?.actor?.toolGrants ?? ['workflow.recorded-brief.start', 'workflow.recorded-brief.status'], active: true,
     validAfter: new Date((epoch - 30) * 1000).toISOString(), expiresAt: new Date((epoch + 180) * 1000).toISOString() };
-  const authorizationPath = 'access/dispatch.json';
+  const authorizationPath = options?.actor?.authorizationPath ?? 'access/dispatch.json';
   const publish = (value = grant) => source.add([{ path: authorizationPath,
     content: JSON.stringify({ version: 'steer-authorization/v1', organizationId: binding.organizationId, records: [value] }) }]);
   publish();
@@ -45,7 +46,7 @@ export async function recordedRuntimeFixture(t: { after(run: () => void): void }
       return String(url).endsWith('/access_tokens')
         ? Response.json({ ...await response.json(), expires_at: new Date(Date.now() + 3600000).toISOString() }) : response;
     }) as typeof fetch };
-  const request = (name: 'start' | 'status', body: unknown = input, bearer = token) => new Request(`https://steer.example/v1/tools/workflow.recorded-brief.${name}`, {
+  const request = (name: 'start' | 'status' | 'recover' | 'recovery.status', body: unknown = input, bearer = token) => new Request(`https://steer.example/v1/tools/workflow.recorded-brief.${name}`, {
     method: 'POST', headers: { authorization: `Bearer ${bearer}`, 'content-type': 'application/json' }, body: JSON.stringify(body),
   });
   return { source, grant, publish, profile, secrets, ports, input, target, workflowId, request, counts: () => ({ jwks, assertions }) };

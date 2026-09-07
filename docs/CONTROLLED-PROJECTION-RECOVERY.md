@@ -76,10 +76,32 @@ default service. Exact verification is in `intent/0182/EVIDENCE.md`. Instance-lo
 one-attempt admission relies on retained server identities across reconstruction;
 this is not perpetual deduplication beyond Temporal retention.
 
+## Optional authenticated runtime — 0183
+
+The identity profile optionally declares `recordedRecovery` with an exact item,
+save-operation ID and failed original run. `createRecoveryScheduler` must be
+explicitly paired; organization/repository come from the configured Git reader.
+The complete factory plan, derived workflow ID and methods are validated before
+registration. No factory/profile means no recovery service. No live profile changed.
+
+The runtime owns this separately transferred scheduler and its lazy session pool.
+It drains real requests before closing resources even when recovery is its only
+managed service and MCP is absent. New work is denied while draining. All independent
+resources receive cleanup if one fails, with sanitized errors and no reopening.
+Factories must clean failed allocations before rejecting; successful transfers are
+the runtime's responsibility. Worker/parent connections remain separately owned.
+
+The local integrated test joins signed synthetic recovery identity/current native
+Git grants to the actual API runtime, SDK connection, failed original workflow and
+exact Git/PostgreSQL projection. Recovery and projector subjects/grant records are
+separate. It checks grant substitution/revocation, queued runtime reconstruction,
+duplicate admission and exact one-event ingestion. Results and provenance limits:
+`intent/0183/EVIDENCE.md`. This is not actual Keycloak recovery acceptance.
+
 ## Still to implement before use
 
-Add the explicit optional recovery profile/factory to the owned identity runtime,
-then actual disposable recovery identity/browser integration and approved live
-configuration. No live recovery is enabled by 0182. All five R5 findings and
+Bind an actual disposable Keycloak recovery service identity into the fixed-failed-run
+journey, followed by any required browser integration and approved live configuration.
+No live recovery is enabled by 0183. All five R5 findings and
 independent/qualified review/human gates remain open; recovery never grants save,
 signature, release or spending authority.

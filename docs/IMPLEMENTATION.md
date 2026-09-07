@@ -2024,3 +2024,23 @@ see `intent/0182/EVIDENCE.md` for execution and synthetic-provenance limits.
 No default recovery service or live grant is installed. Next add the explicit owned
 identity-runtime recovery profile/factory and actual disposable identity integration.
 All formal R5 findings and independent/qualified review/human gates remain open.
+
+## Increment 0183 — Owned authenticated recovery runtime
+
+`recordedRecovery` is an optional closed item/operation/failed-run profile, paired
+exactly with `createRecoveryScheduler`. Git configuration anchors organization and
+repository. Startup validates the factory's full portable plan, deterministic ID and
+methods before exposing the shared service; mismatches dispose the owned resource.
+The factory must dispose failed allocations itself. No default binding is inferred.
+
+Recovery joins all-settled resource cleanup and request draining even without MCP.
+The session pool stays lazy for bearer-authenticated calls. Independent dispatch and
+worker/parent connections are not transferred by this feature. Five focused cases
+cover strict pairing/binding, signed current Git grants, draining, cleanup failure and
+rejected factory ownership. The joined actual local Temporal/Git/PostgreSQL case uses
+separate synthetic recovery/projector subjects, current grants and runtime reconstruction.
+Exact verification: `intent/0183/EVIDENCE.md`.
+
+The issuer/provider transports and receipt provenance remain synthetic. Actual
+disposable Keycloak recovery is next; no live profile/grant, provider access, protected
+artifact or gate status changes. All five R5 findings remain open.
