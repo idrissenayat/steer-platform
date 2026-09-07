@@ -1,7 +1,15 @@
-import { briefProjectionInputSchema } from '@steer/tool-registry/brief-contracts';
+import { briefProjectionInputSchema, briefSaveOutputSchema } from '@steer/tool-registry/brief-contracts';
 
 export type BriefSelection = ReturnType<typeof briefProjectionInputSchema.parse>;
 export type BriefLocation = { kind: 'none' } | { kind: 'invalid' } | { kind: 'brief'; selection: BriefSelection };
+
+/** A validated receipt selects exact reference metadata, never access or draft state. */
+export function briefReceiptFragment(raw: unknown): string | null {
+  const parsed = briefSaveOutputSchema.safeParse(raw);
+  if (!parsed.success || parsed.data.result.outcome !== 'committed') return null;
+  const { organizationId, repository, path, revision, contentDigest } = parsed.data.result;
+  return briefFragment({ organizationId, repository, path, revision, contentDigest });
+}
 
 /** Public reference metadata only. A location selects data; it never authenticates its reader. */
 export function briefFragment(raw: unknown): string {

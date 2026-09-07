@@ -23,7 +23,11 @@ export default function BriefLibrary({ organizationId, repository, expiresAt }: 
   const [busy, setBusy] = useState(false); const [enabled, setEnabled] = useState(false);
   const [notice, setNotice] = useState('Checking current access and discovering Briefs…');
   const [page, setPage] = useState(0);
-  const closeDetail = () => { dialog.current?.close(); setDetail(null); trigger.current?.focus(); };
+  const closeDetail = () => {
+    dialog.current?.close(); setDetail(null);
+    const fallback = detail ? [...document.querySelectorAll<HTMLButtonElement>('[data-brief-path]')].find(button => button.dataset.briefPath === detail.path) : null;
+    (trigger.current?.isConnected ? trigger.current : fallback)?.focus();
+  };
   const dismiss = () => {
     closeDetail();
     if (window.location.hash.startsWith('#brief=')) window.history.replaceState(null, '', '/');
@@ -33,6 +37,9 @@ export default function BriefLibrary({ organizationId, repository, expiresAt }: 
   const clear = (message: string) => { dispose(); closeDetail(); setRecords([]); setBusy(false); setPage(0); setNotice(message); };
   const load = async () => {
     const location = readBriefLocation(window.location.hash); lastLocation.current = window.location.hash;
+    const initiator = document.activeElement;
+    const receiptTrigger = initiator instanceof HTMLAnchorElement && initiator.hasAttribute('data-brief-receipt-link') &&
+      initiator.getAttribute('href') === window.location.hash ? initiator : null;
     clear('Checking current access and discovering Briefs…');
     if (document.hidden) { setNotice('Briefs cleared while this page was hidden. Refresh Briefs to recheck access.'); return; }
     if (Date.parse(expiresAt) <= Date.now()) { setEnabled(false); setNotice('Session display expired. Refresh access to continue.'); return; }
@@ -53,7 +60,7 @@ export default function BriefLibrary({ organizationId, repository, expiresAt }: 
         if (owner.current !== current) return;
         if (Date.parse(expiresAt) <= Date.now()) { clear('Session display expired. Refresh access to continue.'); return; }
         if (!linked) { clear('This Brief revision is no longer available. Refresh Briefs to discover the current projection.'); return; }
-        trigger.current = [...document.querySelectorAll<HTMLButtonElement>('[data-brief-path]')].find((button) => button.dataset.briefPath === linked.path) ?? null;
+        trigger.current = receiptTrigger ?? [...document.querySelectorAll<HTMLButtonElement>('[data-brief-path]')].find((button) => button.dataset.briefPath === linked.path) ?? null;
         setDetail(linked); setNotice('Linked revision loaded. Access was checked again; this link does not grant permission.');
       }
     } catch { if (owner.current === current) clear(failed); }

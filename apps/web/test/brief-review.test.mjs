@@ -114,6 +114,7 @@ async function component() {
     for (const quote of ['"', "'"]) compiled = compiled.replaceAll(`${quote}${specifier}${quote}`, JSON.stringify(pathToFileURL(require.resolve(specifier)).href));
   }
   for (const quote of ['"', "'"]) compiled = compiled.replaceAll(`${quote}./brief-review-client${quote}`, JSON.stringify(new URL('../app/brief-review-client.ts', import.meta.url).href));
+  for (const quote of ['"', "'"]) compiled = compiled.replaceAll(`${quote}./brief-location${quote}`, JSON.stringify(new URL('../app/brief-location.ts', import.meta.url).href));
   return (await import(`data:text/javascript;base64,${Buffer.from(compiled).toString('base64')}`)).default;
 }
 test('actual review component initially renders no selected path, confirmation or enabled write control', async () => {

@@ -126,6 +126,9 @@ Item [0156](intent/0156/README.md) connects browser status readback to the produ
 Git marker reader over native disposable Git history, without intercepted browser
 replies or enabling a writer in the live runtime.
 
+Item [0157](intent/0157/README.md) links a recorded receipt to the exact permitted
+Brief revision, with fresh library/access checks and no latest-version substitution.
+
 Item [0153](intent/0153/README.md) adds bounded, merge-aware Critic target ancestry
 against the configured Git reader, without upgrading review selection or gate authority.
 

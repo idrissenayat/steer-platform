@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { randomBytes, randomUUID } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -143,6 +143,33 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
         console.log('PASS revision-bound Git inventory selects two artifacts, then replays and repairs PostgreSQL without rewriting history');
         return { services: { artifactProjection: projectionReader, projectionChanges: createProjectionChangeReader(app, { organizationId, repository }),
           projectionSnapshot: createProjectionSnapshotReader(app, { organizationId, repository }) }, input: { organizationId, repository, path, revision: first.revision } };
+      },
+      createReceiptProjection: async (reader, path, revision) => {
+        // Only the dedicated seeded artifact in this disposable database is owned
+        // here. Other projection rows/events remain untouched for the broader suite.
+        assert.equal(path, 'items/0156-recorded-fixture/BRIEF.md');
+        const organizationId = reader.binding.organizationId, repository = `github:${reader.binding.repositoryId}`;
+        const projector = runtime('steer_projector'), app = runtime('steer_app'), recordKey = projectionKey(repository, path);
+        const principal: Principal = { subject: 'synthetic-receipt-projector', organizationId, type: 'agent', hats: [],
+          toolGrants: ['projection.ingest'], expiresAt: new Date(Date.now() + 300000).toISOString() };
+        assert.equal(await readProjection(projector, principal, recordKey), null);
+        let current: string | null = null, stopped = false; const events = new Set<string>();
+        const ingest = async (target: string) => {
+          assert.equal(stopped, false);
+          const { repositoryId, ...artifact } = await reader.readArtifact(path, target);
+          assert.equal(repositoryId, reader.binding.repositoryId); assert.equal(artifact.path, path); assert.equal(artifact.revision, target);
+          assert.equal(await ingestVerifiedArtifact(projector, principal, { ...artifact, repository }, current), 'applied');
+          events.add(`source:${createHash('sha256').update(JSON.stringify([repository, path, target])).digest('hex')}`); current = target;
+        };
+        const close = async () => {
+          if (stopped) return; stopped = true;
+          await admin.query('DELETE FROM steer.projection_records WHERE organization_id=$1 AND record_key=$2', [organizationId, recordKey]);
+          await admin.query('DELETE FROM steer.ingestion_events WHERE organization_id=$1 AND event_id=ANY($2::text[])', [organizationId, [...events]]);
+        };
+        try { await ingest(revision); }
+        catch (error) { await close(); throw error; }
+        return { services: { artifactProjection: createArtifactProjectionReader(app, { organizationId, repository, paths: [path] }) },
+          advance: async () => { await ingest(await reader.readHead()); }, close };
       },
       verifyRuntimeBootstrap: async (configuration, privateKeyPem) => {
         const { clientSecret, ...browser } = configuration;

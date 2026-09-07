@@ -1418,3 +1418,27 @@ The new integration uses no browser-response interception. Older presentation-on
 fixtures remain explicitly labeled for outcomes not produced in this path. The
 receipt stays separate from current draft bytes, and the save button stays disabled.
 See `intent/0156/EVIDENCE.md` for current verification and remaining limitations.
+
+## Receipt-to-Brief navigation
+
+Item `intent/0157` derives a canonical `briefFragment` only from a strict committed
+receipt. The fragment contains the recorded organization/repository/path/revision/
+content digest, not the current draft or expected head. Identity, operation ID,
+source bytes and authority fields are excluded. Noncommitted/malformed observations
+do not expose a link. A native link appears only while the status is displayed and
+denies activation after hiding or expiry; it introduces no write or prefetch path.
+
+The existing Brief library rechecks its current permitted catalog and source access
+when the fragment changes. Only the exact tuple opens. Missing/stale references
+do not fall back to newer content, and a receipt is never an access grant. Dialog
+focus returns to the initiating receipt link, or its corresponding library card
+when the link has expired. Existing Back/Forward, inert rendering and scope checks
+remain in place. The pink/orange theme and current identity/hosting stack are retained.
+
+The disposable browser integration reads a seeded native Git receipt, ingests that
+exact source through the production GitHub reader into a curated PostgreSQL
+projection, and opens the actual recorded bytes. It also tests current permission
+denial/restoration and a later selected projection that makes the older receipt
+unavailable without substitution. The projection helper owns only its exclusive
+synthetic record/events and removes them before broader tests continue. See
+`intent/0157/EVIDENCE.md`; no new live writer, provider grant or gate approval exists.

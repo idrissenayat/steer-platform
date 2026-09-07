@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { briefSaveStatusInputSchema, type BriefPreview, type BriefDestination } from '@steer/tool-registry/brief-contracts';
 import { briefReviewBinding, createBriefSaveStatusClient, saveStatusMessages, type SaveStatusState } from './brief-review-client';
+import { briefReceiptFragment } from './brief-location';
 
 function PreviousSaveStatus({ scope, subject, expiresAt }: {
   scope: { organizationId: string; repository: string; branch: string; path: string }; subject: string; expiresAt: string;
@@ -23,6 +24,7 @@ function PreviousSaveStatus({ scope, subject, expiresAt }: {
   }, [scope.organizationId, scope.repository, scope.branch, scope.path, subject, expiresAt]);
   const valid = briefSaveStatusInputSchema.safeParse({ ...scope, idempotencyKey: operation }).success;
   const result = state.kind === 'observed' ? state.value.result : null;
+  const receiptLink = state.kind === 'observed' ? briefReceiptFragment(state.value) : null;
   return <details className="previous-save-status"><summary>Check a previous save operation</summary>
     <p>Use its original operation ID for the selected repository, branch and path. Checking is read-only; no new operation ID is generated.</p>
     <div className="author-field"><label htmlFor="brief-operation-id">Previous operation ID</label>
@@ -40,6 +42,9 @@ function PreviousSaveStatus({ scope, subject, expiresAt }: {
       <div><dt>Original expected head</dt><dd><code>{result.expectedHead}</code></dd></div>
       <div><dt>Recorded Brief path</dt><dd><code>{result.path}</code></dd></div>
     </dl>}
+    {receiptLink && <><a className="session-refresh" data-brief-receipt-link href={receiptLink} onClick={event => {
+      if (!enabled || document.hidden || Date.parse(expiresAt) <= Date.now()) event.preventDefault();
+    }}>Read the recorded Brief</a><p className="access-hint">Opens only that recorded revision if it is currently available in your permitted Brief library. This link does not grant access.</p></>}
   </details>;
 }
 

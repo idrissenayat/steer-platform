@@ -3074,3 +3074,25 @@ stale references without substituting latest content. Use disposable curated
 projections; receipt possession grants no access. This precedes board stretch work.
 Full governed action-time authority, all five R5 findings, protected/qualified review,
 human gates and signed Phase 1 obligations remain open. No deployment or spending.
+
+## Completed development increment: 0157 — Read the recorded Brief
+
+A validated committed receipt now links to the existing exact-revision Brief
+library. It carries only recorded reference metadata; current catalog/access checks
+still decide availability. Actual browser integration opens matching native Git
+bytes from a curated PostgreSQL projection, checks keyboard focus, rejects current
+grant denial and refuses a newer projection in place of the recorded revision.
+The current unsaved draft remains separate. The existing pink/orange theme is retained.
+
+Full repository validation passed, including 437 root controls, 270 adapter/87 API/
+47 web tests and all package builds. The final complete browser run passed 41 checks
+after correcting an older test's event-count assumption to explicitly include the
+two new fixture ingests. Feed history was preserved, not reset. Owned test resources
+were cleaned up; see `intent/0157/EVIDENCE.md` for full evidence and fixture limits.
+
+The prior-receipt inspection path is now connected in disposable integration, not a
+live authorized save journey. Next assess the remaining overnight journey priorities
+against the signed Phase 1 plan before board/work-list stretch work. Do not infer
+lifecycle status or approvals from Brief content, receipts or projection presence.
+Full governed action-time authority, five R5 findings, qualified/independent protected
+review and human gates remain open. No live writer, deployment, release or spending.

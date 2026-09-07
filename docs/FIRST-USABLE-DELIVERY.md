@@ -368,3 +368,9 @@ current grant denial blocks provider reads. This replaces intercepted successful
 status replies for that integration, but its history is seeded test data, not an
 authorized platform save. Live writer composition and full action-time authority
 remain unfinished; see `intent/0156/EVIDENCE.md`.
+
+0157 development update: a validated prior receipt now links directly to the existing
+exact-revision Brief reader. Current catalog/access checks still decide availability;
+newer projected content cannot silently replace the recorded revision. This completes
+the non-writing prior-receipt inspection path in disposable integration, not a live
+save or Phase 1 acceptance. See `intent/0157/EVIDENCE.md` for verification and limits.

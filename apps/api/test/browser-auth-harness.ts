@@ -17,7 +17,7 @@ import { createGitAuthorizationHarness } from './git-authorization-harness.ts';
 import { createNextWebHarness } from './next-web-harness.ts';
 import { createNativeGitHubReadHarness } from './native-github-read-harness.ts';
 import { seedBriefMarker } from './brief-marker-harness.ts';
-import { createAppJwtSigner } from '@steer/adapters/github';
+import { createAppJwtSigner, createGitHubReader } from '@steer/adapters/github';
 import { createGitHubBriefWriterFactory } from '@steer/adapters/github-brief-writer-factory';
 import type { SessionTestHarness } from './session-harness.ts';
 import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';
@@ -118,6 +118,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
       const source = await createGitAuthorizationHarness(tls.temporary, grant, 'canonical');
       assert.ok(storage.createProjectionFixture);
       const projection = await storage.createProjectionFixture(source.reader, [source.artifactPath, source.secondArtifactPath]);
+      const receiptProjectionEvents: { recordKey: string; sourceRevision: string; contentDigest: string }[] = [];
       assert.equal(projection.input.path, 'items/0125-synthetic-outcome/BRIEF.md');
       await source.publish([grant, deps.agent.grant]);
       assert.ok(storage.shutdown);
@@ -533,6 +534,10 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         const seeded = await seedBriefMarker(source, deps.subject);
         const provider = createNativeGitHubReadHarness(source, tls.certificate);
         const appJwt = createAppJwtSigner('1', tls.key.toString('utf8'));
+        assert.ok(storage.createReceiptProjection);
+        const recordedProjection = await storage.createReceiptProjection(createGitHubReader(source.reader.binding, { fetch: provider.transport, appJwt }), seeded.reference.path, seeded.receipt.revision);
+        const recordedKey = `artifact:${createHash('sha256').update(JSON.stringify([seeded.reference.repository, seeded.reference.path])).digest('hex')}`;
+        receiptProjectionEvents.push({ recordKey: recordedKey, sourceRevision: seeded.receipt.revision, contentDigest: seeded.receipt.contentDigest });
         const factory = createGitHubBriefWriterFactory(source.reader.binding, {
           organizationId: grant.organizationId, repository: 'github:1', branch: 'synthetic', paths: [seeded.reference.path],
           platformRevision: seeded.receipt.expectedHead, gate2DecisionDigest: 'f'.repeat(64),
@@ -543,7 +548,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           // These composed services share the existing encrypted store. They own
           // their request writers, not the parent harness's PostgreSQL lifecycle.
           sessions: { ...dependencies.sessions, shutdown: async () => {} },
-          services: { ...projection.services, briefDestination: { scope: { organizationId: grant.organizationId, repository: 'github:1',
+          services: { ...projection.services, ...recordedProjection.services, briefDestination: { scope: { organizationId: grant.organizationId, repository: 'github:1',
             branch: 'synthetic', paths: [seeded.reference.path] }, readHead: () => source.reader.readHead() } },
           createBriefWriter: authenticate => {
             const writer = factory(authenticate); created++; let stopped = false;
@@ -599,10 +604,45 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           assert.equal(await author.getByRole('list', { name: 'Your answers so far' }).innerText(), originalAnswers);
           assert.equal(await review.getByRole('button', { name: 'Save Brief to GitHub — unavailable', exact: true }).isDisabled(), true);
           assert.deepEqual(await page.evaluate(() => ({ local: Object.keys(localStorage), session: Object.keys(sessionStorage) })), { local: [], session: [] });
+          stage = 'receipt to exact permitted Brief';
+          const link = review.getByRole('link', { name: 'Read the recorded Brief', exact: true });
+          const fragment = await link.getAttribute('href'); assert.ok(fragment && fragment.startsWith('#brief=v1&'));
+          const params = new URLSearchParams(fragment.slice(1));
+          assert.equal(params.get('revision'), seeded.receipt.revision); assert.equal(params.get('digest'), seeded.receipt.contentDigest);
+          assert.equal(params.get('path'), seeded.reference.path); assert.equal(params.has('subject'), false); assert.equal(params.has('idempotencyKey'), false);
+          const readResponse = page.waitForResponse(value => value.url() === `${origin}/v1/tools/intent.brief.read`);
+          await link.focus(); await page.keyboard.press('Enter');
+          const readValue = await readResponse; assert.equal(readValue.status(), 200);
+          const loaded = await readValue.json(); assert.equal(loaded.content, seeded.content); assert.equal(loaded.revision, seeded.receipt.revision);
+          const dialog = page.getByRole('dialog', { name: 'Disposable recorded operation', exact: true });
+          await dialog.waitFor();
+          assert.equal(await dialog.getByRole('button', { name: 'Close Brief', exact: true }).evaluate(element => element === document.activeElement), true);
+          await page.keyboard.press('Escape');
+          assert.equal(await link.evaluate(element => element === document.activeElement), true);
+          stage = 'receipt cannot bypass current read permission';
+          await source.publish([{ ...grant, toolGrants: grant.toolGrants.filter(value => value !== 'intent.brief.read') }, deps.agent.grant]);
+          await link.click();
+          await page.waitForFunction(() => document.querySelector('[data-testid="brief-status"]')?.textContent === 'Brief access could not be verified. Refresh access and try again.');
+          assert.equal(await page.getByRole('dialog').count(), 0);
+          await source.publish([grant, deps.agent.grant]);
+          await page.getByRole('button', { name: 'Refresh Briefs', exact: true }).click(); await dialog.waitFor();
+          await page.keyboard.press('Escape');
+          stage = 'stale receipt never substitutes the latest projection';
+          const advancedRevision = await source.reader.readHead();
+          await recordedProjection.advance();
+          receiptProjectionEvents.push({ recordKey: recordedKey, sourceRevision: advancedRevision, contentDigest: seeded.receipt.contentDigest });
+          // A fresh destination/readback retains the original receipt even though
+          // the permitted catalog now selects a later projection revision.
+          await destination(); assert.deepEqual(await readStatus(seeded.reference.idempotencyKey), seeded.receipt);
+          await review.getByRole('link', { name: 'Read the recorded Brief', exact: true }).click();
+          await page.waitForFunction(() => document.querySelector('[data-testid="brief-status"]')?.textContent?.startsWith('This linked revision is not available'));
+          assert.equal(await page.getByRole('dialog').count(), 0);
+          assert.equal(await author.getByTestId('author-digest').textContent(), originalDigest);
+          await page.evaluate(() => { history.replaceState(null, '', '/'); });
         } catch {
           console.error(`Native status UI check failed at ${stage}; ${JSON.stringify(provider.stats())}. Payloads omitted.`);
           throw new Error('Synthetic native status readback failed.');
-        } finally { gateway = bindGateway(web!.rendererOrigin); await service.shutdown(); await source.publish([grant, deps.agent.grant]); }
+        } finally { gateway = bindGateway(web!.rendererOrigin); await service.shutdown(); await recordedProjection.close(); await source.publish([grant, deps.agent.grant]); }
       });
       await check('authoring discards drafts after committed grant denial and navigation without automatic submission', async () => {
         const author = page.getByRole('region', { name: 'Start with your intent.' });
@@ -876,7 +916,12 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         const first = await read(input); assert.equal(first.status, 200); assert.equal(first.data.outcome, 'page');
         assert.equal(first.data.events.length, 1); assert.equal(first.data.snapshotRequired, true); assert.equal(first.data.hasMore, true);
         const next = { ...input, cursor: first.data.cursor, limit: 100 };
-        const remaining = await read(next); assert.equal(remaining.status, 200); assert.equal(remaining.data.events.length, 3);
+        const remaining = await read(next); assert.equal(remaining.status, 200); assert.equal(remaining.data.events.length, 5);
+        // The original four events remain, plus the two explicitly ingested
+        // receipt revisions. Fixture-row cleanup must not erase feed history.
+        assert.equal(receiptProjectionEvents.length, 2);
+        assert.deepEqual(remaining.data.events.slice(-2).map(({ recordKey, sourceRevision, contentDigest }: { recordKey: string; sourceRevision: string; contentDigest: string }) =>
+          ({ recordKey, sourceRevision, contentDigest })), receiptProjectionEvents);
         assert.equal(remaining.data.snapshotRequired, false); assert.equal(remaining.data.hasMore, false);
         assert.deepEqual((await read({ ...next, cursor: remaining.data.cursor })).data.events, []);
         assert.equal((await read({ ...next, organizationId: 'foreign' })).status, 403);
@@ -893,7 +938,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           return { status: response.status, data: await response.json() };
         }, value);
         const snapshot = await read(); assert.equal(snapshot.status, 200); assert.equal(snapshot.data.records.length, 2);
-        assert.equal(snapshot.data.cursor.position, '4');
+        assert.equal(snapshot.data.cursor.position, '6');
         const resumed = await page.evaluate(async (args) => {
           const response = await fetch('/v1/tools/projection.changes.read', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(args) });
           return { status: response.status, data: await response.json() };
