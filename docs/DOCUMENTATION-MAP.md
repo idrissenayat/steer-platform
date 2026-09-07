@@ -20,6 +20,8 @@ audit above, the signed execution plan or formal gate status.
   manual recovery and connection ownership; no live scheduler activation.
 - [Authorized recorded dispatch](AUTHORIZED-RECORDED-DISPATCH.md): separate current
   dispatch/status grants and shared HTTP/MCP contracts, without live configuration.
+- [September 7 morning handoff](overnight/2026-09-07-HANDOFF.md): verified overnight
+  outcomes, exact candidate commits, tests, preview availability and remaining boundaries.
 - [Keycloak recorded journey](KEYCLOAK-RECORDED-JOURNEY.md): actual disposable
   service-account dispatch in the browser-created Brief/receipt/projection path.
 - [Authenticated recorded journey](AUTHENTICATED-RECORDED-JOURNEY.md): joined signed
