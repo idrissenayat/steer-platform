@@ -13,6 +13,10 @@ board, and open a decision tied to that revision inside STEER.
 
 ## Acceptance checklist
 
+The starting-evidence column below and the original hour ranges are historical.
+Use the latest development audit below and `docs/PHASE-1-DELIVERY.md` for current
+implementation status; neither is an assertion that the real five-step journey passed.
+
 | Step | Observable acceptance | Starting evidence / remaining gap |
 |---|---|---|
 | Sign in | The intended human signs into the configured workspace and sees the correct organization and permitted role. | Local Keycloak/browser/session integration exists; confirm approved real membership and runtime configuration. |
@@ -58,6 +62,32 @@ measurement window follows an approved release; it does not delay first use by
 90 days. Calendar commitment is pending the bounded work breakdown above.
 
 ## Code audit and bounded forecast — 2026-09-06
+
+### Latest development audit — increment 0158
+
+The production UI now supports deterministic describe/correct, exact local review,
+manual prior-operation status and opening the exact recorded Brief. Disposable
+integration connects actual Keycloak/encrypted PostgreSQL sessions, native Git
+operation history, receipt-to-source verification and curated projection ingestion.
+These capabilities do not establish a real authorized save or agent conversation.
+
+Remaining engineering includes the complete governed evidence-selection/action-time
+writer composition, an owned save-to-projection workflow, authenticated lifecycle
+and decision projections, and the model-backed agent conversation. The current
+save button stays disabled. The prototype's supplied signature arrays cannot be
+promoted to verified board stages merely by importing its read-model code.
+
+Real membership/runtime configuration, complete live-write authority, all five R5
+findings, independent/qualified protected review and human gate decisions remain
+separate outstanding dependencies. No live writer/scheduler, deployment or spending
+is authorized by this audit. Next develop the owned projection-workflow connection
+using disposable integration; a revision-linked board remains overnight stretch.
+
+The **68–132 hours below is the original baseline estimate**, not current remaining
+effort. Re-estimation must use these implementation gaps and separate engineering
+from external review/configuration waits; cumulative test counts are not a forecast.
+
+### Historical baseline estimate
 
 Audited from candidate baseline `299159d6f6350c128d237dd175970f435ad9f4c8`.
 These are engineering estimates, not elapsed calendar promises or a forecast for

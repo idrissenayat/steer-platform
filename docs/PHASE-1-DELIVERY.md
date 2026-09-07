@@ -3096,3 +3096,29 @@ against the signed Phase 1 plan before board/work-list stretch work. Do not infe
 lifecycle status or approvals from Brief content, receipts or projection presence.
 Full governed action-time authority, five R5 findings, qualified/independent protected
 review and human gates remain open. No live writer, deployment, release or spending.
+
+## Completed development increment: 0158 — Recorded Brief projection seam
+
+Receipt-based ingestion now has a reusable production adapter, replacing the
+test-only initial projection logic. It validates the configured destination and
+captured reader binding, reads exact recorded source bytes, recomputes both hashes
+and passes the original selected revision to the sink's CAS. A different selected
+revision is preserved without source reads or writes; cancellation never implies
+rollback. Receipt parsing is not independent provenance or access authority.
+
+Six focused tests and full repository verification passed, including 437 root
+controls, 276 adapter/87 API/47 web tests and all package builds. The final actual
+Keycloak/Chromium browser run passed 41 checks with native disposable Git and
+PostgreSQL, including duplicate replay and preservation after a newer projection.
+The derived six-event feed assertion passed unchanged. Only owned test resources
+were cleaned up. See `intent/0158/EVIDENCE.md` for evidence and fixture limits.
+
+The first-journey audit is refreshed in `docs/FIRST-USABLE-DELIVERY.md`; the original
+68–132-hour baseline is explicitly historical, not current remaining effort.
+Next connect this seam to an explicitly owned, authorized projection-job lifecycle,
+reusing existing single-flight/draining patterns and current projector identity/CAS.
+Use disposable integration; no live scheduler or writer is installed. Board remains
+stretch, and Brief projection presence must not imply verified lifecycle status.
+Complete governed action-time write authority, actual runtime membership, model
+conversation, lifecycle/decision projection, five R5 findings, qualified/independent
+protected review and human gates remain open. No deployment, release or spending.

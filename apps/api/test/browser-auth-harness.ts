@@ -535,7 +535,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         const provider = createNativeGitHubReadHarness(source, tls.certificate);
         const appJwt = createAppJwtSigner('1', tls.key.toString('utf8'));
         assert.ok(storage.createReceiptProjection);
-        const recordedProjection = await storage.createReceiptProjection(createGitHubReader(source.reader.binding, { fetch: provider.transport, appJwt }), seeded.reference.path, seeded.receipt.revision);
+        const recordedProjection = await storage.createReceiptProjection(createGitHubReader(source.reader.binding, { fetch: provider.transport, appJwt }), seeded.reference.path, seeded.receipt.revision, { result: seeded.receipt, gateSigned: false });
         const recordedKey = `artifact:${createHash('sha256').update(JSON.stringify([seeded.reference.repository, seeded.reference.path])).digest('hex')}`;
         receiptProjectionEvents.push({ recordKey: recordedKey, sourceRevision: seeded.receipt.revision, contentDigest: seeded.receipt.contentDigest });
         const factory = createGitHubBriefWriterFactory(source.reader.binding, {

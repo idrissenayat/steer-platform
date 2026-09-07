@@ -129,6 +129,10 @@ replies or enabling a writer in the live runtime.
 Item [0157](intent/0157/README.md) links a recorded receipt to the exact permitted
 Brief revision, with fresh library/access checks and no latest-version substitution.
 
+Item [0158](intent/0158/README.md) adds exact-receipt source verification and
+compare-and-swap projection ingestion without rewinding a different selected revision.
+The integration remains disposable; no live save or scheduler is enabled.
+
 Item [0153](intent/0153/README.md) adds bounded, merge-aware Critic target ancestry
 against the configured Git reader, without upgrading review selection or gate authority.
 

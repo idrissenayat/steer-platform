@@ -1442,3 +1442,25 @@ denial/restoration and a later selected projection that makes the older receipt
 unavailable without substitution. The projection helper owns only its exclusive
 synthetic record/events and removes them before broader tests continue. See
 `intent/0157/EVIDENCE.md`; no new live writer, provider grant or gate approval exists.
+
+## Recorded Brief projection seam
+
+Item `intent/0158` moves receipt-based ingestion out of fixture-only logic into
+`reconcileRecordedBrief` on the existing adapter source/sink interfaces. The caller
+supplies trusted configured destinations and an authenticated store observation;
+strict parsing alone is not receipt provenance. The helper captures reader binding,
+checks scope before I/O, and reads the selected projection revision. A different
+selection returns `different-revision` without reading source or changing the sink;
+SHA strings are never treated as chronology.
+
+An absent or matching selection reads precisely the recorded Git revision. Source
+identity, path, exact bounded UTF-8 bytes, SHA-256 and native Git blob SHA-1 must
+match the receipt. The sink retains its projector identity and transactional CAS.
+Cancellation and errors are not retried; failure after ingestion is not rollback.
+No source HEAD substitution, public endpoint, scheduler or new permission is added.
+
+The native Git/Keycloak/PostgreSQL browser fixture now uses this production seam,
+including duplicate replay and replay after advancing the projection. Its exclusive
+synthetic record is still curated by test setup. This is not live creation or
+automatic path admission, and a projected Brief confers no lifecycle/gate status.
+See `intent/0158/EVIDENCE.md` for verification and remaining boundaries.

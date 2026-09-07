@@ -2,6 +2,7 @@ import { artifactSelectionSchema, matchesArtifactSelection, type ArtifactReader,
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { artifactProjectionInputSchema } from '@steer/tool-registry';
+import { briefDestinationScopeSchema, briefSaveOutputSchema } from '@steer/tool-registry/brief-contracts';
 
 export interface SnapshotProjectionSink<T> {
   currentRevision(repository: string, path: string, organizationId: string): Promise<string | null>;
@@ -24,6 +25,41 @@ export async function reconcileArtifact<T>(reader: ArtifactReader, path: string,
 }
 
 export type ProjectionOutcome = 'applied' | 'duplicate' | 'repaired' | 'superseded';
+
+/** Internal post-receipt projection seam. Scope comes from trusted configuration,
+ * observation from authenticated store readback. This rechecks source bytes, not
+ * receipt provenance or gate authority. The sink owns projector identity and CAS.
+ * No live runtime installs this helper or expands its configured path set. */
+export async function reconcileRecordedBrief(reader: ArtifactReader, rawScope: unknown, rawObservation: unknown,
+  sink: SnapshotProjectionSink<ProjectionOutcome>, signal?: AbortSignal) {
+  const scope = briefDestinationScopeSchema.parse(rawScope), observation = briefSaveOutputSchema.parse(rawObservation);
+  const binding = Object.freeze({ ...reader.binding });
+  const receipt = observation.result;
+  if (receipt.outcome !== 'committed' || scope.organizationId !== binding.organizationId ||
+      scope.repository !== `github:${binding.repositoryId}` || scope.branch !== binding.branch ||
+      receipt.organizationId !== scope.organizationId || receipt.repository !== scope.repository || receipt.branch !== scope.branch ||
+      !scope.paths.includes(receipt.path)) throw new Error('Recorded Brief projection scope is invalid.');
+  const abort = () => { if (signal?.aborted) throw new Error('Recorded Brief projection was interrupted.'); };
+  abort();
+  const expected = artifactProjectionInputSchema.shape.revision.nullable().parse(await sink.currentRevision(scope.repository, receipt.path, scope.organizationId));
+  abort();
+  // SHA ordering is meaningless. A different selected revision must be reconciled
+  // separately; never rewind it merely because an older receipt was read again.
+  if (expected !== null && expected !== receipt.revision) return { status: 'different-revision' as const, revision: receipt.revision, outcome: null };
+  const snapshot = await reader.readArtifact(receipt.path, receipt.revision); abort();
+  const bytes = typeof snapshot?.content === 'string' ? Buffer.from(snapshot.content, 'utf8') : null;
+  if (!bytes || bytes.length > 32768 || new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes) !== snapshot.content ||
+      snapshot.organizationId !== scope.organizationId || snapshot.repositoryId !== binding.repositoryId ||
+      snapshot.path !== receipt.path || snapshot.revision !== receipt.revision || snapshot.contentDigest !== receipt.contentDigest ||
+      snapshot.blobSha !== receipt.blobSha || createHash('sha256').update(bytes).digest('hex') !== receipt.contentDigest ||
+      createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex') !== receipt.blobSha) throw new Error('Recorded Brief source could not be verified.');
+  const { repositoryId: _repositoryId, ...artifact } = snapshot;
+  const outcome = await sink.ingest({ ...artifact, repository: scope.repository }, expected);
+  // Post-write cancellation/failure cannot imply rollback or permit an automatic retry.
+  abort();
+  if (!['applied', 'duplicate', 'repaired', 'superseded'].includes(outcome)) throw new Error('Recorded Brief projection result is unavailable.');
+  return { status: 'observed' as const, revision: receipt.revision, outcome };
+}
 type ReconciliationFailure = 'INVALID_SCOPE' | 'SOURCE_FAILED' | 'SOURCE_CHANGED' | 'SINK_FAILED' | 'ABORTED';
 export class ReconciliationError extends Error {
   readonly code: ReconciliationFailure;

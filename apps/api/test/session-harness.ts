@@ -19,7 +19,7 @@ export interface SessionTestHarness {
   verifyRuntimeBootstrap?: (configuration: BrowserSessionConfiguration, privateKeyPem: string) => Promise<void>;
   verifySecretBootstrap?: (configuration: BrowserSessionConfiguration, tls: { key: string; cert: string }) => Promise<void>;
   createProjectionFixture?: (reader: RepositoryReader, paths: string[]) => Promise<{ services: ToolServices; input: ArtifactProjectionInput }>;
-  createReceiptProjection?: (reader: ArtifactReader, path: string, revision: string) => Promise<{ services: ToolServices; advance(): Promise<void>; close(): Promise<void> }>;
+  createReceiptProjection?: (reader: ArtifactReader, path: string, revision: string, observation: unknown) => Promise<{ services: ToolServices; advance(): Promise<void>; close(): Promise<void> }>;
   createDestinationRuntime?: (configuration: BrowserSessionConfiguration, github: GitHubBinding, paths: string[], privateKeyPem: string,
     transports: { identity: typeof fetch; github: typeof fetch }) => Promise<Awaited<ReturnType<typeof createIdentityRuntime>>>;
 }

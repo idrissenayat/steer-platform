@@ -21,7 +21,7 @@ import { createProjectionChangeReader } from '@steer/data/projection-changes';
 import { createProjectionSnapshotReader } from '@steer/data/projection-snapshot';
 import { ingestVerifiedArtifact, projectionKey } from '@steer/data/ingestion';
 import { readProjection } from '@steer/data';
-import { reconcileRepository, type SnapshotProjectionSink, type ProjectionOutcome } from '@steer/adapters/reconcile';
+import { reconcileRecordedBrief, reconcileRepository, type SnapshotProjectionSink, type ProjectionOutcome } from '@steer/adapters/reconcile';
 import type { Principal } from '@steer/tool-registry';
 
 /** Two disposable services only; no externally supplied connection or credential. */
@@ -144,7 +144,7 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
         return { services: { artifactProjection: projectionReader, projectionChanges: createProjectionChangeReader(app, { organizationId, repository }),
           projectionSnapshot: createProjectionSnapshotReader(app, { organizationId, repository }) }, input: { organizationId, repository, path, revision: first.revision } };
       },
-      createReceiptProjection: async (reader, path, revision) => {
+      createReceiptProjection: async (reader, path, revision, observation) => {
         // Only the dedicated seeded artifact in this disposable database is owned
         // here. Other projection rows/events remain untouched for the broader suite.
         assert.equal(path, 'items/0156-recorded-fixture/BRIEF.md');
@@ -154,6 +154,16 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
           toolGrants: ['projection.ingest'], expiresAt: new Date(Date.now() + 300000).toISOString() };
         assert.equal(await readProjection(projector, principal, recordKey), null);
         let current: string | null = null, stopped = false; const events = new Set<string>();
+        const projectionScope = { organizationId, repository, branch: reader.binding.branch, paths: [path] };
+        const sink: SnapshotProjectionSink<ProjectionOutcome> = {
+          currentRevision: async () => { assert.equal(stopped, false); return (await readProjection(projector, principal, recordKey))?.sourceRevision ?? null; },
+          ingest: async (snapshot, expected) => {
+            assert.equal(stopped, false); assert.equal(snapshot.path, path); assert.equal(snapshot.repository, repository);
+            const outcome = await ingestVerifiedArtifact(projector, principal, snapshot, expected);
+            events.add(`source:${createHash('sha256').update(JSON.stringify([repository, path, snapshot.revision])).digest('hex')}`); current = snapshot.revision;
+            return outcome;
+          },
+        };
         const ingest = async (target: string) => {
           assert.equal(stopped, false);
           const { repositoryId, ...artifact } = await reader.readArtifact(path, target);
@@ -166,10 +176,17 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
           await admin.query('DELETE FROM steer.projection_records WHERE organization_id=$1 AND record_key=$2', [organizationId, recordKey]);
           await admin.query('DELETE FROM steer.ingestion_events WHERE organization_id=$1 AND event_id=ANY($2::text[])', [organizationId, [...events]]);
         };
-        try { await ingest(revision); }
+        try {
+          assert.deepEqual(await reconcileRecordedBrief(reader, projectionScope, observation, sink), { status: 'observed', revision, outcome: 'applied' });
+          assert.deepEqual(await reconcileRecordedBrief(reader, projectionScope, observation, sink), { status: 'observed', revision, outcome: 'duplicate' });
+        }
         catch (error) { await close(); throw error; }
         return { services: { artifactProjection: createArtifactProjectionReader(app, { organizationId, repository, paths: [path] }) },
-          advance: async () => { await ingest(await reader.readHead()); }, close };
+          advance: async () => {
+            await ingest(await reader.readHead());
+            assert.deepEqual(await reconcileRecordedBrief(reader, projectionScope, observation, sink), { status: 'different-revision', revision, outcome: null });
+            assert.equal((await readProjection(projector, principal, recordKey))?.sourceRevision, current);
+          }, close };
       },
       verifyRuntimeBootstrap: async (configuration, privateKeyPem) => {
         const { clientSecret, ...browser } = configuration;
