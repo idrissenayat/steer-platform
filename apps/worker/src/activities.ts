@@ -2,6 +2,20 @@ import { parseScope, workflowId, parseReceipt, parseGateTarget, gateWatchId, par
   type ReconciliationScope, type ReconciliationActivities, type GateTarget, type GateObservation, type GateWatchActivities } from './contracts.ts';
 import { parseRecordedBriefTarget, recordedBriefWorkflowId, parseRecordedBriefCheckpoint,
   type RecordedBriefTarget, type RecordedBriefActivities } from './contracts.ts';
+import { parseRecordedBriefRecoveryPlan, recordedBriefRecoveryWorkflowId, type RecordedBriefRecoveryActivities } from './contracts.ts';
+
+/** Trusted job must revalidate the exact failed parent and current projector before effects. */
+export function createRecordedBriefRecoveryActivities(rawPlan: unknown, port: RecordedBriefPort): RecordedBriefRecoveryActivities {
+  const plan = parseRecordedBriefRecoveryPlan(rawPlan), expected = recordedBriefRecoveryWorkflowId(plan); let active = false;
+  return { async recoverRecordedBrief(raw) {
+    if (recordedBriefRecoveryWorkflowId(raw) !== expected) throw new Error('Recorded Brief recovery scope denied.');
+    if (active) throw new Error('Recorded Brief recovery is already active.');
+    active = true;
+    try { return parseRecordedBriefCheckpoint(await port.runOnce()); }
+    catch { throw new Error('Recorded Brief recovery did not complete.'); }
+    finally { active = false; }
+  } };
+}
 
 /** Port must bind current authenticated readback to the exact configured save operation. */
 export interface RecordedBriefPort { runOnce(): Promise<unknown> }

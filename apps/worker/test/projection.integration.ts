@@ -20,6 +20,7 @@ import { workflowId } from '../src/contracts.ts';
 import { startProcessWorker } from './process-harness.ts';
 import { testRecordedBriefWorkflow } from './recorded-brief.integration.ts';
 import { testCreatedBriefWorkflow } from './created-brief.integration.ts';
+import { testRecordedBriefRecovery } from './recorded-recovery.integration.ts';
 
 export async function testProjectedWorkflow(env: TestWorkflowEnvironment, bundle: WorkflowBundle, temporary: string,
   check: (name: string, run: () => Promise<void>) => Promise<void>) {
@@ -142,6 +143,7 @@ export async function testProjectedWorkflow(env: TestWorkflowEnvironment, bundle
     });
     await testRecordedBriefWorkflow(env, bundle, temporary, database, password, admin, check);
     await testCreatedBriefWorkflow(env, bundle, database, password, admin, check);
+    await testRecordedBriefRecovery(env, bundle, database, password, admin, check);
   } finally {
     try { if (child) await child.stop('SIGKILL'); if (worker) { worker.shutdown(); await running; } }
     finally { try { await runtime?.shutdown(); await admin?.end(); }

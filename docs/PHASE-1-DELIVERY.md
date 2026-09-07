@@ -3729,3 +3729,21 @@ Controlled retry/reset remains unimplemented; next resolve its exact current-aut
 operation/failed-run and concurrency contract. All five R5 findings, governed live
 saving and independent/qualified review/human gates remain open. No production
 configuration, protected artifact, frontend, deployment, spending or real deletion.
+
+## Completed development increment: 0181 — Internal controlled projection recovery
+
+A separate reference-linked recovery workflow now binds the original save target and
+exact failed original run. It never resets, reuses or changes the original workflow
+or save operation. A current original-execution guard rejects changed/missing/nonfailed
+parents; the worker rechecks the guard around current projector identity and reuses
+the existing exact receipt/source/SQL reconciliation. One retained recovery ID and
+one bounded activity attempt reject competing/repeated recovery and recursion.
+
+Local tests cover failure before SQL and after a commit whose acknowledgment was
+lost: recovery must apply or recognize a duplicate with one exact event and unchanged
+original failure. Five focused checks cover strict binding, drift, denial, overlap and
+lazy current guard ordering. Exact verification: `intent/0181/EVIDENCE.md`.
+The primitive is internal only; public grant/tool, owned recovery start/status client
+and live configuration remain absent. No new save, workflow reset/cancellation,
+protected artifact, frontend, dependency, schema, spending or deployment. All five
+R5 findings and independent/qualified review/human gates remain open.

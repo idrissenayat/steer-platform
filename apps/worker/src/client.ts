@@ -1,5 +1,42 @@
 import { type Client, WorkflowIdConflictPolicy, WorkflowIdReusePolicy, WorkflowExecutionAlreadyStartedError, WorkflowNotFoundError } from '@temporalio/client';
 import { parsePlan, parseScope, workflowId, parseGateWatchPlan, gateWatchId, parseRecordedBriefTarget, recordedBriefWorkflowId } from './contracts.ts';
+import { parseRecordedBriefRecoveryPlan, recordedBriefRecoveryWorkflowId } from './contracts.ts';
+
+/** Read-only fixed parent guard. Caller owns the configured connection and current identity. */
+export function createRecordedBriefFailedParentGuard(client: Client, configuration: { namespace: string; taskQueue: string; plan: unknown }) {
+  if (!configuration || Object.keys(configuration).length !== 3 || !['namespace', 'taskQueue', 'plan'].every(key => Object.hasOwn(configuration, key))) throw new Error('Invalid recovery parent binding.');
+  const plan = parseRecordedBriefRecoveryPlan(configuration.plan), { namespace, taskQueue } = configuration;
+  for (const value of [namespace, taskQueue]) {
+    if (typeof value !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(value)) throw new Error('Invalid recovery parent binding.');
+  }
+  const id = recordedBriefWorkflowId(plan.target);
+  if (client.options.namespace !== namespace) throw new Error('Invalid recovery parent binding.');
+  Object.freeze(plan.target.scope); Object.freeze(plan.target); Object.freeze(plan);
+  return Object.freeze({ plan, async verify() {
+    try {
+      if (client.options.namespace !== namespace) throw new Error();
+      // Inspect the current execution, not a historical run selected by the request.
+      const result = await client.workflow.getHandle(id).describe();
+      if (client.options.namespace !== namespace || result.workflowId !== id || result.runId !== plan.failedRunId ||
+        result.type !== 'projectRecordedBrief' || result.taskQueue !== taskQueue || result.status.name !== 'FAILED') throw new Error();
+    } catch { throw new Error('Recorded Brief failed parent could not be verified.'); }
+  } });
+}
+
+/** Trusted internal start only. Public recovery grants/managed runtime remain separate work. */
+export async function startRecordedBriefRecovery(client: Client,
+  configuration: { namespace: string; sourceTaskQueue: string; taskQueue: string; plan: unknown }) {
+  if (!configuration || Object.keys(configuration).length !== 4 || !['namespace', 'sourceTaskQueue', 'taskQueue', 'plan'].every(key => Object.hasOwn(configuration, key))) throw new Error('Invalid recovery binding.');
+  const { namespace, sourceTaskQueue, taskQueue } = configuration;
+  const plan = parseRecordedBriefRecoveryPlan(configuration.plan);
+  if (typeof taskQueue !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(taskQueue) ||
+    taskQueue === sourceTaskQueue) throw new Error('Invalid recovery task queue.');
+  const guard = createRecordedBriefFailedParentGuard(client, { namespace, taskQueue: sourceTaskQueue, plan });
+  await guard.verify();
+  return client.workflow.start('recoverRecordedBrief', { workflowId: recordedBriefRecoveryWorkflowId(plan), taskQueue, args: [plan],
+    workflowExecutionTimeout: '5 minutes', workflowIdConflictPolicy: WorkflowIdConflictPolicy.FAIL,
+    workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE });
+}
 
 /** Trusted internal dispatch only. No public route, scheduler registration or authority derivation. */
 export function startRecordedBriefProjection(client: Client, taskQueue: string, raw: unknown) {

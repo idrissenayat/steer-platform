@@ -22,8 +22,11 @@ audit above, the signed execution plan or formal gate status.
   dispatch/status grants and shared HTTP/MCP contracts, without live configuration.
 - [September 7 morning handoff](overnight/2026-09-07-HANDOFF.md): verified overnight
   outcomes, exact candidate commits, tests, preview availability and remaining boundaries.
+- [Controlled projection recovery](CONTROLLED-PROJECTION-RECOVERY.md): internal
+  fixed-failed-run workflow, current guard, idempotent SQL and remaining public authority.
 - [Recorded projection failures](RECORDED-PROJECTION-FAILURES.md): post-receipt
-  revocation, terminal status recovery and the still-unimplemented controlled retry.
+  revocation and terminal status at the historical 0180 boundary; normal start still
+  refuses retry, with the separate internal recovery primitive linked above.
 - [Projector identity journey](PROJECTOR-IDENTITY-JOURNEY.md): separate actual local
   projector identity and current grant/token-substitution denial in durable ingestion.
 - [Keycloak recorded journey](KEYCLOAK-RECORDED-JOURNEY.md): actual disposable

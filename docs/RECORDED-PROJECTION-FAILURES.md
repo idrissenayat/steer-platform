@@ -1,5 +1,9 @@
 # Recorded projection: current revocation and terminal failure
 
+This records 0180's boundary. 0181 now supplies an internal reference-linked recovery
+primitive, but no public command or live permission; see
+[controlled recovery](CONTROLLED-PROJECTION-RECOVERY.md). Normal start still refuses retry.
+
 Increment 0180 verifies two distinct failure boundaries without weakening the
 fixed-operation/one-attempt model. Execution evidence: `intent/0180/EVIDENCE.md`.
 

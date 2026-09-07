@@ -7,6 +7,10 @@ item one, are the framework's pilot evidence.
 
 ## Current delivery
 
+Item [0181](intent/0181/README.md) adds an internal fixed-failed-run recovery
+workflow that preserves the original save and idempotent projection. See
+[controlled recovery](docs/CONTROLLED-PROJECTION-RECOVERY.md); no public command is enabled.
+
 Item [0180](intent/0180/README.md) checks revocation after receipt readback and
 truthful failed-workflow status across runtime reconstruction. See
 [failure and recovery limits](docs/RECORDED-PROJECTION-FAILURES.md); no retry is enabled.

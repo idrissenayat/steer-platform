@@ -14,6 +14,9 @@ export type RecordedBriefCheckpoint = { revision: string } & (
   { status: 'observed'; outcome: 'applied' | 'duplicate' | 'repaired' | 'superseded' } |
   { status: 'different-revision'; outcome: null });
 export interface RecordedBriefActivities { projectRecordedBrief(target: RecordedBriefTarget): Promise<RecordedBriefCheckpoint> }
+/** One recovery workflow per exact failed original run; never a new save operation. */
+export interface RecordedBriefRecoveryPlan { target: RecordedBriefTarget; failedRunId: string }
+export interface RecordedBriefRecoveryActivities { recoverRecordedBrief(plan: RecordedBriefRecoveryPlan): Promise<RecordedBriefCheckpoint> }
 
 const object = (value: unknown): value is Record<string, unknown> => Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 const exact = (value: Record<string, unknown>, keys: string[]) => Object.keys(value).length === keys.length && keys.every((key) => Object.hasOwn(value, key));
@@ -50,6 +53,15 @@ export function parseRecordedBriefTarget(value: unknown): RecordedBriefTarget {
 export function recordedBriefWorkflowId(value: unknown): string {
   const target = parseRecordedBriefTarget(value);
   return `${workflowId(target.scope).replace('steer-reconcile/v1/', 'steer-recorded-brief/v1/')}/${target.idempotencyKey}`;
+}
+export function parseRecordedBriefRecoveryPlan(value: unknown): RecordedBriefRecoveryPlan {
+  if (!object(value) || !exact(value, ['target', 'failedRunId']) || typeof value.failedRunId !== 'string' ||
+    !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(value.failedRunId)) throw new Error('Invalid recorded Brief recovery plan.');
+  return { target: parseRecordedBriefTarget(value.target), failedRunId: value.failedRunId };
+}
+export function recordedBriefRecoveryWorkflowId(value: unknown): string {
+  const plan = parseRecordedBriefRecoveryPlan(value);
+  return `${recordedBriefWorkflowId(plan.target).replace('steer-recorded-brief/v1/', 'steer-recorded-brief-recovery/v1/')}/${plan.failedRunId}`;
 }
 export function parseRecordedBriefCheckpoint(value: unknown): RecordedBriefCheckpoint {
   if (!object(value) || !exact(value, ['revision', 'status', 'outcome']) || !revision(value.revision)) throw new Error('Invalid recorded Brief checkpoint.');

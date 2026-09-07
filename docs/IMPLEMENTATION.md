@@ -1987,3 +1987,20 @@ No second activity, Git mutation or private failure disclosure is permitted. Tha
 scenario uses synthetic issuer/activity inputs and no SQL. Controlled retry remains
 unimplemented. Exact evidence: `intent/0180/EVIDENCE.md`; recovery boundary:
 `docs/RECORDED-PROJECTION-FAILURES.md`. No production or live authority changes.
+
+## Increment 0181 — Internal fixed-failed-run recovery
+
+A closed original-target/failed-run plan derives a separate deterministic recovery
+workflow ID. A fixed client guard describes the current original execution and
+requires exact namespace, ID/type/queue, failed run and FAILED state. Trusted internal
+start snapshots routing and retains conflict/reuse duplicate rejection. Dedicated
+worker/workflow/activity bindings run one bounded attempt, not reset or recursion.
+
+The recovery runtime composes that exact guard before/after current projector
+authentication around the existing receipt/source/SQL path, preserving lazy pools,
+draining shutdown and idempotent ingestion. The parent connection stays caller-owned.
+Five focused tests and actual local recovery before/after SQL commit are tracked in
+`intent/0181/EVIDENCE.md`. Cross-system atomicity and beyond-retention uniqueness are
+not claimed. No public recovery tool/grant, managed recovery client or live binding
+is introduced. Normal dispatch, protected artifacts and all five formal R5 findings
+remain unchanged. Next is separate current recovery authorization and owned dispatch.

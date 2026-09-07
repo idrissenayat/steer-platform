@@ -1,7 +1,20 @@
 import { ApplicationFailure, defineQuery, isCancellation, proxyActivities, setHandler, sleep, workflowInfo } from '@temporalio/workflow';
 import { parsePlan, parseReceipt, workflowId, parseGateWatchPlan, parseGateObservation, gateWatchId,
   parseRecordedBriefTarget, recordedBriefWorkflowId, parseRecordedBriefCheckpoint, type RecordedBriefActivities,
+  parseRecordedBriefRecoveryPlan, recordedBriefRecoveryWorkflowId, type RecordedBriefRecoveryActivities,
   type ReconciliationActivities, type ReconciliationReceipt, type GateWatchActivities, type GateObservation } from './contracts.ts';
+
+const recordedRecoveryActivities = proxyActivities<RecordedBriefRecoveryActivities>({
+  startToCloseTimeout: '2 minutes', scheduleToCloseTimeout: '3 minutes', retry: { maximumAttempts: 1 },
+});
+/** Separate deterministic recovery, not reset/reuse of the failed original or recursive recovery. */
+export async function recoverRecordedBrief(raw: unknown) {
+  let plan;
+  try { plan = parseRecordedBriefRecoveryPlan(raw); if (workflowInfo().workflowId !== recordedBriefRecoveryWorkflowId(plan)) throw new Error(); }
+  catch { throw ApplicationFailure.nonRetryable('Invalid recorded Brief recovery binding.', 'INVALID_BINDING'); }
+  try { return parseRecordedBriefCheckpoint(await recordedRecoveryActivities.recoverRecordedBrief(plan)); }
+  catch (error) { if (isCancellation(error)) throw error; throw ApplicationFailure.nonRetryable('Recorded Brief recovery requires attention.', 'RECORDED_RECOVERY_FAILED'); }
+}
 
 const recordedBriefActivities = proxyActivities<RecordedBriefActivities>({
   startToCloseTimeout: '2 minutes', scheduleToCloseTimeout: '3 minutes', retry: { maximumAttempts: 1 },

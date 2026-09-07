@@ -7,11 +7,38 @@ import { readProjection } from '@steer/data';
 import { ingestVerifiedArtifact, projectionKey } from '@steer/data/ingestion';
 import { parseScope, parseGateTarget, parseRecordedBriefTarget, type ReconciliationScope } from './contracts.ts';
 import { createReconciliationActivities, createGateWatchActivities, createRecordedBriefActivities } from './activities.ts';
+import { createRecordedBriefRecoveryActivities } from './activities.ts';
+import { parseRecordedBriefRecoveryPlan, recordedBriefRecoveryWorkflowId } from './contracts.ts';
 
 const databaseSchema = z.strictObject({ host: z.string(), port: z.number(), database: z.string(),
   transport: z.discriminatedUnion('kind', [z.strictObject({ kind: z.literal('tls'), ca: z.string() }),
     z.strictObject({ kind: z.literal('isolated-loopback-test') })]),
 });
+
+/** Recovery reuses exact receipt/SQL reconciliation. Failed-parent guard must be a separately
+ * owned trusted adapter; no caller-selected authority, automatic admission or reset. */
+export async function createWorkerRecordedBriefRecoveryRuntime(rawOptions: unknown, rawSecrets: unknown,
+  dependencies: Parameters<typeof createWorkerRecordedBriefRuntime>[2] & { parent: { plan: unknown; verify(): Promise<void> } }) {
+  let owned: Awaited<ReturnType<typeof createWorkerRecordedBriefRuntime>> | undefined;
+  try {
+    const options = z.strictObject({ plan: z.unknown(), database: databaseSchema,
+      source: z.strictObject({ branch: z.string(), path: z.string(), subject: z.string() }) }).parse(rawOptions);
+    const plan = parseRecordedBriefRecoveryPlan(options.plan), expected = recordedBriefRecoveryWorkflowId(plan);
+    const parent = dependencies.parent, verify = parent.verify.bind(parent);
+    const bound = () => { if (recordedBriefRecoveryWorkflowId(parent.plan) !== expected) throw new Error(); };
+    bound();
+    owned = await createWorkerRecordedBriefRuntime({ target: plan.target, database: options.database, source: options.source }, rawSecrets, {
+      reader: dependencies.reader, readReceipt: dependencies.readReceipt,
+      authenticate: async () => { bound(); await verify(); bound(); const principal = await dependencies.authenticate(); bound(); await verify(); bound(); return principal; },
+    });
+    const runtime = owned;
+    return { activities: createRecordedBriefRecoveryActivities(plan, { runOnce: () => runtime.activities.projectRecordedBrief(plan.target) }),
+      shutdown: runtime.shutdown, status: runtime.status };
+  } catch {
+    try { await owned?.shutdown(); } catch { throw new Error('Recorded Brief recovery cleanup could not be confirmed.'); }
+    throw new Error('Recorded Brief recovery runtime could not be initialized.');
+  }
+}
 
 /** Exact operation binding and current receipt callback stay outside serialized workflow history.
  * Callback owner must establish readback provenance; this composition never signs or saves. */

@@ -63,7 +63,7 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0180
+### Latest development audit — increment 0181
 
 The dependency-ordered current route is `docs/JOURNEY-REMAINING-WORK.md`.
 Increment 0174 adds an owned fixed-operation Temporal start/status client with
@@ -91,6 +91,10 @@ token-substitution negatives are part of the same journey; results are in
 workflow status after owned-runtime reconstruction. Failure remains observable but
 cannot be retried through normal start. Controlled projection recovery is still open;
 see `docs/RECORDED-PROJECTION-FAILURES.md` and `intent/0180/EVIDENCE.md`.
+0181 adds a separate internal recovery workflow tied to the exact failed original
+run. It rechecks that original and current projector while reusing exact receipt/SQL
+idempotency. Public recovery permission, managed client and live runtime remain absent;
+see `docs/CONTROLLED-PROJECTION-RECOVERY.md` and `intent/0181/EVIDENCE.md`.
 
 The production UI now supports deterministic describe/correct, exact local review,
 manual prior-operation status and opening the exact recorded Brief. Disposable
