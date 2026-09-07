@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 
 /** Serve the actual prebuilt Next.js app on an owned loopback port, without any secret inputs. */
-export async function createNextWebHarness(origin: string, issuer: string, enabled = true) {
+export async function createNextWebHarness(origin: string, issuer: string, enabled = true, isolatedSubmission = false) {
   const reservation = createServer();
   await new Promise<void>((resolve) => reservation.listen(0, '127.0.0.1', resolve));
   const address = reservation.address();
@@ -14,7 +14,8 @@ export async function createNextWebHarness(origin: string, issuer: string, enabl
   const root = fileURLToPath(new URL('../../web/', import.meta.url));
   const child = spawn(process.execPath, [fileURLToPath(new URL('../../web/node_modules/next/dist/bin/next', import.meta.url)), 'start', '-H', '127.0.0.1', '-p', String(port)], {
     cwd: root, env: { PATH: process.env.PATH ?? '', NODE_ENV: 'production', NEXT_TELEMETRY_DISABLED: '1',
-      STEER_WEB_AUTH: enabled ? 'enabled' : 'disabled', STEER_WEB_AUTH_ORIGIN: origin, STEER_WEB_IDENTITY_ISSUER: issuer },
+      STEER_WEB_AUTH: enabled ? 'enabled' : 'disabled', STEER_WEB_AUTH_ORIGIN: origin, STEER_WEB_IDENTITY_ISSUER: issuer,
+      STEER_WEB_BRIEF_SUBMISSION: isolatedSubmission ? 'enabled' : 'disabled' },
     stdio: ['ignore', 'ignore', 'ignore'],
   });
   let exited = false; let startedError = false;

@@ -63,7 +63,7 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0166
+### Latest development audit — increment 0167
 
 The production UI now supports deterministic describe/correct, exact local review,
 manual prior-operation status and opening the exact recorded Brief. Disposable
@@ -81,7 +81,8 @@ An additional opt-in integration now starts with actual HTTP preview/save calls,
 creates the Brief/marker in disposable native Git, reconstructs status and projects
 that receipt into PostgreSQL. It does not seed the saved pair. This closes a
 mechanical integration gap, but its identity/full-authority callbacks are explicit
-test doubles; the existing browser proof still begins with seeded operation history.
+test doubles. Increment 0167 separately adds actual browser-created operation history,
+with real local Keycloak membership but explicitly synthetic full gate authority.
 Neither substitutes for an approved real-member, fully governed save journey.
 
 The Brief dialog now also offers manual read-only decision inspection. The shared
@@ -106,24 +107,31 @@ synthetic. An additional actual local test now joins HTTP-confirmed creation (no
 seeded saved data), lost-acknowledgement status recovery, queued durable projection
 and the exact curated catalog/Brief tools. It checks one Git mutation/event across
 reconstruction and duplicate handling. The current human/projector and gate authority
-in that integration remain test doubles. Browser authoring/clicks are not yet joined
-to this newly created record; the existing browser status fixture remains seeded.
+in that integration remain test doubles. The additional opt-in browser test now joins
+actual authoring, exact confirmation, native Git creation, manual status recovery and
+the exact projected Brief. Its owned API projection job is not the durable worker;
+the browser-to-worker dispatch path is still not composed or installed live.
 
 Remaining engineering includes the complete governed evidence-selection/action-time
 writer composition, browser creation-to-worker/read-model integration, authenticated lifecycle
 and decision projections, and the model-backed agent conversation. The current
-save button stays disabled. The prototype's supplied signature arrays cannot be
+live save button stays disabled by default. Its guarded opt-in implementation now
+enforces one immutable attempt and exact receipt binding, independently of the
+destination display lifetime. The prototype's supplied signature arrays cannot be
 promoted to verified board stages merely by importing its read-model code.
 
 Real membership/runtime configuration, complete live-write authority, all five R5
 findings, independent/qualified protected review and human gate decisions remain
 separate outstanding dependencies. No live writer/scheduler, deployment or spending
-is authorized by this audit. The current `BriefReview` save button is unconditionally
-disabled and has no submit handler; a passing API integration does not complete it.
-Next implement and exercise the closed-by-default browser confirmation/submission
-and status path against disposable creation-to-projection, with explicitly test-only
-authority and current session checks. Keep real saving and live scheduling disabled;
-never derive permission from a local checkbox or an inspected decision record.
+is authorized by this audit. The server-owned `STEER_WEB_BRIEF_SUBMISSION` display
+switch is used only in an owned disposable browser-test process. It does not grant
+authority or install an API writer. No live environment has been enabled.
+Next join the tested browser creation flow to the existing durable worker in the
+disposable composition, retaining trusted current readback outside workflow history.
+Keep real saving and live scheduling disabled; never derive permission from a local
+checkbox or an inspected decision record. See `docs/BRIEF-SUBMISSION.md` for recovery
+limits: no browser persistence or automatic retry, and the original operation ID
+must be retained before leaving/hiding the page.
 
 The **68–132 hours below is the original baseline estimate**, not current remaining
 effort. Re-estimation must use these implementation gaps and separate engineering

@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useRef, useState } from 'react';
 import { briefSaveStatusInputSchema, type BriefPreview, type BriefDestination } from '@steer/tool-registry/brief-contracts';
 import { briefReviewBinding, createBriefSaveStatusClient, saveStatusMessages, type SaveStatusState } from './brief-review-client';
@@ -49,7 +47,9 @@ function PreviousSaveStatus({ scope, subject, expiresAt }: {
 }
 
 /** Local confirmation only. Parent remounts for every preview/destination/session change. */
-export default function BriefReview({ preview, destination, expiresAt }: { preview: BriefPreview; destination: BriefDestination; expiresAt: string }) {
+export default function BriefReview({ preview, destination, expiresAt, submissionEnabled = false, attempted = false, onSubmit }: {
+  preview: BriefPreview; destination: BriefDestination; expiresAt: string; submissionEnabled?: boolean; attempted?: boolean; onSubmit?: (path: string) => void;
+}) {
   const [path, setPath] = useState(''), [accepted, setAccepted] = useState<string | null>(null);
   const [enabled, setEnabled] = useState(false);
   const displayUntil = new Date(Math.min(Date.parse(expiresAt), Date.parse(destination.observedAt) + 15000)).toISOString();
@@ -81,9 +81,13 @@ export default function BriefReview({ preview, destination, expiresAt }: { previ
           }
         }} />I reviewed the displayed Brief for this destination.</label></>}
     </fieldset>
-    <p role="status" className="author-state" data-testid="brief-review-status">{confirmed ? 'Reviewed locally · Not saved · Not signed' : 'Not reviewed for this destination · Not saved · Not signed'}</p>
-    <button type="button" className="access-primary" disabled aria-describedby="brief-save-hold">Save Brief to GitHub — unavailable</button>
-    <p id="brief-save-hold">Live saving is disabled. Governed evidence selection, verified review provenance and complete action-time authorization are still required. Local review does not clear those requirements.</p>
+    <p role="status" className="author-state" data-testid="brief-review-status">{attempted ? 'Submission attempt locked · See operation status below · Not signed' : confirmed ? 'Reviewed locally · Not saved · Not signed' : 'Not reviewed for this destination · Not saved · Not signed'}</p>
+    <button type="button" className="access-primary" disabled={!submissionEnabled || !enabled || !confirmed || attempted || !onSubmit}
+      aria-describedby="brief-save-hold" onClick={() => {
+        if (!submissionEnabled || attempted || !confirmed || document.hidden) return;
+        try { briefReviewBinding(preview, destination, path, expiresAt, Date.now()); onSubmit?.(path); } catch { setEnabled(false); }
+      }}>{submissionEnabled ? 'Submit this reviewed Brief' : 'Save Brief to GitHub — unavailable'}</button>
+    <p id="brief-save-hold">{submissionEnabled ? 'Submission controls are configured, not permission to write. The server must verify current access, exact content and full authority. One operation only; uncertain outcomes require a status check.' : 'Live saving is disabled. Governed evidence selection, verified review provenance and complete action-time authorization are still required. Local review does not clear those requirements.'}</p>
     <p className="access-hint">Review clears when the content, destination observation or session changes, or this page is hidden. Nothing is stored in this browser.</p>
     {binding && <PreviousSaveStatus key={path} scope={{ organizationId: binding.organizationId, repository: binding.repository, branch: binding.branch, path }} subject={binding.subject} expiresAt={displayUntil} />}
   </section>;

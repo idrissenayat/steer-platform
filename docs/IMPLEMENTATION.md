@@ -1698,3 +1698,34 @@ local integration. It does not join browser authoring/clicks to this newly creat
 record: existing browser receipt history is still seeded. No live save button,
 scheduler, GitHub access, gate, deployment or spending is enabled. See
 `intent/0166/EVIDENCE.md` for verification and remaining proof boundaries.
+
+## 0167 — Guarded browser Brief submission
+
+The internal authoring client now owns one immutable submission independently of
+destination display expiry. Exact review binds facts, subject, path, expected Git
+head and content digest; the client recomputes request/content/blob hashes and
+checks every returned receipt against that original operation. A separate bounded
+same-origin mutation transport leaves the read-tool allowlist unchanged. Unknown,
+not-found, lost acknowledgement and subsequent draft edits never permit another
+attempt. Status recovery is manual and uses the original reference.
+
+`STEER_WEB_BRIEF_SUBMISSION=enabled` is a server-owned display switch, default closed,
+not authority. It is used only in an owned disposable Next test process. The API
+still independently requires all current identity, source and gate checks. No live
+writer, scheduler, provider grant, gate decision or environment is enabled.
+
+Lifecycle cleanup clears pending requests and receipt details on hiding, navigation,
+expiry and unmount; an attempted operation remains latched. An unattempted hidden
+view can resume idle without I/O. No browser persistence exists: recovery after
+leaving requires the original operation ID through prior-operation lookup.
+
+The isolated browser composition uses actual Keycloak/encrypted PostgreSQL sessions,
+native Git membership, the production request-owned writer, actual Git creation and
+exact projected source reads. Only the code-host network and full gate-authority
+callback are test doubles. Browser projection uses the owned API job; 0166 separately
+exercises Temporal. Joining browser creation to that worker is the next bounded
+integration, not a claim that a live scheduler is installed.
+
+See `docs/BRIEF-SUBMISSION.md` and `intent/0167/EVIDENCE.md`. All five R5 findings,
+full governed authority, model conversation, independent/qualified protected review
+and human signatures remain open. No dependencies, schema or protected records changed.

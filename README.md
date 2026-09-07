@@ -167,6 +167,13 @@ status recovery, durable worker projection and exact work-list API reads togethe
 Lost acknowledgement does not cause another Git mutation. Identity and gate authority
 remain synthetic in this integration; it is not a live saving or browser-demo claim.
 
+Item [0167](intent/0167/README.md) adds closed-by-default browser submission:
+exact review, one immutable operation, manual acknowledgement recovery and a link
+to the recorded Brief. Its isolated browser test creates actual disposable Git
+data with Keycloak membership and PostgreSQL projection. Gate authority and code-host
+transport remain test doubles. See [the submission boundary](docs/BRIEF-SUBMISSION.md);
+no live save configuration or permission has been enabled.
+
 Item [0153](intent/0153/README.md) adds bounded, merge-aware Critic target ancestry
 against the configured Git reader, without upgrading review selection or gate authority.
 

@@ -16,6 +16,7 @@ import { reserveLocalPort } from './local-tls-harness.ts';
 import { createGitAuthorizationHarness } from './git-authorization-harness.ts';
 import { createNextWebHarness } from './next-web-harness.ts';
 import { createNativeGitHubReadHarness } from './native-github-read-harness.ts';
+import { createNativeGitHubCreateHarness } from './native-github-create-harness.ts';
 import { seedBriefMarker } from './brief-marker-harness.ts';
 import { createAppJwtSigner, createGitHubReader } from '@steer/adapters/github';
 import { createGitHubBriefWriterFactory } from '@steer/adapters/github-brief-writer-factory';
@@ -1155,6 +1156,123 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           if (directory) await page.screenshot({ path: join(directory, 'brief-decisions-failure.png') });
           throw error;
         } finally { page.off('request', observeEvidence); gateway = bindGateway(web!.rendererOrigin); await source.publish([grant]); await page.goto(origin); }
+      });
+      await check('opt-in browser exact confirmation creates a native Brief once and recovers current status and projected source with real Keycloak membership', async () => {
+        const path = 'items/0167-created-fixture/BRIEF.md';
+        const provider = createNativeGitHubCreateHarness(source, tls.certificate, path), appJwt = createAppJwtSigner('1', tls.key.toString('utf8'));
+        const configured = { organizationId: grant.organizationId, repository: 'github:1', branch: 'synthetic', paths: [path],
+          platformRevision: await source.reader.readHead(), gate2DecisionDigest: 'f'.repeat(64) };
+        const factory = createGitHubBriefWriterFactory(source.reader.binding, configured, {
+          issuer, authorizationPath: source.authorizationPath, fetch: provider.transport, appJwt,
+          // Explicit TEST DOUBLE for gate authority only. Actual Keycloak/session/Git membership is independently checked by the factory.
+          verifyGateAuthority: async request => ({ kind: 'verified-brief-write-authority', organizationId: request.organizationId, repository: request.repository,
+            branch: request.branch, path: request.path, subject: request.subject, idempotencyKey: request.idempotencyKey,
+            requestDigest: request.requestDigest, expectedHead: request.expectedHead, authorizationRevision: request.expectedHead,
+            platformRevision: configured.platformRevision, gate2DecisionDigest: configured.gate2DecisionDigest,
+            evaluatedAt: new Date().toISOString(), validThrough: new Date(Date.now() + 5000).toISOString() }),
+        });
+        const savingGrant = { ...grant, toolGrants: [...grant.toolGrants, 'intent.brief.save'] };
+        let projected: Awaited<ReturnType<NonNullable<typeof storage.createReceiptProjection>>> | undefined;
+        let created = 0, closed = 0;
+        const compose = () => createIdentityService(configuration, { ...dependencies,
+          sessions: { ...dependencies.sessions, shutdown: async () => {} },
+          services: { ...projection.services, ...(projected?.services ?? {}), briefDestination: { scope: {
+            organizationId: grant.organizationId, repository: 'github:1', branch: 'synthetic', paths: [path] }, readHead: () => source.reader.readHead() } },
+          createBriefWriter: authenticate => { const writer = factory(authenticate); created++; let stopped = false;
+            return { ...writer, close: () => { if (!stopped) { stopped = true; closed++; } writer.close(); } }; },
+        });
+        const submitWeb = await createNextWebHarness(origin, issuer, true, true);
+        let service = compose(), stage = 'authoring', previewStatus: number | null = null;
+        const observePreview = (response: import('playwright').Response) => { if (new URL(response.url()).pathname === '/v1/tools/intent.brief.preview') previewStatus = response.status(); };
+        page.on('response', observePreview);
+        try {
+          await source.publish([savingGrant]); gateway = bindGateway(submitWeb.rendererOrigin, service); stage = 'new opt-in page'; await page.goto(origin);
+          // This longer scenario needs a fresh actual provider login, not a longer
+          // token lifetime or a browser clock override. End only the owned test session.
+          stage = 'fresh synthetic login';
+          await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+          await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+          await page.getByRole('heading', { name: 'Your workspace.', exact: true }).waitFor();
+          const author = page.getByRole('region', { name: 'Start with your intent.' });
+          const answers = ['Browser-created request', 'Requests are entered twice.', 'Each request is entered once.', 'Coordinators', 'Unverified intake system', 'Duplicate entry count', 'No new subscription', 'Confirm the system name'];
+          for (let index = 0; index < answers.length; index++) {
+            stage = `authoring field ${index + 1}`;
+            await author.locator('.author-field input, .author-field textarea').first().fill(answers[index]!);
+            if (index < answers.length - 1) await author.getByRole('button', { name: 'Next question', exact: true }).click();
+          }
+          stage = 'render preview'; await author.getByRole('button', { name: 'Preview Brief', exact: true }).click();
+          await page.waitForFunction(() => {
+            const text = document.querySelector('[data-testid="author-status"]')?.textContent;
+            return text?.startsWith('Preview ready.') || text?.startsWith('Draft preview could not be verified.') || text?.startsWith('Please shorten this draft:');
+          });
+          await author.getByTestId('author-digest').waitFor({ state: 'attached' }); const digest = await author.getByTestId('author-digest').textContent();
+          const panel = page.getByRole('region', { name: 'Where this Brief could go' });
+          stage = 'destination'; await panel.getByRole('button', { name: 'Check destination', exact: true }).click();
+          const review = page.getByRole('region', { name: 'Review this exact draft' });
+          stage = 'path selection'; await review.getByLabel('Brief path to review', { exact: true }).selectOption(path);
+          const submit = review.getByRole('button', { name: 'Submit this reviewed Brief', exact: true });
+          stage = 'disabled before review'; assert.equal(await submit.isDisabled(), true); assert.equal(provider.mutations(), 0);
+          await review.getByLabel('I reviewed the displayed Brief for this destination.', { exact: true }).check();
+          stage = 'enabled after review'; assert.equal(await submit.isEnabled(), true); stage = 'single dispatch'; provider.loseAck();
+          const response = page.waitForResponse(value => value.url() === `${origin}/v1/tools/intent.brief.save`);
+          await submit.click(); const saved = await response; assert.equal(saved.status(), 200);
+          assert.equal((await saved.json()).result.outcome, 'unknown'); assert.equal(provider.mutations(), 1);
+          const operation = await page.getByTestId('submission-operation').textContent(); assert.ok(operation);
+          const request = saved.request().postDataJSON(); assert.equal(request.idempotencyKey, operation); assert.equal(request.confirmation.contentDigest, digest);
+          assert.equal(await submit.isDisabled(), true);
+          assert.equal(await review.getByTestId('brief-review-status').textContent(), 'Submission attempt locked · See operation status below · Not signed');
+          const operationPanel = page.getByRole('region', { name: 'This save operation' });
+          stage = 'receipt recovery'; await service.shutdown(); service = compose(); gateway = bindGateway(submitWeb.rendererOrigin, service);
+          const statusResponse = page.waitForResponse(value => value.url() === `${origin}/v1/tools/intent.brief.save.status`);
+          await operationPanel.getByRole('button', { name: 'Check this operation', exact: true }).click();
+          const status = await statusResponse; assert.equal(status.status(), 200); const observation = await status.json();
+          assert.equal(observation.result.outcome, 'committed'); assert.equal(observation.result.idempotencyKey, operation);
+          assert.equal(observation.result.contentDigest, digest); assert.equal(observation.gateSigned, false);
+          await page.getByTestId('submission-receipt').waitFor(); assert.equal(provider.mutations(), 1);
+          stage = 'destination expiry and access denial';
+          await panel.locator('.destination-details').waitFor({ state: 'detached', timeout: 20000 });
+          assert.equal(await page.getByTestId('submission-operation').textContent(), operation);
+          await source.publish([{ ...savingGrant, toolGrants: savingGrant.toolGrants.filter(value => value !== 'intent.brief.save.status') }]);
+          await operationPanel.getByRole('button', { name: 'Check this operation', exact: true }).click();
+          await page.waitForFunction(() => document.querySelector('[data-testid="submission-status"]')?.textContent?.startsWith('Save outcome is unverified.'));
+          assert.equal(await page.getByTestId('submission-receipt').count(), 0); assert.equal(provider.mutations(), 1);
+          await source.publish([savingGrant]);
+          await operationPanel.getByRole('button', { name: 'Check this operation', exact: true }).click(); await page.getByTestId('submission-receipt').waitFor();
+          stage = 'responsive and accessibility';
+          const directory = process.env.STEER_WORKSPACE_SCREENSHOT_DIR;
+          if (directory) await operationPanel.screenshot({ path: join(directory, 'submission-desktop.png') });
+          await page.setViewportSize({ width: 390, height: 844 });
+          assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+          if (directory) await operationPanel.screenshot({ path: join(directory, 'submission-mobile.png') });
+          await page.setViewportSize({ width: 1440, height: 1000 });
+          await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+          assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+          await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
+          await page.evaluate(source => { eval(source); }, await readFile(new URL('../../../node_modules/axe-core/axe.min.js', import.meta.url), 'utf8'));
+          assert.deepEqual(await page.evaluate(async () => (await (window as unknown as { axe: { run: (node: Document, options: unknown) => Promise<{ violations: { id: string }[] }> } }).axe.run(document,
+            { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] } })).violations.map(x => x.id)), []);
+          stage = 'projected read'; assert.ok(storage.createReceiptProjection);
+          projected = await storage.createReceiptProjection(createGitHubReader(source.reader.binding, { fetch: provider.transport, appJwt }), path, observation.result.revision, async () => {
+            const value = await page.evaluate(async request => {
+              const response = await fetch('/v1/tools/intent.brief.save.status', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json' }, body: JSON.stringify(request) });
+              if (response.status !== 200) throw new Error('Synthetic status unavailable'); return response.json();
+            }, { organizationId: grant.organizationId, repository: 'github:1', branch: 'synthetic', path, idempotencyKey: operation });
+            return value;
+          });
+          await projected.project(); await service.shutdown(); service = compose(); gateway = bindGateway(submitWeb.rendererOrigin, service);
+          await operationPanel.locator('[data-submission-receipt-link]').click();
+          await page.getByRole('dialog', { name: 'Browser-created request' }).waitFor();
+          assert.ok((await page.getByRole('dialog', { name: 'Browser-created request' }).innerText()).includes('Browser-created request'));
+          assert.equal(provider.mutations(), 1); assert.equal(created, closed);
+        } catch (error) {
+          const assertion = error as { actual?: unknown; expected?: unknown; name?: string };
+          const scalar = (value: unknown) => typeof value === 'boolean' || typeof value === 'number' ? value : 'omitted';
+          const notice = await page.getByTestId('author-status').textContent().catch(() => null);
+          const safeNotice = notice && /^(Preview ready\.|Draft preview could not be verified\.|Please shorten this draft:|Session display expired)/.test(notice) ? notice : 'omitted';
+          console.error(`Isolated browser submission failed at ${stage}; ${assertion.name}; actual=${scalar(assertion.actual)}, expected=${scalar(assertion.expected)}; preview HTTP=${previewStatus}; notice=${safeNotice}; source details omitted.`); throw error;
+        }
+        finally { page.off('response', observePreview); gateway = bindGateway(web!.rendererOrigin); try { await service.shutdown(); await projected?.close(); }
+          finally { await submitWeb.close(); await source.publish([grant]); await page.goto(origin); } }
       });
       await check('browser cross-site logout omits the Lax cookie and the API rejects the foreign Origin', async () => {
         await page.goto(attackerOrigin);

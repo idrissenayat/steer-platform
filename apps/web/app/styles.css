@@ -305,3 +305,5 @@ summary:focus-visible { outline: .2rem solid var(--steer-focus); outline-offset:
 .decision-evidence h6 { font-size: 1rem; margin: 0; }
 .decision-evidence pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .875rem; line-height: 1.6; }
 .decision-evidence:focus { outline: 3px solid var(--steer-focus); outline-offset: 2px; }
+.brief-submission { margin-top: 1.25rem; padding: 1rem; border: 1px solid var(--steer-border); border-radius: 1rem; background: var(--steer-pink-soft); }
+.brief-submission code { overflow-wrap: anywhere; }

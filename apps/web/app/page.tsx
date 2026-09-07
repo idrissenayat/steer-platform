@@ -25,7 +25,8 @@ export default async function FoundationPage() {
           <div><dt>Session expires (UTC)</dt><dd><time dateTime={session.expiresAt}>{new Date(session.expiresAt).toISOString().replace('T', ' ').replace('.000Z', ' UTC')}</time></dd></div></dl>
         <p className="access-hint session-snapshot">Checked for this page load. Refresh to recheck access. Every action is authorized again; this display is not a gate signature.</p>
       </section>
-      <BriefAuthor key={`author:${session.subject}:${session.organizationId}:${session.expiresAt}`} organizationId={session.organizationId} subject={session.subject} expiresAt={session.expiresAt} />
+      <BriefAuthor key={`author:${session.subject}:${session.organizationId}:${session.expiresAt}`} organizationId={session.organizationId} subject={session.subject} expiresAt={session.expiresAt}
+        submissionEnabled={process.env.STEER_WEB_BRIEF_SUBMISSION === 'enabled'} />
       {repository ? <BriefLibrary key={`${session.subject}:${session.organizationId}:${repository}:${session.expiresAt}`}
         organizationId={session.organizationId} repository={repository} expiresAt={session.expiresAt} /> :
         <p className="access-note">Brief discovery is not configured for this workspace. No repository access has been enabled by this page.</p>}

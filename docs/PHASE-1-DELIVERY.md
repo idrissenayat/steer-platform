@@ -3353,3 +3353,36 @@ No production/frontend source, dependency, schema or live configuration changed 
 qualified protected review and human signatures remain unfinished. No deployment,
 release, provider grants, real-record deletion or spending changed. The standing
 implementation loop remains active; remote equality is checked after candidate push.
+
+## Completed development increment: 0167 — Guarded browser Brief submission
+
+The browser now has a closed-by-default exact-review submit handler, independent
+operation feedback and manual recovery. One immutable attempt binds current subject,
+original facts/path/head and content/request/blob fingerprints. Duplicate clicks,
+draft edits and uncertain outcomes never produce a second request. Destination expiry
+does not erase an active operation; hiding/leaving/session expiry clears details and
+retains the attempted latch. The user must retain the original ID for later recovery;
+there is no browser persistence or automatic retry.
+
+The actual browser suite passed 43 checks. The new journey uses real local Keycloak
+sessions/current native Git membership, one actual Git creation with lost response,
+service reconstruction, current status revocation/recovery and the exact created
+PostgreSQL-projected Brief. Screenshots and automated accessibility/mobile checks
+passed. The code-host transport and full gate-authority callback remain explicit test
+doubles. The browser projection job is not Temporal: 0166 separately verifies the
+durable path, whose 25-check regression passed again, as did the original three
+Brief-creation integration groups. Full checks passed with 438 repository controls,
+99 registry, 24 data, 61 web, 283 adapter, 91 API and 23 worker tests, remaining
+workspaces and all builds. See `intent/0167/EVIDENCE.md` for exact results and limits.
+
+Next join browser-confirmed disposable creation to the existing durable worker and
+exact read model, keeping trusted current receipt resolution outside workflow history.
+Do not install a live scheduler or enable real saves. The new server-owned display
+switch is only enabled in the owned test process and is never backend authority.
+
+Full governed authority, authenticated lifecycle/decision projections, model
+conversation, all five R5 findings, independent/qualified protected review and human
+signatures remain unfinished. No live configuration, provider grants, spending,
+deployment, release, real-record deletion, dependency or schema change occurred.
+The existing stack and pink design tokens are preserved. The standing implementation
+loop remains active; exact candidate remote equality is checked after commit/push.
