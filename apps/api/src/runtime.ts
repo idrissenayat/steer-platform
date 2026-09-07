@@ -1,4 +1,7 @@
 import { z } from 'zod';
+import type { IntentAgentService } from '@steer/tool-registry/agent-contracts';
+import { createIntentDevelopment, type DevelopmentPermit } from '@steer/agents';
+import { createMastraDevelopmentRuntime } from '@steer/agents/mastra';
 import { createAppJwtSigner, createGitHubReader, artifactSelectionSchema, type ArtifactReader } from '@steer/adapters/github';
 import { createPostgresBrowserSessionStore } from '@steer/data/browser-session';
 import { createRuntimePool } from '@steer/data/runtime-pool';
@@ -25,6 +28,14 @@ export interface ManagedRuntimeScheduler { readonly scheduler: ReconciliationSch
 export interface ManagedRuntimeRecordedScheduler { readonly scheduler: RecordedBriefScheduler; shutdown(): Promise<void> }
 export interface ManagedRuntimeRecoveryScheduler { readonly scheduler: RecordedBriefRecoveryScheduler; shutdown(): Promise<void> }
 export interface IdentityRuntimeDependencies {
+  /** Explicitly configured, budget-controlled agent. Absent means no model calls. */
+  intentAgent?: IntentAgentService;
+  /** Server-only gateway credential and approved budget ledger, never browser values. */
+  modelGateway?: {
+    configurationRevision: string;
+    options: Parameters<typeof createMastraDevelopmentRuntime>[0];
+    permit: DevelopmentPermit;
+  };
   identity?: typeof fetch; github?: typeof fetch;
   /** Explicit factory transfers ownership on success; it must clean any allocation if it rejects. */
   createScheduler?: () => Promise<ManagedRuntimeScheduler>;
@@ -191,6 +202,11 @@ export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unk
   };
   try {
     const profile = profileSchema.parse(rawProfile); const secrets = secretsSchema.parse(rawSecrets);
+    if (transports.intentAgent && transports.intentAgent.organizationId !== profile.github.binding.organizationId) throw new Error('Agent scope mismatch.');
+    if (transports.intentAgent && transports.modelGateway) throw new Error('Choose one agent binding.');
+    const intentAgent = transports.modelGateway ? createIntentDevelopment({ organizationId: profile.github.binding.organizationId,
+      configurationRevision: transports.modelGateway.configurationRevision, permit: transports.modelGateway.permit,
+      runtime: createMastraDevelopmentRuntime(transports.modelGateway.options) }) : transports.intentAgent;
     if (Boolean(profile.readModel) !== Boolean(secrets.readModelDatabasePassword)) throw new Error('Incomplete read-model binding.');
     if (Boolean(profile.scheduling) !== Boolean(transports.createScheduler)) throw new Error('Incomplete scheduler binding.');
     if (Boolean(profile.recordedScheduling) !== Boolean(transports.createRecordedScheduler) ||
@@ -271,7 +287,8 @@ export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unk
         };
       } } : {}),
       ...(profile.mcp ? { mcp: profile.mcp } : {}),
-      ...((artifactProjection || managedScheduler || managedRecordedScheduler || managedRecoveryScheduler || profile.briefDestination) ? { services: {
+      ...((intentAgent || artifactProjection || managedScheduler || managedRecordedScheduler || managedRecoveryScheduler || profile.briefDestination) ? { services: {
+        ...(intentAgent ? { intentAgent } : {}),
         ...(destinationScope ? { briefDestination: { scope: Object.freeze({ ...destinationScope,
           paths: Object.freeze([...destinationScope.paths]),
         }), readHead: () => reader.readHead() } } : {}),

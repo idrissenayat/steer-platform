@@ -4,11 +4,11 @@ import { identityView, sessionView, repositoryView } from './identity-view';
 import ProjectionPanel from './projection-panel';
 import BriefLibrary from './brief-library';
 import BriefAuthor from './brief-author';
+import IntentConversation from './intent-conversation';
 import ReviewWorkspace from './review-workspace';
-import LearnHub, { LocalLearnHub } from './learn-hub';
+import LearnHub from './learn-hub';
 import learnCorpus from './generated/learn.json';
 import type { LearnCorpus } from './learn-reader';
-import LocalWorkspace from './local-workspace';
 
 export default async function FoundationPage() {
   await connection();
@@ -17,7 +17,7 @@ export default async function FoundationPage() {
   const session = configured ? sessionView(incoming.get('x-steer-session-view')) : null;
   const repository = session ? repositoryView(incoming.get('x-steer-repository-view')) : null;
   if (session) return (
-    <LocalWorkspace guide={<LocalLearnHub corpus={learnCorpus as LearnCorpus} />}><main className="access-shell workspace-shell">
+    <main className="access-shell workspace-shell">
       <header className="access-brand"><span className="brand-mark" aria-hidden="true">S</span><span>STEER</span><span className="brand-caption">Human direction. Agent execution.</span></header>
       <div className="workspace-heading"><div><div className="eyebrow">Session verified</div><h1>Your workspace.</h1><p className="lede">One place to frame intent, steer the work, and review the evidence.</p></div>
         <form action="/auth/logout" method="post"><button className="access-secondary" type="submit">Sign out</button></form></div>
@@ -30,8 +30,12 @@ export default async function FoundationPage() {
           <div><dt>Session expires (UTC)</dt><dd><time dateTime={session.expiresAt}>{new Date(session.expiresAt).toISOString().replace('T', ' ').replace('.000Z', ' UTC')}</time></dd></div></dl>
         <p className="access-hint session-snapshot">Checked for this page load. Refresh to recheck access. Every action is authorized again; this display is not a gate signature.</p>
       </section>
-      <BriefAuthor key={`author:${session.subject}:${session.organizationId}:${session.expiresAt}`} organizationId={session.organizationId} subject={session.subject} expiresAt={session.expiresAt}
-        submissionEnabled={process.env.STEER_WEB_BRIEF_SUBMISSION === 'enabled'} />
+      <IntentConversation key={`agent:${session.subject}:${session.organizationId}:${session.expiresAt}`} organizationId={session.organizationId} subject={session.subject} expiresAt={session.expiresAt}
+        enabled={process.env.STEER_WEB_INTENT_AGENT === 'enabled'} />
+      <details className="workspace-diagnostics"><summary>Manual Brief tools</summary>
+        <BriefAuthor key={`author:${session.subject}:${session.organizationId}:${session.expiresAt}`} organizationId={session.organizationId} subject={session.subject} expiresAt={session.expiresAt}
+          submissionEnabled={process.env.STEER_WEB_BRIEF_SUBMISSION === 'enabled'} />
+      </details>
       {repository ? <BriefLibrary key={`${session.subject}:${session.organizationId}:${repository}:${session.expiresAt}`}
         organizationId={session.organizationId} repository={repository} expiresAt={session.expiresAt} /> :
         <p className="access-note">Brief discovery is not configured for this workspace. No repository access has been enabled by this page.</p>}
@@ -45,10 +49,10 @@ export default async function FoundationPage() {
         <ul>{[['Intent backlog', 'Frame outcomes and boundaries before work is pulled.'], ['Flight board', 'Follow work through its lifecycle and evidence gates.'], ['Inbox', 'Review the decisions that need your attention.']].map(([name, description]) =>
           <li key={name}><h3>{name}</h3><p>{description}</p><span>Not connected yet</span></li>)}</ul></section>
       <footer className="access-footer"><span>Foundation preview · formal release gates remain open</span><a href="https://github.com/idrissenayat/steer-platform">Project repository</a></footer>
-    </main></LocalWorkspace>
+    </main>
   );
   return (
-    <LocalWorkspace guide={<LocalLearnHub corpus={learnCorpus as LearnCorpus} />}><main className="access-shell">
+    <main className="access-shell">
       <header className="access-brand"><span className="brand-mark" aria-hidden="true">S</span><span>STEER</span><span className="brand-caption">Human direction. Agent execution.</span></header>
       <div className="access-grid">
         <section className="access-intro" aria-labelledby="access-title">
@@ -80,6 +84,6 @@ export default async function FoundationPage() {
         </section>
       </div>
       <footer className="access-footer"><span>Intent → evidence → human decision</span><a href="https://github.com/idrissenayat/steer-platform">Project repository</a></footer>
-    </main></LocalWorkspace>
+    </main>
   );
 }

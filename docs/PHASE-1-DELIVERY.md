@@ -4099,3 +4099,21 @@ Device dictation can enter text, but live agent conversation, audio capture and
 automatic Brief generation are not connected. Current user guidance now reflects
 free expression and agent-led clarification as the intended experience. No protected
 canon, EXAM, authorization, model usage, runtime write, deployment or spending changed.
+
+## Development increment: 0198 — Authenticated agent-development integration
+
+The actual signed-in workspace now has a free-text conversation component connected
+to `intent.agent.develop` through the shared authenticated registry. The separate
+local-preview wrapper is no longer the main-page path. Mastra and a local LiteLLM
+adapter support focused questions or Brief/Spec candidates followed by a fresh-context
+Test Agent Exam. Outputs remain unsigned, unexecuted and unsaved candidates.
+
+Agents 9/9 and focused API/runtime/web/boundary checks 27/27 passed, alongside the
+package checks and production build recorded in [0198 evidence](../intent/0198/EVIDENCE.md).
+The HTTPS application is available. No live model calls or spending occurred.
+
+**Live activation remains closed:** approved model budget, durable budget binding,
+local LiteLLM configuration, an explicit drafting-tool grant and actual UI/model
+evaluation are still needed. Durable conversation, streaming/voice, content-free
+model spans, canonical evals and Git saving are not completed by this slice. See
+[the actual-workflow guide](INTENT-AGENT-WORKFLOW.md) for the activation checklist.

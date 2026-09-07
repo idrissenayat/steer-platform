@@ -1,0 +1,7 @@
+{
+  "name": "@steer/agents", "version": "0.1.0", "private": true, "type": "module",
+  "exports": { ".": "./src/development.ts", "./mastra": "./src/mastra.ts" },
+  "scripts": { "build": "tsc --noEmit", "typecheck": "tsc --noEmit", "test": "node --test test/*.test.ts" },
+  "dependencies": { "@steer/tool-registry": "workspace:*", "@mastra/core": "1.64.0", "@ai-sdk/openai-compatible": "3.0.44", "zod": "4.5.4" },
+  "devDependencies": { "@types/node": "25.0.3", "typescript": "7.0.2" }
+}

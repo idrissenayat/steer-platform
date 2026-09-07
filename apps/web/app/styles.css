@@ -442,3 +442,12 @@ summary:focus-visible { outline: .2rem solid var(--steer-focus); outline-offset:
 .decision-evidence:focus { outline: 3px solid var(--steer-focus); outline-offset: 2px; }
 .brief-submission { margin-top: 1.25rem; padding: 1rem; border: 1px solid var(--steer-border); border-radius: 1rem; background: var(--steer-pink-soft); }
 .brief-submission code { overflow-wrap: anywhere; }
+.intent-conversation { margin: 1.5rem 0; }
+.intent-conversation label { display: block; font-weight: 600; margin: 1rem 0 .5rem; }
+.intent-conversation textarea { width: 100%; box-sizing: border-box; resize: vertical; min-height: 8rem; padding: 1rem; border: 1px solid var(--steer-border); border-radius: .75rem; font: inherit; font-size: 1rem; line-height: 1.6; color: var(--steer-ink); background: white; }
+.intent-conversation textarea:focus-visible { outline: 3px solid var(--steer-focus); outline-offset: 2px; }
+.intent-agent-reply { margin-top: 1rem; padding: 1rem; border-radius: 1rem; background: var(--steer-pink-soft); }
+.intent-document-buttons { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0; }
+.intent-document-buttons button { width: auto; }
+.intent-document-buttons button[aria-pressed="true"] { border: 2px solid var(--steer-focus); }
+.intent-documents { margin-top: 1.5rem; overflow-wrap: anywhere; }

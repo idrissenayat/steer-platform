@@ -20,6 +20,24 @@ const secrets = { browserClientSecret: 'synthetic-not-a-real-client-secret', dat
   sessionKeys: { synthetic: randomBytes(32) } };
 
 const scheduling = { itemId: 'intent/0040', maxRounds: 2, minIntervalMs: 1000 };
+test('model gateway composition is lazy, scoped and does not acquire budget or provider access at startup', async () => {
+  let calls = 0;
+  const runtime = await createIdentityRuntime(profile, secrets, { modelGateway: {
+    configurationRevision: 'synthetic-only', permit: { reserve: async () => { calls++; return false; } },
+    options: { gatewayUrl: 'http://127.0.0.1:4000/v1', gatewayKey: 'synthetic-only', model: 'steer-intent', maxOutputTokens: 2000,
+      transport: async () => { calls++; throw new Error('No provider access'); } },
+  } });
+  try {
+    assert.equal(calls, 0);
+    const response = await runtime.fetch(new Request('https://steer.example/v1/tools/intent.agent.develop', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ organizationId: 'synthetic', intent: 'Test only' }),
+    }));
+    assert.equal(response.status, 401); assert.equal(calls, 0);
+  } finally { await runtime.shutdown(); }
+  await assert.rejects(createIdentityRuntime(profile, secrets, { intentAgent: { organizationId: 'other', develop: async () => { throw new Error(); } } }),
+    { message: 'Identity runtime configuration could not be initialized.' });
+});
+
 test('Brief destination is opt-in, canonical and startup-lazy without provisioning grants or writes', async () => {
   let calls = 0; const deny: typeof fetch = async () => { calls++; throw new Error('No provider access'); };
   for (const briefDestination of [{ paths: [] }, { paths: ['BRIEF.md'] },

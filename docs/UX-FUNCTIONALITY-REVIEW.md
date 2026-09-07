@@ -1,5 +1,12 @@
 # Functionality and human UX review
 
+**Current direction, 0198:** the user wants the actual authenticated application,
+not the separate local preview. The main page now uses the real free-text agent
+conversation component. Live calls remain disabled pending budget and gateway
+activation. See [the current workflow guide](INTENT-AGENT-WORKFLOW.md).
+The review and five-minute preview script below are historical, not instructions
+for the current primary route. Existing local records have not been deleted.
+
 Reviewed 2026-09-07 against the local Next UX preview. See
 [`intent/0196/EVIDENCE.md`](../intent/0196/EVIDENCE.md) for exact scope and checks.
 
