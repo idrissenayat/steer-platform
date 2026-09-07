@@ -137,6 +137,9 @@ Item [0159](intent/0159/README.md) connects authenticated receipt readback to an
 owned projection job with current projector checks, single-flight admission and
 draining shutdown. Human readback and projector identity remain separate.
 
+Item [0160](intent/0160/README.md) composes that job with an explicitly owned,
+bounded PostgreSQL projector runtime. Construction is lazy; live dispatch is absent.
+
 Item [0153](intent/0153/README.md) adds bounded, merge-aware Critic target ancestry
 against the configured Git reader, without upgrading review selection or gate authority.
 

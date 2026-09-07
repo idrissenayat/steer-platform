@@ -3150,3 +3150,28 @@ trigger, writer or scheduler is installed. Revision-linked work-list remains str
 Complete governed write authority, approved real configuration, model conversation,
 lifecycle/decision projection, five R5 findings, independent/qualified protected
 review and human gates remain open. No deployment, release or spending changed.
+
+## Completed development increment: 0160 — Recorded projection runtime
+
+The owned receipt job now has explicit production composition with a lazy bounded
+`steer_projector` PostgreSQL pool and the existing RLS/CAS ingestion path. A strict
+versioned profile, separate password and prebound source/readback dependencies
+replace the handwritten fixture sink. Construction performs no I/O or dispatch;
+run errors are sanitized and shutdown drains work before closing only its own pool.
+
+Four focused runtime tests, all package typechecks and full repository validation
+passed, including 437 root controls, 282 adapter/91 API tests and all package builds.
+The actual 41-check Keycloak/Chromium integration verifies real runtime ingestion,
+duplicate replay, human status denial, later-revision preservation and closed-pool
+admission. Owned synthetic services/data were cleaned up. See `intent/0160/EVIDENCE.md`.
+
+The closed readback-to-projection path is integrated in disposable runtime. This
+does not prove an authorized platform save: operation history is seeded and no live
+writer, trigger or scheduler is installed. Next take the overnight revision-linked
+work-list stretch using current authenticated curated catalog/snapshot contracts.
+Expose projected artifacts and exact references, not inferred lifecycle stages or
+approval status; retain the pink/orange design and existing reader. Audit the current
+Brief library first to avoid adding a redundant list or unrelated wrapper increment.
+Full governed write authority/configuration, model conversation, lifecycle/decision
+data, all five R5 findings, qualified/independent protected review and human gates
+remain open. No deployment, release, provider permission or spending changed.

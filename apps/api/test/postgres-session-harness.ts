@@ -12,7 +12,7 @@ import { createRuntimePool } from '@steer/data/runtime-pool';
 import type { BrowserSession, LoginTransaction, BrowserSessionConfiguration } from '@steer/adapters/browser-session';
 import type { GitHubBinding } from '@steer/adapters/github';
 import type { SessionTestHarness } from './session-harness.ts';
-import { createIdentityRuntime, startLocalIdentityFromSecretProvider } from '../src/runtime.ts';
+import { createIdentityRuntime, createRecordedBriefProjectionRuntime, startLocalIdentityFromSecretProvider } from '../src/runtime.ts';
 import { createEncryptedFileSecretProvider } from '@steer/adapters/secrets';
 import { createSecretFixture } from '../../../packages/adapters/test/secret-fixture.ts';
 import { reserveLocalPort, localHttpsRequest } from './local-tls-harness.ts';
@@ -22,7 +22,6 @@ import { createProjectionSnapshotReader } from '@steer/data/projection-snapshot'
 import { ingestVerifiedArtifact, projectionKey } from '@steer/data/ingestion';
 import { readProjection } from '@steer/data';
 import { reconcileRepository, type SnapshotProjectionSink, type ProjectionOutcome } from '@steer/adapters/reconcile';
-import { createRecordedBriefProjectionJob } from '@steer/adapters/projection-job';
 import type { Principal } from '@steer/tool-registry';
 
 /** Two disposable services only; no externally supplied connection or credential. */
@@ -156,19 +155,11 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
         assert.equal(await readProjection(projector, principal, recordKey), null);
         let current: string | null = null, stopped = false; const events = new Set<string>();
         const projectionScope = { organizationId, repository, branch: reader.binding.branch, paths: [path] };
-        const job = createRecordedBriefProjectionJob(reader, projectionScope, {
-          authenticate: async () => principal, readReceipt,
-          // Pools belong to the parent disposable database harness, not this job.
-          shutdownResources: async () => {}, sink: (identity) => ({
-          currentRevision: async () => { assert.equal(stopped, false); return (await readProjection(projector, await identity(), recordKey))?.sourceRevision ?? null; },
-          ingest: async (snapshot, expected) => {
-            assert.equal(stopped, false); assert.equal(snapshot.path, path); assert.equal(snapshot.repository, repository);
-            const outcome = await ingestVerifiedArtifact(projector, await identity(), snapshot, expected);
-            events.add(`source:${createHash('sha256').update(JSON.stringify([repository, path, snapshot.revision])).digest('hex')}`); current = snapshot.revision;
-            return outcome;
-          },
-          }),
-        });
+        const job = await createRecordedBriefProjectionRuntime({ version: 'steer-recorded-brief-projection-runtime/v1',
+          scope: projectionScope, database: { host: '127.0.0.1', port: Number(mapping.split(':')[1]), database: 'steer_auth_test',
+            transport: { kind: 'isolated-loopback-test' } },
+        }, { databasePassword: password }, { reader, authenticate: async () => principal, readReceipt });
+        assert.equal(job.status().database.connections, 0);
         const ingest = async (target: string) => {
           assert.equal(stopped, false);
           const { repositoryId, ...artifact } = await reader.readArtifact(path, target);
@@ -178,14 +169,19 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
         };
         const close = async () => {
           if (stopped) return; await job.shutdown(); stopped = true;
-          await assert.rejects(job.runOnce(), /not accepting/);
+          assert.equal(job.status().database.closed, true); assert.equal(job.status().database.active, 0);
+          await assert.rejects(job.runOnce(), /did not complete/);
           await admin.query('DELETE FROM steer.projection_records WHERE organization_id=$1 AND record_key=$2', [organizationId, recordKey]);
           await admin.query('DELETE FROM steer.ingestion_events WHERE organization_id=$1 AND event_id=ANY($2::text[])', [organizationId, [...events]]);
         };
         return { services: { artifactProjection: createArtifactProjectionReader(app, { organizationId, repository, paths: [path] }) },
           project: async () => {
             const outcome = current === null ? 'applied' : 'duplicate';
+            // Exact owned source event is tracked before dispatch so an uncertain
+            // post-ingestion acknowledgement cannot strand fixture data.
+            events.add(`source:${createHash('sha256').update(JSON.stringify([repository, path, revision])).digest('hex')}`);
             assert.deepEqual(await job.runOnce(), { status: 'observed', revision, outcome });
+            assert.equal((await readProjection(projector, principal, recordKey))?.sourceRevision, revision); current = revision;
             assert.deepEqual(await job.runOnce(), { status: 'observed', revision, outcome: 'duplicate' });
           },
           advance: async () => {

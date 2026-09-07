@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createAppJwtSigner, createGitHubReader, artifactSelectionSchema } from '@steer/adapters/github';
+import { createAppJwtSigner, createGitHubReader, artifactSelectionSchema, type ArtifactReader } from '@steer/adapters/github';
 import { createPostgresBrowserSessionStore } from '@steer/data/browser-session';
 import { createRuntimePool } from '@steer/data/runtime-pool';
 import { createIdentityService } from './identity-service.ts';
@@ -10,7 +10,7 @@ import { artifactProjectionInputSchema, reconciliationScopeSchema, briefDestinat
 import { createArtifactProjectionReader } from '@steer/data/artifact-reader';
 import { createProjectionChangeReader } from '@steer/data/projection-changes';
 import { createProjectionSnapshotReader } from '@steer/data/projection-snapshot';
-import { createProjectionJob } from '@steer/adapters/projection-job';
+import { createProjectionJob, createRecordedBriefProjectionJob } from '@steer/adapters/projection-job';
 import { ingestVerifiedArtifact, projectionKey } from '@steer/data/ingestion';
 import { readProjection } from '@steer/data';
 
@@ -48,6 +48,39 @@ const projectionProfileSchema = z.strictObject({ version: z.literal('steer-proje
   paths: z.array(artifactProjectionInputSchema.shape.path).min(1).max(100).optional(), selection: artifactSelectionSchema.optional(),
 }).refine((value) => Boolean(value.paths) !== Boolean(value.selection));
 const projectionSecretsSchema = z.strictObject({ githubPrivateKeyPem: text, databasePassword: text });
+
+const recordedProjectionProfileSchema = z.strictObject({ version: z.literal('steer-recorded-brief-projection-runtime/v1'),
+  scope: briefDestinationScopeSchema, database: databaseSchema });
+
+/** Explicit one-shot derived-data runtime. Prebound source/readback identity stays
+ * caller-owned; only this runtime's projector database pool transfers ownership.
+ * Construction never reads receipts, connects storage or starts a timer/job. */
+export async function createRecordedBriefProjectionRuntime(rawProfile: unknown, rawSecrets: unknown, dependencies: {
+  reader: ArtifactReader; authenticate: () => Promise<unknown>; readReceipt: () => Promise<unknown>;
+}) {
+  let pool: ReturnType<typeof createRuntimePool> | undefined;
+  try {
+    const profile = recordedProjectionProfileSchema.parse(rawProfile);
+    const secrets = z.strictObject({ databasePassword: text }).parse(rawSecrets);
+    const binding = dependencies.reader.binding;
+    if (profile.scope.organizationId !== binding.organizationId || profile.scope.repository !== `github:${binding.repositoryId}` ||
+        profile.scope.branch !== binding.branch) throw new Error();
+    const owned = createRuntimePool({ ...profile.database, user: 'steer_projector', password: secrets.databasePassword }); pool = owned;
+    const job = createRecordedBriefProjectionJob(dependencies.reader, profile.scope, {
+      authenticate: dependencies.authenticate, readReceipt: dependencies.readReceipt, shutdownResources: () => owned.shutdown(),
+      sink: current => ({
+        currentRevision: async (repository, path) => (await readProjection(owned, await current(), projectionKey(repository, path)))?.sourceRevision ?? null,
+        ingest: async (snapshot, expected) => ingestVerifiedArtifact(owned, await current(), snapshot, expected),
+      }),
+    });
+    return { runOnce: async () => {
+      try { return await job.runOnce(); } catch { throw new Error('Recorded Brief projection did not complete.'); }
+    }, shutdown: job.shutdown, status: () => ({ ...job.status(), database: owned.status() }) };
+  } catch {
+    try { await pool?.shutdown(); } catch { throw new Error('Recorded Brief projection cleanup could not be confirmed.'); }
+    throw new Error('Recorded Brief projection configuration could not be initialized.');
+  }
+}
 
 /** Explicit one-shot job composition; no HTTP dispatch, timer, automatic retry or agent impersonation. */
 export async function createProjectionRuntime(rawProfile: unknown, rawSecrets: unknown, dependencies: {

@@ -1488,3 +1488,28 @@ status grant blocks readback before provider reads. The operation was still seed
 test history, not a platform save. Parent-owned test database pools are not closed
 by the child job; its own admission is drained before exclusive fixture cleanup.
 See `intent/0159/EVIDENCE.md`; live runtime composition and authority remain separate.
+
+## Explicit recorded-Brief runtime
+
+Item `intent/0160` adds `createRecordedBriefProjectionRuntime` in the existing API
+composition root. The strict versioned profile contains a destination scope and
+database transport; the separate secret object accepts only a database password.
+The reader, receipt callback and projector authenticator are trusted prebound
+dependencies, not browser payloads or discovered accounts. The runtime owns only
+its bounded `steer_projector` PostgreSQL pool. Constructing it does not connect,
+read receipts or dispatch a job.
+
+Explicit `runOnce` uses the owned job with actual `readProjection` and
+`ingestVerifiedArtifact` under rechecked projector identity and existing CAS/RLS
+controls. The public runtime boundary sanitizes configuration/run failures. Status
+is content-free; shutdown drains admitted work before closing its own pool and
+does not close the caller's reader or human session/readback service. There is no
+new route, scheduler, environment credential discovery or live writer profile.
+
+The disposable browser fixture now uses this runtime rather than its handwritten
+ingestion sink. Its separate parent projector pool only inspects results and creates
+the intentional later-revision fixture. The runtime's own pool must be closed with
+no active leases before exclusive fixture cleanup. Exact owned source event identity
+is registered before dispatch so uncertain acknowledgment cannot strand synthetic
+data. This cleanup is test-only, not permission to delete real records. See
+`intent/0160/EVIDENCE.md` for verification and the remaining live-use boundaries.
