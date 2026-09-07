@@ -6,7 +6,7 @@ import { createIdentityService } from './identity-service.ts';
 import { createIdentityGateway } from './identity-gateway.ts';
 import { startLocalIdentityListener } from './identity-listener.ts';
 import { secretReferenceSchema, type SecretProvider } from '@steer/adapters/secrets';
-import { artifactProjectionInputSchema, reconciliationScopeSchema, type ReconciliationScheduler } from '@steer/tool-registry';
+import { artifactProjectionInputSchema, reconciliationScopeSchema, briefDestinationScopeSchema, type ReconciliationScheduler } from '@steer/tool-registry';
 import { createArtifactProjectionReader } from '@steer/data/artifact-reader';
 import { createProjectionChangeReader } from '@steer/data/projection-changes';
 import { createProjectionSnapshotReader } from '@steer/data/projection-snapshot';
@@ -37,6 +37,7 @@ const profileSchema = z.strictObject({
   readModel: z.strictObject({ database: databaseSchema, paths: z.array(artifactProjectionInputSchema.shape.path).min(1).max(1000), changes: z.literal(true).optional() }).optional(),
   mcp: z.strictObject({ clientIds: z.array(z.string().min(1).max(200)).min(1).max(100).refine((ids) => new Set(ids).size === ids.length) }).optional(),
   scheduling: schedulingSchema.optional(),
+  briefDestination: briefDestinationScopeSchema.pick({ paths: true }).optional(),
   sessionKeyId: text,
 });
 const secretsSchema = z.strictObject({ browserClientSecret: text, githubPrivateKeyPem: text,
@@ -144,6 +145,10 @@ export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unk
       appJwt: createAppJwtSigner(profile.github.appId, secrets.githubPrivateKeyPem),
       ...(transports.github ? { fetch: transports.github } : {}),
     });
+    const destinationScope = profile.briefDestination ? briefDestinationScopeSchema.parse({
+      organizationId: reader.binding.organizationId, repository: `github:${reader.binding.repositoryId}`,
+      branch: reader.binding.branch, paths: profile.briefDestination.paths,
+    }) : undefined;
     const pool = createRuntimePool({ ...profile.database, user: 'steer_auth_runtime', password: secrets.databasePassword }); pools.push(pool);
     let readPool: ReturnType<typeof createRuntimePool> | undefined;
     if (profile.readModel) { readPool = createRuntimePool({ ...profile.readModel.database, user: 'steer_app', password: secrets.readModelDatabasePassword! }); pools.push(readPool); }
@@ -172,7 +177,10 @@ export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unk
       reader, authorizationPath: profile.github.authorizationPath,
       sessions: { binding, store, shutdown: shutdownPools },
       ...(profile.mcp ? { mcp: profile.mcp } : {}),
-      ...((artifactProjection || managedScheduler) ? { services: {
+      ...((artifactProjection || managedScheduler || profile.briefDestination) ? { services: {
+        ...(destinationScope ? { briefDestination: { scope: Object.freeze({ ...destinationScope,
+          paths: Object.freeze([...destinationScope.paths]),
+        }), readHead: () => reader.readHead() } } : {}),
         ...(artifactProjection ? { artifactProjection } : {}), ...(managedScheduler ? { reconciliationScheduler: managedScheduler.scheduler } : {}),
         ...(projectionChanges ? { projectionChanges } : {}),
         ...(projectionSnapshot ? { projectionSnapshot } : {}),

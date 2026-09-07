@@ -1273,6 +1273,14 @@ and independent execution identities; domain and Critic runner keys share final
 validity checks. Original HOLDs and unresolved provider/governance/isolation
 requirements remain. See `intent/0147/EVIDENCE.md`.
 
+Item `intent/0148` adds `intent.brief.destination`, a read-only organization-scoped
+query over an explicitly configured candidate path set and the current Git branch
+head. The optional identity-runtime `briefDestination: { paths: [...] }` binds to
+its existing GitHub organization/repository/branch; it installs no grant or writer.
+HTTP/MCP share authorization, revalidation and bounded observation contracts.
+Projection references are never substituted for current Git head. No UI integration
+or real configuration is claimed; see `intent/0148/SPEC.md` and `EVIDENCE.md`.
+
 ## Local commands
 
 ```sh

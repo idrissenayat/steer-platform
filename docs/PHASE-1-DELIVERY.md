@@ -2890,3 +2890,22 @@ selection, ancestry and a passing native contract remain. Then finish full
 action-time authority, runtime/destination/head/save/status, lifecycle projections,
 board and review. All five R5 findings and signed obligations remain open; no
 real provider, live write, approval, release, deployment or spending is enabled.
+
+## Completed development increment: 0148 — Authenticated Brief destination observation
+
+The shared registry now exposes the explicitly configured canonical Brief targets
+and actual Git branch head through authenticated read-only HTTP/MCP. The identity
+runtime supports opt-in composition with its existing GitHub binding and read-only
+reader; it provisions no grants or writer. Exact tenant/grant checks, pre/post-read
+identity refresh, strict output and bounded observation age suppress invalid or
+revoked reads. A changing native Git repository exercises the actual code-host
+adapter through both transports with no writes. All 33 focused groups and the full
+repository check passed, including 437 root controls, 87 registry tests, 81 API
+tests, 256 adapter tests and all package checks/builds. See `intent/0148/EVIDENCE.md`
+for validation and remaining coverage boundaries.
+
+Next: authoring UI consumption, full action-time authority and approved bindings,
+then gated save/status and verified lifecycle projections/board/review. A destination
+observation does not check path availability or grant write authority. All five R5
+findings, protected review and human gates stay open. No real runtime configuration,
+source access, provider, signature, deployment, release or spending changed.

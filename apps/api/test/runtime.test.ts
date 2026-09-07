@@ -20,6 +20,21 @@ const secrets = { browserClientSecret: 'synthetic-not-a-real-client-secret', dat
   sessionKeys: { synthetic: randomBytes(32) } };
 
 const scheduling = { itemId: 'intent/0040', maxRounds: 2, minIntervalMs: 1000 };
+test('Brief destination is opt-in, canonical and startup-lazy without provisioning grants or writes', async () => {
+  let calls = 0; const deny: typeof fetch = async () => { calls++; throw new Error('No provider access'); };
+  for (const briefDestination of [{ paths: [] }, { paths: ['BRIEF.md'] },
+    { paths: ['items/0001-demo/BRIEF.md'], branch: 'main' },
+    { paths: ['items/0001-demo/BRIEF.md', 'items/0001-demo/BRIEF.md'] }]) {
+    await assert.rejects(createIdentityRuntime({ ...profile, briefDestination }, secrets, { github: deny, identity: deny }), /configuration could not be initialized/);
+  }
+  const runtime = await createIdentityRuntime({ ...profile, briefDestination: { paths: ['items/0001-demo/BRIEF.md'] } }, secrets, { github: deny, identity: deny });
+  try {
+    assert.equal((await runtime.fetch(new Request('https://steer.example/v1/tools/intent.brief.destination', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ organizationId: 'synthetic' }),
+    }))).status, 401);
+    assert.equal(runtime.status().database.connections, 0); assert.equal(calls, 0);
+  } finally { await runtime.shutdown(); }
+});
 const scheduler = { scope: { organizationId: 'synthetic', repository: 'github:1', itemId: scheduling.itemId },
   workflowId: 'steer-reconcile/v1/synthetic/github%3A1/intent%2F0040', limits: { maxRounds: 2, minIntervalMs: 1000 },
   start: async () => ({ workflowId: 'synthetic', outcome: 'unknown' }), inspect: async () => ({ workflowId: 'synthetic', outcome: 'unknown' }) };

@@ -115,6 +115,10 @@ Item [0146](intent/0146/README.md) checks complete finding continuity across sel
 native Critic reports. Even resolved findings cannot silently disappear; linked
 accounting does not prove resolution or clear a HOLD.
 
+Item [0148](intent/0148/README.md) adds authenticated read-only discovery of
+configured Brief destinations and the actual Git head. It is opt-in, shared by
+HTTP/MCP and does not enable saving or approve a gate.
+
 Item [0147](intent/0147/README.md) verifies selected signed runner evidence for
 native Critic reports alongside their history. It preserves HOLDs and does not
 install a real attestor, prove isolation or approve a gate.

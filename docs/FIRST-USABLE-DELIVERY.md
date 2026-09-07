@@ -279,6 +279,13 @@ expiry/revocation checks alongside domain runners. This is receipt verification,
 not approved runner configuration, isolation evidence, truthful findings or a
 passing gate. No real provider or writer is installed; see `intent/0147/EVIDENCE.md`.
 
+0148 development update: authenticated read-only destination/head discovery is
+implemented across the registry and HTTP/MCP, with opt-in identity-runtime
+composition using the existing Git reader. Actual native Git tests verify moving
+heads without write calls. UI consumption and real configuration remain; the
+observation is neither path availability nor write/gate authority. See
+`intent/0148/EVIDENCE.md`.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

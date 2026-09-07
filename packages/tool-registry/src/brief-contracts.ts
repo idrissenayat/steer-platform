@@ -1,4 +1,5 @@
 import { z } from 'zod';
+export * from './brief-destination.ts';
 import { briefDocumentSchema } from './brief-document.ts';
 import { readableBriefPathSchema } from './brief-paths.ts';
 export { canonicalBriefPathSchema, readableBriefPathSchema } from './brief-paths.ts';

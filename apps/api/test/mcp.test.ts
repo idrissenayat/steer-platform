@@ -5,6 +5,8 @@ import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/cli
 import { describeTools } from '@steer/tool-registry';
 import { createMcpEndpoint, mcpProtocolVersion } from '../src/mcp.ts';
 import { createApi } from '../src/app.ts';
+import { createGitHubReader } from '@steer/adapters/github';
+import { fixture as gitFixture, binding as gitBinding, now as gitNow } from '../../../packages/adapters/test/github-brief-fixture.ts';
 
 const origin = 'https://steer.test', now = new Date('2026-09-05T10:00:00Z');
 const principal = { subject: 'synthetic-agent', organizationId: 'org-a', type: 'agent', hats: [],
@@ -25,6 +27,44 @@ const toolError = (result: Awaited<ReturnType<Client['callTool']>>) => {
   assert.equal(result.isError, true); const first = result.content[0]; assert.equal(first?.type, 'text');
   return JSON.parse((first as { text: string }).text).error.code;
 };
+
+test('Brief destination observes real native Git heads through read-only GitHub adapter with HTTP/MCP parity', async (t) => {
+  const source = gitFixture(t), credentials: unknown[] = [];
+  const reader = createGitHubReader(gitBinding, { appJwt: async () => 'synthetic-app-jwt', now: () => gitNow,
+    fetch: async (url, init) => {
+      if (String(url).endsWith('/access_tokens')) credentials.push(JSON.parse(String(init?.body)));
+      return source.transport(url, init);
+    } });
+  let actor = { ...principal, organizationId: gitBinding.organizationId, hats: [], toolGrants: ['intent.brief.destination'],
+    expiresAt: new Date(gitNow.getTime() + 300000).toISOString() };
+  const destination = { organizationId: gitBinding.organizationId, repository: `github:${gitBinding.repositoryId}`,
+    branch: gitBinding.branch, paths: ['items/0148-demo/BRIEF.md'] };
+  const dependencies = { authenticate: async () => actor, now: () => gitNow,
+    services: { briefDestination: { scope: destination, readHead: () => reader.readHead() } } };
+  const endpoint = createMcpEndpoint(origin, dependencies), client = await connect(endpoint), api = createApi(dependencies);
+  const args = { organizationId: actor.organizationId };
+  const request = { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(args) };
+  try {
+    assert.equal((await client.listTools()).tools.find((tool) => tool.name === 'intent.brief.destination')?.annotations?.readOnlyHint, true);
+    for (let round = 0; round < 2; round++) {
+      if (round) source.add([{ path: 'synthetic.txt', content: 'Advance the native branch, not a projection.' }]);
+      const result = await client.callTool({ name: 'intent.brief.destination', arguments: args }); assert.ok(!result.isError);
+      const response = await api.request('/v1/tools/intent.brief.destination', request);
+      assert.equal(response.status, 200); assert.equal(response.headers.get('cache-control'), 'no-store');
+      const body = await response.json(); assert.deepEqual((result.structuredContent as { result: unknown }).result, body);
+      assert.deepEqual(body, { ...destination, kind: 'brief-destination-observation', observedHead: source.head(),
+        observedAt: gitNow.toISOString(), gateVerified: false, writeAuthorized: false });
+    }
+    assert.deepEqual(credentials, [{ repository_ids: [52], permissions: { contents: 'read' } }]);
+    assert.equal(source.mutations(), 0); assert.equal(source.approvals(), 0);
+    const reads = source.calls.length; actor = { ...actor, toolGrants: [] };
+    assert.equal(toolError(await client.callTool({ name: 'intent.brief.destination', arguments: args })), 'FORBIDDEN');
+    assert.equal((await api.request('/v1/tools/intent.brief.destination', request)).status, 403);
+    assert.equal(source.calls.length, reads);
+    const disabled = createApi({ ...dependencies, services: {}, authenticate: async () => ({ ...actor, toolGrants: ['intent.brief.destination'] }) });
+    assert.equal((await disabled.request('/v1/tools/intent.brief.destination', request)).status, 503);
+  } finally { await client.close(); await endpoint.shutdown(); }
+});
 
 test('human Brief preview has HTTP/MCP parity without enabling default access or agent confirmation', async () => {
   let actor = { ...principal, type: 'human', toolGrants: ['intent.brief.preview'] };
