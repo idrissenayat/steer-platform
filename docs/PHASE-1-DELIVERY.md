@@ -3788,3 +3788,20 @@ Synthetic issuer/receipt evidence does not establish that acceptance or live aut
 No protected artifact, frontend, dependency, schema, live profile/grant, provider access,
 deployment, release, spending or real-data deletion changed. All five R5 findings and
 independent/qualified review/human gates remain open.
+
+## Completed development increment: 0184 — Actual disposable Keycloak recovery
+
+The opt-in recovery suite now obtains actual tokens from separate disposable Keycloak
+recovery/projector service accounts and validates them through production OIDC and
+current native Git grants. It reuses the existing owned-runtime/Temporal/Git/SQL
+recovery scenario, including wrong/swapped tokens, human-hat/substitute-grant denial,
+post-receipt projector revocation before SQL, runtime reconstruction and one exact
+event. All generated resources and credentials remain separately owned and disposable.
+
+No production runtime logic changed. The new scenario still uses synthetic GitHub
+responses and receipt provenance; it is not the browser-created receipt integration.
+Next join recovery to that actual recorded receipt in the disposable authoring journey.
+Exact verification and the fixture-only array-typing correction are in
+`intent/0184/EVIDENCE.md`. No live profile/grant, protected artifact, frontend,
+dependency version, schema, provider access, deployment, release, spending or real
+data deletion changed. All five R5 findings and independent/qualified human gates stay open.

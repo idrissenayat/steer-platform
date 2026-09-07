@@ -12,6 +12,7 @@
     "test:identity:integration": "node test/keycloak.integration.ts",
     "test:auth:integration": "node test/keycloak.integration.ts --durable",
     "test:auth:browser": "node test/keycloak.integration.ts --browser",
+    "test:recovery:integration": "node test/keycloak.integration.ts --recovery",
     "test:destination:integration": "node --test test/destination-runtime.integration.ts",
     "test:brief:integration": "node --test test/brief-creation.integration.ts"
   },

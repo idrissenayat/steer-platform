@@ -13,13 +13,16 @@ import { testKeycloakHumanFlow } from './keycloak-human.integration.ts';
 import { createPostgresSessionHarness } from './postgres-session-harness.ts';
 import { createBrowserAuthHarness } from './browser-auth-harness.ts';
 import { testMcpKeycloak } from './mcp-keycloak.integration.ts';
+import { testKeycloakRecovery } from '../../worker/test/keycloak-recovery-harness.ts';
 
 // Deliberately separate from normal tests: requires Docker and OpenSSL, never real credentials.
 const image = 'quay.io/keycloak/keycloak@sha256:ff4257d0d64efbe99ed1ddfaf07765cc3c36dc7518bf8324d41961327f441c54';
 const exec = promisify(execFile);
 const browserMode = process.argv.slice(2).includes('--browser');
+const recoveryMode = process.argv.slice(2).includes('--recovery');
 const durable = browserMode || process.argv.slice(2).includes('--durable');
-assert.ok(process.argv.slice(2).every((argument) => ['--durable', '--browser'].includes(argument)), 'Unknown integration argument');
+assert.ok(process.argv.slice(2).every((argument) => ['--durable', '--browser', '--recovery'].includes(argument)), 'Unknown integration argument');
+assert.ok(!recoveryMode || !durable, 'Recovery and browser/session integration modes run separately');
 const docker = async (...args: string[]) => (await exec('docker', args, { timeout: 30000 })).stdout.trim();
 const name = `steer-0013-${randomUUID()}`;
 const temporary = await mkdtemp(join(tmpdir(), 'steer-0013-'));
@@ -27,6 +30,8 @@ const clientSecret = randomBytes(32).toString('hex');
 const subject = randomUUID();
 const projectorSubject = randomUUID();
 const projectorSecret = randomBytes(32).toString('hex');
+const recoverySubject = randomUUID();
+const recoverySecret = randomBytes(32).toString('hex');
 const humanSubject = randomUUID();
 const humanPassword = randomBytes(32).toString('hex');
 const humanClientSecret = randomBytes(32).toString('hex');
@@ -57,7 +62,8 @@ try {
     realm: 'steer-test', enabled: true, sslRequired: 'all', registrationAllowed: false,
     resetPasswordAllowed: false, accessTokenLifespan: 180,
     clients: [...[{ clientId: 'steer-test-agent', secret: clientSecret },
-      { clientId: 'steer-test-projector', secret: projectorSecret }].map(account => ({ ...account, enabled: true, protocol: 'openid-connect',
+      { clientId: 'steer-test-projector', secret: projectorSecret },
+      ...(recoveryMode ? [{ clientId: 'steer-test-recovery', secret: recoverySecret }] : [])].map(account => ({ ...account, enabled: true, protocol: 'openid-connect',
       publicClient: false, serviceAccountsEnabled: true,
       standardFlowEnabled: false, implicitFlowEnabled: false, directAccessGrantsEnabled: false,
       fullScopeAllowed: false, defaultClientScopes: [], optionalClientScopes: [],
@@ -86,6 +92,8 @@ try {
       serviceAccountClientId: 'steer-test-agent' },
       { id: projectorSubject, username: 'service-account-steer-test-projector', enabled: true,
         serviceAccountClientId: 'steer-test-projector' },
+      ...(recoveryMode ? [{ id: recoverySubject, username: 'service-account-steer-test-recovery', enabled: true,
+        serviceAccountClientId: 'steer-test-recovery' }] : []),
       { id: humanSubject, username: 'synthetic-human', enabled: true, email: 'synthetic@example.invalid',
         emailVerified: true, firstName: 'Synthetic', lastName: 'Tester', requiredActions: [],
         credentials: [{ type: 'password', value: humanPassword, temporary: false }] }],
@@ -224,6 +232,19 @@ try {
         assert.equal(response.status, 200); const token = await response.json(); assert.equal(typeof token.access_token, 'string'); return token.access_token as string;
       } } });
   else await testKeycloakHumanFlow({ ...humanDependencies, ...(durable ? { createSessions } : {}) });
+  if (recoveryMode) {
+    stage = 'disposable Keycloak recovery, Temporal and PostgreSQL setup';
+    const service = (accountSubject: string, clientId: string, secret: string) => ({ issuer, organizationId: 'synthetic-org', subject: accountSubject,
+      clientId, fetch: scopedFetch, issueBearer: async () => {
+        const response = await scopedFetch(`${issuer}/protocol/openid-connect/token`, {
+          method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ grant_type: 'client_credentials', client_id: clientId, client_secret: secret }).toString(),
+        });
+        assert.equal(response.status, 200); const token = await response.json(); assert.equal(typeof token.access_token, 'string'); return token.access_token as string;
+      } });
+    await testKeycloakRecovery({ projector: service(projectorSubject, 'steer-test-projector', projectorSecret),
+      recovery: service(recoverySubject, 'steer-test-recovery', recoverySecret) }, check);
+  }
   console.log(`Keycloak integration: ${passed} checks passed; server 26.7.3; no real user or provider credentials used.`);
 } catch {
   // Do not echo token responses, realm secrets or child-process arguments on failure.

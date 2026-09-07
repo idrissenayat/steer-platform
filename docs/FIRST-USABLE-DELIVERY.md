@@ -63,7 +63,7 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0183
+### Latest development audit — increment 0184
 
 The dependency-ordered current route is `docs/JOURNEY-REMAINING-WORK.md`.
 Increment 0174 adds an owned fixed-operation Temporal start/status client with
@@ -104,6 +104,11 @@ ownership. Signed synthetic recovery identity/current native Git grants now feed
 the actual runtime/Temporal/Git/PostgreSQL integration; projector identity stays
 separate. Actual Keycloak recovery and approved live configuration remain open.
 Exact verification is in `intent/0183/EVIDENCE.md`.
+0184 verifies this recovery path with actual disposable Keycloak recovery/projector
+accounts and current Git grants, including swapped tokens and post-receipt revocation.
+GitHub/receipt provenance remains synthetic in that isolated case. Joining recovery
+to the browser-created recorded receipt is next; no live activation follows from
+this result. Exact verification is in `intent/0184/EVIDENCE.md`.
 
 The production UI now supports deterministic describe/correct, exact local review,
 manual prior-operation status and opening the exact recorded Brief. Disposable

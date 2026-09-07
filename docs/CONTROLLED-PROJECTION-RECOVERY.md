@@ -98,10 +98,31 @@ separate. It checks grant substitution/revocation, queued runtime reconstruction
 duplicate admission and exact one-event ingestion. Results and provenance limits:
 `intent/0183/EVIDENCE.md`. This is not actual Keycloak recovery acceptance.
 
+## Actual disposable Keycloak — 0184
+
+`pnpm --filter @steer/api test:recovery:integration` runs an exclusive `--recovery`
+mode against the already pinned disposable Keycloak image. It adds a recovery-only
+service account with credentials and subject distinct from the projector, obtains
+real tokens over run-pinned HTTPS, and reuses production OIDC/current Git validation.
+No environment discovery, live credential fallback or real account installation.
+
+The same failed-run recovery test now covers actual provider-token substitution,
+human-hat/substitute-grant denial, projector revocation after receipt readback before
+SQL, runtime/connection reconstruction and exact one-event recovery. Current recovery
+revocation does not revoke the separate projector. Temporal, SQL and issuer ownership
+stay distinct, and cleanup targets only the run's generated resources. Exact results:
+`intent/0184/EVIDENCE.md`.
+
+This dedicated suite still uses synthetic GitHub responses and receipt provenance.
+It is not the browser-created operation's recorded-receipt demonstration; the normal
+Temporal regression suite retains its synthetic issuer mode. No production code
+path or live configuration was added by this test increment.
+
 ## Still to implement before use
 
-Bind an actual disposable Keycloak recovery service identity into the fixed-failed-run
-journey, followed by any required browser integration and approved live configuration.
-No live recovery is enabled by 0183. All five R5 findings and
+Join actual recovery identity to the browser-created operation's recorded receipt
+in the disposable authoring journey, preserving separate human/save/dispatch/recovery/
+projector boundaries. Approved live configuration remains independent.
+No live recovery is enabled by 0184. All five R5 findings and
 independent/qualified review/human gates remain open; recovery never grants save,
 signature, release or spending authority.

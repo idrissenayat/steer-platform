@@ -7,6 +7,9 @@ item one, are the framework's pilot evidence.
 
 ## Current delivery
 
+Item [0184](intent/0184/README.md) verifies recovery with actual disposable Keycloak
+service accounts, current Git grants and local Temporal/PostgreSQL. No live grants changed.
+
 Item [0183](intent/0183/README.md) composes recovery into the authenticated runtime
 with an exact optional profile and separately owned connection. Live recovery stays disabled.
 

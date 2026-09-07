@@ -20,10 +20,10 @@ import { workflowId } from '../src/contracts.ts';
 import { startProcessWorker } from './process-harness.ts';
 import { testRecordedBriefWorkflow } from './recorded-brief.integration.ts';
 import { testCreatedBriefWorkflow } from './created-brief.integration.ts';
-import { testRecordedBriefRecovery } from './recorded-recovery.integration.ts';
+import { testRecordedBriefRecovery, type RecoveryProviderIdentities } from './recorded-recovery.integration.ts';
 
 export async function testProjectedWorkflow(env: TestWorkflowEnvironment, bundle: WorkflowBundle, temporary: string,
-  check: (name: string, run: () => Promise<void>) => Promise<void>) {
+  check: (name: string, run: () => Promise<void>) => Promise<void>, recoveryIdentity?: RecoveryProviderIdentities) {
   const exec = promisify(execFile); const docker = async (...args: string[]) => (await exec('docker', args, { timeout: 30000 })).stdout.trim();
   const name = `steer-0037-${randomUUID()}`, password = randomBytes(24).toString('hex');
   let container: string | undefined, admin: Pool | undefined;
@@ -53,6 +53,10 @@ export async function testProjectedWorkflow(env: TestWorkflowEnvironment, bundle
     admin = new Pool({ host: database.host, port: database.port, database: database.database, user: 'postgres', password, max: 1, connectionTimeoutMillis: 5000, statement_timeout: 5000 });
     for (const role of ['steer_app', 'steer_projector', 'steer_auth_runtime']) await admin.query(`CREATE ROLE ${role} LOGIN PASSWORD '${password}' NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS`);
     await migrate(drizzle(admin), { migrationsFolder: fileURLToPath(new URL('../migrations/', import.meta.resolve('@steer/data'))) });
+    if (recoveryIdentity) {
+      await testRecordedBriefRecovery(env, bundle, database, password, admin, check, recoveryIdentity);
+      return;
+    }
     const options = { scope, database, selector: { paths: [source.artifactPath, source.secondArtifactPath] } };
     const start = async (itemId = scope.itemId) => {
       runtime = await createWorkerProjectionRuntime({ ...options, scope: { ...scope, itemId } }, { databasePassword: password }, { reader: source.reader, authenticate });

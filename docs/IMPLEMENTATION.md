@@ -2044,3 +2044,23 @@ Exact verification: `intent/0183/EVIDENCE.md`.
 The issuer/provider transports and receipt provenance remain synthetic. Actual
 disposable Keycloak recovery is next; no live profile/grant, provider access, protected
 artifact or gate status changes. All five R5 findings remain open.
+
+## Increment 0184 — Actual disposable Keycloak recovery
+
+The dedicated `test:recovery:integration` command adds an exclusive opt-in Keycloak
+mode. It creates a separate recovery service account only inside that run's realm
+and obtains real recovery/projector tokens over run-pinned HTTPS. The shared recorded
+fixture accepts explicit disposable issuer inputs while retaining its default
+synthetic issuer. No production runtime or authorization bypass changed.
+
+The existing recovery scenario now runs with actual Keycloak/current native Git
+authorization, owned API/Temporal connections and migrated PostgreSQL. It checks
+swapped/invalid tokens, agent human-hat and substitute-grant denial, post-receipt
+projector revocation before SQL, separate recovery revocation, reconstruction and
+one exact event. The original FAILED run and retained duplicate protection remain
+intact. The disposable harness closes only its own containers, generated credentials,
+database and Temporal resources. Exact results: `intent/0184/EVIDENCE.md`.
+
+The joined case still has synthetic GitHub responses and receipt provenance. Next
+connect it to the actual recorded receipt from the disposable browser-created journey.
+No live grant/profile, protected artifact, frontend or gate status changed.

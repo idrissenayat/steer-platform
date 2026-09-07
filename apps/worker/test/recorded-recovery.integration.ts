@@ -8,7 +8,7 @@ import { createGitHubReader, createAppJwtSigner } from '@steer/adapters/github';
 import { createGitAuthorizationResolver } from '@steer/adapters/authorization';
 import { createOidcAuthenticator } from '@steer/adapters/identity';
 import { projectionKey } from '@steer/data/ingestion';
-import { recordedRuntimeFixture } from '../../api/test/recorded-runtime-fixture.ts';
+import { recordedRuntimeFixture, type DisposableRecordedIdentity } from '../../api/test/recorded-runtime-fixture.ts';
 import { createIdentityRuntime } from '../../api/src/runtime.ts';
 import { createWorkerRecordedBriefRuntime, createWorkerRecordedBriefRecoveryRuntime } from '../src/runtime.ts';
 import { createRecordedBriefWorker, createRecordedBriefRecoveryWorker } from '../src/worker.ts';
@@ -21,10 +21,15 @@ function historyText(value: unknown): string {
   if (value && typeof value === 'object') return Object.values(value).map(historyText).join('\n');
   return typeof value === 'string' ? value : '';
 }
-/** Real local Temporal/Git/SQL. Receipt provenance and issuer transports are synthetic. */
+export interface RecoveryProviderIdentities { projector: DisposableRecordedIdentity; recovery: DisposableRecordedIdentity }
+/** Real local Temporal/Git/SQL. Receipt provenance is synthetic; issuer may be explicitly disposable. */
 export async function testRecordedBriefRecovery(env: TestWorkflowEnvironment, bundle: WorkflowBundle,
-  database: unknown, password: string, admin: Pool, check: (name: string, run: () => Promise<void>) => Promise<void>) {
-  for (const [index, mode] of ['before-sql', 'after-sql', 'owned-lost-ack', 'authenticated-runtime'].entries()) {
+  database: unknown, password: string, admin: Pool, check: (name: string, run: () => Promise<void>) => Promise<void>, provider?: RecoveryProviderIdentities) {
+  if (provider) {
+    assert.notEqual(provider.projector.subject, provider.recovery.subject); assert.notEqual(provider.projector.clientId, provider.recovery.clientId);
+    assert.equal(provider.projector.issuer, provider.recovery.issuer); assert.equal(provider.projector.organizationId, provider.recovery.organizationId);
+  }
+  for (const [index, mode] of (provider ? ['keycloak-runtime'] : ['before-sql', 'after-sql', 'owned-lost-ack', 'authenticated-runtime']).entries()) {
     const cleanup: (() => void)[] = [];
     let original: Awaited<ReturnType<typeof createWorkerRecordedBriefRuntime>> | undefined;
     let recovery: Awaited<ReturnType<typeof createWorkerRecordedBriefRecoveryRuntime>> | undefined;
@@ -35,7 +40,7 @@ export async function testRecordedBriefRecovery(env: TestWorkflowEnvironment, bu
     const stop = async () => { try { if (worker) { worker.shutdown(); await running; } } finally { worker = undefined; running = undefined; } };
     try {
       const f = await recordedRuntimeFixture({ after: fn => { cleanup.push(fn); } }, { selection: {
-        itemId: `items/0181-${mode}`, idempotencyKey: `18100000-0000-4000-8000-${String(index + 1).padStart(12, '0')}` } });
+        itemId: `items/0181-${mode}`, idempotencyKey: `18100000-0000-4000-8000-${String(index + 1).padStart(12, '0')}` }, ...(provider ? { identity: provider.projector } : {}) });
       const grant = { ...f.grant, toolGrants: ['projection.ingest'] }; f.publish(grant);
       const path = `${f.target.scope.itemId}/BRIEF.md`, subject = 'synthetic-recovery-receipt-human';
       const revision = f.source.add([{ path, content: `# Brief\n\nSynthetic recovery ${mode} café.\n` }]);
@@ -44,9 +49,10 @@ export async function testRecordedBriefRecovery(env: TestWorkflowEnvironment, bu
       const verify = createOidcAuthenticator({ issuer: f.profile.browser.issuer, jwksUri: f.profile.browser.jwksUri,
         audience: f.profile.browser.audience, clientIds: [f.profile.browser.clientId] },
       { fetch: f.ports.identity, resolveAuthorization: createGitAuthorizationResolver(reader, f.profile.github.authorizationPath) });
-      let reads = 0;
-      const ports = { reader, authenticate: () => verify(f.request('status')), readReceipt: async () => {
-        reads++; return { gateSigned: false, result: { organizationId: f.target.scope.organizationId, repository: f.target.scope.repository,
+      let reads = 0, revokeAfterReceipt = false; let projectorBearer: string | undefined;
+      const ports = { reader, authenticate: () => verify(f.request('status', undefined, projectorBearer)), readReceipt: async () => {
+        reads++; if (revokeAfterReceipt) f.publish({ ...grant, active: false });
+        return { gateSigned: false, result: { organizationId: f.target.scope.organizationId, repository: f.target.scope.repository,
           branch: reader.binding.branch, path, subject, idempotencyKey: f.target.idempotencyKey, outcome: 'committed', expectedHead: revision,
           revision, requestDigest: 'c'.repeat(64), contentDigest: snapshot.contentDigest, blobSha: snapshot.blobSha } };
       } };
@@ -70,11 +76,12 @@ export async function testRecordedBriefRecovery(env: TestWorkflowEnvironment, bu
         const plan = { target: f.target, failedRunId }, configuration = { namespace: 'default', sourceTaskQueue, taskQueue, plan };
         const before = reads;
         await assert.rejects(startRecordedBriefRecovery(env.client, { ...configuration, plan: { ...plan, failedRunId: '18100000-0000-4000-8000-000000000099' } }));
-        if (mode === 'authenticated-runtime') {
+        if (mode === 'authenticated-runtime' || provider) {
           const recoverer = await recordedRuntimeFixture({ after: fn => { cleanup.push(fn); } }, {
             source: f.source, selection: { itemId: f.target.scope.itemId, idempotencyKey: f.target.idempotencyKey },
             actor: { subject: 'synthetic-separate-recovery-agent', authorizationPath: 'access/recovery.json',
               toolGrants: ['workflow.recorded-brief.recover', 'workflow.recorded-brief.recovery.status'] },
+            ...(provider ? { identity: provider.recovery } : {}),
           });
           assert.notEqual(recoverer.grant.subject, grant.subject);
           const { recordedScheduling, ...base } = recoverer.profile;
@@ -91,6 +98,12 @@ export async function testRecordedBriefRecovery(env: TestWorkflowEnvironment, bu
           assert.equal(identity!.status().database.connections, 0);
           const request = (name: 'recover' | 'recovery.status', body: unknown = input) => identity!.fetch(recoverer.request(name, body));
           const absent = await request('recovery.status'); assert.equal(absent.status, 200); assert.equal((await absent.json()).outcome, 'not-found');
+          if (provider) {
+            const swapped = await identity!.fetch(recoverer.request('recover', input, await provider.projector.issueBearer()));
+            assert.equal(swapped.status, 401); assert.equal(managed!.status().attempted, false);
+            recoverer.publish({ ...recoverer.grant, hats: ['product-lead'] });
+            assert.equal((await request('recover')).status, 401); recoverer.publish();
+          }
           assert.equal((await request('recover', { ...input, failedRunId: '18300000-0000-4000-8000-000000000099' })).status, 403);
           for (const toolGrants of [['projection.ingest'], ['workflow.recorded-brief.start', 'workflow.recorded-brief.status']]) {
             recoverer.publish({ ...recoverer.grant, toolGrants });
@@ -141,6 +154,19 @@ export async function testRecordedBriefRecovery(env: TestWorkflowEnvironment, bu
         const parent = createRecordedBriefFailedParentGuard(env.client, { namespace: 'default', taskQueue: sourceTaskQueue, plan });
         const configure = async () => { recovery = await createWorkerRecordedBriefRecoveryRuntime({ plan, database, source }, { databasePassword: password }, { ...ports, parent }); };
         await configure(); await recovery!.shutdown(); await configure(); assert.equal(reads, before);
+        if (provider) {
+          for (const bearer of ['invalid-token', await provider.recovery.issueBearer()]) {
+            projectorBearer = bearer; await assert.rejects(recovery!.activities.recoverRecordedBrief(plan));
+            assert.equal(reads, before); assert.equal(recovery!.status().database.connections, 0);
+          }
+          projectorBearer = undefined;
+          f.publish({ ...grant, toolGrants: ['workflow.recorded-brief.recover'] });
+          await assert.rejects(recovery!.activities.recoverRecordedBrief(plan)); assert.equal(reads, before);
+          f.publish(grant); revokeAfterReceipt = true;
+          await assert.rejects(recovery!.activities.recoverRecordedBrief(plan));
+          assert.equal(reads, before + 1); assert.equal(await events(), 0); assert.equal(recovery!.status().database.connections, 0);
+          revokeAfterReceipt = false; f.publish(grant);
+        }
         worker = await createRecordedBriefRecoveryWorker({ connection: env.nativeConnection, namespace: 'default', taskQueue, workflowBundle: bundle }, recovery!.activities);
         running = worker.run();
         assert.deepEqual(await handle.result(), { revision, status: 'observed', outcome: mode === 'after-sql' ? 'duplicate' : 'applied' });

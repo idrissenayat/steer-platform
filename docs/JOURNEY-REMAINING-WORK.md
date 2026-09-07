@@ -1,7 +1,7 @@
 # Remaining first-journey implementation
 
 Code audit on 2026-09-07 against `e320d6e86affd556103dcf9c273daf23dc6695d5`,
-plus increments 0174–0183's owned clients, shared authorization, optional dispatch/recovery runtimes
+plus increments 0174–0184's owned clients, shared authorization, optional dispatch/recovery runtimes
 and joined isolated identity/receipt/projection integration. This is execution planning, not a new
 architecture, signed-scope reduction or gate decision. It supersedes historical
 "next" statements only for sequencing; numbered evidence remains historical.
@@ -22,7 +22,7 @@ source, not verified business lifecycle facts.
 | Package | Existing implementation | Remaining work and observable exit |
 | --- | --- | --- |
 | J1: governed save authority | Held writer, gate-policy collector, GitHub writer factory and identity runtime | Incorporate authorized selection/trust/review-provenance bindings and complete action-time authority. Missing, changed or revoked evidence denies the exact write; a complete approved profile requires independent review. The existing held surface must keep denying, not gain a success switch. |
-| J2: save-to-projection dispatch | Native Git operation store, fixed recorded worker, owned client, shared grants/runtime and joined disposable identities; 0181–0183 add fixed-failed-run recovery, separate grants/client and optional authenticated runtime | Add actual disposable Keycloak recovery identity integration; normal start must not become retry. Complete approved dispatch/receipt/path ownership and actual identity integration. Keep dispatch, recovery, human save and projector authority separate. Confirm approved operations survive uncertainty once at the exact revision without another save or rewind. |
+| J2: save-to-projection dispatch | Native Git operation store, fixed recorded worker, owned client, shared grants/runtime and joined disposable identities; 0181–0184 add fixed-failed-run recovery, separate grants/client/runtime and actual disposable Keycloak recovery | Join recovery to the browser-created operation's actual recorded receipt; normal start must not become retry. Complete approved dispatch/receipt/path ownership and live identity configuration. Keep dispatch, recovery, human save and projector authority separate. Confirm approved operations survive uncertainty once at the exact revision without another save or rewind. |
 | J3: authenticated operating projections | Curated catalog/Brief readers, source preview, snapshot/change consumer and domain read model | Implement authoritative lifecycle/decision inputs, then connect backlog, Flight Board and Inbox in Next. Verify revision/reset/reconnect and tenant denials. Source-claimed signatures cannot create a verified stage. The current production page still labels these surfaces not connected. |
 | J4: actionable revision-bound review | Current-authorized Brief → decision → curated evidence reads | Complete authenticated proof composition and separately authorized actions. Recheck selected decision, exact source, qualified current human and applicable gate at action time. Literal recorded claims remain distinct from verified approvals. |
 | J5: agent conversation | Deterministic Brief author/interview and shared registry | Add the signed architecture's Mastra/AI SDK conversation and portable model seam, streaming correction, scoped tools and usage controls. Preserve exact human confirmation; agents never sign gates. No model-backed conversation is currently mounted. Actual calls require separate provider/access/spending prerequisites. |
@@ -47,8 +47,10 @@ parent/projector guards; it does not restart the original or enable public recov
 0182 adds the separate current recovery/status boundary and owned uncertain-acknowledgment
 client. 0183 adds its explicit optional runtime profile/factory and joins signed
 synthetic recovery identity/current native Git grants to actual Temporal/Git/SQL.
-Next bind an actual disposable Keycloak recovery identity into that same fixed-failed-run
-journey. Preserve exact operation,
+0184 verifies this fixed-failed-run path with actual disposable Keycloak recovery and
+projector identities; receipt provenance remains synthetic in that isolated case.
+Next join recovery to the browser-created operation's actual recorded receipt in the
+disposable authoring journey. Preserve exact operation,
 failed-run identity and idempotent readback rather than inventing another save or
 weakening normal duplicate rejection. Approved live configuration remains separate. Do not
 invent automatic path admission from a browser response or turn test grants into
