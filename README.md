@@ -179,6 +179,11 @@ Temporal worker, queued-runtime reconstruction, history replay and exact project
 Brief reads. The browser's current status request stays outside workflow history;
 no live dispatcher or authority is installed.
 
+Item [0169](intent/0169/README.md) connects the held policy-source collector to the
+identity runtime with separate observer and request-bound human identities. Internal
+diagnostics remain historical and non-authorizing; satisfied policy still cannot save.
+See [the held runtime boundary](docs/HELD-BRIEF-RUNTIME.md). No live binding is enabled.
+
 Item [0153](intent/0153/README.md) adds bounded, merge-aware Critic target ancestry
 against the configured Git reader, without upgrading review selection or gate authority.
 

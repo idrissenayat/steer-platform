@@ -80,3 +80,11 @@ Increment 0037 shares projection-job authorization, overlap and shutdown logic
 with the worker through an adapter, preserving the API one-shot profile/status.
 It adds final same-subject reauthorization before returning reconciliation
 results. See `docs/WORKER-PROJECTION-RUNTIME.md`; no default startup changes.
+
+Increment 0169 adds optional `heldBrief` writer/policy-source configuration paired
+with a separate trusted `authenticateGateObserver` dependency. Request-bound human
+identity remains owned by the existing service. The held factory denies every write;
+internal status may retain only a historical, immutable source assessment under
+explicitly false gate/write flags. It is not current readiness or an approval lease.
+Shutdown clears diagnostics and drains owned request collectors. No live binding or
+public diagnostic route is installed. See `docs/HELD-BRIEF-RUNTIME.md`.

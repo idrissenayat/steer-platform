@@ -2,6 +2,11 @@ import { createGitHubReader, CodeHostError, type GitHubBinding } from './github.
 import { githubBriefConfigurationSchema } from './github-brief-store.ts';
 import { createGitHubBriefWriterFactory } from './github-brief-writer-factory.ts';
 import { createGitGatePolicyCollector, gitGatePolicyConfigurationSchema } from './gate-policy.ts';
+import { z } from 'zod';
+
+export const heldGitBriefConfigurationSchema = z.strictObject({
+  writer: githubBriefConfigurationSchema, policy: gitGatePolicyConfigurationSchema,
+});
 
 type MissingEvidence = 'policy-blocked' | 'governed-selection-unverified' | 'review-provenance-unverified' | 'action-time-authority-incomplete';
 export interface HeldBriefAssessment {

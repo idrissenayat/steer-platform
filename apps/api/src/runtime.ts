@@ -13,6 +13,7 @@ import { createProjectionSnapshotReader } from '@steer/data/projection-snapshot'
 import { createProjectionJob, createRecordedBriefProjectionJob } from '@steer/adapters/projection-job';
 import { ingestVerifiedArtifact, projectionKey } from '@steer/data/ingestion';
 import { readProjection } from '@steer/data';
+import { createHeldGitBriefWriterFactory, heldGitBriefConfigurationSchema, type HeldBriefAssessment } from '@steer/adapters/held-brief-writer';
 
 const text = z.string().min(1);
 const databaseSchema = z.strictObject({ host: text, port: z.number(), database: text,
@@ -23,6 +24,8 @@ export interface IdentityRuntimeDependencies {
   identity?: typeof fetch; github?: typeof fetch;
   /** Explicit factory transfers ownership on success; it must clean any allocation if it rejects. */
   createScheduler?: () => Promise<ManagedRuntimeScheduler>;
+  /** Separate current agent identity, required only for an explicitly HELD source collector. */
+  authenticateGateObserver?: () => Promise<unknown>;
 }
 const schedulingSchema = z.strictObject({ itemId: reconciliationScopeSchema.shape.itemId,
   maxRounds: z.number().int().min(1).max(100), minIntervalMs: z.number().int().min(1000).max(86400000) });
@@ -38,6 +41,7 @@ const profileSchema = z.strictObject({
   mcp: z.strictObject({ clientIds: z.array(z.string().min(1).max(200)).min(1).max(100).refine((ids) => new Set(ids).size === ids.length) }).optional(),
   scheduling: schedulingSchema.optional(),
   briefDestination: briefDestinationScopeSchema.pick({ paths: true }).optional(),
+  heldBrief: heldGitBriefConfigurationSchema.optional(),
   sessionKeyId: text,
 });
 const secretsSchema = z.strictObject({ browserClientSecret: text, githubPrivateKeyPem: text,
@@ -161,6 +165,7 @@ export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unk
   const pools: ReturnType<typeof createRuntimePool>[] = [];
   let managedScheduler: ManagedRuntimeScheduler | undefined;
   let stopOwned: Promise<void> | undefined;
+  let heldAssessment: HeldBriefAssessment | null = null, holdStopping = false;
   const shutdownPools = async () => {
     return stopOwned ??= (async () => {
       const results = await Promise.allSettled([
@@ -174,10 +179,17 @@ export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unk
     const profile = profileSchema.parse(rawProfile); const secrets = secretsSchema.parse(rawSecrets);
     if (Boolean(profile.readModel) !== Boolean(secrets.readModelDatabasePassword)) throw new Error('Incomplete read-model binding.');
     if (Boolean(profile.scheduling) !== Boolean(transports.createScheduler)) throw new Error('Incomplete scheduler binding.');
+    if (Boolean(profile.heldBrief) !== Boolean(transports.authenticateGateObserver) ||
+      (transports.authenticateGateObserver !== undefined && typeof transports.authenticateGateObserver !== 'function')) throw new Error('Incomplete held observer binding.');
+    const appJwt = createAppJwtSigner(profile.github.appId, secrets.githubPrivateKeyPem);
     const reader = createGitHubReader(profile.github.binding, {
-      appJwt: createAppJwtSigner(profile.github.appId, secrets.githubPrivateKeyPem),
+      appJwt,
       ...(transports.github ? { fetch: transports.github } : {}),
     });
+    const heldFactory = profile.heldBrief ? createHeldGitBriefWriterFactory(profile.github.binding, profile.heldBrief.writer, profile.heldBrief.policy, {
+      issuer: profile.browser.issuer, authorizationPath: profile.github.authorizationPath, appJwt,
+      fetch: transports.github ?? globalThis.fetch, authenticateObserver: transports.authenticateGateObserver!,
+    }) : undefined;
     const destinationScope = profile.briefDestination ? briefDestinationScopeSchema.parse({
       organizationId: reader.binding.organizationId, repository: `github:${reader.binding.repositoryId}`,
       branch: reader.binding.branch, paths: profile.briefDestination.paths,
@@ -209,6 +221,18 @@ export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unk
     const service = createIdentityService({ ...profile.browser, clientSecret: secrets.browserClientSecret }, {
       reader, authorizationPath: profile.github.authorizationPath,
       sessions: { binding, store, shutdown: shutdownPools },
+      ...(heldFactory ? { createBriefWriter: (authenticate: Parameters<typeof heldFactory>[0]) => {
+        const writer = heldFactory(authenticate);
+        return { ...writer,
+          inspect: (...args: Parameters<typeof writer.inspect>) => { heldAssessment = null; return writer.inspect(...args); },
+          verifyWriteAuthority: async (...args: Parameters<typeof writer.verifyWriteAuthority>) => {
+            heldAssessment = null;
+            try { return await writer.verifyWriteAuthority(...args); }
+            finally { if (!holdStopping) heldAssessment = writer.assessment(); }
+          },
+          compareAndCreate: (...args: Parameters<typeof writer.compareAndCreate>) => { heldAssessment = null; return writer.compareAndCreate(...args); },
+        };
+      } } : {}),
       ...(profile.mcp ? { mcp: profile.mcp } : {}),
       ...((artifactProjection || managedScheduler || profile.briefDestination) ? { services: {
         ...(destinationScope ? { briefDestination: { scope: Object.freeze({ ...destinationScope,
@@ -220,8 +244,11 @@ export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unk
       } } : {}),
       ...(transports.identity ? { fetch: transports.identity } : {}),
     });
-    return { fetch: service.fetch, shutdown: service.shutdown,
-      status: () => ({ ...service.status(), database: ownedPool.status(), ...(readPool ? { readModel: readPool.status() } : {}) }) };
+    return { fetch: service.fetch, shutdown: () => { holdStopping = true; heldAssessment = null; return service.shutdown(); },
+      status: () => ({ ...service.status(), database: ownedPool.status(), ...(readPool ? { readModel: readPool.status() } : {}),
+        ...(heldFactory ? { heldBrief: { writeAuthorized: false as const, gateVerified: false as const,
+          // Historical internal diagnostic only; never a current readiness/authority lease.
+          lastAssessment: heldAssessment } } : {}) }) };
   } catch {
     // Startup creates no listener. Dispose any allocated lazy pool before rejecting.
     try { await shutdownPools(); }

@@ -63,7 +63,7 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0168
+### Latest development audit — increment 0169
 
 The production UI now supports deterministic describe/correct, exact local review,
 manual prior-operation status and opening the exact recorded Brief. Disposable
@@ -128,9 +128,14 @@ separate outstanding dependencies. No live writer/scheduler, deployment or spend
 is authorized by this audit. The server-owned `STEER_WEB_BRIEF_SUBMISSION` display
 switch is used only in an owned disposable browser-test process. It does not grant
 authority or install an API writer. No live environment has been enabled.
-Next audit and connect the held governed source/policy assessment to the real runtime
-without turning an observation into write authority. Any indispensable trust roots,
-qualified evidence or human decisions must remain explicit, not simulated as approvals.
+The held source/policy assessment is now an optional configured runtime composition
+with explicit separate observer identity and request-bound human identity. Its internal
+last-assessment diagnostic remains historical; every authority/mutation path stays
+denied, even when normalized policy is satisfied. The focused proof uses signed
+synthetic OIDC/App JWTs and native Git, not a real-person or Keycloak held-profile demo.
+Next resolve the remaining governed-selection and review-provenance composition
+against explicit trusted roots and current source evidence. Indispensable trust roots,
+qualified evidence and human decisions must stay explicit, not simulated as approvals.
 Keep real saving and live scheduling disabled; never derive permission from a local
 checkbox or an inspected decision record. See `docs/BRIEF-SUBMISSION.md` for recovery
 limits: no browser persistence or automatic retry, and the original operation ID

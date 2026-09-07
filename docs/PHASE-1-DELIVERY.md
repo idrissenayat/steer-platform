@@ -3415,3 +3415,33 @@ projections, independent/qualified protected review and human signatures remain 
 No live writer/scheduler, provider grants, real-record deletion, spending, deployment,
 release, dependency or schema changes occurred. The standing implementation loop
 remains active; exact remote equality is checked after the candidate push.
+
+## Completed development increment: 0169 — Held governance in the identity runtime
+
+The optional strict held profile now connects the existing source-policy collector
+and denied-write factory to request-bound human context in the identity runtime.
+Separate current agent-observer identity is required. Internal diagnostics retain
+only the last immutable assessment under explicitly false gate/write flags; they
+are historical, not a current readiness query or authority lease. New source work
+clears them and shutdown clears/suppresses late results while admitted requests drain.
+
+Four focused runtime tests passed using actual OIDC/App JWT signatures, native Git
+current membership and signer crypto. Both satisfied and blocked policy deny saving
+without a write token or Git mutation. Startup, status, revoked observer/source and
+pending-shutdown cases pass. The actual creation regression passed three groups;
+the Temporal integration passed all 25 checks. Full checks passed with 438 repository
+controls, 99 registry, 24 data, 61 web, 283 adapter, 95 API and 23 worker tests, remaining
+workspaces and all builds. The final actual Keycloak/Chromium suite passed 43 checks,
+including browser creation through the durable worker. See `intent/0169/EVIDENCE.md`.
+No frontend or live configuration changed.
+
+Next resolve governed evidence selection and review provenance against explicit trusted
+roots/current source evidence. Keep every missing trust-root, qualification or human
+decision explicit; source observations cannot stand in for those approvals. The held
+profile itself is not live activation and cannot bypass these requirements.
+
+All five R5 findings, full action-time authority, model conversation, authenticated
+lifecycle/decision projections, independent/qualified protected review and human
+signatures remain open. No provider grant, spending, deployment, release, real-record
+deletion, schema or new dependency was introduced. The standing implementation loop
+remains active, with exact remote equality verified after the candidate push.

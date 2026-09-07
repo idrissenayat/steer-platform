@@ -1754,3 +1754,27 @@ See `intent/0168/EVIDENCE.md`. Next connect the existing held source/policy asse
 to runtime diagnostics without enabling saving or promoting unverified evidence.
 All five R5 findings, full governed authority, model conversation, independent/qualified
 protected review and human signatures remain open.
+
+## 0169 — Held policy collection in configured identity runtime
+
+An optional strict `heldBrief` profile binds the existing writer/policy configuration
+and requires a separate current `authenticateGateObserver` callback. The identity
+service supplies request-bound human context to the actual held factory, which still
+denies every authority and mutation method and cannot request a write token. Invalid
+scope/platform/decision configuration rejects before provider or database I/O.
+
+Internal status exposes only the last immutable diagnostic under permanently false
+write/gate flags. It is historical, not current readiness or a cached authority lease.
+Writer inspection/assessment clears it; shutdown clears it immediately and suppresses
+late repopulation while admitted collectors drain. No public tool, UI, signature,
+persistent diagnostic store or live binding is installed.
+
+The native policy-chain fixture is shared with existing adapter tests. Focused API
+tests exercise actual signed OIDC and GitHub App JWT verification, native Git
+membership and signer crypto through the production runtime, with explicit synthetic
+JWKS/provider ports. The bearer journey leaves browser storage lazy; it does not
+claim a real-person/Keycloak held-profile flow or qualified independent evidence.
+
+See `docs/HELD-BRIEF-RUNTIME.md` and `intent/0169/EVIDENCE.md`. Full governed selection,
+review provenance/action-time authority, all five R5 findings, model conversation,
+qualified/independent protected review and human signatures remain open.
