@@ -33,6 +33,13 @@ export interface ArtifactInventory {
 }
 export interface RepositoryReader extends ArtifactReader {
   readInventory(selection: ArtifactSelection, revision: string): Promise<ArtifactInventory>;
+  readCommit?(revision: string): Promise<CommitSnapshot>;
+}
+export interface CommitSnapshot {
+  organizationId: string;
+  repositoryId: number;
+  revision: string;
+  parents: string[];
 }
 export class CodeHostError extends Error {
   constructor() { super('The configured code-host source could not be verified.'); }
@@ -123,6 +130,14 @@ export function createGitHubReader(rawBinding: GitHubBinding, dependencies: {
   };
   return {
     binding,
+    readCommit: (revision: string) => safely(async () => {
+      sha.parse(revision);
+      const commit = z.object({ sha, parents: z.array(z.object({ sha })).max(16) }).parse(
+        await request(`${repoPath}/git/commits/${revision}`, await token()));
+      const parents = commit.parents.map(parent => parent.sha);
+      if (commit.sha !== revision || parents.includes(revision) || new Set(parents).size !== parents.length) throw new CodeHostError();
+      return { organizationId: binding.organizationId, repositoryId: binding.repositoryId, revision, parents };
+    }),
     readHead: () => safely(async () => {
       const result = z.object({ ref: z.string(), object: z.object({ type: z.literal('commit'), sha }) }).parse(
         await request(`${repoPath}/git/ref/heads/${binding.branch.split('/').map(encodeURIComponent).join('/')}`, await token()));

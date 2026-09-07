@@ -313,6 +313,13 @@ grant denial/restoration, real display expiry and unsaved draft preservation.
 GitHub HTTP remains a read-only native Git fixture; this does not authorize saving
 or close the remaining findings. Validation is recorded in `intent/0152/EVIDENCE.md`.
 
+0153 development update: selected Critic histories can opt into bounded, merge-aware
+target ancestry through the current source head. The configured Git reader supplies
+parent edges; missing or unrelated paths cannot count as successful evidence. This
+does not choose authoritative history, verify findings or clear a HOLD. Governed
+selection, approved bindings and full write authority remain unfinished. See
+`intent/0153/EVIDENCE.md` for validation and limits.
+
 | Obligation | Relation to this journey | Boundary |
 |---|---|---|
 | R5-001 lifecycle | Retention, holds, complete copy evidence and provenance remain required for stored records. Items 0117–0120 build offline provenance prerequisites; retained retirement archive and full composition are still missing. | Does not block stateless preview development. Remains part of the open Gate 2/live-use and release package. |

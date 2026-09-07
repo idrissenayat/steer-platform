@@ -10,6 +10,7 @@ import { normalizeGateCritic } from './gate-critic.ts';
 import { verifyDomainReviewRunnerAttestation } from '../identity/gate-review-proof.ts';
 import { nativeCriticHistoryReferenceSchema, verifyNativeCriticHistory } from './gate-critic-history.ts';
 import { verifyCriticRunnerAttestation } from '../identity/gate-critic-proof.ts';
+import { collectGateReviewAncestry, gateAncestryLimitsSchema } from './gate-ancestry.ts';
 
 const targetSchema = gatePolicyInputSchema.shape.target.omit({ decisionDigest: true });
 const digest = gatePolicyInputSchema.shape.target.shape.decisionDigest;
@@ -18,7 +19,8 @@ const taskIdentity = z.string().min(1).max(200).refine(value => value === value.
 const nativeCriticRef = ref.extend({ format: z.literal('steer-critic-review/v1'),
   reviewerProvider: taskIdentity, reviewerTask: taskIdentity, builderTask: taskIdentity,
   runner: z.strictObject({ trust: ref, proof: ref, executionId: taskIdentity, builderExecutionId: taskIdentity, configurationRevision: taskIdentity }).optional(),
-  history: z.array(nativeCriticHistoryReferenceSchema).min(1).max(15).optional() });
+  history: z.array(nativeCriticHistoryReferenceSchema).min(1).max(15).optional(),
+  ancestry: gateAncestryLimitsSchema.optional() });
 const nativeReviewRef = ref.extend({ format: z.literal('steer-domain-review-record/v1'),
   domain: gatePolicyInputSchema.shape.policy.shape.activatedDomains.element, examPath: artifactProjectionInputSchema.shape.path,
   runner: z.strictObject({ trust: ref, proof: ref, executionId: taskIdentity, builderExecutionId: taskIdentity }).optional(),
@@ -66,6 +68,8 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
       source.scope.itemId !== first.scope.itemId || recordPaths.has(source.recordPath)) throw new Error('Invalid gate policy sources.');
     recordPaths.add(source.recordPath);
     if ('format' in entry.critic && source.gate !== 2) throw new Error('Invalid gate policy sources.');
+    if ('format' in entry.critic && entry.critic.ancestry &&
+      (!entry.critic.history || typeof reader.readCommit !== 'function')) throw new Error('Invalid gate policy sources.');
     const paths = [entry.policy.path, entry.critic.path, ...(entry.buildEvidence ? [entry.buildEvidence.path] : []),
       ...('format' in entry.critic ? (entry.critic.history ?? []).map(value => value.path) : []),
       ...('format' in entry.critic && entry.critic.runner ? [entry.critic.runner.trust.path, entry.critic.runner.proof.path] : []),
@@ -88,6 +92,7 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
     subject = principal.subject; expiry = Math.min(expiry, Date.parse(principal.expiresAt)); return principal;
   };
   const guarded: RepositoryReader = { binding,
+    ...(reader.readCommit ? { readCommit: async (revision: string) => { check(); const value = await reader.readCommit!(revision); check(); return value; } } : {}),
     readHead: async () => { check(); const value = await reader.readHead(); check(); return value; },
     readArtifact: async (...args) => { check(); const value = await reader.readArtifact(...args); check(); return value; },
     readInventory: async (...args) => { check(); const value = await reader.readInventory(...args); check(); return value; },
@@ -116,6 +121,7 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
           const nativeDomainExceptions: ReturnType<typeof verifyNativeDomainException>[] = [];
           const nativeCritics: ReturnType<typeof normalizeGateCritic>[] = [];
           const nativeCriticHistories: ReturnType<typeof verifyNativeCriticHistory>[] = [];
+          const nativeCriticAncestries: (Awaited<ReturnType<typeof collectGateReviewAncestry>> | null)[] = [];
           const nativeCriticRunners: ReturnType<typeof verifyCriticRunnerAttestation>[] = [];
           let retainedBytes = 0;
           for (const [index, entry] of config.gates.entries()) {
@@ -150,6 +156,7 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
             let critic: NonNullable<GatePolicyInput['critic']>;
             nativeCritics[index] = null;
             nativeCriticHistories[index] = null;
+            nativeCriticAncestries[index] = null;
             nativeCriticRunners[index] = null;
             if ('format' in entry.critic) {
               const reference = entry.critic, source = await readSource(reference, input.sourceRevision, 512 * 1024);
@@ -184,6 +191,9 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
                     reviewerProvider: reference.reviewerProvider, reviewerTask: reference.reviewerTask, builderTask: reference.builderTask }],
                 });
                 if (!history) throw failure(); nativeCriticHistories[index] = history;
+                if (reference.ancestry) nativeCriticAncestries[index] = await collectGateReviewAncestry(guarded, {
+                  ...reference.ancestry, revisions: [...reference.history.map(value => value.artifactRevision), target.artifactRevision, input.sourceRevision],
+                }, check);
               }
             } else {
               const facts = await read(entry.critic, criticSchema); critic = { ...facts.critic, reportDigest: entry.critic.digest };
@@ -275,7 +285,8 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
             policyOutcome: evaluations.every((value) => value.evaluation.outcome === 'policy-satisfied') ? 'policy-satisfied' as const : 'blocked' as const,
             gates: evaluations.map((value, index) => ({ ...value, signers: observations[index]!, sources: sources[index]!,
               nativeDomainReviews: nativeDomainReviews[index]!, nativeDomainException: nativeDomainExceptions[index]!, nativeCritic: nativeCritics[index]!,
-              nativeCriticHistory: nativeCriticHistories[index]!, nativeCriticRunner: nativeCriticRunners[index]! })),
+              nativeCriticHistory: nativeCriticHistories[index]!, nativeCriticRunner: nativeCriticRunners[index]!,
+              nativeCriticAncestry: nativeCriticAncestries[index]! })),
             governedSelectionVerificationRequired: true as const, reviewAuthenticityVerificationRequired: true as const,
             currentSourceVerificationRequired: true as const, gateVerified: false as const, writeAuthorized: false as const });
           const finished = parseUtcInstant(new Date(check()).toISOString())!;

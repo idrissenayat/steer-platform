@@ -5,7 +5,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { test, type TestContext } from 'node:test';
-import { briefWriteAuthoritySchema } from '@steer/tool-registry';
+import { briefWriteAuthoritySchema, principalSchema } from '@steer/tool-registry';
 import { createGitGatePolicyCollector } from '../src/code-host/gate-policy.ts';
 import { fixture, hash } from './gate-signers-fixture.ts';
 import type { RepositoryReader } from '../src/code-host/github.ts';
@@ -78,10 +78,13 @@ function chain(t: TestContext, count: 1 | 2 | 3 = 3, native = false) {
         path: gate.signerCollection.gateSource.recordPath, blobSha: blob(contentAt(gate.signerCollection.gateSource.recordPath, atRevision)) })) }),
   };
   const config = { gates }, input = () => ({ sourceRevision: state.head, decisionDigest: gates.at(-1)!.signerCollection.signers[0]!.proof.expected.decisionDigest });
+  if (native) reader.readCommit = async revision => ({ organizationId: reader.binding.organizationId,
+    repositoryId: reader.binding.repositoryId, revision,
+    parents: [...git('cat-file', '-p', revision).matchAll(/^parent ([a-f0-9]{40})$/gm)].map(value => value[1]!) });
   const change = (reference: { path: string; digest: string }, edit: (value: any) => void, repin = true) => {
     const value = JSON.parse(sources.get(reference.path)!); edit(value); sources.set(reference.path, JSON.stringify(value)); if (repin) reference.digest = hash(sources.get(reference.path)!);
   };
-  return { config, sources, state, reader, input, reads, change, commit, parts,
+  return { config, sources, state, reader, input, reads, change, commit, parts, git,
     create: (configuration: unknown = config) => createGitGatePolicyCollector(reader, configuration, async () => { state.authCalls++; return state.identity; }) };
 }
 
@@ -530,6 +533,50 @@ test('native Git policy retains the exact initial and followup Critic bytes and 
   for (const ref of [f.previous, f.reference]) assert.equal(result.gates[1]!.sources.find(value => value.path === ref.path)!.content, f.sources.get(ref.path));
   assert.equal(result.gates[0]!.nativeCriticHistory, null); assert.equal(result.policyOutcome, 'blocked');
   assert.equal(result.gateVerified, false); assert.equal(history.resolutionEvidenceVerificationRequired, true);
+});
+
+test('opt-in Critic ancestry verifies native review targets through the current source head without clearing HOLD', async t => {
+  const f = criticHistory(t, true); f.commit();
+  const config = f.configuration();
+  const selected = { gates: [config.gates[0], { ...config.gates[1], critic: { ...config.gates[1].critic, ancestry: { maxCommits: 4 } } }] };
+  const result = await f.create(selected).collect(f.input()), ancestry = result.gates[1]!.nativeCriticAncestry;
+  assert.ok(ancestry); assert.equal(ancestry.links.length, 2);
+  assert.equal(ancestry.links[0]!.ancestor, f.previous.artifactRevision);
+  assert.equal(ancestry.links[1]!.descendant, f.state.head);
+  assert.equal(result.gates[0]!.nativeCriticAncestry, null);
+  assert.equal(result.policyOutcome, 'blocked'); assert.equal(result.gateVerified, false); assert.equal(result.writeAuthorized, false);
+});
+
+test('configured ancestry denies unrelated history, exhaustion, changed head and lost observation authority', async t => {
+  for (const mode of ['unrelated', 'budget', 'head', 'grant']) {
+    const f = criticHistory(t, true);
+    if (mode === 'unrelated') {
+      const tree = f.git('rev-parse', `${f.previous.artifactRevision}^{tree}`);
+      const orphan = f.git('-c', 'commit.gpgsign=false', 'commit-tree', tree, '-m', 'Unrelated synthetic history');
+      f.prior.targetRevision = orphan; f.previous.artifactRevision = orphan; f.repinPrior();
+    }
+    f.commit(); const read = f.reader.readCommit!;
+    f.reader.readCommit = async revision => {
+      const value = await read(revision);
+      if (mode === 'head') f.state.head = 'f'.repeat(40);
+      if (mode === 'grant') f.state.identity = { ...principalSchema.parse(f.state.identity), toolGrants: [] };
+      return value;
+    };
+    const config = f.configuration();
+    await assert.rejects(f.create({ gates: [config.gates[0], { ...config.gates[1], critic: {
+      ...config.gates[1].critic, ancestry: { maxCommits: mode === 'budget' ? 1 : 4 },
+    } }] }).collect(f.input()), failure, mode);
+  }
+});
+
+test('ancestry startup requires bounded configuration, retained history and commit reader before I/O', t => {
+  const f = criticHistory(t), config = f.configuration();
+  for (const ancestry of [{ maxCommits: 1 }, { maxCommits: 101 }, { maxCommits: 0 }, { maxCommits: 4, bypass: true }]) {
+    assert.throws(() => f.create({ gates: [config.gates[0], { ...config.gates[1], critic: { ...config.gates[1].critic, ancestry } }] }));
+  }
+  f.reader.readCommit = async () => { throw new Error('Unexpected read'); };
+  assert.throws(() => f.create({ gates: [config.gates[0], { ...config.gates[1], critic: { ...f.reference, ancestry: { maxCommits: 4 } } }] }));
+  assert.equal(f.reads.length, 0); assert.equal(f.state.authCalls, 0);
 });
 
 test('configured Critic history cannot be omitted, substituted, oversized or moved during collection even with coherent local counts', async t => {

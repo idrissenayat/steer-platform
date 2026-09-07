@@ -1334,3 +1334,20 @@ gauntlet, and produces the production build. Domain review consolidation is a
 separate gate command because it must fail until all seven independent review
 records exist; an incomplete review set must not break ordinary development
 checks or silently become an approval.
+## Selected Critic target ancestry
+
+Item `intent/0153` adds the optional `RepositoryReader.readCommit` capability to the
+existing read-only GitHub adapter. Native Critic startup references with retained
+history may opt into `ancestry: { maxCommits: N }` (1–100). The collector verifies
+successive target ancestry and the final target-to-source-head link with one shared
+commit budget, including merge parents and equal targets. Missing capabilities or
+invalid configuration fail before I/O; source moves and lost observer authority
+discard the result at final collection checks. Configurations omitting ancestry
+continue returning no ancestry result and do not satisfy that obligation.
+
+The separate immutable `nativeCriticAncestry` observation retains selected paths and
+scope-bound parent metadata. Provider-reported edges are not independently hashed
+raw commits, and a path cannot establish complete/authoritative review selection,
+truthful closure or gate/write authority. Standalone history normalization retains
+its ancestry-required flag because it does not itself read the graph. Historical
+HOLDs and all five R5 findings remain open. See `intent/0153/EVIDENCE.md`.

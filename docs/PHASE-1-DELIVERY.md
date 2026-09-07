@@ -2981,3 +2981,23 @@ before gated save/status, then verified lifecycle projections, board and review.
 All five R5 findings, protected/qualified review, human gates and signed Phase 1
 obligations remain open. No live account, provider, writer, signature, deployment,
 release or spending was enabled.
+
+## Completed development increment: 0153 — Bounded Critic target ancestry
+
+The read-only GitHub adapter can now provide exact scoped commit parents. Selected
+native Critic histories may opt into a shared bounded graph traversal linking each
+review target and the current source head, including merge parents and repeated
+targets. Invalid graphs, unrelated histories, exhausted budgets, source moves and
+lost observer grants fail closed. The collector retains immutable selected paths
+without clearing the original HOLD or granting gate/write authority. Focused checks
+passed 53 tests; full repository validation passed, including 437 root controls,
+265 adapter tests and all package checks/builds. See `intent/0153/EVIDENCE.md`.
+
+Unconfigured ancestry remains unverified. Observed parent edges do not independently
+hash raw commits, establish authoritative/complete history selection or verify
+finding closure. Continue governed source/Builder/history selection, approved
+runner/provider bindings, truthful isolation and a reviewed passing native Critic
+contract before full action-time authority and live writer composition. Gated
+save/status, lifecycle projections, board/review and all five R5 findings, protected
+and qualified review, human gates and signed Phase 1 obligations remain open. No
+live source, permissions, deployment, release or spending changed.
