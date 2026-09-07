@@ -18,10 +18,11 @@ import { testKeycloakRecovery } from '../../worker/test/keycloak-recovery-harnes
 // Deliberately separate from normal tests: requires Docker and OpenSSL, never real credentials.
 const image = 'quay.io/keycloak/keycloak@sha256:ff4257d0d64efbe99ed1ddfaf07765cc3c36dc7518bf8324d41961327f441c54';
 const exec = promisify(execFile);
-const browserMode = process.argv.slice(2).includes('--browser');
+const browserRecoveryMode = process.argv.slice(2).includes('--browser-recovery');
+const browserMode = browserRecoveryMode || process.argv.slice(2).includes('--browser');
 const recoveryMode = process.argv.slice(2).includes('--recovery');
 const durable = browserMode || process.argv.slice(2).includes('--durable');
-assert.ok(process.argv.slice(2).every((argument) => ['--durable', '--browser', '--recovery'].includes(argument)), 'Unknown integration argument');
+assert.ok(process.argv.slice(2).every((argument) => ['--durable', '--browser', '--browser-recovery', '--recovery'].includes(argument)), 'Unknown integration argument');
 assert.ok(!recoveryMode || !durable, 'Recovery and browser/session integration modes run separately');
 const docker = async (...args: string[]) => (await exec('docker', args, { timeout: 30000 })).stdout.trim();
 const name = `steer-0013-${randomUUID()}`;
@@ -63,7 +64,7 @@ try {
     resetPasswordAllowed: false, accessTokenLifespan: 180,
     clients: [...[{ clientId: 'steer-test-agent', secret: clientSecret },
       { clientId: 'steer-test-projector', secret: projectorSecret },
-      ...(recoveryMode ? [{ clientId: 'steer-test-recovery', secret: recoverySecret }] : [])].map(account => ({ ...account, enabled: true, protocol: 'openid-connect',
+      ...(recoveryMode || browserRecoveryMode ? [{ clientId: 'steer-test-recovery', secret: recoverySecret }] : [])].map(account => ({ ...account, enabled: true, protocol: 'openid-connect',
       publicClient: false, serviceAccountsEnabled: true,
       standardFlowEnabled: false, implicitFlowEnabled: false, directAccessGrantsEnabled: false,
       fullScopeAllowed: false, defaultClientScopes: [], optionalClientScopes: [],
@@ -92,7 +93,7 @@ try {
       serviceAccountClientId: 'steer-test-agent' },
       { id: projectorSubject, username: 'service-account-steer-test-projector', enabled: true,
         serviceAccountClientId: 'steer-test-projector' },
-      ...(recoveryMode ? [{ id: recoverySubject, username: 'service-account-steer-test-recovery', enabled: true,
+      ...(recoveryMode || browserRecoveryMode ? [{ id: recoverySubject, username: 'service-account-steer-test-recovery', enabled: true,
         serviceAccountClientId: 'steer-test-recovery' }] : []),
       { id: humanSubject, username: 'synthetic-human', enabled: true, email: 'synthetic@example.invalid',
         emailVerified: true, firstName: 'Synthetic', lastName: 'Tester', requiredActions: [],
@@ -216,6 +217,13 @@ try {
     const storage = await createPostgresSessionHarness(binding); closeSessions = storage.close; return storage;
   };
   if (browserHarness) await browserHarness.run({ ...humanDependencies, createSessions,
+    ...(browserRecoveryMode ? { recovery: { subject: recoverySubject, clientId: 'steer-test-recovery', issueBearer: async () => {
+      const response = await scopedFetch(`${issuer}/protocol/openid-connect/token`, {
+        method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ grant_type: 'client_credentials', client_id: 'steer-test-recovery', client_secret: recoverySecret }).toString(),
+      });
+      assert.equal(response.status, 200); const token = await response.json(); assert.equal(typeof token.access_token, 'string'); return token.access_token as string;
+    } } } : {}),
     projector: { subject: projectorSubject, clientId: 'steer-test-projector', issueBearer: async () => {
       const response = await scopedFetch(`${issuer}/protocol/openid-connect/token`, {
         method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },

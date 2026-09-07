@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import { DefaultLogger, Runtime, Worker } from '@temporalio/worker';
 import { Client, Connection } from '@temporalio/client';
-import type { createIdentityRuntime, ManagedRuntimeRecordedScheduler } from '../../api/src/runtime.ts';
-import { createWorkerRecordedBriefRuntime } from '../src/runtime.ts';
-import { createRecordedBriefWorker } from '../src/worker.ts';
-import { startRecordedBriefProjection, createManagedRecordedBriefScheduler } from '../src/client.ts';
-import { recordedBriefWorkflowId } from '../src/contracts.ts';
+import type { createIdentityRuntime, ManagedRuntimeRecordedScheduler, ManagedRuntimeRecoveryScheduler } from '../../api/src/runtime.ts';
+import { createWorkerRecordedBriefRuntime, createWorkerRecordedBriefRecoveryRuntime } from '../src/runtime.ts';
+import { createRecordedBriefWorker, createRecordedBriefRecoveryWorker } from '../src/worker.ts';
+import { startRecordedBriefProjection, createManagedRecordedBriefScheduler, createManagedRecordedBriefRecoveryScheduler,
+  createRecordedBriefFailedParentGuard, startRecordedBriefRecovery } from '../src/client.ts';
+import { recordedBriefWorkflowId, recordedBriefRecoveryWorkflowId, type RecordedBriefRecoveryPlan } from '../src/contracts.ts';
 import { createIsolatedTemporalHarness } from './isolated-temporal-harness.ts';
 
 function historyText(value: unknown): string {
@@ -25,15 +26,24 @@ export async function createRecordedBrowserHarness(options: { target: { scope: {
   }, projector: {
     subject: string;
     publish: (mode: 'allowed' | 'dispatch-only' | 'revoked' | 'invalid-token' | 'dispatcher-token') => Promise<void>;
+  }, recovery?: {
+    subject: string;
+    create: (managed: ManagedRuntimeRecoveryScheduler, plan: RecordedBriefRecoveryPlan) => Promise<Awaited<ReturnType<typeof createIdentityRuntime>>>;
+    request: (name: 'recover' | 'recovery.status', plan: RecordedBriefRecoveryPlan, swapped?: boolean) => Promise<Request>;
+    publish: (mode: 'allowed' | 'dispatch-only' | 'revoked') => Promise<void>;
   }) {
   assert.equal(options.source.path, 'items/0167-created-fixture/BRIEF.md');
   assert.equal(options.target.scope.itemId, 'items/0167-created-fixture');
   assert.notEqual(projector.subject, dispatch.subject); assert.notEqual(projector.subject, options.source.subject);
+  if (recovery) for (const subject of [projector.subject, dispatch.subject, options.source.subject]) assert.notEqual(recovery.subject, subject);
   Runtime.install({ logger: new DefaultLogger('ERROR') });
   const fixture = await createIsolatedTemporalHarness(), queue = 'steer-0168-browser-created';
   let runtime: Awaited<ReturnType<typeof createWorkerRecordedBriefRuntime>> | undefined;
   let identity: Awaited<ReturnType<typeof createIdentityRuntime>> | undefined;
   let managed: Awaited<ReturnType<typeof createManagedRecordedBriefScheduler>> | undefined;
+  let recoveryRuntime: Awaited<ReturnType<typeof createWorkerRecordedBriefRecoveryRuntime>> | undefined;
+  let recoveryIdentity: Awaited<ReturnType<typeof createIdentityRuntime>> | undefined;
+  let recoveryManaged: Awaited<ReturnType<typeof createManagedRecordedBriefRecoveryScheduler>> | undefined;
   let worker: Worker | undefined, running: Promise<void> | undefined, stopped = false, attempted = false, reads = 0;
   let revokeAfterReceipt = false;
   const configure = async () => {
@@ -45,13 +55,16 @@ export async function createRecordedBrowserHarness(options: { target: { scope: {
   };
   const stopWorker = async () => {
     try { if (worker) { worker.shutdown(); await running; } }
-    finally { worker = undefined; running = undefined; await runtime?.shutdown(); }
+    finally { worker = undefined; running = undefined;
+      try { await runtime?.shutdown(); } finally { await recoveryRuntime?.shutdown(); } }
   };
   const close = async () => {
     if (stopped) return;
     try { await stopWorker(); }
     finally { try { await identity?.shutdown(); }
-      finally { try { await managed?.shutdown(); } finally { await fixture.close(); stopped = true; } } }
+      finally { try { await managed?.shutdown(); }
+        finally { try { await recoveryIdentity?.shutdown(); }
+          finally { try { await recoveryManaged?.shutdown(); } finally { await fixture.close(); stopped = true; } } } } }
     console.log('Closed only owned browser-projection Temporal worker/server and generated test binary files.');
   };
   try {
@@ -87,8 +100,68 @@ export async function createRecordedBrowserHarness(options: { target: { scope: {
         const originalRun = (await handle.describe()).runId;
         // Queued work must not consume browser access until a recreated runtime runs it.
         await stopWorker(); assert.equal(reads, 1); await configure();
+        // Recovery mode fails the actual original activity only after reading the
+        // browser-created receipt, with current projector revocation before SQL.
+        revokeAfterReceipt = !!recovery;
         worker = await createRecordedBriefWorker({ connection: fixture.environment.nativeConnection, namespace: 'default', taskQueue: queue,
           workflowBundle: fixture.bundle }, runtime!.activities); running = worker.run();
+        if (recovery) {
+          await assert.rejects(handle.result());
+          assert.equal((await handle.describe()).status.name, 'FAILED');
+          assert.equal(reads, 2); assert.equal(runtime!.status().database.connections, 0);
+          await stopWorker(); revokeAfterReceipt = false; await projector.publish('allowed');
+          const plan = { target: options.target, failedRunId: originalRun };
+          const configuration = { namespace: 'default', sourceTaskQueue: queue, taskQueue: 'steer-0185-browser-recovery', plan };
+          let closedConnections = 0;
+          const configureRecoveryIdentity = async () => {
+            const connection = await Connection.connect({ address: fixture.environment.address });
+            recoveryManaged = await createManagedRecordedBriefRecoveryScheduler(new Client({ connection, namespace: 'default' }), configuration,
+              async () => { await connection.close(); closedConnections++; });
+            recoveryIdentity = await recovery.create(recoveryManaged, plan);
+            assert.equal(recoveryIdentity.status().database.connections, 0);
+          };
+          await configureRecoveryIdentity();
+          const request = async (name: 'recover' | 'recovery.status', selected = plan, swapped = false) => recoveryIdentity!.fetch(await recovery.request(name, selected, swapped));
+          assert.equal((await (await request('recovery.status')).json()).outcome, 'not-found');
+          assert.equal((await request('recover', plan, true)).status, 401);
+          assert.equal((await request('recover', { ...plan, failedRunId: '18500000-0000-4000-8000-000000000099' })).status, 403);
+          await recovery.publish('dispatch-only'); assert.equal((await request('recover')).status, 403);
+          assert.equal(recoveryManaged!.status().attempted, false); assert.equal(reads, 2);
+          await recovery.publish('allowed');
+          const started = await request('recover'); assert.equal(started.status, 200); assert.equal((await started.json()).outcome, 'started');
+          assert.equal((await (await request('recover')).json()).outcome, 'already-attempted');
+          await recoveryIdentity!.shutdown(); assert.equal(closedConnections, 1);
+          await configureRecoveryIdentity();
+          assert.equal((await (await request('recover')).json()).outcome, 'duplicate'); assert.equal(reads, 2);
+          const parent = createRecordedBriefFailedParentGuard(fixture.environment.client, { namespace: 'default', taskQueue: queue, plan });
+          const configureRecoveryWorker = async () => {
+            recoveryRuntime = await createWorkerRecordedBriefRecoveryRuntime({ plan, database: options.database, source: options.source }, secrets,
+              { ...ports, parent, readReceipt: async () => { reads++; return ports.readReceipt(); } });
+          };
+          await configureRecoveryWorker(); await recoveryRuntime!.shutdown(); await configureRecoveryWorker();
+          await projector.publish('revoked'); await assert.rejects(recoveryRuntime!.activities.recoverRecordedBrief(plan));
+          assert.equal(reads, 2); assert.equal(recoveryRuntime!.status().database.connections, 0); await projector.publish('allowed');
+          worker = await createRecordedBriefRecoveryWorker({ connection: fixture.environment.nativeConnection, namespace: 'default',
+            taskQueue: configuration.taskQueue, workflowBundle: fixture.bundle }, recoveryRuntime!.activities); running = worker.run();
+          const recovered = fixture.environment.client.workflow.getHandle(recordedBriefRecoveryWorkflowId(plan));
+          assert.deepEqual(await recovered.result(), { revision, status: 'observed', outcome: 'applied' });
+          assert.equal((await (await request('recovery.status')).json()).state, 'COMPLETED');
+          assert.equal((await handle.describe()).status.name, 'FAILED'); assert.equal((await handle.describe()).runId, originalRun);
+          assert.equal(reads, 3);
+          for (const [execution, id] of [[handle, recordedBriefWorkflowId(options.target)], [recovered, recordedBriefRecoveryWorkflowId(plan)]] as const) {
+            const history = await execution.fetchHistory(), text = historyText(history);
+            for (const value of [options.source.subject, dispatch.subject, projector.subject, recovery.subject, secrets.databasePassword,
+              'Browser-created request', 'Requests are entered twice.', 'synthetic-browser-write']) assert.equal(text.includes(value), false);
+            await Worker.runReplayHistory({ workflowBundle: fixture.bundle }, history, id);
+          }
+          await assert.rejects(startRecordedBriefProjection(fixture.environment.client, queue, options.target));
+          await assert.rejects(startRecordedBriefRecovery(fixture.environment.client, configuration)); assert.equal(reads, 3);
+          await recovery.publish('revoked'); assert.equal((await request('recover')).status, 401); assert.equal((await request('recovery.status')).status, 401);
+          const principal = await ports.authenticate() as { subject: string } | null; assert.equal(principal?.subject, projector.subject);
+          await recoveryIdentity!.shutdown(); assert.equal(closedConnections, 2);
+          console.log('Browser-created receipt recovered once; original run remains FAILED; separate Keycloak actors, reconstruction and replay verified.');
+          return;
+        }
         assert.deepEqual(await handle.result(), { revision, status: 'observed', outcome: 'applied' });
         const complete = await call('status'); assert.equal(complete.status, 200); assert.equal((await complete.json()).state, 'COMPLETED');
         await dispatch.publish('revoked'); assert.equal((await call('status')).status, 401);

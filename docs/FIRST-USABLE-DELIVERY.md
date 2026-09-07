@@ -63,7 +63,7 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0184
+### Latest development audit — increment 0185
 
 The dependency-ordered current route is `docs/JOURNEY-REMAINING-WORK.md`.
 Increment 0174 adds an owned fixed-operation Temporal start/status client with
@@ -109,6 +109,11 @@ accounts and current Git grants, including swapped tokens and post-receipt revoc
 GitHub/receipt provenance remains synthetic in that isolated case. Joining recovery
 to the browser-created recorded receipt is next; no live activation follows from
 this result. Exact verification is in `intent/0184/EVIDENCE.md`.
+0185 adds a separate browser recovery mode using the actual disposable browser-save
+status callback. It fails the original through post-receipt projector revocation,
+then joins a separate Keycloak recovery identity to the exact failed run. The normal
+successful projection scenario is preserved. Verification status is recorded in
+`intent/0185/EVIDENCE.md`; synthetic GitHub/full gate authority and live-use limits remain.
 
 The production UI now supports deterministic describe/correct, exact local review,
 manual prior-operation status and opening the exact recorded Brief. Disposable

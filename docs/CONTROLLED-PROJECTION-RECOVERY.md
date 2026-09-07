@@ -118,11 +118,27 @@ It is not the browser-created operation's recorded-receipt demonstration; the no
 Temporal regression suite retains its synthetic issuer mode. No production code
 path or live configuration was added by this test increment.
 
-## Still to implement before use
+## Browser-created receipt integration — 0185
 
-Join actual recovery identity to the browser-created operation's recorded receipt
-in the disposable authoring journey, preserving separate human/save/dispatch/recovery/
-projector boundaries. Approved live configuration remains independent.
-No live recovery is enabled by 0184. All five R5 findings and
+`pnpm --filter @steer/api test:recovery:browser` adds a separate `--browser-recovery`
+mode. Like the existing browser command, it requires the actual prebuilt Next app
+(`pnpm --filter @steer/web build`). The ordinary `--browser` success path remains.
+An additional disposable account supplies recovery identity; it cannot borrow the
+human, normal dispatcher or projector identity. The source is the browser's actual
+save/status operation in native Git, not a seeded recovery receipt.
+
+The scenario fails the original activity through current projector revocation after
+browser receipt readback, before SQL. Recovery uses the exact failed run and a
+separate owned queue/client/runtime. It tests current grant/token/plan denial,
+queued reconstruction, retained duplicate rejection, one SQL event, original FAILED
+preservation, history replay and exact browser Brief readback without a second save.
+Verification status: `intent/0185/EVIDENCE.md`. Full gate authority and GitHub
+responses remain test doubles; passing this test is not real governed acceptance.
+
+## Still required before use
+
+Approved live configuration, trusted receipt access and source admission, complete
+governed action-time authority and qualified evidence remain separate prerequisites.
+No live recovery is enabled by these increments. All five R5 findings and
 independent/qualified review/human gates remain open; recovery never grants save,
 signature, release or spending authority.

@@ -96,6 +96,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
       username: string; password: string; fetch: typeof fetch;
       agent: { bearer: string; clientId: string; grant: AuthorizationRecord; issueBearer: () => Promise<string> };
       projector: { subject: string; clientId: string; issueBearer: () => Promise<string> };
+      recovery?: { subject: string; clientId: string; issueBearer: () => Promise<string> };
       createSessions: (binding: { issuer: string; clientId: string; redirectUri: string }) => Promise<SessionTestHarness>;
       check: (label: string, run: () => Promise<void>) => Promise<void> }) {
       const { issuer, check } = deps;
@@ -1170,18 +1171,23 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           assert.equal((await deniedSource).status(), 403);
           await records.nth(0).getByTestId('evidence-status').filter({ hasText: 'Evidence source could not be checked.' }).waitFor();
           assert.equal(await evidencePanel.count(), 0);
+          stage = 'reread evidence after curation denial';
           await readEvidence();
+          stage = 'stale evidence reference';
           const staleSource = page.waitForResponse(value => value.url() === evidenceUrl);
           await records.nth(1).getByRole('button', { name: 'Inspect SPEC.md', exact: true }).click();
           const stale = await staleSource; assert.equal(stale.status(), 200); assert.equal(await stale.json(), null);
           await records.nth(1).getByTestId('evidence-status').filter({ hasText: 'This exact selection is no longer available.' }).waitFor();
           assert.equal(await section.locator('.decision-evidence').count(), 0, 'switching decisions clears the previous source');
+          stage = 'reread evidence after stale reference';
           await readEvidence();
+          stage = 'evidence grant revocation';
           await source.publish([{ ...grant, toolGrants: grant.toolGrants.filter(name => name !== 'intent.brief.decision.evidence') }]);
           const deniedGrant = page.waitForResponse(value => value.url() === evidenceUrl); await inspect.click();
           assert.equal((await deniedGrant).status(), 403);
           await records.nth(0).getByTestId('evidence-status').filter({ hasText: 'Evidence source could not be checked.' }).waitFor();
           assert.equal(await evidencePanel.count(), 0);
+          stage = 'reread evidence after grant restoration';
           await source.publish([grant]); await readEvidence();
           stage = 'revocation and clearing';
           await source.publish([{ ...grant, toolGrants: grant.toolGrants.filter(name => name !== 'intent.brief.decisions') }]);
@@ -1203,7 +1209,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           throw error;
         } finally { page.off('request', observeEvidence); gateway = bindGateway(web!.rendererOrigin); await source.publish([grant]); await page.goto(origin); }
       });
-      await check('opt-in browser creates a native Brief once and reaches durable projection, replay and exact source reads with real Keycloak membership', async () => {
+      await check(`opt-in browser creates a native Brief once and reaches ${deps.recovery ? 'fixed-failed-run recovery' : 'durable projection'}, replay and exact source reads with real Keycloak membership`, async () => {
         const path = 'items/0167-created-fixture/BRIEF.md';
         const provider = createNativeGitHubCreateHarness(source, tls.certificate, path), appJwt = createAppJwtSigner('1', tls.key.toString('utf8'));
         const configured = { organizationId: grant.organizationId, repository: 'github:1', branch: 'synthetic', paths: [path],
@@ -1219,6 +1225,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         });
         const savingGrant = { ...grant, toolGrants: [...grant.toolGrants, 'intent.brief.save'] };
         let dispatchMode: 'allowed' | 'projection-only' | 'revoked' = 'allowed';
+        let recoveryMode: 'allowed' | 'dispatch-only' | 'revoked' = 'allowed';
         let projectorMode: 'allowed' | 'dispatch-only' | 'revoked' | 'invalid-token' | 'dispatcher-token' = 'allowed';
         const publishServiceGrants = () => source.publish([savingGrant, { ...deps.agent.grant,
           active: dispatchMode !== 'revoked', validAfter: new Date(Date.now() - 30000).toISOString(), expiresAt: new Date(Date.now() + 180000).toISOString(),
@@ -1226,7 +1233,11 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         }, { ...deps.agent.grant, subject: deps.projector.subject,
           active: projectorMode !== 'revoked', validAfter: new Date(Date.now() - 30000).toISOString(), expiresAt: new Date(Date.now() + 180000).toISOString(),
           toolGrants: projectorMode === 'dispatch-only' ? ['workflow.recorded-brief.start'] : ['projection.ingest'],
-        }]);
+        }, ...(deps.recovery ? [{ ...deps.agent.grant, subject: deps.recovery.subject,
+          active: recoveryMode !== 'revoked', validAfter: new Date(Date.now() - 30000).toISOString(), expiresAt: new Date(Date.now() + 180000).toISOString(),
+          toolGrants: recoveryMode === 'dispatch-only' ? ['workflow.recorded-brief.start', 'workflow.recorded-brief.status']
+            : ['workflow.recorded-brief.recover', 'workflow.recorded-brief.recovery.status'],
+        }] : [])]);
         const authenticateProjector = createOidcAuthenticator({ issuer, jwksUri: configuration.jwksUri,
           audience: configuration.audience, clientIds: [deps.projector.clientId] }, { fetch: deps.fetch,
           resolveAuthorization: createGitAuthorizationResolver(createGitHubReader(source.reader.binding, { fetch: provider.transport, appJwt }), source.authorizationPath) });
@@ -1332,7 +1343,12 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
               if (principal) { assert.equal(principal.subject, deps.projector.subject); assert.equal(principal.type, 'agent'); assert.deepEqual(principal.hats, []); }
               return principal;
             },
-          } });
+          }, ...(deps.recovery ? { recovery: {
+            configuration: { ...configuration, clientId: deps.recovery.clientId, clientSecret: 'synthetic-unused-browser-secret' },
+            authorizationPath: source.authorizationPath, privateKeyPem: tls.key.toString('utf8'), subject: deps.recovery.subject,
+            transports: { identity: deps.fetch, github: provider.transport }, issueBearer: deps.recovery.issueBearer,
+            publish: async (mode: 'allowed' | 'dispatch-only' | 'revoked') => { recoveryMode = mode; await publishServiceGrants(); },
+          } } : {}) });
           await projected.project(); await service.shutdown(); service = compose(); gateway = bindGateway(submitWeb.rendererOrigin, service);
           await operationPanel.locator('[data-submission-receipt-link]').click();
           await page.getByRole('dialog', { name: 'Browser-created request' }).waitFor();

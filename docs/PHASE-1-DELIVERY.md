@@ -3805,3 +3805,26 @@ Exact verification and the fixture-only array-typing correction are in
 `intent/0184/EVIDENCE.md`. No live profile/grant, protected artifact, frontend,
 dependency version, schema, provider access, deployment, release, spending or real
 data deletion changed. All five R5 findings and independent/qualified human gates stay open.
+
+## Completed development increment: 0185 — Browser-created receipt recovery
+
+A separate opt-in browser recovery mode now carries the actual browser save/status
+receipt into the existing fixed-failed-run recovery path. Normal successful browser
+projection remains a separate regression. Human, dispatcher, recovery and projector
+use distinct disposable Keycloak actors and current native Git grants.
+
+The original activity fails after actual receipt readback through projector
+revocation before SQL. The recovery scenario checks exact failed-run binding,
+swapped-token/grant denial, owned client/worker reconstruction, duplicate rejection,
+one SQL event, unchanged original failure and browser readback of the saved revision
+with only one Git creation. Both browser modes passed 45 checks each, standalone
+Keycloak recovery passed 14, and full checks/builds passed. The initial CLI omission
+and earlier decision-evidence test failure are retained in `intent/0185/EVIDENCE.md`;
+no assertion was weakened. Next return to J1's governed-selection/review-provenance
+and action-time-authority composition, as specified in `docs/JOURNEY-REMAINING-WORK.md`.
+
+No production code, frontend, dependency version, schema or protected artifact changes.
+GitHub responses and full gate authority remain synthetic. All five R5 findings,
+approved live configuration, full governed authority and independent/qualified
+review/human gates remain open. No live profile/grant, provider access, spending,
+deployment, release or real-data deletion is authorized by these tests.

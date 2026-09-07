@@ -195,7 +195,24 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
               method: 'POST', headers: { authorization: `Bearer ${await durable.dispatch.issueBearer()}`, 'content-type': 'application/json' },
               body: JSON.stringify({ organizationId, repository, itemId: path.slice(0, -'/BRIEF.md'.length), idempotencyKey: durable.idempotencyKey }),
             }),
-          }, durable.projector) : undefined;
+          }, durable.projector, durable.recovery ? {
+            subject: durable.recovery.subject, publish: durable.recovery.publish,
+            create: async (managed, plan) => {
+              const recovery = durable.recovery!;
+              const { clientSecret, ...browser } = recovery.configuration;
+              const instance = await createIdentityRuntime({ version: 'steer-identity-runtime/v1', browser,
+                github: { appId: '1', authorizationPath: recovery.authorizationPath, binding: reader.binding }, database,
+                sessionKeyId: 'synthetic', recordedRecovery: { itemId: plan.target.scope.itemId,
+                  idempotencyKey: plan.target.idempotencyKey, failedRunId: plan.failedRunId },
+              }, { browserClientSecret: clientSecret, githubPrivateKeyPem: recovery.privateKeyPem, databasePassword: password,
+                sessionKeys: { synthetic: encryptionKey } }, { ...recovery.transports, createRecoveryScheduler: async () => managed });
+              identityRuntimes.push(instance); return instance;
+            },
+            request: async (name, plan, swapped) => new Request(new URL(`/v1/tools/workflow.recorded-brief.${name}`, durable.recovery!.configuration.redirectUri), {
+              method: 'POST', headers: { authorization: `Bearer ${await (swapped ? durable.dispatch.issueBearer() : durable.recovery!.issueBearer())}`, 'content-type': 'application/json' },
+              body: JSON.stringify({ ...plan.target.scope, idempotencyKey: plan.target.idempotencyKey, failedRunId: plan.failedRunId }),
+            }),
+          } : undefined) : undefined;
         const ingest = async (target: string) => {
           assert.equal(stopped, false);
           const { repositoryId, ...artifact } = await reader.readArtifact(path, target);

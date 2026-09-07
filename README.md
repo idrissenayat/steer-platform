@@ -7,6 +7,9 @@ item one, are the framework's pilot evidence.
 
 ## Current delivery
 
+Item [0185](intent/0185/README.md) verifies disposable browser-created receipt
+recovery without a second save or rewriting the original failure. Live authority remains gated.
+
 Item [0184](intent/0184/README.md) verifies recovery with actual disposable Keycloak
 service accounts, current Git grants and local Temporal/PostgreSQL. No live grants changed.
 
