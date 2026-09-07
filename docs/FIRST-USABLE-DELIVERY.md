@@ -63,7 +63,12 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0192
+### Latest development audit — increment 0193
+
+0193 provisions the approved persistent local real-identity sign-in workspace.
+The intended user's completed password setup/login is not yet observed. Browser
+trust and the personal password step remain pending; real saving remains disabled.
+See `docs/LOCAL-WORKSPACE-SETUP.md` and `intent/0193/EVIDENCE.md`.
 
 The dependency-ordered current route is `docs/JOURNEY-REMAINING-WORK.md`.
 0192 adds the independent M5 canonical Learn reading/search slice to Next. It does

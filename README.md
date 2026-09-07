@@ -7,6 +7,10 @@ item one, are the framework's pilot evidence.
 
 ## Current delivery
 
+Item [0193](intent/0193/README.md) configures approved persistent local sign-in.
+The real account/login form exists; browser trust and your password setup remain
+pending. See [local setup](docs/LOCAL-WORKSPACE-SETUP.md). Live saving stays disabled.
+
 Item [0192](intent/0192/README.md) adds a searchable, source-fingerprinted Learn
 reader for the eight kit documents. This does not complete all Learn requirements.
 

@@ -8,6 +8,12 @@ architecture, signed-scope reduction or gate decision. It supersedes historical
 
 ## Integrated development capability
 
+0193 adds the separately approved persistent local Keycloak/PostgreSQL bootstrap
+and narrow real initial membership. TLS discovery, durable login transaction and
+the real password form are verified; the user's certificate-trust/password setup
+and completed authenticated UI acceptance are pending. This is not a write grant.
+See `docs/LOCAL-WORKSPACE-SETUP.md`.
+
 Actual disposable Keycloak/encrypted PostgreSQL sessions reach the production Next
 authoring screen. A human can describe/correct facts, review exact content, retain
 an operation ID, manually inspect status and open the exact permitted projected

@@ -1,0 +1,17 @@
+{
+  "version": "steer-authorization/v1",
+  "organizationId": "steer-local-idrissenayat",
+  "records": [
+    {
+      "issuer": "https://localhost:8444/realms/steer-local",
+      "subject": "0a56e612-5762-4409-9b16-592009979f83",
+      "organizationId": "steer-local-idrissenayat",
+      "type": "human",
+      "hats": ["org-admin", "product-lead", "product-designer"],
+      "toolGrants": ["session.context", "intent.brief.preview", "intent.brief.save.status"],
+      "active": true,
+      "validAfter": "2026-09-07T17:40:36.484Z",
+      "expiresAt": "2026-10-07T17:40:36.484Z"
+    }
+  ]
+}

@@ -5,6 +5,11 @@ the real identity runtime, native SSR gateway and owned loopback HTTPS listener.
 It is opt-in application code, not an environment loader or a change to
 pnpm dev:api. The default server still has no login binding and remains unready.
 
+Increment 0193 adds a separate, user-approved operations wrapper for persistent
+local real-identity provisioning. It leaves this composition root/default API
+unchanged. See [local workspace setup](LOCAL-WORKSPACE-SETUP.md) for the actual
+configuration, verified boundaries and pending user-assisted first login.
+
 ## Inputs and ownership
 
 | Input | Contract |

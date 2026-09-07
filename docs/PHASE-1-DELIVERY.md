@@ -3990,3 +3990,22 @@ No kit content, protected EXAM, signature, live authority/configuration, depende
 version, provider access, spending, deployment, release or real-data deletion changed.
 All five R5 findings, Gate 2, live saving and approved real-user journey acceptance
 remain open. A completed reading increment is not authority to enable them.
+
+## Partial operational increment: 0193 — Persistent local sign-in bootstrap
+
+After the user's explicit approval, an operations wrapper now starts the existing
+identity composition against persistent PostgreSQL/production-mode Keycloak and
+a separate Next renderer. All published services are loopback-only. Five canonical
+migrations, four least-privilege roles, mandatory TLS, real account persistence,
+discovery, durable PKCE login transaction and actual password form are verified.
+Private credentials remain outside Git. Narrow 30-day real membership identifies
+Idriss as org-admin/Product Lead/Product Designer, with session/preview/status only.
+
+The actual user's certificate trust and personal password setup remain pending;
+completed authenticated UI acceptance has not been observed. See
+`intent/0193/EVIDENCE.md` and `docs/LOCAL-WORKSPACE-SETUP.md`. The current local
+credential-file boundary is not a claimed KMS/regulated deployment. The gateway
+is foreground-owned, not an installed boot daemon. No existing preview or other
+project's containers/volumes are removed. No system trust, runtime App permissions,
+protected canon, signatures, spending or deletion authorization changed.
+All five R5 findings, Gate 2, real saving and full first-journey acceptance stay open.
