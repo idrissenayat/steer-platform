@@ -51,3 +51,36 @@ evidence. It never selects an existing database or real encryption key.
 Later increments must connect the authoritative Git ingestion, reconciliation,
 grant-freshness checks, rebuild/replay, operational queues and API tools. This
 package alone does not establish any of those workflows or gate authority.
+
+## Model budget reservations (uninstalled runtime binding)
+
+`@steer/data/model-budget` provides a `DevelopmentPermit`-compatible adapter.
+Migrations 0005/0006 add a separate `steer_usage` namespace with forced RLS and
+append-only integer-micro-USD reservations. Unlike Git-derived projections, these
+records are accounting controls and must not be discarded or rebuilt as a cache.
+The runtime can read configured budgets and append reservations, but cannot
+provision/activate/raise/reset budgets, refund reservations or delete/truncate them.
+An explicit operator-provisioned row must match owner, configuration revision,
+approval digest, cap and per-role worst-case reservation amounts. An approval digest
+is a binding identifier, not an approval verifier; independent approval/provisioning
+is still required. No real budget or model access is created by the migrations.
+
+All adapter instances serialize each budget with a transaction advisory lock and
+explicit READ COMMITTED isolation. A fresh atomic insert checks validity, activity,
+matching limits and total reserved amounts. Each role's conservative upper bound
+is consumed before a model call; failures and unknown commit acknowledgements never
+refund or authorize retry. Unknown acknowledgement returns false even when a real
+commit happened. Each budget also has a technical ceiling of 10,000 reservations.
+No request/response content, credentials or model-generated approval is stored.
+
+Provisioning must follow separate spending authorization and verified conservative
+input/output/pricing bounds. This adapter is not yet installed in local API startup.
+It is not provider billing reconciliation, duplicate-request idempotency or backup
+acceptance. Restarting clients preserves the database counter; restoring a stale
+backup or using independent database copies can regress accounting, so model access
+must remain disabled during recovery until all reservations/provider usage are
+reconciled. There is no automatic retention/deletion or replenishment job.
+
+RLS protects trusted parameterized operations and reused connections, not arbitrary
+SQL issued with stolen runtime credentials. The adapter is the serialized admission
+path; no alternative code may append an unaccounted reservation or bypass it.

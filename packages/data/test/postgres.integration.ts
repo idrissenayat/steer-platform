@@ -14,6 +14,7 @@ import { invokeTool, ToolError, type Principal, type InvocationContext } from '@
 import { testBrowserSessionStorage } from './session-storage.integration.ts';
 import { testRuntimePool } from './runtime-pool.integration.ts';
 import { testProjectionChanges } from './projection-changes.integration.ts';
+import { testModelBudget } from './model-budget.integration.ts';
 
 const exec = promisify(execFile);
 const docker = async (...args: string[]) => (await exec('docker', args, { timeout: 30000 })).stdout.trim();
@@ -56,7 +57,7 @@ try {
   await check('versioned Drizzle migrations apply twice without replay effects', async () => {
     await migrate(drizzle(admin), { migrationsFolder });
     await migrate(drizzle(admin), { migrationsFolder });
-    assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 5);
+    assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 7);
   });
   const app = connect('steer_app');
   const projector = connect('steer_projector');
@@ -218,6 +219,7 @@ try {
   });
   await testRuntimePool({ admin, check, host: '127.0.0.1', port, password, database: 'steer_test' });
   await testProjectionChanges({ admin, app, projector, connect, check });
+  await testModelBudget({ admin, app, connect, check });
   console.log(`PostgreSQL integration: ${passed} checks passed; server ${(await admin.query('SHOW server_version')).rows[0].server_version}`);
 } finally {
   await Promise.all(pools.map((pool) => pool.end()));

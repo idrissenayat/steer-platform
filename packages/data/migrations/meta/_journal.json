@@ -36,6 +36,20 @@
       "when": 1788614845695,
       "tag": "0004_projection_change_feed",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788819170450,
+      "tag": "0005_model_budget_ledger",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788819294639,
+      "tag": "0006_model_budget_owner_binding",
+      "breakpoints": true
     }
   ]
 }

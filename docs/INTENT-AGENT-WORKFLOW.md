@@ -76,8 +76,10 @@ Before a live test:
 2. Configure the local LiteLLM gateway with the protected OpenAI key, a pinned
    model/configuration, bounded token settings and gateway virtual credential.
    Implement and verify the durable, atomic budget-reservation binding for the
-   approved session and conservative per-call upper bound. The current coordinator
-   defines/tests that required port but does not ship a live budget ledger.
+   approved session and conservative per-call upper bound. The coordinator's port
+   now has a PostgreSQL-tested adapter in `@steer/data/model-budget` (0203), but no
+   real budget row or local binding is installed. Independently verify spending
+   approval and all worst-case token/pricing bounds before provisioning it.
 3. Bind curated source projections and explicitly scoped read grants as above,
    bind `modelGateway` at local API startup and configure the UI display flag.
    Authorize drafting for the intended human at the current prompt/configuration

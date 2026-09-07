@@ -144,8 +144,8 @@ async function main() {
       await pool.query('GRANT CONNECT ON DATABASE steer_keycloak TO steer_keycloak');
       await migrate(drizzle(pool), { migrationsFolder: resolve(root, 'packages/data/migrations') });
       const result = await pool.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations');
-      if (result.rows[0].count !== 5) throw new Error('Unexpected migration count.');
-      console.log('All five canonical migrations applied over verified TLS; separate least-privilege roles provisioned.');
+      if (result.rows[0].count !== 7) throw new Error('Unexpected migration count.');
+      console.log('All seven canonical migrations applied over verified TLS; separate least-privilege roles provisioned. No model budget was activated.');
     } finally { await pool.end(); }
     compose('up', '-d', '--pull', 'never', 'keycloak');
     console.log('Owned production-mode Keycloak started with persistent PostgreSQL.'); return;
@@ -160,7 +160,7 @@ async function main() {
     const keycloak = new pg.Pool({ ...configuration, database: 'steer_keycloak', user: 'steer_keycloak', password: secrets.keycloakDatabase });
     const plaintext = new pg.Pool({ ...configuration, ssl: false, user: 'steer_auth_runtime', password: secrets.authDatabase });
     try {
-      assert.equal((await admin.query('SELECT count(*)::int AS n FROM drizzle.__drizzle_migrations')).rows[0].n, 5);
+      assert.equal((await admin.query('SELECT count(*)::int AS n FROM drizzle.__drizzle_migrations')).rows[0].n, 7);
       const roles = (await admin.query("SELECT rolname, rolsuper, rolbypassrls, rolcreatedb, rolcreaterole FROM pg_roles WHERE rolname = ANY($1)", [['steer_auth_runtime', 'steer_app', 'steer_projector', 'steer_keycloak']])).rows;
       assert.equal(roles.length, 4); assert.ok(roles.every(role => !role.rolsuper && !role.rolbypassrls && !role.rolcreatedb && !role.rolcreaterole));
       assert.equal((await auth.query('SELECT current_user')).rows[0].current_user, 'steer_auth_runtime');
@@ -169,7 +169,7 @@ async function main() {
       const users = (await keycloak.query("SELECT u.id, u.email_verified FROM user_entity u JOIN realm r ON r.id = u.realm_id WHERE r.name = 'steer-local' AND u.username = 'idrissenayat' AND u.enabled = true")).rows;
       assert.equal(users.length, 1); assert.equal(users[0].id, secrets.subject);
       const pending = (await keycloak.query("SELECT required_action FROM user_required_action WHERE user_id = $1", [secrets.subject])).rows;
-      console.log(JSON.stringify({ migrations: 5, leastPrivilegeRoles: 4, authBusinessDataDenied: true, plaintextDatabaseDenied: true,
+      console.log(JSON.stringify({ migrations: 7, leastPrivilegeRoles: 4, authBusinessDataDenied: true, plaintextDatabaseDenied: true,
         persistentRealAccount: true, userPasswordSetupPending: pending.some(row => row.required_action === 'UPDATE_PASSWORD') }));
     } finally { await Promise.all([admin.end(), auth.end(), keycloak.end(), plaintext.end()]); }
     const discovery = await fetch('https://localhost:8444/realms/steer-local/.well-known/openid-configuration', { signal: AbortSignal.timeout(10000), redirect: 'error' });

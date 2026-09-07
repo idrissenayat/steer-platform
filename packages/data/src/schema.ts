@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { pgSchema, pgPolicy, primaryKey, text, jsonb, timestamp, check, index, bigint, uuid } from 'drizzle-orm/pg-core';
+import { pgSchema, pgPolicy, primaryKey, text, jsonb, timestamp, check, index, bigint, uuid, boolean, foreignKey, unique } from 'drizzle-orm/pg-core';
 
 export const steer = pgSchema('steer');
 const tenant = sql`nullif(current_setting('steer.organization_id', true), '')`;
@@ -67,4 +67,37 @@ export const projectionChanges = steer.table('projection_changes', {
   primaryKey({ columns: [table.organizationId, table.repository, table.generation, table.position] }),
   check('projection_change_position', sql`${table.position} > 0`),
   pgPolicy('change_tenant', { for: 'all', using: sql`${table.organizationId} = ${tenant}`, withCheck: sql`${table.organizationId} = ${tenant}` }),
+]).enableRLS();
+
+// Operator-provisioned spending limits and append-only reservations, not Git projections.
+export const steerUsage = pgSchema('steer_usage');
+const usageOrg = sql`nullif(current_setting('steer.usage_organization', true), '')`;
+const usageBudget = sql`nullif(current_setting('steer.usage_budget', true), '')`;
+const usageSubject = sql`nullif(current_setting('steer.usage_subject', true), '')`;
+export const modelBudgets = steerUsage.table('model_budgets', {
+  organizationId: text('organization_id').notNull(), budgetId: uuid('budget_id').notNull(), subject: text('subject').notNull(),
+  configurationRevision: text('configuration_revision').notNull(), approvalDigest: text('approval_digest').notNull(),
+  capMicrousd: bigint('cap_microusd', { mode: 'bigint' }).notNull(),
+  architectMicrousd: bigint('architect_microusd', { mode: 'bigint' }).notNull(),
+  testAgentMicrousd: bigint('test_agent_microusd', { mode: 'bigint' }).notNull(),
+  validAfter: timestamp('valid_after', { withTimezone: true }).notNull(), expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  active: boolean('active').notNull().default(false),
+}, table => [primaryKey({ columns: [table.organizationId, table.budgetId] }),
+  unique('model_budget_owner').on(table.organizationId, table.budgetId, table.subject),
+  check('model_budget_bounds', sql`${table.capMicrousd} BETWEEN 1 AND 1000000000000 AND ${table.architectMicrousd} BETWEEN 1 AND ${table.capMicrousd} AND ${table.testAgentMicrousd} BETWEEN 1 AND ${table.capMicrousd}`),
+  check('model_budget_identity', sql`length(${table.organizationId}) BETWEEN 1 AND 200 AND length(${table.subject}) BETWEEN 1 AND 200 AND length(${table.configurationRevision}) BETWEEN 1 AND 200 AND ${table.approvalDigest} ~ '^[a-f0-9]{64}$'`),
+  check('model_budget_time', sql`${table.expiresAt} > ${table.validAfter} AND ${table.expiresAt} <= ${table.validAfter} + interval '24 hours'`),
+  pgPolicy('budget_scope', { for: 'all', using: sql`${table.organizationId} = ${usageOrg} AND ${table.budgetId}::text = ${usageBudget} AND ${table.subject} = ${usageSubject}`,
+    withCheck: sql`${table.organizationId} = ${usageOrg} AND ${table.budgetId}::text = ${usageBudget} AND ${table.subject} = ${usageSubject}` }),
+]).enableRLS();
+export const modelReservations = steerUsage.table('model_reservations', {
+  organizationId: text('organization_id').notNull(), budgetId: uuid('budget_id').notNull(), reservationId: uuid('reservation_id').notNull(),
+  subject: text('subject').notNull(), role: text('role').notNull(), amountMicrousd: bigint('amount_microusd', { mode: 'bigint' }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [primaryKey({ columns: [table.organizationId, table.budgetId, table.reservationId] }),
+  foreignKey({ columns: [table.organizationId, table.budgetId, table.subject], foreignColumns: [modelBudgets.organizationId, modelBudgets.budgetId, modelBudgets.subject] }),
+  check('model_reservation_amount', sql`${table.amountMicrousd} BETWEEN 1 AND 1000000000000`),
+  check('model_reservation_role', sql`${table.role} IN ('architect', 'test-agent')`),
+  pgPolicy('reservation_scope', { for: 'all', using: sql`${table.organizationId} = ${usageOrg} AND ${table.budgetId}::text = ${usageBudget} AND ${table.subject} = ${usageSubject}`,
+    withCheck: sql`${table.organizationId} = ${usageOrg} AND ${table.budgetId}::text = ${usageBudget} AND ${table.subject} = ${usageSubject}` }),
 ]).enableRLS();

@@ -4171,3 +4171,16 @@ invalidates it after clarification; scope conflicts ask for re-review, not auto-
 Synthetic HTTP/registry/coordinator/React checks pass; see [0202 evidence](../intent/0202/EVIDENCE.md).
 No live model, read-model grant, runtime write or gate was enabled. Semantic assessment,
 durable budget/draft bindings, save-time atomic rechecks and real UI acceptance remain open.
+
+## Development increment: 0203 — Durable budget reservation adapter
+
+Added a separate forced-RLS accounting ledger and append-only reservation adapter.
+Independent clients share one cap, owner/configuration/approval and role costs are
+bound, and unknown COMMIT acknowledgement returns no model permission without a
+refund. Runtime cannot activate, raise, reset or delete budgets. Accounting is not
+a disposable projection.
+
+Data unit suite 28/28 and real disposable PostgreSQL integration 40/40 pass; see
+[0203 evidence](../intent/0203/EVIDENCE.md). No real database migration, budget row,
+provider call, grant or spending was activated. Runtime composition, conservative
+pricing/token bounds, approval verification and recovery remain required.
