@@ -40,6 +40,11 @@ owned Temporal client and real local worker. Provider/JWKS responses and its act
 result are synthetic. It is not a live Keycloak, complete Git/SQL save journey or
 independent gate review. See `intent/0176/EVIDENCE.md`.
 
+Increment 0177 separately joins this runtime to actual saved-operation readback and
+Git/PostgreSQL projection in one disposable scenario; see
+[the joined journey](AUTHENTICATED-RECORDED-JOURNEY.md). Its human/gate/projector
+authority and provider responses remain synthetic; the 0176 scenario is retained.
+
 No live profile/factory/grant is installed. Governed receipt/source-path admission,
 complete save authority and approved dispatcher/cluster bindings remain open, as do
 all five R5 findings and independent/qualified review/human signatures. No live save,

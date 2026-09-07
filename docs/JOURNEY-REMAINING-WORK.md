@@ -1,8 +1,8 @@
 # Remaining first-journey implementation
 
 Code audit on 2026-09-07 against `e320d6e86affd556103dcf9c273daf23dc6695d5`,
-plus increments 0174–0176's owned client, shared authorization and optional runtime
-composition. This is execution planning, not a new
+plus increments 0174–0177's owned client, shared authorization, optional runtime
+and joined isolated receipt/projection integration. This is execution planning, not a new
 architecture, signed-scope reduction or gate decision. It supersedes historical
 "next" statements only for sequencing; numbered evidence remains historical.
 
@@ -37,9 +37,10 @@ incomplete until the real approved composition passes.
 
 0174 supplies J2's owned start/status client; 0175 adds the explicit separate current
 dispatch/status grant boundary in the shared registry. 0176 adds the optional owned
-runtime/factory lifecycle. Next connect that runtime to the actual current dispatcher
-and exact receipt/worker binding in isolated integrated verification, while keeping
-approved live identity/cluster configuration separate. Do not
+runtime/factory lifecycle. 0177 joins its signed current dispatcher to actual saved
+operation readback and exact Git/PostgreSQL projection in one disposable scenario.
+Next replace remaining identity doubles with the existing disposable Keycloak
+harness while keeping approved live identity/cluster configuration separate. Do not
 invent automatic path admission from a browser response or turn test grants into
 live configuration. `projection.ingest` and `intent.brief.save` remain independent
 permissions. Missing actual selection/authority still requires the established

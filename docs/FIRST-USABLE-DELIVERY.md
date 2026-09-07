@@ -63,7 +63,7 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0176
+### Latest development audit — increment 0177
 
 The dependency-ordered current route is `docs/JOURNEY-REMAINING-WORK.md`.
 Increment 0174 adds an owned fixed-operation Temporal start/status client with
@@ -75,6 +75,10 @@ does not grant saving, approve receipt provenance or admit new paths.
 0176 supplies an explicit opt-in runtime/factory pair with exact operation binding
 and request-draining ownership. No live profile/factory is installed; approved real
 dispatcher/cluster binding and governed receipt/path admission remain separate.
+0177 joins signed current dispatcher authorization to actual created-Brief status
+readback and exact Git/PostgreSQL projection in the same disposable scenario.
+Provider responses and human/gate/projector authority remain synthetic; this is not
+the approved real-user journey or an actual Keycloak dispatcher pass.
 
 The production UI now supports deterministic describe/correct, exact local review,
 manual prior-operation status and opening the exact recorded Brief. Disposable

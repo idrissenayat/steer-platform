@@ -1923,3 +1923,19 @@ and the new activity checkpoint remain synthetic. See `intent/0176/EVIDENCE.md`.
 No live profile/factory/grant or frontend change. Complete governed receipt/path
 admission, real dispatcher/cluster binding and full saving authority remain open,
 as do all five R5 findings and independent/qualified review/human gates.
+
+## Increment 0177 — Joined authenticated recorded-Brief journey
+
+The existing created-Brief integration now uses a signed dispatcher JWT, a separate
+current grant committed in the same owned native Git source, and the production
+identity runtime/HTTP/managed Temporal client. Projection-only grants deny before
+dispatch; committed revocation denies subsequent status. The accepted exact operation
+survives queued worker-runtime reconstruction and uses actual save-status receipt
+readback to verify and ingest native Git content into PostgreSQL once.
+
+Lost save acknowledgment, unrelated later commits, exact curated reads, replay and
+separate human-status/projector negatives remain in this same scenario. Its fixture
+preserves the writer's fixed clock and fault hooks; only the signed dispatch reader
+uses current synthetic token expiry. No production code or live configuration changes.
+Evidence and explicit synthetic authority/provider limits: `intent/0177/EVIDENCE.md`.
+All five R5 findings and independent review/human gates remain open.

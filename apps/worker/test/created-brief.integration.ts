@@ -2,15 +2,18 @@ import assert from 'node:assert/strict';
 import type { Pool } from 'pg';
 import type { TestWorkflowEnvironment } from '@temporalio/testing';
 import { Worker, type WorkflowBundle } from '@temporalio/worker';
+import { Client, Connection } from '@temporalio/client';
 import { briefCatalogOutputSchema, briefProjectionOutputSchema, briefSaveOutputSchema } from '@steer/tool-registry';
 import { createRuntimePool } from '@steer/data/runtime-pool';
 import { createArtifactProjectionReader } from '@steer/data/artifact-reader';
 import { projectionKey } from '@steer/data/ingestion';
 import { createBriefCreationScenario } from '../../api/test/brief-creation-harness.ts';
+import { recordedRuntimeFixture } from '../../api/test/recorded-runtime-fixture.ts';
+import { createIdentityRuntime } from '../../api/src/runtime.ts';
 import { ref, now } from '../../../packages/adapters/test/github-brief-fixture.ts';
 import { createWorkerRecordedBriefRuntime } from '../src/runtime.ts';
 import { createRecordedBriefWorker } from '../src/worker.ts';
-import { startRecordedBriefProjection } from '../src/client.ts';
+import { startRecordedBriefProjection, createManagedRecordedBriefScheduler } from '../src/client.ts';
 import { recordedBriefWorkflowId } from '../src/contracts.ts';
 
 function historyText(value: unknown): string {
@@ -19,13 +22,16 @@ function historyText(value: unknown): string {
   return typeof value === 'string' ? value : '';
 }
 
-/** One real creation-to-worker-to-read-model journey. Human/gate authority is explicitly synthetic. */
+/** Real creation/readback, signed current dispatch, Temporal and SQL in one journey.
+ * Human/gate/projector authority and provider/JWKS responses remain synthetic. */
 export async function testCreatedBriefWorkflow(env: TestWorkflowEnvironment, bundle: WorkflowBundle,
   database: { host: string; port: number; database: string; transport: { kind: string } }, password: string, admin: Pool,
   check: (name: string, run: () => Promise<void>) => Promise<void>) {
   const cleanup: (() => void)[] = [];
   const reads = createRuntimePool({ ...database, user: 'steer_app', password });
   let runtime: Awaited<ReturnType<typeof createWorkerRecordedBriefRuntime>> | undefined;
+  let dispatchRuntime: Awaited<ReturnType<typeof createIdentityRuntime>> | undefined;
+  let dispatch: Awaited<ReturnType<typeof createManagedRecordedBriefScheduler>> | undefined;
   let worker: Worker | undefined, running: Promise<void> | undefined;
   const scope = { organizationId: ref.organizationId, repository: ref.repository, itemId: ref.path.slice(0, -'/BRIEF.md'.length) };
   const target = { scope, idempotencyKey: ref.idempotencyKey }, queue = 'steer-0166-created';
@@ -56,7 +62,7 @@ export async function testCreatedBriefWorkflow(env: TestWorkflowEnvironment, bun
       finally { worker = undefined; running = undefined; await runtime?.shutdown(); }
     };
     let revision = '';
-    await check('actual HTTP creation with lost acknowledgement reaches durable projection and the exact curated work-list read after reconstruction', async () => {
+    await check('actual HTTP creation with lost acknowledgement and signed current dispatcher reaches exact receipt-backed PostgreSQL projection after reconstruction', async () => {
       assert.deepEqual((await catalog()).records, []); assert.equal(await count(), 0);
       assert.equal((await f.inspect()).result.outcome, 'not-found'); f.source.loseAck();
       const response = await f.call('intent.brief.save', f.input); assert.equal(response.status, 200);
@@ -66,10 +72,29 @@ export async function testCreatedBriefWorkflow(env: TestWorkflowEnvironment, bun
         [`.steer/authoring/operations/${ref.idempotencyKey}.json`, ref.path]);
       assert.deepEqual((await catalog()).records, []); // Creation alone is not projection.
       f.source.add([{ path: 'unrelated.md', content: 'Unrelated later commit\n' }]); assert.notEqual(f.source.head(), revision);
+      const dispatcher = await recordedRuntimeFixture({ after: run => { cleanup.push(run); } },
+        { source: f.source, selection: { itemId: scope.itemId, idempotencyKey: target.idempotencyKey } });
+      const connection = await Connection.connect({ address: env.address });
+      dispatch = await createManagedRecordedBriefScheduler(new Client({ connection, namespace: 'default' }),
+        { namespace: 'default', taskQueue: queue, target }, () => connection.close());
+      dispatchRuntime = await createIdentityRuntime(dispatcher.profile, dispatcher.secrets,
+        { ...dispatcher.ports, createRecordedScheduler: async () => dispatch! });
+      assert.equal((await (await dispatchRuntime.fetch(dispatcher.request('status'))).json()).outcome, 'not-found');
+      dispatcher.publish({ ...dispatcher.grant, toolGrants: ['projection.ingest'] });
+      assert.equal((await dispatchRuntime.fetch(dispatcher.request('start'))).status, 403);
+      assert.equal(dispatch.status().attempted, false); assert.equal(statusCalls, 0); assert.equal(await count(), 0);
+      dispatcher.publish();
       f.reconstruct(); await configure();
-      const handle = await startRecordedBriefProjection(env.client, queue, target);
+      const started = await dispatchRuntime.fetch(dispatcher.request('start')); assert.equal(started.status, 200);
+      assert.equal((await started.json()).outcome, 'started');
+      assert.equal((await (await dispatchRuntime.fetch(dispatcher.request('start'))).json()).outcome, 'already-attempted');
+      const handle = env.client.workflow.getHandle(dispatcher.workflowId);
       await stop(); assert.equal(statusCalls, 0); await configure(); await start();
       assert.deepEqual(await handle.result(), { revision, status: 'observed', outcome: 'applied' });
+      const observed = await dispatchRuntime.fetch(dispatcher.request('status')); assert.equal(observed.status, 200);
+      assert.equal((await observed.json()).state, 'COMPLETED');
+      dispatcher.publish({ ...dispatcher.grant, active: false });
+      assert.equal((await dispatchRuntime.fetch(dispatcher.request('status'))).status, 401);
       assert.equal(statusCalls, 1); assert.equal(await count(), 1); assert.equal(f.source.mutations(), 1);
       const expected = { path: ref.path, revision, contentDigest: f.preview.contentDigest };
       assert.deepEqual((await catalog()).records, [expected]);
@@ -78,7 +103,7 @@ export async function testCreatedBriefWorkflow(env: TestWorkflowEnvironment, bun
       assert.equal(brief.content, f.preview.markdown); assert.equal(brief.revision, revision);
       assert.equal(brief.blobSha, (await f.reader.readArtifact(ref.path, revision)).blobSha);
       const history = await handle.fetchHistory();
-      for (const privateValue of [ref.subject, f.preview.markdown, password, 'synthetic-app-jwt', 'requestDigest', 'gateSigned']) {
+      for (const privateValue of [ref.subject, dispatcher.grant.subject, f.preview.markdown, password, 'synthetic-app-jwt', 'requestDigest', 'gateSigned']) {
         assert.equal(historyText(history).includes(privateValue), false);
       }
       await Worker.runReplayHistory({ workflowBundle: bundle }, history, recordedBriefWorkflowId(target)); assert.equal(statusCalls, 1);
@@ -89,6 +114,8 @@ export async function testCreatedBriefWorkflow(env: TestWorkflowEnvironment, bun
       assert.equal(saved.result.revision, revision); assert.equal(saved.gateSigned, false); assert.equal(f.source.mutations(), 1);
       await stop(); await configure(); // Fresh runtime re-reads status; it does not retain a previous receipt as authority.
       assert.equal((await runtime!.activities.projectRecordedBrief(target)).outcome, 'duplicate'); assert.equal(await count(), 1);
+      await dispatchRuntime.shutdown(); assert.equal(dispatch.status().state, 'stopped');
+      assert.equal((await dispatchRuntime.fetch(dispatcher.request('status'))).status, 503);
     });
     await check('current human status permission and separate projector permission independently deny the created-brief worker without new ingestion', async () => {
       const before = f.source.calls.length, statuses = statusCalls;
@@ -126,9 +153,12 @@ export async function testCreatedBriefWorkflow(env: TestWorkflowEnvironment, bun
       try { await runtime?.shutdown(); }
       finally { try { await reads.shutdown(); assert.equal(reads.status().closed, true); }
         finally {
-          let failure: unknown;
-          for (const close of cleanup.reverse()) { try { close(); } catch (error) { failure ??= error; } }
-          if (failure) throw failure;
+          try { try { await dispatchRuntime?.shutdown(); } finally { await dispatch?.shutdown(); } }
+          finally {
+            let failure: unknown;
+            for (const close of cleanup.reverse()) { try { close(); } catch (error) { failure ??= error; } }
+            if (failure) throw failure;
+          }
         } }
     }
   }

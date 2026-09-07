@@ -7,6 +7,10 @@ item one, are the framework's pilot evidence.
 
 ## Current delivery
 
+Item [0177](intent/0177/README.md) joins signed current-authorized runtime dispatch
+to actual local Git receipt readback and PostgreSQL projection in one isolated
+[recorded-Brief journey](docs/AUTHENTICATED-RECORDED-JOURNEY.md). Live saving stays closed.
+
 Item [0176](intent/0176/README.md) adds opt-in identity-runtime ownership for the
 recorded scheduler, with exact binding and request-draining shutdown. No live
 configuration is enabled; see [runtime ownership](docs/RECORDED-SCHEDULER-RUNTIME.md).

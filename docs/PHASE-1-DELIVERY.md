@@ -3663,3 +3663,19 @@ governed source admission separate. No new frontend, protected artifact, depende
 schema migration, live save/scheduler, provider grant, spending, deployment, release
 or real deletion. All five R5 findings and independent/qualified review/human gates
 remain open; the standing implementation loop stays active.
+
+## Completed development increment: 0177 — Authenticated actual receipt projection
+
+The signed/current-authorized dispatcher now runs in the same isolated scenario as
+actual HTTP Brief creation, native Git operation readback, recreated Temporal worker,
+PostgreSQL ingestion and exact curated Brief reads. A lost save acknowledgment and
+later unrelated commits do not change the saved revision or create a second event.
+Projection-only dispatch grants and revoked current dispatcher status are denied.
+
+This is test integration of the existing production stack, not a synthetic activity
+success callback. Provider responses and human/gate/projector authority are still
+synthetic, so an actual Keycloak dispatcher and approved real configuration remain
+separate work. No live save, grant, automatic source admission, protected artifact,
+frontend, dependency, migration, deployment, spending or real deletion changes.
+Final exact-code results are recorded in `intent/0177/EVIDENCE.md`. All five R5
+findings and complete authority/independent review/human gates remain open.
