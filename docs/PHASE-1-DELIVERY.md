@@ -3001,3 +3001,12 @@ contract before full action-time authority and live writer composition. Gated
 save/status, lifecycle projections, board/review and all five R5 findings, protected
 and qualified review, human gates and signed Phase 1 obligations remain open. No
 live source, permissions, deployment, release or spending changed.
+## Approved overnight execution focus — September 6–7, 2026
+
+The user approved the 22:00–08:00 Eastern target in
+`docs/overnight/2026-09-06-PLAN.md`: prioritize integrated closed-by-default
+authorization, exact-content confirmation/save-status UI, and verified delivery;
+board integration is stretch work. The active implementation loop incorporates
+these priorities and will report at the first safe checkpoint at or after 08:00.
+This is an execution focus, not a completed increment, gate waiver or promise that
+the first usable journey or all of Phase 1 will be complete overnight.
