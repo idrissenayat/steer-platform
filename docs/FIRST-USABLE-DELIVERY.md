@@ -63,9 +63,12 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0188
+### Latest development audit — increment 0189
 
 The dependency-ordered current route is `docs/JOURNEY-REMAINING-WORK.md`.
+0189 adds direct read-only review-record inspection in the production workspace.
+It does not claim an assigned/actionable Inbox or authoritative lifecycle stage.
+Verification and remaining limits are recorded in `intent/0189/EVIDENCE.md`.
 0188 joins exact signed historical selector-session evidence and both grant eras
 in the held collector and HTTP runtime. Actual service ownership/issuance and full
 authority remain external prerequisites; local evidence is in `intent/0188/EVIDENCE.md`.

@@ -240,6 +240,11 @@ button:focus-visible, .access-footer a:focus-visible { outline: .2rem solid var(
   .brief-work-list li { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
   .brief-work-open { max-width: none; justify-self: start; }
 }
+.review-selection { margin-top: 1rem; padding: 1.25rem; border: 1px solid var(--steer-border); border-radius: .75rem; overflow-wrap: anywhere; }
+.review-selection:focus { outline: 3px solid var(--steer-focus); outline-offset: .2rem; }
+.review-workspace > .access-secondary { margin-top: 1rem; }
+.review-workspace { margin-top: 1.5rem; }
+.review-workspace .brief-work-revision > code { display: block; }
 .brief-is-open { overflow: hidden; }
 .brief-dialog { position: fixed; inset: 0 0 0 auto; margin: 0; width: min(52rem, 90vw); max-width: 100vw; height: 100dvh; max-height: 100dvh; padding: 0; border: 1px solid var(--steer-border); background: #fffdfb; color: var(--steer-ink); box-shadow: -1rem 0 4rem #51203b25; }
 .brief-dialog[open] { display: flex; flex-direction: column; }

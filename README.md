@@ -7,6 +7,9 @@ item one, are the framework's pilot evidence.
 
 ## Current delivery
 
+Item [0189](intent/0189/README.md) adds a direct read-only review-record workspace
+for exact Brief revisions, decision sources and evidence. Approval remains unverified.
+
 Item [0188](intent/0188/README.md) joins exact signed selector-session evidence to
 historical/current grants in held saving. Approved trust and live authority remain separate.
 

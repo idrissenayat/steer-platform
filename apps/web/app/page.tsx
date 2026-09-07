@@ -4,6 +4,7 @@ import { identityView, sessionView, repositoryView } from './identity-view';
 import ProjectionPanel from './projection-panel';
 import BriefLibrary from './brief-library';
 import BriefAuthor from './brief-author';
+import ReviewWorkspace from './review-workspace';
 
 export default async function FoundationPage() {
   await connection();
@@ -30,6 +31,8 @@ export default async function FoundationPage() {
       {repository ? <BriefLibrary key={`${session.subject}:${session.organizationId}:${repository}:${session.expiresAt}`}
         organizationId={session.organizationId} repository={repository} expiresAt={session.expiresAt} /> :
         <p className="access-note">Brief discovery is not configured for this workspace. No repository access has been enabled by this page.</p>}
+      {repository && <ReviewWorkspace key={`review:${session.subject}:${session.organizationId}:${repository}:${session.expiresAt}`}
+        organizationId={session.organizationId} repository={repository} expiresAt={session.expiresAt} />}
       <details className="workspace-diagnostics"><summary>Developer diagnostics</summary>
         <ProjectionPanel key={`${session.subject}:${session.organizationId}:${session.expiresAt}`} organizationId={session.organizationId} expiresAt={session.expiresAt} />
       </details>

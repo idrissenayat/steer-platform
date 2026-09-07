@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { BriefDecisions } from '@steer/tool-registry/decision-contracts';
 import type { BriefProjection } from '@steer/tool-registry/brief-contracts';
 import { createDecisionReader } from './decision-reader';
@@ -8,6 +8,7 @@ import DecisionArtifacts from './decision-artifacts';
 
 /** Record inspection, never an approval action or a source of lifecycle state. */
 export default function BriefDecisionRecords({ brief, expiresAt }: { brief: BriefProjection; expiresAt: string }) {
+  const heading = useId();
   const owner = useRef<ReturnType<typeof createDecisionReader> | null>(null);
   const [result, setResult] = useState<BriefDecisions | null>(null); const [busy, setBusy] = useState(false);
   const [activeEvidence, setActiveEvidence] = useState<string | null>(null);
@@ -31,8 +32,8 @@ export default function BriefDecisionRecords({ brief, expiresAt }: { brief: Brie
     } catch { if (owner.current === current) { setResult(null); setNotice('Decision records could not be checked. Refresh access and try again.'); } }
     finally { if (owner.current === current) setBusy(false); }
   };
-  return <section className="brief-decisions" aria-labelledby="brief-decisions-title">
-    <div className="brief-library-heading"><h3 id="brief-decisions-title">Recorded decisions</h3>
+  return <section className="brief-decisions" aria-labelledby={heading}>
+    <div className="brief-library-heading"><h3 id={heading}>Recorded decisions</h3>
       <button type="button" className="access-secondary" disabled={busy} onClick={() => void load()}>Load decision records</button></div>
     <p>These are source claims, not verified human signatures, gate clearance or permission to write. Matching a Brief revision does not verify an approval.</p>
     <p role="status" data-testid="decision-status">{notice}</p>

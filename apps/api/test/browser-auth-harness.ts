@@ -1197,12 +1197,54 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           await readEvidence();
           await page.getByRole('button', { name: 'Close Brief', exact: true }).click();
           await page.getByRole('button', { name: 'Read Intent 0125-synthetic-outcome', exact: true }).click();
+          await detail.waitFor({ state: 'visible' });
           assert.equal(await section.locator('.decision-record').count(), 0, 'closed decision content is not retained');
           await page.keyboard.press('Escape');
+          stage = 'direct review workspace';
+          await detail.waitFor({ state: 'hidden' });
+          const workspace = page.getByRole('region', { name: 'Review records', exact: true });
+          assert.equal(await workspace.locator('.decision-record').count(), 0);
+          await workspace.getByRole('button', { name: 'Refresh review list', exact: true }).click();
+          const chooseReview = workspace.getByRole('button', { name: 'Inspect records for Intent 0125-synthetic-outcome', exact: true });
+          await chooseReview.waitFor();
+          stage = 'review choice enabled';
+          await page.waitForFunction(() => [...document.querySelectorAll<HTMLButtonElement>('.review-workspace button')]
+            .some(button => button.textContent === 'Inspect records for Intent 0125-synthetic-outcome' && !button.disabled));
+          await chooseReview.focus(); assert.equal(await chooseReview.evaluate(element => element === document.activeElement), true);
+          stage = 'keyboard review selection'; await page.keyboard.press('Enter');
+          const selectedReview = workspace.getByRole('region', { name: 'Selected review source', exact: true });
+          await selectedReview.waitFor(); assert.equal(await selectedReview.evaluate(element => element === document.activeElement), true);
+          stage = 'load direct review decisions';
+          const reviewRecords = selectedReview.getByRole('region', { name: 'Recorded decisions', exact: true });
+          await reviewRecords.getByRole('button', { name: 'Load decision records', exact: true }).click();
+          await reviewRecords.locator('.decision-record').nth(1).waitFor();
+          assert.equal(await reviewRecords.locator('.decision-record').count(), 2);
+          assert.match((await reviewRecords.locator('.decision-linkage').first().textContent())!, /Approval unverified/);
+          await reviewRecords.getByRole('button', { name: 'Inspect SPEC.md', exact: true }).first().click();
+          await reviewRecords.getByRole('region', { name: 'Evidence source: SPEC.md', exact: true }).waitFor();
+          assert.equal(await reviewRecords.locator('.decision-evidence pre').textContent(), exactSource.content);
+          if (directory) await workspace.screenshot({ path: join(directory, 'review-workspace-desktop.png') });
+          await page.setViewportSize({ width: 390, height: 844 });
+          assert.equal(await workspace.evaluate(element => element.scrollWidth <= element.clientWidth), true);
+          if (directory) await workspace.screenshot({ path: join(directory, 'review-workspace-mobile.png') });
+          await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+          assert.equal(await workspace.evaluate(element => element.scrollWidth <= element.clientWidth), true);
+          await page.evaluate(() => { document.documentElement.style.fontSize = ''; }); await page.setViewportSize({ width: 1440, height: 1000 });
+          assert.deepEqual(await page.evaluate(async () => (await (window as unknown as { axe: { run(context: string, options: unknown): Promise<{ violations: unknown[] }> } }).axe.run('.review-workspace', { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] } })).violations), []);
+          stage = 'review workspace revocation';
+          await source.publish([{ ...grant, toolGrants: grant.toolGrants.filter(name => name !== 'intent.brief.catalog') }]);
+          await workspace.getByRole('button', { name: 'Refresh review list', exact: true }).click();
+          await workspace.getByTestId('review-workspace-status').filter({ hasText: 'Review access could not be checked.' }).waitFor();
+          assert.equal(await workspace.locator('.decision-record, .decision-evidence').count(), 0);
+          assert.equal(await workspace.getByRole('listitem').count(), 0);
+          await source.publish([grant]); await workspace.getByRole('button', { name: 'Refresh review list', exact: true }).click();
+          await chooseReview.waitFor(); await workspace.getByRole('button', { name: 'Clear review records', exact: true }).click();
+          assert.equal(await workspace.getByRole('listitem').count(), 0);
         } catch (error) {
           console.error(`Decision UI check failed at ${stage}; error class ${error instanceof Error ? error.name : 'unknown'}; payloads omitted.`);
           console.error({ briefNotice: await page.getByTestId('brief-status').textContent().catch(() => 'unavailable'),
             decisionNotice: await page.getByTestId('decision-status').textContent({ timeout: 1000 }).catch(() => 'unavailable'),
+            reviewNotice: await page.getByTestId('review-workspace-status').textContent({ timeout: 1000 }).catch(() => 'unavailable'),
             hidden: await page.evaluate(() => document.hidden) });
           const directory = process.env.STEER_WORKSPACE_SCREENSHOT_DIR;
           if (directory) await page.screenshot({ path: join(directory, 'brief-decisions-failure.png') });

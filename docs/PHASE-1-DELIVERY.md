@@ -3885,3 +3885,22 @@ complete action-time authority remain separate. All five R5 findings and qualifi
 independent protected review/human gates stay open. No live profile/key/grant,
 protected artifact, frontend, provider access, spending, deployment, release or
 real-data deletion changed.
+
+## Completed development increment: 0189 — Direct review-record workspace
+
+The production workspace now has a direct read-only review entry point. Explicit
+discovery lists permitted exact Brief revisions in bounded pages; a selected source
+opens its existing decision/evidence inspection without first opening the full Brief
+dialog. Exact-source links remain available. Recorded claims never become assigned
+work, urgency, lifecycle state, verified approval or a write action.
+
+Current readers, curation and authentication are reused. Failure, expiry, hiding,
+navigation and clear remove retained sources; late reads cannot restore them.
+Unique decision-section IDs support concurrent library/review rendering. Pink/orange
+tokens and responsive list styling are preserved. All 45 enhanced browser checks,
+71 web tests, 438 repository controls and full checks/builds passed. Desktop/mobile
+screenshots were inspected. The two earlier dialog-timing test failures and corrected
+ordering are retained in the evidence. Usage: `docs/REVIEW-WORKSPACE.md`. Verification is recorded in
+`intent/0189/EVIDENCE.md`. No live grant/provider, protected artifact, spending,
+deployment, release or real-data deletion changed. All five R5 findings and qualified
+independent protected review/human gates remain open.
