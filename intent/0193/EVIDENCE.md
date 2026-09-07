@@ -42,3 +42,24 @@ The private local files, passwords, cookies, TLS private key and App private key
 are not evidence attachments. The GitHub write boundary, all five R5 findings,
 Gate 2 and real-user first-journey acceptance remain open. Browser trust/password
 setup is pending; no visual authenticated UI acceptance has been performed.
+
+## Approved user-keychain trust follow-up
+
+The user explicitly approved adding the previously identified certificate. Before
+installation, ownership, permissions, exact SHA-256 fingerprint, server-only
+basic constraints, self-signature, localhost name and expiry were checked.
+`security add-trusted-cert` completed in the user's login keychain with `-p ssl`
+and `-s localhost`, without admin/system-domain or allowed-error flags.
+
+macOS `security verify-cert` succeeds for localhost and denies an unapproved
+hostname. The exact certificate's exported user trust entry contains `sslServer`
+and policy string `localhost`. Exporting the whole plist to JSON failed on its
+native data types; extracting the exact trust entry as XML verified its contents.
+
+Actual navigation in Chrome and the Codex in-app browser both failed with
+`ERR_CERT_AUTHORITY_INVALID`; neither warning was bypassed. Unpinned curl also
+failed. The successful macOS check is not a browser pass. Chromium's
+[primary implementation](https://chromium.googlesource.com/chromium/src/+/main/net/cert/internal/trust_store_mac.cc)
+explicitly skips hostname-specific keychain trust entries. A separate localhost-only
+browser leaf with SSL-only user trust is proposed, pending approval; no broader
+trust, replacement certificate, password submission or GitHub write was performed.

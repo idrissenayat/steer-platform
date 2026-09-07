@@ -5,9 +5,11 @@
 - [x] Four least-privilege roles; auth role denied business data and plaintext TCP.
 - [x] Actual persistent user subject, mandatory personal password setup.
 - [x] Gateway, durable PKCE transaction and actual Keycloak login form verified.
-- [x] No runtime write/signer grant, cloud spending or system trust modification.
+- [x] No runtime write/signer grant, cloud spending or machine-wide trust modification.
 - [x] Runtime App readback of the incorporated real membership verified.
-- [ ] User-approved browser certificate trust and personal password setup.
+- [x] Separately approved exact user-keychain SSL/localhost trust installed and verified by macOS.
+- [ ] Browser-compatible certificate trust: Chromium rejects the hostname-scoped keychain entry.
+- [ ] Personal password setup.
 - [ ] Intended user's authenticated organization/hats verified in the UI.
 
 This partial bootstrap acceptance does not close the first usable journey, any R5

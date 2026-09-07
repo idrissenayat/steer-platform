@@ -20,6 +20,22 @@ durable PKCE login transaction and reach the real Keycloak password form.
 certificate trust and personal password setup remain user-assisted prerequisites.
 Never click through a certificate warning or disable certificate validation.
 
+Following the user's separate approval, the exact certificate was installed in
+their login keychain with SSL-server policy restricted to `localhost`. macOS
+certificate verification now succeeds, but Chrome and the in-app Chromium browser
+both reject the page with `ERR_CERT_AUTHORITY_INVALID`. Chromium explicitly skips
+keychain entries containing a policy-specific hostname string; this limitation is
+confirmed in its [trust-store implementation](https://chromium.googlesource.com/chromium/src/+/main/net/cert/internal/trust_store_mac.cc).
+The browser blocker is therefore still open, not solved by the successful macOS
+check. No warning was bypassed and no trust restriction was broadened.
+
+Proposed next step, not yet authorized or performed: issue a separate browser-facing
+server-only leaf containing **only `localhost`** in its certificate names, then
+apply user-keychain SSL-only trust without the unsupported policy-string rule.
+Keep the existing pinned database certificate separate. Do not install a general
+certificate authority or weaken hostname/expiry validation. Obtain approval for
+this replacement before modifying certificates or trust settings again.
+
 ## Storage and credentials
 
 The private directory is `~/.config/steer/local-workspace` (0700); generated files
@@ -50,9 +66,12 @@ process; ordinary TLS verification remains enabled.
 
 Provisioned leaf SHA-256 fingerprint (public, not a credential):
 `CD:F0:35:78:1C:37:04:66:3F:9C:96:69:FD:6A:52:A0:72:E4:6B:59:12:DE:67:AE:5E:AA:C8:93:B0:FA:3E:EE`.
-It expires 2026-10-07 17:40:36 UTC. The read-only macOS verification currently
-returns `CSSMERR_TP_NOT_TRUSTED`; this is a pending trust decision, not a reason
-to permit an expired certificate or hostname mismatch.
+It expires 2026-10-07 17:40:36 UTC. Before approval, read-only macOS verification
+returned `CSSMERR_TP_NOT_TRUSTED`. After the approved user-keychain installation,
+`security verify-cert` succeeds for localhost and denies an unapproved hostname.
+The exact exported user trust entry contains only `sslServer` and `localhost`,
+with no broad/all-purpose trust or allowed-error override. Browser verification
+still fails as described above; hostname/expiry exceptions are not permitted.
 
 The volume `steer-local-workspace_database` persists both the STEER and isolated
 Keycloak databases. Database/client/session secrets are plaintext owner-only files
