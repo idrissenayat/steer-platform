@@ -4,6 +4,20 @@ Owner: STEER implementation loop. User-approved direction: 2026-09-07.
 Current base: `09c3ab8`. This plan controls current delivery sequencing; it does
 not replace signed requirements, alter gates or authorize model spending.
 
+## End-to-end design checkpoint — 2026-09-07
+
+The user requested the process flow, workflow and architecture before further
+integration rework. Use [the end-to-end blueprint](architecture/END-TO-END.md)
+and [workflow contract](architecture/WORKFLOW-CONTRACT.md) to connect I1–I6.
+They distinguish candidate save, human pull, independent Exam and gate decisions.
+
+Resolve D1 (durable operational records and applicable records policy) and D3
+(candidate bundle versus protected canonical Exam publication) before implementing
+their dependent storage/write paths. These are proposed amendments/contracts,
+not approval to change the signed baseline. Safe read-only integration and
+non-billable contract tests can continue. Do not implement the next persistence
+slice merely because an older checkpoint below calls it “next.”
+
 ## Completion means a demonstrated human journey
 
 In the actual authenticated Next application at https://localhost:8443/, a person
@@ -82,4 +96,5 @@ semantic assessment and save/reopen remain open.
 
 0204 adds editing and original comparison inside the actual conversation, preserving
 per-document corrections while switching views. It remains explicitly in-memory;
-durable authorized draft storage/restoration is the next I4 implementation task.
+durable authorized draft storage/restoration is the next I4 implementation task,
+subject to the end-to-end design checkpoint above.

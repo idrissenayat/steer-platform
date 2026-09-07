@@ -4,6 +4,12 @@ Status: integration implemented and tested with synthetic provider responses;
 **live activation and real-model acceptance remain open**. Initial integration 0198;
 revision-bound source review/direction composition added in 0202.
 
+For the target end-to-end process, see [the blueprint](architecture/END-TO-END.md)
+and [workflow contract](architecture/WORKFLOW-CONTRACT.md). They distinguish
+candidate drafts from pulled work and formal gates, and propose the durable-state
+and protected-publication decisions still needed before those integration paths.
+This document below describes the current implementation, not those proposed paths.
+
 ## Human journey
 
 Open https://localhost:8443/ and sign in. The actual workspace now starts with

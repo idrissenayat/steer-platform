@@ -20,6 +20,12 @@ inside STEER. Every surface uses the same registry and tenant authorization.
 
 ## Delivery sequence
 
+2026-09-07 design checkpoint: [end-to-end blueprint](architecture/END-TO-END.md)
+and [workflow contract](architecture/WORKFLOW-CONTRACT.md) now map the full process
+and the current intent journey. Resolve proposed operational-state/records and
+protected candidate-publication contracts before their dependent implementation;
+see the controlling checkpoint in [I1–I6](INTENT-JOURNEY-PLAN.md).
+
 The current dependency-ordered first-journey work packages and separate approval
 dependencies are in `docs/JOURNEY-REMAINING-WORK.md` (0174). Historical increment
 "next" statements below are not the current remaining-work forecast.
@@ -4196,3 +4202,25 @@ changes clear content, and late old requests cannot publish into a new account.
 Full web suite 100/100 and typecheck pass; see [0204 evidence](../intent/0204/EVIDENCE.md).
 This is not durable saving or live-model UI acceptance. Refresh/expiry persistence,
 semantic review, actual source configuration and authorized bundle saving remain open.
+
+## Design checkpoint — End-to-end integration blueprint, 2026-09-07
+
+Documented three connected views: the eight-play delivery process and human gates,
+the intent-to-bundle/save sequence, and shared-tool architecture with explicit data
+authority. The companion contract covers owners, states, source/disposition lineage,
+concurrent duplicate prevention, uncertain model/Git outcomes, restoration and real
+UI acceptance. Current evidence is pinned to implementation `0f4ee265a51896fbbddaa23063c9933aa4bfba8b`.
+
+Two dependent design decisions remain proposed: D1 separates durable operational
+draft/operation/accounting records from rebuildable business projections; D3 defines
+candidate bundle publication without granting a Builder canonical Exam access.
+No root Word doctrine, signed architecture, protected Exam, runtime setting, grant
+or budget was changed. Documentation navigation and I1–I6 sequencing now expose
+these decisions instead of silently assuming them during implementation.
+
+Documentation verification: all three Mermaid diagrams parsed and rendered using
+Mermaid 11.4.1 in local headless Chromium; images were visually inspected and a
+clipped sequence note corrected. All 159 local links/heading anchors across the
+eight changed documents resolved. `pnpm kit:check` passed (95 required artifacts),
+`pnpm security:check` passed, and `git diff --check` passed. This was documentation
+QA, not a new live application, model-provider or Git-saving acceptance run.

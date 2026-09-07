@@ -7,6 +7,19 @@ item one, are the framework's pilot evidence.
 
 ## Current delivery
 
+Start with the [end-to-end process, workflow and architecture](docs/architecture/END-TO-END.md)
+and its [workflow contract / decisions](docs/architecture/WORKFLOW-CONTRACT.md).
+The current [I1–I6 journey plan](docs/INTENT-JOURNEY-PLAN.md) now includes the
+design checkpoint before dependent persistence and bundle-publication work.
+
+Through [0204](intent/0204/EVIDENCE.md), the actual Next conversation has source
+review, explicit direction and editable Brief/Spec/Exam candidate copies.
+Drafts remain memory-only; live model activation, durable save/reopen and real
+end-to-end acceptance are not complete. The diagrams distinguish that status
+from the target architecture and preserve existing gates and authority boundaries.
+
+### Earlier delivery checkpoints
+
 Item [0193](intent/0193/README.md) configures approved persistent local sign-in.
 The real account/login form and browser trust are verified; your personal password
 setup remains pending. See [local setup](docs/LOCAL-WORKSPACE-SETUP.md). Live saving stays disabled.

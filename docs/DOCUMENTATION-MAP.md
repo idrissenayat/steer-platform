@@ -11,6 +11,13 @@ and which implementation evidence remains outside the repository.
 Development route refreshed 2026-09-07; this does not change the doctrine alignment
 audit above, the signed execution plan or formal gate status.
 
+- [End-to-end blueprint](architecture/END-TO-END.md) and
+  [workflow contract / open decisions](architecture/WORKFLOW-CONTRACT.md): process,
+  sequence, architecture, owners, storage/recovery and current implementation
+  boundaries. Proposed operational-state and candidate-publication decisions are
+  not adopted doctrine; the signed architecture and protected Exam remain unchanged.
+- [Current intent journey plan](INTENT-JOURNEY-PLAN.md): I1–I6 implementation and
+  the design checkpoint before dependent persistence/publication work.
 - [Phase 1 delivery ledger](PHASE-1-DELIVERY.md): completed development increments
   and the full milestone sequence.
 - [First usable journey](FIRST-USABLE-DELIVERY.md) and
@@ -50,6 +57,7 @@ audit above, the signed execution plan or formal gate status.
 | Product intent | What this platform must implement and how it is examined | canonical numbered chains under `intent/0001` through `intent/0006` |
 | Production architecture | The Phase 1 foundation, stable seams, phased end state, and architecture exit exam | `intent/0001/ARCHITECTURE.md`, its Gate 1 record at `intent/0001/signatures/gate-1.json`, and `docs/architecture/STEER-platform-end-state-phased.png` |
 | Execution plan | The Gate-bound implementation sequence, evidence route, stop conditions, and pilot closure | `intent/0001/PLAN.md` |
+| Integration design for review | End-to-end process and workflow; explicit proposed amendments and acceptance boundaries, not replacement signed policy | `docs/architecture/END-TO-END.md`; `docs/architecture/WORKFLOW-CONTRACT.md` |
 | Machine policy | Rules enforced by the kit and platform | `kit/policy`, `kit/guardrails`, `kit/bands`, `kit/metrics`, `kit/stack-packs`, and `kit/readiness` |
 | Implementation record | What exists locally and what evidence is still missing | `docs/IMPLEMENTATION.md` and `docs/INTENT-COMPLETION.md` |
 
