@@ -3386,3 +3386,32 @@ signatures remain unfinished. No live configuration, provider grants, spending,
 deployment, release, real-record deletion, dependency or schema change occurred.
 The existing stack and pink design tokens are preserved. The standing implementation
 loop remains active; exact candidate remote equality is checked after commit/push.
+
+## Completed development increment: 0168 — Browser creation through the durable worker
+
+The actual browser-confirmed native Git creation now reaches the production Temporal
+recorded-Brief worker and exact PostgreSQL read model in one isolated journey. A lost
+save response is recovered with current Keycloak/browser status. Its exact operation
+is queued without a running worker, then a reconstructed runtime executes one receipt
+read and one projection event. History replay repeats neither read nor effect; a
+duplicate start is rejected. After API reconstruction, the browser opens the exact
+curated created Brief. Source admission remains explicit and test-owned.
+
+The browser suite passed all 43 checks, the Temporal suite all 25 checks and the
+actual creation regression all three groups. The shared pinned Temporal bootstrap
+preserves the existing child-process ownership guard; an initial prefix mismatch
+was corrected without relaxing it. Full checks passed with 438 repository controls,
+99 registry, 24 data, 61 web, 283 adapter, 91 API and 23 worker tests, remaining
+workspaces and all builds. See `intent/0168/EVIDENCE.md`. No frontend or production
+code changed.
+
+Next connect the existing held governed source/policy assessment to runtime diagnostics,
+preserving separate current observer identity and request-bound human identity. Keep
+missing governed selection, independent review provenance and action-time authority
+explicit; a policy observation is not a grant or signature. Do not enable real saving.
+
+All five R5 findings, full governed authority, model conversation, lifecycle/decision
+projections, independent/qualified protected review and human signatures remain open.
+No live writer/scheduler, provider grants, real-record deletion, spending, deployment,
+release, dependency or schema changes occurred. The standing implementation loop
+remains active; exact remote equality is checked after the candidate push.

@@ -1157,7 +1157,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           throw error;
         } finally { page.off('request', observeEvidence); gateway = bindGateway(web!.rendererOrigin); await source.publish([grant]); await page.goto(origin); }
       });
-      await check('opt-in browser exact confirmation creates a native Brief once and recovers current status and projected source with real Keycloak membership', async () => {
+      await check('opt-in browser creates a native Brief once and reaches durable projection, replay and exact source reads with real Keycloak membership', async () => {
         const path = 'items/0167-created-fixture/BRIEF.md';
         const provider = createNativeGitHubCreateHarness(source, tls.certificate, path), appJwt = createAppJwtSigner('1', tls.key.toString('utf8'));
         const configured = { organizationId: grant.organizationId, repository: 'github:1', branch: 'synthetic', paths: [path],
@@ -1258,7 +1258,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
               if (response.status !== 200) throw new Error('Synthetic status unavailable'); return response.json();
             }, { organizationId: grant.organizationId, repository: 'github:1', branch: 'synthetic', path, idempotencyKey: operation });
             return value;
-          });
+          }, { idempotencyKey: operation, subject: deps.subject });
           await projected.project(); await service.shutdown(); service = compose(); gateway = bindGateway(submitWeb.rendererOrigin, service);
           await operationPanel.locator('[data-submission-receipt-link]').click();
           await page.getByRole('dialog', { name: 'Browser-created request' }).waitFor();

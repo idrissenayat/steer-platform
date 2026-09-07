@@ -174,6 +174,11 @@ data with Keycloak membership and PostgreSQL projection. Gate authority and code
 transport remain test doubles. See [the submission boundary](docs/BRIEF-SUBMISSION.md);
 no live save configuration or permission has been enabled.
 
+Item [0168](intent/0168/README.md) joins that disposable browser creation to the actual
+Temporal worker, queued-runtime reconstruction, history replay and exact projected
+Brief reads. The browser's current status request stays outside workflow history;
+no live dispatcher or authority is installed.
+
 Item [0153](intent/0153/README.md) adds bounded, merge-aware Critic target ancestry
 against the configured Git reader, without upgrading review selection or gate authority.
 

@@ -63,7 +63,7 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0167
+### Latest development audit — increment 0168
 
 The production UI now supports deterministic describe/correct, exact local review,
 manual prior-operation status and opening the exact recorded Brief. Disposable
@@ -109,11 +109,13 @@ and the exact curated catalog/Brief tools. It checks one Git mutation/event acro
 reconstruction and duplicate handling. The current human/projector and gate authority
 in that integration remain test doubles. The additional opt-in browser test now joins
 actual authoring, exact confirmation, native Git creation, manual status recovery and
-the exact projected Brief. Its owned API projection job is not the durable worker;
-the browser-to-worker dispatch path is still not composed or installed live.
+the exact projected Brief. Increment 0168 now replaces that scenario's owned API job
+with the actual Temporal worker and tests queued reconstruction, one current browser
+status read outside history, replay and duplicate rejection. This closes the isolated
+browser-to-worker integration gap, not the missing real authority or live dispatch.
 
 Remaining engineering includes the complete governed evidence-selection/action-time
-writer composition, browser creation-to-worker/read-model integration, authenticated lifecycle
+writer composition, trusted live receipt dispatch and source admission, authenticated lifecycle
 and decision projections, and the model-backed agent conversation. The current
 live save button stays disabled by default. Its guarded opt-in implementation now
 enforces one immutable attempt and exact receipt binding, independently of the
@@ -126,8 +128,9 @@ separate outstanding dependencies. No live writer/scheduler, deployment or spend
 is authorized by this audit. The server-owned `STEER_WEB_BRIEF_SUBMISSION` display
 switch is used only in an owned disposable browser-test process. It does not grant
 authority or install an API writer. No live environment has been enabled.
-Next join the tested browser creation flow to the existing durable worker in the
-disposable composition, retaining trusted current readback outside workflow history.
+Next audit and connect the held governed source/policy assessment to the real runtime
+without turning an observation into write authority. Any indispensable trust roots,
+qualified evidence or human decisions must remain explicit, not simulated as approvals.
 Keep real saving and live scheduling disabled; never derive permission from a local
 checkbox or an inspected decision record. See `docs/BRIEF-SUBMISSION.md` for recovery
 limits: no browser persistence or automatic retry, and the original operation ID

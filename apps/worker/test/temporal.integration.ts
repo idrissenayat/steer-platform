@@ -1,15 +1,8 @@
 import assert from 'node:assert/strict';
-import { execFile } from 'node:child_process';
-import { createHash, generateKeyPairSync, randomBytes } from 'node:crypto';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { promisify } from 'node:util';
+import { generateKeyPairSync, randomBytes } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
-import { TestWorkflowEnvironment } from '@temporalio/testing';
 import { Client, Connection } from '@temporalio/client';
-import { bundleWorkflowCode, DefaultLogger, Runtime, Worker } from '@temporalio/worker';
+import { DefaultLogger, Runtime, Worker } from '@temporalio/worker';
 import { createReconciliationWorker } from '../src/worker.ts';
 import { startReconciliation, createReconciliationSchedulerClient, createManagedReconciliationScheduler } from '../src/client.ts';
 import { invokeTool, ToolError } from '@steer/tool-registry';
@@ -18,18 +11,9 @@ import { workflowId } from '../src/contracts.ts';
 import { testProjectedWorkflow } from './projection.integration.ts';
 import { testGateWatch } from './gate-watch.integration.ts';
 import { testGitGateSource } from './gate-source.integration.ts';
+import { createIsolatedTemporalHarness } from './isolated-temporal-harness.ts';
 
-// Exact official test binary, no real cluster, OS installation or persistent database.
-const version = '1.8.3';
-const archives: Record<string, { name: string; digest: string }> = {
-  'darwin-arm64': { name: 'darwin_arm64', digest: '77c5bef1753ddfcdcaced2a2d44207aeced1c776e7bcbf94520c7911bd0c4080' },
-  'darwin-x64': { name: 'darwin_amd64', digest: '0eed9a02008ba0d1c5417fc1aa706c9016166eae7216ae161ad95eccc6a775ca' },
-  'linux-arm64': { name: 'linux_arm64', digest: '5972ce781d7f28644b353e4177007e7da8e48a316b8458267054b24de2308e09' },
-  'linux-x64': { name: 'linux_amd64', digest: '6f0afac1e9ddea71f480c43a49f5db5167a244c21db923707f069a79bcabdfea' },
-};
-const binary = archives[`${process.platform}-${process.arch}`]; assert.ok(binary, 'Unsupported isolated Temporal fixture platform.');
-const temporary = await mkdtemp(join(tmpdir(), 'steer-temporal-0036-'));
-const exec = promisify(execFile); let environment: TestWorkflowEnvironment | undefined;
+let fixture: Awaited<ReturnType<typeof createIsolatedTemporalHarness>> | undefined;
 let worker: Worker | undefined; let running: Promise<void> | undefined;
 let passed = 0;
 const check = async (name: string, run: () => Promise<void>) => { await run(); passed++; console.log(`PASS ${name}`); };
@@ -46,16 +30,8 @@ const port = { runOnce: async () => {
 } };
 Runtime.install({ logger: new DefaultLogger('ERROR') });
 try {
-  const archive = join(temporary, 'temporal.tar.gz');
-  await exec('curl', ['--fail', '--silent', '--show-error', '--location', '--max-time', '60', '--output', archive,
-    `https://github.com/temporalio/cli/releases/download/v${version}/temporal_cli_${version}_${binary.name}.tar.gz`], { timeout: 65000 });
-  assert.equal(createHash('sha256').update(await readFile(archive)).digest('hex'), binary.digest);
-  await exec('tar', ['-xzf', archive, '-C', temporary, 'temporal'], { timeout: 10000 });
-  console.log((await exec(join(temporary, 'temporal'), ['--version'])).stdout.trim());
-  environment = await TestWorkflowEnvironment.createLocal({ server: { executable: { type: 'existing-path', path: join(temporary, 'temporal') },
-    ip: '127.0.0.1', ui: false, log: { format: 'json', level: 'error' } } });
-  const env = environment;
-  const bundle = await bundleWorkflowCode({ workflowsPath: fileURLToPath(new URL('../src/workflows.ts', import.meta.url)), logger: new DefaultLogger('ERROR') });
+  fixture = await createIsolatedTemporalHarness();
+  const { environment: env, bundle, directory: temporary } = fixture;
   const startWorker = async () => {
     worker = await createReconciliationWorker({ connection: env.nativeConnection, namespace: 'default', taskQueue: queue, workflowBundle: bundle }, scope, port);
     running = worker.run();
@@ -168,6 +144,6 @@ try {
   console.log(`Temporal integration: ${passed} checks passed; actual local server, Git/PostgreSQL and recreated SDK workers; synthetic identities only.`);
 } finally {
   try { if (worker) { worker.shutdown(); await running; } }
-  finally { try { await environment?.teardown(); } finally { await rm(temporary, { recursive: true, force: true }); } }
+  finally { await fixture?.close(); }
   console.log('Closed only owned Temporal worker/server and removed generated test binary files.');
 }

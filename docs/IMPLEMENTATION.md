@@ -1729,3 +1729,28 @@ integration, not a claim that a live scheduler is installed.
 See `docs/BRIEF-SUBMISSION.md` and `intent/0167/EVIDENCE.md`. All five R5 findings,
 full governed authority, model conversation, independent/qualified protected review
 and human signatures remain open. No dependencies, schema or protected records changed.
+
+## 0168 — Browser creation through the durable worker
+
+The isolated browser submission scenario now dispatches its exact recovered operation
+through `startRecordedBriefProjection` and the production recorded-Brief worker/runtime.
+The current receipt callback executes a same-origin browser status request with the
+current synthetic Keycloak session, rather than passing session material into workflow
+arguments. PostgreSQL credentials, callbacks and subject binding stay outside history.
+
+The fixture queues work before starting a worker, closes/recreates the runtime, verifies
+the same run projects the exact revision once, replays history and rejects a duplicate
+start. A database query verifies one exact source ingestion event; native Git retains
+one creation. After API reconstruction, the browser opens the exact curated created
+Brief. The original nondurable receipt fixture remains in existing tests.
+
+Both integration suites reuse a pinned SHA-256-verified owned Temporal bootstrap. The
+existing separate-worker owned-directory guard is preserved. No production code,
+dependency, schema, live configuration or provider grant changed. Local Keycloak/Git/
+PostgreSQL/Temporal are real test services; code-host network and full gate-authority
+proof are explicit test doubles. This is not a live dispatcher or gate qualification.
+
+See `intent/0168/EVIDENCE.md`. Next connect the existing held source/policy assessment
+to runtime diagnostics without enabling saving or promoting unverified evidence.
+All five R5 findings, full governed authority, model conversation, independent/qualified
+protected review and human signatures remain open.

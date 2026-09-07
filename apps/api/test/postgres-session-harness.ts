@@ -23,8 +23,9 @@ import { ingestVerifiedArtifact, projectionKey } from '@steer/data/ingestion';
 import { readProjection } from '@steer/data';
 import { reconcileRepository, type SnapshotProjectionSink, type ProjectionOutcome } from '@steer/adapters/reconcile';
 import type { Principal } from '@steer/tool-registry';
+import { createRecordedBrowserHarness } from '../../worker/test/recorded-browser-harness.ts';
 
-/** Two disposable services only; no externally supplied connection or credential. */
+/** Owned disposable storage/test integrations; no externally supplied connection or credential. */
 export async function createPostgresSessionHarness(binding: SessionIdentityBinding): Promise<SessionTestHarness & {
   close(): Promise<void>;
   createDestinationRuntime(configuration: BrowserSessionConfiguration, github: GitHubBinding, paths: string[], privateKeyPem: string,
@@ -161,7 +162,7 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
         // Rows remain owned by this disposable container and its final cleanup.
         return { artifactProjection: createArtifactProjectionReader(app, { organizationId, repository, paths: [briefPath, 'SPEC.md', ...paths] }) };
       },
-      createReceiptProjection: async (reader, path, revision, readReceipt) => {
+      createReceiptProjection: async (reader, path, revision, readReceipt, durable) => {
         // Only the dedicated fixture artifact in this disposable database is owned
         // here. Other projection rows/events remain untouched for the broader suite.
         assert.ok(['items/0156-recorded-fixture/BRIEF.md', 'items/0001-demo/BRIEF.md', 'items/0167-created-fixture/BRIEF.md'].includes(path));
@@ -172,11 +173,14 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
         assert.equal(await readProjection(projector, principal, recordKey), null);
         let current: string | null = null, stopped = false; const events = new Set<string>();
         const projectionScope = { organizationId, repository, branch: reader.binding.branch, paths: [path] };
-        const job = await createRecordedBriefProjectionRuntime({ version: 'steer-recorded-brief-projection-runtime/v1',
-          scope: projectionScope, database: { host: '127.0.0.1', port: Number(mapping.split(':')[1]), database: 'steer_auth_test',
-            transport: { kind: 'isolated-loopback-test' } },
-        }, { databasePassword: password }, { reader, authenticate: async () => principal, readReceipt });
-        assert.equal(job.status().database.connections, 0);
+        const database = { host: '127.0.0.1', port: Number(mapping.split(':')[1]), database: 'steer_auth_test', transport: { kind: 'isolated-loopback-test' } };
+        const ports = { reader, authenticate: async () => principal, readReceipt };
+        const job = durable ? undefined : await createRecordedBriefProjectionRuntime({ version: 'steer-recorded-brief-projection-runtime/v1',
+          scope: projectionScope, database }, { databasePassword: password }, ports);
+        if (job) assert.equal(job.status().database.connections, 0);
+        const durableJob = durable ? await createRecordedBrowserHarness({ database,
+          target: { scope: { organizationId, repository, itemId: path.slice(0, -'/BRIEF.md'.length) }, idempotencyKey: durable.idempotencyKey },
+          source: { branch: reader.binding.branch, path, subject: durable.subject } }, { databasePassword: password }, ports) : undefined;
         const ingest = async (target: string) => {
           assert.equal(stopped, false);
           const { repositoryId, ...artifact } = await reader.readArtifact(path, target);
@@ -185,9 +189,9 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
           events.add(`source:${createHash('sha256').update(JSON.stringify([repository, path, target])).digest('hex')}`); current = target;
         };
         const close = async () => {
-          if (stopped) return; await job.shutdown(); stopped = true;
-          assert.equal(job.status().database.closed, true); assert.equal(job.status().database.active, 0);
-          await assert.rejects(job.runOnce(), /did not complete/);
+          if (stopped) return; await durableJob?.close(); await job?.shutdown(); stopped = true;
+          if (job) { assert.equal(job.status().database.closed, true); assert.equal(job.status().database.active, 0);
+            await assert.rejects(job.runOnce(), /did not complete/); }
           await admin.query('DELETE FROM steer.projection_records WHERE organization_id=$1 AND record_key=$2', [organizationId, recordKey]);
           await admin.query('DELETE FROM steer.ingestion_events WHERE organization_id=$1 AND event_id=ANY($2::text[])', [organizationId, [...events]]);
         };
@@ -197,11 +201,14 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
             // Exact owned source event is tracked before dispatch so an uncertain
             // post-ingestion acknowledgement cannot strand fixture data.
             events.add(`source:${createHash('sha256').update(JSON.stringify([repository, path, revision])).digest('hex')}`);
-            assert.deepEqual(await job.runOnce(), { status: 'observed', revision, outcome });
+            if (durableJob) await durableJob.project(revision);
+            else { assert.ok(job); assert.deepEqual(await job.runOnce(), { status: 'observed', revision, outcome }); }
             assert.equal((await readProjection(projector, principal, recordKey))?.sourceRevision, revision); current = revision;
-            assert.deepEqual(await job.runOnce(), { status: 'observed', revision, outcome: 'duplicate' });
+            if (job) assert.deepEqual(await job.runOnce(), { status: 'observed', revision, outcome: 'duplicate' });
+            if (durableJob) assert.equal(Number((await admin.query('SELECT count(*) AS count FROM steer.ingestion_events WHERE organization_id=$1 AND event_id=ANY($2::text[])', [organizationId, [...events]])).rows[0].count), 1);
           },
           advance: async () => {
+            assert.ok(job, 'Durable browser fixture does not permit direct advancement.');
             await ingest(await reader.readHead());
             assert.deepEqual(await job.runOnce(), { status: 'different-revision', revision, outcome: null });
             assert.equal((await readProjection(projector, principal, recordKey))?.sourceRevision, current);

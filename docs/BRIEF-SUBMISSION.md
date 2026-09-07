@@ -45,6 +45,9 @@ This is a deliberate current recovery limitation, not durable browser draft stor
 membership, the production request-owned writer, native Git creation and exact
 PostgreSQL projection reads. The code-host network transport and full Gate 2
 authority are explicit test doubles. Real saves, provider permissions and human
-gates stay closed. The 0166 integration separately verifies the durable Temporal
-worker; the browser fixture's owned projection job does not itself prove a live
-save-to-scheduler installation. See the numbered evidence record for actual results.
+gates stay closed. Increment 0168 extends that browser-created record through the
+actual durable Temporal worker: queued-runtime reconstruction, one current browser
+receipt read outside history, one projection event, replay and duplicate rejection.
+The original nondurable fixture remains for its existing checks. A test-owned dispatch
+is not a live save-to-scheduler installation; no live scheduler/configuration is added.
+See the numbered evidence records for actual results and limits.
