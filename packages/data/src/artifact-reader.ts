@@ -5,6 +5,7 @@ import { artifactProjectionInputSchema, artifactProjectionOutputSchema, briefCat
 import type { DatabasePool } from './runtime-pool.ts';
 import { withTenant } from './index.ts';
 import { projectionKey } from './ingestion.ts';
+import { decisionPaths, decisionReferencesSchema } from '@steer/tool-registry/decision-contracts';
 
 const bindingSchema = z.strictObject({ organizationId: z.string().min(1).max(200), repository: artifactProjectionInputSchema.shape.repository,
   paths: z.array(artifactProjectionInputSchema.shape.path).min(1).max(1000) });
@@ -18,6 +19,30 @@ export function createArtifactProjectionReader(pool: DatabasePool, rawBinding: z
   const briefPaths = binding.paths.filter((path) => briefProjectionInputSchema.shape.path.safeParse(path).success);
   const catalogKeys = briefPaths.map((path) => projectionKey(binding.repository, path));
   return { scope: Object.freeze({ organizationId: binding.organizationId, repository: binding.repository, paths: Object.freeze([...allowed]) }),
+    async decisionCatalog(briefPath, rawPrincipal) {
+      const principal = principalSchema.parse(rawPrincipal); const started = clock().getTime();
+      if (principal.organizationId !== binding.organizationId || !allowed.has(briefPath) || (principal.type === 'agent' && principal.hats.length) ||
+          !['intent.brief.decisions', 'intent.brief.read', 'projection.artifact.read'].every(grant => principal.toolGrants.includes(grant))) throw new Error('Decision source read is not allowed.');
+      const paths = decisionPaths(briefPath).filter(path => allowed.has(path));
+      const records = await withTenant(pool, principal, async client => {
+        const role = (await client.query<{ role: string; login_role: string }>('SELECT current_user AS role, session_user AS login_role')).rows[0];
+        if (role?.role !== 'steer_app' || role.login_role !== 'steer_app') throw new Error('Unsafe projection reader role.');
+        const rows = (await client.query(`SELECT record_key,
+          CASE WHEN octet_length(source_revision)<=40 THEN source_revision ELSE NULL END AS source_revision,
+          CASE WHEN octet_length(content_digest)<=64 THEN content_digest ELSE NULL END AS content_digest,
+          CASE WHEN octet_length(value->>'path')<=500 THEN value->>'path' ELSE NULL END AS path
+          FROM steer.projection_records WHERE organization_id=$1 AND repository=$2
+          AND record_key=ANY($3::text[]) ORDER BY record_key COLLATE "C" LIMIT 4`,
+        [binding.organizationId, binding.repository, paths.map(path => projectionKey(binding.repository, path))])).rows;
+        const records = decisionReferencesSchema.parse(rows.map(row => ({ path: row.path, revision: row.source_revision, contentDigest: row.content_digest })));
+        if (new Set(records.map(row => row.path)).size !== records.length || records.some((row, index) =>
+          !paths.includes(row.path) || rows[index]!.record_key !== projectionKey(binding.repository, row.path))) throw new Error('Invalid decision source selection.');
+        return records;
+      }, clock);
+      const finished = clock().getTime();
+      if (!Number.isFinite(started) || !Number.isFinite(finished) || finished < started || Date.parse(principal.expiresAt) <= finished) throw new Error('A current tenant identity is required.');
+      return records;
+    },
     async catalog(rawPrincipal) {
       const principal = principalSchema.parse(rawPrincipal); const started = clock().getTime();
       if (principal.organizationId !== binding.organizationId || (principal.type === 'agent' && principal.hats.length) ||

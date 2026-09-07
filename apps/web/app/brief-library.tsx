@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { BriefProjection } from '@steer/tool-registry/brief-contracts';
 import { createBriefReader, type BriefReference } from './brief-reader';
 import BriefMarkdown from './brief-markdown';
+import BriefDecisionRecords from './brief-decisions';
 import { briefFragment, readBriefLocation } from './brief-location';
 
 type Reader = ReturnType<typeof createBriefReader>;
@@ -154,6 +155,7 @@ export default function BriefLibrary({ organizationId, repository, expiresAt }: 
             <dt>Committed revision selected</dt><dd><code>{detail.revision}</code></dd><dt>Content fingerprint (SHA-256)</dt><dd><code>{detail.contentDigest}</code></dd></dl>
             <p>Projection checked when opened. Refresh Briefs to discover changes. This is not proof that Git has stayed unchanged.</p></details>
           <p className="access-hint">The address bar links to this exact revision. It contains repository and revision metadata, never permission or source content. Anyone opening it must have current access.</p>
+          <BriefDecisionRecords key={`${detail.path}:${detail.revision}:${detail.contentDigest}`} brief={detail} expiresAt={expiresAt} />
         </div><footer className="brief-detail-footer">Pull, decline, merge, questions and gate decisions are not connected in this read-only increment.</footer></>}
     </dialog>
   </section>;

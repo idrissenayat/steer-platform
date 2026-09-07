@@ -1559,3 +1559,36 @@ and synthetic values, with no provider network calls or real credentials. The
 database fixture admits only its two explicitly named test paths and cleans its
 exclusive source record/events after the owned runtime drains. See
 `intent/0162/EVIDENCE.md`; this is mechanics evidence, not Gate 2 or live-save readiness.
+
+### Revision-bound decision record inspection
+
+Item `intent/0163` adds `intent.brief.decisions` through the same typed registry,
+generated HTTP contract and MCP discovery. It requires current decision-read,
+Brief-read and raw-projection grants, validates the exact Brief revision/digest,
+then discovers at most three configured sibling `signatures/gate-{1,2,3}.json`
+records. The PostgreSQL reader uses restricted `steer_app`, tenant scoping and a
+bounded fixed-key query; no unconfigured path is exposed or implicitly admitted.
+There is no new runtime grant/profile or database migration.
+
+Each record is read at its selected revision, independently SHA-256/Git-blob checked
+and bounded to 32 KiB. The v1 display parser retains known bounded fields; original
+JSON preserves extension fields for source inspection. Neither parsed fields nor
+raw JSON are authority. A matching artifact path AND exact revision establishes
+only the displayed reference linkage; `artifactRevision` alone is insufficient.
+Record-source and referenced-artifact revisions are separate and both shown. Reads
+are exact individual selections, not an atomic multi-record Git-currentness snapshot.
+Malformed/disappearing sources fail the complete response, not a partial list.
+
+The production Brief dialog loads these records manually and labels approvals and
+recorded signers unverified. Arbitrary product/evidence paths/URLs remain inert text;
+only the exact selected Brief gets an internal link. Browser validation checks exact
+scope, source bytes, claims and linkage again, aborting and discarding late responses
+and parent-owned close/hide/expiry clearing. No storage, polling, signatures or
+policy/lifecycle inference was added. Sites guidance preserved the existing local
+Next/OIDC stack and pink/orange design; background work skips foreground handoff.
+
+Portable decision schemas receive one exact browser export allowlist entry, with a
+regression assertion restricting their imports to Zod and existing Brief contracts.
+The registry/provider roots remain forbidden. See `intent/0163/EVIDENCE.md` for
+observed verification. Full live-write authority, all five R5 findings, independent/
+qualified protected review and human gates remain open.

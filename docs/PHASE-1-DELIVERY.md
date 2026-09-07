@@ -3231,3 +3231,33 @@ enable signatures, infer lifecycle stages, expose unconfigured records or add
 another policy-only wrapper. Real configuration/write authority, model conversation,
 all five R5 findings, qualified/independent review and human gates remain unfinished.
 No deployment, release, provider permission or spending changed.
+
+## Completed development increment: 0163 — Decision records beside the exact Brief
+
+The production Brief dialog now reads configured decision records through the
+shared `intent.brief.decisions` tool. It verifies the exact selected Brief first,
+then bounded sibling source records at their selected revisions and fingerprints.
+The UI shows recorded signers and referenced artifacts, distinguishing an exact
+Brief reference from a mismatch. Both retain a prominent unverified-approval label;
+no source text becomes a signature, lifecycle stage or write grant.
+
+The actual browser regression passed 42 checks across native Git, PostgreSQL and
+Keycloak, including unconfigured-row exclusion, exact source/linkage, inert source
+text, mobile/200% wrapping, automated accessibility, committed grant denial and
+close/reopen clearing. Desktop/mobile screenshots were inspected. A pre-existing
+expiry-test clock leak was corrected by isolating its BrowserContext, without
+relaxing the application's expiry guard or test assertions.
+
+Full repository checks passed: 438 root controls, 93 registry, 24 data, 50 web,
+282 adapter and 91 API tests, remaining workspaces and all builds. The separate
+three-group actual Brief-creation/PostgreSQL regression passed again. Only owned
+synthetic resources were cleaned up. See `intent/0163/EVIDENCE.md` for limits.
+
+Next connect permitted referenced review evidence to exact source inspection in
+this same view. Keep evidence paths and revisions bound to the selected decision,
+respect existing curated content permissions, and never treat inspected evidence
+as independently verified approval. Do not turn this into an unsigned decision
+action or claim the full Inbox/Flight Board is complete. Live writer configuration,
+model conversation, all five R5 findings, qualified/independent protected review
+and human gates remain unfinished. No deployment, release, provider grants or
+spending changed; the standing implementation loop remains active.

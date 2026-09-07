@@ -147,7 +147,11 @@ read-only projected work, not lifecycle or approval status.
 Item [0162](intent/0162/README.md) adds `pnpm test:brief:integration`: HTTP preview
 and exact-confirmation save produce a real disposable Git commit, then recover and
 project its receipt through PostgreSQL. Identity/gate trust is explicitly simulated;
-the live writer and UI remain disabled.
+the live writer and UI save control remain disabled.
+
+Item [0163](intent/0163/README.md) adds read-only decision inspection inside the
+exact Brief view. Curated records show source fingerprints, recorded signers and
+matching/mismatched Brief references. All approval claims remain explicitly unverified.
 
 Item [0153](intent/0153/README.md) adds bounded, merge-aware Critic target ancestry
 against the configured Git reader, without upgrading review selection or gate authority.

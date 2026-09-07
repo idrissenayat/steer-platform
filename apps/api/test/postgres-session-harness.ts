@@ -144,6 +144,23 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
         return { services: { artifactProjection: projectionReader, projectionChanges: createProjectionChangeReader(app, { organizationId, repository }),
           projectionSnapshot: createProjectionSnapshotReader(app, { organizationId, repository }) }, input: { organizationId, repository, path, revision: first.revision } };
       },
+      createDecisionProjection: async (reader, paths, revision) => {
+        const briefPath = 'items/0125-synthetic-outcome/BRIEF.md';
+        assert.deepEqual(paths, [1, 2].map(gate => `items/0125-synthetic-outcome/signatures/gate-${gate}.json`));
+        const organizationId = reader.binding.organizationId, repository = `github:${reader.binding.repositoryId}`;
+        const projector = runtime('steer_projector'), app = runtime('steer_app');
+        const principal: Principal = { subject: 'synthetic-decision-projector', organizationId, type: 'agent', hats: [],
+          toolGrants: ['projection.ingest'], expiresAt: new Date(Date.now() + 300000).toISOString() };
+        for (const path of paths) {
+          assert.equal(await readProjection(projector, principal, projectionKey(repository, path)), null);
+          const { repositoryId, ...artifact } = await reader.readArtifact(path, revision);
+          assert.equal(await ingestVerifiedArtifact(projector, principal, { ...artifact, repository }, null), 'applied');
+        }
+        // Existing Brief selection is intentionally unchanged; the decision record
+        // is a later source commit referring to that exact earlier Brief revision.
+        // Rows remain owned by this disposable container and its final cleanup.
+        return { artifactProjection: createArtifactProjectionReader(app, { organizationId, repository, paths: [briefPath, ...paths] }) };
+      },
       createReceiptProjection: async (reader, path, revision, readReceipt) => {
         // Only the dedicated seeded artifact in this disposable database is owned
         // here. Other projection rows/events remain untouched for the broader suite.

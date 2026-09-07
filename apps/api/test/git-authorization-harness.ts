@@ -28,6 +28,22 @@ export async function createGitAuthorizationHarness(temporary: string, record: A
     return git('rev-parse', 'HEAD');
   };
   await publish([record]);
+  const decisionPaths = [1, 2].map(gate => `${artifactPath.slice(0, -'BRIEF.md'.length)}signatures/gate-${gate}.json`);
+  const publishDecisions = async (briefRevision: string) => {
+    assertRevision(briefRevision);
+    for (const [index, path] of decisionPaths.entries()) {
+      await mkdir(dirname(join(directory, path)), { recursive: true, mode: 0o700 });
+      const target = index === 0 ? briefRevision : '0'.repeat(40);
+      await writeFile(join(directory, path), JSON.stringify({ version: 'steer-gate-signature/v1', organization: 'synthetic-org',
+        productHome: 'https://example.invalid/synthetic', item: 'synthetic-outcome', gate: index + 1, decision: 'approved',
+        artifactRevision: target, artifacts: [{ path: artifactPath, revision: target }, { path: 'EXAM.md', revision: target }],
+        signatures: [{ subject: 'synthetic-unverified-signer', hat: 'product-lead', sequence: 1, signedAt: '2026-09-07T01:00:00Z' }],
+        additionalSource: '<script>window.__steerDecisionUnsafe = true</script>',
+      }, null, 2), { mode: 0o600 });
+    }
+    await git('add', '--', ...decisionPaths); await git('commit', '-m', 'Synthetic unverified decision records');
+    return { paths: decisionPaths, revision: await git('rev-parse', 'HEAD') };
+  };
   let fault: 'none' | 'unavailable' | 'moving-head' | 'digest' = 'none';
   let headReads = 0;
   const reader: RepositoryReader = {
@@ -55,12 +71,13 @@ export async function createGitAuthorizationHarness(temporary: string, record: A
         treeSha: await git('rev-parse', `${revision}^{tree}`), entries };
     },
     async readArtifact(path, revision) {
-      if (![authorizationPath, artifactPath, secondArtifactPath].includes(path) || !/^[a-f0-9]{40}$/.test(revision)) throw new Error('Invalid synthetic source request.');
+      if (![authorizationPath, artifactPath, secondArtifactPath, ...decisionPaths].includes(path) || !/^[a-f0-9]{40}$/.test(revision)) throw new Error('Invalid synthetic source request.');
       const content = (await exec('git', ['show', `${revision}:${path}`], { cwd: directory, timeout: 10000 })).stdout;
       return { organizationId: record.organizationId, repositoryId: 1, revision, path, content,
         contentDigest: fault === 'digest' ? '0'.repeat(64) : createHash('sha256').update(content).digest('hex'),
         blobSha: await git('rev-parse', `${revision}:${path}`) };
     },
   };
-  return { directory, reader, authorizationPath, artifactPath, secondArtifactPath, publish, setFault(value: typeof fault) { fault = value; headReads = 0; } };
+  return { directory, reader, authorizationPath, artifactPath, secondArtifactPath, publish, publishDecisions, setFault(value: typeof fault) { fault = value; headReads = 0; } };
 }
+function assertRevision(value: string) { if (!/^[a-f0-9]{40}$/.test(value)) throw new Error('Invalid synthetic revision.'); }

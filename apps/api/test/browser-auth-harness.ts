@@ -113,7 +113,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         assert.deepEqual(await storage.counts(), { transactions: 0, sessions: 0 });
       });
       const grant: AuthorizationRecord = { issuer, subject: deps.subject, organizationId: 'synthetic-org', type: 'human',
-        hats: ['product-lead'], toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'intent.brief.read', 'intent.brief.catalog', 'intent.brief.preview', 'intent.brief.destination', 'intent.brief.save.status'], active: true,
+        hats: ['product-lead'], toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'intent.brief.read', 'intent.brief.catalog', 'intent.brief.decisions', 'intent.brief.preview', 'intent.brief.destination', 'intent.brief.save.status'], active: true,
         validAfter: new Date(0).toISOString(), expiresAt: new Date(Date.now() + 600000).toISOString() };
       const source = await createGitAuthorizationHarness(tls.temporary, grant, 'canonical');
       assert.ok(storage.createProjectionFixture);
@@ -884,8 +884,12 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         assert.equal(await panel.getByTestId('reference-list').count(), 0);
         await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true })));
         assert.equal(await panel.getByRole('button', { name: 'Refresh references', exact: true }).isDisabled(), true);
-        // Keep browser-only clock manipulation isolated from later authentication cases.
-        const expiryPage = await context.newPage();
+        // Playwright Page.clock belongs to its BrowserContext. A separate page in
+        // the original context leaks simulated time into subsequently loaded pages.
+        // Copy only this synthetic session into an independently owned context.
+        const expiryContext = await browser!.newContext({ ignoreHTTPSErrors: false, acceptDownloads: false });
+        await expiryContext.addCookies(await context.cookies(origin));
+        const expiryPage = await expiryContext.newPage();
         try {
           let requests = 0; expiryPage.on('request', (request) => { if (new URL(request.url()).pathname.startsWith('/v1/tools/projection.')) requests++; });
           await expiryPage.clock.install(); await expiryPage.goto(origin);
@@ -908,7 +912,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           assert.equal(await expiryPage.getByRole('button', { name: 'Refresh Briefs' }).isDisabled(), true);
           assert.equal(await expiryPage.getByLabel('Working title', { exact: true }).inputValue(), '');
           assert.equal(await expiryPage.getByRole('button', { name: 'Preview Brief', exact: true }).isDisabled(), true);
-        } finally { await expiryPage.close(); }
+        } finally { await expiryContext.close(); }
       });
       await check('browser reads only its granted exact-revision projection ingested from actual synthetic Git through PostgreSQL', async () => {
         const read = (input: typeof projection.input) => page.evaluate(async (value) => {
@@ -995,6 +999,88 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         assert.equal((await read({ ...input, repository: 'foreign' })).status, 403);
         await source.publish([{ ...grant, toolGrants: ['session.context', 'projection.changes.read'] }]); assert.equal((await read()).status, 403);
         await source.publish([grant]); assert.equal((await read()).status, 200);
+      });
+      await check('actual decision sources link to the selected Brief without claiming verified approval and clear on denial', async () => {
+        assert.ok(storage.createDecisionProjection);
+        const seeded = await source.publishDecisions(projection.input.revision);
+        const decisionServices = await storage.createDecisionProjection(source.reader, seeded.paths, seeded.revision);
+        const selectedBrief = await source.reader.readArtifact(projection.input.path, projection.input.revision);
+        const unconfigured = await page.evaluate(async input => {
+          const response = await fetch('/v1/tools/intent.brief.decisions', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input) });
+          return { status: response.status, data: await response.json() };
+        }, { ...projection.input, contentDigest: selectedBrief.contentDigest });
+        assert.equal(unconfigured.status, 200); assert.deepEqual(unconfigured.data.records, [], 'present but unconfigured decision rows stay undisclosed');
+        const decisionApi = createIdentityService(configuration, { ...dependencies, services: { ...projection.services, ...decisionServices } });
+        services.push(decisionApi); gateway = bindGateway(web!.rendererOrigin, decisionApi);
+        let stage = 'open selected Brief';
+        try {
+          await page.goto(origin);
+          await page.waitForFunction(() => {
+            const status = document.querySelector('[data-testid="brief-status"]')?.textContent;
+            return status && !status.startsWith('Checking current access');
+          });
+          assert.match((await page.getByTestId('brief-status').textContent())!, /^Choose a Brief/);
+          await page.getByRole('button', { name: 'Read Intent 0125-synthetic-outcome', exact: true }).click();
+          const detail = page.getByRole('dialog'), section = detail.getByRole('region', { name: 'Recorded decisions' });
+          const load = section.getByRole('button', { name: 'Load decision records', exact: true });
+          stage = 'read decision response';
+          const response = page.waitForResponse(value => value.url() === `${origin}/v1/tools/intent.brief.decisions`);
+          await load.click(); const actualResponse = await response; assert.equal(actualResponse.status(), 200);
+          const result = await actualResponse.json();
+          stage = 'render validated decision response';
+          assert.equal(result.records.length, 2); assert.equal(result.gateVerified, false); assert.equal(result.writeAuthorized, false);
+          await section.getByText('Decision sources checked. Recorded claims below remain unverified.', { exact: true }).waitFor();
+          const records = section.locator('.decision-record'); assert.equal(await records.count(), 2);
+          stage = 'exact source linkage';
+          assert.match((await records.nth(0).locator('.decision-linkage').textContent())!, /^References this exact Brief revision/);
+          assert.match((await records.nth(1).locator('.decision-linkage').textContent())!, /^Does not reference this exact Brief revision/);
+          assert.equal(await records.nth(0).getByRole('link', { name: 'This selected Brief' }).getAttribute('href'), new URL(page.url()).hash);
+          assert.equal(await records.nth(1).getByRole('link').count(), 0);
+          for (const [index, path] of seeded.paths.entries()) {
+            const sourceRecord = await source.reader.readArtifact(path, seeded.revision);
+            assert.equal(result.records[index].contentDigest, sourceRecord.contentDigest);
+            assert.equal(result.records[index].revision, seeded.revision);
+            await records.nth(index).getByText('Decision source and fingerprint', { exact: true }).click();
+            assert.equal(await records.nth(index).locator('pre').textContent(), sourceRecord.content);
+            await records.nth(index).getByText('Decision source and fingerprint', { exact: true }).click();
+          }
+          assert.equal(await page.evaluate(() => (window as unknown as { __steerDecisionUnsafe?: boolean }).__steerDecisionUnsafe), undefined);
+          const directory = process.env.STEER_WORKSPACE_SCREENSHOT_DIR;
+          stage = 'responsive source rendering';
+          await section.evaluate(element => element.scrollIntoView({ block: 'start' }));
+          if (directory) await page.screenshot({ path: join(directory, 'brief-decisions-desktop.png') });
+          await page.setViewportSize({ width: 390, height: 844 });
+          assert.equal(await section.evaluate(element => element.scrollWidth <= element.clientWidth), true);
+          if (directory) await page.screenshot({ path: join(directory, 'brief-decisions-mobile.png') });
+          await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+          await records.nth(0).getByText('Decision source and fingerprint', { exact: true }).click();
+          assert.equal(await section.evaluate(element => element.scrollWidth <= element.clientWidth), true);
+          await records.nth(0).getByText('Decision source and fingerprint', { exact: true }).click();
+          await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
+          await page.setViewportSize({ width: 1440, height: 1000 });
+          const axe = await readFile(new URL('../../../node_modules/axe-core/axe.min.js', import.meta.url), 'utf8');
+          stage = 'automated accessibility';
+          await page.evaluate(source => { eval(source); }, axe);
+          const violations = await page.evaluate(async () => (await (window as unknown as { axe: { run(context: string, options: unknown): Promise<{ violations: unknown[] }> } }).axe.run('.brief-dialog', { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] } })).violations);
+          assert.deepEqual(violations, []);
+          stage = 'revocation and clearing';
+          await source.publish([{ ...grant, toolGrants: grant.toolGrants.filter(name => name !== 'intent.brief.decisions') }]);
+          await load.click(); await section.getByText('Decision records could not be checked. Refresh access and try again.', { exact: true }).waitFor();
+          assert.equal(await records.count(), 0);
+          await source.publish([grant]); await load.click(); await records.nth(1).waitFor();
+          await page.getByRole('button', { name: 'Close Brief', exact: true }).click();
+          await page.getByRole('button', { name: 'Read Intent 0125-synthetic-outcome', exact: true }).click();
+          assert.equal(await section.locator('.decision-record').count(), 0, 'closed decision content is not retained');
+          await page.keyboard.press('Escape');
+        } catch (error) {
+          console.error(`Decision UI check failed at ${stage}; error class ${error instanceof Error ? error.name : 'unknown'}; payloads omitted.`);
+          console.error({ briefNotice: await page.getByTestId('brief-status').textContent().catch(() => 'unavailable'),
+            decisionNotice: await page.getByTestId('decision-status').textContent({ timeout: 1000 }).catch(() => 'unavailable'),
+            hidden: await page.evaluate(() => document.hidden) });
+          const directory = process.env.STEER_WORKSPACE_SCREENSHOT_DIR;
+          if (directory) await page.screenshot({ path: join(directory, 'brief-decisions-failure.png') });
+          throw error;
+        } finally { gateway = bindGateway(web!.rendererOrigin); await source.publish([grant]); await page.goto(origin); }
       });
       await check('browser cross-site logout omits the Lax cookie and the API rejects the foreign Origin', async () => {
         await page.goto(attackerOrigin);

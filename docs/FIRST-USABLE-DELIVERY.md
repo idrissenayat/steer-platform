@@ -63,7 +63,7 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0162
+### Latest development audit — increment 0163
 
 The production UI now supports deterministic describe/correct, exact local review,
 manual prior-operation status and opening the exact recorded Brief. Disposable
@@ -84,6 +84,13 @@ mechanical integration gap, but its identity/full-authority callbacks are explic
 test doubles; the existing browser proof still begins with seeded operation history.
 Neither substitutes for an approved real-member, fully governed save journey.
 
+The Brief dialog now also offers manual read-only decision inspection. The shared
+tool re-reads the exact Brief, discovers only configured sibling gate-record paths
+and verifies each selected source's bytes. The UI shows recorded signers and
+artifact references, including exact-match and mismatch labels. These are unverified
+source claims, not authenticated human signatures, gate outcomes or lifecycle stages.
+No arbitrary evidence URL is followed, and no new live read grants are installed.
+
 Remaining engineering includes the complete governed evidence-selection/action-time
 writer composition, an owned save-to-projection workflow, authenticated lifecycle
 and decision projections, and the model-backed agent conversation. The current
@@ -93,8 +100,9 @@ promoted to verified board stages merely by importing its read-model code.
 Real membership/runtime configuration, complete live-write authority, all five R5
 findings, independent/qualified protected review and human gate decisions remain
 separate outstanding dependencies. No live writer/scheduler, deployment or spending
-is authorized by this audit. Next audit the remaining signed first-journey obligations
-against these integrated capabilities and select a demonstrable missing requirement.
+is authorized by this audit. Next connect permitted referenced review evidence to
+exact source inspection without granting authority or widening configured content
+scope. Decision inspection is not a complete actionable Inbox or Flight Board.
 
 The **68–132 hours below is the original baseline estimate**, not current remaining
 effort. Re-estimation must use these implementation gaps and separate engineering

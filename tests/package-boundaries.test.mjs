@@ -16,7 +16,7 @@ const rules = {
     builtinEntryOnly: { 'node:https': 'src/identity-listener.ts' },
     entryOnly: { '@steer/data': 'src/runtime.ts', zod: 'src/runtime.ts', '@modelcontextprotocol/server': 'src/mcp.ts' } },
   'apps/web': { folders: ['app'], packages: ['next', 'react', 'react-dom', 'react-markdown', '@steer/tool-registry'], builtins: [],
-    specifiersOnly: { '@steer/tool-registry': ['@steer/tool-registry/projection-consumer', '@steer/tool-registry/brief-contracts'] } },
+    specifiersOnly: { '@steer/tool-registry': ['@steer/tool-registry/projection-consumer', '@steer/tool-registry/brief-contracts', '@steer/tool-registry/decision-contracts'] } },
   'apps/worker': { folders: ['src'], packages: ['@steer/adapters', '@steer/data', 'zod', '@temporalio/client', '@temporalio/worker', '@temporalio/workflow'], builtins: [],
     entryOnly: { '@steer/adapters': 'src/runtime.ts', '@steer/data': 'src/runtime.ts', zod: 'src/runtime.ts',
       '@temporalio/client': 'src/client.ts', '@temporalio/worker': 'src/worker.ts', '@temporalio/workflow': 'src/workflows.ts' } },
@@ -99,9 +99,15 @@ test('browser imports only the portable consumer export, not the server registry
   const base = resolve(root, 'apps/web'); const file = resolve(base, 'app/projection-panel.tsx'); const rule = rules['apps/web'];
   assert.equal(allowed('@steer/tool-registry/projection-consumer', file, base, rule), true);
   assert.equal(allowed('@steer/tool-registry/brief-contracts', file, base, rule), true);
+  assert.equal(allowed('@steer/tool-registry/decision-contracts', file, base, rule), true);
   for (const specifier of ['@steer/tool-registry', '@steer/tool-registry/browser-session', '@steer/data', '@steer/adapters', 'node:crypto']) {
     assert.equal(allowed(specifier, file, base, rule), false);
   }
+});
+
+test('decision display contracts import only portable schemas, never the registry or a provider', async () => {
+  assert.deepEqual(imports(await readFile(resolve(root, 'packages/tool-registry/src/decision-contracts.ts'), 'utf8')),
+    ['zod', './brief-contracts.ts']);
 });
 
 test('every provider-free domain module imports under native Node without bundler resolution', async () => {
