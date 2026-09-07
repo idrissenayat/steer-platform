@@ -300,3 +300,8 @@ summary:focus-visible { outline: .2rem solid var(--steer-focus); outline-offset:
 .decision-source summary { cursor: pointer; font-weight: 600; }
 .decision-source pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .875rem; }
 .brief-decisions button { min-width: 0; overflow-wrap: anywhere; }
+.evidence-inspect { display: block; margin-top: .5rem; max-width: 100%; }
+.decision-evidence { margin-top: 1rem; padding: 1rem; border: 1px solid var(--steer-border); border-radius: .75rem; background: var(--steer-canvas); overflow-wrap: anywhere; }
+.decision-evidence h6 { font-size: 1rem; margin: 0; }
+.decision-evidence pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .875rem; line-height: 1.6; }
+.decision-evidence:focus { outline: 3px solid var(--steer-focus); outline-offset: 2px; }

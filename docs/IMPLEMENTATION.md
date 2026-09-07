@@ -1592,3 +1592,35 @@ regression assertion restricting their imports to Zod and existing Brief contrac
 The registry/provider roots remain forbidden. See `intent/0163/EVIDENCE.md` for
 observed verification. Full live-write authority, all five R5 findings, independent/
 qualified protected review and human gates remain open.
+
+### Decision-referenced evidence inspection
+
+Item `intent/0164` adds `intent.brief.decision.evidence` using the existing portable
+decision contracts and shared HTTP/MCP registry. The input fixes an exact Brief
+tuple, decision path/revision/SHA-256 and one recorded artifact path/revision. It
+requires its own grant plus all decision, Brief and curated-content read grants.
+The existing decision query rechecks the selected Brief and bounded current sources;
+only the exact selected decision and an exact artifact reference can admit a read.
+The source must independently be in the configured raw-content path set. No
+reference can add a path, repository, runtime binding or permission.
+
+The source is read at that exact projected revision, SHA-256/Git-blob verified and
+returned with original text (existing 512 KiB bound). Current identity/all grants
+are revalidated after I/O and absence. Changed or missing exact selections produce
+no replacement content; unconfigured or unreferenced requests fail closed. Neither
+reference linkage nor verified bytes establish qualified review or gate authority.
+`gateVerified` and `writeAuthorized` remain literal false. Reads remain individually
+revision-bound, not an atomic multi-source snapshot or current-HEAD guarantee.
+
+The existing decision artifact list now includes manual inspection controls beside
+non-selected-Brief references. One source is visible at a time across the decisions,
+with loading, unavailable, failure, close/cancel and keyboard focus behavior. Original
+text is inert, not executed or rendered as active HTML/links; metadata shows the
+evidence source and referring decision revisions separately. Browser validation
+rejects altered context, corrupt bytes or authority flags. Parent refresh, close,
+visibility/expiry handling and selection changes clear source state. No polling,
+browser storage, provider request, content mutation or live configuration was added.
+
+Sites guidance preserved the existing local Next/OIDC architecture and pink/orange
+review styling. The background run used isolated browser QA, not a foreground demo
+handoff or deployment. See `intent/0164/EVIDENCE.md` for observed tests and limits.

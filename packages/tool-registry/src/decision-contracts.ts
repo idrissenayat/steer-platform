@@ -22,6 +22,11 @@ export const briefDecisionsOutputSchema = z.strictObject({ kind: z.literal('brie
     claims: decisionClaimsSchema, briefLinked: z.boolean() })).max(3),
 });
 export type BriefDecisions = z.infer<typeof briefDecisionsOutputSchema>;
+export const decisionEvidenceInputSchema = briefProjectionInputSchema.extend({ decision: decisionReferenceSchema,
+  evidence: artifactProjectionInputSchema.pick({ path: true, revision: true }) });
+export const decisionEvidenceOutputSchema = z.strictObject({ kind: z.literal('decision-evidence'), brief: briefProjectionInputSchema,
+  decision: decisionReferenceSchema, artifact: artifactProjectionOutputSchema, gateVerified: z.literal(false), writeAuthorized: z.literal(false) });
+export type DecisionEvidence = z.infer<typeof decisionEvidenceOutputSchema>;
 export function decisionPaths(briefPath: string): string[] {
   const path = briefProjectionInputSchema.shape.path.parse(briefPath);
   const parent = path.slice(0, -'BRIEF.md'.length);

@@ -113,7 +113,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         assert.deepEqual(await storage.counts(), { transactions: 0, sessions: 0 });
       });
       const grant: AuthorizationRecord = { issuer, subject: deps.subject, organizationId: 'synthetic-org', type: 'human',
-        hats: ['product-lead'], toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'intent.brief.read', 'intent.brief.catalog', 'intent.brief.decisions', 'intent.brief.preview', 'intent.brief.destination', 'intent.brief.save.status'], active: true,
+        hats: ['product-lead'], toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'intent.brief.read', 'intent.brief.catalog', 'intent.brief.decisions', 'intent.brief.decision.evidence', 'intent.brief.preview', 'intent.brief.destination', 'intent.brief.save.status'], active: true,
         validAfter: new Date(0).toISOString(), expiresAt: new Date(Date.now() + 600000).toISOString() };
       const source = await createGitAuthorizationHarness(tls.temporary, grant, 'canonical');
       assert.ok(storage.createProjectionFixture);
@@ -1013,6 +1013,9 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         const decisionApi = createIdentityService(configuration, { ...dependencies, services: { ...projection.services, ...decisionServices } });
         services.push(decisionApi); gateway = bindGateway(web!.rendererOrigin, decisionApi);
         let stage = 'open selected Brief';
+        let evidenceRequests = 0;
+        const observeEvidence = (request: import('playwright').Request) => { if (request.url() === `${origin}/v1/tools/intent.brief.decision.evidence`) evidenceRequests++; };
+        page.on('request', observeEvidence);
         try {
           await page.goto(origin);
           await page.waitForFunction(() => {
@@ -1063,11 +1066,82 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           await page.evaluate(source => { eval(source); }, axe);
           const violations = await page.evaluate(async () => (await (window as unknown as { axe: { run(context: string, options: unknown): Promise<{ violations: unknown[] }> } }).axe.run('.brief-dialog', { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] } })).violations);
           assert.deepEqual(violations, []);
+          stage = 'exact referenced evidence';
+          assert.equal(evidenceRequests, 0, 'record text must not automatically fetch evidence');
+          const inspect = records.nth(0).getByRole('button', { name: 'Inspect SPEC.md', exact: true });
+          const evidencePanel = section.getByRole('region', { name: 'Evidence source: SPEC.md', exact: true });
+          const evidenceUrl = `${origin}/v1/tools/intent.brief.decision.evidence`;
+          const exactSource = await source.reader.readArtifact('SPEC.md', projection.input.revision);
+          const readEvidence = async () => {
+            const response = page.waitForResponse(value => value.url() === evidenceUrl);
+            await inspect.focus(); await page.keyboard.press('Enter');
+            const received = await response; assert.equal(received.status(), 200);
+            const value = await received.json();
+            assert.equal(value.artifact.content, exactSource.content); assert.equal(value.artifact.contentDigest, exactSource.contentDigest);
+            assert.equal(value.artifact.revision, projection.input.revision); assert.equal(value.decision.revision, seeded.revision);
+            assert.equal(value.gateVerified, false); assert.equal(value.writeAuthorized, false);
+            await evidencePanel.waitFor(); assert.equal(await evidencePanel.locator('pre').textContent(), exactSource.content);
+            assert.equal(await evidencePanel.evaluate(element => element === document.activeElement), true);
+          };
+          await readEvidence();
+          assert.equal(await evidencePanel.locator('script, a, img').count(), 0);
+          assert.equal(await page.evaluate(() => (window as unknown as { __steerEvidenceUnsafe?: boolean }).__steerEvidenceUnsafe), undefined);
+          await evidencePanel.evaluate(element => element.scrollIntoView({ block: 'start' }));
+          if (directory) await page.screenshot({ path: join(directory, 'decision-evidence-desktop.png') });
+          await page.setViewportSize({ width: 390, height: 844 });
+          assert.equal(await evidencePanel.evaluate(element => element.scrollWidth <= element.clientWidth), true);
+          if (directory) await page.screenshot({ path: join(directory, 'decision-evidence-mobile.png') });
+          await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+          assert.equal(await evidencePanel.evaluate(element => element.scrollWidth <= element.clientWidth), true);
+          await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
+          await page.setViewportSize({ width: 1440, height: 1000 });
+          assert.deepEqual(await page.evaluate(async () => (await (window as unknown as { axe: { run(context: string, options: unknown): Promise<{ violations: unknown[] }> } }).axe.run('.brief-dialog', { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] } })).violations), []);
+          await records.nth(0).getByRole('button', { name: 'Close evidence source', exact: true }).click();
+          assert.equal(await evidencePanel.count(), 0); assert.equal(await inspect.evaluate(element => element === document.activeElement), true);
+          stage = 'cancel pending evidence inspection';
+          let releaseEvidence!: () => void, observedEvidence!: () => void, drainedEvidence!: () => void;
+          let evidenceRouted = false;
+          const heldEvidence = new Promise<void>(resolve => { releaseEvidence = resolve; });
+          const observed = new Promise<void>(resolve => { observedEvidence = resolve; });
+          const drained = new Promise<void>(resolve => { drainedEvidence = resolve; });
+          // Test-only held browser transport, not fabricated evidence or authority.
+          await page.route(evidenceUrl, async route => {
+            evidenceRouted = true; observedEvidence(); await heldEvidence;
+            try { await route.abort(); } catch { /* Browser cancellation may already have closed this request. */ }
+            finally { drainedEvidence(); }
+          });
+          try {
+            await inspect.click();
+            await Promise.race([observed, delay(10000).then(() => { throw new Error('Synthetic evidence interception did not start.'); })]);
+            await records.nth(0).getByRole('button', { name: 'Cancel evidence read', exact: true }).click();
+            assert.equal(await evidencePanel.count(), 0); assert.equal(await inspect.evaluate(element => element === document.activeElement), true);
+            assert.equal(await records.nth(0).getByTestId('evidence-status').textContent(), 'Evidence source cleared.');
+          } finally { releaseEvidence(); if (evidenceRouted) await drained; await page.unroute(evidenceUrl); }
+          stage = 'evidence curation and stale references';
+          const deniedSource = page.waitForResponse(value => value.url() === evidenceUrl);
+          await records.nth(0).getByRole('button', { name: 'Inspect EXAM.md', exact: true }).click();
+          assert.equal((await deniedSource).status(), 403);
+          await records.nth(0).getByTestId('evidence-status').filter({ hasText: 'Evidence source could not be checked.' }).waitFor();
+          assert.equal(await evidencePanel.count(), 0);
+          await readEvidence();
+          const staleSource = page.waitForResponse(value => value.url() === evidenceUrl);
+          await records.nth(1).getByRole('button', { name: 'Inspect SPEC.md', exact: true }).click();
+          const stale = await staleSource; assert.equal(stale.status(), 200); assert.equal(await stale.json(), null);
+          await records.nth(1).getByTestId('evidence-status').filter({ hasText: 'This exact selection is no longer available.' }).waitFor();
+          assert.equal(await section.locator('.decision-evidence').count(), 0, 'switching decisions clears the previous source');
+          await readEvidence();
+          await source.publish([{ ...grant, toolGrants: grant.toolGrants.filter(name => name !== 'intent.brief.decision.evidence') }]);
+          const deniedGrant = page.waitForResponse(value => value.url() === evidenceUrl); await inspect.click();
+          assert.equal((await deniedGrant).status(), 403);
+          await records.nth(0).getByTestId('evidence-status').filter({ hasText: 'Evidence source could not be checked.' }).waitFor();
+          assert.equal(await evidencePanel.count(), 0);
+          await source.publish([grant]); await readEvidence();
           stage = 'revocation and clearing';
           await source.publish([{ ...grant, toolGrants: grant.toolGrants.filter(name => name !== 'intent.brief.decisions') }]);
           await load.click(); await section.getByText('Decision records could not be checked. Refresh access and try again.', { exact: true }).waitFor();
           assert.equal(await records.count(), 0);
           await source.publish([grant]); await load.click(); await records.nth(1).waitFor();
+          await readEvidence();
           await page.getByRole('button', { name: 'Close Brief', exact: true }).click();
           await page.getByRole('button', { name: 'Read Intent 0125-synthetic-outcome', exact: true }).click();
           assert.equal(await section.locator('.decision-record').count(), 0, 'closed decision content is not retained');
@@ -1080,7 +1154,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           const directory = process.env.STEER_WORKSPACE_SCREENSHOT_DIR;
           if (directory) await page.screenshot({ path: join(directory, 'brief-decisions-failure.png') });
           throw error;
-        } finally { gateway = bindGateway(web!.rendererOrigin); await source.publish([grant]); await page.goto(origin); }
+        } finally { page.off('request', observeEvidence); gateway = bindGateway(web!.rendererOrigin); await source.publish([grant]); await page.goto(origin); }
       });
       await check('browser cross-site logout omits the Lax cookie and the API rejects the foreign Origin', async () => {
         await page.goto(attackerOrigin);

@@ -3261,3 +3261,34 @@ action or claim the full Inbox/Flight Board is complete. Live writer configurati
 model conversation, all five R5 findings, qualified/independent protected review
 and human gates remain unfinished. No deployment, release, provider grants or
 spending changed; the standing implementation loop remains active.
+
+## Completed development increment: 0164 — Inspect decision-referenced evidence
+
+The exact Brief's decision view now opens permitted referenced evidence through
+`intent.brief.decision.evidence`. Each request rechecks the Brief, selected decision
+path/revision/digest, recorded artifact path/revision and all current grants. Source
+curation is independently mandatory; neither record text nor a reference grants
+access. Exact projected bytes/fingerprints are shown as inert text, with no fallback
+to a newer revision and no upgrade to verified review, signature or gate authority.
+
+One source is visible at a time, with manual inspection, close/cancel, focus return,
+and clearing on selection, access failure and parent lifecycle changes. The final
+actual Keycloak/Chromium run passed 42 checks, including native Git/PostgreSQL reads,
+unconfigured and stale-reference denial, source/decision switching, grant revocation,
+recovery, cancellation, mobile/200% wrapping and automated accessibility. Final
+desktop/mobile screenshots were inspected; only owned synthetic resources were cleaned.
+
+Full checks passed with 438 root controls, 99 registry, 24 data, 53 web, 282 adapter
+and 91 API tests, remaining workspaces and all builds. The three-group actual Brief
+creation/PostgreSQL regression passed again. See `intent/0164/EVIDENCE.md` for limits.
+
+Next connect the existing recorded-Brief projection job to the durable worker
+workflow, using content-free references and a trusted current receipt-read callback
+outside workflow history. The worker already owns repository-snapshot reconciliation
+and gate-source watching, but lacks a receipt-specific projection activity. Keep
+current projector authorization, exact-source CAS, bounded execution and owned
+shutdown; integrate and test the real worker/runtime path together, not just a new
+wrapper. Do not enable a live scheduler, save button, provider access or gate action.
+Full governed write authority, model conversation, all five R5 findings, independent/
+qualified protected review and human signatures remain unfinished. No deployment,
+release, grants or spending changed; the standing implementation loop remains active.

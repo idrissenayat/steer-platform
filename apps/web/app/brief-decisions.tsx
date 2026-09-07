@@ -4,12 +4,13 @@ import { useEffect, useRef, useState } from 'react';
 import type { BriefDecisions } from '@steer/tool-registry/decision-contracts';
 import type { BriefProjection } from '@steer/tool-registry/brief-contracts';
 import { createDecisionReader } from './decision-reader';
-import { briefFragment } from './brief-location';
+import DecisionArtifacts from './decision-artifacts';
 
 /** Record inspection, never an approval action or a source of lifecycle state. */
 export default function BriefDecisionRecords({ brief, expiresAt }: { brief: BriefProjection; expiresAt: string }) {
   const owner = useRef<ReturnType<typeof createDecisionReader> | null>(null);
   const [result, setResult] = useState<BriefDecisions | null>(null); const [busy, setBusy] = useState(false);
+  const [activeEvidence, setActiveEvidence] = useState<string | null>(null);
   const [notice, setNotice] = useState('Load the permitted decision records for this selected Brief.');
   const reference = { organizationId: brief.organizationId, repository: brief.repository, path: brief.path,
     revision: brief.revision, contentDigest: brief.contentDigest };
@@ -43,9 +44,8 @@ export default function BriefDecisionRecords({ brief, expiresAt }: { brief: Brie
         <dt>Recorded artifact revision</dt><dd><code>{record.claims.artifactRevision}</code></dd></dl>
       <h5>Recorded signers · unverified</h5>
       <ul>{record.claims.signatures.map((signer, index) => <li key={index}>{signer.subject} · {signer.hat} · Sequence {signer.sequence} · {signer.signedAt}</li>)}</ul>
-      <h5>Referenced artifacts · source claims</h5>
-      <ul>{record.claims.artifacts.map((artifact, index) => <li key={index}><code>{artifact.path}</code> at <code>{artifact.revision}</code>
-        {artifact.path === brief.path && artifact.revision === brief.revision && <> · <a href={briefFragment(reference)}>This selected Brief</a></>}</li>)}</ul>
+      <DecisionArtifacts brief={reference} record={record} expiresAt={expiresAt}
+        active={activeEvidence === record.path} onSelect={() => setActiveEvidence(record.path)} />
       <details className="decision-source"><summary>Decision source and fingerprint</summary>
         <dl><dt>Source path</dt><dd>{record.path}</dd><dt>Selected record revision</dt><dd><code>{record.revision}</code></dd>
           <dt>SHA-256</dt><dd><code>{record.contentDigest}</code></dd><dt>Git blob</dt><dd><code>{record.blobSha}</code></dd></dl>

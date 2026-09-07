@@ -153,6 +153,10 @@ Item [0163](intent/0163/README.md) adds read-only decision inspection inside the
 exact Brief view. Curated records show source fingerprints, recorded signers and
 matching/mismatched Brief references. All approval claims remain explicitly unverified.
 
+Item [0164](intent/0164/README.md) adds inspection of permitted evidence from those
+decision references, preserving exact source text and fingerprints. References do
+not grant access, and inspection does not verify an approval.
+
 Item [0153](intent/0153/README.md) adds bounded, merge-aware Critic target ancestry
 against the configured Git reader, without upgrading review selection or gate authority.
 

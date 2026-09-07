@@ -159,7 +159,7 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
         // Existing Brief selection is intentionally unchanged; the decision record
         // is a later source commit referring to that exact earlier Brief revision.
         // Rows remain owned by this disposable container and its final cleanup.
-        return { artifactProjection: createArtifactProjectionReader(app, { organizationId, repository, paths: [briefPath, ...paths] }) };
+        return { artifactProjection: createArtifactProjectionReader(app, { organizationId, repository, paths: [briefPath, 'SPEC.md', ...paths] }) };
       },
       createReceiptProjection: async (reader, path, revision, readReceipt) => {
         // Only the dedicated seeded artifact in this disposable database is owned

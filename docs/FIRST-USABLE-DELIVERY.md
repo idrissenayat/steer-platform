@@ -63,7 +63,7 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0163
+### Latest development audit — increment 0164
 
 The production UI now supports deterministic describe/correct, exact local review,
 manual prior-operation status and opening the exact recorded Brief. Disposable
@@ -91,6 +91,13 @@ artifact references, including exact-match and mismatch labels. These are unveri
 source claims, not authenticated human signatures, gate outcomes or lifecycle stages.
 No arbitrary evidence URL is followed, and no new live read grants are installed.
 
+Decision-referenced evidence can now be inspected within that view when its exact
+path is independently curated. Every read rechecks the Brief, selected decision,
+reference and current grants. Source text remains inert and explicitly unverified;
+stale/missing exact selections never open a replacement revision. This completes
+read-only navigation from Brief to recorded decision to permitted evidence, not
+human approval or an actionable decision Inbox.
+
 Remaining engineering includes the complete governed evidence-selection/action-time
 writer composition, an owned save-to-projection workflow, authenticated lifecycle
 and decision projections, and the model-backed agent conversation. The current
@@ -100,9 +107,10 @@ promoted to verified board stages merely by importing its read-model code.
 Real membership/runtime configuration, complete live-write authority, all five R5
 findings, independent/qualified protected review and human gate decisions remain
 separate outstanding dependencies. No live writer/scheduler, deployment or spending
-is authorized by this audit. Next connect permitted referenced review evidence to
-exact source inspection without granting authority or widening configured content
-scope. Decision inspection is not a complete actionable Inbox or Flight Board.
+is authorized by this audit. Next connect the existing receipt-projection job to
+the durable worker workflow with content-free references and current projector
+authorization. The current worker reconciles repository snapshots and watches
+decision sources, but does not yet own a receipt-specific projection activity.
 
 The **68–132 hours below is the original baseline estimate**, not current remaining
 effort. Re-estimation must use these implementation gaps and separate engineering
