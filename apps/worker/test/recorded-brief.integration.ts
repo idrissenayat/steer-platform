@@ -3,13 +3,14 @@ import { join } from 'node:path';
 import type { Pool } from 'pg';
 import type { TestWorkflowEnvironment } from '@temporalio/testing';
 import { Worker, type WorkflowBundle } from '@temporalio/worker';
+import { Client, Connection } from '@temporalio/client';
 import { createGitAuthorizationHarness } from '../../api/test/git-authorization-harness.ts';
 import { createGitAuthorizationResolver } from '@steer/adapters/authorization';
 import type { AuthorizationRecord } from '@steer/adapters/identity';
 import { projectionKey } from '@steer/data/ingestion';
 import { createWorkerRecordedBriefRuntime, createWorkerProjectionRuntime } from '../src/runtime.ts';
 import { createRecordedBriefWorker } from '../src/worker.ts';
-import { startRecordedBriefProjection } from '../src/client.ts';
+import { startRecordedBriefProjection, createManagedRecordedBriefScheduler } from '../src/client.ts';
 import { recordedBriefWorkflowId } from '../src/contracts.ts';
 
 function historyText(value: unknown): string {
@@ -111,6 +112,46 @@ export async function testRecordedBriefWorkflow(env: TestWorkflowEnvironment, bu
       const handle = await startRecordedBriefProjection(env.client, queue, target(7));
       assert.deepEqual(await handle.result(), { revision, status: 'different-revision', outcome: null });
       assert.equal((await row()).source_revision, newer); assert.equal(await count(), before);
+    });
+    await stop();
+    await check('owned fixed-operation dispatch recovers a lost acknowledgment across connection recreation without retrying or claiming projection success', async () => {
+      const before = await count(), selected = (await row()).source_revision, reads = receiptReads;
+      const connection = await Connection.connect({ address: env.address });
+      const client = new Client({ connection, namespace: 'default' });
+      let closed = 0, dispatched = 0;
+      // Fault injection after the real SDK start commits at the actual local server.
+      const uncertain = { options: client.options, workflow: {
+        start: async (...args: Parameters<typeof client.workflow.start>) => {
+          dispatched++; await client.workflow.start(...args); throw new Error('synthetic lost start acknowledgment');
+        }, getHandle: client.workflow.getHandle.bind(client.workflow),
+      } } as unknown as Client;
+      const configuration = { namespace: 'default', taskQueue: queue, target: target(8) };
+      const first = await createManagedRecordedBriefScheduler(uncertain, configuration, async () => { await connection.close(); closed++; });
+      try {
+        assert.equal((await first.scheduler.inspect()).outcome, 'not-found');
+        assert.equal((await first.scheduler.start()).outcome, 'unknown');
+        assert.equal((await first.scheduler.start()).outcome, 'already-attempted'); assert.equal(dispatched, 1);
+        const observed = await first.scheduler.inspect(); assert.equal(observed.outcome, 'found');
+        assert.equal('state' in observed && observed.state, 'RUNNING');
+        assert.equal(receiptReads, reads); assert.equal(await count(), before);
+      } finally { await first.shutdown(); }
+      assert.equal(closed, 1);
+      await assert.rejects(connection.workflowService.describeWorkflowExecution({ namespace: 'default', execution: { workflowId: first.scheduler.workflowId } }));
+      const replacement = await Connection.connect({ address: env.address });
+      const second = await createManagedRecordedBriefScheduler(new Client({ connection: replacement, namespace: 'default' }), configuration,
+        async () => { await replacement.close(); closed++; });
+      try {
+        assert.equal((await second.scheduler.inspect()).outcome, 'found');
+        assert.equal((await second.scheduler.start()).outcome, 'duplicate');
+        await configure(8); await startWorker();
+        assert.deepEqual(await env.client.workflow.getHandle(second.scheduler.workflowId).result(), { revision, status: 'different-revision', outcome: null });
+        const observed = await second.scheduler.inspect(); assert.equal(observed.outcome, 'found');
+        assert.equal('state' in observed && observed.state, 'COMPLETED');
+        assert.equal(await count(), before); assert.equal((await row()).source_revision, selected);
+        assert.equal(receiptReads, reads + 1);
+      } finally { await second.shutdown(); }
+      assert.equal(closed, 2);
+      assert.equal((await env.client.workflow.getHandle(recordedBriefWorkflowId(target(8))).describe()).status.name, 'COMPLETED');
     });
   } finally { await stop(); }
 }

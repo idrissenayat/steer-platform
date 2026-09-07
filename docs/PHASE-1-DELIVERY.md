@@ -20,6 +20,10 @@ inside STEER. Every surface uses the same registry and tenant authorization.
 
 ## Delivery sequence
 
+The current dependency-ordered first-journey work packages and separate approval
+dependencies are in `docs/JOURNEY-REMAINING-WORK.md` (0174). Historical increment
+"next" statements below are not the current remaining-work forecast.
+
 Execution priority as of 2026-09-06: finish the first usable journey above.
 The current code audit, bounded effort ranges, next demo and separate waiting
 dependencies are in `docs/FIRST-USABLE-DELIVERY.md`. This orders safe development;
@@ -3578,3 +3582,31 @@ model conversation and independent/qualified review/human signatures remain open
 No live configuration, provider grant, protected artifact, dependency, schema,
 deployment, release, spending or real-record deletion changed. The implementation
 loop remains active, with exact remote equality checked after the candidate push.
+
+## Completed development increment: 0174 — Owned recorded-Brief dispatch recovery
+
+The existing deterministic recorded-Brief starter now has an internal owned client
+with a fixed namespace/queue/operation, one explicit start, manual status and draining
+connection closure. Unknown acknowledgments and not-found results never reset its
+attempt latch. Metadata validation, current namespace checks and typed error handling
+keep provider failures private. Reconstruction retains the same deterministic ID;
+Temporal duplicate protection lasts only as long as its retained record.
+
+The actual local Temporal/Git/PostgreSQL test loses an acknowledgment after real
+dispatch, observes the queued run, recreates the client connection and rejects a
+duplicate. A completed different-revision workflow leaves the newer projection
+unchanged. This does not claim receipt provenance, successful ingestion, dispatcher
+authority or automatic admission of new paths. All 26 integration checks and 29
+worker unit checks passed; final repository checks are recorded in `intent/0174/EVIDENCE.md`.
+
+The code-grounded remaining route is `docs/JOURNEY-REMAINING-WORK.md`: governed
+save authority, trusted dispatch/admission, authenticated operating projections,
+actionable revision-bound review, agent conversation and approved-pod demonstration.
+This replaces stale sequencing, not signed requirements or the full Phase 1 ledger.
+Next connect the fixed client to an explicitly owned current-authorized dispatch
+boundary; missing governance contracts require a narrow proposal, not new live grants.
+
+No frontend/design, protected artifact, dependency, schema, provider grant, live
+configuration/save/scheduler, spending, deployment, release or real deletion changed.
+All five R5 findings, independent/qualified review and human signatures remain open.
+The standing implementation loop remains active; verify remote equality after push.

@@ -88,3 +88,79 @@ export async function createManagedReconciliationScheduler(client: Client,
     },
   });
 }
+
+const runId = (value: unknown): value is string => typeof value === 'string' && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(value);
+const states = new Set(['RUNNING', 'COMPLETED', 'FAILED', 'CANCELLED', 'TERMINATED', 'CONTINUED_AS_NEW', 'TIMED_OUT']);
+
+/** Owns one explicitly supplied connection and one fixed operation. This internal
+ * client neither authenticates callers nor admits receipts/paths. No public route,
+ * polling, automatic retry, worker registration or live runtime binding is added. */
+export async function createManagedRecordedBriefScheduler(client: Client, rawConfiguration: unknown, closeConnection: () => Promise<void>) {
+  let closing: Promise<void> | undefined;
+  const release = () => closing ??= Promise.resolve().then(closeConnection);
+  let configuration: { namespace: string; taskQueue: string };
+  let target: ReturnType<typeof parseRecordedBriefTarget>;
+  try {
+    if (!rawConfiguration || typeof rawConfiguration !== 'object' || Array.isArray(rawConfiguration) ||
+      Object.keys(rawConfiguration).length !== 3 ||
+      !['namespace', 'taskQueue', 'target'].every(key => Object.hasOwn(rawConfiguration, key))) throw new Error();
+    const supplied = rawConfiguration as Record<string, unknown>;
+    for (const value of [supplied.namespace, supplied.taskQueue]) {
+      if (typeof value !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(value)) throw new Error();
+    }
+    configuration = { namespace: supplied.namespace as string, taskQueue: supplied.taskQueue as string };
+    target = parseRecordedBriefTarget(supplied.target);
+    Object.freeze(target.scope); Object.freeze(target);
+    if (client.options.namespace !== configuration.namespace) throw new Error();
+  } catch {
+    try { await release(); } catch { throw new Error('Recorded Brief scheduler initialization cleanup could not be confirmed.'); }
+    throw new Error('Recorded Brief scheduler could not be initialized.');
+  }
+  const { namespace, taskQueue } = configuration, workflowId = recordedBriefWorkflowId(target);
+  let state: 'running' | 'draining' | 'stopped' | 'failed' = 'running';
+  let active = false, attempted = false, drained: (() => void) | undefined, shutdown: Promise<void> | undefined;
+  const checkBinding = () => { if (client.options.namespace !== namespace) throw new Error('Recorded Brief scheduler binding changed.'); };
+  const invoke = async <T>(operation: () => Promise<T>): Promise<T> => {
+    if (state !== 'running' || active) throw new Error('Recorded Brief scheduler is not accepting operations.');
+    checkBinding(); active = true;
+    try { return await operation(); }
+    finally { active = false; drained?.(); }
+  };
+  const scheduler = Object.freeze({ target, workflowId,
+    start: () => invoke(async () => {
+      if (attempted) return { workflowId, outcome: 'already-attempted' as const };
+      // Set before dispatch: a missing acknowledgment cannot unlock another start.
+      attempted = true;
+      try {
+        const handle = await startRecordedBriefProjection(client, taskQueue, target);
+        checkBinding();
+        if (!runId(handle.firstExecutionRunId)) throw new Error();
+        return { workflowId, outcome: 'started' as const, runId: handle.firstExecutionRunId };
+      } catch (error) {
+        return { workflowId, outcome: client.options.namespace === namespace && error instanceof WorkflowExecutionAlreadyStartedError ? 'duplicate' as const : 'unknown' as const };
+      }
+    }),
+    inspect: () => invoke(async () => {
+      try {
+        const result = await client.workflow.getHandle(workflowId).describe();
+        checkBinding();
+        if (result.workflowId !== workflowId || result.type !== 'projectRecordedBrief' || result.taskQueue !== taskQueue ||
+          !runId(result.runId) || !states.has(result.status.name)) throw new Error();
+        return { workflowId, outcome: 'found' as const, runId: result.runId, state: result.status.name };
+      } catch (error) {
+        return { workflowId, outcome: client.options.namespace === namespace && error instanceof WorkflowNotFoundError ? 'not-found' as const : 'unknown' as const };
+      }
+    }),
+  });
+  return Object.freeze({ scheduler, status: () => ({ state, active, attempted }),
+    shutdown(): Promise<void> {
+      if (shutdown) return shutdown;
+      state = 'draining';
+      const wait = active ? new Promise<void>(resolve => { drained = resolve; }) : Promise.resolve();
+      shutdown = wait.then(release).then(() => { drained = undefined; state = 'stopped'; }, () => {
+        drained = undefined; state = 'failed'; throw new Error('Recorded Brief scheduler shutdown could not be confirmed.');
+      });
+      return shutdown;
+    },
+  });
+}

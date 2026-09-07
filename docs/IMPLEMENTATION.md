@@ -1862,3 +1862,24 @@ keyboard, narrow/enlarged layout, accessibility, clearing/navigation and committ
 grant denial. See `intent/0173/EVIDENCE.md` for current verification. Live saving,
 full lifecycle/decision projections, all five R5 findings and required independent/
 qualified review/human signatures remain open; no deployment or spending is enabled.
+
+## Increment 0174 — Owned fixed-operation dispatch recovery
+
+`apps/worker/src/client.ts` now wraps the existing recorded-Brief
+starter with strict namespace/queue/operation snapshots, one explicit attempt and
+manual validated metadata inspection. Application-level unknown/not-found never
+unlocks a repeat attempt. Namespace drift and malformed upstream metadata cannot
+be returned as successful observations. Only typed Temporal absence/duplicate
+errors get those outcomes; private failures remain unknown.
+
+One operation is admitted at a time. Shutdown drains it before closing only the
+transferred connection once; initialization and closure failures stay sanitized.
+No connection discovery, public tool, current-identity bypass, receipt/path admission,
+live registration, retry/poll loop or authority proof is added. COMPLETED remains
+workflow metadata: it can accompany a different-revision result with no ingestion.
+
+Six focused tests and the actual disposable Temporal/Git/PostgreSQL suite cover
+lost acknowledgment, queued status, connection reconstruction, retained duplicate
+refusal and no rewind. Exact evidence and regression results: `intent/0174/EVIDENCE.md`.
+The remaining-journey route is consolidated in `docs/JOURNEY-REMAINING-WORK.md`.
+All five R5 findings and full authority/independent review/human gates stay open.

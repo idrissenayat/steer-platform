@@ -7,6 +7,11 @@ item one, are the framework's pilot evidence.
 
 ## Current delivery
 
+Item [0174](intent/0174/README.md) adds an owned fixed-operation Temporal dispatch
+and manual recovery client, without live scheduler activation. The current
+[remaining journey route](docs/JOURNEY-REMAINING-WORK.md) separates implementation
+gaps from governance/provider prerequisites; it is not Phase 1 acceptance.
+
 Immediate priority: [the first usable journey](docs/FIRST-USABLE-DELIVERY.md),
 with a current code audit, bounded forecast and separate gate/provider waits.
 Item [0121](intent/0121/README.md) adds authenticated stateless Brief preview.

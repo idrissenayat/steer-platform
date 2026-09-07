@@ -63,7 +63,12 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0173
+### Latest development audit — increment 0174
+
+The dependency-ordered current route is `docs/JOURNEY-REMAINING-WORK.md`.
+Increment 0174 adds an owned fixed-operation Temporal start/status client with
+uncertain-start recovery and connection draining. It is not installed live and
+does not supply dispatcher authority or automatic receipt/path admission.
 
 The production UI now supports deterministic describe/correct, exact local review,
 manual prior-operation status and opening the exact recorded Brief. Disposable

@@ -6,6 +6,20 @@ Last alignment audit: **2026-09-03**
 This map explains which documents govern STEER, which files the platform reads,
 and which implementation evidence remains outside the repository.
 
+## Current development navigation
+
+Development route refreshed 2026-09-07; this does not change the doctrine alignment
+audit above, the signed execution plan or formal gate status.
+
+- [Phase 1 delivery ledger](PHASE-1-DELIVERY.md): completed development increments
+  and the full milestone sequence.
+- [First usable journey](FIRST-USABLE-DELIVERY.md) and
+  [remaining work packages](JOURNEY-REMAINING-WORK.md): integrated capability,
+  unfinished engineering and separate governance/provider dependencies.
+- [Recorded Brief dispatch](RECORDED-BRIEF-DISPATCH.md): fixed-operation start,
+  manual recovery and connection ownership; no live scheduler activation.
+- [Gate 2 corrections](GATE-2-CORRECTIONS.md): all five R5 findings remain open.
+
 ## Authority and purpose
 
 | Layer | Purpose | Authoritative project files |
