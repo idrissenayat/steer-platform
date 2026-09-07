@@ -18,6 +18,8 @@ audit above, the signed execution plan or formal gate status.
   unfinished engineering and separate governance/provider dependencies.
 - [Recorded Brief dispatch](RECORDED-BRIEF-DISPATCH.md): fixed-operation start,
   manual recovery and connection ownership; no live scheduler activation.
+- [Authorized recorded dispatch](AUTHORIZED-RECORDED-DISPATCH.md): separate current
+  dispatch/status grants and shared HTTP/MCP contracts, without live configuration.
 - [Gate 2 corrections](GATE-2-CORRECTIONS.md): all five R5 findings remain open.
 
 ## Authority and purpose

@@ -44,8 +44,9 @@ shares its promise; close failure is sanitized and not retried. This client does
 not claim to cancel an already dispatched workflow. Initialization failure also
 closes the supplied connection, never the server, worker or another connection.
 
-This is an internal development composition, not a registry/API tool or identity
-runtime option. Action-time dispatcher authorization, governed receipt/path admission
-and live installation remain open. All five R5 findings, independent/qualified
+0175 adds a separate shared registry authorization boundary around this client;
+see `AUTHORIZED-RECORDED-DISPATCH.md`. The client itself does not authenticate callers.
+An identity-runtime binding, governed receipt/path admission and live installation
+remain open. All five R5 findings, independent/qualified
 review and human gates remain unchanged. No live save, provider grant, deployment,
 release, spending or deletion was enabled. See `intent/0174/EVIDENCE.md`.

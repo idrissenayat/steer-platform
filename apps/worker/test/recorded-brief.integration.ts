@@ -12,6 +12,7 @@ import { createWorkerRecordedBriefRuntime, createWorkerProjectionRuntime } from 
 import { createRecordedBriefWorker } from '../src/worker.ts';
 import { startRecordedBriefProjection, createManagedRecordedBriefScheduler } from '../src/client.ts';
 import { recordedBriefWorkflowId } from '../src/contracts.ts';
+import { invokeTool, ToolError } from '@steer/tool-registry';
 
 function historyText(value: unknown): string {
   if (value instanceof Uint8Array) return Buffer.from(value).toString('utf8');
@@ -152,6 +153,35 @@ export async function testRecordedBriefWorkflow(env: TestWorkflowEnvironment, bu
       } finally { await second.shutdown(); }
       assert.equal(closed, 2);
       assert.equal((await env.client.workflow.getHandle(recordedBriefWorkflowId(target(8))).describe()).status.name, 'COMPLETED');
+    });
+    await stop();
+    await check('canonical recorded dispatch checks separate current agent authority before actual Temporal start and status without authorizing Git saving', async () => {
+      const connection = await Connection.connect({ address: env.address });
+      const managed = await createManagedRecordedBriefScheduler(new Client({ connection, namespace: 'default' }),
+        { namespace: 'default', taskQueue: queue, target: target(9) }, () => connection.close());
+      const dispatcher = { subject: 'synthetic-separate-dispatcher', organizationId, type: 'agent', hats: [],
+        toolGrants: ['workflow.recorded-brief.start', 'workflow.recorded-brief.status'], expiresAt: new Date(Date.now() + 300000).toISOString() };
+      let current: unknown = dispatcher;
+      const context = { principal: dispatcher, now: new Date(), revalidate: async () => current, services: { recordedBriefScheduler: managed.scheduler } };
+      const args = { ...scope, idempotencyKey: key(9) }, before = await count();
+      try {
+        assert.equal((await invokeTool('workflow.recorded-brief.status', args, context)).outcome, 'not-found');
+        current = { ...dispatcher, toolGrants: ['projection.ingest'] };
+        await assert.rejects(invokeTool('workflow.recorded-brief.start', args, context), error => error instanceof ToolError && error.code === 'FORBIDDEN');
+        assert.equal(managed.status().attempted, false);
+        current = dispatcher;
+        assert.equal((await invokeTool('workflow.recorded-brief.status', args, context)).outcome, 'not-found');
+        const started = await invokeTool('workflow.recorded-brief.start', args, context); assert.equal(started.outcome, 'started');
+        assert.equal((await invokeTool('workflow.recorded-brief.start', args, context)).outcome, 'already-attempted');
+        current = null;
+        await assert.rejects(invokeTool('workflow.recorded-brief.status', args, context), error => error instanceof ToolError && error.code === 'UNAUTHENTICATED');
+        current = dispatcher;
+        await configure(9); await startWorker();
+        assert.deepEqual(await env.client.workflow.getHandle(managed.scheduler.workflowId).result(), { revision, status: 'different-revision', outcome: null });
+        const observed = await invokeTool('workflow.recorded-brief.status', args, context);
+        assert.equal(observed.outcome, 'found'); assert.equal('state' in observed && observed.state, 'COMPLETED');
+        assert.equal(await count(), before);
+      } finally { await managed.shutdown(); }
     });
   } finally { await stop(); }
 }

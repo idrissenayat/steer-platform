@@ -3610,3 +3610,31 @@ No frontend/design, protected artifact, dependency, schema, provider grant, live
 configuration/save/scheduler, spending, deployment, release or real deletion changed.
 All five R5 findings, independent/qualified review and human signatures remain open.
 The standing implementation loop remains active; verify remote equality after push.
+
+## Completed development increment: 0175 — Current-authorized recorded dispatch
+
+Shared start/status tools now wrap the fixed recorded-Brief scheduler through a
+structural port. They require separate explicit current grants and exact configured
+organization/repository/item/operation/derived workflow ID. Start is hat-free agent
+only; status accepts explicitly granted humans or hat-free agents. No other grant
+or human hat becomes dispatch permission. No live grant or identity-runtime option
+was installed.
+
+Pre-I/O identity and configuration checks deny changed scope, grants, identity,
+expiry and regressing invocation clocks. Status revalidates after I/O before releasing
+metadata. Start failures remain unknown without retries; accepted dispatch is not
+reported as rolled back after later revocation. COMPLETED remains only workflow
+metadata, not a saved/applied Brief or approval.
+
+Five focused registry tests (104 total), official MCP/HTTP parity and all 27 actual
+local Temporal/Git/PostgreSQL integration checks pass. The latter exercises grant
+loss before dispatch, one attempt, revoked status and a completed different-revision
+outcome with unchanged ingestion. Dispatcher and receipt provenance remain synthetic.
+Final regression/build evidence is in `intent/0175/EVIDENCE.md`.
+
+Next compose the owned client and current-authorized service into an explicit runtime
+lifecycle; do not infer automatic receipt/path admission or live grant approval.
+All five R5 findings, full governed authority, independent/qualified review and human
+signatures remain open. No frontend, protected artifact, dependency, schema migration,
+live save/scheduler, provider grant, spending, deployment, release or real deletion
+changed. The loop remains active; verify exact remote equality after candidate push.

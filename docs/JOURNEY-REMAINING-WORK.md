@@ -1,7 +1,7 @@
 # Remaining first-journey implementation
 
 Code audit on 2026-09-07 against `e320d6e86affd556103dcf9c273daf23dc6695d5`,
-plus increment 0174's owned dispatch client. This is execution planning, not a new
+plus increments 0174–0175's owned client and shared authorization boundary. This is execution planning, not a new
 architecture, signed-scope reduction or gate decision. It supersedes historical
 "next" statements only for sequencing; numbered evidence remains historical.
 
@@ -34,12 +34,13 @@ incomplete until the real approved composition passes.
 
 ## Next bounded engineering step
 
-0174 supplies J2's owned start/status client and actual local acknowledgment-loss
-and reconstruction tests. Next integrate it with an explicitly owned, current-authorized
-dispatch boundary. Reuse the existing receipt/worker binding; never invent automatic
-path admission from a browser response. Distinguish dispatch authority from
-`projection.ingest` and `intent.brief.save`. If its governance contract is missing,
-prepare a narrow contract proposal, not a simulated approval or live installation.
+0174 supplies J2's owned start/status client; 0175 adds the explicit separate current
+dispatch/status grant boundary in the shared registry. Next compose its owned runtime
+lifecycle with approved dispatcher identity and exact receipt/worker binding. Do not
+invent automatic path admission from a browser response or turn test grants into
+live configuration. `projection.ingest` and `intent.brief.save` remain independent
+permissions. Missing actual selection/authority still requires the established
+approval process, not a simulated approval or live installation.
 
 ## Dependencies an assistant cannot approve
 

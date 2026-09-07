@@ -1883,3 +1883,23 @@ lost acknowledgment, queued status, connection reconstruction, retained duplicat
 refusal and no rewind. Exact evidence and regression results: `intent/0174/EVIDENCE.md`.
 The remaining-journey route is consolidated in `docs/JOURNEY-REMAINING-WORK.md`.
 All five R5 findings and full authority/independent review/human gates stay open.
+
+## Increment 0175 — Shared current-authorized recorded dispatch
+
+The registry now exposes fixed-operation `workflow.recorded-brief.start` and `.status`
+over the optional structural `recordedBriefScheduler` service. Each requires its own
+explicit current grant; start is agent-only, while status permits an explicitly
+granted human or hat-free agent. Save, ingestion, reconciliation and hats cannot
+substitute. Scope/operation and derived workflow ID must match configured values.
+
+Current identity is revalidated before I/O; status revalidates afterward and discards
+revoked output. Binding drift is checked after asynchronous boundaries. Start failures
+remain unknown, accepted effects are not represented as rollback after revocation,
+and already-attempted stays distinct. Output never claims successful projection or
+gate approval. Official MCP and HTTP inherit the same strict contracts/hints.
+
+Focused registry, HTTP/MCP and actual local Temporal/Git/PostgreSQL checks are in
+`intent/0175/EVIDENCE.md`. Dispatcher identity is synthetic in that integration;
+no real grants, automatic receipt/path admission or live runtime binding were added.
+All five R5 findings and complete governed authority/independent review/human gates
+remain open. Next is explicit owned runtime composition, not live activation.

@@ -7,6 +7,10 @@ item one, are the framework's pilot evidence.
 
 ## Current delivery
 
+Item [0175](intent/0175/README.md) adds exact-operation dispatch/status tools with
+separate current-identity grants and HTTP/MCP parity. No live scheduler or save
+permission is enabled. See [the boundary](docs/AUTHORIZED-RECORDED-DISPATCH.md).
+
 Item [0174](intent/0174/README.md) adds an owned fixed-operation Temporal dispatch
 and manual recovery client, without live scheduler activation. The current
 [remaining journey route](docs/JOURNEY-REMAINING-WORK.md) separates implementation

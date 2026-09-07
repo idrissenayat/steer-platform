@@ -66,6 +66,50 @@ test('Brief destination observes real native Git heads through read-only GitHub 
   } finally { await client.close(); await endpoint.shutdown(); }
 });
 
+test('fixed recorded Brief dispatch/status have HTTP/MCP parity with separate grants and no default scheduler', async () => {
+  const scope = { organizationId: 'org-a', repository: 'github:1', itemId: 'intent/0175' };
+  const idempotencyKey = '17500000-0000-4000-8000-000000000001', args = { ...scope, idempotencyKey };
+  const workflowId = `steer-recorded-brief/v1/org-a/github%3A1/intent%2F0175/${idempotencyKey}`;
+  const runId = '17500000-0000-4000-8000-000000000002';
+  const names = ['workflow.recorded-brief.start', 'workflow.recorded-brief.status'];
+  let actor: typeof principal | null = { ...principal, toolGrants: names }, calls = 0, revokeOnRead = false;
+  const dependencies = { authenticate: async () => actor, now: () => now, services: { recordedBriefScheduler: {
+    target: { scope, idempotencyKey }, workflowId,
+    start: async () => { calls++; return { workflowId, outcome: 'unknown' }; },
+    inspect: async () => { calls++; if (revokeOnRead) actor = null; return { workflowId, outcome: 'found', runId, state: 'RUNNING' }; },
+  } } };
+  const api = createApi(dependencies), endpoint = createMcpEndpoint(origin, dependencies), client = await connect(endpoint);
+  const request = (value: unknown) => ({ method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(value) });
+  try {
+    const discovered = await client.listTools();
+    for (const name of names) {
+      const tool = discovered.tools.find(item => item.name === name)!;
+      assert.equal(tool.annotations?.readOnlyHint, name.endsWith('status'));
+      assert.equal(tool.annotations?.idempotentHint, name.endsWith('status'));
+      const mcp = await client.callTool({ name, arguments: args }); assert.ok(!mcp.isError);
+      const response = await api.request(`/v1/tools/${name}`, request(args));
+      assert.equal(response.status, 200); assert.equal(response.headers.get('cache-control'), 'no-store');
+      assert.deepEqual((mcp.structuredContent as { result: unknown }).result, await response.json());
+      assert.equal((await api.request(`/v1/tools/${name}`, request({ ...args, subject: 'forged' }))).status, 422);
+      assert.equal(toolError(await client.callTool({ name, arguments: { ...args, repository: 'github:2' } })), 'FORBIDDEN');
+      assert.equal((await createApi().request(`/v1/tools/${name}`, request(args))).status, 401);
+      assert.equal((await createApi({ ...dependencies, services: {} }).request(`/v1/tools/${name}`, request(args))).status, 503);
+    }
+    assert.equal(calls, 4);
+    actor = { ...principal, toolGrants: ['intent.brief.save', 'projection.ingest', 'workflow.reconciliation.start'] };
+    for (const name of names) {
+      assert.equal(toolError(await client.callTool({ name, arguments: args })), 'FORBIDDEN');
+      assert.equal((await api.request(`/v1/tools/${name}`, request(args))).status, 403);
+    }
+    assert.equal(calls, 4);
+    actor = { ...principal, toolGrants: names }; revokeOnRead = true;
+    assert.equal(toolError(await client.callTool({ name: names[1]!, arguments: args })), 'UNAUTHENTICATED');
+    actor = { ...principal, toolGrants: names };
+    assert.equal((await api.request(`/v1/tools/${names[1]}`, request(args))).status, 401);
+    assert.equal(calls, 6);
+  } finally { await client.close(); await endpoint.shutdown(); }
+});
+
 test('human Brief preview has HTTP/MCP parity without enabling default access or agent confirmation', async () => {
   let actor = { ...principal, type: 'human', toolGrants: ['intent.brief.preview'] };
   const dependencies = { authenticate: async () => actor, now: () => now };

@@ -94,7 +94,20 @@ export interface ReconciliationScheduler {
   start(input: ReconciliationStart): Promise<unknown>;
   inspect(): Promise<unknown>;
 }
-export interface ToolServices { artifactProjection?: ArtifactProjectionReader; reconciliationScheduler?: ReconciliationScheduler; projectionChanges?: ProjectionChangeReader; projectionSnapshot?: ProjectionSnapshotReader; briefWriter?: BriefWriter; briefWriterFactory?: () => ManagedBriefWriter; briefDestination?: BriefDestinationReader }
+export const recordedBriefSchedulingInputSchema = reconciliationScopeSchema.extend({
+  idempotencyKey: z.string().regex(/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/),
+});
+export const recordedBriefStartResultSchema = z.union([reconciliationStartResultSchema,
+  z.strictObject({ workflowId: executionId, outcome: z.literal('already-attempted') }),
+]);
+export type RecordedBriefStartResult = z.infer<typeof recordedBriefStartResultSchema>;
+export interface RecordedBriefScheduler {
+  readonly target: Readonly<{ scope: Readonly<z.infer<typeof reconciliationScopeSchema>>; idempotencyKey: string }>;
+  readonly workflowId: string;
+  start(): Promise<unknown>;
+  inspect(): Promise<unknown>;
+}
+export interface ToolServices { artifactProjection?: ArtifactProjectionReader; reconciliationScheduler?: ReconciliationScheduler; recordedBriefScheduler?: RecordedBriefScheduler; projectionChanges?: ProjectionChangeReader; projectionSnapshot?: ProjectionSnapshotReader; briefWriter?: BriefWriter; briefWriterFactory?: () => ManagedBriefWriter; briefDestination?: BriefDestinationReader }
 
 const contextInput = z.strictObject({ organizationId: identifier });
 const contextOutput = principalSchema.omit({ expiresAt: true });
@@ -229,6 +242,57 @@ const reconciliationStatus = {
     await freshToolPrincipal(statusAuthorization, input, initial, context);
     const output = reconciliationStatusResultSchema.safeParse(result);
     return output.success && output.data.workflowId === scheduler.workflowId ? output.data : { workflowId: scheduler.workflowId, outcome: 'unknown' };
+  },
+};
+
+const recordedStartAuthorization = defineQuery({ name: 'workflow.recorded-brief.start', description: 'Authorize dispatch of the configured recorded Brief operation.',
+  input: recordedBriefSchedulingInputSchema, output: principalSchema, handler: (_input, principal) => principal });
+const recordedStatusAuthorization = defineQuery({ name: 'workflow.recorded-brief.status', description: 'Authorize inspection of the configured recorded Brief workflow.',
+  input: recordedBriefSchedulingInputSchema, output: principalSchema, handler: (_input, principal) => principal });
+function recordedSchedulerBinding(input: z.infer<typeof recordedBriefSchedulingInputSchema>, scheduler: RecordedBriefScheduler) {
+  const target = scheduler.target;
+  const configured = recordedBriefSchedulingInputSchema.safeParse({ ...target?.scope, idempotencyKey: target?.idempotencyKey });
+  if (!configured.success) throw new ToolError('UNAVAILABLE');
+  if ((Object.keys(input) as (keyof typeof input)[]).some(key => configured.data[key] !== input[key])) throw new ToolError('FORBIDDEN');
+  const id = `steer-recorded-brief/v1/${[input.organizationId, input.repository, input.itemId].map(encodeURIComponent).join('/')}/${input.idempotencyKey}`;
+  if (scheduler.workflowId !== id) throw new ToolError('UNAVAILABLE');
+  return id;
+}
+function recordedSchedulerFor(input: z.infer<typeof recordedBriefSchedulingInputSchema>, context: InvocationContext) {
+  const scheduler = context.services?.recordedBriefScheduler;
+  if (!scheduler || !context.revalidate || typeof scheduler.start !== 'function' || typeof scheduler.inspect !== 'function') throw new ToolError('UNAVAILABLE');
+  recordedSchedulerBinding(input, scheduler); return scheduler;
+}
+const recordedBriefStart = {
+  name: 'workflow.recorded-brief.start', description: 'Dispatch one configured recorded Brief projection with an explicit current agent grant; not save authority or automatic path admission.',
+  kind: 'command' as const, scope: 'organization' as const, authorization: 'explicit-tool-grant' as const,
+  input: recordedBriefSchedulingInputSchema, output: recordedBriefStartResultSchema,
+  async invoke(raw: unknown, context: InvocationContext): Promise<RecordedBriefStartResult> {
+    const initial = recordedStartAuthorization.invoke(raw, context);
+    if (initial.type !== 'agent') throw new ToolError('FORBIDDEN');
+    const input = recordedBriefSchedulingInputSchema.parse(raw), scheduler = recordedSchedulerFor(input, context);
+    await freshToolPrincipal(recordedStartAuthorization, input, initial, context);
+    const id = recordedSchedulerBinding(input, scheduler), uncertain: RecordedBriefStartResult = { workflowId: id, outcome: 'unknown' };
+    // A post-dispatch revocation cannot roll back a workflow already accepted by Temporal.
+    try {
+      const result = recordedBriefStartResultSchema.safeParse(await scheduler.start());
+      return result.success && result.data.workflowId === id ? result.data : uncertain;
+    } catch { return uncertain; }
+  },
+};
+const recordedBriefStatus = {
+  name: 'workflow.recorded-brief.status', description: 'Manually inspect the configured recorded Brief execution; completed is not proof of successful projection or gate approval.',
+  kind: 'query' as const, scope: 'organization' as const, authorization: 'explicit-tool-grant' as const,
+  input: recordedBriefSchedulingInputSchema, output: reconciliationStatusResultSchema,
+  async invoke(raw: unknown, context: InvocationContext): Promise<ReconciliationStatusResult> {
+    const initial = recordedStatusAuthorization.invoke(raw, context), input = recordedBriefSchedulingInputSchema.parse(raw);
+    const scheduler = recordedSchedulerFor(input, context);
+    await freshToolPrincipal(recordedStatusAuthorization, input, initial, context);
+    const id = recordedSchedulerBinding(input, scheduler);
+    let result: unknown; try { result = await scheduler.inspect(); } catch { result = { workflowId: id, outcome: 'unknown' }; }
+    await freshToolPrincipal(recordedStatusAuthorization, input, initial, context); recordedSchedulerBinding(input, scheduler);
+    const output = reconciliationStatusResultSchema.safeParse(result);
+    return output.success && output.data.workflowId === id ? output.data : { workflowId: id, outcome: 'unknown' };
   },
 };
 
@@ -528,11 +592,13 @@ const destinationQuery = {
 };
 
 // Frozen definitions are the common source for discovery, dispatch and HTTP contracts.
-const definitions = Object.freeze([Object.freeze(contextQuery), Object.freeze(projectionQuery), Object.freeze(reconciliationStart), Object.freeze(reconciliationStatus), Object.freeze(changesQuery), Object.freeze(snapshotQuery), Object.freeze(briefQuery), Object.freeze(decisionsQuery), Object.freeze(evidenceQuery), Object.freeze(catalogQuery), Object.freeze(previewQuery), Object.freeze(briefSaveCommand), Object.freeze(briefSaveStatusQuery), Object.freeze(destinationQuery)]);
+const definitions = Object.freeze([Object.freeze(contextQuery), Object.freeze(projectionQuery), Object.freeze(reconciliationStart), Object.freeze(reconciliationStatus), Object.freeze(recordedBriefStart), Object.freeze(recordedBriefStatus), Object.freeze(changesQuery), Object.freeze(snapshotQuery), Object.freeze(briefQuery), Object.freeze(decisionsQuery), Object.freeze(evidenceQuery), Object.freeze(catalogQuery), Object.freeze(previewQuery), Object.freeze(briefSaveCommand), Object.freeze(briefSaveStatusQuery), Object.freeze(destinationQuery)]);
 export function invokeTool(name: 'session.context', input: unknown, context: InvocationContext): z.output<typeof contextOutput>;
 export function invokeTool(name: 'projection.artifact.read', input: unknown, context: InvocationContext): Promise<ArtifactProjection | null>;
 export function invokeTool(name: 'workflow.reconciliation.start', input: unknown, context: InvocationContext): Promise<ReconciliationStartResult>;
 export function invokeTool(name: 'workflow.reconciliation.status', input: unknown, context: InvocationContext): Promise<ReconciliationStatusResult>;
+export function invokeTool(name: 'workflow.recorded-brief.start', input: unknown, context: InvocationContext): Promise<RecordedBriefStartResult>;
+export function invokeTool(name: 'workflow.recorded-brief.status', input: unknown, context: InvocationContext): Promise<ReconciliationStatusResult>;
 export function invokeTool(name: 'projection.changes.read', input: unknown, context: InvocationContext): Promise<ProjectionChangesResult>;
 export function invokeTool(name: 'projection.snapshot.read', input: unknown, context: InvocationContext): Promise<ProjectionSnapshotResult>;
 export function invokeTool(name: 'intent.brief.read', input: unknown, context: InvocationContext): Promise<BriefProjection | null>;
@@ -542,7 +608,7 @@ export function invokeTool(name: 'intent.brief.catalog', input: unknown, context
 export function invokeTool(name: 'intent.brief.preview', input: unknown, context: InvocationContext): Promise<BriefPreview>;
 export function invokeTool(name: 'intent.brief.destination', input: unknown, context: InvocationContext): Promise<BriefDestination>;
 export function invokeTool(name: 'intent.brief.save' | 'intent.brief.save.status', input: unknown, context: InvocationContext): Promise<BriefSaveOutput>;
-export function invokeTool(name: string, input: unknown, context: InvocationContext): z.output<typeof contextOutput> | Promise<ArtifactProjection | BriefProjection | BriefDecisions | DecisionEvidence | BriefCatalog | BriefPreview | BriefSaveOutput | BriefDestination | null | ReconciliationStartResult | ReconciliationStatusResult | ProjectionChangesResult | ProjectionSnapshotResult>;
+export function invokeTool(name: string, input: unknown, context: InvocationContext): z.output<typeof contextOutput> | Promise<ArtifactProjection | BriefProjection | BriefDecisions | DecisionEvidence | BriefCatalog | BriefPreview | BriefSaveOutput | BriefDestination | null | ReconciliationStartResult | RecordedBriefStartResult | ReconciliationStatusResult | ProjectionChangesResult | ProjectionSnapshotResult>;
 export function invokeTool(name: string, input: unknown, context: InvocationContext) {
   const definition = definitions.find((tool) => tool.name === name);
   if (!definition) throw new ToolError('TOOL_NOT_FOUND');
