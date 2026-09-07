@@ -3547,3 +3547,34 @@ projections and independent/qualified review/human signatures remain open. No li
 save, spending, deployment, release or real-record deletion is authorized. The
 standing implementation loop remains active; exact remote equality is verified
 after the candidate push.
+
+## Completed development increment: 0173 — Exact source previews in the work list
+
+Each projected Brief now offers an explicit Preview alongside the full Read action.
+It reuses the current-authorized exact path/revision/digest read and shows one source
+title with literal Problem and Proposed outcome excerpts. Missing, empty and ambiguous
+structure remains explicit; long excerpts are visibly bounded without splitting
+Unicode pairs. No status, measurable-today badge, provenance, mission fit, domain
+routing or approval is invented from source text.
+
+One summary stays in memory only and clears on another read, explicit clearing,
+refresh, pagination, lifecycle/scope/session changes and denial. Clearing returns
+keyboard focus to Preview. Existing exact revision links and full-source dialogs
+retain their permission checks. This advances the approved candidate-inspection
+stretch target; it is not completion of the authenticated lifecycle board or backlog
+actions. No new endpoint, grant, storage, polling, model call or write was added.
+
+Four new source/rendering tests passed; the web suite now has 65 tests. The 438
+repository controls, remaining workspace/prototype regressions and typechecks passed.
+The actual browser exercises exact previews, keyboard use, narrow/enlarged layout,
+automated accessibility and clearing/navigation/current-grant denial. Final browser
+and build results are recorded in `intent/0173/EVIDENCE.md`. Desktop/mobile captures
+were visually inspected and retain the existing pink/orange work-list design.
+
+The Sites skill guided existing-project reuse and local-only background delivery;
+no hosted Site or user-facing browser session was created. All five R5 findings,
+full governed write authority, authenticated lifecycle/decision projections,
+model conversation and independent/qualified review/human signatures remain open.
+No live configuration, provider grant, protected artifact, dependency, schema,
+deployment, release, spending or real-record deletion changed. The implementation
+loop remains active, with exact remote equality checked after the candidate push.

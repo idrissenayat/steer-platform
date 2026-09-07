@@ -1840,3 +1840,25 @@ client or grant is provisioned, and no full-authority proof is minted. Historica
 signers, qualifications, review claims, trust roots and selection approval remain
 synthetic/unverified real evidence. Existing false-authority flags and R5 requirements
 are unchanged. See `intent/0172/EVIDENCE.md` for actual regression results.
+
+## Increment 0173 — Exact source excerpts in the work list
+
+The existing Brief reader now serves an explicit single-summary presentation mode.
+It uses the same curated path/revision/digest and current server grants as the full
+dialog, without an endpoint or grant addition. The summary retains one Brief at most
+and clears alongside the existing reader lifecycle, errors, refresh and pagination.
+Opening the full source clears the summary and keeps exact-location navigation.
+
+A small deterministic presenter checks source offsets/body consistency and displays
+literal Problem and Proposed outcome excerpts. Ambiguity, empty and missing sections
+remain explicit; no AI, provenance, measurement badge, status or gate interpretation
+is introduced. Each excerpt is limited to 1,600 UTF-16 code units with pair-safe
+truncation and an explicit full-source instruction. React escapes every source byte;
+no external link or media is activated. The pink/orange work-list treatment is reused.
+
+Source and rendering tests cover exact Unicode/CRLF, duplicate/missing/unsafe source,
+bounded excerpts and injection text. Actual browser checks cover exact read binding,
+keyboard, narrow/enlarged layout, accessibility, clearing/navigation and committed
+grant denial. See `intent/0173/EVIDENCE.md` for current verification. Live saving,
+full lifecycle/decision projections, all five R5 findings and required independent/
+qualified review/human signatures remain open; no deployment or spending is enabled.

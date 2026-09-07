@@ -228,6 +228,14 @@ button:focus-visible, .access-footer a:focus-visible { outline: .2rem solid var(
 .brief-work-fingerprint summary { cursor: pointer; }
 .brief-work-fingerprint code { display: block; margin-top: .5rem; }
 .brief-work-open { min-width: 0; max-width: 15rem; padding: .6rem 1rem; font-size: .875rem; overflow-wrap: anywhere; }
+.brief-work-actions { display: grid; gap: .6rem; }
+.brief-work-summary { grid-column: 1 / -1; min-width: 0; border-top: 1px solid var(--steer-border); padding-top: 1rem; }
+.brief-work-summary h4 { font-size: 1.1rem; margin: 0; }
+.brief-summary-sections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
+.brief-summary-sections h5 { font-size: 1rem; margin: .75rem 0 .4rem; }
+.brief-summary-sections pre { font: inherit; white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
+.brief-work-summary code { overflow-wrap: anywhere; }
+@media (max-width: 680px) { .brief-summary-sections { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 900px) {
   .brief-work-list li { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
   .brief-work-open { max-width: none; justify-self: start; }

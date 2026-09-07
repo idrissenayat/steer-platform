@@ -184,6 +184,11 @@ identity runtime with separate observer and request-bound human identities. Inte
 diagnostics remain historical and non-authorizing; satisfied policy still cannot save.
 See [the held runtime boundary](docs/HELD-BRIEF-RUNTIME.md). No live binding is enabled.
 
+Item [0173](intent/0173/README.md) adds per-item source previews to the projected
+work list. Current exact-Brief reads show literal problem/outcome excerpts, with
+explicit missing/ambiguous/truncated content and no inferred status or approval.
+The existing pink/orange design and local-only boundary are preserved.
+
 Item [0172](intent/0172/README.md) replaces the direct held-journey observer with
 an actual disposable Keycloak service account and current read-only Git grants.
 Observer revocation, missing grants and invalid tokens deny without write authority.

@@ -698,6 +698,20 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         assert.equal(referenceParams.get('digest'), selectedSource.contentDigest); assert.equal(referenceParams.has('subject'), false);
         await workList.getByText('Content fingerprint', { exact: true }).click();
         assert.equal(await workList.locator('.brief-work-fingerprint code').innerText(), selectedSource.contentDigest);
+        briefStage = 'exact source preview';
+        const previewBrief = workList.getByRole('button', { name: 'Preview Intent 0125-synthetic-outcome', exact: true });
+        const previewResponse = page.waitForResponse(value => value.url() === `${origin}/v1/tools/intent.brief.read`);
+        await previewBrief.focus(); await page.keyboard.press('Enter');
+        const previewRead = await previewResponse; assert.equal(previewRead.status(), 200);
+        const previewInput = previewRead.request().postDataJSON();
+        assert.equal(previewInput.path, projection.input.path); assert.equal(previewInput.revision, projection.input.revision);
+        assert.equal(previewInput.contentDigest, selectedSource.contentDigest);
+        const summary = library.getByRole('region', { name: 'Brief source summary' }); await summary.waitFor();
+        assert.equal(await summary.getByRole('heading', { name: 'Synthetic scoped outcome', exact: true }).count(), 1);
+        assert.ok((await summary.innerText()).includes('Scoped projection test.'));
+        assert.equal(await summary.locator('script, img, a[href]').count(), 0);
+        assert.equal(await page.getByRole('dialog').count(), 0); assert.equal(new URL(page.url()).hash, '');
+        assert.equal(await previewBrief.getAttribute('aria-expanded'), 'true');
         const workDirectory = process.env.STEER_WORKSPACE_SCREENSHOT_DIR;
         if (workDirectory) await library.screenshot({ path: join(workDirectory, 'brief-work-list-desktop.png') });
         await page.setViewportSize({ width: 390, height: 844 });
@@ -718,6 +732,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
         briefStage = 'work list native link focus';
         await revisionLink.focus(); await page.keyboard.press('Enter');
         const linkedDetail = page.getByRole('dialog', { name: 'Synthetic scoped outcome' }); await linkedDetail.waitFor();
+        assert.equal(await library.getByTestId('brief-source-summary').count(), 0);
         await page.keyboard.press('Escape'); assert.equal(await linkedDetail.count(), 0);
         assert.equal(await revisionLink.evaluate(element => element === document.activeElement), true);
         const button = library.getByRole('button', { name: 'Read Intent 0125-synthetic-outcome', exact: true });
@@ -774,6 +789,29 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           if (directory) await page.screenshot({ path: join(directory, 'brief-failure.png'), fullPage: true });
           throw new Error('Synthetic Brief UI check failed.');
         }
+      });
+      await check('source summaries clear explicitly, on navigation and on current grant denial without automatic reads', async () => {
+        const library = page.getByRole('region', { name: 'Brief library' });
+        const preview = library.getByRole('button', { name: 'Preview Intent 0125-synthetic-outcome', exact: true });
+        const summary = library.getByRole('region', { name: 'Brief source summary' });
+        await preview.click(); await summary.waitFor();
+        await summary.getByRole('button', { name: 'Clear summary', exact: true }).click();
+        assert.equal(await summary.count(), 0); assert.equal(await preview.getAttribute('aria-expanded'), 'false');
+        assert.equal(await preview.evaluate(button => button === document.activeElement), true);
+        await preview.click(); await summary.waitFor();
+        await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pagehide')));
+        assert.equal(await summary.count(), 0); assert.equal(await library.getByTestId('brief-catalog').locator('li').count(), 0);
+        await library.getByRole('button', { name: 'Refresh Briefs', exact: true }).click();
+        await preview.waitFor(); await preview.click(); await summary.waitFor();
+        try {
+          await source.publish([{ ...grant, toolGrants: ['session.context'] }]);
+          const denied = page.waitForResponse(value => value.url() === `${origin}/v1/tools/intent.brief.read`);
+          await preview.click(); assert.equal((await denied).status(), 403);
+          await page.waitForFunction(() => document.querySelector('[data-testid="brief-status"]')?.textContent?.startsWith('Brief access could not be verified'));
+          assert.equal(await summary.count(), 0); assert.equal(await library.getByTestId('brief-catalog').locator('li').count(), 0);
+        } finally { await source.publish([grant]); }
+        await library.getByRole('button', { name: 'Refresh Briefs', exact: true }).click(); await preview.waitFor();
+        assert.equal(await summary.count(), 0);
       });
       await check('Brief library clears a previously read source on committed permission denial and rechecks after refresh', async () => {
         const library = page.getByRole('region', { name: 'Brief library' });

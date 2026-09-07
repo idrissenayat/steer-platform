@@ -5,6 +5,7 @@ import type { BriefProjection } from '@steer/tool-registry/brief-contracts';
 import { createBriefReader, type BriefReference } from './brief-reader';
 import BriefMarkdown from './brief-markdown';
 import BriefDecisionRecords from './brief-decisions';
+import BriefSummary from './brief-summary';
 import { briefFragment, readBriefLocation } from './brief-location';
 
 type Reader = ReturnType<typeof createBriefReader>;
@@ -21,6 +22,7 @@ export default function BriefLibrary({ organizationId, repository, expiresAt }: 
   const lastLocation = useRef<string | null>(null);
   const [records, setRecords] = useState<BriefReference[]>([]);
   const [detail, setDetail] = useState<BriefProjection | null>(null);
+  const [summary, setSummary] = useState<BriefProjection | null>(null);
   const [busy, setBusy] = useState(false); const [enabled, setEnabled] = useState(false);
   const [notice, setNotice] = useState('Checking current access and discovering Briefs…');
   const [page, setPage] = useState(0);
@@ -35,7 +37,7 @@ export default function BriefLibrary({ organizationId, repository, expiresAt }: 
     lastLocation.current = window.location.hash;
   };
   const dispose = () => { const current = owner.current; owner.current = null; current?.close(); };
-  const clear = (message: string) => { dispose(); closeDetail(); setRecords([]); setBusy(false); setPage(0); setNotice(message); };
+  const clear = (message: string) => { dispose(); closeDetail(); setSummary(null); setRecords([]); setBusy(false); setPage(0); setNotice(message); };
   const load = async () => {
     const location = readBriefLocation(window.location.hash); lastLocation.current = window.location.hash;
     const initiator = document.activeElement;
@@ -71,16 +73,19 @@ export default function BriefLibrary({ organizationId, repository, expiresAt }: 
     } catch { if (owner.current === current) clear(failed); }
     finally { if (owner.current === current) setBusy(false); }
   };
-  const open = async (reference: BriefReference) => {
+  const open = async (reference: BriefReference, mode: 'detail' | 'summary' = 'detail') => {
     const current = owner.current;
-    if (!current || busy || Date.parse(expiresAt) <= Date.now()) { clear('Refresh access before opening a Brief.'); return; }
+    if (!current || busy || document.hidden || Date.parse(expiresAt) <= Date.now()) { clear('Refresh access before opening a Brief.'); return; }
     trigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    closeDetail(); setBusy(true); setNotice('Checking current access and reading the selected Brief…');
+    closeDetail(); setSummary(null); setBusy(true); setNotice('Checking current access and reading the selected Brief…');
     try {
       const next = await current.read(reference);
       if (owner.current !== current) return;
       if (Date.parse(expiresAt) <= Date.now()) { clear('Session display expired. Refresh access to continue.'); return; }
       if (!next) { clear('This Brief revision is no longer available. Refresh Briefs to discover the current projection.'); return; }
+      if (mode === 'summary') {
+        setSummary(next); setNotice('Source summary loaded. Read the full Brief for context; source claims are not verified outcomes.'); return;
+      }
       const fragment = briefFragment({ organizationId, repository, ...reference });
       if (window.location.hash !== fragment) window.history.pushState(null, '', `/${fragment}`);
       lastLocation.current = fragment;
@@ -125,12 +130,21 @@ export default function BriefLibrary({ organizationId, repository, expiresAt }: 
             }
           }}><code>{reference.revision}</code></a>
         <details className="brief-work-fingerprint"><summary>Content fingerprint</summary><code>{reference.contentDigest}</code></details></div>
-      <button type="button" className="access-secondary brief-work-open" data-brief-path={reference.path} disabled={!enabled || busy} onClick={() => void open(reference)}>Read {label(reference.path)}</button>
+      <div className="brief-work-actions">
+        <button type="button" className="access-secondary brief-work-open" data-brief-preview-path={reference.path} disabled={!enabled || busy}
+          aria-expanded={summary?.path === reference.path} onClick={() => void open(reference, 'summary')}>Preview {label(reference.path)}</button>
+        <button type="button" className="access-secondary brief-work-open" data-brief-path={reference.path} disabled={!enabled || busy} onClick={() => void open(reference)}>Read {label(reference.path)}</button>
+      </div>
+      {summary?.path === reference.path && <BriefSummary brief={summary} clear={() => {
+        setSummary(null);
+        [...document.querySelectorAll<HTMLButtonElement>('[data-brief-preview-path]')]
+          .find(button => button.dataset.briefPreviewPath === reference.path)?.focus();
+      }} />}
     </li>)}</ul>
     {records.length > 20 && <nav className="reference-controls" aria-label="Brief pages">
-      <button className="access-secondary" disabled={page === 0 || busy} onClick={() => setPage(page - 1)}>Previous Briefs</button>
+      <button className="access-secondary" disabled={page === 0 || busy} onClick={() => { setSummary(null); setPage(page - 1); }}>Previous Briefs</button>
       <span>Page {page + 1} of {Math.ceil(records.length / 20)}</span>
-      <button className="access-secondary" disabled={(page + 1) * 20 >= records.length || busy} onClick={() => setPage(page + 1)}>Next Briefs</button>
+      <button className="access-secondary" disabled={(page + 1) * 20 >= records.length || busy} onClick={() => { setSummary(null); setPage(page + 1); }}>Next Briefs</button>
     </nav>}
     <p className="access-hint">Read-only foundation preview. No intent status, gate decision or current-Git guarantee is implied. Content clears on failed access, page hiding, or session-display expiry; no background polling or browser storage.</p>
     <dialog ref={dialog} className="brief-dialog" aria-labelledby="brief-detail-title" onCancel={(event) => { event.preventDefault(); dismiss(); }}

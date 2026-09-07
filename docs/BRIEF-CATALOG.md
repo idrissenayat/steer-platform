@@ -44,3 +44,23 @@ binding and that UI remain next. No background polling or browser cache is added
 
 Evidence: intent/0052/EVIDENCE.md. Five R5 findings, canonical gate proof and all
 formal/manual/operational/release requirements remain separately open.
+
+## Current projected work-list source previews — 0173
+
+The rendered library supports current canonical `items/<id>/BRIEF.md` selections
+as well as readable legacy Briefs. Its per-item Preview button performs a new
+exact-tuple `intent.brief.read`; it does not expand the catalog or prefetch document
+bodies. Only one in-memory summary is retained. The source title and bounded literal
+Problem/Proposed outcome excerpts are displayed with the selected revision.
+
+Missing, empty and ambiguous sections are labeled explicitly. Duplicate sections,
+unsafe document structure or inconsistent source offsets never select a convenient
+answer. Long excerpts are visibly shortened without breaking Unicode pairs; Read
+opens the full exact Brief through another current-authorized read. Source text is
+inert, not an AI summary, verified measurement, routing fact, gate state or approval.
+
+Summaries clear on explicit clearing, another read, pagination, refresh, lifecycle,
+scope/session expiry and access failures. Clearing returns keyboard focus to Preview.
+Nothing is persisted, polled or written. This advances candidate inspection only;
+the remaining backlog actions and authenticated lifecycle/decision board are not
+implemented by these excerpts. See `intent/0173/EVIDENCE.md`.
