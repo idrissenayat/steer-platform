@@ -1,5 +1,11 @@
 # Held Brief governance in the identity runtime
 
+0188's optional selector-session profile joins independently pinned identity proofs
+and historical/current grants inside policy collection. Even matching session and
+policy facts leave the same three held-authority gaps; identity claims stay out of
+runtime diagnostics and public errors. No live login or trust ownership is inferred.
+See `intent/0188/EVIDENCE.md` for the native Git and held HTTP regression evidence.
+
 The optional `heldBrief` identity profile contains the existing strict `writer` and
 Gate 1/2 `policy` configurations. It is paired with an explicit trusted
 `authenticateGateObserver` dependency. Missing either side, malformed sources,

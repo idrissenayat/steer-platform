@@ -38,7 +38,9 @@ export function createHeldGitBriefWriterFactory(binding: GitHubBinding, rawWrite
     typeof dependencies.authenticateObserver !== 'function') throw new CodeHostError();
   if (policyConfiguration.selection) {
     const selection = policyConfiguration.selection, proof = selection.attestation;
-    if ([selection.path, ...(proof ? [proof.trust.path, proof.proof.path, ...(proof.authorization ? [proof.authorization.path] : [])] : [])].some(path =>
+    const identity = proof?.authorization?.identity;
+    if ([selection.path, ...(proof ? [proof.trust.path, proof.proof.path, ...(proof.authorization ? [proof.authorization.path] : []),
+      ...(identity ? [identity.trust.path, identity.proof.path] : [])] : [])].some(path =>
       configuration.paths.includes(path) || path === dependencies.authorizationPath)) throw new CodeHostError();
   }
   const sourceBinding = Object.freeze({ ...binding });

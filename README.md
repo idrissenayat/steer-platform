@@ -7,6 +7,9 @@ item one, are the framework's pilot evidence.
 
 ## Current delivery
 
+Item [0188](intent/0188/README.md) joins exact signed selector-session evidence to
+historical/current grants in held saving. Approved trust and live authority remain separate.
+
 Item [0187](intent/0187/README.md) checks historical and current selector grants
 against signed identity/source bindings. The held writer remains closed.
 

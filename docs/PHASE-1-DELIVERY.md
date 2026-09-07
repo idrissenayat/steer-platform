@@ -3865,3 +3865,23 @@ limits are tracked in `intent/0187/EVIDENCE.md`.
 All five R5 findings and independent/qualified protected review/human gates stay open.
 No live profile/key/grant, protected artifact, frontend, provider access, spending,
 deployment, release or real-data deletion changed.
+
+## Completed development increment: 0188 — Selector session evidence in held saving
+
+Optional exact historical identity proofs now bind the selector's issuer, actor kind,
+session, authentication time and independent trust/proof pins to the signed selection
+and both grant eras. Current native Git collection and final key expiry/revocation
+checks deny substituted or stale evidence. The distinct selector domain supports
+explicit agents without weakening human gate-signing identity rules.
+
+The joined held HTTP runtime reaches policy-satisfied facts but still denies saving,
+creates no Git artifact/operation, clears stale assessments after current grant
+revocation and denies reconstructed runtime trust revocation. Identity claims stay
+internal. All 46 focused tests, held-writer and HTTP regressions, typechecks and full
+repository checks/builds passed. Evidence and cache limits are tracked in
+`intent/0188/EVIDENCE.md`.
+Actual service ownership/issuance, approved bootstrap, native review provenance and
+complete action-time authority remain separate. All five R5 findings and qualified
+independent protected review/human gates stay open. No live profile/key/grant,
+protected artifact, frontend, provider access, spending, deployment, release or
+real-data deletion changed.

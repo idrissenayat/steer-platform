@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import { createIdentityRuntime } from '../src/runtime.ts';
 import { heldRuntimeFixture } from './held-runtime-fixture.ts';
 import { selectChain } from '../../../packages/adapters/test/gate-selection-fixture.ts';
+import { identifySelection } from '../../../packages/adapters/test/gate-selector-identity-fixture.ts';
 
 const draft = { title: 'Held runtime draft', problem: 'Duplicate entry', outcome: 'Enter once', users: ['Coordinators'], systems: ['Unverified intake system'], constraints: ['No new subscription'], openQuestions: ['Confirm the system name'], successMeasure: 'Duplicate count' };
 const request = (name: string, input: unknown, token: string) => new Request(`https://steer.example/v1/tools/${name}`, {
@@ -25,6 +26,32 @@ test('held runtime binds a native whole-selection manifest and retains only fing
   assert.equal((await runtime.fetch(request('intent.brief.save', { ...input, expectedHead: f.state.head }, f.token))).status, 503);
   assert.equal(runtime.status().heldBrief!.lastAssessment, null); assert.equal(f.io.writes, 0);
 });
+test('held HTTP runtime joins selector session and grant evidence without a success callback or identity disclosure', async t => {
+  const f = await heldRuntimeFixture(t), selected = identifySelection(f, 'agent');
+  const profile = () => ({ ...f.profile, heldBrief: { ...f.profile.heldBrief, policy: selected.configuration } });
+  const runtime = await createIdentityRuntime(profile(), f.secrets, f.ports); t.after(() => runtime.shutdown());
+  const input = await saveInput(runtime, f), before = f.state.head;
+  const response = await runtime.fetch(request('intent.brief.save', input, f.token)); assert.equal(response.status, 503);
+  const text = await response.text(); assert.equal(text.includes(selected.identity.payload.sessionId), false);
+  assert.equal(text.includes(selected.reference.proof.digest), false);
+  const assessment = runtime.status().heldBrief!.lastAssessment; assert.ok(assessment);
+  assert.equal(assessment.policyOutcome, 'policy-satisfied'); assert.equal(assessment.sourceRevision, before);
+  assert.deepEqual(assessment.missing, ['governed-selection-unverified', 'review-provenance-unverified', 'action-time-authority-incomplete']);
+  assert.equal('selectorIdentity' in assessment, false); assert.equal('selectorAuthorization' in assessment, false);
+  assert.equal(assessment.writeAuthorized, false); assert.equal(assessment.gateVerified, false); assert.equal(f.io.writes, 0);
+  assert.equal(f.git('rev-parse', 'HEAD'), before);
+  assert.equal(f.git('ls-tree', '-r', '--name-only', 'HEAD', '--', input.path, '.steer/authoring/operations'), '');
+  selected.grant.active = false; selected.publishGrant();
+  assert.equal((await runtime.fetch(request('intent.brief.save', { ...input, expectedHead: f.state.head }, f.token))).status, 503);
+  assert.equal(runtime.status().heldBrief!.lastAssessment, null); await runtime.shutdown();
+  selected.grant.active = true; selected.publishGrant();
+  selected.identity.trust.revokedAt = new Date(Date.now()).toISOString(); selected.publishIdentity();
+  const restored = await createIdentityRuntime(profile(), f.secrets, f.ports); t.after(() => restored.shutdown());
+  assert.equal((await restored.fetch(request('intent.brief.save', { ...input, expectedHead: f.state.head }, f.token))).status, 503);
+  assert.equal(restored.status().heldBrief!.lastAssessment, null); assert.equal(f.io.writes, 0);
+  assert.equal(restored.status().database.connections, 0);
+});
+
 async function saveInput(runtime: Awaited<ReturnType<typeof createIdentityRuntime>>, f: Awaited<ReturnType<typeof heldRuntimeFixture>>) {
   const preview = await runtime.fetch(request('intent.brief.preview', { organizationId: f.grant.organizationId, draft }, f.token)); assert.equal(preview.status, 200);
   const value = await preview.json() as { contentDigest: string };

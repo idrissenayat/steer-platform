@@ -63,9 +63,12 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0187
+### Latest development audit — increment 0188
 
 The dependency-ordered current route is `docs/JOURNEY-REMAINING-WORK.md`.
+0188 joins exact signed historical selector-session evidence and both grant eras
+in the held collector and HTTP runtime. Actual service ownership/issuance and full
+authority remain external prerequisites; local evidence is in `intent/0188/EVIDENCE.md`.
 0187 adds historical/current selector grant binding, signed issuer/type/history
 coordinates, current revocation and final grant-expiry checks. This does not prove
 actual selector login or approved bootstrap; held writes remain denied. See

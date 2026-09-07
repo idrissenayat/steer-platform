@@ -120,3 +120,32 @@ approve ownership of the trust/grant sources. Selector identity and bootstrap
 verification requirements stay explicit. Held diagnostics do not expose these new
 claims; all three held-authority gaps and every gate/write flag remain unchanged.
 Exact verification and the corrected test-clock fixture: `intent/0187/EVIDENCE.md`.
+
+## Optional selector session evidence — 0188
+
+`selection.attestation.authorization.identity` adds `trust: { path, digest }`,
+`proof: { path, digest }`, `sessionId` and `authenticatedAt`. The selection receipt
+and independent expected facts bind all four new fields atomically:
+`selectorSessionId`, `selectorAuthenticatedAt`, `selectorIdentityDigest` and
+`selectorIdentityTrustDigest`. An identity-bound receipt cannot be downgraded to
+grant-only configuration; legacy profiles still produce no selector identity evidence.
+
+The separate `steer-selector-identity-attestation/v1` NUL-terminated signature domain
+accepts an explicit human or agent session without changing human gate-signing rules.
+Trust is scoped to organization/repository/branch/identity issuer. Exact subject,
+kind, session and authentication time must match selection; both trust and proof
+digests are independently pinned and signed by the selection receipt. Closed compact
+UTF-8 bytes, nanosecond chronology and current identity-key validity are mandatory.
+The historical session covers selection, but need not still be logged in today.
+
+Identity trust/proof are independently read at the current assessment revision,
+after selection and historical/current grant checks. All source integrity, observer,
+head, deadline and role-isolation requirements apply. Identity-key expiry or scheduled
+revocation is rechecked after later policy reads. Immutable `selectorIdentity` stays
+internal and is null without this profile; held diagnostics do not expose sessions.
+
+This verifies selected-key session claims, not approved ownership of the attestor,
+real identity-service issuance, review provenance or full action-time authority.
+The held writer remains closed with all three gaps even when every optional selector
+proof passes. No live identity profile, keys, grant or provider call is installed.
+The native Git and held HTTP integration evidence is in `intent/0188/EVIDENCE.md`.

@@ -11,17 +11,19 @@ const scope = { organizationId: identifier, repository: identifier, branch: iden
 const selectorIdentity = { selectorIssuer: authorizationRecordSchema.shape.issuer.optional(), selectorType: z.enum(['human', 'agent']).optional() };
 const selectorAuthorization = { selectorAuthorizationPath: artifactProjectionInputSchema.shape.path.optional(),
   selectorAuthorizationRevision: gatePolicyInputSchema.shape.target.shape.artifactRevision.optional(), selectorAuthorizationDigest: digest.optional() };
+const selectorSession = { selectorSessionId: identifier.optional(), selectorAuthenticatedAt: instant.optional(),
+  selectorIdentityDigest: digest.optional(), selectorIdentityTrustDigest: digest.optional() };
 const bindings = z.strictObject({ ...scope, recordItem: identifier,
   platformRevision: gatePolicyInputSchema.shape.target.shape.artifactRevision, decisionDigest: digest,
   selectionPath: artifactProjectionInputSchema.shape.path, selectionDigest: digest, configurationDigest: digest,
   selectionId: identifier, selectedAt: instant });
-const expectedSchema = bindings.extend({ trustDigest: digest, proofDigest: digest, ...selectorIdentity, ...selectorAuthorization });
+const expectedSchema = bindings.extend({ trustDigest: digest, proofDigest: digest, ...selectorIdentity, ...selectorAuthorization, ...selectorSession });
 const trustSchema = z.strictObject({ version: z.literal('steer-gate-selection-trust/v1'), ...scope,
   attestor: authorizationRecordSchema.shape.issuer, keyId: identifier, publicKeyHex: digest,
   notBefore: instant, notAfter: instant, revokedAt: instant.nullable(), ...selectorIdentity });
 const payloadSchema = z.strictObject({ version: z.literal('steer-gate-selection-attestation/v1'),
   attestor: authorizationRecordSchema.shape.issuer, keyId: identifier, ...bindings.shape,
-  recordedAt: instant, validBefore: instant, ...selectorIdentity, ...selectorAuthorization });
+  recordedAt: instant, validBefore: instant, ...selectorIdentity, ...selectorAuthorization, ...selectorSession });
 const envelopeSchema = z.strictObject({ version: z.literal('steer-gate-selection-proof/v1'),
   payload: z.string().min(1).max(16384), signatureBase64: z.string().length(88).regex(/^[A-Za-z0-9+/]{86}==$/) });
 const hash = (value: string) => createHash('sha256').update(value).digest('hex');
@@ -50,6 +52,10 @@ export function verifyGateSelectionAttestation(rawEnvelope: unknown, rawTrust: u
       if ((payload[key] === undefined) !== (payload.selectorIssuer === undefined) ||
         (expected[key] === undefined) !== (expected.selectorIssuer === undefined) || payload[key] !== expected[key]) return null;
     }
+    const sessionKeys = Object.keys(selectorSession) as (keyof typeof selectorSession)[];
+    const sessionPresent = sessionKeys.some(key => payload[key] !== undefined || expected[key] !== undefined);
+    if (sessionPresent && (payload.selectorIssuer === undefined || sessionKeys.some(key =>
+      payload[key] === undefined || expected[key] === undefined || payload[key] !== expected[key]))) return null;
     if (JSON.stringify(payload) !== envelope.payload || payload.attestor !== trust.attestor || payload.keyId !== trust.keyId ||
       Object.keys(scope).some(key => payload[key as keyof typeof payload] !== trust[key as keyof typeof trust]) ||
       Object.keys(bindings.shape).some(key => payload[key as keyof typeof payload] !== expected[key as keyof typeof expected])) return null;

@@ -5,6 +5,7 @@ export function selectionProofFixture() {
   const keys = generateKeyPairSync('ed25519');
   const identity = {} as { selectorIssuer?: string; selectorType?: 'human' | 'agent' };
   const authorization = {} as { selectorAuthorizationPath?: string; selectorAuthorizationRevision?: string; selectorAuthorizationDigest?: string };
+  const session = {} as { selectorSessionId?: string; selectorAuthenticatedAt?: string; selectorIdentityDigest?: string; selectorIdentityTrustDigest?: string };
   const trust = { version: 'steer-gate-selection-trust/v1', organizationId: 'synthetic', repository: 'github:1', branch: 'synthetic',
     selectorSubject: 'synthetic-selector', attestor: 'https://selection.synthetic.invalid', keyId: 'synthetic-selection-key',
     publicKeyHex: keys.publicKey.export({ format: 'der', type: 'spki' }).subarray(-32).toString('hex'),
@@ -14,7 +15,7 @@ export function selectionProofFixture() {
     recordItem: 'synthetic-item', platformRevision: 'a'.repeat(40), decisionDigest: 'b'.repeat(64),
     selectionPath: '.steer/gate-policy-selection.json', selectionDigest: 'c'.repeat(64), configurationDigest: 'd'.repeat(64),
     selectionId: 'synthetic-selection-1', selectedAt: '2026-09-07T12:00:00.100000000Z',
-    recordedAt: '2026-09-07T12:00:00.200000000Z', validBefore: '2026-09-07T12:00:30Z', ...identity, ...authorization };
+    recordedAt: '2026-09-07T12:00:00.200000000Z', validBefore: '2026-09-07T12:00:30Z', ...identity, ...authorization, ...session };
   const digest = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
   const raw = (text: string, prefix = 'steer-gate-selection-attestation/v1\0') => ({ version: 'steer-gate-selection-proof/v1', payload: text,
     signatureBase64: sign(null, Buffer.from(prefix + text), keys.privateKey).toString('base64') });
@@ -26,7 +27,10 @@ export function selectionProofFixture() {
     trustDigest: digest(trust), proofDigest: digest(encode()),
     ...(payload.selectorIssuer === undefined ? {} : { selectorIssuer: payload.selectorIssuer, selectorType: payload.selectorType,
       selectorAuthorizationPath: payload.selectorAuthorizationPath, selectorAuthorizationRevision: payload.selectorAuthorizationRevision,
-      selectorAuthorizationDigest: payload.selectorAuthorizationDigest }) });
+      selectorAuthorizationDigest: payload.selectorAuthorizationDigest }),
+    ...(payload.selectorSessionId === undefined ? {} : { selectorSessionId: payload.selectorSessionId,
+      selectorAuthenticatedAt: payload.selectorAuthenticatedAt, selectorIdentityDigest: payload.selectorIdentityDigest,
+      selectorIdentityTrustDigest: payload.selectorIdentityTrustDigest }) });
   const evaluate = (proof: unknown = encode(), wanted: unknown = expected(), selected: unknown = trust, at: unknown = '2026-09-07T12:00:00.300000000Z') =>
     verifyGateSelectionAttestation(proof, selected, wanted, at);
   return { trust, payload, raw, encode, digest, expected, evaluate };

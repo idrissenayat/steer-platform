@@ -14,6 +14,7 @@ import { collectGateReviewAncestry, gateAncestryLimitsSchema } from './gate-ance
 import { verifyGateSelectionAttestation } from '../identity/gate-selection-proof.ts';
 import { verifySelectionGrantDocuments } from '../identity/gate-selection-authorization.ts';
 import { authorizationRecordSchema } from '../identity/oidc.ts';
+import { verifySelectorIdentityAttestation } from '../identity/gate-selector-identity.ts';
 
 const targetSchema = gatePolicyInputSchema.shape.target.omit({ decisionDigest: true });
 const digest = gatePolicyInputSchema.shape.target.shape.decisionDigest;
@@ -39,7 +40,8 @@ const configSchema = coreConfigurationSchema.extend({ selection: ref.extend({ at
   selectedAt: z.string().max(30).refine(value => parseUtcInstant(value) !== null),
   authorization: z.strictObject({ path: ref.shape.path, issuer: authorizationRecordSchema.shape.issuer,
     type: authorizationRecordSchema.shape.type, historicalRevision: gatePolicyInputSchema.shape.target.shape.artifactRevision,
-    historicalDigest: digest }).optional(),
+    historicalDigest: digest, identity: z.strictObject({ trust: ref, proof: ref, sessionId: taskIdentity,
+      authenticatedAt: z.string().max(30).refine(value => parseUtcInstant(value) !== null) }).optional() }).optional(),
 }).optional() }).optional() });
 export { configSchema as gitGatePolicyConfigurationSchema };
 export const gitGatePolicySelectionDocumentSchema = z.strictObject({ version: z.literal('steer-gate-policy-selection/v1'),
@@ -87,8 +89,9 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
     };
     visit(config.gates);
     const evidence = config.selection.attestation;
+    const identity = evidence?.authorization?.identity;
     const selectionPaths = [config.selection.path, ...(evidence ? [evidence.trust.path, evidence.proof.path,
-      ...(evidence.authorization ? [evidence.authorization.path] : [])] : [])];
+      ...(evidence.authorization ? [evidence.authorization.path] : []), ...(identity ? [identity.trust.path, identity.proof.path] : [])] : [])];
     if (new Set(selectionPaths).size !== selectionPaths.length || selectionPaths.some(path => paths.has(path)) ||
       (evidence && config.gates.length !== 2) || Buffer.byteLength(configuredSelection, 'utf8') > 512 * 1024) throw new Error('Invalid gate policy selection.');
   }
@@ -158,6 +161,7 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
           let retainedBytes = 0;
           let selectionSource: Readonly<{ path: string; revision: string; contentDigest: string; blobSha: string; configurationDigest: string }> | null = null;
           let selectionAttestation: ReturnType<typeof verifyGateSelectionAttestation> = null;
+          let selectorIdentity: ReturnType<typeof verifySelectorIdentityAttestation> = null;
           let selectorAuthorization: { binding: NonNullable<ReturnType<typeof verifySelectionGrantDocuments>>;
             historicalSource: Readonly<{ path: string; revision: string; contentDigest: string; blobSha: string }>;
             currentSource: Readonly<{ path: string; revision: string; contentDigest: string; blobSha: string }> } | null = null;
@@ -196,6 +200,7 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
               };
               const trust = await readEvidence(evidence.trust), proof = await readEvidence(evidence.proof);
               const authorization = evidence.authorization;
+              const identity = authorization?.identity;
               selectionAttestation = verifyGateSelectionAttestation(proof.document, trust.document, {
                 organizationId: binding.organizationId, repository: `github:${binding.repositoryId}`, branch: binding.branch,
                 selectorSubject: evidence.selectorSubject, recordItem: first.recordItem,
@@ -205,6 +210,8 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
                 ...(authorization ? { selectorIssuer: authorization.issuer, selectorType: authorization.type,
                   selectorAuthorizationPath: authorization.path, selectorAuthorizationRevision: authorization.historicalRevision,
                   selectorAuthorizationDigest: authorization.historicalDigest } : {}),
+                ...(identity ? { selectorSessionId: identity.sessionId, selectorAuthenticatedAt: identity.authenticatedAt,
+                  selectorIdentityDigest: identity.proof.digest, selectorIdentityTrustDigest: identity.trust.digest } : {}),
               }, new Date(check()).toISOString());
               if (!selectionAttestation) throw failure();
               if (authorization) {
@@ -214,6 +221,16 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
                   subject: evidence.selectorSubject, issuer: authorization.issuer, type: authorization.type, selectedAt: evidence.selectedAt }, new Date(check()).toISOString());
                 if (!binding) throw failure();
                 selectorAuthorization = { binding, historicalSource: historical.source, currentSource: current.source };
+                if (identity) {
+                  const identityTrust = await readEvidence(identity.trust), identityProof = await readEvidence(identity.proof);
+                  selectorIdentity = verifySelectorIdentityAttestation(identityProof.document, identityTrust.document, {
+                    organizationId: first.scope.organizationId, repository: selectionAttestation.claims.repository, branch: selectionAttestation.claims.branch,
+                    identityIssuer: authorization.issuer, subject: evidence.selectorSubject, type: authorization.type,
+                    sessionId: identity.sessionId, authenticatedAt: identity.authenticatedAt, selectedAt: evidence.selectedAt,
+                    selectionRecordedAt: selectionAttestation.claims.recordedAt, trustDigest: identity.trust.digest, proofDigest: identity.proof.digest,
+                  }, new Date(check()).toISOString());
+                  if (!selectorIdentity) throw failure();
+                }
               }
             }
           }
@@ -361,7 +378,7 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
           const runnerAttestations = [...nativeDomainReviews.flat().flatMap(value => value.runnerAttestation ? [value.runnerAttestation] : []),
             ...nativeCriticRunners.flatMap(value => value ? [value] : [])];
           const reviewsCurrentAt = (time: bigint) => [...runnerAttestations, ...(selectionAttestation ? [selectionAttestation] : []),
-            ...(selectorAuthorization ? [selectorAuthorization.binding] : [])]
+            ...(selectorAuthorization ? [selectorAuthorization.binding] : []), ...(selectorIdentity ? [selectorIdentity] : [])]
             .every(value => parseUtcInstant(value.evaluatedAt)! <= time && parseUtcInstant(value.validBefore)! > time);
           if (!reviewsCurrentAt(at)) throw failure();
           for (const observation of observations) {
@@ -376,7 +393,7 @@ export function createGitGatePolicyCollector(reader: RepositoryReader, rawConfig
             return { input: policyInput, evaluation: evaluateGateDecisionPolicy(policyInput) };
           });
           // A target pass can never hide a failed prerequisite's policy evaluation.
-          const result = freeze({ kind: 'git-gate-policy-observation' as const, sourceRevision: input.sourceRevision, evaluatedAt, selectionSource, selectionAttestation, selectorAuthorization,
+          const result = freeze({ kind: 'git-gate-policy-observation' as const, sourceRevision: input.sourceRevision, evaluatedAt, selectionSource, selectionAttestation, selectorAuthorization, selectorIdentity,
             policyOutcome: evaluations.every((value) => value.evaluation.outcome === 'policy-satisfied') ? 'policy-satisfied' as const : 'blocked' as const,
             gates: evaluations.map((value, index) => ({ ...value, signers: observations[index]!, sources: sources[index]!,
               nativeDomainReviews: nativeDomainReviews[index]!, nativeDomainException: nativeDomainExceptions[index]!, nativeCritic: nativeCritics[index]!,
