@@ -3476,3 +3476,38 @@ signatures remain open. No live profile, manifest, provider grant, frontend, sch
 dependency, spending, deployment, release or real-record deletion changed. The
 standing implementation loop remains active; exact remote equality is verified
 after the candidate push.
+
+## Completed development increment: 0171 — Held saving through actual browser sessions
+
+The production authoring UI now has an isolated integration through actual Keycloak,
+encrypted PostgreSQL browser sessions, HTTPS gateway and the configured held identity
+runtime. Exact review reaches native Git whole-selection assessment without a
+successful synthetic authority callback. Matching policy still denies the save and
+requests no write permission: no Brief/marker or Git HEAD change is produced.
+
+The browser checks runtime reconstruction and manual not-found status, a submission
+lock that survives refreshed review, current observer loss and Git-committed human
+revocation. The historical signers, trust roots, qualifications, normalized review
+facts and observer remain synthetic. This proves session-path integration, not
+independent gate evidence or authorized real saving. The separate test-authorized
+creation/Temporal replay/readback journey continues to pass.
+
+The final actual Keycloak/Chromium browser suite passed all 44 checks. Focused runtime
+checks, 438 repository controls, workspace/prototype regressions, typechecks and
+creation integration passed; final build results are recorded in
+`intent/0171/EVIDENCE.md`. Early harness failures were corrected without relaxing
+production controls: request pacing matches ingress limits; expired display controls
+are distinguished from enabled retries; discarded HTTP error bodies are not reread
+through the browser debugger. Owned failed and successful test resources were cleaned.
+
+Next connect the separate observer boundary to the existing normalized OIDC verifier
+and current Git authorization resolver in the isolated integration, instead of a
+direct synthetic-principal callback. Reuse those components; do not invent new
+trust-root approvals or promote fixture reviews into qualified evidence.
+
+Production code, live settings, provider grants, schema, dependencies, protected
+artifacts and pink/orange design are unchanged. All five R5 findings, governed live
+selection, review provenance, full action-time authority, model conversation,
+authenticated lifecycle/decision projections and human signatures remain open.
+No deployment, release, spending or real-record deletion is authorized. The standing
+implementation loop remains active; exact remote equality is verified after push.

@@ -15,6 +15,7 @@ import { startLocalIdentityListener } from '../src/identity-listener.ts';
 import { reserveLocalPort } from './local-tls-harness.ts';
 import { createGitAuthorizationHarness } from './git-authorization-harness.ts';
 import { createNextWebHarness } from './next-web-harness.ts';
+import { runHeldBrowserJourney } from './held-browser-harness.ts';
 import { createNativeGitHubReadHarness } from './native-github-read-harness.ts';
 import { createNativeGitHubCreateHarness } from './native-github-create-harness.ts';
 import { seedBriefMarker } from './brief-marker-harness.ts';
@@ -530,6 +531,11 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
           gateway = bindGateway(web!.rendererOrigin);
           try { await runtime.shutdown(); } finally { await source.publish([grant, deps.agent.grant]); }
         }
+      });
+      await check('held saving crosses real browser and Keycloak sessions with exact policy selection but no Git mutation', async () => {
+        try { await runHeldBrowserJourney({ browser: browser!, origin, configuration, username: deps.username, password: deps.password,
+          subject: deps.subject, identity: deps.fetch, storage, install: (renderer, runtime) => { gateway = bindGateway(renderer, runtime); } }); }
+        finally { gateway = bindGateway(web!.rendererOrigin); }
       });
       await check('browser status reads actual native Git operation history through request-owned writers and Keycloak sessions', async () => {
         const seeded = await seedBriefMarker(source, deps.subject);

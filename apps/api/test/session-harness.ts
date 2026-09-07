@@ -23,7 +23,14 @@ export interface SessionTestHarness {
   createReceiptProjection?: (reader: ArtifactReader, path: string, revision: string, readReceipt: () => Promise<unknown>,
     durable?: { idempotencyKey: string; subject: string }) => Promise<{ services: ToolServices; project(): Promise<void>; advance(): Promise<void>; close(): Promise<void> }>;
   createDestinationRuntime?: (configuration: BrowserSessionConfiguration, github: GitHubBinding, paths: string[], privateKeyPem: string,
-    transports: { identity: typeof fetch; github: typeof fetch }) => Promise<Awaited<ReturnType<typeof createIdentityRuntime>>>;
+    transports: { identity: typeof fetch; github: typeof fetch }, held?: HeldRuntimeTestProfile) => Promise<Awaited<ReturnType<typeof createIdentityRuntime>>>;
+}
+
+/** Explicit synthetic held profile; production parsing still validates every field. */
+export interface HeldRuntimeTestProfile {
+  authorizationPath: string;
+  profile: unknown;
+  authenticateGateObserver: () => Promise<unknown>;
 }
 
 /** Explicit provider-only test fixture; never exported by a production package. */

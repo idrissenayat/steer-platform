@@ -54,6 +54,14 @@ stays lazy. Passing it does not prove a real-person/Keycloak held-policy assessm
 live provider trust or independently qualified review. Existing browser regression
 remains a separate integration of real local Keycloak/session behavior.
 
+Increment 0171 adds a separate disposable browser context for the held profile.
+The production authoring UI, HTTPS gateway and runtime use actual local Keycloak
+and encrypted PostgreSQL sessions; native Git supplies the declared policy manifest
+and current human grants. The held-save path receives no synthetic successful gate
+callback. Its historical gate signers, qualifications, review facts and current
+observer remain explicitly synthetic, so this is not independent gate evidence.
+See `intent/0171/EVIDENCE.md` for current verification results and limitations.
+
 No live `heldBrief` configuration, observer grant, GitHub permission or display flag
 has been enabled. Full governed selection, review provenance, action-time authority,
 all five R5 findings, qualified/independent protected review and human signatures

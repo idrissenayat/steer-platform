@@ -29,7 +29,7 @@ import { createRecordedBrowserHarness } from '../../worker/test/recorded-browser
 export async function createPostgresSessionHarness(binding: SessionIdentityBinding): Promise<SessionTestHarness & {
   close(): Promise<void>;
   createDestinationRuntime(configuration: BrowserSessionConfiguration, github: GitHubBinding, paths: string[], privateKeyPem: string,
-    transports: { identity: typeof fetch; github: typeof fetch }): Promise<Awaited<ReturnType<typeof createIdentityRuntime>>>;
+    transports: { identity: typeof fetch; github: typeof fetch }, held?: import('./session-harness.ts').HeldRuntimeTestProfile): Promise<Awaited<ReturnType<typeof createIdentityRuntime>>>;
 }> {
   // Use the verified local image configuration ID directly. The existing pinned
   // bits are unchanged; no registry name or floating tag needs resolution.
@@ -98,18 +98,18 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
     const transactionKeys = async () => (await admin.query<{ key_hash: string }>(
       'SELECT key_hash FROM steer_auth.login_transactions WHERE namespace=$1', [namespace])).rows;
     return { kind: 'postgres', store, freshStore, close,
-      createDestinationRuntime: async (configuration, github, paths, privateKeyPem, transports) => {
+      createDestinationRuntime: async (configuration, github, paths, privateKeyPem, transports, held) => {
         if (closed || runtimeClosed) throw new Error('Synthetic runtime resources are closed.');
         if (typeof transports?.identity !== 'function' || typeof transports?.github !== 'function') throw new Error('Synthetic transports are required.');
         // All database authority remains inside this disposable harness. Callers
         // must provide both synthetic HTTP transports; no real provider fallback.
         const { clientSecret, ...browser } = configuration;
         const instance = await createIdentityRuntime({ version: 'steer-identity-runtime/v1', browser,
-          github: { appId: '1', authorizationPath: 'access/authorization.json', binding: github },
+          github: { appId: '1', authorizationPath: held?.authorizationPath ?? 'access/authorization.json', binding: github },
           database: { host: '127.0.0.1', port: Number(mapping.split(':')[1]), database: 'steer_auth_test', transport: { kind: 'isolated-loopback-test' } },
-          briefDestination: { paths }, sessionKeyId: 'synthetic',
+          briefDestination: { paths }, sessionKeyId: 'synthetic', ...(held ? { heldBrief: held.profile } : {}),
         }, { browserClientSecret: clientSecret, githubPrivateKeyPem: privateKeyPem, databasePassword: password,
-          sessionKeys: { synthetic: encryptionKey } }, transports);
+          sessionKeys: { synthetic: encryptionKey } }, { ...transports, ...(held ? { authenticateGateObserver: held.authenticateGateObserver } : {}) });
         identityRuntimes.push(instance); return instance;
       },
       createProjectionFixture: async (reader, paths) => {

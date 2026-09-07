@@ -3,7 +3,6 @@ import { execFileSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { type TestContext } from 'node:test';
 import { createGitGateSignerCollector } from '../src/code-host/gate-signers.ts';
 import type { RepositoryReader } from '../src/code-host/github.ts';
 import { providerProofFixture } from './gate-proof-fixture.ts';
@@ -12,14 +11,14 @@ import { qualificationProofFixture } from './gate-qualification-fixture.ts';
 
 export const hash = (content: string) => createHash('sha256').update(content).digest('hex');
 const blob = (content: string) => createHash('sha1').update(`blob ${Buffer.byteLength(content)}\0`).update(content).digest('hex');
-export function fixture(t: TestContext, native = false, gate: 1 | 2 | 3 = 2, now = Date.now()) {
+export function fixture(t: { after: (cleanup: () => void) => void }, native = false, gate: 1 | 2 | 3 = 2, now = Date.now(), organizationId = 'synthetic') {
   const directory = native ? mkdtempSync(join(tmpdir(), 'steer-0139-')) : undefined;
   if (directory) t.after(() => rmSync(directory, { recursive: true, force: true }));
   const git = (...args: string[]) => execFileSync('git', args, { cwd: directory, encoding: 'utf8' }).trim();
   const put = (path: string, content: string) => { const file = join(directory!, path); mkdirSync(dirname(file), { recursive: true }); writeFileSync(file, content); };
   const at = (delta: number) => new Date(now + delta).toISOString(), issuer = 'https://identity.synthetic.invalid';
   const hats = gate === 1 ? ['product-lead', 'product-designer', 'specialist'] : gate === 2 ? ['tech-lead', 'specialist'] : ['product-lead', 'tech-lead', 'specialist'];
-  const scope = { organizationId: 'synthetic', repository: 'github:1', itemId: 'intent/0139' };
+  const scope = { organizationId, repository: 'github:1', itemId: 'intent/0139' };
   const grant = { organizationId: scope.organizationId, subject: 'synthetic-human', issuer, type: 'human', hats,
     toolGrants: [], active: true, validAfter: at(-10000), expiresAt: at(120000) };
   const sources = new Map([['BRIEF.md', '# Synthetic Brief\n'], ['organization/authorization.json', JSON.stringify({ version: 'steer-authorization/v1', organizationId: scope.organizationId, records: [grant] })]]);
@@ -41,7 +40,7 @@ export function fixture(t: TestContext, native = false, gate: 1 | 2 | 3 = 2, now
       subject: grant.subject, hat: record.signatures[index]!.hat, sequence: index + 1, sessionId: `synthetic-human-session-${gate}`, authenticatedAt: at(-7000),
       signedAt: at(-6000), authorizationEvidenceDigest: hash(sources.get('organization/authorization.json')!) });
     Object.assign(provider.payload, provider.expected, { recordedAt: at(-5000) });
-    Object.assign(provider.trust, { notBefore: at(-10000), notAfter: at(120000) });
+    Object.assign(provider.trust, { organizationId, notBefore: at(-10000), notAfter: at(120000) });
     const identity = identityProofFixture(provider);
     identities.push(identity);
     Object.assign(identity.trust, { notBefore: at(-10000), notAfter: at(120000) });
@@ -53,8 +52,8 @@ export function fixture(t: TestContext, native = false, gate: 1 | 2 | 3 = 2, now
     sources.set(trustPath, JSON.stringify(provider.trust)); sources.set(proofPath, JSON.stringify(provider.encode()));
     const qualification = qualificationProofFixture();
     qualifications.push(qualification);
-    Object.assign(qualification.trust, { notBefore: at(-10000), notAfter: at(120000) });
-    Object.assign(qualification.payload, { validAfter: at(-10000), validThrough: at(120000), recordedAt: at(-8000) });
+    Object.assign(qualification.trust, { organizationId, notBefore: at(-10000), notAfter: at(120000) });
+    Object.assign(qualification.payload, { organizationId, validAfter: at(-10000), validThrough: at(120000), recordedAt: at(-8000) });
     const qualificationTrustPath = `organization/${index}-qualification.json`, qualificationProofPath = `${prefix}-qualification.json`;
     sources.set(qualificationTrustPath, JSON.stringify(qualification.trust)); sources.set(qualificationProofPath, JSON.stringify(qualification.encode()));
     return { source: { organizationId: scope.organizationId, repository: scope.repository, branch: 'synthetic', trustPath, trustDigest: hash(sources.get(trustPath)!), proofPaths: [proofPath],

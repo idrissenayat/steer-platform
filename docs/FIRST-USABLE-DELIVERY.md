@@ -63,7 +63,7 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0170
+### Latest development audit — increment 0171
 
 The production UI now supports deterministic describe/correct, exact local review,
 manual prior-operation status and opening the exact recorded Brief. Disposable
@@ -133,6 +133,14 @@ with explicit separate observer identity and request-bound human identity. Its i
 last-assessment diagnostic remains historical; every authority/mutation path stays
 denied, even when normalized policy is satisfied. The focused proof uses signed
 synthetic OIDC/App JWTs and native Git, not a real-person or Keycloak held-profile demo.
+
+Increment 0171 additionally connects the held profile to actual disposable Keycloak
+and encrypted PostgreSQL browser sessions. Production authoring confirms exact bytes
+and reaches the denied save without a synthetic successful authority callback.
+Runtime reconstruction preserves manual not-found status; refreshed local review
+cannot unlock a second submission. Current observer loss and committed human
+revocation deny access. Historical gate evidence and the observer remain synthetic;
+this closes a browser-session composition gap, not real governed write authority.
 Optional policy selection is now bound to the complete matching current Git manifest,
 with exact source/configuration fingerprints and mismatch rejection. This is a source
 binding, not proof of approved selection, trusted runner ownership or truthful review.

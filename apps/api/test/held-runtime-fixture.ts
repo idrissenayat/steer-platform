@@ -1,17 +1,17 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { generateKeyPairSync, randomBytes } from 'node:crypto';
-import type { TestContext } from 'node:test';
 import { exportJWK, generateKeyPair, SignJWT, jwtVerify } from 'jose';
 import { chain } from '../../../packages/adapters/test/gate-policy-chain-fixture.ts';
 
 /** Test-only source chain with real native Git and synthetic signature/JWKS keys. No network fallback. */
-export async function heldRuntimeFixture(t: TestContext, blocked = false) {
-  const f = chain(t, 2, true), binding = f.reader.binding, issuer = 'https://identity.synthetic.invalid';
+export async function heldRuntimeFixture(t: { after: (cleanup: () => void) => void }, blocked = false,
+  human = { organizationId: 'synthetic', issuer: 'https://identity.synthetic.invalid', subject: 'synthetic-runtime-human' }) {
+  const f = chain(t, 2, true, human.organizationId), binding = f.reader.binding, issuer = human.issuer;
   if (blocked) f.change(f.config.gates[0]!.critic, value => { value.critic.passed = false; });
   const authorizationPath = 'access/writers.json', epoch = Math.floor(Date.now() / 1000);
-  const grant = { issuer, organizationId: binding.organizationId, subject: 'synthetic-runtime-human', type: 'human', hats: ['product-lead'],
-    toolGrants: ['intent.brief.preview', 'intent.brief.save', 'intent.brief.save.status'], active: true,
+  const grant = { issuer, organizationId: binding.organizationId, subject: human.subject, type: 'human', hats: ['product-lead'],
+    toolGrants: ['session.context', 'intent.brief.destination', 'intent.brief.preview', 'intent.brief.save', 'intent.brief.save.status'], active: true,
     validAfter: new Date((epoch - 30) * 1000).toISOString(), expiresAt: new Date((epoch + 180) * 1000).toISOString() };
   const publishGrant = (record = grant) => { f.sources.set(authorizationPath, JSON.stringify({ version: 'steer-authorization/v1', organizationId: binding.organizationId, records: [record] })); f.commit(); };
   publishGrant();

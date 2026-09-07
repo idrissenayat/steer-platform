@@ -10,11 +10,12 @@ const request = (name: string, input: unknown, token: string) => new Request(`ht
 });
 
 test('held runtime binds a native whole-selection manifest and retains only fingerprints without granting a save', async t => {
-  const f = await heldRuntimeFixture(t), selected = selectChain(f);
+  const f = await heldRuntimeFixture(t, false, { organizationId: 'synthetic-org', issuer: 'https://identity.synthetic.invalid', subject: 'synthetic-runtime-human' }), selected = selectChain(f);
   const runtime = await createIdentityRuntime({ ...f.profile, heldBrief: { ...f.profile.heldBrief, policy: selected.configuration } }, f.secrets, f.ports);
   t.after(() => runtime.shutdown()); const input = await saveInput(runtime, f);
   assert.equal((await runtime.fetch(request('intent.brief.save', input, f.token))).status, 503);
   const assessment = runtime.status().heldBrief!.lastAssessment; assert.ok(assessment?.selectionSource);
+  assert.equal(assessment.policyOutcome, 'policy-satisfied');
   assert.equal(assessment.selectionSource.path, selected.reference.path); assert.equal(assessment.selectionSource.revision, f.state.head);
   assert.equal(assessment.selectionSource.contentDigest, selected.reference.digest);
   assert.equal('content' in assessment.selectionSource, false); assert.equal(assessment.writeAuthorized, false); assert.equal(assessment.gateVerified, false);

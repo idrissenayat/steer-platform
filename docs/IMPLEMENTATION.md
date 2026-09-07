@@ -1802,3 +1802,24 @@ profile, grant, public endpoint, UI, dependency or schema migration is installed
 
 See `docs/GATE-POLICY-SELECTION.md` and `intent/0170/EVIDENCE.md`. All five R5 findings,
 qualified/independent protected review and human signatures remain open.
+
+## Increment 0171 — Browser session integration for held saving
+
+The test-only encrypted-storage runtime constructor accepts an explicit held profile,
+authorization path and separate observer callback. Both identity and GitHub network
+ports remain mandatory and disposable; production profile validation still runs.
+The native policy-chain fixture can match the local Keycloak organization without
+changing historical evidence's synthetic provenance or extending validity windows.
+
+A separate owned Chromium context drives production authoring, exact review and
+submission against this runtime. Current human authentication uses actual Keycloak
+and encrypted PostgreSQL sessions; declared-selection policy assessment uses native
+Git and real fixture signatures. It must deny every mutation and preserve the existing
+missing-authority codes. Reconstruction, status and revocation checks remain part of
+the scenario. Request pacing respects the existing ingress limit and network routing
+permits only this run's application and identity origins.
+
+No production code, UI design, live configuration, provider grant, protected artifact,
+schema or dependency is changed. `intent/0171/EVIDENCE.md` records verification;
+all five R5 findings, real trust-root/selection approval, independent/qualified review,
+full action-time authority and human gate signatures remain open.

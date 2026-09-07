@@ -3,13 +3,12 @@ import { execFileSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import type { TestContext } from 'node:test';
 import { fixture, hash } from './gate-signers-fixture.ts';
 import type { RepositoryReader } from '../src/code-host/github.ts';
 import { createGitGatePolicyCollector } from '../src/code-host/gate-policy.ts';
 const blob = (text: string) => createHash('sha1').update(`blob ${Buffer.byteLength(text)}\0`).update(text).digest('hex');
-export function chain(t: TestContext, count: 1 | 2 | 3 = 3, native = false) {
-  const base = Date.now(), parts = Array.from({ length: count }, (_, i) => fixture(t, false, (i + 1) as 1 | 2 | 3, base - (3 - i) * 10000));
+export function chain(t: { after: (cleanup: () => void) => void }, count: 1 | 2 | 3 = 3, native = false, organizationId = 'synthetic') {
+  const base = Date.now(), parts = Array.from({ length: count }, (_, i) => fixture(t, false, (i + 1) as 1 | 2 | 3, base - (3 - i) * 10000, organizationId));
   const original = new Map<string, string>(), sources = new Map<string, string>(), reads: string[] = [];
   const directory = native ? mkdtempSync(join(tmpdir(), 'steer-0141-')) : undefined;
   if (directory) t.after(() => rmSync(directory, { recursive: true, force: true }));
