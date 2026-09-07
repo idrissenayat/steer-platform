@@ -7,6 +7,10 @@ item one, are the framework's pilot evidence.
 
 ## Current delivery
 
+Item [0179](intent/0179/README.md) binds the durable local projector to its own
+actual Keycloak service account and current Git grants. See
+[identity separation](docs/PROJECTOR-IDENTITY-JOURNEY.md). Live saving stays closed.
+
 Item [0178](intent/0178/README.md) connects an actual disposable Keycloak service
 account to owned runtime dispatch in the browser-created Brief journey. See
 [the integration and limits](docs/KEYCLOAK-RECORDED-JOURNEY.md); live saving stays closed.

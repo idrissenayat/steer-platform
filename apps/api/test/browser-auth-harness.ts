@@ -8,7 +8,8 @@ import { promisify } from 'node:util';
 import { setTimeout as delay } from 'node:timers/promises';
 import { getRequestListener } from '@hono/node-server';
 import { chromium, type Browser } from 'playwright';
-import type { AuthorizationRecord } from '@steer/adapters/identity';
+import { createOidcAuthenticator, type AuthorizationRecord } from '@steer/adapters/identity';
+import { createGitAuthorizationResolver } from '@steer/adapters/authorization';
 import { createIdentityService } from '../src/identity-service.ts';
 import { createIdentityGateway } from '../src/identity-gateway.ts';
 import { startLocalIdentityListener } from '../src/identity-listener.ts';
@@ -94,6 +95,7 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
     return { origin, close, async run(deps: { issuer: string; clientSecret: string; subject: string;
       username: string; password: string; fetch: typeof fetch;
       agent: { bearer: string; clientId: string; grant: AuthorizationRecord; issueBearer: () => Promise<string> };
+      projector: { subject: string; clientId: string; issueBearer: () => Promise<string> };
       createSessions: (binding: { issuer: string; clientId: string; redirectUri: string }) => Promise<SessionTestHarness>;
       check: (label: string, run: () => Promise<void>) => Promise<void> }) {
       const { issuer, check } = deps;
@@ -1216,6 +1218,18 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
             evaluatedAt: new Date().toISOString(), validThrough: new Date(Date.now() + 5000).toISOString() }),
         });
         const savingGrant = { ...grant, toolGrants: [...grant.toolGrants, 'intent.brief.save'] };
+        let dispatchMode: 'allowed' | 'projection-only' | 'revoked' = 'allowed';
+        let projectorMode: 'allowed' | 'dispatch-only' | 'revoked' | 'invalid-token' | 'dispatcher-token' = 'allowed';
+        const publishServiceGrants = () => source.publish([savingGrant, { ...deps.agent.grant,
+          active: dispatchMode !== 'revoked', validAfter: new Date(Date.now() - 30000).toISOString(), expiresAt: new Date(Date.now() + 180000).toISOString(),
+          toolGrants: dispatchMode === 'projection-only' ? ['projection.ingest'] : ['workflow.recorded-brief.start', 'workflow.recorded-brief.status'],
+        }, { ...deps.agent.grant, subject: deps.projector.subject,
+          active: projectorMode !== 'revoked', validAfter: new Date(Date.now() - 30000).toISOString(), expiresAt: new Date(Date.now() + 180000).toISOString(),
+          toolGrants: projectorMode === 'dispatch-only' ? ['workflow.recorded-brief.start'] : ['projection.ingest'],
+        }]);
+        const authenticateProjector = createOidcAuthenticator({ issuer, jwksUri: configuration.jwksUri,
+          audience: configuration.audience, clientIds: [deps.projector.clientId] }, { fetch: deps.fetch,
+          resolveAuthorization: createGitAuthorizationResolver(createGitHubReader(source.reader.binding, { fetch: provider.transport, appJwt }), source.authorizationPath) });
         let projected: Awaited<ReturnType<NonNullable<typeof storage.createReceiptProjection>>> | undefined;
         let created = 0, closed = 0;
         const compose = () => createIdentityService(configuration, { ...dependencies,
@@ -1308,10 +1322,16 @@ export async function createBrowserAuthHarness(tls: { key: Buffer; certificate: 
             configuration: { ...configuration, clientId: deps.agent.clientId, clientSecret: 'synthetic-unused-browser-secret' },
             authorizationPath: source.authorizationPath, privateKeyPem: tls.key.toString('utf8'), subject: deps.agent.grant.subject,
             transports: { identity: deps.fetch, github: provider.transport }, issueBearer: deps.agent.issueBearer,
-            publish: async mode => { await source.publish([savingGrant, { ...deps.agent.grant,
-              active: mode !== 'revoked', validAfter: new Date(Date.now() - 30000).toISOString(), expiresAt: new Date(Date.now() + 180000).toISOString(),
-              toolGrants: mode === 'projection-only' ? ['projection.ingest'] : ['workflow.recorded-brief.start', 'workflow.recorded-brief.status'],
-            }]); },
+            publish: async mode => { dispatchMode = mode; await publishServiceGrants(); },
+          }, projector: { subject: deps.projector.subject,
+            publish: async mode => { projectorMode = mode; await publishServiceGrants(); },
+            authenticate: async () => {
+              const bearer = projectorMode === 'invalid-token' ? 'invalid'
+                : await (projectorMode === 'dispatcher-token' ? deps.agent.issueBearer() : deps.projector.issueBearer());
+              const principal = await authenticateProjector(new Request(origin, { headers: { authorization: `Bearer ${bearer}` } }));
+              if (principal) { assert.equal(principal.subject, deps.projector.subject); assert.equal(principal.type, 'agent'); assert.deepEqual(principal.hats, []); }
+              return principal;
+            },
           } });
           await projected.project(); await service.shutdown(); service = compose(); gateway = bindGateway(submitWeb.rendererOrigin, service);
           await operationPanel.locator('[data-submission-receipt-link]').click();

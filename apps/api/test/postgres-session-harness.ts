@@ -174,7 +174,7 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
         let current: string | null = null, stopped = false; const events = new Set<string>();
         const projectionScope = { organizationId, repository, branch: reader.binding.branch, paths: [path] };
         const database = { host: '127.0.0.1', port: Number(mapping.split(':')[1]), database: 'steer_auth_test', transport: { kind: 'isolated-loopback-test' } };
-        const ports = { reader, authenticate: async () => principal, readReceipt };
+        const ports = { reader, authenticate: durable?.projector.authenticate ?? (async () => principal), readReceipt };
         const job = durable ? undefined : await createRecordedBriefProjectionRuntime({ version: 'steer-recorded-brief-projection-runtime/v1',
           scope: projectionScope, database }, { databasePassword: password }, ports);
         if (job) assert.equal(job.status().database.connections, 0);
@@ -195,7 +195,7 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
               method: 'POST', headers: { authorization: `Bearer ${await durable.dispatch.issueBearer()}`, 'content-type': 'application/json' },
               body: JSON.stringify({ organizationId, repository, itemId: path.slice(0, -'/BRIEF.md'.length), idempotencyKey: durable.idempotencyKey }),
             }),
-          }) : undefined;
+          }, durable.projector) : undefined;
         const ingest = async (target: string) => {
           assert.equal(stopped, false);
           const { repositoryId, ...artifact } = await reader.readArtifact(path, target);

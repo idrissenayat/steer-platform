@@ -39,3 +39,7 @@ All five R5 findings and the real approved-pod journey remain open.
 Next bind current projector identity in this same disposable journey and retain
 independent dispatch, receipt-reader and ingestion permissions. Live configuration
 and complete governed saving remain separate approval-bound work.
+
+0179 adds that separate actual projector identity in the same local journey; see
+[projector identity](PROJECTOR-IDENTITY-JOURNEY.md) and its execution evidence.
+The 0178 evidence above remains historical and does not itself prove this extension.

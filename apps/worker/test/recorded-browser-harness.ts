@@ -22,9 +22,13 @@ export async function createRecordedBrowserHarness(options: { target: { scope: {
     create: (managed: ManagedRuntimeRecordedScheduler) => Promise<Awaited<ReturnType<typeof createIdentityRuntime>>>;
     request: (name: 'start' | 'status') => Promise<Request>;
     publish: (mode: 'allowed' | 'projection-only' | 'revoked') => Promise<void>;
+  }, projector: {
+    subject: string;
+    publish: (mode: 'allowed' | 'dispatch-only' | 'revoked' | 'invalid-token' | 'dispatcher-token') => Promise<void>;
   }) {
   assert.equal(options.source.path, 'items/0167-created-fixture/BRIEF.md');
   assert.equal(options.target.scope.itemId, 'items/0167-created-fixture');
+  assert.notEqual(projector.subject, dispatch.subject); assert.notEqual(projector.subject, options.source.subject);
   Runtime.install({ logger: new DefaultLogger('ERROR') });
   const fixture = await createIsolatedTemporalHarness(), queue = 'steer-0168-browser-created';
   let runtime: Awaited<ReturnType<typeof createWorkerRecordedBriefRuntime>> | undefined;
@@ -59,6 +63,12 @@ export async function createRecordedBrowserHarness(options: { target: { scope: {
         await dispatch.publish('projection-only'); assert.equal((await call('start')).status, 403);
         assert.equal(managed!.status().attempted, false); assert.equal(reads, 0);
         await dispatch.publish('allowed');
+        for (const mode of ['dispatch-only', 'revoked', 'invalid-token', 'dispatcher-token'] as const) {
+          await projector.publish(mode);
+          await assert.rejects(runtime!.activities.projectRecordedBrief(options.target));
+          assert.equal(reads, 0); assert.equal(runtime!.status().database.connections, 0);
+        }
+        await projector.publish('allowed');
         const absent = await call('status'); assert.equal(absent.status, 200); assert.equal((await absent.json()).outcome, 'not-found');
         const started = await call('start'); assert.equal(started.status, 200); assert.equal((await started.json()).outcome, 'started');
         const repeat = await call('start'); assert.equal(repeat.status, 200); assert.equal((await repeat.json()).outcome, 'already-attempted');
@@ -74,13 +84,15 @@ export async function createRecordedBrowserHarness(options: { target: { scope: {
         await dispatch.publish('allowed'); assert.equal((await call('status')).status, 200);
         assert.equal(reads, 1); assert.equal((await handle.describe()).runId, originalRun);
         const history = await handle.fetchHistory(), text = historyText(history);
-        for (const privateValue of [options.source.subject, dispatch.subject, secrets.databasePassword, 'Browser-created request', 'Requests are entered twice.', 'synthetic-browser-write']) {
+        for (const privateValue of [options.source.subject, dispatch.subject, projector.subject, secrets.databasePassword, 'Browser-created request', 'Requests are entered twice.', 'synthetic-browser-write']) {
           assert.equal(text.includes(privateValue), false);
         }
         await Worker.runReplayHistory({ workflowBundle: fixture.bundle }, history, recordedBriefWorkflowId(options.target));
         assert.equal(reads, 1);
         await assert.rejects(startRecordedBriefProjection(fixture.environment.client, queue, options.target));
         assert.equal(reads, 1);
+        await projector.publish('revoked'); await assert.rejects(runtime!.activities.projectRecordedBrief(options.target));
+        assert.equal(reads, 1); await projector.publish('allowed');
       }, close,
     };
   } catch (error) { await close(); throw error; }

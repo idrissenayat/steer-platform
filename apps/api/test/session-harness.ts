@@ -21,9 +21,16 @@ export interface SessionTestHarness {
   createProjectionFixture?: (reader: RepositoryReader, paths: string[]) => Promise<{ services: ToolServices; input: ArtifactProjectionInput }>;
   createDecisionProjection?: (reader: RepositoryReader, paths: string[], revision: string) => Promise<ToolServices>;
   createReceiptProjection?: (reader: ArtifactReader, path: string, revision: string, readReceipt: () => Promise<unknown>,
-    durable?: { idempotencyKey: string; subject: string; dispatch: RecordedDispatchTestProfile }) => Promise<{ services: ToolServices; project(): Promise<void>; advance(): Promise<void>; close(): Promise<void> }>;
+    durable?: { idempotencyKey: string; subject: string; dispatch: RecordedDispatchTestProfile; projector: RecordedProjectorTestProfile }) => Promise<{ services: ToolServices; project(): Promise<void>; advance(): Promise<void>; close(): Promise<void> }>;
   createDestinationRuntime?: (configuration: BrowserSessionConfiguration, github: GitHubBinding, paths: string[], privateKeyPem: string,
     transports: { identity: typeof fetch; github: typeof fetch }, held?: HeldRuntimeTestProfile) => Promise<Awaited<ReturnType<typeof createIdentityRuntime>>>;
+}
+
+/** Local service-account inputs only; never serialized into workflow history. */
+export interface RecordedProjectorTestProfile {
+  subject: string;
+  authenticate: () => Promise<unknown>;
+  publish: (mode: 'allowed' | 'dispatch-only' | 'revoked' | 'invalid-token' | 'dispatcher-token') => Promise<void>;
 }
 
 /** Local service-account inputs only; never serialized into workflow history. */

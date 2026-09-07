@@ -1955,3 +1955,19 @@ source opening, privacy and cleanup assertions remain. Gate/projector authority 
 GitHub response adapters are synthetic. This changes test composition only; no live
 provider, production profile, frontend, protected artifact or schema is altered.
 Exact verification and remaining boundaries: `intent/0178/EVIDENCE.md`.
+
+## Increment 0179 — Separate current projector service account
+
+The disposable realm now owns a second service-account client, subject and generated
+secret for projection. Production OIDC and Git authorization adapters authenticate
+its current tokens/grants; the existing recorded worker runtime receives that
+authenticator instead of a manufactured principal. Human and dispatcher membership
+are retained when projector grants change. No production authorizer is changed.
+
+The joined browser journey adds early dispatch-only/revoked/invalid/wrong-client
+projector negatives before receipt access or database connection. Restored current
+identity permits the queued/recreated worker to project once; post-completion
+revocation denies another receipt read. Both service subjects remain outside history.
+Gate success and provider transports remain synthetic; current real pod approvals,
+complete governed authority and all five R5 findings stay open. Exact verification:
+`intent/0179/EVIDENCE.md`. No frontend, schema, dependency or live binding changed.

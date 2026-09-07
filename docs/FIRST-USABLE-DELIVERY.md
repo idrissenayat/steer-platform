@@ -63,7 +63,7 @@ measurement window follows an approved release; it does not delay first use by
 
 ## Code audit and bounded forecast — 2026-09-06
 
-### Latest development audit — increment 0178
+### Latest development audit — increment 0179
 
 The dependency-ordered current route is `docs/JOURNEY-REMAINING-WORK.md`.
 Increment 0174 adds an owned fixed-operation Temporal start/status client with
@@ -83,6 +83,10 @@ the approved real-user journey or an actual Keycloak dispatcher pass.
 journey with the owned runtime and fresh service-account tokens/current Git grants.
 Its gate authority and projector principal remain synthetic. Execution evidence is
 in `intent/0178/EVIDENCE.md`; no approved real-user save or live binding is inferred.
+0179 replaces the durable worker's projector principal with a distinct actual local
+Keycloak client and current Git authorizer. Early cross-permission, revocation and
+token-substitution negatives are part of the same journey; results are in
+`intent/0179/EVIDENCE.md`. Gate authority is still synthetic in the creation fixture.
 
 The production UI now supports deterministic describe/correct, exact local review,
 manual prior-operation status and opening the exact recorded Brief. Disposable

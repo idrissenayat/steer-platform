@@ -3694,3 +3694,21 @@ remain synthetic; this adds no live configuration, write permission, automatic p
 admission, frontend change, protected incorporation, spending, deployment or real
 deletion. All five R5 findings and full authority/independent review/human signatures
 remain open. The next local slice is the current projector identity boundary.
+
+## Completed development increment: 0179 — Current distinct projector identity
+
+The durable browser-created Brief journey now uses a distinct actual disposable
+Keycloak projector client and current native Git grants through production identity
+adapters. Dispatch-only grants, revoked membership, invalid tokens and the actual
+dispatcher's token must deny before receipt readback or a worker database connection.
+Restored authority permits one exact recorded projection; later revocation denies
+re-observation without another receipt read. Human/dispatcher/projector permissions
+remain separate and private subjects are excluded from Temporal history.
+
+Actual execution results are recorded in `intent/0179/EVIDENCE.md`. Gate authority
+and live-provider transport remain synthetic; no approved real membership, live
+configuration, source admission, write permission, protected artifact, frontend,
+deployment, spending or real deletion changed. All five R5 findings and required
+independent/qualified review/human signatures remain open. The morning handoff is
+already complete and is not repeated. Next verify revocation across receipt I/O and
+truthful terminal-failure/recovery behavior without another save or automatic retry.

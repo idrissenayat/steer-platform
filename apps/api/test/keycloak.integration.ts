@@ -25,6 +25,8 @@ const name = `steer-0013-${randomUUID()}`;
 const temporary = await mkdtemp(join(tmpdir(), 'steer-0013-'));
 const clientSecret = randomBytes(32).toString('hex');
 const subject = randomUUID();
+const projectorSubject = randomUUID();
+const projectorSecret = randomBytes(32).toString('hex');
 const humanSubject = randomUUID();
 const humanPassword = randomBytes(32).toString('hex');
 const humanClientSecret = randomBytes(32).toString('hex');
@@ -54,8 +56,9 @@ try {
   await writeFile(join(realmFolder, 'steer-test-realm.json'), JSON.stringify({
     realm: 'steer-test', enabled: true, sslRequired: 'all', registrationAllowed: false,
     resetPasswordAllowed: false, accessTokenLifespan: 180,
-    clients: [{ clientId: 'steer-test-agent', enabled: true, protocol: 'openid-connect',
-      publicClient: false, secret: clientSecret, serviceAccountsEnabled: true,
+    clients: [...[{ clientId: 'steer-test-agent', secret: clientSecret },
+      { clientId: 'steer-test-projector', secret: projectorSecret }].map(account => ({ ...account, enabled: true, protocol: 'openid-connect',
+      publicClient: false, serviceAccountsEnabled: true,
       standardFlowEnabled: false, implicitFlowEnabled: false, directAccessGrantsEnabled: false,
       fullScopeAllowed: false, defaultClientScopes: [], optionalClientScopes: [],
       protocolMappers: [claim('steer_org', 'synthetic-org'), claim('steer_kind', 'agent'),
@@ -63,7 +66,7 @@ try {
           name: 'steer-audience', protocol: 'openid-connect', protocolMapper: 'oidc-audience-mapper',
           config: { 'included.custom.audience': 'steer-api', 'access.token.claim': 'true', 'id.token.claim': 'false' },
         }],
-    }, { clientId: 'steer-test-web', enabled: true, protocol: 'openid-connect',
+    })), { clientId: 'steer-test-web', enabled: true, protocol: 'openid-connect',
       publicClient: false, secret: humanClientSecret, serviceAccountsEnabled: false,
       standardFlowEnabled: true, implicitFlowEnabled: false, directAccessGrantsEnabled: false,
       consentRequired: false, fullScopeAllowed: false, defaultClientScopes: [], optionalClientScopes: [],
@@ -81,6 +84,8 @@ try {
     }],
     users: [{ id: subject, username: 'service-account-steer-test-agent', enabled: true,
       serviceAccountClientId: 'steer-test-agent' },
+      { id: projectorSubject, username: 'service-account-steer-test-projector', enabled: true,
+        serviceAccountClientId: 'steer-test-projector' },
       { id: humanSubject, username: 'synthetic-human', enabled: true, email: 'synthetic@example.invalid',
         emailVerified: true, firstName: 'Synthetic', lastName: 'Tester', requiredActions: [],
         credentials: [{ type: 'password', value: humanPassword, temporary: false }] }],
@@ -203,6 +208,13 @@ try {
     const storage = await createPostgresSessionHarness(binding); closeSessions = storage.close; return storage;
   };
   if (browserHarness) await browserHarness.run({ ...humanDependencies, createSessions,
+    projector: { subject: projectorSubject, clientId: 'steer-test-projector', issueBearer: async () => {
+      const response = await scopedFetch(`${issuer}/protocol/openid-connect/token`, {
+        method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ grant_type: 'client_credentials', client_id: 'steer-test-projector', client_secret: projectorSecret }).toString(),
+      });
+      assert.equal(response.status, 200); const token = await response.json(); assert.equal(typeof token.access_token, 'string'); return token.access_token as string;
+    } },
     agent: { bearer, clientId: 'steer-test-agent', grant: { ...grant, active: true, toolGrants: ['session.context', 'projection.artifact.read', 'projection.changes.read', 'projection.snapshot.read', 'intent.brief.read', 'intent.brief.catalog'] },
       issueBearer: async () => {
         const response = await scopedFetch(`${issuer}/protocol/openid-connect/token`, {
