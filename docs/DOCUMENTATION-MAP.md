@@ -20,6 +20,8 @@ audit above, the signed execution plan or formal gate status.
   manual recovery and connection ownership; no live scheduler activation.
 - [Authorized recorded dispatch](AUTHORIZED-RECORDED-DISPATCH.md): separate current
   dispatch/status grants and shared HTTP/MCP contracts, without live configuration.
+- [Recorded scheduler runtime](RECORDED-SCHEDULER-RUNTIME.md): explicit profile/
+  factory ownership, exact binding and request-draining shutdown.
 - [Gate 2 corrections](GATE-2-CORRECTIONS.md): all five R5 findings remain open.
 
 ## Authority and purpose

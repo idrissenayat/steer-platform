@@ -9,8 +9,9 @@ non-read-only/non-idempotent hints; status is a query. Discovery is not permissi
 
 The optional `ToolServices.recordedBriefScheduler` port binds one exact
 organization/repository/item/operation ID. The 0174 managed Temporal client supplies
-this structural port without a provider import in the registry. No identity-runtime
-profile, public registration mechanism, CLI default or live grant is added. An
+this structural port without a provider import in the registry. No public registration
+mechanism, CLI default or live grant is added. 0176 adds a separate opt-in runtime/
+factory pair; see `RECORDED-SCHEDULER-RUNTIME.md`. An
 authorized caller without the service or current revalidator receives unavailable.
 
 Both tools accept only organizationId, repository, itemId and UUID-v4 idempotencyKey.

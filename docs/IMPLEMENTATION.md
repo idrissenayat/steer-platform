@@ -1903,3 +1903,23 @@ Focused registry, HTTP/MCP and actual local Temporal/Git/PostgreSQL checks are i
 no real grants, automatic receipt/path admission or live runtime binding were added.
 All five R5 findings and complete governed authority/independent review/human gates
 remain open. Next is explicit owned runtime composition, not live activation.
+
+## Increment 0176 — Recorded scheduler runtime ownership
+
+The identity runtime accepts an explicit recordedScheduling item/operation plus a
+separate createRecordedScheduler factory. Pairing, target scope, exact workflow ID
+and lifecycle methods are checked before request service; failure closes returned
+owned resources. The managed service is passed through existing OIDC/current-Git
+authorization. No SDK import, grant, dispatch or projector allocation is added to
+the API initialization path. The trusted factory owns its approved connection setup.
+
+Recorded scheduling now participates in request-draining cleanup with or without
+MCP. Admitted status can complete final authorization before session and scheduler
+resources close. Failures remain sanitized and other resource cleanup is attempted.
+Four focused tests and an actual local API-to-Temporal scenario cover exact binding,
+signed-token/native-Git revocation and owned connection closure. Provider responses
+and the new activity checkpoint remain synthetic. See `intent/0176/EVIDENCE.md`.
+
+No live profile/factory/grant or frontend change. Complete governed receipt/path
+admission, real dispatcher/cluster binding and full saving authority remain open,
+as do all five R5 findings and independent/qualified review/human gates.

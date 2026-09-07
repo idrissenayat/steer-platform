@@ -43,7 +43,7 @@ export function createIdentityService(configuration: BrowserSessionConfiguration
     ...(dependencies.now ? { now: dependencies.now } : {}),
   });
   const stopResources = sessions.shutdown.bind(sessions);
-  const drainBeforeResources = Boolean(mcp || dependencies.services?.reconciliationScheduler || dependencies.services?.briefDestination || dependencies.createBriefWriter || dependencies.services?.briefWriterFactory);
+  const drainBeforeResources = Boolean(mcp || dependencies.services?.reconciliationScheduler || dependencies.services?.recordedBriefScheduler || dependencies.services?.briefDestination || dependencies.createBriefWriter || dependencies.services?.briefWriterFactory);
   let state: 'running' | 'draining' | 'stopped' | 'failed' = 'running';
   let activeRequests = 0; let shutdown: Promise<void> | undefined;
   let drained: (() => void) | undefined;

@@ -3638,3 +3638,28 @@ All five R5 findings, full governed authority, independent/qualified review and 
 signatures remain open. No frontend, protected artifact, dependency, schema migration,
 live save/scheduler, provider grant, spending, deployment, release or real deletion
 changed. The loop remains active; verify exact remote equality after candidate push.
+
+## Completed development increment: 0176 — Owned recorded scheduler runtime
+
+An explicit optional profile/factory pair now composes recorded dispatch into the
+identity runtime. It binds the exact item/operation to the runtime's Git organization/
+repository, validates workflow ID and methods, and assumes ownership only of the
+factory's returned managed connection. No live factory, profile or grant is installed.
+
+The existing OIDC/current-Git tool route authorizes calls. Request draining includes
+the recorded scheduler even without MCP, preserving final status authorization before
+session/scheduler closure. Startup and cleanup failures remain generic; other owned
+resources are still closed and stopped services refuse new calls.
+
+Four focused runtime tests and all 28 actual local Temporal integration checks pass,
+including signed-token/native-Git authorization through HTTP and the actual owned
+runtime/client. The new activity result and provider/JWKS responses are synthetic;
+the scenario does not perform a real SQL projection or establish real gate authority.
+Final regression/build results are in `intent/0176/EVIDENCE.md`.
+
+Next connect the configured runtime, actual current dispatcher and exact receipt/
+worker binding in isolated integration. Keep live identity/cluster approvals and
+governed source admission separate. No new frontend, protected artifact, dependency,
+schema migration, live save/scheduler, provider grant, spending, deployment, release
+or real deletion. All five R5 findings and independent/qualified review/human gates
+remain open; the standing implementation loop stays active.

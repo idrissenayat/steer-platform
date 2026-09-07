@@ -7,6 +7,10 @@ item one, are the framework's pilot evidence.
 
 ## Current delivery
 
+Item [0176](intent/0176/README.md) adds opt-in identity-runtime ownership for the
+recorded scheduler, with exact binding and request-draining shutdown. No live
+configuration is enabled; see [runtime ownership](docs/RECORDED-SCHEDULER-RUNTIME.md).
+
 Item [0175](intent/0175/README.md) adds exact-operation dispatch/status tools with
 separate current-identity grants and HTTP/MCP parity. No live scheduler or save
 permission is enabled. See [the boundary](docs/AUTHORIZED-RECORDED-DISPATCH.md).

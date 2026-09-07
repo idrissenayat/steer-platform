@@ -6,7 +6,8 @@ import { createIdentityService } from './identity-service.ts';
 import { createIdentityGateway } from './identity-gateway.ts';
 import { startLocalIdentityListener } from './identity-listener.ts';
 import { secretReferenceSchema, type SecretProvider } from '@steer/adapters/secrets';
-import { artifactProjectionInputSchema, reconciliationScopeSchema, briefDestinationScopeSchema, type ReconciliationScheduler } from '@steer/tool-registry';
+import { artifactProjectionInputSchema, reconciliationScopeSchema, briefDestinationScopeSchema, recordedBriefSchedulingInputSchema,
+  type ReconciliationScheduler, type RecordedBriefScheduler } from '@steer/tool-registry';
 import { createArtifactProjectionReader } from '@steer/data/artifact-reader';
 import { createProjectionChangeReader } from '@steer/data/projection-changes';
 import { createProjectionSnapshotReader } from '@steer/data/projection-snapshot';
@@ -20,10 +21,13 @@ const databaseSchema = z.strictObject({ host: text, port: z.number(), database: 
   transport: z.discriminatedUnion('kind', [z.strictObject({ kind: z.literal('tls'), ca: text }),
     z.strictObject({ kind: z.literal('isolated-loopback-test') })]) });
 export interface ManagedRuntimeScheduler { readonly scheduler: ReconciliationScheduler; shutdown(): Promise<void> }
+export interface ManagedRuntimeRecordedScheduler { readonly scheduler: RecordedBriefScheduler; shutdown(): Promise<void> }
 export interface IdentityRuntimeDependencies {
   identity?: typeof fetch; github?: typeof fetch;
   /** Explicit factory transfers ownership on success; it must clean any allocation if it rejects. */
   createScheduler?: () => Promise<ManagedRuntimeScheduler>;
+  /** Separate owned connection and exact recorded operation; never inferred from reconciliation. */
+  createRecordedScheduler?: () => Promise<ManagedRuntimeRecordedScheduler>;
   /** Separate current agent identity, required only for an explicitly HELD source collector. */
   authenticateGateObserver?: () => Promise<unknown>;
 }
@@ -40,6 +44,7 @@ const profileSchema = z.strictObject({
   readModel: z.strictObject({ database: databaseSchema, paths: z.array(artifactProjectionInputSchema.shape.path).min(1).max(1000), changes: z.literal(true).optional() }).optional(),
   mcp: z.strictObject({ clientIds: z.array(z.string().min(1).max(200)).min(1).max(100).refine((ids) => new Set(ids).size === ids.length) }).optional(),
   scheduling: schedulingSchema.optional(),
+  recordedScheduling: recordedBriefSchedulingInputSchema.pick({ itemId: true, idempotencyKey: true }).optional(),
   briefDestination: briefDestinationScopeSchema.pick({ paths: true }).optional(),
   heldBrief: heldGitBriefConfigurationSchema.optional(),
   sessionKeyId: text,
@@ -164,6 +169,7 @@ export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unk
   transports: IdentityRuntimeDependencies = {}) {
   const pools: ReturnType<typeof createRuntimePool>[] = [];
   let managedScheduler: ManagedRuntimeScheduler | undefined;
+  let managedRecordedScheduler: ManagedRuntimeRecordedScheduler | undefined;
   let stopOwned: Promise<void> | undefined;
   let heldAssessment: HeldBriefAssessment | null = null, holdStopping = false;
   const shutdownPools = async () => {
@@ -171,6 +177,7 @@ export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unk
       const results = await Promise.allSettled([
         ...pools.map((pool) => pool.shutdown()),
         ...(managedScheduler ? [Promise.resolve().then(() => managedScheduler!.shutdown())] : []),
+        ...(managedRecordedScheduler ? [Promise.resolve().then(() => managedRecordedScheduler!.shutdown())] : []),
       ]);
       if (results.some((result) => result.status === 'rejected')) throw new Error('Identity runtime resource shutdown failed.');
     })();
@@ -179,6 +186,8 @@ export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unk
     const profile = profileSchema.parse(rawProfile); const secrets = secretsSchema.parse(rawSecrets);
     if (Boolean(profile.readModel) !== Boolean(secrets.readModelDatabasePassword)) throw new Error('Incomplete read-model binding.');
     if (Boolean(profile.scheduling) !== Boolean(transports.createScheduler)) throw new Error('Incomplete scheduler binding.');
+    if (Boolean(profile.recordedScheduling) !== Boolean(transports.createRecordedScheduler) ||
+      (transports.createRecordedScheduler !== undefined && typeof transports.createRecordedScheduler !== 'function')) throw new Error('Incomplete recorded scheduler binding.');
     if (Boolean(profile.heldBrief) !== Boolean(transports.authenticateGateObserver) ||
       (transports.authenticateGateObserver !== undefined && typeof transports.authenticateGateObserver !== 'function')) throw new Error('Incomplete held observer binding.');
     const appJwt = createAppJwtSigner(profile.github.appId, secrets.githubPrivateKeyPem);
@@ -218,6 +227,15 @@ export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unk
         scheduler.limits.minIntervalMs !== profile.scheduling.minIntervalMs) throw new Error('Mismatched scheduler binding.');
     }
     const ownedPool = pool;
+    if (profile.recordedScheduling && transports.createRecordedScheduler) {
+      managedRecordedScheduler = await transports.createRecordedScheduler();
+      const scheduler = managedRecordedScheduler.scheduler;
+      const configured = recordedBriefSchedulingInputSchema.parse({ ...scheduler?.target?.scope, idempotencyKey: scheduler?.target?.idempotencyKey });
+      const expected = { organizationId: reader.binding.organizationId, repository: `github:${reader.binding.repositoryId}`, ...profile.recordedScheduling };
+      const id = `steer-recorded-brief/v1/${[expected.organizationId, expected.repository, expected.itemId].map(encodeURIComponent).join('/')}/${expected.idempotencyKey}`;
+      if (typeof managedRecordedScheduler.shutdown !== 'function' || !scheduler || typeof scheduler.start !== 'function' || typeof scheduler.inspect !== 'function' ||
+        (Object.keys(expected) as (keyof typeof expected)[]).some(key => configured[key] !== expected[key]) || scheduler.workflowId !== id) throw new Error('Mismatched recorded scheduler binding.');
+    }
     const service = createIdentityService({ ...profile.browser, clientSecret: secrets.browserClientSecret }, {
       reader, authorizationPath: profile.github.authorizationPath,
       sessions: { binding, store, shutdown: shutdownPools },
@@ -234,11 +252,12 @@ export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unk
         };
       } } : {}),
       ...(profile.mcp ? { mcp: profile.mcp } : {}),
-      ...((artifactProjection || managedScheduler || profile.briefDestination) ? { services: {
+      ...((artifactProjection || managedScheduler || managedRecordedScheduler || profile.briefDestination) ? { services: {
         ...(destinationScope ? { briefDestination: { scope: Object.freeze({ ...destinationScope,
           paths: Object.freeze([...destinationScope.paths]),
         }), readHead: () => reader.readHead() } } : {}),
         ...(artifactProjection ? { artifactProjection } : {}), ...(managedScheduler ? { reconciliationScheduler: managedScheduler.scheduler } : {}),
+        ...(managedRecordedScheduler ? { recordedBriefScheduler: managedRecordedScheduler.scheduler } : {}),
         ...(projectionChanges ? { projectionChanges } : {}),
         ...(projectionSnapshot ? { projectionSnapshot } : {}),
       } } : {}),

@@ -46,7 +46,8 @@ closes the supplied connection, never the server, worker or another connection.
 
 0175 adds a separate shared registry authorization boundary around this client;
 see `AUTHORIZED-RECORDED-DISPATCH.md`. The client itself does not authenticate callers.
-An identity-runtime binding, governed receipt/path admission and live installation
+0176 adds explicit optional identity-runtime ownership; see
+`RECORDED-SCHEDULER-RUNTIME.md`. Governed receipt/path admission and live installation
 remain open. All five R5 findings, independent/qualified
 review and human gates remain unchanged. No live save, provider grant, deployment,
 release, spending or deletion was enabled. See `intent/0174/EVIDENCE.md`.

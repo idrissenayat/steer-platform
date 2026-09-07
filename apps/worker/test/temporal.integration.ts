@@ -12,6 +12,7 @@ import { testProjectedWorkflow } from './projection.integration.ts';
 import { testGateWatch } from './gate-watch.integration.ts';
 import { testGitGateSource } from './gate-source.integration.ts';
 import { createIsolatedTemporalHarness } from './isolated-temporal-harness.ts';
+import { testRecordedIdentityRuntime } from './recorded-runtime.integration.ts';
 
 let fixture: Awaited<ReturnType<typeof createIsolatedTemporalHarness>> | undefined;
 let worker: Worker | undefined; let running: Promise<void> | undefined;
@@ -141,6 +142,7 @@ try {
   });
   await testGateWatch(env, bundle, check);
   await testGitGateSource(env, bundle, temporary, check);
+  await testRecordedIdentityRuntime(env, bundle, check);
   console.log(`Temporal integration: ${passed} checks passed; actual local server, Git/PostgreSQL and recreated SDK workers; synthetic identities only.`);
 } finally {
   try { if (worker) { worker.shutdown(); await running; } }
