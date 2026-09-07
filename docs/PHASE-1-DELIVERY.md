@@ -4022,3 +4022,27 @@ separate localhost-only server leaf and SSL-only user trust. That replacement no
 opens normally in both browsers; Sign in reaches real Keycloak. No certificate
 warning was bypassed; the database certificate and write restrictions are unchanged.
 See the 0193 evidence follow-up for the original failure and verified correction.
+
+## Development increment: 0194 — Functionality-first local draft UX
+
+Following the user's decision to defer further authentication work, the existing
+Next root now offers an explicit no-sign-in UX preview. Its local draft backlog,
+eight-field editor, review/correction view, title search, save/reopen and unsaved
+navigation warnings make the authoring interaction testable without session expiry.
+The pink/orange design is retained. This is not a second authoritative platform.
+
+Only explicit **Save on this browser** writes temporary sample drafts. Local data
+is unencrypted, profile/origin-specific and not backed up or tenant-isolated.
+Validation preserves malformed/unrelated records; storage failures and detected
+stale writes never report success. Removal targets one local record after confirmation.
+See `docs/LOCAL-UX-PREVIEW.md` and the numbered 0194 artifacts for behavior and limits.
+
+The actual HTTPS UI passed create → correct → local save → reload → backlog search
+→ reopen with the corrected content. Unsaved guards/resume and responsive layout
+were checked. Final test/build results are recorded in `intent/0194/EVIDENCE.md`.
+User UX acceptance remains open.
+
+Live authoring, session expiry, repository permissions and gate contracts are
+unchanged. No provider grant, runtime GitHub write, model call, deployment, spending,
+protected EXAM or signature changed. Real saving, Flight Board/Inbox, agent conversation,
+J1–J6, the five R5 findings, Gate 2 and Phase 1 acceptance remain incomplete.

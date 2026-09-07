@@ -1,0 +1,49 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { pathToFileURL } from 'node:url';
+import { transformWithOxc } from 'vite';
+import { createElement, act } from 'react';
+import { JSDOM } from 'jsdom';
+import { emptyAuthorAnswers } from '../app/brief-author-client.ts';
+import { saveLocalDraft } from '../app/local-drafts.ts';
+
+test('actual local workspace opts in, reopens inert content, focuses corrections, validates saves and keeps sign-in separate without requests', async () => {
+  const require = createRequire(import.meta.url);
+  let compiled = (await transformWithOxc(readFileSync(new URL('../app/local-workspace.tsx', import.meta.url), 'utf8'), '/synthetic/local-workspace.tsx', { jsx: { runtime: 'automatic' } })).code;
+  for (const specifier of ['react', 'react/jsx-runtime']) for (const quote of ['"', "'"]) compiled = compiled.replaceAll(`${quote}${specifier}${quote}`, JSON.stringify(pathToFileURL(require.resolve(specifier)).href));
+  for (const name of ['brief-author-client', 'local-drafts']) for (const quote of ['"', "'"]) compiled = compiled.replaceAll(`${quote}./${name}${quote}`, JSON.stringify(new URL(`../app/${name}.ts`, import.meta.url).href));
+  const Component = (await import(`data:text/javascript;base64,${Buffer.from(compiled).toString('base64')}`)).default;
+  const dom = new JSDOM('<!doctype html><div id="root"></div>', { url: 'https://steer.example' });
+  const keys = ['window', 'document', 'IS_REACT_ACT_ENVIRONMENT', 'fetch'];
+  const saved = Object.fromEntries(keys.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
+  Object.defineProperty(globalThis, 'window', { configurable: true, value: dom.window });
+  Object.defineProperty(globalThis, 'document', { configurable: true, value: dom.window.document });
+  Object.defineProperty(globalThis, 'IS_REACT_ACT_ENVIRONMENT', { configurable: true, value: true });
+  globalThis.fetch = () => assert.fail('Local UX must not request data or write to a provider');
+  const { createRoot } = await import('react-dom/client');
+  const root = createRoot(document.getElementById('root'));
+  const click = async name => {
+    const button = [...document.querySelectorAll('button')].find(element => element.textContent === name);
+    assert.ok(button, name); await act(async () => button.click());
+  };
+  try {
+    const draft = { version: 1, id: 'local-11111111-1111-4111-8111-111111111111', updatedAt: '2026-09-07T12:00:00.000Z', answers: { ...emptyAuthorAnswers(), title: 'Sample', problem: '<script>unsafe()</script><img src="https://outside.invalid/x">' } };
+    saveLocalDraft(window.localStorage, draft, null);
+    await act(async () => root.render(createElement(Component, {}, createElement('div', {}, 'Separate live workspace'))));
+    assert.match(document.body.textContent, /Separate live workspace/); assert.doesNotMatch(document.body.textContent, /Sample/);
+    await click('Open UX preview'); assert.doesNotMatch(document.body.textContent, /Separate live workspace/);
+    await click('Open Brief →'); assert.match(document.body.textContent, /<script>unsafe/);
+    assert.equal(document.querySelector('script, img'), null);
+    await click('Edit What is happening now?'); assert.equal(document.activeElement.id, 'local-problem');
+    await click('Review Brief'); assert.equal(document.activeElement.tagName, 'H1');
+    await click('+ New intent'); await click('Save on this browser');
+    assert.match(document.querySelector('[role="alert"]').textContent, /working title/);
+    assert.equal(document.activeElement.id, 'local-title'); assert.equal(window.localStorage.length, 1);
+    await click('Return to sign-in workspace'); assert.match(document.body.textContent, /Separate live workspace/);
+  } finally {
+    await act(async () => root.unmount()); dom.window.close();
+    for (const key of keys) { if (saved[key]) Object.defineProperty(globalThis, key, saved[key]); else delete globalThis[key]; }
+  }
+});

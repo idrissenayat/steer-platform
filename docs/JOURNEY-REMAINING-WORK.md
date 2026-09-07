@@ -8,6 +8,21 @@ architecture, signed-scope reduction or gate decision. It supersedes historical
 
 ## Integrated development capability
 
+### Current UX priority (2026-09-07)
+
+The user deferred further authentication work to focus on functionality and UX.
+0194 adds a separate opt-in local draft workflow in Next: create, edit, review,
+explicit browser save, search and reopen. See `LOCAL-UX-PREVIEW.md` for privacy,
+storage limits and verification. This sequencing change does not authorize a
+weaker live boundary or complete J1–J6. Continue UX feedback and reusable work
+surfaces while preserving the actual-authority dependencies below.
+
+The intended user's authenticated UI was subsequently exercised using the configured
+real membership; the eight-question server preview and Learn were observed. The
+short session expiry clears drafts and destination discovery remains unavailable.
+Those observations do not prove real saving. The original bootstrap snapshot below
+is historical; further account setup is deferred, not removed from production scope.
+
 0193 adds the separately approved persistent local Keycloak/PostgreSQL bootstrap
 and narrow real initial membership. TLS discovery, durable login transaction and
 the real password form and browser certificate trust are verified; the user's
