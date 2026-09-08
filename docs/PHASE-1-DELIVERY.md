@@ -5468,3 +5468,24 @@ recovery, D1 activation, actual semantic evaluation or human Git save/reopen.
 No key inspection, model calls/spend, runtime Git write, gate, auth bypass,
 deployment or release. User-owned files remain untouched; the one-minute loop
 continues the remaining journey.
+
+## Development increment: 0252 — Authenticated exact candidate reopening
+
+The existing verified Git bundle reader is now available through an explicit
+subject/scope-bound query composition and exact-link view in the actual signed-in
+workspace. HTTP/OpenAPI/MCP share `intent.candidate.read`; no new real grant or
+default server installation. The browser/server verify the original manifest and
+all three document bytes, fixed source paths and hashes at the selected commit.
+No moving-head fallback, partial success, current-draft replacement or acceptance
+inference. See [0252 evidence](../intent/0252/EVIDENCE.md) and [the reopening guide](SAVED-CANDIDATE-REOPEN.md).
+
+Final **1,140/1,140 regressions**, all-package types and optimized Next build pass.
+Verification covers native temporary Git, actual HTTP/MCP parity, current identity
+revocation, tampering and safe React controls/clearing. All 173 local documentation
+links, protected hashes, kit and scope checks pass. Synthetic authority and React
+execution are not live human or browser-visual acceptance.
+
+Save preparation/confirmation/status and receipt-link integration, source/lifecycle
+authority, real activation and human saved-repository acceptance remain open.
+No SQL/schema, migration, credential access, model spend, runtime Git write,
+auth bypass, gate, deployment or release. The loop continues every minute.

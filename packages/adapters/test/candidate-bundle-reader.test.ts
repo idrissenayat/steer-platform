@@ -136,6 +136,16 @@ test('authorization denial before and after reads and permanent close suppress a
   await assert.rejects(closed.reopen(f.reference)); assert.equal(f.git.calls.length, count);
 });
 
+test('per-request identity checks cannot replace source authority and non-void authority results fail closed', async t => {
+  const f = await setup(t); let current = 0, authority = 0;
+  const reader = f.make(async () => { authority++; });
+  await assert.rejects(reader.reopen(f.reference, async () => { if (++current === 2) throw new Error('PRIVATE revoked'); }));
+  assert.equal(authority, 1); assert.equal(f.git.calls.length, 0);
+  const invalid = f.make((async () => true) as unknown as () => Promise<void>);
+  await assert.rejects(invalid.reopen(f.reference, async () => {})); assert.equal(f.git.calls.length, 0);
+  reader.close(); invalid.close();
+});
+
 test('close ends a stalled wait and suppresses its later response without a retry', async t => {
   const f = await setup(t); let entered!: () => void;
   const started = new Promise<void>(resolve => { entered = resolve; });

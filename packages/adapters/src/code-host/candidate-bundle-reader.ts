@@ -44,7 +44,7 @@ export function createCandidateBundleReader(reader: ArtifactReader, rawConfigura
     if (ref.organizationId !== settings.organizationId || ref.productId !== settings.productId
       || ref.repository !== settings.repository || ref.branch !== settings.branch || !settings.itemIds.includes(ref.itemId)) throw new CandidateBundleReadError();
   }
-  function operation(ref: z.infer<typeof candidatePointerReferenceSchema> | CandidateBundleReference) {
+  function operation(ref: z.infer<typeof candidatePointerReferenceSchema> | CandidateBundleReference, current?: () => Promise<void>) {
     scope(ref); freeze(ref);
     if (lifetime.signal.aborted || activeOperations >= 4) throw new CandidateBundleReadError();
     activeOperations++;
@@ -65,7 +65,12 @@ export function createCandidateBundleReader(reader: ArtifactReader, rawConfigura
         })]);
       } finally { signal.removeEventListener('abort', listener); }
     }
-    const check = async () => { await bounded(() => authorize(ref)); signal.throwIfAborted(); };
+    const check = async () => {
+      if (current && await bounded(current) !== undefined) throw new CandidateBundleReadError();
+      if (await bounded(() => authorize(ref)) !== undefined) throw new CandidateBundleReadError();
+      if (current && await bounded(current) !== undefined) throw new CandidateBundleReadError();
+      signal.throwIfAborted();
+    };
     const read = async (path: string, expectedDigest?: string) => {
       await check();
       const result = artifact.parse(await bounded(() => reader.readArtifact(path, ref.revision)));
@@ -98,16 +103,16 @@ export function createCandidateBundleReader(reader: ArtifactReader, rawConfigura
       if (Object.values(documents).some(content => !content.trim())) throw new CandidateBundleReadError();
       await check();
       return freeze({ kind: 'steer-candidate-bundle-content/v1' as const,
-        reference: { ...selected }, manifest, documents, verification: 'exact-commit-bytes' as const,
+        reference: { ...selected }, manifest, manifestContent: manifestFile.content, documents, verification: 'exact-commit-bytes' as const,
         sources: { manifest: { path: manifestFile.path, contentDigest: manifestFile.contentDigest, blobSha: manifestFile.blobSha }, documents: documentSources },
         executionAuthorized: false as const });
     };
     return { read, bundle, check, finish: () => { finished = true; release(); } };
   }
   return {
-    reopen: async (raw: unknown) => {
+    reopen: async (raw: unknown, current?: () => Promise<void>) => {
       try {
-        const ref = candidateBundleReferenceSchema.parse(raw), io = operation(ref);
+        const ref = candidateBundleReferenceSchema.parse(raw), io = operation(ref, current);
         try { return await io.bundle(ref); } finally { io.finish(); }
       }
       catch { throw new CandidateBundleReadError(); }

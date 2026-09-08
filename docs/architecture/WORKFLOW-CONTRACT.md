@@ -920,3 +920,20 @@ expired responses clear the preview, not current edits; absent versions are neve
 reconstructed. Close/hide drops private bytes and late replies. This concerns draft
 snapshots only, not historical access to expired scope observations or superseded
 assessed originals. No new storage, retention, execution or save authority.
+
+0252 connects exact candidate reopening through `intent.candidate.read`, a shared
+reference-only HTTP/MCP query. The subject/scope-bound explicit server factory
+uses the existing regular Git-blob reader and current read authority. Per-request
+identity is revalidated around every provider read and before delivery, without
+replacing source authority or granting access. See [0252 contract](../../intent/0252/SPEC.md).
+
+The result retains exact manifest bytes and all three documents. Server/browser
+checks bind paths, references, SHA-256 and Git blob hashes; they cannot independently
+establish provider provenance or current branch state. The actual signed-in view
+accepts canonical metadata links, labels candidate content and does not adopt it
+into the current draft. Denial, closure, navigation, hiding and expiry clear the
+preview; late responses cannot restore it. No write, gate or retry follows a read.
+
+This is the exact-link reading surface, not final-save consent consumption or a
+live successful-save receipt. Save preparation/confirmation/status, receipt-link
+integration, current authority and human acceptance remain pending.

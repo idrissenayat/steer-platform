@@ -20,7 +20,7 @@ const rules = {
     builtinEntryOnly: { 'node:https': 'src/identity-listener.ts' },
     entryOnly: { '@steer/agents': 'src/runtime.ts', '@steer/data': 'src/runtime.ts', zod: 'src/runtime.ts', '@modelcontextprotocol/server': 'src/mcp.ts' } },
   'apps/web': { folders: ['app'], packages: ['next', 'react', 'react-dom', 'react-markdown', '@steer/tool-registry'], builtins: [],
-    specifiersOnly: { '@steer/tool-registry': ['@steer/tool-registry/intent-development-context', '@steer/tool-registry/intent-scope-selection', '@steer/tool-registry/intent-scope-discovery-contracts', '@steer/tool-registry/intent-scope-prepare-contracts', '@steer/tool-registry/intent-scope-start-contracts', '@steer/tool-registry/intent-scope-batches', '@steer/tool-registry/intent-scope-read-contracts', '@steer/tool-registry/intent-draft-discovery-contracts', '@steer/tool-registry/intent-development-review-contracts', '@steer/tool-registry/intent-development-prepare-contracts', '@steer/tool-registry/intent-development-start-contracts', '@steer/tool-registry/intent-development-read-contracts', '@steer/tool-registry/intent-draft-contracts', '@steer/tool-registry/intent-draft-content', '@steer/tool-registry/intent-revision-contracts', '@steer/tool-registry/intent-overlap-contracts', '@steer/tool-registry/agent-contracts', '@steer/tool-registry/projection-consumer', '@steer/tool-registry/brief-contracts', '@steer/tool-registry/decision-contracts', '@steer/tool-registry/lifecycle-contracts'] } },
+    specifiersOnly: { '@steer/tool-registry': ['@steer/tool-registry/candidate-bundle-read-contracts', '@steer/tool-registry/intent-development-context', '@steer/tool-registry/intent-scope-selection', '@steer/tool-registry/intent-scope-discovery-contracts', '@steer/tool-registry/intent-scope-prepare-contracts', '@steer/tool-registry/intent-scope-start-contracts', '@steer/tool-registry/intent-scope-batches', '@steer/tool-registry/intent-scope-read-contracts', '@steer/tool-registry/intent-draft-discovery-contracts', '@steer/tool-registry/intent-development-review-contracts', '@steer/tool-registry/intent-development-prepare-contracts', '@steer/tool-registry/intent-development-start-contracts', '@steer/tool-registry/intent-development-read-contracts', '@steer/tool-registry/intent-draft-contracts', '@steer/tool-registry/intent-draft-content', '@steer/tool-registry/intent-revision-contracts', '@steer/tool-registry/intent-overlap-contracts', '@steer/tool-registry/agent-contracts', '@steer/tool-registry/projection-consumer', '@steer/tool-registry/brief-contracts', '@steer/tool-registry/decision-contracts', '@steer/tool-registry/lifecycle-contracts'] } },
   'apps/worker': { folders: ['src'], packages: ['@steer/adapters', '@steer/agents', '@steer/data', '@steer/tool-registry', 'zod', '@temporalio/client', '@temporalio/activity', '@temporalio/worker', '@temporalio/workflow'], builtins: ['node:crypto'],
     builtinEntryOnly: { 'node:crypto': ['src/candidate-bundle-runtime.ts', 'src/development-step-runtime.ts', 'src/scope-step-runtime.ts'] },
     entryOnly: { '@steer/adapters': ['src/runtime.ts', 'src/candidate-bundle-runtime.ts'],
@@ -111,6 +111,7 @@ test('browser imports only the portable consumer export, not the server registry
   const base = resolve(root, 'apps/web'); const file = resolve(base, 'app/projection-panel.tsx'); const rule = rules['apps/web'];
   assert.equal(allowed('@steer/tool-registry/projection-consumer', file, base, rule), true);
   assert.equal(allowed('@steer/tool-registry/brief-contracts', file, base, rule), true);
+  assert.equal(allowed('@steer/tool-registry/candidate-bundle-read-contracts', file, base, rule), true);
   assert.equal(allowed('@steer/tool-registry/decision-contracts', file, base, rule), true);
   assert.equal(allowed('@steer/tool-registry/lifecycle-contracts', file, base, rule), true);
   for (const specifier of ['@steer/tool-registry', '@steer/tool-registry/browser-session', '@steer/data', '@steer/adapters', 'node:crypto']) {
@@ -125,6 +126,7 @@ test('decision display contracts import only portable schemas, never the registr
 
 test('recorded development browser contracts transitively contain only portable validation, never dispatch, storage or provider code', async () => {
   const visited = new Set(), pending = ['review', 'prepare', 'start', 'read'].map(name => `intent-development-${name}-contracts.ts`);
+  pending.push('candidate-bundle-read-contracts.ts');
   pending.push('intent-development-context.ts', 'intent-scope-selection.ts', 'intent-scope-discovery-contracts.ts', 'intent-draft-discovery-contracts.ts', 'intent-scope-read-contracts.ts', 'intent-scope-prepare-contracts.ts', 'intent-scope-start-contracts.ts');
   while (pending.length) {
     const name = pending.pop(); if (visited.has(name)) continue; visited.add(name);
@@ -140,6 +142,7 @@ test('recorded development browser contracts transitively contain only portable 
   }
   assert.ok(visited.has('intent-evidence-contracts.ts')); assert.ok(visited.has('intent-role-result.ts'));
   assert.ok(visited.has('intent-scope-batches.ts'));
+  assert.ok(visited.has('candidate-bundle-contracts.ts'));
 });
 
 test('lifecycle display contracts import only portable schemas, never source verification or provider code', async () => {

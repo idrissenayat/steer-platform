@@ -453,6 +453,7 @@ summary:focus-visible { outline: .2rem solid var(--steer-focus); outline-offset:
 .intent-conversation textarea:focus-visible { outline: 3px solid var(--steer-focus); outline-offset: 2px; }
 .intent-agent-reply { margin-top: 1rem; padding: 1rem; border-radius: 1rem; background: var(--steer-pink-soft); }
 .intent-document-buttons { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0; }
+.candidate-metadata dd { margin-inline-start: 0; margin-bottom: .7rem; overflow-wrap: anywhere; }
 .intent-document-buttons button { width: auto; }
 .intent-document-buttons button[aria-pressed="true"] { border: 2px solid var(--steer-focus); }
 .intent-documents { margin-top: 1.5rem; overflow-wrap: anywhere; }

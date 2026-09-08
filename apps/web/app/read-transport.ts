@@ -1,4 +1,4 @@
-const tools = ['intent.overlap.check', 'projection.snapshot.read', 'projection.changes.read', 'intent.brief.catalog', 'intent.brief.read', 'intent.brief.artifacts', 'intent.brief.decisions', 'intent.brief.decision.evidence', 'intent.brief.preview', 'intent.brief.destination', 'intent.brief.save.status'] as const;
+const tools = ['intent.candidate.read', 'intent.overlap.check', 'projection.snapshot.read', 'projection.changes.read', 'intent.brief.catalog', 'intent.brief.read', 'intent.brief.artifacts', 'intent.brief.decisions', 'intent.brief.decision.evidence', 'intent.brief.preview', 'intent.brief.destination', 'intent.brief.save.status'] as const;
 const TIMEOUT_MS = 10000;
 /** Fixed, read-only same-origin endpoints. Scope is input, never authority or a URL. */
 export function createReadTransport(origin: string, transport: typeof fetch = globalThis.fetch) {

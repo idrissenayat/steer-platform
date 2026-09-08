@@ -1,6 +1,16 @@
 # STEER platform implementation
 
-## Current checkpoint — 0251
+## Current checkpoint — 0252
+
+0252 connects exact saved-candidate reads through the shared authenticated API/MCP
+and a read-only view in the actual signed-in workspace. Original manifest and all
+three document bytes are checked against the selected commit reference; no latest
+fallback, partial display or current-draft replacement. See [the reopening guide](SAVED-CANDIDATE-REOPEN.md)
+and [0252 evidence](../intent/0252/EVIDENCE.md). The explicit server factory remains
+uninstalled. Save preparation/confirmation/status and receipt-link integration,
+real authority, historical agent recovery and human acceptance remain open.
+
+## Prior checkpoint — 0251
 
 0251 exposes read-only preserved draft revisions in the actual conversation.
 Previous/next navigation never replaces unsaved text or rebases the editor, even
