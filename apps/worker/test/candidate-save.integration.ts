@@ -12,6 +12,7 @@ import { startCandidateBundleSave } from '../src/client.ts';
 import { createIsolatedTemporalHarness } from './isolated-temporal-harness.ts';
 
 type Fixture = { prepare(): Promise<CandidateBundleSaveRequest>; make(): ReturnType<typeof createDurableCandidateBundleStore>;
+  loadOriginal(target: unknown): Promise<unknown>;
   git: { mutations(): number; head(): string; loseAck(): void }; state(operationId: string): Promise<unknown> };
 const historyText = (v: unknown): string => v instanceof Uint8Array ? Buffer.from(v).toString('utf8')
   : v && typeof v === 'object' ? Object.values(v).map(historyText).join('\n') : typeof v === 'string' ? v : '';
@@ -27,14 +28,14 @@ export async function testCandidateSaveWorkflow(setup: () => Promise<Fixture>, c
     const target = parseCandidateSaveTarget({ organizationId: request.bundle.organizationId, operationId: request.bundle.operationId, inputDigest: plan.inputDigest });
     return { f, request, target, queue: `steer-candidate-${randomUUID()}` };
   };
-  const runWorker = async (t: Awaited<ReturnType<typeof fresh>>, loadOriginal: () => Promise<unknown> = async () => t.request,
+  const runWorker = async (t: Awaited<ReturnType<typeof fresh>>, loadOriginal: () => Promise<unknown> = () => t.f.loadOriginal(t.target),
     store: Parameters<typeof createCandidateSaveActivities>[1]['store'] = t.f.make()) => {
     activities = createCandidateSaveActivities(t.target, { store, authorize: async () => {}, loadOriginal });
     worker = await createCandidateSaveWorker({ connection: env.nativeConnection, namespace: 'default', taskQueue: t.queue, workflowBundle: harness.bundle }, activities);
     running = worker.run();
   };
   try {
-    await check('actual Temporal queues reference-only candidate work, commits once and replays after worker recreation without another Git send', async () => {
+    await check('actual Temporal reloads encrypted SQL originals, commits once and replays after worker recreation without another Git send', async () => {
       const t = await fresh();
       const handle = await startCandidateBundleSave(env.client, t.queue, t.target);
       await assert.rejects(startCandidateBundleSave(env.client, t.queue, t.target));
@@ -42,7 +43,7 @@ export async function testCandidateSaveWorkflow(setup: () => Promise<Fixture>, c
       assert.deepEqual(await handle.result(), { operationId: t.target.operationId, inputDigest: t.target.inputDigest, outcome: 'committed', revision: t.f.git.head() });
       assert.equal(t.f.git.mutations(), 1); assert.equal(await t.f.state(t.target.operationId), 'dispatch-committed');
       const history = await handle.fetchHistory(), text = historyText(history);
-      for (const forbidden of ['Synthetic Brief', 'Candidate Exam', 'NOT RUN', 'bundleManifestDigest', 'gate2DecisionDigest', 'synthetic-app-jwt', 'documents'])
+      for (const forbidden of ['Synthetic Brief', 'Candidate Exam', 'NOT RUN', 'bundleManifestDigest', 'gate2DecisionDigest', 'synthetic-app-jwt', 'documents', 'ciphertext', 'steer-draft-envelope'])
         assert.equal(text.includes(forbidden), false);
       const scheduled = history.events?.filter(e => e.activityTaskScheduledEventAttributes) ?? [];
       assert.equal(scheduled.length, 1); assert.equal(scheduled[0]!.activityTaskScheduledEventAttributes?.retryPolicy?.maximumAttempts, 1);

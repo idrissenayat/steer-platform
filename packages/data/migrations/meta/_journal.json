@@ -64,6 +64,20 @@
       "when": 1788833484350,
       "tag": "0008_execution_isolation",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1788840527336,
+      "tag": "0009_candidate_originals",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788840527337,
+      "tag": "0010_draft_isolation",
+      "breakpoints": true
     }
   ]
 }

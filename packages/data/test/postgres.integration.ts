@@ -52,14 +52,14 @@ try {
   };
   const admin = connect('postgres');
   // These roles and generated credentials exist only in this disposable container.
-  for (const role of ['steer_app', 'steer_projector', 'steer_auth_runtime']) {
+  for (const role of ['steer_app', 'steer_projector', 'steer_auth_runtime', 'steer_draft_runtime']) {
     await admin.query(`CREATE ROLE ${role} LOGIN PASSWORD '${password}' NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS`);
   }
   const migrationsFolder = fileURLToPath(new URL('../migrations/', import.meta.url));
   await check('versioned Drizzle migrations apply twice without replay effects', async () => {
     await migrate(drizzle(admin), { migrationsFolder });
     await migrate(drizzle(admin), { migrationsFolder });
-    assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 9);
+    assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 11);
   });
   const app = connect('steer_app');
   const projector = connect('steer_projector');

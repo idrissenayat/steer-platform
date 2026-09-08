@@ -162,3 +162,50 @@ checkpoint port. It needs separate reconciliation authority; ordinary `inspect`
 never records success. Only dispatch-committed or already-succeeded steps qualify;
 known failures and manually quarantined outcomes remain unchanged. No schema,
 refund, retry, automatic invocation or live authority is added.
+
+## Disabled encrypted candidate originals (0213)
+
+`@steer/data/candidate-originals` exports `createCandidateOriginalStore` with fixed
+org/subject/product/repository/branch/configuration/policy binding. Required trusted
+ports are `authorize`, `verifyOriginal`, `lifecycle` and `keyForDraft`. No port has
+a default, real keyring, fixture fallback or implied policy approval.
+
+- `put(originalRequest)` accepts only the exact admitted candidate request and
+  returns `stored`, `conflict`, `unavailable` or `unknown`. It encrypts before SQL,
+  inserts once and verifies recovery; retry cannot overwrite prior ciphertext or
+  renew its clock. An uncertain COMMIT never returns stored.
+- `read({organizationId, operationId, inputDigest})` retrieves and verifies the
+  exact request or raises a content-free unavailable error. Reads also latch any
+  observed lifecycle restriction in SQL; they are not status-only operations.
+- `close()` rejects new work and suppresses late output. It does not delete content,
+  destroy keys, cancel an already committed row or claim complete memory erasure.
+
+Migrations 0009/0010 introduce `steer_drafts.candidate_originals` with forced
+owner/org/product RLS and dedicated `steer_draft_runtime` identity. It gets only
+SELECT/INSERT and UPDATE(use_until, held); the trigger prevents content/clock
+rewrites, deadline extension and hold release. Other ordinary runtime roles have
+no schema/table access. The draft role has no execution/projection access. The
+adapter is a trusted service boundary, not isolation against an administrator or
+a compromised service capable of arbitrary role-scoped SQL/GUC impersonation.
+
+AES-256-GCM authenticated metadata binds immutable request/owner/draft/operation/
+configuration digests and creation/deadline. Serialized plaintext is limited to
+768 KiB. Nonces are fresh; per-draft key leases and historical key IDs come from
+the external secret seam, never SQL, Git or Temporal. Same-draft operations
+serialize retention observations; fixed expiry is server creation + 168 hours,
+shortened by trusted earlier deadlines. Observed holds/earlier clocks latch across
+stored revisions. Restricted hold preservation, key destruction and all-copy
+backup/restore enforcement remain required, unimplemented activation controls.
+
+Authority, lifecycle, key and pool acquisition calls have five-second bounds.
+Single-flight admission remains held while timed-out dependencies drain. SQL uses
+restricted role checks, scope scrubbing and normal statement/lock/idle timeouts;
+no transaction spans lifecycle, key or operation-verification calls. Current
+authorization/key/lifecycle is checked again before restored content is returned.
+
+[0213 evidence](../../intent/0213/EVIDENCE.md) covers disposable SQL/Git/Temporal
+and synthetic authority/lifecycle/key ports. This is immutable candidate-original
+storage, not general editor autosave or generation checkpoint persistence. D1 is
+unsigned; the real seven-migration baseline rejects the eleven-entry development
+journal before touching real private state. Nothing is installed in application
+startup, and no actual user draft, key, role, provider or policy is changed.

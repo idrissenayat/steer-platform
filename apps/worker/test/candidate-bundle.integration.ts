@@ -1,14 +1,16 @@
 import assert from 'node:assert/strict';
-import { randomUUID } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 import type { Pool, PoolClient } from 'pg';
 import type { DatabasePool } from '@steer/data/runtime-pool';
+import { createCandidateOriginalStore } from '@steer/data/candidate-originals';
 import { createDurableCandidateBundleStore } from '../src/candidate-bundle-runtime.ts';
 import { planCandidateBundle } from '@steer/tool-registry/candidate-bundle-contracts';
 import { createGitHubReader } from '@steer/adapters/github';
 import { createCandidateBundleReader } from '@steer/adapters/candidate-bundle-reader';
 import { fixture, binding, now } from '../../../packages/adapters/test/github-brief-fixture.ts';
 import { testCandidateSaveWorkflow } from './candidate-save.integration.ts';
+import { testCandidateOriginals } from './candidate-originals.integration.ts';
 
 export async function testDurableCandidateBundles({ app, admin, connect, check }: {
   app: Pool; admin: Pool; connect(user: string): Pool; check(name: string, run: () => Promise<void>): Promise<void>;
@@ -244,6 +246,24 @@ export async function testDurableCandidateBundles({ app, admin, connect, check }
       release(); await new Promise(resolve => setImmediate(resolve));
       assert.equal((await store.reconcile(request)).outcome, 'recorded'); assert.equal(f.git.mutations(), 1);
     });
-    await testCandidateSaveWorkflow(setup, check);
+    await testCandidateOriginals(setup, admin, connect, check);
+    await testCandidateSaveWorkflow(async () => {
+      const f = await setup(), key = { keyId: `synthetic-${randomUUID()}`, bytes: randomBytes(32) };
+      const { organizationId, subject, productId, repository, branch, configurationRevision, recordsPolicyDigest } = f.execution;
+      const createdAt = new Date(Date.now() - 1000).toISOString();
+      const config = { organizationId, subject, productId, repository, branch, configurationRevision, recordsPolicyDigest };
+      const originals = () => createCandidateOriginalStore(connect('steer_draft_runtime'), config, {
+        authorize: async () => {}, verifyOriginal: request => f.make().verifyOriginal(request),
+        lifecycle: async () => ({ createdAt, useUntil: new Date(Date.parse(createdAt) + 7 * 86400000).toISOString(), held: false }),
+        keyForDraft: async (_ref, keyId) => { assert.ok(keyId === null || keyId === key.keyId); return key; },
+      });
+      return { ...f, prepare: async () => {
+        const request = await f.prepare(), store = originals();
+        try { assert.equal((await store.put(request)).outcome, 'stored'); } finally { store.close(); }
+        return request;
+      }, loadOriginal: async (target: unknown) => {
+        const store = originals(); try { return await store.read(target); } finally { store.close(); }
+      } };
+    }, check);
   } finally { for (const cleanup of cleanups.reverse()) cleanup(); }
 }

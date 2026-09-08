@@ -137,6 +137,19 @@ export function createDurableCandidateBundleStore(pool: DatabasePool,
         return freeze({ outcome: 'prepared' as const, request: { ...submission, bundle: { ...submission.bundle, operationId: result.value.operationId } } });
       } finally { active = false; }
     },
+    /** Admission-only original-payload verification. Never contacts Git or claims a step. */
+    async verifyOriginal(request: unknown): Promise<void> {
+      const p = await validate(request);
+      if (closed || active || pending) throw new Error('Candidate original unavailable.');
+      active = true;
+      try {
+        const current = await operations.inspect(reference(p));
+        if (closed || current.outcome !== 'ok' || current.value.operation.draftId !== p.request.confirmation.draftId
+          || current.value.operation.draftRevision !== p.request.confirmation.draftRevision
+          || current.value.steps.some(step => step.record.binding.inputDigest !== p.plan.inputDigest))
+          throw new Error('Candidate original unavailable.');
+      } finally { active = false; }
+    },
     compareAndWrite: (request: unknown) => run(request, true),
     inspect: (request: unknown) => run(request, false),
     async reconcile(request: unknown) {

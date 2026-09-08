@@ -237,6 +237,19 @@ streaming, voice and real end-to-end Git saving remain follow-through work.
 
 ## Sources and verification
 
+### Candidate-save recovery implementation (0213)
+
+The disabled candidate workflow now has an encrypted immutable original-request
+adapter tested with actual disposable SQL/Temporal/native Git. Its loader restores
+the exact admitted documents/consent under current owner/policy, lifecycle and key
+ports; only references and bounded outcomes enter workflow history. This does not
+yet persist conversations or Architect/Test Agent generation checkpoints, wire the
+actual UI, or verify live authority/key-backup controls. See
+[0213 evidence](../intent/0213/EVIDENCE.md). D1 adoption and real activation remain
+pending; the real local migration baseline is unchanged.
+
+### Existing model integration sources
+
 The pinned installed Mastra declarations were checked alongside the official
 [structured-output guide](https://mastra.ai/docs/agents/structured-output).
 The adapter is tested through the real Mastra library using a fake HTTP transport,

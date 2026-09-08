@@ -134,3 +134,23 @@ export const intentSteps = steerExecution.table('intent_steps', {
   pgPolicy('step_scope', { for: 'all', using: sql`${t.organizationId} = ${executionOrg} AND ${t.subject} = ${executionSubject}`,
     withCheck: sql`${t.organizationId} = ${executionOrg} AND ${t.subject} = ${executionSubject}` }),
 ]).enableRLS();
+
+// Private immutable save originals, not a general draft editor or Git projection.
+export const steerDrafts = pgSchema('steer_drafts');
+const draftOrg = sql`nullif(current_setting('steer.draft_organization', true), '')`;
+const draftOwner = sql`nullif(current_setting('steer.draft_subject', true), '')`;
+const draftProduct = sql`nullif(current_setting('steer.draft_product', true), '')`;
+export const candidateOriginals = steerDrafts.table('candidate_originals', {
+  organizationId: text('organization_id').notNull(), subject: text('subject').notNull(), productId: text('product_id').notNull(),
+  operationId: uuid('operation_id').notNull(), draftId: uuid('draft_id').notNull(), draftRevision: bigint('draft_revision', { mode: 'number' }).notNull(),
+  inputDigest: text('input_digest').notNull(), payloadDigest: text('payload_digest').notNull(), configurationDigest: text('configuration_digest').notNull(),
+  encryptedValue: jsonb('encrypted_value').notNull(), draftCreatedAt: timestamp('draft_created_at', { withTimezone: true }).notNull(),
+  retentionDeadline: timestamp('retention_deadline', { withTimezone: true }).notNull(), useUntil: timestamp('use_until', { withTimezone: true }).notNull(),
+  held: boolean('held').notNull().default(false), storedAt: timestamp('stored_at', { withTimezone: true }).notNull().defaultNow(),
+}, t => [primaryKey({ columns: [t.organizationId, t.operationId] }),
+  foreignKey({ name: 'candidate_original_operation_owner', columns: [t.organizationId, t.operationId, t.subject],
+    foreignColumns: [intentOperations.organizationId, intentOperations.operationId, intentOperations.subject] }),
+  check('candidate_original_bounds', sql`${t.draftRevision} BETWEEN 1 AND 9007199254740991 AND ${t.inputDigest} ~ '^[a-f0-9]{64}$' AND ${t.payloadDigest} ~ '^[a-f0-9]{64}$' AND ${t.configurationDigest} ~ '^[a-f0-9]{64}$' AND octet_length(${t.encryptedValue}::text) <= 1050000 AND ${t.retentionDeadline} = ${t.draftCreatedAt} + interval '168 hours' AND ${t.useUntil} <= ${t.retentionDeadline}`),
+  pgPolicy('candidate_original_owner', { for: 'all', using: sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}`,
+    withCheck: sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}` }),
+]).enableRLS();

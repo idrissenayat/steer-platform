@@ -51,7 +51,7 @@ export async function testProjectedWorkflow(env: TestWorkflowEnvironment, bundle
     assert.ok(ready); const mapping = await docker('port', container, '5432/tcp'); assert.match(mapping, /^127\.0\.0\.1:\d+$/);
     const database = { host: '127.0.0.1', port: Number(mapping.split(':')[1]), database: 'steer_projection_test', transport: { kind: 'isolated-loopback-test' } };
     admin = new Pool({ host: database.host, port: database.port, database: database.database, user: 'postgres', password, max: 1, connectionTimeoutMillis: 5000, statement_timeout: 5000 });
-    for (const role of ['steer_app', 'steer_projector', 'steer_auth_runtime']) await admin.query(`CREATE ROLE ${role} LOGIN PASSWORD '${password}' NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS`);
+    for (const role of ['steer_app', 'steer_projector', 'steer_auth_runtime', 'steer_draft_runtime']) await admin.query(`CREATE ROLE ${role} LOGIN PASSWORD '${password}' NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS`);
     await migrate(drizzle(admin), { migrationsFolder: fileURLToPath(new URL('../migrations/', import.meta.resolve('@steer/data'))) });
     if (recoveryIdentity) {
       await testRecordedBriefRecovery(env, bundle, database, password, admin, check, recoveryIdentity);

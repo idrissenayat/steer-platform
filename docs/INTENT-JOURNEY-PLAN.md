@@ -41,7 +41,7 @@ No separate local preview, synthetic success, silent merging or lost work counts
 | I2 Explicit disposition | Open existing, propose adding missing scope, or create a distinct linked intent with a reason. Keep original text. No automatic merge, discard, update or item creation. Record the human choice against reviewed source revisions; changed scope invalidates it. | UI proposal/recheck and server drafting consumption implemented (0201–0202); save consumption, durable recording and live acceptance pending |
 | I3 Reliable drafting | Activate the configured Mastra/LiteLLM path with an approved capped budget and durable reservation ledger. Clarify conversationally, then produce source-faithful canonical Brief/Spec drafts and a fresh-context Test Agent Exam. Reject refusals, invalid outputs and invented facts; preserve unknowns explicitly. | Drafting composition (0198/0202), reservation adapter (0203) and uninstalled atomic operation/step ownership (0209) tested; Temporal/result-store composition, live binding/approval, cost bounds and content/eval acceptance pending |
 | I4 Review without loss | Show and edit all three documents, connect corrections to the source, expose conflicts/assumptions, preserve durable draft state across navigation, expiry, refresh and restart within the approved records policy. Never silently erase user work. Support retry without duplicate paid runs. | Editing/original comparison and explicit review invalidation implemented (0204–0205); durable versioned storage, restoration and full lossless acceptance pending |
-| I5 Save and reopen | Recheck scope and duplicate-review revisions immediately before an atomic, idempotent bundle write. Concurrent new intents/changes cause re-review, not two creations. Use actual granted GitHub paths and expected-head checks; uncertain saves require status/readback. Reopen exact saved versions in the application. | Disabled planner/reader, collector, bundle store, durable dispatch, candidate-save Temporal and verified receipt checkpoint reconciliation implemented (0205–0212); verified lifecycle/full-corpus authority, original-payload storage, quarantined-outcome resolution and actual UI integration incomplete |
+| I5 Save and reopen | Recheck scope and duplicate-review revisions immediately before an atomic, idempotent bundle write. Concurrent new intents/changes cause re-review, not two creations. Use actual granted GitHub paths and expected-head checks; uncertain saves require status/readback. Reopen exact saved versions in the application. | Disabled planner/reader, collector, bundle store, durable dispatch, candidate-save Temporal, receipt reconciliation and encrypted immutable originals implemented (0205–0213); verified lifecycle/full-corpus authority, key/recovery controls, quarantined-outcome resolution and actual UI integration incomplete |
 | I6 Human acceptance | In the real signed-in UI demonstrate new, exact duplicate, paraphrased duplicate, partial overlap, related-but-distinct, empty/failed/stale search, corrections, permission loss, cost exhaustion, uncertain save, concurrent creation, refresh/reopen and keyboard/narrow-screen behavior. Record real source and saved commit. | Pending |
 
 I1's lexical retrieval is only a candidate finder, never a semantic verdict.
@@ -200,3 +200,14 @@ manually quarantined outcomes cannot be cleared by this method. See
 [evidence](../intent/0212/EVIDENCE.md). There is no automatic workflow/UI invocation,
 payload storage or new authority. Original-payload persistence/current authority
 and durable development-role integration remain the next independent work.
+
+0213 implements disabled encrypted immutable candidate-original storage and supplies
+it to the actual disposable candidate Temporal tests. The workflow reloads the exact
+confirmed three-document request after writer-store closure, then saves once; raw
+bytes and encryption keys never enter workflow history. Same-draft clocks/holds
+latch across stored revisions, and wrong-owner/corrupt/expired data is unavailable.
+See [evidence](../intent/0213/EVIDENCE.md). This is not conversation autosave, a
+versioned editor or generation checkpoint service. D1 remains unsigned/inactive,
+and real migrations stay held. Next implement those broader draft/result services,
+authoritative lifecycle/key-recovery controls and durable development-role execution
+before actual UI acceptance. No paid/model/Git runtime activation occurs here.

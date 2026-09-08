@@ -4443,3 +4443,30 @@ No actual application/workflow invokes the new method, and no real database,
 schema, key, grant, budget, signed source or records policy changed. Payload storage,
 live current-authority composition, quarantined-outcome resolution, development-role
 orchestration and UI acceptance remain open. I1–I6 are not complete.
+
+## Development increment: 0213 — Encrypted immutable candidate originals
+
+Implemented disabled original-request storage for queued candidate saves. It
+encrypts the exact admitted Brief/Spec/Exam and consent before SQL, binds immutable
+metadata, isolates the dedicated draft role by owner/org/product and recovers the
+same bytes after adapter/pool reconstruction. Retries cannot overwrite originals,
+reset creation or renew observed expiry/holds. Current authority, operation
+admission, lifecycle and historical-key access are checked before release.
+
+The actual candidate Temporal test now reloads this encrypted original after the
+writing store closes, saves once to native Git and replays without another send.
+The combined PostgreSQL/Git/Temporal suite passes **89/89** checks; scoped units and
+migration controls pass **278/278**. Full typecheck passes. See
+[0213 evidence](../intent/0213/EVIDENCE.md) for tests and synthetic-service limits.
+The separate existing Temporal/projection suite passes **33/33**, destination
+runtime **1/1**, and kit/security/whitespace checks pass. Protected hashes match.
+
+Migrations 0009/0010 and the restricted draft role run only in disposable tests.
+The real local seven-migration baseline still rejects the expanded eleven-entry
+journal. D1 remains unsigned/inactive. No real user draft, migration, key, grant,
+paid call, provider write, deployment, accepted policy or protected source changed.
+
+This is not conversation/editor autosave, generation checkpoint storage or actual
+UI acceptance. Those services, authoritative lifecycle/current-source composition,
+external key/all-copy recovery controls and durable development-role execution
+remain next. Live activation is separate; I1–I6 are not complete.

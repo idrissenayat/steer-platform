@@ -80,12 +80,12 @@ export async function createPostgresSessionHarness(binding: SessionIdentityBindi
     const admin = connect('postgres');
     const serverVersion = Number((await admin.query("SELECT current_setting('server_version_num') AS version")).rows[0].version);
     assert.ok(serverVersion >= 160000 && serverVersion < 170000, 'The isolated authentication database must be PostgreSQL 16');
-    for (const role of ['steer_app', 'steer_projector', 'steer_auth_runtime']) {
+    for (const role of ['steer_app', 'steer_projector', 'steer_auth_runtime', 'steer_draft_runtime']) {
       await admin.query(`CREATE ROLE ${role} LOGIN PASSWORD '${password}' NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS`);
     }
     const migrationsFolder = fileURLToPath(new URL('../migrations/', import.meta.resolve('@steer/data')));
     await migrate(drizzle(admin), { migrationsFolder });
-    assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 9);
+    assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 11);
     const config = { binding, keyring: { currentKeyId: 'synthetic', keys: { synthetic: encryptionKey } } };
     const runtime = (user: 'steer_auth_runtime' | 'steer_app' | 'steer_projector' = 'steer_auth_runtime') => {
       if (runtimeClosed) throw new Error('Synthetic runtime resources are closed.');

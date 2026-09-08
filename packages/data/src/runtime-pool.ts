@@ -11,7 +11,7 @@ export class DatabaseCommitOutcomeUnknownError extends Error {
 const configurationSchema = z.strictObject({
   host: z.string().min(1).max(253).regex(/^[A-Za-z0-9.:-]+$/),
   port: z.number().int().min(1).max(65535), database: z.string().min(1).max(63).regex(/^[A-Za-z0-9_-]+$/),
-  user: z.enum(['steer_app', 'steer_projector', 'steer_auth_runtime']),
+  user: z.enum(['steer_app', 'steer_projector', 'steer_auth_runtime', 'steer_draft_runtime']),
   password: z.string().min(1).max(4096),
   transport: z.discriminatedUnion('kind', [
     z.strictObject({ kind: z.literal('tls'), ca: z.string().min(1).max(65536) }),
