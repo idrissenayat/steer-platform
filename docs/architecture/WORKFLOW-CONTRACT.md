@@ -648,3 +648,16 @@ key/lifecycle authority but does not renew expired execution or replace later ed
 See [0236 specification](../../intent/0236/SPEC.md). This is input recovery only;
 recorded observations, verified successful results, Temporal and live acceptance
 remain next. No actual records, grants, model calls or runtime saving are activated.
+
+0237 supplies immutable encrypted request/response observations for an admitted,
+dispatch-committed scope batch. The trusted recorded SDK codec verifies the exact
+request before acknowledgement and the saved request/raw response/citations/usage
+before response acknowledgement or readback. Link the response to the digest returned
+by request storage. SQL serializes observation inserts with batch-state transitions;
+the narrow guarded trigger does not grant general execution-schema access. Current
+records, source, owner, key and lifecycle authority remain required. A quarantined
+or failed batch may yield verified evidence requiring outcome resolution, not a retry,
+success, semantic-quality or clearance claim. Observation access after review expiry
+and successful checkpoints remain unimplemented. See
+[0237 specification](../../intent/0237/SPEC.md). No real migration, D1 activation,
+model call, runtime Git saving or gate is enabled by these development adapters.

@@ -12,39 +12,40 @@ import { createScopeReviewOriginalStore } from '../src/scope-review-originals.ts
 import type { DatabasePool } from '../src/runtime-pool.ts';
 
 type Dependencies=Parameters<typeof createScopeReviewOriginalStore>[2];
+export async function scopeOriginalIntegrationFixture({admin,connect}:{admin:Pool;connect(role:string):Pool},large=false,ttl=3600000) {
+  const f=await scopeReviewFixture(large?40:4);
+  const config={organizationId:`scope-original-${randomUUID()}`,subject:'synthetic-human',productId:f.scope.productId,repository:f.scope.repository,
+    branch:f.evidence.branch,configurationRevision:'scope-original-r1',recordsPolicyDigest:'a'.repeat(64)};
+  const budget={organizationId:config.organizationId,subject:config.subject,configurationRevision:config.configurationRevision,budgetId:randomUUID(),
+    approvalDigest:'b'.repeat(64),capMicrousd:30,architectMicrousd:3,testAgentMicrousd:2};
+  const execution={...config,expiresAt:new Date(Date.now()+ttl).toISOString(),budget,
+    scopeTerms:{approvalDigest:'c'.repeat(64),profileDigest:f.prepared.batches[0]!.packet.profileDigest,amountMicrousd:4}};
+  await admin.query(`INSERT INTO steer_usage.model_budgets VALUES($1,$2,$3,$4,$5,30,3,2,now()-interval '1 minute',now()+interval '1 hour',true)`,
+    [budget.organizationId,budget.budgetId,budget.subject,budget.configurationRevision,budget.approvalDigest]);
+  const pools={drafts:connect('steer_draft_runtime'),execution:connect('steer_app')},key={keyId:`synthetic-${randomUUID()}`,bytes:randomBytes(32)};
+  const deps:Dependencies={authorize:async()=>{},authorizeOriginal:async()=>{},authorizeReview:async()=>{},authorizeDraft:async()=>{},
+    keyForDraft:async(_ref,keyId)=>{assert.ok(keyId===null||keyId===key.keyId);return key;}};
+  const lifecycle=createDraftLifecycleStore(pools.drafts,config,{authorize:async()=>{},verifyHold:async()=>{}}),created=await lifecycle.create({requestId:randomUUID()});
+  assert.equal(created.outcome,'ok');if(created.outcome!=='ok')throw new Error('Synthetic lifecycle missing');
+  const draftId=created.value.draftId,drafts=createDraftRevisionStore(pools.drafts,config,{authorize:deps.authorizeDraft,keyForDraft:deps.keyForDraft});
+  const content={originalText:f.scope.originalText,clarificationTurns:f.scope.clarificationTurns,documents:{...f.scope.documents,exam:'EXAM-MARKER-NOT-FOR-SCOPE'}};
+  const saved=await drafts.append({draftId,mutationId:randomUUID(),expectedRevision:0,expectedDigest:null,content});
+  assert.equal(saved.outcome,'acknowledged');if(saved.outcome!=='acknowledged')throw new Error('Synthetic revision missing');
+  const scope={...f.scope,organizationId:config.organizationId,draftId},documents=f.evidence.documents.map((d,i)=>({...d,content:large?`# Source ${i}\n`+'x'.repeat(20000):d.content}));
+  const evidence={...f.evidence,organizationId:config.organizationId,scopeInputDigest:(await fingerprintIntentScope(scope)).scopeInputDigest,documents,
+    inventory:f.evidence.inventory.map((s,i)=>({...s,contentDigest:createHash('sha256').update(documents[i]!.content).digest('hex'),
+      blobOid:createHash('sha1').update(`blob ${Buffer.byteLength(documents[i]!.content)}\0${documents[i]!.content}`).digest('hex')}))};
+  const described=await describeScopeOriginal({kind:'steer-scope-original/v1',configuration:execution,
+    source:{revision:1,revisionDigest:saved.reference.revisionDigest,scope},evidence,profile:f.profile});
+  const reviews=createScopeReviewOperationStore(pools.execution,execution,{authorize:deps.authorizeReview}),admitted=await reviews.admit(described.manifest);
+  assert.equal(admitted.outcome,'ok');if(admitted.outcome!=='ok')throw new Error('Synthetic review missing');
+  const target={reviewId:admitted.value.reviewId,preparationDigest:described.manifest.preparationDigest},input={...target,original:described.original};
+  const make=(overrides:Partial<Dependencies>={},otherPools:{drafts:DatabasePool;execution:DatabasePool}=pools,patch={})=>createScopeReviewOriginalStore(otherPools,{...config,...patch},{...deps,...overrides});
+  const row=async()=>(await admin.query('SELECT * FROM steer_drafts.scope_review_originals WHERE review_id=$1',[target.reviewId])).rows[0];
+  return{config,execution,pools,key,deps,draftId,drafts,lifecycle,saved,content,described,reviews,target,input,make,row};
+}
 export async function testScopeOriginals({admin,connect,check}:{admin:Pool;connect(role:string):Pool;check(name:string,run:()=>Promise<void>):Promise<void>}) {
-  const setup=async(large=false,ttl=3600000)=>{
-    const f=await scopeReviewFixture(large?40:4);
-    const config={organizationId:`scope-original-${randomUUID()}`,subject:'synthetic-human',productId:f.scope.productId,repository:f.scope.repository,
-      branch:f.evidence.branch,configurationRevision:'scope-original-r1',recordsPolicyDigest:'a'.repeat(64)};
-    const budget={organizationId:config.organizationId,subject:config.subject,configurationRevision:config.configurationRevision,budgetId:randomUUID(),
-      approvalDigest:'b'.repeat(64),capMicrousd:30,architectMicrousd:3,testAgentMicrousd:2};
-    const execution={...config,expiresAt:new Date(Date.now()+ttl).toISOString(),budget,
-      scopeTerms:{approvalDigest:'c'.repeat(64),profileDigest:f.prepared.batches[0]!.packet.profileDigest,amountMicrousd:4}};
-    await admin.query(`INSERT INTO steer_usage.model_budgets VALUES($1,$2,$3,$4,$5,30,3,2,now()-interval '1 minute',now()+interval '1 hour',true)`,
-      [budget.organizationId,budget.budgetId,budget.subject,budget.configurationRevision,budget.approvalDigest]);
-    const pools={drafts:connect('steer_draft_runtime'),execution:connect('steer_app')},key={keyId:`synthetic-${randomUUID()}`,bytes:randomBytes(32)};
-    const deps:Dependencies={authorize:async()=>{},authorizeOriginal:async()=>{},authorizeReview:async()=>{},authorizeDraft:async()=>{},
-      keyForDraft:async(_ref,keyId)=>{assert.ok(keyId===null||keyId===key.keyId);return key;}};
-    const lifecycle=createDraftLifecycleStore(pools.drafts,config,{authorize:async()=>{},verifyHold:async()=>{}}),created=await lifecycle.create({requestId:randomUUID()});
-    assert.equal(created.outcome,'ok');if(created.outcome!=='ok')throw new Error('Synthetic lifecycle missing');
-    const draftId=created.value.draftId,drafts=createDraftRevisionStore(pools.drafts,config,{authorize:deps.authorizeDraft,keyForDraft:deps.keyForDraft});
-    const content={originalText:f.scope.originalText,clarificationTurns:f.scope.clarificationTurns,documents:{...f.scope.documents,exam:'EXAM-MARKER-NOT-FOR-SCOPE'}};
-    const saved=await drafts.append({draftId,mutationId:randomUUID(),expectedRevision:0,expectedDigest:null,content});
-    assert.equal(saved.outcome,'acknowledged');if(saved.outcome!=='acknowledged')throw new Error('Synthetic revision missing');
-    const scope={...f.scope,organizationId:config.organizationId,draftId},documents=f.evidence.documents.map((d,i)=>({...d,content:large?`# Source ${i}\n`+'x'.repeat(20000):d.content}));
-    const evidence={...f.evidence,organizationId:config.organizationId,scopeInputDigest:(await fingerprintIntentScope(scope)).scopeInputDigest,documents,
-      inventory:f.evidence.inventory.map((s,i)=>({...s,contentDigest:createHash('sha256').update(documents[i]!.content).digest('hex'),
-        blobOid:createHash('sha1').update(`blob ${Buffer.byteLength(documents[i]!.content)}\0${documents[i]!.content}`).digest('hex')}))};
-    const described=await describeScopeOriginal({kind:'steer-scope-original/v1',configuration:execution,
-      source:{revision:1,revisionDigest:saved.reference.revisionDigest,scope},evidence,profile:f.profile});
-    const reviews=createScopeReviewOperationStore(pools.execution,execution,{authorize:deps.authorizeReview}),admitted=await reviews.admit(described.manifest);
-    assert.equal(admitted.outcome,'ok');if(admitted.outcome!=='ok')throw new Error('Synthetic review missing');
-    const target={reviewId:admitted.value.reviewId,preparationDigest:described.manifest.preparationDigest},input={...target,original:described.original};
-    const make=(overrides:Partial<Dependencies>={},otherPools:{drafts:DatabasePool;execution:DatabasePool}=pools,patch={})=>createScopeReviewOriginalStore(otherPools,{...config,...patch},{...deps,...overrides});
-    const row=async()=>(await admin.query('SELECT * FROM steer_drafts.scope_review_originals WHERE review_id=$1',[target.reviewId])).rows[0];
-    return{config,execution,pools,key,deps,draftId,drafts,lifecycle,saved,content,described,reviews,target,input,make,row};
-  };
+  const setup=(large=false,ttl=3600000)=>scopeOriginalIntegrationFixture({admin,connect},large,ttl);
   await check('encrypted multi-batch scope originals restore exact Unicode input, full corpus and pinned profile without Exam or reservations',async()=>{
     const f=await setup(true);assert.ok(Buffer.byteLength(JSON.stringify(f.input.original))>786432);assert.ok(f.described.manifest.batches.length>1);
     assert.equal((await f.make().put(f.input)).outcome,'stored');

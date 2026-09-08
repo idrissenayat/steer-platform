@@ -239,7 +239,10 @@ async function createRecordedScopeCodec(options: ScopeOptions) {
 export async function createRecordedScopeMastraVerifier(options: ScopeOptions) {
   try {
     const { codec } = await createRecordedScopeCodec(options);
-    return Object.freeze({ verify: (batchId: unknown, request: RecordedRequest, response: RecordedResponse<RecordedScopeResult>) =>
+    return Object.freeze({ verifyRequest: (batchId: unknown, observation: RecordedRequest) => {
+      try { const {role,request}=codec.requestFor('scope-reviewer',batchId); codec.verifyRequest(role,request,observation); }
+      catch { throw unavailable(); }
+    }, verify: (batchId: unknown, request: RecordedRequest, response: RecordedResponse<RecordedScopeResult>) =>
       codec.verify('scope-reviewer', batchId, request, response) });
   } catch { throw unavailable(); }
 }

@@ -118,7 +118,8 @@ export async function testDevelopmentWorkflow(setup: () => Promise<DevelopmentWo
       const t = await fresh(); let calls = 0;
       await runWorker(t, async () => { calls++; return response({ ...t.f.output, questions: ['Please clarify the intended users.'], brief: null, spec: null }); });
       const handle = await startIntentDevelopment(env.client, t.queue, t.f.target), result = await handle.result();
-      assert.equal(result.outcome, 'needs-clarification'); assert.equal(result.role, 'architect'); assert.ok(result.resultRef);
+      assert.equal(result.outcome, 'needs-clarification', JSON.stringify({ outcome: result.outcome, calls, observations: await t.f.count() }));
+      assert.equal(result.role, 'architect'); assert.ok(result.resultRef);
       assert.equal(calls, 1); assert.equal(await t.f.count(), 2); assertPrivateHistory(await handle.fetchHistory()); await stop();
     });
     await check('Temporal preserves a newer human edit and stops a superseded Architect result before Test Agent dispatch', async () => {

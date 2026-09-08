@@ -247,6 +247,21 @@ export const scopeReviewOriginals = steerDrafts.table('scope_review_originals', 
 ]).enableRLS();
 
 // Private immutable adapter observations; metadata is not proof of provider authorship.
+export const scopeReviewObservations = steerDrafts.table('scope_review_observations', {
+  organizationId:text('organization_id').notNull(),subject:text('subject').notNull(),productId:text('product_id').notNull(),
+  reviewId:uuid('review_id').notNull(),batchId:text('batch_id').notNull(),stage:text('stage').notNull(),
+  draftId:uuid('draft_id').notNull(),draftRevision:bigint('draft_revision',{mode:'number'}).notNull(),
+  payloadDigest:text('payload_digest').notNull(),record:jsonb('record').notNull(),encryptedValue:jsonb('encrypted_value').notNull(),
+},t=>[primaryKey({columns:[t.organizationId,t.reviewId,t.batchId,t.stage]}),
+  foreignKey({name:'scope_observation_batch',columns:[t.organizationId,t.reviewId,t.batchId],foreignColumns:[scopeReviewBatches.organizationId,scopeReviewBatches.reviewId,scopeReviewBatches.batchId]}),
+  foreignKey({name:'scope_observation_original',columns:[t.organizationId,t.reviewId],foreignColumns:[scopeReviewOriginals.organizationId,scopeReviewOriginals.reviewId]}),
+  foreignKey({name:'scope_observation_source',columns:[t.organizationId,t.draftId,t.draftRevision],foreignColumns:[draftRevisions.organizationId,draftRevisions.draftId,draftRevisions.revision]}),
+  check('scope_observation_bounds',sql`${t.batchId} ~ '^[a-f0-9]{64}$' AND ${t.stage} IN ('request','response') AND ${t.payloadDigest} ~ '^[a-f0-9]{64}$' AND octet_length(${t.record}::text) <= 8000 AND octet_length(${t.encryptedValue}::text) <= 1050000`),
+  pgPolicy('scope_observation_owner',{for:'all',using:sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}`,
+    withCheck:sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}`}),
+]).enableRLS();
+
+// Private immutable adapter observations; metadata is not proof of provider authorship.
 export const developmentObservations = steerDrafts.table('development_observations', {
   organizationId: text('organization_id').notNull(), subject: text('subject').notNull(), productId: text('product_id').notNull(),
   operationId: uuid('operation_id').notNull(), stepId: text('step_id').notNull(), stage: text('stage').notNull(),

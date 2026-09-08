@@ -5053,3 +5053,28 @@ No real records/migration, keys, grants, model spending, runtime Git saves, gate
 deployment, release or signed document changed. D1 remains unsigned/inactive.
 Continue immutable scope observations and verified result recovery, reference-only
 Temporal and real authority binding, then actual UI/save/semantic acceptance.
+
+## Development increment: 0237 — Durable scope request/response observations
+
+The recorded scope SDK now has provider-free request-only verification. A separate
+uninstalled SQL adapter encrypts and acknowledges the exact request and response,
+bound to retained original, source revision, batch, owner/fence and reservation.
+Responses reference the request-storage digest. Current authority and key checks
+still govern readback; lost acknowledgements never authorize another model call.
+
+SQL guards preserve one immutable row per stage and serialize inserts against batch
+state changes without granting draft runtime general execution access. Readback of
+quarantined/known-failed evidence explicitly requires resolution and denies retries,
+execution, semantic quality, clearance and signatures. See
+[0237 evidence](../intent/0237/EVIDENCE.md) for verification and limits.
+
+Successful scope checkpoints, expired observation access, reference-only Temporal,
+real source/lifecycle/records/model authority, semantic evaluation and actual UI/save
+acceptance remain next. No real policy adoption, migration, key, provider call,
+runtime Git write, gate, release, deployment or spending is activated. Protected
+signed documents remain unchanged; keep the existing one-minute loop active.
+
+Final verification: 1,038 regression checks and 241 PostgreSQL integration checks
+passed, alongside types/build/migration/kit/scope checks. One earlier intermittent
+Temporal clarification failure is recorded in the evidence despite a passing final
+non-overlapping run; triage it before live acceptance without relaxing controls.

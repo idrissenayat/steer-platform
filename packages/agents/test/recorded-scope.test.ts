@@ -42,7 +42,10 @@ test('actual Mastra scope requests and raw receipts compose into batch coverage 
   try {
     globalThis.fetch = async () => { throw new Error('Verifier cannot use network'); };
     const verifier = await createRecordedScopeMastraVerifier({ scope: f.scope, evidence: f.evidence, profile: f.options.profile });
-    assert.deepEqual(Object.keys(verifier), ['verify']);
+    assert.deepEqual(Object.keys(verifier), ['verifyRequest','verify']);
+    for(const o of observations) assert.equal(verifier.verifyRequest(o.batchId,o.request),undefined);
+    assert.throws(()=>verifier.verifyRequest(observations[1]!.batchId,observations[0]!.request));
+    assert.throws(()=>verifier.verifyRequest(observations[0]!.batchId,{...observations[0]!.request,requestBody:'{}'}));
     for (const o of observations) assert.deepEqual(verifier.verify(o.batchId, o.request, o.response).result, o.response.result);
     assert.throws(() => verifier.verify(observations[1]!.batchId, observations[0]!.request, observations[0]!.response));
     const o = observations[0]!;
@@ -50,8 +53,10 @@ test('actual Mastra scope requests and raw receipts compose into batch coverage 
     assert.throws(() => verifier.verify(o.batchId, o.request, { ...o.response, result: { ...o.response.result, planDigest: 'f'.repeat(64) } }));
     assert.throws(() => verifier.verify(o.batchId, o.request, { ...o.response, usage: { ...o.response.usage, totalTokens: 61 } }));
     const changed = await createRecordedScopeMastraVerifier({ scope: f.scope, evidence: { ...f.evidence, permissionsRevision: 'new-permissions' }, profile: f.options.profile });
+    assert.throws(() => changed.verifyRequest(o.batchId,o.request));
     assert.throws(() => changed.verify(o.batchId, o.request, o.response));
     const changedModels = await createRecordedScopeMastraVerifier({ scope: f.scope, evidence: f.evidence, profile: { ...f.options.profile, allowedResponseModels: ['synthetic-model', 'another-model'] } });
+    assert.throws(() => changedModels.verifyRequest(o.batchId,o.request));
     assert.throws(() => changedModels.verify(o.batchId, o.request, o.response));
   } finally { globalThis.fetch = oldFetch; }
 });

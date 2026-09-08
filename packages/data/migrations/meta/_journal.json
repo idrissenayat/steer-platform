@@ -176,6 +176,20 @@
       "when": 1788884454289,
       "tag": "0024_scope_original_isolation",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1788885306850,
+      "tag": "0025_scope_observations",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1788885306851,
+      "tag": "0026_scope_observation_isolation",
+      "breakpoints": true
     }
   ]
 }

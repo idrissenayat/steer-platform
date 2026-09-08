@@ -1,6 +1,6 @@
 # STEER platform implementation
 
-## Current checkpoint — 0236
+## Current checkpoint — 0237
 
 Use [the intent journey plan](INTENT-JOURNEY-PLAN.md) and
 [the delivery ledger](PHASE-1-DELIVERY.md) for current status; the implementation
@@ -17,8 +17,12 @@ responses. Distinct durable scope identity, batch ownership and shared-cap scope
 reservations now follow in 0235. Scope cost terms default inactive and cannot expand
 the existing total model cap. Exact encrypted scope originals now support immutable
 capture and historical recovery (0236), including bounded multi-part corpora and
-current source/key/lifecycle checks. Scope observations/results, verified success,
-Temporal and live authority remain unconnected. See [0236 evidence](../intent/0236/EVIDENCE.md).
+current source/key/lifecycle checks. Immutable encrypted scope request/response
+observations now add exact SDK verification and uncertain-state readback (0237).
+SQL insert-time batch locking rejects stale dispatch state. Recovered records are
+not retry permission, semantic quality or successful checkpoints. Success, expired
+observation access, Temporal and live authority remain unconnected. See
+[0237 evidence](../intent/0237/EVIDENCE.md).
 
 These are tested development capabilities, not live end-to-end acceptance. D1
 records activation, real source/lifecycle verifier binding, large-corpus contextual
