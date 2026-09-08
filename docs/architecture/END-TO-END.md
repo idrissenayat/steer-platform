@@ -1,6 +1,6 @@
 # STEER: end-to-end process, workflow and architecture
 
-Design review package · Revision 2 · 2026-09-07 · Implementation snapshot: `0f4ee265a51896fbbddaa23063c9933aa4bfba8b`
+Design review package · Revision 2 · 2026-09-07 · Original implementation snapshot: `0f4ee265a51896fbbddaa23063c9933aa4bfba8b`; contract/editor checkpoint: [0205](../../intent/0205/EVIDENCE.md).
 
 Start here to understand **what happens, when it happens, who owns it, and what
 must be recorded before the next step**. These are target flows, not a claim that
@@ -260,7 +260,8 @@ them complete or add Redis, another vector database, or a new agent framework.
 
 ## 5. What is actually ready
 
-This is a code/document audit at the snapshot above, not a new live acceptance run.
+This is a code/document audit with the 0205 contract/editor checkpoint, not a new
+live acceptance run.
 
 | Journey capability | Verified implementation boundary | Still needed |
 | --- | --- | --- |
@@ -269,14 +270,15 @@ This is a code/document audit at the snapshot above, not a new live acceptance r
 | Human direction | Explicit proposal, fresh recheck, server consumption, [0201](../../intent/0201/EVIDENCE.md)–[0202](../../intent/0202/EVIDENCE.md) | Durable record and save-time consumption |
 | Brief/Spec/Exam generation | Separate Architect/Test Agent contexts tested with synthetic responses, [0198](../../intent/0198/EVIDENCE.md), [0202](../../intent/0202/EVIDENCE.md) | Approved model budget, runtime composition, content/eval acceptance |
 | Cost reservations | Actual disposable-Postgres adapter tests, [0203](../../intent/0203/EVIDENCE.md) | Approved provisioning, pricing/token bounds, live binding and recovery controls |
-| Bundle correction | All three editable copies plus originals, [0204](../../intent/0204/EVIDENCE.md) | Durable versions, restore and safe regeneration; current edits are memory-only |
-| Git save and reopen | Brief-only infrastructure and isolated integration paths | Whole-bundle/protected-Exam publication, real authority, concurrency and live readback |
+| Bundle correction | Editable copies/originals and explicit cumulative review invalidation, [0204](../../intent/0204/EVIDENCE.md)–[0205](../../intent/0205/EVIDENCE.md) | Final semantic review, durable versions, restore and safe regeneration; current edits are memory-only |
+| Git save and reopen | Brief-only infrastructure and inert candidate/amendment file plans, [0205](../../intent/0205/EVIDENCE.md) | Whole-bundle writer/discovery/reopen adapters, real authority, concurrency and live readback |
 | Gate waits and projection | Temporal/reconciliation components and scoped integration evidence | Complete current-source authority and live journey; watch completion is not approval |
 | Full delivery loop | Framework, policy and architecture contracts | Remaining Phase 1 exam and pilot; Phase 2/3 execution automation is not completed here |
 
 ## 6. Build order and design review exit
 
-1. Implement pure contracts and non-billable negative tests against the
+1. First pure-contract layer implemented in 0205; extend it with integrated
+   non-billable negative tests against the
    [revision-2 correction record](REVIEW-FIXES.md): final-scope invalidation,
    contextual evidence, unique step ownership and fixed publication manifests.
 2. Build disabled adapters against those contracts. Before real draft persistence,

@@ -14,6 +14,21 @@ The technology baseline is unchanged; no new framework/provider is selected.
 | R4 — Durable drafts contradict the accepted memory-only policy | [Exact proposed records amendment](DRAFT-RECORDS-AMENDMENT.md) states the actual conflict, finite classes/clocks, ownership, encryption, backup/hold treatment and adoption sequence. | Qualified exact-revision approval and demonstrated controls remain required before activation. No original signed policy is overwritten or treated as implicitly amended. |
 | R5 — Candidate paths and canonical Exam protection were unresolved | [Publication/discovery contract](WORKFLOW-CONTRACT.md#candidate-publication-discovery-and-promotion) fixes bundle/pointer/receipt paths, new-vs-amendment writes, catalog resolution, exact reopen and independent promotion. | Atomic new candidate, amendment discovery, missing/malformed pointers and forbidden canonical Exam writes must be tested together. Existing readers/writers are not relabeled compatible. |
 
+## First implementation checkpoint — 0205
+
+The pure-contract/test layer now includes exact edited-scope and save bindings,
+whole-document verified evidence with incomplete coverage states, fenced step
+transition planning and inert candidate/amendment file plans. Editor invalidation
+is wired into the actual conversation component; prior source review is historical
+once documents exist. See [0205 evidence](../../intent/0205/EVIDENCE.md).
+
+This is partial implementation of R1/R2/R3/R5, not closure of their integrated
+acceptance. In particular, current lexical retrieval is unchanged, no semantic
+model quality is proven, step plans do not commit database transactions, candidate
+plans do not write Git, and catalog/reopen adapters are still missing. R4 remains
+an unsigned policy proposal. The Spec-edit invalidation row explicitly includes
+Spec conformance because that review must bind the exact selected Spec bytes.
+
 ## Implementation order after this correction
 
 1. Pure contracts and synthetic negative tests for final-scope invalidation,
@@ -28,8 +43,9 @@ The technology baseline is unchanged; no new framework/provider is selected.
 
 The [current journey plan](../INTENT-JOURNEY-PLAN.md) uses this sequence. This is
 not an independent Critic report, Test Agent signature or closure of protected
-Gate 2 findings. No production code, service, grant, secret or paid model call
-changes with this documentation correction.
+Gate 2 findings. The original documentation correction changed no production code,
+service, grant, secret or paid model call; the subsequent 0205 implementation is
+separately recorded above.
 
 ## Verification of this revision
 

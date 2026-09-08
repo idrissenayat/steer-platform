@@ -12,9 +12,10 @@ and [workflow contract](architecture/WORKFLOW-CONTRACT.md) to connect I1–I6.
 They distinguish candidate save, human pull, independent Exam and gate decisions.
 
 Revision 2 addresses the five review findings in [the correction record](architecture/REVIEW-FIXES.md).
-The next safe work is pure contracts and non-billable negative tests for final-edited
-scope invalidation, contextual semantic evidence, operation/step ownership and
-candidate manifests, followed by disabled adapters. D3's publication/discovery layout
+0205 implements the first pure-contract/test layer for final-edited scope
+invalidation, contextual evidence, step ownership and candidate manifests, with
+editor invalidation wired in. The next safe work is disabled adapters and integrated
+tests against these contracts. D3's publication/discovery layout
 is now specified; it is not a grant to write or promote canonical Exams.
 
 D1's [exact records amendment](architecture/DRAFT-RECORDS-AMENDMENT.md) remains
@@ -39,8 +40,8 @@ No separate local preview, synthetic success, silent merging or lost work counts
 | I1 Existing-scope review | Search permitted existing intents and their Brief/Spec scope before drafting; show exact sources, revision, matching passages, coverage and uncertainty. Distinguish already covered, partially covered, related, and no match found. Incomplete or unavailable search must never be presented as a new intent. | Candidate query and actual conversation UI wired (0199–0200); live read configuration, semantic judgments and intake orchestration pending |
 | I2 Explicit disposition | Open existing, propose adding missing scope, or create a distinct linked intent with a reason. Keep original text. No automatic merge, discard, update or item creation. Record the human choice against reviewed source revisions; changed scope invalidates it. | UI proposal/recheck and server drafting consumption implemented (0201–0202); save consumption, durable recording and live acceptance pending |
 | I3 Reliable drafting | Activate the configured Mastra/LiteLLM path with an approved capped budget and durable reservation ledger. Clarify conversationally, then produce source-faithful canonical Brief/Spec drafts and a fresh-context Test Agent Exam. Reject refusals, invalid outputs and invented facts; preserve unknowns explicitly. | Drafting composition (0198/0202) and durable reservation adapter (0203) tested; live binding/approval, cost bounds and content/eval acceptance pending |
-| I4 Review without loss | Show and edit all three documents, connect corrections to the source, expose conflicts/assumptions, preserve durable draft state across navigation, expiry, refresh and restart within the approved records policy. Never silently erase user work. Support retry without duplicate paid runs. | Three-document editing/original comparison implemented (0204); durable versioned storage, restoration and full lossless acceptance pending |
-| I5 Save and reopen | Recheck scope and duplicate-review revisions immediately before an atomic, idempotent bundle write. Concurrent new intents/changes cause re-review, not two creations. Use actual granted GitHub paths and expected-head checks; uncertain saves require status/readback. Reopen exact saved versions in the application. | Existing Brief-only infrastructure; bundle and live authority incomplete |
+| I4 Review without loss | Show and edit all three documents, connect corrections to the source, expose conflicts/assumptions, preserve durable draft state across navigation, expiry, refresh and restart within the approved records policy. Never silently erase user work. Support retry without duplicate paid runs. | Editing/original comparison and explicit review invalidation implemented (0204–0205); durable versioned storage, restoration and full lossless acceptance pending |
+| I5 Save and reopen | Recheck scope and duplicate-review revisions immediately before an atomic, idempotent bundle write. Concurrent new intents/changes cause re-review, not two creations. Use actual granted GitHub paths and expected-head checks; uncertain saves require status/readback. Reopen exact saved versions in the application. | Brief-only infrastructure plus tested inert candidate/amendment planner (0205); bundle adapter, discovery/reopen and live authority incomplete |
 | I6 Human acceptance | In the real signed-in UI demonstrate new, exact duplicate, paraphrased duplicate, partial overlap, related-but-distinct, empty/failed/stale search, corrections, permission loss, cost exhaustion, uncertain save, concurrent creation, refresh/reopen and keyboard/narrow-screen behavior. Record real source and saved commit. | Pending |
 
 I1's lexical retrieval is only a candidate finder, never a semantic verdict.
@@ -104,3 +105,27 @@ semantic assessment and save/reopen remain open.
 per-document corrections while switching views. It remains explicitly in-memory;
 durable authorized draft storage/restoration is the next I4 implementation task,
 subject to the end-to-end design checkpoint above.
+
+0205 implements exact scope fingerprints/save comparisons and actual editor review
+invalidation; bounded full-document evidence/citation validation; pure fenced step
+transition planning; and candidate/amendment file plans that exclude canonical
+Spec/Exam writes. [Evidence](../intent/0205/EVIDENCE.md) distinguishes each tested
+contract from integrated runtime behavior. All I1–I6 acceptance remains open.
+
+Next unblocked implementation sequence:
+
+1. Add a disabled manifest reader/catalog and exact historical bundle reopen
+   adapter, testing malformed/missing pointers, same-commit verification and
+   canonical-versus-proposed scope. Then add the disabled CAS bundle writer with
+   current scope/consent checks and original-operation receipt readback.
+2. Implement operation uniqueness, atomic step claim/reservation/CAS and checkpoint
+   adapters against a disposable database; connect Temporal with explicit no-retry
+   boundaries. Pure transition plans alone do not stop duplicate paid calls.
+3. Compose authorized inventory reads with the evidence envelope and a pinned,
+   budgeted semantic role; add contextual batching/hybrid retrieval and evals.
+   The initial full-document envelope stops at 32 sources, 32,000 bytes per source
+   and 128,000 included bytes, marking omissions incomplete rather than excerpting.
+4. Integrate draft revisions and final review/save UI behind those services. Real
+   draft persistence still needs D1 adoption; live model usage and runtime Git
+   writing still need their existing scoped approvals. Do not block steps 1–3's
+   synthetic/disabled implementation while awaiting activation decisions.

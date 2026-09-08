@@ -6,7 +6,9 @@ names, not claims of existing database tables, API tools or deployed workers.
 Existing signed policy wins until an explicit amendment is recorded.
 
 Revision 2 specifies the five review corrections; see [the correction record](REVIEW-FIXES.md).
-These are design contracts, not implemented runtime guarantees. The exact
+Increment 0205 implements the first pure-contract/test layer and editor invalidation;
+see [implementation evidence](../../intent/0205/EVIDENCE.md) for its bounded scope.
+The integrated behaviors below are not implemented runtime guarantees. The exact
 [draft-records amendment](DRAFT-RECORDS-AMENDMENT.md) remains unsigned and inactive.
 
 ## 1. Four different acknowledgements
@@ -65,7 +67,7 @@ inputs: generated or edited scope must never inherit clearance from raw intent.
 | --- | --- | --- |
 | Source or clarification | Scope assessment, human direction, Spec/Exam applicability and save consent | Prior text, drafts and review history |
 | Brief | Scope assessment, direction, Spec conformance, Exam applicability and save consent | Human Spec/Exam edits; reconciliation proposes changes, never overwrites them |
-| Spec | Scope assessment, direction, Exam applicability and save consent | Brief and every original/edit revision |
+| Spec | Scope assessment, direction, Spec conformance, Exam applicability and save consent | Brief and every original/edit revision |
 | Exam | Independent Exam review and save consent | Brief/Spec scope review if their bytes and source bindings are unchanged |
 | Catalog/head, product/home, current permissions or retrieval configuration | Relevant source review and direction; reauthorize before every exposure/effect | Historical receipts, never promoted to current authority |
 | A role's prompt/model configuration | That role's current assessment/review applicability and downstream dependencies | Previously accepted bytes, with their original provenance |

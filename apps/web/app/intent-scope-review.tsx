@@ -6,10 +6,11 @@ import { bindIntentDisposition, createIntentScopeReader } from './intent-scope-r
 import { briefFragment } from './brief-location';
 
 /** Read-only comparison inside the real conversation. Never a duplicate verdict or save grant. */
-export default function IntentScopeReview({ organizationId, repository, intent, expiresAt, onProposalChange, locked = false, reviewVersion = 0 }: {
+export default function IntentScopeReview({ organizationId, repository, intent, expiresAt, onProposalChange, locked = false, reviewVersion = 0, historical = false }: {
   organizationId: string; repository: string | null; intent: string; expiresAt: string;
   locked?: boolean;
   reviewVersion?: number;
+  historical?: boolean;
   onProposalChange?: (value: IntentDispositionProposal | null) => void;
 }) {
   const owner = useRef<ReturnType<typeof createIntentScopeReader> | null>(null);
@@ -54,8 +55,8 @@ export default function IntentScopeReview({ organizationId, repository, intent, 
     if (target) void checkScope({ action, reason, target: { path: target.briefPath, revision: target.revision, contentDigest: target.briefContentDigest } });
   }
   return <section className="intent-scope-review" aria-labelledby="scope-review-title">
-    <h3 id="scope-review-title">Does this work already exist?</h3>
-    <p>Check permitted Briefs and Specs for matching scope before starting another intent.</p>
+    <h3 id="scope-review-title">{historical ? 'Earlier source check' : 'Does this work already exist?'}</h3>
+    <p>{historical ? 'These sources and your earlier direction are retained for reference. They do not review or confirm the generated or edited documents.' : 'Check permitted Briefs and Specs for matching scope before starting another intent.'}</p>
     {!repository && <p className="access-note">Repository search is not configured for this workspace yet.</p>}
     {expired ? <p role="status">Scope results cleared. Refresh access to check again.</p> : <>
       <button type="button" className="access-secondary" disabled={locked || !repository || !intent.trim() || busy} onClick={() => { void checkScope(); }}>
@@ -102,7 +103,9 @@ export default function IntentScopeReview({ organizationId, repository, intent, 
             <button type="button" className="access-secondary" disabled={!reason.trim() || (action !== 'new-distinct' && !review.candidates.some(candidate => candidate.briefPath === targetPath))}
               onClick={propose}>Recheck scope and confirm direction</button></>}
         </fieldset>
-        {proposal && <p role="status">Direction checked against the reviewed source revisions. The agent will use your direction and explanation after checking these sources again. Nothing is saved; semantic duplicate review is still needed.</p>}
+        {proposal && <p role="status">{historical
+          ? 'Earlier direction retained for reference only. Review the final Brief and Spec scope and confirm your direction again before saving.'
+          : 'Direction checked against the reviewed source revisions. The agent will use your direction and explanation after checking these sources again. Nothing is saved; semantic duplicate review is still needed.'}</p>}
       </div>}
     </>}
   </section>;

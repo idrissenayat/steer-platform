@@ -12,7 +12,7 @@ test('real conversation component sends free text, follows up and displays three
   const require = createRequire(import.meta.url);
   const compile = async (name, replacements) => {
     let code = (await transformWithOxc(readFileSync(new URL(`../app/${name}.tsx`, import.meta.url), 'utf8'), `/synthetic/${name}.tsx`, { jsx: { runtime: 'automatic' } })).code;
-    for (const specifier of ['react', 'react/jsx-runtime', 'react-markdown', '@steer/tool-registry/agent-contracts']) for (const quote of ['"', "'"]) code = code.replaceAll(`${quote}${specifier}${quote}`, JSON.stringify(pathToFileURL(require.resolve(specifier)).href));
+    for (const specifier of ['react', 'react/jsx-runtime', 'react-markdown', '@steer/tool-registry/agent-contracts', '@steer/tool-registry/intent-revision-contracts']) for (const quote of ['"', "'"]) code = code.replaceAll(`${quote}${specifier}${quote}`, JSON.stringify(pathToFileURL(require.resolve(specifier)).href));
     for (const [specifier, target] of Object.entries(replacements)) for (const quote of ['"', "'"]) code = code.replaceAll(`${quote}${specifier}${quote}`, JSON.stringify(target));
     return `data:text/javascript;base64,${Buffer.from(code).toString('base64')}`;
   };
@@ -81,12 +81,23 @@ test('real conversation component sends free text, follows up and displays three
       await act(async () => button.click()); assert.equal(button.getAttribute('aria-pressed'), 'true');
     }
     assert.match(document.body.textContent, /NOT RUN/); assert.match(document.body.textContent, /not saved to GitHub/);
+    assert.match(document.body.textContent, /The earlier check covered your message, not these documents/);
+    assert.equal(document.querySelector('[data-intent-review-state]').getAttribute('data-intent-review-state'), 'needs-scope-review');
+    assert.match(document.body.textContent, /Draft revision 1/);
     assert.equal(document.querySelector('script, img'), null); assert.equal(window.localStorage.length, 0);
     const button = async label => act(async () => [...document.querySelectorAll('button')].find(button => button.textContent === label).click());
     assert.equal(document.getElementById('agent-intent').disabled, true);
     await button('Edit draft');
     await set('intent-document-editor', '# Exam\nNOT RUN\nHuman correction — فارسی <script>unsafe()</script>');
+    assert.match(document.body.textContent, /Draft revision 2/);
+    assert.match(document.body.textContent, /Independent Exam review required/);
+    assert.match(document.body.textContent, /Earlier direction retained for reference only/);
     await button('BRIEF.md'); await set('intent-document-editor', '# Brief\nEdited patient booking outcome');
+    assert.doesNotMatch(document.body.textContent, /Direction checked against/);
+    await set('intent-document-editor', '# Brief\nBooking for patients'); // Undo cannot resurrect the old confirmation.
+    assert.doesNotMatch(document.body.textContent, /Direction checked against/);
+    assert.match(document.body.textContent, /Scope review needed/);
+    await set('intent-document-editor', '# Brief\nEdited patient booking outcome');
     await button('SPEC.md'); await set('intent-document-editor', '');
     assert.match(document.body.textContent, /This draft is empty/);
     await set('intent-document-editor', '# Spec\nAC-01: A patient can book an accessible slot.');
@@ -97,7 +108,7 @@ test('real conversation component sends free text, follows up and displays three
     await button('BRIEF.md'); assert.match(document.body.textContent, /Edited patient booking outcome/);
     await button('View generated original'); assert.match(document.body.textContent, /Booking for patients/);
     assert.doesNotMatch(document.body.textContent, /Edited patient booking outcome/);
-    assert.equal(requests.length, 3); assert.equal(window.localStorage.length, 0);
+    assert.equal(requests.length, 3); assert.equal(scopeRequests.length, 6); assert.equal(window.localStorage.length, 0);
     await act(async () => root.render(createElement(Component, { ...props, subject: 'another-human' })));
     assert.equal(document.querySelector('.intent-documents'), null); assert.equal(document.getElementById('agent-intent').value, '');
     assert.doesNotMatch(document.body.textContent, /Human correction|Booking for patients/);

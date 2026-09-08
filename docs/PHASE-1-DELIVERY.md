@@ -4252,3 +4252,28 @@ artifacts), workflow token-scope audit and whitespace checks pass. Hashes remain
 doctrine, live service, secret, grant, budget or formal gate changed. The known
 lexical retrieval counterexamples remain prospective runtime acceptance cases,
 not newly passing tests or evidence of semantic quality.
+
+## Development increment: 0205 — Revision-2 workflow foundations
+
+Implemented portable exact-byte scope/save bindings and cumulative review
+invalidation, with revision state and historical-source labels in the actual
+conversation editor. Generated scope needs a new review; corrections and undo
+cannot silently restore obsolete direction/consent. Originals and prior explanations
+remain available under the unchanged memory-only limitations.
+
+Added bounded whole-document evidence/citation validation; pure fenced role-step
+transition planning; and inert candidate/revision/amendment write plans with exact
+manifests, pointers and receipts that exclude canonical Spec/Exam and gate paths.
+These are tested foundations, not live semantic review, database transaction
+ownership, Temporal integration or Git saving. The candidate planner supports only
+unreviewed/stale review states. [0205 evidence](../intent/0205/EVIDENCE.md) states
+each implementation boundary and its remaining adapter acceptance.
+
+Domain/registry suites 192/192 and web suite 100/100 pass, as do typechecks and the
+Next production build. Owned web processes were restarted; verified local HTTPS
+and port-3000 requests return 200 (availability only). Kit (95 artifacts), workflow
+security and whitespace checks pass; signed architecture, protected Exam and
+accepted records-policy hashes are unchanged. No live paid call, real draft
+persistence, database migration, credential, grant or Git-writing capability was
+activated. Continue with disabled manifest catalog/reopen/writer and durable step
+adapters in the current journey plan; I1–I6 are not complete.

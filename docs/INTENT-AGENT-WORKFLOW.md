@@ -11,8 +11,9 @@ and protected-publication decisions still needed before those integration paths.
 This document below describes the current implementation, not those proposed paths.
 The [revision 2 corrections](architecture/REVIEW-FIXES.md) define the target's
 final-edited-scope review, contextual retrieval, durable per-step ownership and
-manifest-based publication. The current synchronous two-role implementation does
-not yet implement those contracts; its tested limits below still apply.
+manifest-based publication. Increment 0205 implements pure contracts and negative
+tests plus editor invalidation, not durable worker, semantic assessment or bundle
+save integration. The current synchronous two-role limits below still apply.
 
 ## Human journey
 
@@ -37,6 +38,23 @@ without resetting edits. Empty drafts show a warning. Human corrections are not
 independent Test Agent acceptance; no review or model call is automatically rerun.
 Original source/direction are locked while reviewing a bundle to prevent accidental
 replacement. Durable versioned drafts and safe regeneration remain pending.
+
+0205 labels the initial source check as historical once a bundle is generated:
+generated Brief/Spec scope needs its own review. Every local correction advances a
+draft revision; Brief/Spec changes invalidate scope/direction, Spec conformance,
+Exam applicability and save consent. Exam-only changes invalidate Exam review and
+save consent without pretending the Brief/Spec changed. Undo does not restore old
+confirmation. The editor explicitly says final-scope review is not connected yet;
+typing starts no model, search or save call. Earlier source evidence and reasons
+remain visible as historical reference, and generated originals remain untouched.
+
+The non-billable contracts in [0205 evidence](../intent/0205/EVIDENCE.md) prepare exact
+scope/save bindings, bounded whole-document evidence, step transition plans and
+candidate file manifests. These do not change the current lexical query, supply
+semantic judgments, persist an operation or perform a Git write. An evidence
+validator can check citations and declared coverage, not whether a model understood
+the source. Only unreviewed/stale Spec and Exam states are supported by the current
+candidate planner; independent publication/promotion remains a separate action.
 
 The current delivery is a bounded request/response workflow, not streaming, voice,
 a durable conversation, Temporal orchestration or a completed Gate 2 workflow.
