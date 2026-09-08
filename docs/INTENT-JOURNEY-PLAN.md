@@ -37,7 +37,7 @@ No separate local preview, synthetic success, silent merging or lost work counts
 
 | Step | Deliverable and acceptance | Status |
 | --- | --- | --- |
-| I1 Existing-scope review | Search permitted existing intents and their Brief/Spec scope before drafting; show exact sources, revision, matching passages, coverage and uncertainty. Distinguish already covered, partially covered, related, and no match found. Incomplete or unavailable search must never be presented as a new intent. | Candidate query and actual conversation UI wired (0199–0200); live read configuration, semantic judgments and intake orchestration pending |
+| I1 Existing-scope review | Search permitted existing intents and their Brief/Spec scope before drafting; show exact sources, revision, matching passages, coverage and uncertainty. Distinguish already covered, partially covered, related, and no match found. Incomplete or unavailable search must never be presented as a new intent. | Lexical query/UI wired (0199–0200) and disabled same-commit source collector tested (0207); lifecycle/full-corpus assembly, live configuration, semantic judgments and orchestration pending |
 | I2 Explicit disposition | Open existing, propose adding missing scope, or create a distinct linked intent with a reason. Keep original text. No automatic merge, discard, update or item creation. Record the human choice against reviewed source revisions; changed scope invalidates it. | UI proposal/recheck and server drafting consumption implemented (0201–0202); save consumption, durable recording and live acceptance pending |
 | I3 Reliable drafting | Activate the configured Mastra/LiteLLM path with an approved capped budget and durable reservation ledger. Clarify conversationally, then produce source-faithful canonical Brief/Spec drafts and a fresh-context Test Agent Exam. Reject refusals, invalid outputs and invented facts; preserve unknowns explicitly. | Drafting composition (0198/0202) and durable reservation adapter (0203) tested; live binding/approval, cost bounds and content/eval acceptance pending |
 | I4 Review without loss | Show and edit all three documents, connect corrections to the source, expose conflicts/assumptions, preserve durable draft state across navigation, expiry, refresh and restart within the approved records policy. Never silently erase user work. Support retry without duplicate paid runs. | Editing/original comparison and explicit review invalidation implemented (0204–0205); durable versioned storage, restoration and full lossless acceptance pending |
@@ -114,11 +114,12 @@ contract from integrated runtime behavior. All I1–I6 acceptance remains open.
 
 Next unblocked implementation sequence:
 
-1. The disabled exact bundle/pointer reader is implemented and tested in 0206.
-   Complete catalog/inventory integration, including canonical-versus-proposed
-   lifecycle selection, malformed/missing pointer coverage and same-commit source
-   enumeration. Then add the disabled CAS bundle writer with
-   current scope/consent checks and original-operation receipt readback.
+1. Disabled exact bundle/pointer reading and configured-item source collection are
+   implemented in 0206–0207. Next implement the disabled CAS bundle writer with
+   current scope/consent checks and original-operation receipt readback. Verified
+   canonical-versus-proposed lifecycle selection and full permitted-corpus assembly
+   must be integrated before semantic clearance or actual save authority; filenames
+   and configured-item coverage do not supply either.
 2. Implement operation uniqueness, atomic step claim/reservation/CAS and checkpoint
    adapters against a disposable database; connect Temporal with explicit no-retry
    boundaries. Pure transition plans alone do not stop duplicate paid calls.
@@ -135,3 +136,10 @@ Next unblocked implementation sequence:
 manifest schemas; see [evidence](../intent/0206/EVIDENCE.md). Native-Git/synthetic-provider
 checks are not a real user save/reopen demonstration. Catalog enumeration, current
 lifecycle selection, the writer and actual UI/tool bindings remain incomplete.
+
+0207 adds same-commit directory inventory and a disabled source collector that
+separates root, candidate and amendment scopes, follows current pointers only and
+accounts for missing/corrupt sources and limits. [Evidence](../intent/0207/EVIDENCE.md)
+records native-Git/synthetic-provider checks. Lifecycle selection deliberately
+remains unverified; this is not a full authoritative catalog, semantic duplicate
+assessment or an enabled UI workflow.

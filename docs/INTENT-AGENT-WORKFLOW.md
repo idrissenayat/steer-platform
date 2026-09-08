@@ -62,6 +62,12 @@ corrupt or missing sources; [evidence](../intent/0206/EVIDENCE.md) uses native G
 with synthetic provider responses. This does not add a save/reopen control to the
 current UI or configure access to real candidate bundles.
 
+0207 adds an uninstalled same-commit source collector for configured item homes.
+It follows current candidate/amendment pointers and exposes root Brief/Spec scope
+separately, with explicit coverage gaps; [evidence](../intent/0207/EVIDENCE.md) does
+not claim verified lifecycle selection or full-corpus coverage. The live lexical
+tool and manual conversation choreography are unchanged.
+
 The current delivery is a bounded request/response workflow, not streaming, voice,
 a durable conversation, Temporal orchestration or a completed Gate 2 workflow.
 The source is limited to 10,000 characters, clarification to 3,000, and the encoded

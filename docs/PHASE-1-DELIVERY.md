@@ -4297,3 +4297,25 @@ in the application and this does not provide a UI save/reopen journey. Catalog
 enumeration/lifecycle selection, the CAS writer, durable operations and real
 authority/acceptance remain open. No service, credential, database, grant, budget,
 accepted policy or protected/signed source changed.
+
+## Development increment: 0207 — Same-commit scope source collection
+
+Added a bounded directory-inventory primitive and a disabled configured-item scope
+collector. It keeps root Brief/Spec, current candidates and amendments separate,
+does not select historical bundle directories, verifies all consumed blobs against
+one commit/tree inventory and explicitly records missing/corrupt/limited sources.
+It returns Brief/Spec content without Exams and withholds results after access loss.
+Single-flight admission, deadline and logical read bounds prevent unbounded retries.
+
+Lifecycle selection remains explicitly unverified: root files are not asserted
+canonical/adopted, proposals do not override them, and configured-item coverage is
+not the complete authorized product corpus. No semantic/newness authority, API/UI
+wiring or live source grant is introduced. See [0207 evidence](../intent/0207/EVIDENCE.md).
+
+Adapter suite 350/350 and focused collector/reader checks 24/24 pass. Full typecheck
+passes for the prototype and all eight workspace packages after excluding the
+shared Node-only fixture from the browser prototype's root inputs; its actual test
+consumers still typecheck it. Kit/security/whitespace checks pass; protected hashes
+are unchanged. No live service, key, grant, budget, database or private draft changed.
+Next implement the disabled CAS bundle writer/receipt recovery, with verified
+lifecycle selection and full-corpus assembly still required before live authority.

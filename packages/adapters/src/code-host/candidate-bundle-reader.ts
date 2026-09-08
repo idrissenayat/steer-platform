@@ -87,15 +87,19 @@ export function createCandidateBundleReader(reader: ArtifactReader, rawConfigura
         if (manifest[key] !== selected[key]) throw new CandidateBundleReadError();
       }
       const documents = { brief: '', spec: '', exam: '' };
+      const documentSources: Record<string, { path: string; contentDigest: string; blobSha: string }> = {};
       for (const name of ['brief', 'spec', 'exam'] as const) {
         const source = manifest.documents[name];
-        documents[name] = (await read(`${root}/${source.path}`, source.contentDigest)).content;
+        const file = await read(`${root}/${source.path}`, source.contentDigest);
+        documents[name] = file.content;
+        documentSources[name] = { path: file.path, contentDigest: file.contentDigest, blobSha: file.blobSha };
       }
       intentDocumentDraftsSchema.parse(documents);
       if (Object.values(documents).some(content => !content.trim())) throw new CandidateBundleReadError();
       await check();
       return freeze({ kind: 'steer-candidate-bundle-content/v1' as const,
         reference: { ...selected }, manifest, documents, verification: 'exact-commit-bytes' as const,
+        sources: { manifest: { path: manifestFile.path, contentDigest: manifestFile.contentDigest, blobSha: manifestFile.blobSha }, documents: documentSources },
         executionAuthorized: false as const });
     };
     return { read, bundle, check, finish: () => { finished = true; release(); } };
@@ -124,7 +128,7 @@ export function createCandidateBundleReader(reader: ArtifactReader, rawConfigura
           // A candidate pointer cannot hide an out-of-band change to its root Brief.
           if (ref.proposalId === null) await io.read(`items/${ref.itemId}/BRIEF.md`, bundle.manifest.documents.brief.contentDigest);
           await io.check();
-          return freeze({ ...bundle, pointer: { path, contentDigest: file.contentDigest, value: pointer } });
+          return freeze({ ...bundle, pointer: { path, contentDigest: file.contentDigest, blobSha: file.blobSha, value: pointer } });
         } finally { io.finish(); }
       } catch { throw new CandidateBundleReadError(); }
     },

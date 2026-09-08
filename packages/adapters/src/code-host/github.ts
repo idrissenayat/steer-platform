@@ -2,7 +2,7 @@ import { createHash, createPrivateKey } from 'node:crypto';
 import { SignJWT } from 'jose';
 import { z } from 'zod';
 
-const sha = z.string().regex(/^[a-f0-9]{40}$/);
+const sha = z.string().length(40).regex(/^[a-f0-9]{40}$/);
 const bindingSchema = z.strictObject({
   organizationId: z.string().min(1).max(200),
   installationId: z.number().int().positive().safe(), repositoryId: z.number().int().positive().safe(),
@@ -34,6 +34,17 @@ export interface ArtifactInventory {
 export interface RepositoryReader extends ArtifactReader {
   readInventory(selection: ArtifactSelection, revision: string): Promise<ArtifactInventory>;
   readCommit?(revision: string): Promise<CommitSnapshot>;
+}
+export interface DirectoryInventory {
+  organizationId: string;
+  repositoryId: number;
+  revision: string;
+  treeSha: string;
+  root: string;
+  entries: { path: string; objectSha: string; mode: string; type: string }[];
+}
+export interface DirectoryRepositoryReader extends RepositoryReader {
+  readDirectoryInventory(root: string, revision: string): Promise<DirectoryInventory>;
 }
 export interface CommitSnapshot {
   organizationId: string;
@@ -92,7 +103,7 @@ export function createAppJwtSigner(appId: string, privateKeyPem: string, clock =
 
 export function createGitHubReader(rawBinding: GitHubBinding, dependencies: {
   appJwt: () => Promise<string>; fetch?: typeof globalThis.fetch; now?: () => Date;
-}): RepositoryReader {
+}): DirectoryRepositoryReader {
   const parsed = bindingSchema.safeParse(rawBinding);
   if (!parsed.success) throw new CodeHostError();
   const binding = Object.freeze(parsed.data);
@@ -163,6 +174,35 @@ export function createGitHubReader(rawBinding: GitHubBinding, dependencies: {
       }
       entries.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
       return { organizationId: binding.organizationId, repositoryId: binding.repositoryId, revision, treeSha: tree.sha, entries };
+    }),
+    readDirectoryInventory: (root, revision) => safely(async () => {
+      pathSchema.parse(root); sha.parse(revision);
+      const credential = await token();
+      const commit = z.object({ sha, tree: z.object({ sha }) }).parse(await request(`${repoPath}/git/commits/${revision}`, credential));
+      if (commit.sha !== revision) throw new CodeHostError();
+      const tree = z.object({ sha, truncated: z.literal(false), tree: z.array(z.object({
+        path: pathSchema, mode: z.string(), type: z.string(), sha,
+      })).max(10000) }).parse(await request(`${repoPath}/git/trees/${commit.tree.sha}?recursive=1`, credential));
+      if (tree.sha !== commit.tree.sha || new Set(tree.tree.map(entry => entry.path)).size !== tree.tree.length) throw new CodeHostError();
+      const entries: DirectoryInventory['entries'] = [];
+      const byPath = new Map(tree.tree.map(entry => [entry.path, entry]));
+      const rootEntry = byPath.get(root);
+      if (rootEntry && (rootEntry.type !== 'tree' || rootEntry.mode !== '040000')) throw new CodeHostError();
+      for (const entry of tree.tree) {
+        if (!((entry.type === 'tree' && entry.mode === '040000') || (entry.type === 'commit' && entry.mode === '160000')
+          || (entry.type === 'blob' && ['100644', '100755', '120000'].includes(entry.mode)))) throw new CodeHostError();
+        if (entry.path === root || entry.path.startsWith(`${root}/`)) {
+          const parts = entry.path.split('/');
+          for (let index = 1; index < parts.length; index++) {
+            const parent = byPath.get(parts.slice(0, index).join('/'));
+            if (!parent || parent.type !== 'tree' || parent.mode !== '040000') throw new CodeHostError();
+          }
+          entries.push({ path: entry.path, objectSha: entry.sha, mode: entry.mode, type: entry.type });
+        }
+        if (entries.length > 1000) throw new CodeHostError();
+      }
+      entries.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
+      return { organizationId: binding.organizationId, repositoryId: binding.repositoryId, revision, treeSha: tree.sha, root, entries };
     }),
     readArtifact: (path, revision) => safely(async () => {
       pathSchema.parse(path); sha.parse(revision);
