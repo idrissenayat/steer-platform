@@ -10,13 +10,15 @@ import BriefMarkdown from './brief-markdown';
 import IntentScopeReview from './intent-scope-review';
 import IntentDraftPanel from './intent-draft-panel';
 import type { IntentDraftContent } from '@steer/tool-registry/intent-draft-content';
+import type { DevelopmentEditorSource } from './intent-development-editor';
+import type { IntentDevelopmentReadOutput } from '@steer/tool-registry/intent-development-read-contracts';
 
 export default function IntentConversation({ organizationId, subject, expiresAt, enabled, repository = null, draftProductId = null }: {
   organizationId: string; subject: string; expiresAt: string; enabled: boolean; repository?: string | null; draftProductId?: string | null;
 }) {
   const [intent, setIntent] = useState(''); const [clarification, setClarification] = useState('');
   const [restoredClarifications, setRestoredClarifications] = useState<string[]>([]);
-  const [result, setResult] = useState<AgentOutput | null>(null); const [error, setError] = useState('');
+  const [result, setResult] = useState<Pick<AgentOutput, 'message' | 'questions' | 'documents' | 'sourceDigest'> | null>(null); const [error, setError] = useState('');
   const [busy, setBusy] = useState(false); const [expired, setExpired] = useState(false);
   const [disposition, setDisposition] = useState<IntentDispositionProposal | null>(null);
   const [scopeReviewVersion, setScopeReviewVersion] = useState(0);
@@ -26,10 +28,12 @@ export default function IntentConversation({ organizationId, subject, expiresAt,
   const [documentRevision, setDocumentRevision] = useState(1);
   const [documentMode, setDocumentMode] = useState<'preview' | 'edit' | 'original'>('preview');
   const [restoreFocus, setRestoreFocus] = useState(0);
+  const [replyFocus, setReplyFocus] = useState(0);
   const sourceInput = useRef<HTMLTextAreaElement>(null), documentHeading = useRef<HTMLHeadingElement>(null);
   const transport = useRef<ReturnType<typeof createAgentTransport> | null>(null);
   const live = useRef(true); const pending = useRef(false);
   useEffect(() => { if (restoreFocus && live.current) (documentHeading.current ?? sourceInput.current)?.focus(); }, [restoreFocus]);
+  useEffect(() => { if (replyFocus && live.current) document.getElementById('agent-clarification')?.focus(); }, [replyFocus]);
   useEffect(() => {
     live.current = true; let last = Date.now();
     pending.current = false; setBusy(false); setExpired(false);
@@ -50,7 +54,7 @@ export default function IntentConversation({ organizationId, subject, expiresAt,
     return () => { live.current = false; clearInterval(timer); transport.current?.close(); document.removeEventListener('visibilitychange', hide); window.removeEventListener('pagehide', expire); };
   }, [expiresAt, organizationId, subject, repository, draftProductId]);
   async function send() {
-    if (pending.current || !live.current || !enabled || !intent.trim() || !disposition || editedDocuments || restoredClarifications.length) return;
+    if (draftProductId || pending.current || !live.current || !enabled || !intent.trim() || !disposition || editedDocuments || restoredClarifications.length) return;
     const current = transport.current; if (!current) return;
     pending.current = true; setBusy(true); setError('');
     try {
@@ -85,6 +89,22 @@ export default function IntentConversation({ organizationId, subject, expiresAt,
   const draftContent: IntentDraftContent = { originalText: intent,
     clarificationTurns: [...restoredClarifications, ...(clarification ? [clarification] : [])], documents: editedDocuments };
   const canPreserve = Boolean(draftProductId && repository);
+  function acceptDevelopment(source: DevelopmentEditorSource, observation: IntentDevelopmentReadOutput) {
+    if (!live.current || pending.current || JSON.stringify(source.content) !== JSON.stringify(draftContent)
+      || observation.source.draftId !== source.input.draftId || observation.source.revisionDigest !== source.input.revisionDigest) return;
+    const architect = observation.results.find(r => r.result.role === 'architect')?.result;
+    const testAgent = observation.results.find(r => r.result.role === 'test-agent')?.result;
+    if (architect?.role !== 'architect') return;
+    if (observation.status === 'needs-clarification' && architect.output.questions.length) {
+      setResult({ message: architect.output.message, questions: architect.output.questions, documents: null, sourceDigest: observation.inputDigest });
+      setRestoredClarifications(source.content.clarificationTurns); setClarification(''); setReplyFocus(n => n + 1);
+    } else if (observation.status === 'candidates-ready' && architect.output.brief !== null && architect.output.spec !== null && testAgent?.role === 'test-agent') {
+      const documents = { brief: architect.output.brief, spec: architect.output.spec, exam: testAgent.output.exam };
+      setResult({ message: architect.output.message, questions: [], documents, sourceDigest: observation.inputDigest }); setEditedDocuments(documents);
+      setSelected('brief'); setDocumentMode('preview'); setDocumentRevision(1); setRestoreFocus(n => n + 1);
+    } else return;
+    setDisposition(null); setInvalidatedReviews(invalidateIntentReviews(['source'])); setError(''); setScopeReviewVersion(n => n + 1);
+  }
   return <section className="intent-conversation access-card" aria-labelledby="intent-conversation-title">
     <div className="eyebrow">Start with intent</div><h2 id="intent-conversation-title">What would you like to change?</h2>
     <p>Describe the problem, idea, or outcome in your own words. The agent will review it, ask only what’s needed, then draft your Brief, Spec, and Exam.</p>
@@ -95,22 +115,22 @@ export default function IntentConversation({ organizationId, subject, expiresAt,
         <textarea ref={sourceInput} id="agent-intent" rows={7} maxLength={10000} value={intent} disabled={busy || Boolean(editedDocuments)}
           placeholder="I want to…" onChange={event => { if (editedDocuments) return; setIntent(event.target.value); setResult(null); setClarification(''); }} />
         {restoredClarifications.length > 0 && <div><h3>Stored clarification</h3>{restoredClarifications.map((turn, index) => <pre className="intent-draft-source" key={index}>{turn}</pre>)}
-          <p className="access-hint">These turns are preserved verbatim. Continuing this restored conversation with the recorded agent workflow is not connected yet.</p></div>}
-        <IntentScopeReview organizationId={organizationId} repository={repository} intent={agentScopeText({ intent, clarification })} expiresAt={expiresAt} onProposalChange={setDisposition} locked={busy || Boolean(editedDocuments) || restoredClarifications.length > 0} historical={Boolean(editedDocuments)} reviewVersion={scopeReviewVersion} />
+          <p className="access-hint">These turns are preserved verbatim. {canPreserve ? 'Preserve new answers and review the current draft to continue the recorded workflow.' : 'Recorded continuation requires configured draft preservation.'}</p></div>}
+        {!canPreserve && <IntentScopeReview organizationId={organizationId} repository={repository} intent={agentScopeText({ intent, clarification })} expiresAt={expiresAt} onProposalChange={setDisposition} locked={busy || Boolean(editedDocuments) || restoredClarifications.length > 0} historical={Boolean(editedDocuments)} reviewVersion={scopeReviewVersion} />}
         {result && <div className="intent-agent-reply"><h3>STEER agent</h3><p>{result.message}</p>
           {result.questions.length > 0 && <><ul>{result.questions.map((question, index) => <li key={index}>{question}</li>)}</ul>
             <label htmlFor="agent-clarification">Add details in your own words</label>
             <textarea id="agent-clarification" rows={4} maxLength={3000} value={clarification} disabled={busy} onChange={event => setClarification(event.target.value)} /></>}
         </div>}
         <p className="access-hint">{canPreserve ? 'Draft preservation status is shown below. Unpreserved edits are cleared when this page is hidden or refreshed.' : 'Not saved. Draft preservation is not configured. Hiding or refreshing the page clears this conversation.'} Sending uses the configured model provider.</p>
-        {!disposition && !editedDocuments && !restoredClarifications.length && <p className="access-hint">Check existing scope and confirm your direction before sending. Added clarification needs a fresh scope review.</p>}
-        <button className="access-primary" type="submit" disabled={!enabled || busy || !intent.trim() || !disposition || Boolean(editedDocuments) || restoredClarifications.length > 0 || Boolean(result?.questions.length && !clarification.trim())}>
-          {busy ? 'Agent is working…' : result?.questions.length ? 'Continue with these details' : 'Review my intent'}</button>
+        {!canPreserve && <>{!disposition && !editedDocuments && !restoredClarifications.length && <p className="access-hint">Check existing scope and confirm your direction before sending. Added clarification needs a fresh scope review.</p>}
+          <button className="access-primary" type="submit" disabled={!enabled || busy || !intent.trim() || !disposition || Boolean(editedDocuments) || restoredClarifications.length > 0 || Boolean(result?.questions.length && !clarification.trim())}>
+            {busy ? 'Agent is working…' : result?.questions.length ? 'Continue with these details' : 'Review my intent'}</button></>}
       </form>
       {busy && <p role="status">Reviewing your intent and preparing the next response. This can take up to 90 seconds. Please keep this page open.</p>}
       {error && <p role="alert" className="access-note">{error}</p>}
       {canPreserve && <IntentDraftPanel organizationId={organizationId} productId={draftProductId!} repository={repository!} subject={subject}
-        expiresAt={expiresAt} content={draftContent} locked={busy} onRestore={restoreDraft} />}
+        expiresAt={expiresAt} content={draftContent} locked={busy} onRestore={restoreDraft} enabled={enabled} onResult={acceptDevelopment} />}
       {editedDocuments && <div className="intent-documents"><h3 tabIndex={-1} ref={documentHeading}>Your draft documents</h3>
         <p>{result?.documents ? 'Generated candidates' : 'Restored editable drafts — authorship not verified'} · not saved to GitHub · no gate signed · tests not run</p>
         <p className="access-note">{canPreserve ? 'Check draft preservation status above; unpreserved edits will be cleared.' : 'Your edits are not saved yet. Refreshing, hiding this page or losing access clears them.'} Source text is locked while you review this bundle so edits cannot silently replace it.</p>
@@ -119,7 +139,7 @@ export default function IntentConversation({ organizationId, subject, expiresAt,
           <p>{!result?.documents ? 'Restored documents need fresh scope, conformance and Exam review. Stored text is not proof of prior review or agent authorship.' : documentRevision === 1
             ? 'The generated Brief and Spec need their own scope review. The earlier check covered your message, not these documents.'
             : 'Your current draft still needs scope review. Brief or Spec edits invalidate the earlier scope check and direction confirmation. Exam-only edits require renewed Exam review.'}</p>
-          <p>Reviewing corrected scope is not connected yet. Your edits do not start model calls; GitHub saving remains unavailable.</p>
+          <p>{canPreserve ? 'Preserve your corrections and review existing work for the current draft above. Source review does not establish semantic duplicate clearance.' : 'Reviewing corrected scope requires configured draft preservation.'} Your edits do not start model calls; GitHub saving remains unavailable.</p>
         </div>
         <p className="access-hint">Document edit version {documentRevision} · {invalidatedReviews.includes('exam-review') ? 'Independent Exam review required' : 'Exam review unchanged'} · save confirmation required</p>
         <details><summary>{result?.documents ? 'Original source and generation reference' : 'Restored source text'}</summary>

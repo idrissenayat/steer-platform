@@ -4890,3 +4890,32 @@ verified full-corpus/lifecycle evidence, semantic scope assessment and owned-dra
 discovery. No real environment, database/migration, credential/grant, model usage,
 Git save, gate, deployment, deletion or signed source changed. D1 remains inactive
 and all live I1–I6 acceptance remains open.
+
+## Development increment: 0230 — Recorded intent workflow in the actual editor
+
+Connected the actual Next.js draft/conversation editor to current source metadata,
+prepare/start/read, bounded progress checks, multi-turn clarification, exact-request
+recovery and explicit adoption of editable Brief/Spec/Test Agent Exam candidates.
+Preserving and reviewing free text is one action. Whole source context and coverage
+gaps are visible; incomplete scope cannot start work. No separate preview or design
+replacement was introduced. Late results and edits/undo cannot silently overwrite
+human corrections or revive stale direction. Terminal outcome recovery needs no
+replacement start.
+
+Added an uninstalled, explicitly granted read-only source metadata API over current
+encrypted draft reads and mandatory evidence/provenance authority. The browser uses
+only portable contracts; source bodies, configuration and budget authority cannot
+be supplied through the request. Review writes no operations, originals or charges.
+
+Verification: **205/205** disposable PostgreSQL integration checks passed, including
+real HTTP/SQL review and review-to-prepare-to-recorded SDK/Temporal fixture paths.
+Production-component tests cover clarification, lost-start recovery, candidate
+adoption, correction protection, inert rendering and the tested axe subset. Final
+regression/build results are recorded in [0230 evidence](../intent/0230/EVIDENCE.md).
+Synthetic source/permission/model inputs are not real UI/provider acceptance.
+
+No real records/configuration/migration/key/grant, paid model use, runtime Git save,
+gate, deployment, release, deletion or signed source changed. The credential skill
+kept the existing resolved key decision intact. D1 is inactive and I1–I6 remains
+open. Next: owned-draft/run discovery after refresh, production full-corpus/lifecycle
+evidence and semantic review, authorized live integration and full UI/save acceptance.

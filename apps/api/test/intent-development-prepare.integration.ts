@@ -5,14 +5,32 @@ import { buildIntentEvidenceEnvelope } from '@steer/tool-registry/intent-evidenc
 import { intentDevelopmentPrepareOutputSchema } from '@steer/tool-registry/intent-development-prepare-contracts';
 import { createDraftLifecycleStore } from '@steer/data/draft-lifecycle';
 import { createDraftRevisionStore } from '@steer/data/draft-revisions';
+import { createIntentDraftService } from '@steer/data/intent-draft-service';
 import { createDevelopmentOriginalStore } from '@steer/data/development-originals';
 import { describeDevelopmentOriginal, type DevelopmentOriginal } from '@steer/data/development-original-contracts';
 import { originalFixture } from '../../../packages/data/test/development-original.fixture.ts';
-import { createRecordedDevelopmentPreparer } from '../src/runtime.ts';
+import { createRecordedDevelopmentPreparer, createRecordedDevelopmentReviewer } from '../src/runtime.ts';
+import { verifyDevelopmentReview } from '@steer/tool-registry/intent-development-review-contracts';
 import { createApi } from '../src/app.ts';
 
 type Dependencies = Parameters<typeof createRecordedDevelopmentPreparer>[3];
 type Pools = Parameters<typeof createRecordedDevelopmentPreparer>[0];
+function reviewApi(pools: Pools, original: DevelopmentOriginal, records: Dependencies['records'], patch: Partial<Parameters<typeof createRecordedDevelopmentReviewer>[1]> = {}) {
+  const { action: _action, budget: _budget, expiresAt: _expiry, ...c } = original.configuration, s = original.source;
+  const state = { principal: { organizationId: c.organizationId, subject: c.subject, type: 'human', hats: [],
+    toolGrants: ['intent.development.review'], expiresAt: new Date(Date.now() + 300000).toISOString() } };
+  const drafts = createIntentDraftService(pools.drafts, c, { lifecycle: { authorize: async () => { throw new Error('Read-only'); }, verifyHold: async () => { throw new Error('Read-only'); } },
+    revisions: { authorize: async input => { if (input.action !== 'read') throw new Error('Read-only'); await records.authorizeDraft(input); }, keyForDraft: records.keyForDraft } });
+  const reviewer = createRecordedDevelopmentReviewer(c, { drafts, evidenceFor: async () => original.evidence,
+    authorizeReview: async () => {}, ...patch });
+  const app = createApi({ authenticate: async () => state.principal, services: { intentDevelopmentReviewReader: reviewer } });
+  const input = { organizationId: c.organizationId, productId: c.productId, repository: c.repository, draftId: s.draftId,
+    revision: s.revision, revisionDigest: s.revisionDigest, scopeInputDigest: s.scopeInputDigest };
+  const post = (override = {}) => app.fetch(new Request('https://steer.example/v1/tools/intent.development.review', {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...input, ...override }),
+  }));
+  return { input, post, state, close() { reviewer.close(); drafts.close(); } };
+}
 function api(pools: Pools, original: DevelopmentOriginal, records: Dependencies['records'], patch: Partial<Dependencies> = {}) {
   const c = original.configuration, s = original.source;
   const state = { principal: { organizationId: c.organizationId, subject: c.subject, type: 'human', hats: [],
@@ -33,13 +51,15 @@ function api(pools: Pools, original: DevelopmentOriginal, records: Dependencies[
 /** Shared real admission path for the recorded SDK/Temporal fixtures. Source and
  * grants are explicitly synthetic; preparation itself uses production HTTP/SQL. */
 export async function prepareRecordedFixture(pools: Pools, original: DevelopmentOriginal, records: Dependencies['records']) {
-  const app = api(pools, original, records);
+  const app = api(pools, original, records), review = reviewApi(pools, original, records);
   try {
-    const response = await app.post(); assert.equal(response.status, 200);
+    const reviewResponse = await review.post(); assert.equal(reviewResponse.status, 200);
+    const { output } = await verifyDevelopmentReview(review.input, await reviewResponse.json());
+    const response = await app.post({ sourceSnapshotDigest: output.sourceSnapshotDigest, configurationRevision: output.configurationRevision }); assert.equal(response.status, 200);
     const body = intentDevelopmentPrepareOutputSchema.parse(await response.json());
     assert.equal(body.outcome, 'prepared'); if (!body.reference) throw new Error('Preparation reference missing.');
     assert.equal(body.reference.inputDigest, (await describeDevelopmentOriginal(original)).inputDigest); return body.reference;
-  } finally { app.service.close(); }
+  } finally { app.service.close(); review.close(); }
 }
 
 export async function testDevelopmentPreparation({ admin, connect, check }: {
@@ -87,6 +107,32 @@ export async function testDevelopmentPreparation({ admin, connect, check }: {
       assert.equal(bodies[0].executionAuthorized, false); assert.equal(bodies[0].authoritativeClearance, false);
       for (const marker of ['Exact original intent', 'Human Brief', 'Exact synthetic instructions']) assert.equal(JSON.stringify(bodies[0]).includes(marker), false);
     } finally { clients.forEach(c => c.service.close()); }
+  });
+  await check('actual source-review HTTP releases exact current authorized evidence from the encrypted SQL draft with no writes or reservations', async () => {
+    const f = await setup(), app = reviewApi(f.pools, f.original, f.records);
+    try {
+      const before = await f.snapshot(), response = await app.post(); assert.equal(response.status, 200);
+      const { output, envelope } = await verifyDevelopmentReview(app.input, await response.json());
+      assert.deepEqual(output.evidence, f.original.evidence); assert.equal(envelope.coverage.complete, true);
+      assert.equal(output.authoritativeClearance, false); assert.deepEqual(await f.snapshot(), before);
+      for (const patch of [{ revisionDigest: 'f'.repeat(64) }, { productId: 'other' }, { revision: 2 }, { budget: 5 }]) assert.notEqual((await app.post(patch)).status, 200);
+      assert.deepEqual(await f.snapshot(), before);
+    } finally { app.close(); }
+  });
+  await check('actual reviewed metadata denies late access/provenance loss and changed draft or Git evidence, without preparing source records', async () => {
+    for (const mode of ['permission', 'authority', 'evidence', 'draft'] as const) {
+      const f = await setup(); let reads = 0, app: ReturnType<typeof reviewApi>;
+      app = reviewApi(f.pools, f.original, f.records, { authorizeReview: async () => {
+        if (mode === 'permission') app.state.principal.toolGrants = [];
+        if (mode === 'authority') throw new Error('Synthetic evidence authority denied');
+        if (mode === 'draft' && reads++ === 0) await f.drafts.append({ draftId: f.draftId, mutationId: randomUUID(), expectedRevision: 1,
+          expectedDigest: f.saved.outcome === 'acknowledged' ? f.saved.reference.revisionDigest : null, content: { ...f.content, originalText: 'New human edit' } });
+      }, evidenceFor: async () => ({ ...f.original.evidence, ...(mode === 'evidence' && reads++ > 0 ? { head: 'f'.repeat(40) } : {}) }) });
+      try {
+        assert.notEqual((await app.post()).status, 200);
+        const snapshot = await f.snapshot(); assert.equal(snapshot.operations, '0'); assert.equal(snapshot.originals, '0'); assert.equal(snapshot.reservations, '0');
+      } finally { app.close(); }
+    }
   });
   await check('incomplete, missing-document and access-gap evidence stop preparation without admitting an operation or inferring newness', async () => {
     for (const patch of [{ inventoryComplete: false }, { documents: [] }, { accessGapCount: 1 }]) {

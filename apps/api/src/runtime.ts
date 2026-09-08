@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { createIntentDevelopmentReviewer } from '@steer/data/intent-development-reviewer';
 import type { IntentAgentService } from '@steer/tool-registry/agent-contracts';
 import { createIntentDevelopment, type DevelopmentPermit } from '@steer/agents';
 import { createMastraDevelopmentRuntime } from '@steer/agents/mastra';
@@ -25,6 +26,10 @@ import { readProjection } from '@steer/data';
 import { createHeldGitBriefWriterFactory, heldGitBriefConfigurationSchema, type HeldBriefAssessment } from '@steer/adapters/held-brief-writer';
 
 const text = z.string().min(1);
+/** Read-only reviewed metadata; real evidence and records authorities are mandatory. */
+export function createRecordedDevelopmentReviewer(configuration: unknown, dependencies: Parameters<typeof createIntentDevelopmentReviewer>[1]) {
+  return createIntentDevelopmentReviewer(configuration, dependencies);
+}
 /** Explicit owner-bound preparation; never derive profile, budget or evidence
  * authority from browser fields or install this service by default. */
 export function createRecordedDevelopmentPreparer(pools: Parameters<typeof createIntentDevelopmentPreparer>[0], configuration: unknown,

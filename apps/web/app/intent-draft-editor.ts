@@ -9,10 +9,11 @@ export interface DraftEditorView {
   status: 'idle' | 'saving' | 'preserved' | 'unknown' | 'conflict' | 'reading' | 'restore-ready' | 'closed';
   draftId: string | null; revision: number; latestRevision: number;
   preservedContent: IntentDraftContent | null; restored: IntentDraftReadOutput | null;
+  revisionDigest: string | null; scopeInputDigest: string | null;
   message: string; retryAvailable: boolean;
 }
 const initial = (): DraftEditorView => ({ status: 'idle', draftId: null, revision: 0, latestRevision: 0,
-  preservedContent: null, restored: null, message: '', retryAvailable: false });
+  preservedContent: null, restored: null, revisionDigest: null, scopeInputDigest: null, message: '', retryAvailable: false });
 
 /** One verified session/scope, memory only. No automatic retries or implicit replacement. */
 export function createIntentDraftEditor(rawScope: unknown, transport: IntentDraftTransport,
@@ -42,6 +43,7 @@ export function createIntentDraftEditor(rawScope: unknown, transport: IntentDraf
         digest = output.revisionDigest; pending = null;
         publish({ status: output.latestRevision > output.revision ? 'conflict' : 'preserved', revision: output.revision,
           latestRevision: output.latestRevision, preservedContent: request.content, retryAvailable: false,
+          revisionDigest: output.revisionDigest, scopeInputDigest: output.scopeInputDigest,
           message: output.latestRevision > output.revision ? 'Your earlier revision was preserved, but a newer revision exists. Review it before saving again.' : '' });
       } else if (output.outcome === 'conflict') {
         pending = null; publish({ status: 'conflict', retryAvailable: false,
@@ -101,6 +103,7 @@ export function createIntentDraftEditor(rawScope: unknown, transport: IntentDraf
       const restored = view.restored;
       digest = restored.revisionDigest;
       publish({ status: 'preserved', draftId: restored.draftId, revision: restored.revision, latestRevision: restored.latestRevision,
+        revisionDigest: restored.revisionDigest, scopeInputDigest: restored.scopeInputDigest,
         preservedContent: restored.content, restored: null, message: 'Stored draft loaded. Scope, authorship and approvals have not been restored.' });
       return structuredClone(restored.content);
     },

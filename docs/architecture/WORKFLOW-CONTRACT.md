@@ -569,3 +569,17 @@ semantic-clearance or execution/save/gate grant. See
 [0229 specification](../../intent/0229/SPEC.md). Actual editor integration and the
 production full-corpus/evidence/authority binding remain unconnected; synthetic
 preparation-to-Temporal tests do not complete the live acceptance journey.
+
+0230 connects that editor path and adds the read-only `intent.development.review`
+query. It binds the current encrypted draft, permitted whole source bytes and
+mandatory provenance authority to server-owned configuration/snapshot metadata,
+without preparing an operation or asserting semantic clearance. The editor uses
+this reviewed evidence, not an invented bridge from lexical review fingerprints.
+Preserve-and-review is one human action; explicit direction then enters prepare,
+start and read. A lost request retains the same recovery identity. Verified terminal
+result readback can resolve uncertainty without another start; no query authorizes
+dispatch. Questions preserve earlier turns; document adoption is explicit and
+requires unchanged source, and edits/undo invalidate stale review. See
+[0230 specification](../../intent/0230/SPEC.md). Owned-draft/run discovery,
+production source/lifecycle/semantic binding and authorized live activation remain
+open. The existing D1, runtime, model and Git authority boundaries are unchanged.
