@@ -9,7 +9,7 @@ const gateway={gatewayUrl:'http://127.0.0.1:4000/v1',gatewayKey:'synthetic-unuse
 test('scope execution is lazy and denies cancelled or unauthorized work without SQL, keys or transport',async()=>{
   let connections=0;const pool={connect:async()=>{connections++;throw new Error('private-database');}},f=await scopeReviewFixture();
   const runtime=createScopeStepRuntime({drafts:pool,execution:pool},configuration,target,{records,profile:f.profile,gateway,authorize:async()=>{throw new Error('private-authority');}});
-  assert.deepEqual(Object.keys(runtime),['run','close']);assert.equal(connections,0);const cancel=new AbortController();cancel.abort();
+  assert.deepEqual(Object.keys(runtime),['binding','plan','run','close']);assert.equal(connections,0);const cancel=new AbortController();cancel.abort();
   assert.equal((await runtime.run(batchId,cancel.signal)).outcome,'busy');const denied=await runtime.run(batchId,new AbortController().signal);
   assert.equal(denied.outcome,'attention-required');assert.equal(denied.resultDigest,null);assert.equal(connections,0);
   assert.equal(JSON.stringify(denied).includes('private'),false);assert.equal(JSON.stringify(denied).includes('synthetic-unused-key'),false);
@@ -43,4 +43,18 @@ test('non-void authority acknowledgement cannot become scope permission',async()
   let connections=0;const pool={connect:async()=>{connections++;throw new Error();}},f=await scopeReviewFixture();
   const runtime=createScopeStepRuntime({drafts:pool,execution:pool},configuration,target,{records,profile:f.profile,gateway,authorize:async()=>false} as any);
   assert.equal((await runtime.run(batchId,new AbortController().signal)).outcome,'attention-required');assert.equal(connections,0);runtime.close();
+});
+test('scope planning and execution share one draining slot and cancelled planning exposes no batch references',async()=>{
+  let release!:()=>void,calls=0,connections=0;const held=new Promise<void>(r=>{release=r;}),f=await scopeReviewFixture();
+  const pool={connect:async()=>{connections++;throw new Error();}};
+  const runtime=createScopeStepRuntime({drafts:pool,execution:pool},configuration,target,{records,profile:f.profile,gateway,
+    authorize:async()=>{calls++;await held;}},{maxDurationMs:1000});
+  try{assert.deepEqual(runtime.binding,{organizationId:configuration.organizationId,...target});assert.equal(Object.isFrozen(runtime.binding),true);
+    await assert.rejects(runtime.plan({} as AbortSignal));const cancelled=new AbortController();cancelled.abort();
+    assert.equal((await runtime.plan(cancelled.signal)).outcome,'busy');assert.equal(calls,0);
+    const pending=runtime.plan(new AbortController().signal);assert.equal((await runtime.run(batchId,new AbortController().signal)).outcome,'busy');
+    const result=await pending;assert.equal(result.outcome,'attention-required');assert.deepEqual(result.batchIds,[]);assert.equal(result.executionAuthorized,false);
+    assert.equal((await runtime.plan(new AbortController().signal)).outcome,'busy');assert.equal(calls,1);assert.equal(connections,0);
+    runtime.close();release();await new Promise(r=>setImmediate(r));assert.equal(connections,0);
+  }finally{runtime.close();release();}
 });

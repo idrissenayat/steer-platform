@@ -1,4 +1,6 @@
 import { ActivityCancellationType, ApplicationFailure, defineQuery, isCancellation, proxyActivities, setHandler, sleep, workflowInfo } from '@temporalio/workflow';
+import { parseScopeTarget, parseScopePlanResult, parseScopeStepResult, scopeWorkflowId,
+  type ScopeStepResult, type ScopeWorkflowActivities } from './scope-workflow-contracts.ts';
 import { parseDevelopmentTarget, parseDevelopmentStepResult, developmentWorkflowId,
   type DevelopmentStepResult, type DevelopmentWorkflowActivities } from './development-workflow-contracts.ts';
 import { candidateSaveWorkflowId, parseCandidateSaveTarget, parseCandidateSaveResult, type CandidateSaveWorkflowActivities } from './candidate-save-contracts.ts';
@@ -6,6 +8,40 @@ import { parsePlan, parseReceipt, workflowId, parseGateWatchPlan, parseGateObser
   parseRecordedBriefTarget, recordedBriefWorkflowId, parseRecordedBriefCheckpoint, type RecordedBriefActivities,
   parseRecordedBriefRecoveryPlan, recordedBriefRecoveryWorkflowId, type RecordedBriefRecoveryActivities,
   type ReconciliationActivities, type ReconciliationReceipt, type GateWatchActivities, type GateObservation } from './contracts.ts';
+
+const scopeActivities = proxyActivities<ScopeWorkflowActivities>({
+  startToCloseTimeout: '2 minutes', scheduleToCloseTimeout: '3 minutes', heartbeatTimeout: '10 seconds',
+  retry: { maximumAttempts: 1 }, cancellationType: ActivityCancellationType.WAIT_CANCELLATION_COMPLETED,
+});
+export const scopeProgress = defineQuery<{ phase: 'planning' | 'reviewing' | 'complete'; planned: number; completed: number; checkpoint: ScopeStepResult | null }>('scopeProgress');
+/** One plan read and at most eight batches. SQL remains truth; an attempt finishing
+ * is not semantic coverage, uniqueness, saved work, retry permission or a gate. */
+export async function reviewIntentScope(raw: unknown) {
+  let target;
+  try { target = parseScopeTarget(raw); if (workflowInfo().workflowId !== scopeWorkflowId(target)) throw new Error(); }
+  catch { throw ApplicationFailure.nonRetryable('Invalid scope workflow binding.', 'INVALID_BINDING'); }
+  let phase: 'planning' | 'reviewing' | 'complete' = 'planning', planned = 0, completed = 0, checkpoint: ScopeStepResult | null = null;
+  setHandler(scopeProgress, () => ({ phase, planned, completed, checkpoint }));
+  const result = (outcome: 'attempt-complete' | 'superseded' | 'expired' | 'attention-required' | 'busy') => {
+    phase = 'complete'; return { kind: 'steer-scope-workflow-outcome/v1' as const, ...target, outcome, planned, completed, checkpoint,
+      semanticQualityVerified: false, authoritativeClearance: false, executionAuthorized: false, retryAuthorized: false, gateSigned: false };
+  };
+  try {
+    const plan = parseScopePlanResult(await scopeActivities.readScopePlan(target), target);
+    if (plan.outcome !== 'ready') return result(plan.outcome);
+    planned = plan.batchIds.length;
+    for (const batchId of plan.batchIds) {
+      phase = 'reviewing'; const step = { ...target, batchId };
+      checkpoint = parseScopeStepResult(await scopeActivities.reviewScopeBatch(step), step);
+      if (checkpoint.outcome !== 'succeeded') return result(checkpoint.outcome);
+      completed++;
+    }
+    return result('attempt-complete');
+  } catch (error) {
+    if (isCancellation(error)) throw error;
+    throw ApplicationFailure.nonRetryable('Scope review requires attention.', 'SCOPE_REVIEW_FAILED');
+  }
+}
 
 const developmentActivities = proxyActivities<DevelopmentWorkflowActivities>({
   startToCloseTimeout: '2 minutes', scheduleToCloseTimeout: '3 minutes', heartbeatTimeout: '10 seconds',

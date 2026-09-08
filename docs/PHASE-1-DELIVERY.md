@@ -5204,3 +5204,31 @@ checks pass, including 14 new scope-runner integration checks. Focused results
 overlap those totals. Prototype/all package types, optimized Next build, existing
 28-entry migration history, kit (95 artifacts), scope audit and whitespace checks
 pass. No live UI, semantic-quality or runtime-save acceptance is claimed.
+
+## Development increment: 0243 — Reference-only scope-review workflow
+
+A dedicated Temporal worker now sequences the actual scope runner from a verified
+retained manifest, not a caller-selected batch list. One planning activity supplies
+at most eight batch references; execution reuses completed SQL checkpoints without
+another call and stops on uncertainty, corrections or denied authority. History
+contains references and bounded progress, not private source, findings, prompts or
+credentials. Attempt completion is explicitly not semantic coverage or clearance.
+See [0243 evidence](../intent/0243/EVIDENCE.md) for verification and limits.
+
+Current authority, shared admission/drainage, fixed runtime identity, payload-free
+heartbeats, bounded deadlines, cancellation and one-attempt/duplicate-start policies
+are tested through actual isolated Temporal, SQL and the recorded SDK. The internal
+starter and dedicated worker remain uninstalled; no public start/recovery API or
+actual editor binding is claimed. No new migration or private result store.
+
+0243 verification: 1,062/1,062 full regression checks and 296/296 full PostgreSQL
+16.14 integration checks pass, including two new planning and nine new scope
+Temporal cases. The focused 25-case scope run overlaps those totals. Prototype/all
+package types, optimized Next build, Drizzle history, kit (95 required artifacts),
+scope audit and whitespace checks pass. Protected source hashes remain unchanged.
+
+Next connect reviewed-source preparation, authorized start/recovery and the actual
+editor, then real authority, semantic evaluation and I1–I6 human/save acceptance.
+D1 remains unsigned/inactive and first-test model spending unapproved. No real
+migration, key, paid model call, runtime Git save, gate, deployment or release was
+enabled. Preserve user files and keep the existing one-minute loop active.

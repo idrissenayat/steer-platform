@@ -25,7 +25,7 @@ const unavailable=()=>new Error('Scope runtime is unavailable.');
 export function createScopeStepRuntime(pools:Parameters<typeof createScopeReviewOriginalStore>[0],rawConfiguration:unknown,rawTarget:unknown,dependencies:{
   records:Omit<Records,'verifyObservation'>;profile:unknown;
   gateway:Pick<Parameters<typeof createRecordedScopeMastraRuntime>[0],'gatewayUrl'|'gatewayKey'|'transport'>;
-  authorize:(context:Readonly<{configuration:z.infer<typeof scopeRecordsConfigurationSchema>;target:Target&{batchId:string};
+  authorize:(context:Readonly<{configuration:z.infer<typeof scopeRecordsConfigurationSchema>;target:Target&{batchId:string|null};
     action:'observe'|'dispatch';execution:ScopeOriginal['configuration']|null;packet:Packet|null}>)=>Promise<void>;
 },options:{maxDurationMs?:number}={}){
   const config=freeze(scopeRecordsConfigurationSchema.parse(rawConfiguration)),target=freeze(targetSchema.parse(rawTarget)),owner=randomUUID();
@@ -81,18 +81,41 @@ export function createScopeStepRuntime(pools:Parameters<typeof createScopeReview
   const originals=createScopeReviewOriginalStore(scopedPools,config,records.originals);
   const result=(batchId:string,outcome:Outcome,resultDigest:string|null=null)=>freeze({kind:'steer-scope-step-outcome/v1' as const,...target,batchId,outcome,resultDigest,
     semanticQualityVerified:false as const,authoritativeClearance:false as const,executionAuthorized:false as const,retryAuthorized:false as const,gateSigned:false as const});
+  const context=(cancellation:AbortSignal,ms:number)=>{
+    active=true;const control=new AbortController();controller=control;const abort=()=>control.abort();
+    cancellation.addEventListener('abort',abort,{once:true});const timer=setTimeout(abort,ms);
+    const guard=()=>{if(closed||control.signal.aborted)throw unavailable();};
+    const within=async<T>(work:Promise<T>,ms=5000,cancelable=true):Promise<T>=>{
+      pending++;void work.finally(()=>{pending--;}).catch(()=>{});let timeout:ReturnType<typeof setTimeout>|undefined,onAbort:(()=>void)|undefined;
+      try{if(cancelable)guard();return await Promise.race([work,new Promise<never>((_,reject)=>{
+        onAbort=()=>reject(unavailable());if(cancelable)control.signal.addEventListener('abort',onAbort,{once:true});timeout=setTimeout(()=>reject(unavailable()),ms);
+      })]);}finally{if(timeout)clearTimeout(timeout);if(onAbort)control.signal.removeEventListener('abort',onAbort);}
+    };
+    return{control,guard,within,finish(){clearTimeout(timer);cancellation.removeEventListener('abort',abort);control.abort();controller=undefined;active=false;}};
+  };
   return{
+    binding:freeze({organizationId:config.organizationId,...target}),
+    /** Only the verified admitted manifest supplies workflow batch references.
+     * This read neither reserves nor dispatches and shares the runner's drain slot. */
+    async plan(cancellation:AbortSignal){
+      if(!(cancellation instanceof AbortSignal))throw unavailable();
+      const outcome=(outcome:'ready'|'expired'|'superseded'|'attention-required'|'busy',batchIds:readonly string[]=[])=>freeze({
+        kind:'steer-scope-plan/v1' as const,...target,outcome,batchIds:Object.freeze([...batchIds]),
+        semanticQualityVerified:false as const,authoritativeClearance:false as const,executionAuthorized:false as const,retryAuthorized:false as const,gateSigned:false as const});
+      if(closed||active||pending||cancellation.aborted)return outcome('busy');
+      const ctx=context(cancellation,Math.min(duration,30000)),{within,guard}=ctx;
+      const authorize=async()=>{guard();if(await within(dependencies.authorize(freeze({configuration:config,target:{...target,batchId:null},action:'observe',execution:null,packet:null})))!==undefined)throw unavailable();guard();};
+      try{
+        await authorize();const original=await within(originals.read(target));guard();await authorize();
+        if(original.reviewExpired||Date.parse(original.original.configuration.expiresAt)<=Date.now())return outcome('expired');
+        if(original.latestDraftRevision!==original.original.source.revision)return outcome('superseded');
+        return outcome('ready',original.manifest.batches.map(batch=>batch.batchId));
+      }catch{return outcome('attention-required');}finally{ctx.finish();}
+    },
     async run(rawBatchId:unknown,cancellation:AbortSignal){
       const batchId=digest.parse(rawBatchId);if(!(cancellation instanceof AbortSignal))throw unavailable();
-      if(closed||active||pending||cancellation.aborted)return result(batchId,'busy');active=true;
-      const control=new AbortController();controller=control;const abort=()=>control.abort();cancellation.addEventListener('abort',abort,{once:true});const timer=setTimeout(abort,duration);
-      const guard=()=>{if(closed||control.signal.aborted)throw unavailable();};
-      const within=async<T>(work:Promise<T>,ms=5000,cancelable=true):Promise<T>=>{
-        pending++;void work.finally(()=>{pending--;}).catch(()=>{});let timeout:ReturnType<typeof setTimeout>|undefined,onAbort:(()=>void)|undefined;
-        try{if(cancelable)guard();return await Promise.race([work,new Promise<never>((_,reject)=>{
-          onAbort=()=>reject(unavailable());if(cancelable)control.signal.addEventListener('abort',onAbort,{once:true});timeout=setTimeout(()=>reject(unavailable()),ms);
-        })]);}finally{if(timeout)clearTimeout(timeout);if(onAbort)control.signal.removeEventListener('abort',onAbort);}
-      };
+      if(closed||active||pending||cancellation.aborted)return result(batchId,'busy');
+      const ctx=context(cancellation,duration),{control,guard,within}=ctx;
       let operations:ReturnType<typeof createScopeReviewOperationStore>|undefined,journal:ReturnType<typeof createScopeReviewObservationStore>|undefined;
       let execution:ScopeOriginal['configuration']|null=null,packet:Packet|null=null;
       let reference:(Target&{batchId:string;inputDigest:string})|undefined,fence:number|undefined,dispatchAttempted=false;
@@ -158,8 +181,7 @@ export function createScopeStepRuntime(pools:Parameters<typeof createScopeReview
           await within(operations.transition({...reference,event:{type:'outcome-unknown',owner,fencingToken:fence}}),5000,false);
         }catch{/* Current authority may deny quarantine; sent state still denies resend. */}
         return result(batchId,'attention-required');
-      }finally{clearTimeout(timer);cancellation.removeEventListener('abort',abort);control.abort();controller=undefined;
-        operations?.close();if(journal){journal.close();children.delete(journal);}active=false;}
+      }finally{operations?.close();if(journal){journal.close();children.delete(journal);}ctx.finish();}
     },
     close(){closed=true;controller?.abort();originals.close();for(const child of children)child.close();},
   };

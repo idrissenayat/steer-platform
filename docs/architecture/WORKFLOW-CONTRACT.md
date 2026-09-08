@@ -748,3 +748,25 @@ Outcomes contain references only, not findings, private errors or authority. See
 [0242 specification](../../intent/0242/SPEC.md). Reference-only scope Temporal and
 source preparation/editor integration remain next; this is not live activation or
 combined semantic quality/uniqueness acceptance.
+
+0243 starts scope Temporal work with organization/review/preparation references
+only. An identity-bound plan activity reads the exact verified retained manifest;
+callers cannot submit a shortened batch list. Planning shares the runner's active/
+draining slot, performs no mutation/reservation/model call, and releases no batch
+references on expiry, supersession or denied authority. The frozen runtime binding
+must match the activity's fixed target before any records access.
+
+`reviewIntentScope` schedules one plan read and at most eight sequential batch
+activities, stopping at uncertainty, busy, supersession or non-ready planning.
+Activities have one attempt, payload-free heartbeats and acknowledged cancellation;
+the dedicated worker is never registered by default. Workflow identity excludes
+preparation digest, and trusted internal starts reject duplicate reuse. History and
+progress contain only references/counts/checkpoints, not source, findings or keys.
+
+Completed batch recovery still uses current SQL/original/SDK verification without
+another model call. `attempt-complete` and Temporal COMPLETED mean this attempt has
+finished, not semantic coverage, uniqueness, disposition, execution/save permission
+or a gate. Use the current-authority combined reader for findings and completeness.
+See [0243 specification](../../intent/0243/SPEC.md). Actual source preparation and
+authorized start/lost-ACK recovery into the editor remain subsequent work; no real
+records/source/model/save binding or I1–I6 acceptance is enabled.

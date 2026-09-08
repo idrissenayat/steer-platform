@@ -3,6 +3,16 @@ import { parsePlan, parseScope, workflowId, parseGateWatchPlan, gateWatchId, par
 import { parseRecordedBriefRecoveryPlan, recordedBriefRecoveryWorkflowId } from './contracts.ts';
 import { parseCandidateSaveTarget, candidateSaveWorkflowId } from './candidate-save-contracts.ts';
 import { parseDevelopmentTarget, developmentWorkflowId } from './development-workflow-contracts.ts';
+import { parseScopeTarget, scopeWorkflowId } from './scope-workflow-contracts.ts';
+
+/** Trusted reference-only start. Manifest batching is resolved inside the activity. */
+export function startIntentScopeReview(client: Client, taskQueue: string, raw: unknown) {
+  const target = parseScopeTarget(raw);
+  if (typeof taskQueue !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}(?![\s\S])/.test(taskQueue)) throw new Error('Invalid scope task queue.');
+  return client.workflow.start('reviewIntentScope', { workflowId: scopeWorkflowId(target), taskQueue, args: [target],
+    workflowExecutionTimeout: '30 minutes', workflowIdConflictPolicy: WorkflowIdConflictPolicy.FAIL,
+    workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE });
+}
 
 /** Trusted fixed-operation start; no role selection, payload or automatic retry. */
 export function startIntentDevelopment(client: Client, taskQueue: string, raw: unknown) {

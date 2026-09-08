@@ -78,7 +78,7 @@ try {
     assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 28);
   });
   if(selection.mode==='scope-runtime'){
-    console.log('FOCUSED scope SQL/recorded SDK execution; NOT the full integration suite.');
+    console.log('FOCUSED scope SQL/recorded SDK/Temporal execution; NOT the full integration suite.');
     await testScopeStepRuntime({admin,connect,check});
     console.log(`FOCUSED scope runtime result: ${passed-1} runtime checks passed plus idempotent migration check; full suite NOT RUN.`);
   }else if(selection.mode==='clarification-repro'){

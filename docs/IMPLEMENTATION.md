@@ -1,6 +1,6 @@
 # STEER platform implementation
 
-## Current checkpoint — 0242
+## Current checkpoint — 0243
 
 Use [the intent journey plan](INTENT-JOURNEY-PLAN.md) and
 [the delivery ledger](PHASE-1-DELIVERY.md) for current status; the implementation
@@ -58,7 +58,17 @@ supersede historical results, and cancellation retains admission until underlyin
 dependencies drain. See [0242 evidence](../intent/0242/EVIDENCE.md). The runner and
 reader remain uninstalled by default; actual editor and scope preparation/Temporal
 composition, expired observation access, real authority and live acceptance remain
-unconnected.
+unconnected at that checkpoint.
+
+0243 adds verified manifest planning and reference-only Temporal sequencing over
+that actual runner. The caller sends only review identity; an activity restores the
+admitted batch list, then each batch runs sequentially with the existing SQL and
+recorded-SDK controls. Dedicated identity-bound activities, payload-free heartbeats,
+one-attempt limits and duplicate-start rejection preserve cancellation and recovery.
+Replaying history does not send models, and finished workflows do not establish
+semantic coverage. See [0243 evidence](../intent/0243/EVIDENCE.md). Source preparation,
+authorized start/recovery APIs and actual editor integration remain next; no live
+factory, records/model authority or runtime saving is enabled.
 
 These are tested development capabilities, not live end-to-end acceptance. D1
 records activation, real source/lifecycle verifier binding, large-corpus contextual

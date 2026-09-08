@@ -8,14 +8,11 @@ import {scopeReviewFixture} from '../../../packages/tool-registry/test/intent-sc
 import {prepareIntentScopeReview} from '@steer/tool-registry/intent-scope-review';
 import {createVerifiedScopeReviewReader} from '../../api/src/runtime.ts';
 import {createScopeStepRuntime} from '../src/scope-step-runtime.ts';
+import {testScopeWorkflow} from './scope-workflow.integration.ts';
 type Dependencies=Parameters<typeof createScopeStepRuntime>[3];
 const gate=()=>{let release!:()=>void;const promise=new Promise<void>(r=>{release=r;});return{promise,release};};
-export async function testScopeStepRuntime({admin,connect,check:checkBase}:{admin:Pool;connect(role:string):Pool;check(name:string,run:()=>Promise<void>):Promise<void>}){
-  const owned:Pool[]=[];
-  const connection=(role:string)=>{const p=connect(role);owned.push(p);return p;};
-  const check=(name:string,run:()=>Promise<void>)=>checkBase(name,async()=>{try{await run();}finally{await Promise.all(owned.splice(0).map(p=>p.end()));}});
-  const setup=async(sourceCount=4,ttl=3600000)=>{
-    const f=await scopeOriginalIntegrationFixture({admin,connect:connection},false,ttl,{sourceCount});assert.equal((await f.make().put(f.input)).outcome,'stored');
+export async function scopeStepIntegrationFixture({admin,connect}:{admin:Pool;connect(role:string):Pool},sourceCount=4,ttl=3600000){
+    const f=await scopeOriginalIntegrationFixture({admin,connect},false,ttl,{sourceCount});assert.equal((await f.make().put(f.input)).outcome,'stored');
     const b=f.execution.budget,t=f.execution.scopeTerms;
     await admin.query('INSERT INTO steer_usage.scope_review_terms VALUES($1,$2,$3,$4,$5,$6,$7,true)',[b.organizationId,b.budgetId,b.subject,b.configurationRevision,t.approvalDigest,t.profileDigest,t.amountMicrousd]);
     const fixture=await scopeReviewFixture(),prepared=await prepareIntentScopeReview(f.input.original.source.scope,f.input.original.evidence,f.input.original.profile);
@@ -39,7 +36,12 @@ export async function testScopeStepRuntime({admin,connect,check:checkBase}:{admi
     const read=async()=>{const r=createVerifiedScopeReviewReader(f.pools,f.config,{records:deps.records,profile:deps.profile});try{return await r.read({organizationId:f.config.organizationId,productId:f.config.productId,repository:f.config.repository,...f.target},async()=>{});}finally{r.close();}};
     const edit=async()=>{assert.equal((await f.drafts.append({draftId:f.draftId,mutationId:randomUUID(),expectedRevision:1,expectedDigest:f.saved.reference.revisionDigest,content:{...f.content,originalText:'A newer human correction'}})).outcome,'acknowledged');};
     return{...f,prepared,state,batchId,step,count,reservations,transport,deps,make,run,read,edit};
-  };
+}
+export async function testScopeStepRuntime({admin,connect,check:checkBase}:{admin:Pool;connect(role:string):Pool;check(name:string,run:()=>Promise<void>):Promise<void>}){
+  const owned:Pool[]=[];
+  const connection=(role:string)=>{const p=connect(role);owned.push(p);return p;};
+  const check=(name:string,run:()=>Promise<void>)=>checkBase(name,async()=>{try{await run();}finally{await Promise.all(owned.splice(0).map(p=>p.end()));}});
+  const setup=(sourceCount=4,ttl=3600000)=>scopeStepIntegrationFixture({admin,connect:connection},sourceCount,ttl);
   await check('scope runner executes actual recorded SDK batches once and reconstructed SQL readback recovers combined review without dispatch credentials',async()=>{
     const f=await setup(34);assert.equal(f.prepared.batches.length,2);assert.equal((await f.read()).status,'pending');
     const first=await f.run();assert.equal(first.outcome,'succeeded');assert.equal(f.state.calls,1);assert.equal((await f.read()).status,'pending');
@@ -177,4 +179,24 @@ export async function testScopeStepRuntime({admin,connect,check:checkBase}:{admi
     const expired=await setup(4,1200);await delay(Math.max(0,Date.parse(expired.execution.expiresAt)-Date.now()+25));
     assert.equal((await expired.run()).outcome,'attention-required');assert.equal(await expired.reservations(),0);assert.equal(expired.state.calls,0);
   });
+  await check('scope planning reads the exact admitted multi-batch manifest without SQL mutations, gateway validation or reservations',async()=>{
+    const f=await setup(34);let writes=0;
+    const readonly=(pool:Pool):DatabasePool=>({async connect(){const c=await pool.connect();return{query:(sql:string,values?:unknown[])=>{
+      if(/^\s*(?:INSERT|UPDATE|DELETE|TRUNCATE|ALTER|CREATE|DROP)\b/i.test(sql)){writes++;throw new Error('Plan attempted mutation');}return c.query(sql,values);},release:(broken:boolean)=>c.release(broken)} as PoolClient;}});
+    const r=f.make({gateway:{gatewayUrl:'invalid',gatewayKey:''}},{drafts:readonly(f.pools.drafts),execution:readonly(f.pools.execution)});
+    try{const plan=await r.plan(new AbortController().signal);assert.equal(plan.outcome,'ready');assert.deepEqual(plan.batchIds,f.prepared.batches.map(b=>b.metadata.batchId));
+      assert.deepEqual(await r.plan(new AbortController().signal),plan);assert.equal(Object.isFrozen(plan.batchIds),true);assert.equal(writes,0);assert.equal(f.state.calls,0);assert.equal(await f.reservations(),0);
+      assert.equal(JSON.stringify(plan).includes(f.content.originalText),false);assert.equal(plan.executionAuthorized,false);
+    }finally{r.close();}
+  });
+  await check('scope plan denial, changed source and expiry expose no executable batch list or new cost reservation',async()=>{
+    for(const mode of ['denied','changed','expired']){
+      const f=await setup(4,mode==='expired'?1200:3600000);if(mode==='changed')await f.edit();if(mode==='expired')await delay(Math.max(0,Date.parse(f.execution.expiresAt)-Date.now()+50));
+      const r=f.make({authorize:async()=>{if(mode==='denied')throw new Error('Current identity denied');}});
+      try{const result=await r.plan(new AbortController().signal);assert.equal(result.outcome,mode==='denied'?'attention-required':mode==='changed'?'superseded':'expired');
+        assert.deepEqual(result.batchIds,[]);assert.equal(f.state.calls,0);assert.equal(await f.reservations(),0);
+      }finally{r.close();}
+    }
+  });
+  await testScopeWorkflow(setup,check);
 }

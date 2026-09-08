@@ -2,6 +2,7 @@ import { Worker, type NativeConnection, type WorkflowBundle } from '@temporalio/
 import { Context, CancelledFailure } from '@temporalio/activity';
 import type { createCandidateSaveActivities } from './candidate-save-activity.ts';
 import type { createDevelopmentActivities } from './development-activity.ts';
+import type { createScopeActivities } from './scope-activity.ts';
 import { createReconciliationActivities, createGateWatchActivities, type ReconciliationPort, type GateObservationPort } from './activities.ts';
 import { type ReconciliationScope, type ReconciliationActivities, type GateTarget, type RecordedBriefActivities } from './contracts.ts';
 import type { RecordedBriefRecoveryActivities } from './contracts.ts';
@@ -9,6 +10,25 @@ import type { RecordedBriefRecoveryActivities } from './contracts.ts';
 interface WorkerBinding { connection: NativeConnection; namespace: string; taskQueue: string; workflowBundle: WorkflowBundle }
 function validateBinding(options: WorkerBinding) {
   for (const name of [options.namespace, options.taskQueue]) if (typeof name !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}(?![\s\S])/.test(name)) throw new Error('Invalid worker binding.');
+}
+
+/** Dedicated scope queue; heartbeats carry no payload, findings or authority. */
+export function createScopeWorker(options: WorkerBinding, activities: ReturnType<typeof createScopeActivities>) {
+  validateBinding(options);
+  if ([activities?.readScopePlan, activities?.reviewScopeBatch, activities?.close].some(v => typeof v !== 'function')) throw new Error('Scope worker unavailable.');
+  const invoke = async (method: 'readScopePlan' | 'reviewScopeBatch', raw: unknown) => {
+    const context = Context.current(); context.heartbeat();
+    const pulse = setInterval(() => { try { context.heartbeat(); } catch { activities.close(); } }, 1000);
+    try { return await activities[method](raw, context.cancellationSignal); }
+    catch { if (context.cancellationSignal.aborted) throw new CancelledFailure('Scope review cancelled.');
+      throw new Error('Scope review requires attention.'); }
+    finally { clearInterval(pulse); }
+  };
+  return Worker.create({ connection: options.connection, namespace: options.namespace, taskQueue: options.taskQueue,
+    workflowBundle: options.workflowBundle, activities: {
+      readScopePlan: (raw: unknown) => invoke('readScopePlan', raw), reviewScopeBatch: (raw: unknown) => invoke('reviewScopeBatch', raw),
+    }, maxConcurrentActivityTaskExecutions: 1, maxConcurrentWorkflowTaskExecutions: 2,
+    maxHeartbeatThrottleInterval: '1 second', shutdownGraceTime: '10 seconds', shutdownForceTime: '30 seconds' });
 }
 
 /** Explicit dedicated development queue only; never installed by default. */

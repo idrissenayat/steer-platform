@@ -163,12 +163,13 @@ test('Temporal SDK imports stay at worker edges and deterministic workflow contr
   assert.deepEqual(imports(await readFile(resolve(base, 'src/contracts.ts'), 'utf8')), []);
   assert.deepEqual(imports(await readFile(resolve(base, 'src/candidate-save-contracts.ts'), 'utf8')), []);
   assert.deepEqual(imports(await readFile(resolve(base, 'src/development-workflow-contracts.ts'), 'utf8')), ['./candidate-save-contracts.ts']);
-  assert.deepEqual(imports(await readFile(resolve(base, 'src/workflows.ts'), 'utf8')), ['@temporalio/workflow', './development-workflow-contracts.ts', './candidate-save-contracts.ts', './contracts.ts']);
+  assert.deepEqual(imports(await readFile(resolve(base, 'src/scope-workflow-contracts.ts'), 'utf8')), ['./candidate-save-contracts.ts']);
+  assert.deepEqual(imports(await readFile(resolve(base, 'src/workflows.ts'), 'utf8')), ['@temporalio/workflow', './scope-workflow-contracts.ts', './development-workflow-contracts.ts', './candidate-save-contracts.ts', './contracts.ts']);
 });
 
 test('recorded composition exceptions do not permit provider or storage imports in pure contracts and activities', () => {
   const worker = resolve(root, 'apps/worker'), rule = rules['apps/worker'];
-  for (const file of ['src/workflows.ts', 'src/development-workflow-contracts.ts', 'src/development-activity.ts']) {
+  for (const file of ['src/workflows.ts', 'src/development-workflow-contracts.ts', 'src/development-activity.ts', 'src/scope-workflow-contracts.ts', 'src/scope-activity.ts']) {
     for (const specifier of ['@steer/agents/recorded-mastra', '@steer/data/intent-operations', '@steer/adapters', 'node:crypto', 'zod'])
       assert.equal(allowed(specifier, resolve(worker, file), worker, rule), false);
   }
