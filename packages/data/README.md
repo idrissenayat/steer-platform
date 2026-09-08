@@ -206,6 +206,46 @@ authorization/key/lifecycle is checked again before restored content is returned
 [0213 evidence](../../intent/0213/EVIDENCE.md) covers disposable SQL/Git/Temporal
 and synthetic authority/lifecycle/key ports. This is immutable candidate-original
 storage, not general editor autosave or generation checkpoint persistence. D1 is
-unsigned; the real seven-migration baseline rejects the eleven-entry development
+unsigned; the real seven-migration baseline rejects the expanded development
 journal before touching real private state. Nothing is installed in application
 startup, and no actual user draft, key, role, provider or policy is changed.
+
+## Disabled server-owned draft lifecycle (0214)
+
+`@steer/data/draft-lifecycle` exports `createDraftLifecycleStore`, scoped by the
+same organization/owner/product/home/configuration/policy tuple as original storage.
+Every action needs a trusted `authorize` service. Configuration is not adoption.
+
+- `create({requestId})`: server-minted draft ID and database creation/expiry, unique
+  for the same org/owner/request UUID. Retry returns the original, even if expired;
+  a new UUID or restored session does not refresh an existing draft clock.
+- `inspect({draftId})`: current bounded lifecycle metadata. It is not permission
+  to read content. `lifecycle(configAndDraftId)` implements 0213's loader contract.
+- `discard({draftId})`: separately authorized explicit discard observation with
+  a server-clock + 60-second use cutoff. No deletion and no retry renewal.
+- `hold({draftId,holdReference})`: requires distinct `verifyHold` evidence service
+  for the exact qualified decision. Sticky; no release method is provided.
+- `recordPublication({draftId,operationId,inputDigest})`: requires trusted
+  `verifyPublication` to return the exact verified effect and publication time.
+  Callers cannot submit timestamps. The first binding is immutable; missing,
+  mismatched, future or pre-creation observations cannot shorten/alter the record.
+- `close()`: stop admission and withhold late results without erasing metadata.
+
+Migrations 0011/0012 force owner/org/product RLS and immutable/monotone guards in
+`steer_drafts.draft_lifecycles`. The draft role has only SELECT/INSERT and limited
+restriction-column UPDATE, not deletion or clock/configuration rewriting. This
+assumes the trusted service role boundary, not hostile-SQL or administrator isolation.
+IDs/hashes/clock metadata are not anonymous data or exempt from records governance.
+
+Authority, evidence and pool calls are bounded to five seconds; evidence checks
+complete outside SQL and are freshness-checked before commit. Late denial/lost
+acknowledgement yields unknown even when restriction metadata committed. A technical
+10,000-row creation cap applies within the authorized owner/product scope; expiry
+does not delete records or reset capacity. The metadata service is not a complete
+retention, backup or disposal implementation.
+
+Actual candidate Temporal tests load lifecycle state from SQL and deny original
+retrieval when a hold is recorded after queueing. See [0214 evidence](../../intent/0214/EVIDENCE.md).
+The real thirteen-entry migration set remains held against its seven-entry baseline.
+Qualified publication/hold evidence sources, all-copy/key controls, D1 adoption,
+versioned editor/checkpoint persistence and actual UI/runtime activation remain open.

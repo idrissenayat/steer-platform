@@ -4,6 +4,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import type { Pool, PoolClient } from 'pg';
 import type { DatabasePool } from '@steer/data/runtime-pool';
 import { createCandidateOriginalStore } from '@steer/data/candidate-originals';
+import { createDraftLifecycleStore } from '@steer/data/draft-lifecycle';
 import { createDurableCandidateBundleStore } from '../src/candidate-bundle-runtime.ts';
 import { planCandidateBundle } from '@steer/tool-registry/candidate-bundle-contracts';
 import { createGitHubReader } from '@steer/adapters/github';
@@ -32,7 +33,7 @@ export async function testDurableCandidateBundles({ app, admin, connect, check }
       documents: { brief: '# Synthetic Brief\n🌸\n', spec: '# Synthetic Spec\nAC-01\n', exam: '# Candidate Exam\nNOT RUN\n' } };
     const plan = await planCandidateBundle({ ...bundle, operationId: randomUUID() });
     const confirmation = { kind: 'steer-intent-save-binding/v1', organizationId: bundle.organizationId, productId: bundle.productId,
-      subject: bundle.originatorSubject, draftId: randomUUID(), draftRevision: 1, repository: bundle.repository, branch: bundle.branch,
+      subject: bundle.originatorSubject, draftId: randomUUID() as string, draftRevision: 1, repository: bundle.repository, branch: bundle.branch,
       item: `items/${bundle.itemId}`, expectedHead: bundle.expectedHead, bundleManifestDigest: plan.manifestDigest,
       scopeInputDigest: bundle.scopeInputDigest, sourceSnapshotDigest: bundle.sourceSnapshotDigest,
       assessmentDigest: bundle.assessmentDigest, dispositionDigest: bundle.dispositionDigest };
@@ -250,11 +251,17 @@ export async function testDurableCandidateBundles({ app, admin, connect, check }
     await testCandidateSaveWorkflow(async () => {
       const f = await setup(), key = { keyId: `synthetic-${randomUUID()}`, bytes: randomBytes(32) };
       const { organizationId, subject, productId, repository, branch, configurationRevision, recordsPolicyDigest } = f.execution;
-      const createdAt = new Date(Date.now() - 1000).toISOString();
       const config = { organizationId, subject, productId, repository, branch, configurationRevision, recordsPolicyDigest };
+      const lifecycles = () => createDraftLifecycleStore(connect('steer_draft_runtime'), config, { authorize: async () => {}, verifyHold: async () => {} });
+      const creator = lifecycles();
+      try {
+        const created = await creator.create({ requestId: randomUUID() }); assert.equal(created.outcome, 'ok');
+        if (created.outcome !== 'ok') throw new Error('Synthetic draft creation unavailable');
+        f.confirmation.draftId = created.value.draftId;
+      } finally { creator.close(); }
       const originals = () => createCandidateOriginalStore(connect('steer_draft_runtime'), config, {
         authorize: async () => {}, verifyOriginal: request => f.make().verifyOriginal(request),
-        lifecycle: async () => ({ createdAt, useUntil: new Date(Date.parse(createdAt) + 7 * 86400000).toISOString(), held: false }),
+        lifecycle: async ref => { const store = lifecycles(); try { return await store.lifecycle(ref); } finally { store.close(); } },
         keyForDraft: async (_ref, keyId) => { assert.ok(keyId === null || keyId === key.keyId); return key; },
       });
       return { ...f, prepare: async () => {
@@ -263,6 +270,10 @@ export async function testDurableCandidateBundles({ app, admin, connect, check }
         return request;
       }, loadOriginal: async (target: unknown) => {
         const store = originals(); try { return await store.read(target); } finally { store.close(); }
+      }, holdDraft: async () => {
+        const store = lifecycles(); try {
+          assert.equal((await store.hold({ draftId: f.confirmation.draftId, holdReference: randomUUID() })).outcome, 'ok');
+        } finally { store.close(); }
       } };
     }, check);
   } finally { for (const cleanup of cleanups.reverse()) cleanup(); }

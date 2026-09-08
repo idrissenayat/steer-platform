@@ -248,6 +248,13 @@ actual UI, or verify live authority/key-backup controls. See
 [0213 evidence](../intent/0213/EVIDENCE.md). D1 adoption and real activation remain
 pending; the real local migration baseline is unchanged.
 
+Increment [0214](../intent/0214/EVIDENCE.md) replaces that test's invented lifecycle
+dates with server-owned SQL draft clocks. Draft creation is idempotent; explicit
+discard and separately verified hold/publication observations only restrict use.
+A queued candidate workflow observes a later durable hold and stops before Git.
+The adapter remains uninstalled and does not supply the missing live qualified-
+evidence/key services or generation-checkpoint content storage.
+
 ### Existing model integration sources
 
 The pinned installed Mastra declarations were checked alongside the official

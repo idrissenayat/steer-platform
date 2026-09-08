@@ -209,6 +209,15 @@ path cannot release manually quarantined outcomes or erase known failures.
 
 ## 4. Duplicate prevention and atomic save
 
+Implementation note (0213–0214, inactive): candidate workflow tests now reload
+encrypted original requests with server-owned SQL draft IDs/clocks and current
+lifecycle state. Idempotent creation never renews an existing draft. Explicit
+discard and independently verified publication only shorten its fixed window;
+qualified holds deny ordinary restoration, including for work already queued.
+Authority/evidence/key ports are still synthetic in tests. No actual UI, live
+policy adoption, key/all-copy lifecycle, versioned editor or generation-checkpoint
+content storage is implied by these disabled adapters.
+
 1. Search authorized candidates and existing Brief/Spec scope, including relevant
    completed/archived records. Resolve product, user group, exclusions and negation.
    Cite evidence and distinguish coverage from confidence.

@@ -140,6 +140,19 @@ export const steerDrafts = pgSchema('steer_drafts');
 const draftOrg = sql`nullif(current_setting('steer.draft_organization', true), '')`;
 const draftOwner = sql`nullif(current_setting('steer.draft_subject', true), '')`;
 const draftProduct = sql`nullif(current_setting('steer.draft_product', true), '')`;
+export const draftLifecycles = steerDrafts.table('draft_lifecycles', {
+  organizationId: text('organization_id').notNull(), subject: text('subject').notNull(), productId: text('product_id').notNull(),
+  draftId: uuid('draft_id').notNull(), requestId: uuid('request_id').notNull(), configurationDigest: text('configuration_digest').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull(), retentionDeadline: timestamp('retention_deadline', { withTimezone: true }).notNull(),
+  useUntil: timestamp('use_until', { withTimezone: true }).notNull(), held: boolean('held').notNull().default(false),
+  holdReference: uuid('hold_reference'), discardedAt: timestamp('discarded_at', { withTimezone: true }),
+  publishedAt: timestamp('published_at', { withTimezone: true }), publicationOperation: uuid('publication_operation'), publicationInput: text('publication_input'),
+}, t => [primaryKey({ columns: [t.organizationId, t.draftId] }),
+  unique('draft_creation_request').on(t.organizationId, t.subject, t.requestId),
+  check('draft_lifecycle_bounds', sql`${t.configurationDigest} ~ '^[a-f0-9]{64}$' AND ${t.retentionDeadline} = ${t.createdAt} + interval '168 hours' AND ${t.useUntil} = LEAST(${t.retentionDeadline}, ${t.discardedAt} + interval '60 seconds', ${t.publishedAt} + interval '60 seconds') AND ${t.held} = (${t.holdReference} IS NOT NULL) AND (${t.publishedAt} IS NULL) = (${t.publicationOperation} IS NULL) AND (${t.publishedAt} IS NULL) = (${t.publicationInput} IS NULL) AND (${t.publicationInput} IS NULL OR ${t.publicationInput} ~ '^[a-f0-9]{64}$')`),
+  pgPolicy('draft_lifecycle_owner', { for: 'all', using: sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}`,
+    withCheck: sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}` }),
+]).enableRLS();
 export const candidateOriginals = steerDrafts.table('candidate_originals', {
   organizationId: text('organization_id').notNull(), subject: text('subject').notNull(), productId: text('product_id').notNull(),
   operationId: uuid('operation_id').notNull(), draftId: uuid('draft_id').notNull(), draftRevision: bigint('draft_revision', { mode: 'number' }).notNull(),

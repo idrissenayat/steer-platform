@@ -13,6 +13,7 @@ import { createIsolatedTemporalHarness } from './isolated-temporal-harness.ts';
 
 type Fixture = { prepare(): Promise<CandidateBundleSaveRequest>; make(): ReturnType<typeof createDurableCandidateBundleStore>;
   loadOriginal(target: unknown): Promise<unknown>;
+  holdDraft(): Promise<void>;
   git: { mutations(): number; head(): string; loseAck(): void }; state(operationId: string): Promise<unknown> };
 const historyText = (v: unknown): string => v instanceof Uint8Array ? Buffer.from(v).toString('utf8')
   : v && typeof v === 'object' ? Object.values(v).map(historyText).join('\n') : typeof v === 'string' ? v : '';
@@ -61,6 +62,14 @@ export async function testCandidateSaveWorkflow(setup: () => Promise<Fixture>, c
       assert.equal((await handle.describe()).status.name, 'COMPLETED'); assert.equal(t.f.git.mutations(), 1);
       assert.equal((await handle.fetchHistory()).events?.filter(e => e.activityTaskScheduledEventAttributes).length, 1);
       assert.equal((await t.f.make().inspect(t.request)).outcome, 'committed'); assert.equal(t.f.git.mutations(), 1);
+      await stop();
+    });
+    await check('a durable SQL draft hold recorded after queueing prevents Temporal from restoring originals or sending Git work', async () => {
+      const t = await fresh(), handle = await startCandidateBundleSave(env.client, t.queue, t.target);
+      await t.f.holdDraft(); await runWorker(t); await assert.rejects(handle.result());
+      assert.equal(t.f.git.mutations(), 0); assert.equal(await t.f.state(t.target.operationId), undefined);
+      const text = historyText(await handle.fetchHistory());
+      for (const forbidden of ['Synthetic Brief', 'Candidate Exam', 'holdReference', 'ciphertext']) assert.equal(text.includes(forbidden), false);
       await stop();
     });
     await check('missing or substituted original payload fails one Temporal attempt with no source bytes in history and no Git request', async () => {

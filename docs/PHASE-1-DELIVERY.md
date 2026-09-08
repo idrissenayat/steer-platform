@@ -4470,3 +4470,30 @@ This is not conversation/editor autosave, generation checkpoint storage or actua
 UI acceptance. Those services, authoritative lifecycle/current-source composition,
 external key/all-copy recovery controls and durable development-role execution
 remain next. Live activation is separate; I1–I6 are not complete.
+
+## Development increment: 0214 — Server-owned draft lifecycle
+
+Added disabled durable draft IDs and creation/expiry metadata. Creation retries
+converge on the same server-minted identity and database clock. Explicit discard
+records one 60-second cutoff without deletion; qualified holds stay sticky and
+publication requires a separate exact verified effect/time service. Runtime SQL
+cannot rewrite identity/clock/configuration or reset recorded restrictions.
+
+The candidate Temporal test now obtains lifecycle from this SQL service, not a
+fixture timestamp callback. A hold recorded after queueing prevents decryption and
+Git dispatch. Combined SQL/native-Git/Temporal integration passes **100/100** checks,
+including ten lifecycle cases and the new held-workflow case. See
+[0214 evidence](../intent/0214/EVIDENCE.md) for verification and synthetic ports.
+Scoped units/migration controls pass **278/278**, existing Temporal/projection
+**33/33** and destination runtime **1/1**. Typecheck, kit/security, schema-drift and
+whitespace checks pass; protected hashes match.
+
+Migrations 0011/0012 remain disposable-development only. The real migration guard
+still rejects the thirteen-entry journal against its seven-entry baseline. No
+actual draft, key, grant, migration, paid call, GitHub runtime write, deployment,
+signed source or accepted records policy changed. D1 remains unsigned/inactive.
+
+This supplies metadata lifecycle, not the missing versioned editor/conversation
+or generation-checkpoint content stores. Those services, real publication/qualified-
+hold evidence binding, key/all-copy recovery controls, full-source/current authority,
+development-role execution and actual UI acceptance remain next. I1–I6 stay open.
