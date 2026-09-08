@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { createIntentScopeDiscovery } from '@steer/data/intent-scope-discovery';
 import { createIntentScopeStarter } from '@steer/data/intent-scope-starter';
 import { createIntentScopePreparer } from '@steer/data/intent-scope-preparer';
 import { scopeReviewConfigurationSchema } from '@steer/data/scope-review-operations';
@@ -93,6 +94,11 @@ export function createCorpusRecordedDevelopmentReviewer(reader: Parameters<typeo
   const reviewer = createIntentDevelopmentReviewer(config, { drafts: dependencies.drafts, authorizeReview: dependencies.authorizeReview,
     evidenceFor: async (input, current) => (await corpus.collect({ organizationId, productId, repository, branch, scopeInputDigest: input.scopeInputDigest }, current)).evidence });
   return { scope: reviewer.scope, review: reviewer.review, close() { reviewer.close(); corpus.close(); } };
+}
+/** Owner-bound discovery is metadata only and remains uninstalled by default. */
+export function createRecordedScopeDiscovery(pool: Parameters<typeof createIntentScopeDiscovery>[0], configuration: unknown,
+  dependencies: Parameters<typeof createIntentScopeDiscovery>[2]) {
+  return createIntentScopeDiscovery(pool, configuration, dependencies);
 }
 /** Owner-bound discovery is metadata only and remains uninstalled by default. */
 export function createRecordedDraftDiscovery(pool: Parameters<typeof createIntentDraftDiscovery>[0], configuration: unknown,

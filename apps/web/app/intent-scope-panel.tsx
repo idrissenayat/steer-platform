@@ -43,7 +43,7 @@ export default function IntentScopePanel({ source, review, subject, identity, ex
   }, [view]);
   useEffect(() => { if (['review-available', 'incomplete', 'no-sources', 'attention-required'].includes(view?.status ?? '')) heading.current?.focus(); }, [view?.status]);
   if (!view || view.status === 'closed' || (!review && view.status === 'idle')) return null;
-  const busy = ['preparing', 'starting', 'reading'].includes(view.status), current = Boolean(context.current) && !view.sourceInvalidated;
+  const busy = ['preparing', 'starting', 'reading'].includes(view.status) || view.discoveryStatus === 'loading', current = Boolean(context.current) && !view.sourceInvalidated;
   const result = view.observation?.review, shown = result && !['superseded', 'expired'].includes(view.status) && !view.sourceInvalidated ? result : null;
   const inventory = view.source?.evidence.inventory ?? [], snapshot = view.source?.evidence.head;
   const finished = view.observation?.batches?.filter(b => b.state === 'succeeded').length ?? 0;
@@ -53,6 +53,18 @@ export default function IntentScopePanel({ source, review, subject, identity, ex
     <button type="button" className="access-secondary" disabled={!enabled || !context.current || view.locked}
       onClick={() => { polls.current = 0; began.current = Date.now(); setPaused(false); void controller.current?.assess(); }}>Assess existing scope</button>
     {!enabled && <p>Assessment needs current model and budget permissions. Reading retained progress does not start a new model call.</p>}
+    <button type="button" className="access-secondary" disabled={!context.current || busy || view.retryAvailable || Boolean(view.operation && !current)}
+      onClick={() => { void controller.current?.discover(); }}>Find retained scope reviews</button>
+    {view.discoveryStatus === 'loading' && <p role="status">Finding retained references for this exact saved draft… No model work is started.</p>}
+    {view.discovery && !view.sourceInvalidated && <div className="intent-scope-discovery">
+      <p>References for this saved revision only, in stable identifier order—not newest first. Different source snapshots may be present. Opening one reads and verifies it before any recovery start.</p>
+      {view.discovery.entries.length === 0 && <p>No retained references were found on this page for this owner, records configuration and draft revision. This is not a duplicate verdict or proof that no earlier work exists.</p>}
+      <ul>{view.discovery.entries.map(entry => <li key={entry.reviewId}><code>{entry.reviewId}</code>{' '}
+        <button type="button" className="access-secondary" disabled={busy || !current || view.retryAvailable}
+          onClick={() => { polls.current = 0; began.current = Date.now(); setPaused(false); void controller.current?.resume(entry); }}>Read retained review {entry.reviewId}</button></li>)}</ul>
+      {view.discovery.nextCursor && <button type="button" className="access-secondary" disabled={busy || !current || view.retryAvailable}
+        onClick={() => { void controller.current?.discover(view.discovery!.nextCursor); }}>More retained scope reviews</button>}
+    </div>}
     <div role="status" aria-live="polite" aria-atomic="true">
       {view.status === 'preparing' && <p>Preserving this exact source review… No model call is started by preparation.</p>}
       {view.status === 'starting' && <p>Requesting assessment under current permissions…</p>}

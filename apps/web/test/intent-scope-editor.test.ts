@@ -8,6 +8,7 @@ async function setup(count = 4) {
   const f = await scopeEditorFixture(count), calls: Array<{ kind: string; input: unknown }> = [];
   let source: ScopeEditorSource | null = f.source;
   const transport: IntentScopeTransport = { close() {},
+    discover: async input => { calls.push({ kind: 'discover', input }); return f.discovery; },
     prepare: async input => { calls.push({ kind: 'prepare', input }); return f.prepared; },
     start: async input => { calls.push({ kind: 'start', input }); return f.started; },
     read: async input => { calls.push({ kind: 'read', input }); return f.pending; } };
@@ -23,6 +24,45 @@ test('scope editor explicitly prepares, starts and reads one exact review; parti
   assert.equal(editor.snapshot().observation?.review?.structuralAssessmentComplete, false);
   transport.read = async () => f.ready; await editor.read(); assert.equal(editor.snapshot().status, 'review-available');
   assert.equal(editor.snapshot().locked, false); assert.equal(editor.snapshot().observation?.semanticQualityVerified, false);
+});
+test('fresh scope editor discovers exact references and reads terminal results without preparing or starting replacement work', async () => {
+  const { f, calls, transport, editor } = await setup(); transport.read = async input => { calls.push({ kind: 'read', input }); return f.ready; };
+  await editor.discover(); assert.equal(editor.snapshot().discoveryStatus, 'available');
+  await editor.resume({ ...f.prepared.reference, reviewId: '00000000-0000-4000-8000-000000000099' }); assert.equal(calls.length, 1);
+  await editor.resume(f.prepared.reference); await editor.retry();
+  assert.deepEqual(calls.map(c => c.kind), ['discover', 'read']); assert.equal(editor.snapshot().status, 'review-available');
+  assert.equal(editor.snapshot().retryAvailable, false); assert.deepEqual(calls[0]!.input, f.discoveryInput);
+});
+test('discovered pending scope is read first and only an explicit action recovers the exact start reference', async () => {
+  const { f, calls, editor } = await setup(); await editor.discover(); await editor.resume(f.prepared.reference);
+  assert.deepEqual(calls.map(c => c.kind), ['discover', 'read']); assert.equal(editor.snapshot().retryAvailable, true);
+  await editor.retry(); assert.deepEqual(calls.map(c => c.kind), ['discover', 'read', 'start', 'read']);
+  assert.deepEqual(calls[2]!.input, f.startInput);
+});
+test('scope discovery uses the returned keyset cursor, rejects substituted pages, and suppresses late output after closure', async () => {
+  const { f, calls, editor, transport } = await setup();
+  const entries = Array.from({ length: 20 }, (_, i) => ({ ...f.prepared.reference, reviewId: `00000000-0000-4000-8000-${String(100-i).padStart(12, '0')}` }));
+  const cursor = entries.at(-1)!.reviewId;
+  transport.discover = async input => { calls.push({ kind: 'discover', input }); return { ...f.discovery, ...input, entries, nextCursor: cursor }; };
+  await editor.discover(); await editor.discover('00000000-0000-4000-8000-000000000099'); assert.equal(calls.length, 1);
+  transport.discover = async input => { calls.push({ kind: 'discover', input }); return { ...f.discovery, ...input, entries: [], nextCursor: null }; };
+  await editor.discover(cursor); assert.deepEqual(calls[1]!.input, { ...f.discoveryInput, cursor }); assert.deepEqual(editor.snapshot().discovery!.entries, []);
+  let release!: (value: typeof f.discovery) => void;
+  transport.discover = async () => new Promise(r => { release = r; });
+  const pending = editor.discover(); editor.close(); release(f.discovery); await pending;
+  assert.equal(editor.snapshot().status, 'closed'); assert.equal(editor.snapshot().discovery, null);
+});
+test('discovery loss, expired metadata, changed corpus and edited/undone source never disclose stale findings or start work', async () => {
+  const { f, calls, editor, transport, setSource } = await setup();
+  transport.discover = async () => { throw new Error('PRIVATE'); }; await editor.discover();
+  assert.equal(editor.snapshot().discoveryStatus, 'unavailable'); assert.equal(editor.snapshot().discovery, null);
+  transport.discover = async () => ({ ...f.discovery, useUntil: new Date(Date.now()-1000).toISOString() }); await editor.discover();
+  assert.equal(editor.snapshot().discovery, null);
+  transport.discover = async () => f.discovery; await editor.discover();
+  setSource(null); setSource(f.source); await editor.resume(f.prepared.reference); assert.equal(calls.length, 0);
+  await editor.discover(); transport.read = async () => ({ ...f.ready, review: { ...f.ready.review!, planDigest: 'e'.repeat(64) } });
+  await editor.resume(f.prepared.reference); assert.equal(editor.snapshot().status, 'unavailable'); assert.equal(editor.snapshot().observation, null);
+  assert.equal(editor.snapshot().retryAvailable, false);
 });
 test('schema-normalized field order does not falsely invalidate an unchanged editor source', async () => {
   const { f, editor, calls, setSource } = await setup();

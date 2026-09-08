@@ -11,14 +11,18 @@ test('scope transport sends exact metadata to fixed same-origin authenticated to
     assert.doesNotMatch(String(init?.body), /originalText|documents|api.key|budget|profile|namespace|taskQueue/i); calls.push(JSON.parse(String(init?.body)));
     if (String(url).endsWith('intent.scope.prepare')) return Response.json(f.prepared);
     if (String(url).endsWith('intent.scope.start')) return Response.json(f.started);
+    if (String(url).endsWith('intent.scope.discover')) return Response.json(f.discovery);
     assert.ok(String(url).endsWith('intent.scope.read')); return Response.json(f.ready);
   });
   assert.deepEqual(await transport.prepare(f.input), f.prepared); assert.deepEqual(await transport.start(f.startInput), f.started);
-  assert.deepEqual(await transport.read(f.readInput), f.ready); assert.deepEqual(calls, [f.input, f.startInput, f.readInput]);
-  transport.close(); await assert.rejects(transport.read(f.readInput)); assert.equal(calls.length, 3);
+  assert.deepEqual(await transport.read(f.readInput), f.ready); assert.deepEqual(await transport.discover(f.discoveryInput), f.discovery);
+  assert.deepEqual(calls, [f.input, f.startInput, f.readInput, f.discoveryInput]);
+  transport.close(); await assert.rejects(transport.read(f.readInput)); assert.equal(calls.length, 4);
 });
 test('scope transport rejects substituted bindings, corrupt results, authority claims and caller-supplied configuration', async () => {
   const f = await scopeEditorFixture();
+  for (const patch of [{ revision: 2 }, { cursor: f.prepared.reference.reviewId }, { contentLoaded: true }])
+    await assert.rejects(createIntentScopeTransport('https://steer.example', async () => Response.json({ ...f.discovery, ...patch })).discover(f.discoveryInput));
   for (const patch of [{ draftId: f.prepared.reference.reviewId }, { revision: 2 }, { sourceSnapshotDigest: 'f'.repeat(64) }, { executionAuthorized: true }])
     await assert.rejects(createIntentScopeTransport('https://steer.example', async () => Response.json({ ...f.prepared, ...patch })).prepare(f.input));
   await assert.rejects(createIntentScopeTransport('https://steer.example', async () => Response.json({ ...f.started, receipt: { ...f.started.receipt, workflowId: 'foreign' } })).start(f.startInput));

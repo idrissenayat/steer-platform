@@ -1,6 +1,7 @@
 import { intentScopePrepareInputSchema, intentScopePrepareOutputSchema, type IntentScopePrepareInput } from '@steer/tool-registry/intent-scope-prepare-contracts';
 import { intentScopeStartInputSchema, intentScopeStartOutputSchema, type IntentScopeStartInput } from '@steer/tool-registry/intent-scope-start-contracts';
 import { intentScopeReadInputSchema, verifyIntentScopeReadOutput, type IntentScopeReadInput } from '@steer/tool-registry/intent-scope-read-contracts';
+import { intentScopeDiscoveryInputSchema, intentScopeDiscoveryOutputSchema, type IntentScopeDiscoveryInput } from '@steer/tool-registry/intent-scope-discovery-contracts';
 
 const failure = () => new Error('Scope review could not be verified. Your draft is unchanged.');
 /** Fixed authenticated scope tools only. No source bytes, provider access,
@@ -9,7 +10,7 @@ export function createIntentScopeTransport(origin: string, transport: typeof fet
   const url = new URL(origin);
   if (url.protocol !== 'https:' || url.origin !== origin || url.username || url.password) throw failure();
   let closed = false, active: AbortController | null = null;
-  async function request(tool: 'prepare' | 'start' | 'read', input: unknown): Promise<unknown> {
+  async function request(tool: 'prepare' | 'start' | 'read' | 'discover', input: unknown): Promise<unknown> {
     if (closed || active) throw failure();
     const body = JSON.stringify(input);
     if (new TextEncoder().encode(body).length > 16384) throw failure();
@@ -55,6 +56,10 @@ export function createIntentScopeTransport(origin: string, transport: typeof fet
   }
   return {
     close() { closed = true; active?.abort(); },
+    async discover(raw: IntentScopeDiscoveryInput) {
+      const input = intentScopeDiscoveryInputSchema.parse(raw);
+      return bound(input, intentScopeDiscoveryOutputSchema.parse(await request('discover', input)));
+    },
     async prepare(raw: IntentScopePrepareInput) {
       const input = intentScopePrepareInputSchema.parse(raw);
       return bound(input, intentScopePrepareOutputSchema.parse(await request('prepare', input)));

@@ -830,3 +830,23 @@ production UI composition, not live records/model activation or semantic quality
 Scope-specific refresh discovery and server-side evidence consumption by direction/
 drafting remain open; the legacy generation-envelope gate is not bypassed by a
 completed larger scope assessment. Full human save/reopen acceptance remains open.
+
+0247 adds the separate human query `intent.scope.discover`: exact latest saved draft
+plus owner/product/repository/records configuration, bounded UUID keyset pages and
+current metadata/per-entry permission. The data service selects no encrypted
+content, acquires no keys or execution pool, releases leases before authorization
+callbacks and repeats lifecycle/source/page checks before release. Discovery errors
+are not empty pages. The existing table has no creation timestamp, so order is
+explicitly non-chronological. The references may cover different corpus/profile
+versions; metadata is not content provenance or authority to execute.
+
+The actual editor restores a draft, reviews sources and can discover/select a
+retained review for a read before any start. Read findings must match the current
+reviewed corpus; terminal observations cannot offer retries. Pending observations
+can offer explicit exact-reference start recovery under separate current authority.
+No browser storage, automatic preparation/start, text replacement, inferred
+newness, generation clearance or save follows discovery. Scope discovery covers
+captured originals of the exact latest draft, not orphan admissions or older
+revisions. Historical-corpus display remains separate. See
+[0247 specification](../../intent/0247/SPEC.md). Factories remain uninstalled and
+server-bound assessment consumption by direction/drafting remains next.

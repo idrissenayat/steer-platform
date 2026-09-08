@@ -5322,3 +5322,32 @@ legacy generation-envelope coverage gate remains unchanged. No D1 activation, re
 migration, credential inspection, paid model call, runtime Git save, gate, deployment
 or release occurred. First-test spending remains unapproved and the one-minute
 loop stays active.
+
+## Development increment: 0247 — Scope discovery and read-first recovery
+
+The actual editor can find retained scope reviews for an exact latest saved draft
+and read a selected reference before any start. Completed findings do not start a
+replacement run; pending recovery is explicit and reuses the same review under
+separate current permissions. Metadata pagination is UUID ordered, not newest-first.
+Older corpus versions, inaccessible/stale sources, errors and empty pages cannot
+become current findings or a claim that no duplicate/earlier work exists.
+
+The separate human `intent.scope.discover` query uses keyless, owner-bound draft
+metadata reads with current authority, exact revision/lifecycle checks and bounded
+keyset pages. It neither selects encrypted content nor opens an execution pool.
+Callbacks release leases, and final metadata authority precedes the last SQL
+snapshot. Factories stay uninstalled. See [0247 evidence](../intent/0247/EVIDENCE.md).
+
+0247 verification: 1,107/1,107 final full regressions and 326/326 full PostgreSQL
+integration checks pass. The full database run preceded the final authorization
+ordering adjustment; the final 55-case focused scope/HTTP/SQL/Temporal rerun plus
+idempotent migration check also pass, including that ordering assertion. All package/
+prototype types, optimized Next build, Drizzle history, kit (95 artifacts), scope
+audit, 140 local document links and whitespace checks pass. Protected hashes are unchanged. Synthetic HTTP/
+model authority and disposable SQL are not real signed-in acceptance.
+
+Continue server-bound assessment consumption by direction/drafting, then larger
+contexts, real records/model authority, semantic evaluation and human save/reopen.
+Legacy generation coverage gates remain unchanged. No real migration, D1
+activation, credential inspection, model spend, runtime Git save, gate, auth bypass,
+deployment or release occurred. The existing one-minute loop remains active.

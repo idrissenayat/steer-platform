@@ -32,7 +32,7 @@ async function renderFixture(candidate = false) {
   const saved = Object.fromEntries(keys.map(k => [k, Object.getOwnPropertyDescriptor(globalThis, k)]));
   for (const [key, value] of Object.entries({ window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, IS_REACT_ACT_ENVIRONMENT: true })) Object.defineProperty(globalThis, key, { configurable: true, value });
   const { configurationRevision, sourceSnapshotDigest, ...input } = f.input;
-  const state = { lost: true, denied: false, output: f.pending, scopeCalls: [], allCalls: [] };
+  const state = { lost: true, denied: false, output: f.pending, discovery: f.discovery, scopeCalls: [], allCalls: [] };
   const review = { ...input, kind: 'steer-development-review/v1', configurationRevision, sourceSnapshotDigest,
     evidence: f.evidence, scopeBatchPlan: f.source.plan, semanticReviewComplete: false, authoritativeClearance: false, executionAuthorized: false, savedToGit: false, gateSigned: false };
   globalThis.fetch = async (url, init) => {
@@ -41,6 +41,7 @@ async function renderFixture(candidate = false) {
     if (url.endsWith('intent.development.review')) return Response.json(review);
     assert.ok(url.includes('/intent.scope.'), 'Scope interactions must not trigger document generation or saving');
     state.scopeCalls.push({ url, input });
+    if (url.endsWith('.discover')) return state.denied ? Response.json({}, { status: 403 }) : Response.json({ ...state.discovery, cursor: input.cursor });
     if (url.endsWith('.prepare')) return Response.json(f.prepared);
     if (url.endsWith('.start')) { if (state.lost) { state.lost = false; throw new Error('PRIVATE lost ACK'); } return Response.json(f.started); }
     return state.denied ? Response.json({ PRIVATE: true }, { status: 403 }) : Response.json(state.output);
@@ -59,6 +60,22 @@ async function renderFixture(candidate = false) {
   return { f, props, state, root, dom, button, until, click, render,
     cleanup: async () => { await act(async () => root.unmount()); dom.window.close(); for (const k of keys) { if (saved[k]) Object.defineProperty(globalThis, k, saved[k]); else delete globalThis[k]; } } };
 }
+
+test('fresh actual editor discovers and reads a retained completed scope review without preparing or starting a model run', async () => {
+  const t = await renderFixture();
+  try {
+    t.state.output = t.f.ready; await t.click('Review existing work for this draft');
+    await t.render({ enabled: false }); // Metadata and result reads remain possible without model-use permission.
+    await t.click('Find retained scope reviews'); await t.until(() => Boolean(t.button('Read retained review ' + t.f.prepared.reference.reviewId)));
+    assert.match(document.body.textContent, /not newest first|not newest|not.*newest first/);
+    await t.click('Read retained review ' + t.f.prepared.reference.reviewId); await t.until(() => document.body.textContent.includes('Findings are ready'));
+    assert.ok(document.querySelector('.intent-scope-findings')); assert.equal(t.button('Recover the same scope request'), undefined);
+    assert.deepEqual(t.state.scopeCalls.map(c => c.url.split('.').at(-1)), ['discover', 'read']);
+    assert.equal(window.localStorage.length, 0); assert.equal(window.sessionStorage.length, 0);
+    t.state.denied = true; await t.click('Find retained scope reviews'); await t.until(() => document.body.textContent.includes('discovery could not be verified'));
+    assert.equal(document.querySelector('.intent-scope-discovery'), null); assert.equal(document.querySelector('.intent-scope-findings'), null);
+  } finally { await t.cleanup(); }
+});
 
 test('actual editor scope controls recover a lost start, show exact partial/full findings, preserve edits and never generate or save', async () => {
   const t = await renderFixture();

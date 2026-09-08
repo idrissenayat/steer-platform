@@ -1,6 +1,14 @@
 # STEER platform implementation
 
-## Current checkpoint — 0246
+## Current checkpoint — 0247
+
+0247 connects exact-latest-draft scope discovery and read-first recovery to the
+existing editor. The disabled API factory performs keyless owner-bound metadata
+reads; retained references are stable UUID-ordered, not chronological. Selected
+results must pass current content authority and match reviewed corpus bytes before
+display. Only explicit recovery can request start for the same pending workflow.
+See [0247 evidence](../intent/0247/EVIDENCE.md). Server-bound scope assessment
+consumption for direction/drafting and real human/save acceptance remain next.
 
 Use [the intent journey plan](INTENT-JOURNEY-PLAN.md) and
 [the delivery ledger](PHASE-1-DELIVERY.md) for current status; the implementation

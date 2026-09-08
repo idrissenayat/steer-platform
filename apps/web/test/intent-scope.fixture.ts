@@ -4,6 +4,7 @@ import { prepareIntentScopeReview } from '@steer/tool-registry/intent-scope-revi
 import { validateIntentScopeBatchResults } from '@steer/tool-registry/intent-scope-batches';
 import type { ScopeEditorSource } from '../app/intent-scope-editor.ts';
 import type { IntentScopeReadOutput } from '@steer/tool-registry/intent-scope-read-contracts';
+import { scopeDiscoveryFixture } from '../../../packages/tool-registry/test/intent-scope-discovery.fixture.ts';
 export async function scopeEditorFixture(count = 4, candidate = false) {
   const original = await scopeReviewFixture(count);
   const evidence = candidate ? { ...original.evidence, inventory: original.evidence.inventory.map((s, n) => ({ ...s,
@@ -37,5 +38,8 @@ export async function scopeEditorFixture(count = 4, candidate = false) {
       batches: p.batches.map((b, index) => ({ batchId: b.batchId, state: index < completed ? 'succeeded' : 'pending', resultDigest: index < completed ? 'c'.repeat(64) : null })),
       semanticQualityVerified: false, authoritativeClearance: false, executionAuthorized: false, retryAuthorized: false, savedToGit: false, gateSigned: false };
   }
-  return { ...f, source, input, prepared, startInput, started, readInput, observation, pending: await observation(0), ready: await observation(p.batches.length) };
+  const { configurationRevision: _configuration, sourceSnapshotDigest: _source, ...discoverySource } = input;
+  const discoveryInput = { ...discoverySource, cursor: null };
+  const discovery = { ...scopeDiscoveryFixture().output, ...discoveryInput, entries: [prepared.reference] };
+  return { ...f, source, input, prepared, startInput, started, readInput, discoveryInput, discovery, observation, pending: await observation(0), ready: await observation(p.batches.length) };
 }
