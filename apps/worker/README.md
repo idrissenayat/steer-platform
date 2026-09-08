@@ -35,3 +35,11 @@ Under Node 24, run `pnpm --filter @steer/worker test` for unit tests and
 `pnpm test:data:integration` for the disposable PostgreSQL composition checks.
 `pnpm test:workflow:integration` tests the existing Temporal paths, not this runner's
 future Temporal registration. See [0221 evidence](../../intent/0221/EVIDENCE.md).
+
+Increment 0222 adds `@steer/data/development-observations`: separately immutable,
+encrypted request/response storage under current draft/source/step authority. A new
+integrated fixture verifies this runner against actual SQL observations with fresh
+readers, not the in-memory map. Production transport serialization, response parsing
+and usage extraction must still be connected to this journal; supplied body bytes
+and adapter labels alone are not provider proof. No runner/model/API registration
+or live storage authority is added. See [0222 evidence](../../intent/0222/EVIDENCE.md).

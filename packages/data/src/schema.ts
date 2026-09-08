@@ -197,6 +197,21 @@ export const developmentOriginals = steerDrafts.table('development_originals', {
     withCheck:sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}` }),
 ]).enableRLS();
 
+// Private immutable adapter observations; metadata is not proof of provider authorship.
+export const developmentObservations = steerDrafts.table('development_observations', {
+  organizationId: text('organization_id').notNull(), subject: text('subject').notNull(), productId: text('product_id').notNull(),
+  operationId: uuid('operation_id').notNull(), stepId: text('step_id').notNull(), stage: text('stage').notNull(),
+  draftId: uuid('draft_id').notNull(), draftRevision: bigint('draft_revision', { mode: 'number' }).notNull(),
+  payloadDigest: text('payload_digest').notNull(), record: jsonb('record').notNull(), encryptedValue: jsonb('encrypted_value').notNull(),
+}, t => [primaryKey({ columns: [t.organizationId,t.operationId,t.stepId,t.stage] }),
+  foreignKey({ name:'development_observation_step', columns:[t.organizationId,t.operationId,t.stepId], foreignColumns:[intentSteps.organizationId,intentSteps.operationId,intentSteps.stepId] }),
+  foreignKey({ name:'development_observation_original', columns:[t.organizationId,t.operationId], foreignColumns:[developmentOriginals.organizationId,developmentOriginals.operationId] }),
+  foreignKey({ name:'development_observation_source', columns:[t.organizationId,t.draftId,t.draftRevision], foreignColumns:[draftRevisions.organizationId,draftRevisions.draftId,draftRevisions.revision] }),
+  check('development_observation_bounds', sql`${t.stepId} IN ('architect','test-agent') AND ${t.stage} IN ('request','response') AND ${t.payloadDigest} ~ '^[a-f0-9]{64}$' AND octet_length(${t.record}::text) <= 8000 AND octet_length(${t.encryptedValue}::text) <= 1050000`),
+  pgPolicy('development_observation_owner', { for:'all', using:sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}`,
+    withCheck:sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}` }),
+]).enableRLS();
+
 // Immutable captured worker outputs, separate from editable document snapshots.
 export const developmentResults = steerDrafts.table('development_results', {
   organizationId: text('organization_id').notNull(), subject: text('subject').notNull(), productId: text('product_id').notNull(),

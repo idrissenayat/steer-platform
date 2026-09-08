@@ -152,6 +152,14 @@ this orchestration independently does not replace actual durable provider reques
 response and usage capture. It is not a Temporal activity registration, API route,
 live execution grant or I3 acceptance. See [0221 evidence](../../intent/0221/EVIDENCE.md).
 
+0222 adds disabled encrypted request/response observation storage. The journal
+separates recorded request from response, binds exact role input and actual sent
+ownership/reservation, and supports fresh SQL-backed readback in the step-runner
+test chain. The transport serializer/parser still must prove correspondence between
+the supplied bodies, rendered packet, role result and extracted usage. The fixture
+does not contact a provider. No observation row grants dispatch, retry, history
+access after job expiry or a gate decision. See [0222 evidence](../../intent/0222/EVIDENCE.md).
+
 The API accepts/queries operations; an internal Temporal workflow owns the long
 conversation job. Use a draft-scoped identity before an item exists:
 `steer-intent-development/v1/<organizationId>/<draftId>/<operationId>` with

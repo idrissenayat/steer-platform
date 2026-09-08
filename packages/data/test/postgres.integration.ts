@@ -23,6 +23,7 @@ import { testDevelopmentResults } from './development-results.integration.ts';
 import { testDevelopmentOriginals } from './development-originals.integration.ts';
 import { testDevelopmentRequests } from './development-requests.integration.ts';
 import { testDevelopmentStepRuntime } from '../../../apps/worker/test/development-step-runtime.integration.ts';
+import { testDevelopmentObservations } from './development-observations.integration.ts';
 
 const exec = promisify(execFile);
 const docker = async (...args: string[]) => (await exec('docker', args, { timeout: 30000 })).stdout.trim();
@@ -65,7 +66,7 @@ try {
   await check('versioned Drizzle migrations apply twice without replay effects', async () => {
     await migrate(drizzle(admin), { migrationsFolder });
     await migrate(drizzle(admin), { migrationsFolder });
-    assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 19);
+    assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 21);
   });
   const app = connect('steer_app');
   const projector = connect('steer_projector');
@@ -235,6 +236,7 @@ try {
   await testDevelopmentOriginals({ admin, connect, check });
   await testDevelopmentRequests({ admin, connect, check });
   await testDevelopmentStepRuntime({ admin, connect, check });
+  await testDevelopmentObservations({ admin, connect, check });
   await testDurableCandidateBundles({ admin, app, connect, check });
   console.log(`PostgreSQL integration: ${passed} checks passed; server ${(await admin.query('SHOW server_version')).rows[0].server_version}`);
 } finally {

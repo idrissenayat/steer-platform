@@ -4684,3 +4684,29 @@ accepted policy or signed source changed. Nineteen development migrations remain
 held against the seven-entry real baseline. D1 stays inactive and I1–I6 stay open.
 Actual provider capture/readback, reference-only Temporal development activities
 and actual editor/API acknowledgement/recovery remain next.
+
+## Development increment: 0222 — Encrypted request/response observations
+
+Added disabled, separately immutable request/response records bound to actual
+originals, role inputs, sent steps, owner/fence and consumed reservation. Readback
+decrypts exact bodies and nullable usage under current source/key/lifecycle/owner
+authority. Responses require the recorded request; a request alone is never a
+completed call. Conflicting writes, holds, revocation, corruption and quarantine
+deny without replacing human edits or authorizing retries.
+
+The new step-runner test chain verifies both roles from actual encrypted SQL rows
+through fresh readers, without an in-memory provider map. The trusted transport
+serializer/parser remains unbound: supplied bodies, usage and adapter labels are
+not proof of real provider delivery, pricing or independent authorship. See
+[0222 evidence](../intent/0222/EVIDENCE.md) for the actual/synthetic boundaries.
+
+Verification: **164/164** disposable SQL/native-Git/Temporal integration checks,
+**302/302** scoped units/migration controls and **1/1** destination runtime regression
+pass. Full prototype/eight-package typecheck, kit/scope, schema-drift and whitespace
+checks pass; protected source hashes remain unchanged.
+
+Migrations 0019/0020 remain disposable-development only. The twenty-one-entry journal
+is held against the seven-entry real baseline. D1 is unsigned/inactive; no real
+database, key/grant, model call, runtime GitHub save, spending, deletion, deployment,
+signed document or accepted policy changed. I1–I6 remain open. Actual transport-bound
+recording, reference-only Temporal role activities and editor/API recovery are next.

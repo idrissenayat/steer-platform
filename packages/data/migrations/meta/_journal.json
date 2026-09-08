@@ -134,6 +134,20 @@
       "when": 1788852774141,
       "tag": "0018_development_original_isolation",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1788858490072,
+      "tag": "0019_development_observations",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1788858490073,
+      "tag": "0020_development_observation_isolation",
+      "breakpoints": true
     }
   ]
 }
