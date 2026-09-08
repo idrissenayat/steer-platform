@@ -1,6 +1,17 @@
 # STEER platform implementation
 
-## Current checkpoint — 0248
+## Current checkpoint — 0249
+
+0249 connects versioned full-source context to assessed preparation and the actual
+editor. Up to 50 acquired documents can span assessment batches within unchanged
+whole-document and aggregate source-byte limits. The editor can select Briefs
+outside the legacy 32-source subset; the exact context digest is recomputed at
+server admission and bound into immutable originals and both role inputs. Legacy
+originals keep their prior rendering. See [0249 evidence](../intent/0249/EVIDENCE.md).
+The factory remains uninstalled. Beyond-bound context, semantic quality, historical
+recovery, real authority and human save/reopen remain open.
+
+## Prior checkpoint — 0248
 
 0248 connects the exact recorded scope assessment to the human's direction and
 immutable drafting input. The actual editor requires current findings for a

@@ -4,6 +4,7 @@ import type { Pool } from 'pg';
 import type { scopeStepIntegrationFixture } from '../../worker/test/scope-step-runtime.integration.ts';
 import { buildIntentEvidenceEnvelope } from '@steer/tool-registry/intent-evidence-contracts';
 import { planIntentScopeBatches } from '@steer/tool-registry/intent-scope-batches';
+import { buildIntentDevelopmentContext } from '@steer/tool-registry/intent-development-context';
 import { createDevelopmentOriginalStore } from '@steer/data/development-originals';
 import { describeDevelopmentOriginal } from '@steer/data/development-original-contracts';
 import { renderDevelopmentRequest, createDevelopmentRequestReader } from '@steer/data/development-requests';
@@ -28,14 +29,14 @@ async function assessedApi(f: Fixture, evidence = f.described.original.evidence,
   const input = { organizationId: f.config.organizationId, productId: f.config.productId, repository: f.config.repository,
     configurationRevision: f.config.configurationRevision, draftId: f.draftId, revision: 1, revisionDigest: f.saved.reference.revisionDigest,
     scopeInputDigest: f.saved.reference.scopeInputDigest, sourceSnapshotDigest: (await buildIntentEvidenceEnvelope(evidence)).sourceSnapshotDigest,
-    choice: baseline.original.direction.choice };
-  const post = (scopeReview?: unknown) => app.fetch(new Request('https://steer.example/v1/tools/intent.development.prepare', {
-    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...input, ...(scopeReview ? { scopeReview } : {}) }) }));
+    choice: baseline.original.direction.choice, draftingContextDigest: (await buildIntentDevelopmentContext(evidence)).contextDigest };
+  const post = (scopeReview?: unknown, patch = {}) => app.fetch(new Request('https://steer.example/v1/tools/intent.development.prepare', {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...input, ...patch, ...(scopeReview ? { scopeReview } : {}) }) }));
   return { service, post, records, scope, input, baseline };
 }
 const selection = (f: Fixture, review: Awaited<ReturnType<Fixture['read']>>) => ({ kind: 'recorded', ...f.target, resultsDigest: review.review!.resultsDigest });
 
-export async function testAssessedDevelopment(setup: (count?: number, ttl?: number) => Promise<Fixture>,
+export async function testAssessedDevelopment(setup: (count?: number, ttl?: number, large?: boolean) => Promise<Fixture>,
   check: (name: string, run: () => Promise<void>) => Promise<void>, admin: Pool) {
   await check('assessed HTTP preparation binds actual recorded SDK/SQL findings, retries one immutable input and renders both fresh roles without prior Exam', async () => {
     const f = await setup(); assert.equal((await f.run()).outcome, 'succeeded'); const review = await f.read(), selected = selection(f, review), a = await assessedApi(f);
@@ -48,10 +49,13 @@ export async function testAssessedDevelopment(setup: (count?: number, ttl?: numb
       const original = (await originals.read(prepared.reference)).original;
       assert.deepEqual(original.direction.scopeReview, { kind: 'recorded', ...f.target, results: review.review });
       assert.deepEqual(original.source.content, f.content); assert.deepEqual(original.direction.choice, a.input.choice);
-      const { scopeReview: _review, ...legacyDirection } = original.direction;
+      const { scopeReview: _review, draftingContextDigest: _context, ...legacyDirection } = original.direction;
       assert.notEqual((await describeDevelopmentOriginal({ ...original, direction: legacyDirection })).inputDigest, prepared.reference.inputDigest);
       const architect = await renderDevelopmentRequest({ original, operationId: prepared.reference.operationId, role: 'architect', predecessor: null });
       const context = JSON.parse(architect.rendered.request.source); assert.deepEqual(context.direction, original.direction);
+      const { draftingContextDigest: _digest, ...priorDirection } = original.direction;
+      const priorPacket = await renderDevelopmentRequest({ original: { ...original, direction: priorDirection }, operationId: prepared.reference.operationId, role: 'architect', predecessor: null });
+      assert.equal(JSON.parse(priorPacket.rendered.request.source).scopeEvidence.kind, 'steer-intent-evidence/v1');
       const predecessor = { checkpoint: { binding: { organizationId: f.config.organizationId, subject: f.config.subject,
         operationId: prepared.reference.operationId, stepId: 'architect', draftId: f.draftId, draftRevision: 1,
         inputDigest: architect.stepReference.stepInputDigest, configurationRevision: f.config.configurationRevision },
@@ -106,10 +110,18 @@ export async function testAssessedDevelopment(setup: (count?: number, ttl?: numb
     const incomplete = await assessedApi(f, { ...evidence, inventoryComplete: false });
     try { assert.equal((await (await incomplete.post(selected)).json()).outcome, 'scope-incomplete'); } finally { incomplete.service.close(); }
   });
-  await check('completed batched scope assessment does not bypass legacy generation coverage limits', async () => {
+  await check('assessed full-source drafting spans two batches without the legacy 32-document truncation and preserves every exact source in the role input', async () => {
     const f = await setup(34); assert.equal((await f.run(0)).outcome, 'succeeded'); assert.equal((await f.run(1)).outcome, 'succeeded');
     const review = await f.read(); assert.equal(review.status, 'review-available'); const a = await assessedApi(f);
-    try { assert.equal((await (await a.post(selection(f, review))).json()).outcome, 'scope-incomplete');
+    try { const result = await (await a.post(selection(f, review))).json(); assert.equal(result.outcome, 'prepared'); assert.equal(result.coverage.includedCount, 34);
+      const reader = createVerifiedScopeReviewReader(f.pools, f.config, a.scope), originals = createDevelopmentOriginalStore(f.pools, f.config, { ...a.records, scopeReview: reader });
+      try { const original = (await originals.read(result.reference)).original;
+        assert.equal(original.direction.draftingContextDigest, a.input.draftingContextDigest);
+        const rendered = await renderDevelopmentRequest({ original, operationId: result.reference.operationId, role: 'architect', predecessor: null });
+        const context = JSON.parse(rendered.rendered.request.source).scopeEvidence;
+        assert.equal(context.kind, 'steer-development-context/v1'); assert.equal(context.coverage.complete, true); assert.equal(context.evidence.length, 34);
+        for (const doc of f.described.original.evidence.documents) assert.equal(context.evidence.find((s: any) => s.sourceId === doc.sourceId).content, doc.content);
+      } finally { originals.close(); reader.close(); }
       assert.equal(f.state.calls, 2); assert.equal(await f.reservations(), 2);
     } finally { a.service.close(); }
   });
@@ -135,5 +147,23 @@ export async function testAssessedDevelopment(setup: (count?: number, ttl?: numb
       allowed = false; await assert.rejects(requests.read({ ...prepared.reference, role: 'architect' }));
       await assert.rejects(starter.start(input, async () => {})); assert.equal(schedules, 1); assert.equal(await f.reservations(), 1);
     } finally { requests.close(); missing.close(); starter.close(); scope.close(); a.service.close(); }
+  });
+  await check('assessed full-context omission or substituted digest cannot prepare or admit any development identity', async () => {
+    const f = await setup(); assert.equal((await f.run()).outcome, 'succeeded'); const selected = selection(f, await f.read()), a = await assessedApi(f);
+    try {
+      assert.notEqual((await a.post(selected, { draftingContextDigest: undefined })).status, 200);
+      assert.equal((await (await a.post(selected, { draftingContextDigest: 'f'.repeat(64) })).json()).outcome, 'conflict');
+      assert.equal(Number((await admin.query('SELECT count(*) AS n FROM steer_execution.intent_operations WHERE organization_id=$1', [f.config.organizationId])).rows[0].n), 0);
+    } finally { a.service.close(); }
+  });
+  await check('complete recorded scope across a large corpus cannot bypass the unchanged aggregate drafting-byte limit', async () => {
+    const f = await setup(8, 3600000, true); assert.equal(f.prepared.batches.length, 2);
+    assert.equal((await f.run(0)).outcome, 'succeeded'); assert.equal((await f.run(1)).outcome, 'succeeded');
+    const review = await f.read(); assert.equal(review.status, 'review-available'); const a = await assessedApi(f);
+    try {
+      const result = await (await a.post(selection(f, review))).json(); assert.equal(result.outcome, 'scope-incomplete');
+      assert.equal(result.coverage.complete, false); assert.ok(result.coverage.gapCount > 0); assert.equal(result.reference, null);
+      assert.equal(f.state.calls, 2); assert.equal(await f.reservations(), 2);
+    } finally { a.service.close(); }
   });
 }

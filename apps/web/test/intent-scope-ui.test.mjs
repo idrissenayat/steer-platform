@@ -7,6 +7,8 @@ import { transformWithOxc } from 'vite';
 import { createElement, act } from 'react';
 import { JSDOM } from 'jsdom';
 import { scopeEditorFixture } from './intent-scope.fixture.ts';
+import { buildIntentDevelopmentContext } from '@steer/tool-registry/intent-development-context';
+import { buildIntentEvidenceEnvelope } from '@steer/tool-registry/intent-evidence-contracts';
 
 async function component() {
   const require = createRequire(import.meta.url), cache = new Map();
@@ -32,13 +34,14 @@ async function renderFixture(candidate = false) {
   const saved = Object.fromEntries(keys.map(k => [k, Object.getOwnPropertyDescriptor(globalThis, k)]));
   for (const [key, value] of Object.entries({ window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, IS_REACT_ACT_ENVIRONMENT: true })) Object.defineProperty(globalThis, key, { configurable: true, value });
   const { configurationRevision, sourceSnapshotDigest, ...input } = f.input;
-  const state = { lost: true, denied: false, output: f.pending, discovery: f.discovery, scopeCalls: [], allCalls: [] };
+  const state = { lost: true, denied: false, allowDevelopment: false, output: f.pending, discovery: f.discovery, scopeCalls: [], allCalls: [] };
   const review = { ...input, kind: 'steer-development-review/v1', configurationRevision, sourceSnapshotDigest,
     evidence: f.evidence, scopeBatchPlan: f.source.plan, semanticReviewComplete: false, authoritativeClearance: false, executionAuthorized: false, savedToGit: false, gateSigned: false };
   globalThis.fetch = async (url, init) => {
     const input = JSON.parse(init.body); state.allCalls.push({ url, input });
     assert.equal(init.credentials, 'same-origin'); assert.doesNotMatch(init.body, /EXAM-PRIVATE|originalText|api.key|budget|modelRoute/);
     if (url.endsWith('intent.development.review')) return Response.json(review);
+    if (state.allowDevelopment && url.endsWith('intent.development.prepare')) throw new Error('Synthetic lost preparation response');
     assert.ok(url.includes('/intent.scope.'), 'Scope interactions must not trigger document generation or saving');
     state.scopeCalls.push({ url, input });
     if (url.endsWith('.discover')) return state.denied ? Response.json({}, { status: 403 }) : Response.json({ ...state.discovery, cursor: input.cursor });
@@ -74,6 +77,33 @@ test('fresh actual editor discovers and reads a retained completed scope review 
     assert.equal(window.localStorage.length, 0); assert.equal(window.sessionStorage.length, 0);
     t.state.denied = true; await t.click('Find retained scope reviews'); await t.until(() => document.body.textContent.includes('discovery could not be verified'));
     assert.equal(document.querySelector('.intent-scope-discovery'), null); assert.equal(document.querySelector('.intent-scope-findings'), null);
+  } finally { await t.cleanup(); }
+});
+
+test('actual editor carries all 34 assessed sources and permits an explicit linked direction to a Brief beyond the legacy context', async () => {
+  const t = await renderFixture();
+  const set = async (id, value) => act(async () => {
+    const e = document.getElementById(id), p = e.tagName === 'SELECT' ? window.HTMLSelectElement.prototype : window.HTMLTextAreaElement.prototype;
+    Object.getOwnPropertyDescriptor(p, 'value').set.call(e, value); e.dispatchEvent(new window.Event(e.tagName === 'SELECT' ? 'change' : 'input', { bubbles: true }));
+    await new Promise(r => setTimeout(r, 25));
+  });
+  try {
+    t.state.lost = false; t.state.output = t.f.ready; t.state.allowDevelopment = true;
+    await t.click('Review existing work for this draft');
+    assert.match(document.body.textContent, /Checked 34 of 34/); assert.match(document.body.textContent, /128,000 permitted source bytes/);
+    assert.equal(document.querySelector('.intent-scope-choice').disabled, true);
+    await t.click('Assess existing scope'); await t.until(() => document.body.textContent.includes('Findings are ready'));
+    assert.equal(document.querySelector('.intent-scope-choice').disabled, false);
+    assert.equal(t.state.allCalls.filter(c => c.url.endsWith('intent.development.prepare')).length, 0);
+    const legacy = await buildIntentEvidenceEnvelope(t.f.evidence), full = await buildIntentDevelopmentContext(t.f.evidence);
+    const target = full.evidence.find(s => s.path.endsWith('/BRIEF.md') && !legacy.evidence.some(old => old.sourceId === s.sourceId)); assert.ok(target);
+    await set('development-direction', 'extend-existing'); await set('development-target', target.path);
+    await set('development-reason', 'Add the missing scope to this existing intent; do not create a duplicate.');
+    await t.click('Confirm direction and develop this draft');
+    const calls = t.state.allCalls.filter(c => c.url.endsWith('intent.development.prepare')); assert.equal(calls.length, 1);
+    assert.equal(calls[0].input.draftingContextDigest, full.contextDigest); assert.equal(calls[0].input.scopeReview.resultsDigest, t.f.ready.review.resultsDigest);
+    assert.deepEqual(calls[0].input.choice.target, { path: target.path, revision: t.f.evidence.head, contentDigest: target.contentDigest });
+    assert.equal(t.state.allCalls.some(c => c.url.endsWith('intent.development.start')), false);
   } finally { await t.cleanup(); }
 });
 

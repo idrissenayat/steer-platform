@@ -872,3 +872,23 @@ direction and revalidates findings before preparing. Retry preserves exact input
 Larger scope coverage cannot override the legacy smaller generation envelope or
 record/request limits. See [0248 specification](../../intent/0248/SPEC.md).
 This does not activate records, model budget, execution, saving or gate authority.
+
+0249 adds `steer-development-context/v1` for the explicit assessed drafting path.
+It reconstructs whole verified sources across assessment batches without widening
+the legacy 32-source assessment envelope. Up to the existing 50 acquired documents
+can fit, but each source remains limited to 32,000 UTF-8 bytes and aggregate source
+content to 128,000 bytes. Whole-target acquisition gaps and aggregate overflow stay
+incomplete; no truncation, auto-summary or partial-context generation is permitted.
+
+The reviewed snapshot digest remains stable and distinct from the new context
+digest, which pins full coverage, source metadata/bytes, plan and source fingerprint.
+The actual editor supplies `draftingContextDigest`; the assessed factory now requires
+and independently recomputes it alongside the recorded assessment. Immutable
+originals retain it under direction, and both role contexts reconstruct the full
+source set. Existing originals that omit it keep the old rendering and hashes.
+Start inputs remain reference-only. See [0249 specification](../../intent/0249/SPEC.md).
+
+No increase to acquisition, record/request/wire, token or model-budget bounds.
+Fitting source content alone is not proof that every downstream bound fits. This
+does not complete arbitrary-corpus context, semantic quality, real activation or
+human acceptance. Beyond-bound evidence requires separate design and verification.

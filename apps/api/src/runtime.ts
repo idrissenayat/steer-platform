@@ -116,7 +116,8 @@ export function createRecordedDevelopmentPreparer(pools: Parameters<typeof creat
   profiles: unknown, dependencies: Parameters<typeof createIntentDevelopmentPreparer>[3]) {
   return createIntentDevelopmentPreparer(pools, configuration, profiles, dependencies);
 }
-/** New journey composition: a source-assessed direction is mandatory. A pinned
+/** New journey composition: source-assessed direction and an exact versioned
+ * full-source context digest are mandatory. A pinned
  * recorded reader, not browser findings, supplies and revalidates provenance.
  * Legacy preparation remains available only for historical/uninstalled consumers. */
 export function createAssessedRecordedDevelopmentPreparer(pools: Parameters<typeof createIntentDevelopmentPreparer>[0], configuration: unknown,

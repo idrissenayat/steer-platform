@@ -4,6 +4,7 @@ import { intentDevelopmentStartInputSchema, type IntentDevelopmentStartInput } f
 import type { IntentDevelopmentReadOutput } from '@steer/tool-registry/intent-development-read-contracts';
 import type { IntentScopeReadOutput } from '@steer/tool-registry/intent-scope-read-contracts';
 import { bindRecordedIntentScope, verifyBoundIntentScope, intentScopeSelectionFor, type IntentScopeSelection } from '@steer/tool-registry/intent-scope-selection';
+import { buildIntentDevelopmentContext, type IntentDevelopmentContext } from '@steer/tool-registry/intent-development-context';
 import type { IntentDispositionChoice } from '@steer/tool-registry/intent-overlap-contracts';
 import type { IntentDraftContent } from '@steer/tool-registry/intent-draft-content';
 import type { IntentDevelopmentTransport } from './intent-development-transport.ts';
@@ -12,7 +13,7 @@ export type DevelopmentEditorSource = { input: IntentDevelopmentReviewInput; con
 export interface DevelopmentEditorView {
   status: 'idle' | 'reviewing' | 'reviewed' | 'preparing' | 'preparation-unknown' | 'starting' | 'start-unknown' | 'reading'
     | 'pending' | 'needs-clarification' | 'candidates-ready' | 'attention-required' | 'superseded' | 'expired' | 'unavailable' | 'closed';
-  review: Awaited<ReturnType<IntentDevelopmentTransport['review']>> | null;
+  review: (Awaited<ReturnType<IntentDevelopmentTransport['review']>> & { context: IntentDevelopmentContext }) | null;
   source: DevelopmentEditorSource | null; operation: IntentDevelopmentStartInput | null;
   observation: IntentDevelopmentReadOutput | null; message: string; sourceInvalidated: boolean;
 }
@@ -62,7 +63,7 @@ export function createIntentDevelopmentEditor(transport: IntentDevelopmentTransp
           } else publish({ status: 'preparation-unknown', message: 'Preparation is not confirmed. Retry only this exact reviewed request; a record may already exist.' });
           return;
         }
-        const { choice: _choice, sourceSnapshotDigest: _snapshot, configurationRevision: _configuration, scopeInputDigest: _scope, scopeReview: _assessment, ...source } = preparation!;
+        const { choice: _choice, sourceSnapshotDigest: _snapshot, configurationRevision: _configuration, scopeInputDigest: _scope, scopeReview: _assessment, draftingContextDigest: _context, ...source } = preparation!;
         publish({ operation: { ...source, ...output.reference! } }); retry = 'start';
       }
       if (!matches()) { publish({ status: 'start-unknown', message: 'The source was preserved, but your editor changed before start. No start request was sent.' }); return; }
@@ -97,14 +98,16 @@ export function createIntentDevelopmentEditor(transport: IntentDevelopmentTransp
       publish({ ...initial(), status: 'reviewing', source: structuredClone(source) });
       try {
         const result = await transport.review(source.input); if (closed) return;
+        const context = await buildIntentDevelopmentContext(result.output.evidence); if (closed) return;
         if (!matches()) { publish({ status: 'idle', review: null, message: 'Your editor changed during source review. Preserve and review the current revision.' }); return; }
-        publish({ status: 'reviewed', review: result, message: '' });
+        publish({ status: 'reviewed', review: { ...result, context }, message: '' });
       } catch { publish({ status: 'idle', message: 'Current sources could not be reviewed. Your text is unchanged. This does not mean the intent is new.' }); }
       finally { busy = false; }
     },
     async develop(choice: IntentDispositionChoice, assessment?: IntentScopeReadOutput | null, subject?: string) {
-      if (closed || busy || retry || view.status !== 'reviewed' || !matches() || !view.review?.envelope.coverage.complete) return;
-      const { output, envelope } = view.review;
+      if (closed || busy || retry || view.status !== 'reviewed' || !matches() || !view.review) return;
+      const { output, context } = view.review, envelope = assessment === undefined ? view.review.envelope : context;
+      if (!envelope.coverage.complete) return;
       let scopeReview: IntentScopeSelection | undefined;
       // Current UI always supplies this argument. Omission preserves the legacy
       // controller contract, but the assessed server factory rejects omission.
@@ -123,7 +126,7 @@ export function createIntentDevelopmentEditor(transport: IntentDevelopmentTransp
       if ('target' in choice && !envelope.evidence.some(s => s.path === choice.target.path && s.contentDigest === choice.target.contentDigest
         && envelope.snapshot.head === choice.target.revision && s.path.endsWith('/BRIEF.md'))) return;
       const parsed = intentDevelopmentPrepareInputSchema.safeParse({ ...view.source!.input, configurationRevision: output.configurationRevision,
-        sourceSnapshotDigest: output.sourceSnapshotDigest, choice, ...(scopeReview ? { scopeReview } : {}) });
+        sourceSnapshotDigest: output.sourceSnapshotDigest, choice, ...(scopeReview ? { scopeReview, draftingContextDigest: context.contextDigest } : {}) });
       if (!parsed.success) return;
       preparation = parsed.data; retry = 'prepare'; await execute();
     },

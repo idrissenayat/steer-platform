@@ -6,6 +6,7 @@ import { intentDispositionChoiceSchema } from '@steer/tool-registry/intent-overl
 import { buildIntentEvidenceEnvelope, intentEvidenceInputSchema } from '@steer/tool-registry/intent-evidence-contracts';
 import { intentOperationConfigurationSchema } from './intent-operations.ts';
 import { intentScopeBindingSchema, verifyBoundIntentScope } from '@steer/tool-registry/intent-scope-selection';
+import { buildIntentDevelopmentContext } from '@steer/tool-registry/intent-development-context';
 
 const text = (max: number) => z.string().min(1).max(max).refine(v => v.trim().length > 0 && !/[\uD800-\uDFFF]/u.test(v));
 const id = text(200).refine(v => !/[\u0000-\u001f\u007f]/u.test(v));
@@ -19,7 +20,7 @@ export const developmentOriginalSchema = z.strictObject({
     revisionDigest: digest, scopeInputDigest: digest, content: intentDraftContentSchema }),
   evidence: intentEvidenceInputSchema,
   direction: z.strictObject({ choice: intentDispositionChoiceSchema, scopeInputDigest: digest, sourceSnapshotDigest: digest,
-    scopeReview: intentScopeBindingSchema.optional() }),
+    scopeReview: intentScopeBindingSchema.optional(), draftingContextDigest: digest.optional() }),
   profiles: z.strictObject({ architect: profile, testAgent: profile }),
 });
 export type DevelopmentOriginal = z.infer<typeof developmentOriginalSchema>;
@@ -36,7 +37,9 @@ export async function describeDevelopmentOriginal(raw: unknown) {
   const fingerprint = await fingerprintIntentScope({ organizationId:c.organizationId,productId:c.productId,repository:c.repository,
     draftId:s.draftId,sourceRevision:s.sourceRevision,originalText:s.content.originalText,clarificationTurns:s.content.clarificationTurns,
     documents:s.content.documents ? { brief:s.content.documents.brief,spec:s.content.documents.spec } : null });
-  const evidence = await buildIntentEvidenceEnvelope(original.evidence);
+  const evidence = original.direction.draftingContextDigest ? await buildIntentDevelopmentContext(original.evidence) : await buildIntentEvidenceEnvelope(original.evidence);
+  if (original.direction.draftingContextDigest && (!original.direction.scopeReview || !evidence.coverage.complete
+    || !('contextDigest' in evidence) || evidence.contextDigest !== original.direction.draftingContextDigest)) throw new Error('Drafting context unavailable.');
   if (fingerprint.scopeInputDigest !== s.scopeInputDigest || evidence.scopeInputDigest !== s.scopeInputDigest
     || original.direction.scopeInputDigest !== s.scopeInputDigest || original.direction.sourceSnapshotDigest !== evidence.sourceSnapshotDigest
     || (['organizationId','productId','repository','branch'] as const).some(k => evidence.snapshot[k] !== c[k])) throw new Error('Original input unavailable.');

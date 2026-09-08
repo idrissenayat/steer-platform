@@ -64,7 +64,7 @@ export default function IntentDevelopmentPanel({ source, enabled, subject, ident
   const resumable = source && discoveredDraft?.run && discoveredDraft.latest && source.input.draftId === discoveredDraft.draftId
     && source.input.revision === discoveredDraft.latest.revision && source.input.revisionDigest === discoveredDraft.latest.revisionDigest
     && source.input.scopeInputDigest === discoveredDraft.latest.scopeInputDigest;
-  const review = view.review?.envelope, architect = view.observation?.results.find(r => r.result.role === 'architect')?.result;
+  const review = view.review?.context, architect = view.observation?.results.find(r => r.result.role === 'architect')?.result;
   const emptyCorpus = Boolean(review?.coverage.complete && review.coverage.inventoryCount === 0);
   const assessed = matches && (emptyCorpus || Boolean(scopeAssessment?.status === 'review-available' && scopeAssessment.review?.structuralAssessmentComplete
     && scopeAssessment.subject === subject && scopeAssessment.review.planDigest === view.review?.output.scopeBatchPlan.planDigest
@@ -103,6 +103,7 @@ export default function IntentDevelopmentPanel({ source, enabled, subject, ident
       enabled={enabled && !busy && !recovering && view.status === 'reviewed'} onLockChange={setScopeLocked} onAssessmentChange={setScopeAssessment} />
     {review && <div className="intent-development-sources">
       <p>Checked {review.coverage.includedCount} of {review.coverage.inventoryCount} source documents at commit <code>{review.snapshot.head.slice(0, 12)}</code>.</p>
+      <p>Drafting context: {review.contentBytes.toLocaleString()} of 128,000 permitted source bytes. Whole documents only; no silent excerpts or dropped exclusions.</p>
       <section className="access-note" aria-label="Scope assessment plan">
         <p>Assessment plan: {view.review!.output.scopeBatchPlan.batches.length} {view.review!.output.scopeBatchPlan.batches.length === 1 ? 'batch' : 'batches'} covering {view.review!.output.scopeBatchPlan.coverage.plannedCount} of {view.review!.output.scopeBatchPlan.coverage.inventoryCount} source documents.</p>
         <p>Planning keeps each intent’s Brief, Spec and proposed amendments together. This has not assessed duplicates or started model calls.</p>

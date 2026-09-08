@@ -6,6 +6,7 @@ import { developmentFixture } from '../../../packages/tool-registry/test/intent-
 import { scopeEditorFixture } from './intent-scope.fixture.ts';
 import { buildIntentEvidenceEnvelope } from '@steer/tool-registry/intent-evidence-contracts';
 import { planIntentScopeBatches } from '@steer/tool-registry/intent-scope-batches';
+import { buildIntentDevelopmentContext } from '@steer/tool-registry/intent-development-context';
 
 test('assessed editor sends reference-only direction and retries exact bytes; pending, wrong-owner and changed findings send nothing', async () => {
   const f = await scopeEditorFixture(), base = await developmentFixture();
@@ -24,7 +25,8 @@ test('assessed editor sends reference-only direction and retries exact bytes; pe
     prepare: async value => { calls.push(value); throw new Error('Lost'); }, start: async () => { throw new Error('Forbidden'); }, read: async () => { throw new Error('Forbidden'); } }, () => source, () => {});
   await controller.review(); await controller.develop(base.choice, f.ready, 'human');
   assert.deepEqual(calls, [{ ...input, configurationRevision, sourceSnapshotDigest, choice: base.choice,
-    scopeReview: { kind: 'recorded', ...f.prepared.reference, resultsDigest: f.ready.review!.resultsDigest } }]);
+    scopeReview: { kind: 'recorded', ...f.prepared.reference, resultsDigest: f.ready.review!.resultsDigest },
+    draftingContextDigest: (await buildIntentDevelopmentContext(f.evidence)).contextDigest }]);
   await controller.retry(); assert.deepEqual(calls[1], calls[0]); assert.doesNotMatch(JSON.stringify(calls), /Synthetic finding|Prior human Exam/); controller.close();
 });
 test('assessed editor distinguishes complete empty inventory from unavailable assessment without sending a scope model request', async () => {

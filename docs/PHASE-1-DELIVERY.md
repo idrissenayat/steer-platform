@@ -5383,3 +5383,33 @@ uses synthetic authority/model responses and disposable SQL, not live acceptance
 No D1 adoption, real migration, credential inspection, model spending, runtime Git
 save, gate, auth bypass, deployment or release occurred. The one-minute loop stays
 active, and unrelated user files remain excluded from the commit.
+
+## Development increment: 0249 — Full-source drafting across assessment batches
+
+The actual editor and assessed preparation now use a separately versioned full-
+source context. Up to the existing 50 acquired documents can cross the old
+32-document drafting boundary when every whole target fits the unchanged
+32,000-byte document and 128,000-byte aggregate source limits. Current assessment,
+explicit human direction and exact context digest are required. The server
+recomputes the digest before admission, and immutable originals reconstruct all
+included source bytes in role inputs. Legacy originals keep the old rendering.
+Missing groups, permission gaps and aggregate overflow remain incomplete—not
+generation clearance. See [0249 evidence](../intent/0249/EVIDENCE.md).
+
+0249 verification: 1,115/1,115 full regressions, 334/334 PostgreSQL 16.14 integration
+checks and the overlapping 63-case focused scope/HTTP/SDK/SQL/Temporal suite pass.
+The actual React test selects a supported Brief outside the old 32-source subset
+after assessment; SQL verifies 34 exact sources through preparation/restoration/
+rendering. Portable cases include 50 sources, stable order and Unicode byte limits.
+Types, optimized Next build, Drizzle history, kit (95 artifacts), scope audit, 146
+document links and whitespace checks pass. Protected hashes are unchanged.
+
+The initial large synthetic model fixture exceeded an existing response-size guard
+by quoting entire documents. Short exact citations corrected the fixture while
+retaining all source input bytes; no production limit was increased.
+
+Factories remain uninstalled. Beyond-bound context, semantic evaluation,
+historical assessment recovery, real authority and the human save/reopen journey
+remain open. No records activation, real migration, credential inspection, model
+spending, runtime Git save, auth bypass, gate, deployment or release occurred.
+User-owned files remain excluded and the one-minute loop stays active.

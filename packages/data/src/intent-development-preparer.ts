@@ -2,6 +2,7 @@ import { intentDevelopmentPrepareInputSchema, intentDevelopmentPrepareOutputSche
   type IntentDevelopmentPreparer, type IntentDevelopmentPrepareInput, type IntentDevelopmentPrepareOutput } from '@steer/tool-registry/intent-development-prepare-contracts';
 import { buildIntentEvidenceEnvelope, intentEvidenceInputSchema } from '@steer/tool-registry/intent-evidence-contracts';
 import { resolveDevelopmentScopeReview, revalidateDevelopmentScopeReview } from './development-scope-review.ts';
+import { buildIntentDevelopmentContext } from '@steer/tool-registry/intent-development-context';
 import { createDraftRevisionStore } from './draft-revisions.ts';
 import { createIntentOperationStore, intentOperationConfigurationSchema } from './intent-operations.ts';
 import { createDevelopmentOriginalStore, developmentRecordsConfigurationSchema } from './development-originals.ts';
@@ -34,7 +35,7 @@ export function createIntentDevelopmentPreparer(pools: Parameters<typeof createD
     scope,
     async prepare(raw, revalidate) {
       const input = intentDevelopmentPrepareInputSchema.parse(raw);
-      if (deps.requireScopeReview && !input.scopeReview) throw unavailable();
+      if ((deps.requireScopeReview && (!input.scopeReview || !input.draftingContextDigest)) || (input.draftingContextDigest && !input.scopeReview)) throw unavailable();
       if (closed || active >= 4 || typeof revalidate !== 'function' || (['organizationId', 'productId', 'repository', 'configurationRevision'] as const).some(k => input[k] !== scope[k])) throw unavailable();
       active++;
       let finished = false, settled = false, pending = 0, released = false, effectPossible = false, timer: ReturnType<typeof setTimeout> | undefined;
@@ -70,9 +71,10 @@ export function createIntentDevelopmentPreparer(pools: Parameters<typeof createD
         };
         const source = await read();
         const evidence = intentEvidenceInputSchema.parse(await checked(() => deps.evidenceFor(freeze(input), current)));
-        const envelope = await buildIntentEvidenceEnvelope(evidence); guard();
+        const envelope = input.draftingContextDigest ? await buildIntentDevelopmentContext(evidence) : await buildIntentEvidenceEnvelope(evidence); guard();
         if ((['organizationId', 'productId', 'repository', 'branch'] as const).some(k => evidence[k] !== config[k])
           || evidence.scopeInputDigest !== input.scopeInputDigest || envelope.sourceSnapshotDigest !== input.sourceSnapshotDigest) throw new Conflict();
+        if (input.draftingContextDigest && (!('contextDigest' in envelope) || envelope.contextDigest !== input.draftingContextDigest)) throw new Conflict();
         const { gaps: _gaps, ...summary } = { ...envelope.coverage, gapCount: envelope.coverage.gaps.length }; coverage = summary;
         if (!envelope.coverage.complete) { await read(); await current(); return output('scope-incomplete'); }
         const scopeReview = input.scopeReview ? await checked(() => resolveDevelopmentScopeReview(input.scopeReview!, evidence,
@@ -81,7 +83,7 @@ export function createIntentDevelopmentPreparer(pools: Parameters<typeof createD
           source: { draftId: input.draftId, revision: input.revision, sourceRevision: source.reference.sourceRevision,
             revisionDigest: input.revisionDigest, scopeInputDigest: input.scopeInputDigest, content: source.content }, evidence,
           direction: { choice: input.choice, scopeInputDigest: input.scopeInputDigest, sourceSnapshotDigest: input.sourceSnapshotDigest,
-            ...(scopeReview ? { scopeReview } : {}) }, profiles });
+            ...(scopeReview ? { scopeReview } : {}), ...(input.draftingContextDigest ? { draftingContextDigest: input.draftingContextDigest } : {}) }, profiles });
         const original = described.original, submission = freeze({ draftId: input.draftId, draftRevision: input.revision, inputDigest: described.inputDigest });
         const recheck = async () => {
           await current(); if (hash(await read()) !== hash(source)) throw new Conflict();

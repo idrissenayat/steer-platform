@@ -14,8 +14,8 @@ import {testScopeDiscovery} from '../../api/test/intent-scope-discovery.integrat
 import {testAssessedDevelopment} from '../../api/test/intent-assessed-development.integration.ts';
 type Dependencies=Parameters<typeof createScopeStepRuntime>[3];
 const gate=()=>{let release!:()=>void;const promise=new Promise<void>(r=>{release=r;});return{promise,release};};
-export async function scopeStepIntegrationFixture({admin,connect}:{admin:Pool;connect(role:string):Pool},sourceCount=4,ttl=3600000){
-    const f=await scopeOriginalIntegrationFixture({admin,connect},false,ttl,{sourceCount});assert.equal((await f.make().put(f.input)).outcome,'stored');
+export async function scopeStepIntegrationFixture({admin,connect}:{admin:Pool;connect(role:string):Pool},sourceCount=4,ttl=3600000,large=false){
+    const f=await scopeOriginalIntegrationFixture({admin,connect},large,ttl,{sourceCount});assert.equal((await f.make().put(f.input)).outcome,'stored');
     const b=f.execution.budget,t=f.execution.scopeTerms;
     await admin.query('INSERT INTO steer_usage.scope_review_terms VALUES($1,$2,$3,$4,$5,$6,$7,true)',[b.organizationId,b.budgetId,b.subject,b.configurationRevision,t.approvalDigest,t.profileDigest,t.amountMicrousd]);
     const fixture=await scopeReviewFixture(),prepared=await prepareIntentScopeReview(f.input.original.source.scope,f.input.original.evidence,f.input.original.profile);
@@ -28,8 +28,14 @@ export async function scopeStepIntegrationFixture({admin,connect}:{admin:Pool;co
       const batch=prepared.batches.find(v=>v.packet.request.source===wire.messages[1].content);assert.ok(batch,'actual SDK request must match the prepared batch');
       assert.equal((await step(batch.metadata.batchId)).state,'dispatch-committed');
       assert.equal(Number((await admin.query("SELECT count(*) AS n FROM steer_drafts.scope_review_observations WHERE review_id=$1 AND batch_id=$2 AND stage='request'",[f.target.reviewId,batch.metadata.batchId])).rows[0].n),1);
+      const result=fixture.result(batch);
+      // Large-source fixtures still return bounded exact citations, not every
+      // document verbatim as model output. Full source bytes remain in the input.
+      if(large)for(const finding of result.findings)for(const citation of finding.citations){
+        citation.quote=citation.quote.slice(0,80);citation.endByte=Buffer.byteLength(citation.quote);
+      }
       return Response.json({id:'synthetic-completion',object:'chat.completion',model:'synthetic-model',created:1,
-        choices:[{index:0,finish_reason:'stop',message:{role:'assistant',content:JSON.stringify(fixture.result(batch))}}],usage:{prompt_tokens:50,completion_tokens:10,total_tokens:60}});
+        choices:[{index:0,finish_reason:'stop',message:{role:'assistant',content:JSON.stringify(result)}}],usage:{prompt_tokens:50,completion_tokens:10,total_tokens:60}});
     };
     const deps:Dependencies={records:{originals:f.deps,authorize:async()=>{}},profile:f.input.original.profile,
       gateway:{gatewayUrl:'http://127.0.0.1:4000/v1',gatewayKey:'synthetic-unused-key',transport},authorize:async ctx=>{
@@ -44,7 +50,7 @@ export async function testScopeStepRuntime({admin,connect,check:checkBase}:{admi
   const owned:Pool[]=[];
   const connection=(role:string)=>{const p=connect(role);owned.push(p);return p;};
   const check=(name:string,run:()=>Promise<void>)=>checkBase(name,async()=>{try{await run();}finally{await Promise.all(owned.splice(0).map(p=>p.end()));}});
-  const setup=(sourceCount=4,ttl=3600000)=>scopeStepIntegrationFixture({admin,connect:connection},sourceCount,ttl);
+  const setup=(sourceCount=4,ttl=3600000,large=false)=>scopeStepIntegrationFixture({admin,connect:connection},sourceCount,ttl,large);
   await testScopeStart(setup,check,admin);
   await testScopeDiscovery(setup,check,admin);
   await testAssessedDevelopment(setup,check,admin);
