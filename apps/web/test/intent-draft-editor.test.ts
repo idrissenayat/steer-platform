@@ -111,3 +111,51 @@ test('invalid and oversized text fail before creating even an empty server refer
   await editor.save({ ...content, documents: { brief: '\u0000'.repeat(30000), spec: '\u0000'.repeat(30000), exam: '\u0000'.repeat(30000) } });
   assert.match(editor.snapshot().message, /size limit/); assert.equal(requests.length, 0);
 });
+
+test('exact historical reads cannot replace or rebase current edits, even when browsing numerically to the latest revision', async () => {
+  const { editor, requests } = setup({ async read(input) { requests.push({ kind: 'read', input });
+    const revision = input.revision === 'latest' ? 3 : input.revision;
+    return { ...reference, revision, latestRevision: 3, revisionDigest: String(revision).repeat(64), content: { ...content, originalText: `Stored ${revision}` } }; } });
+  await editor.save(content); const preserved = editor.snapshot();
+  await editor.load(id); assert.equal(editor.snapshot().restoredMode, 'latest');
+  await editor.load(id, 2); assert.equal(editor.snapshot().restoredMode, 'history'); assert.equal(editor.snapshot().restored?.revision, 2);
+  assert.equal(editor.acceptRestore(), null); assert.equal(editor.snapshot().revisionDigest, preserved.revisionDigest);
+  assert.deepEqual(editor.snapshot().preservedContent, preserved.preservedContent);
+  const count = requests.length; await editor.save({ ...content, originalText: 'New unsaved edits' }); assert.equal(requests.length, count);
+  await editor.load(id, 3); assert.equal(editor.snapshot().restoredMode, 'history'); assert.equal(editor.acceptRestore(), null);
+  editor.cancelRestore(); assert.equal(editor.snapshot().status, 'preserved'); assert.equal(editor.snapshot().restoredMode, null);
+  assert.equal(editor.snapshot().revision, 1); assert.equal(editor.snapshot().revisionDigest, preserved.revisionDigest);
+  await editor.load(id); assert.deepEqual(editor.acceptRestore(), { ...content, originalText: 'Stored 3' });
+  assert.equal(editor.snapshot().revision, 3); assert.equal(editor.snapshot().restored, null);
+  assert.deepEqual(requests.filter(r => r.kind === 'read').map(r => (r.input as { revision: unknown }).revision), ['latest', 2, 3, 'latest']);
+});
+
+test('invalid selectors, substituted revisions and regressing latest metadata cannot stage history or revive a failed preview', async () => {
+  const { editor, requests, transport } = setup({ async read(input) { requests.push({ kind: 'read', input }); return { ...reference, revision: 3, latestRevision: 3, content }; } });
+  for (const n of [0, -1, 1001, 1.5, NaN, Infinity]) await editor.load(id, n);
+  assert.equal(requests.length, 0); await editor.load(id); assert.equal(editor.snapshot().restored?.revision, 3);
+  for (const output of [{ ...reference, latestRevision: 2, content }, { ...reference, latestRevision: 3, draftId: 'other', content },
+    { ...reference, revision: 2, latestRevision: 3, content }]) {
+    transport.read = async () => output; await editor.load(id, 1);
+    assert.equal(editor.snapshot().restored, null); assert.equal(editor.snapshot().restoredMode, null); assert.equal(editor.acceptRestore(), null);
+  }
+  transport.read = async () => { throw new Error('PRIVATE historical records denial'); };
+  await editor.load(id, 1); assert.equal(editor.snapshot().restored, null); assert.doesNotMatch(editor.snapshot().message, /PRIVATE/);
+});
+
+test('history preserves an unresolved conflict and cannot interrupt uncertain mutation recovery', async () => {
+  const conflicted = setup({ async append() { return { outcome: 'conflict', savedToGit: false }; } });
+  await conflicted.editor.save(content); await conflicted.editor.load(id, 1); conflicted.editor.cancelRestore();
+  assert.equal(conflicted.editor.snapshot().status, 'conflict'); assert.equal(conflicted.editor.snapshot().preservedContent, null);
+  const uncertain = setup({ async append() { throw new Error('Lost ACK'); } }); await uncertain.editor.save(content);
+  const count = uncertain.requests.length; await uncertain.editor.load(id, 1);
+  assert.equal(uncertain.requests.length, count); assert.equal(uncertain.editor.snapshot().status, 'unknown');
+});
+
+test('closing during historical read clears private bytes and ignores the late response', async () => {
+  let resolve!: (value: Awaited<ReturnType<IntentDraftTransport['read']>>) => void;
+  const { editor } = setup({ read: async () => new Promise(r => { resolve = r; }) });
+  const reading = editor.load(id, 1); editor.close(); resolve({ ...reference, latestRevision: 3, content }); await reading;
+  assert.equal(editor.snapshot().status, 'closed'); assert.equal(editor.snapshot().restored, null);
+  assert.equal(editor.snapshot().restoredMode, null); assert.equal(editor.acceptRestore(), null);
+});

@@ -71,6 +71,19 @@ test('readback must bind requested scope/revision, not another owner product or 
   await assert.rejects(transport.read({ ...scope, draftId: id, revision: 2 }));
 });
 
+test('historical draft read retains exact older content with a newer latest revision over the same authenticated read-only endpoint', async () => {
+  let calls = 0;
+  const transport = createIntentDraftTransport('https://steer.example', async (url, init) => {
+    calls++; assert.equal(String(url), 'https://steer.example/v1/tools/intent.draft.read');
+    assert.equal(init?.credentials, 'same-origin'); assert.equal(init?.cache, 'no-store');
+    assert.deepEqual(JSON.parse(String(init?.body)), { ...scope, draftId: id, revision: 1 });
+    return Response.json({ ...reference, latestRevision: 3, content });
+  });
+  const observed = await transport.read({ ...scope, draftId: id, revision: 1 });
+  assert.equal(observed.revision, 1); assert.equal(observed.latestRevision, 3); assert.deepEqual(observed.content, content);
+  assert.equal(observed.savedToGit, false); assert.equal(calls, 1); transport.close();
+});
+
 test('all uncertain HTTP failures are sanitized and sent once, including post-write access denial', async () => {
   for (const status of [401, 403, 409, 500, 503]) {
     let calls = 0; const transport = createIntentDraftTransport('https://steer.example', async () => { calls++; return Response.json({ secret: 'PRIVATE-BODY' }, { status }); });

@@ -33,7 +33,14 @@ scope, choose what to do, answer only necessary questions, review and correct a
 Brief/Spec/Exam bundle, save it to the authorized repository and reopen it exactly.
 No separate local preview, synthetic success, silent merging or lost work counts.
 
-Latest checkpoint: **0250 adds offline scope-quality replay and candidate cases**.
+Latest checkpoint: **0251 adds read-only preserved draft history in the actual UI**.
+Earlier exact snapshots can be browsed without replacing current text or its save
+base. Fresh latest-mode read is required before explicit replacement. See [the
+history guide](DRAFT-HISTORY.md) and [0251 evidence](../intent/0251/EVIDENCE.md).
+This improves I4's draft-snapshot review, not expired/superseded agent observation
+recovery or live records activation; those and the actual save/reopen journey remain.
+
+0250 adds offline scope-quality replay and candidate cases.
 The 23-case corpus is bound to exact production inputs and a recorded SDK verifier;
 label/coverage/citation checks are separate from still-required human explanation
 review. Synthetic reference responses test the harness, not live model accuracy.

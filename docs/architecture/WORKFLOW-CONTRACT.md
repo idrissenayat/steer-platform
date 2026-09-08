@@ -906,3 +906,17 @@ false and require explanation review. No report digest or candidate-check result
 is a grant, runtime admission, save confirmation or gate decision. The command has
 no provider/gateway/key/records wiring and no live mode. Synthetic SDK replies
 prove harness behavior only; signed-in user and repository acceptance remain open.
+
+0251 exposes exact preserved draft revisions through the existing authenticated
+`intent.draft.read` query. Numbered navigation sets a distinct read-only history
+mode. Even a numbered read of the latest snapshot cannot be accepted into the
+editor; a fresh `latest` read and the existing explicit replacement are required.
+Previewing/closing history does not change the current text or optimistic save
+base and cannot resolve a conflict, bypass an unknown mutation, or restore agent
+provenance/approval. See [the history contract](../../intent/0251/SPEC.md).
+
+Every read retains current records/owner/product/key checks. Invalid, denied or
+expired responses clear the preview, not current edits; absent versions are never
+reconstructed. Close/hide drops private bytes and late replies. This concerns draft
+snapshots only, not historical access to expired scope observations or superseded
+assessed originals. No new storage, retention, execution or save authority.

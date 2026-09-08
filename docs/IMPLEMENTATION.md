@@ -1,6 +1,16 @@
 # STEER platform implementation
 
-## Current checkpoint — 0250
+## Current checkpoint — 0251
+
+0251 exposes read-only preserved draft revisions in the actual conversation.
+Previous/next navigation never replaces unsaved text or rebases the editor, even
+when it reaches the newest numbered snapshot. A fresh latest read precedes the
+existing explicit replacement action. Current access/retention and uncertain-write
+guards remain. See [the history guide](DRAFT-HISTORY.md) and [0251 evidence](../intent/0251/EVIDENCE.md).
+Real records activation, expired/superseded agent-run recovery and actual human
+save/reopen are still open; this is not a new preview or a live completion claim.
+
+## Prior checkpoint — 0250
 
 0250 adds an offline quality-evaluation harness for the current scope-review path.
 It verifies exact recorded SDK exchanges and scores 23 synthetic candidate cases

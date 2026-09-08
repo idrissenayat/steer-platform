@@ -24,7 +24,7 @@ export default function IntentDraftPanel({ organizationId, productId, repository
   const editor = useRef<ReturnType<typeof createIntentDraftEditor> | null>(null);
   const previewHeading = useRef<HTMLHeadingElement>(null);
   const reviewButton = useRef<HTMLButtonElement>(null);
-  useEffect(() => { if (view?.status === 'restore-ready') previewHeading.current?.focus(); }, [view?.status]);
+  useEffect(() => { if (view?.status === 'restore-ready') previewHeading.current?.focus(); }, [view?.status, view?.restored?.revision, view?.restoredMode]);
   useEffect(() => {
     let last = Date.now(), closed = false;
     const search = createIntentDraftTransport(window.location.origin); discovery.current = search; discovering.current = false;
@@ -110,19 +110,29 @@ export default function IntentDraftPanel({ organizationId, productId, repository
       <button className="access-secondary" type="button" disabled={locked || pending || view.retryAvailable || !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(draftId)}
         onClick={() => { void editor.current?.load(draftId); }}>Read stored draft</button>
     </details>
-    {view.restored && <div className="intent-restored-preview"><h4 tabIndex={-1} ref={previewHeading}>Stored revision {view.restored.revision} — review before replacing</h4>
+    {view.restored && <div className="intent-restored-preview"><h4 tabIndex={-1} ref={previewHeading}>Stored revision {view.restored.revision} — {view.restoredMode === 'history' ? 'history only' : 'review before replacing'}</h4>
       <p>Snapshot at read time. Another edit can still cause a conflict on your next save. Stored text does not establish agent authorship or prior approval.</p>
+      <nav aria-label="Stored draft revision history" className="intent-document-buttons">
+        <button className="access-secondary" type="button" disabled={locked || pending || view.restored.revision <= 1}
+          onClick={() => { void editor.current?.load(view.restored!.draftId, view.restored!.revision - 1); }}>Previous stored revision</button>
+        <span>Revision {view.restored.revision} of {view.restored.latestRevision} at read time</span>
+        <button className="access-secondary" type="button" disabled={locked || pending || view.restored.revision >= view.restored.latestRevision}
+          onClick={() => { void editor.current?.load(view.restored!.draftId, view.restored!.revision + 1); }}>Next stored revision</button>
+        <button className="access-secondary" type="button" disabled={locked || pending}
+          onClick={() => { void editor.current?.load(view.restored!.draftId); }}>Review latest revision</button>
+      </nav>
+      {view.restoredMode === 'history' && <p>Read-only history. Browsing does not replace your editor, create a revision, restart agents or restore approvals. To load editable content, choose “Review latest revision” first. Missing or expired revisions are not reconstructed.</p>}
       <details open><summary>Stored intent and clarification</summary><pre className="intent-draft-source">{view.restored.content.originalText}</pre>
         {view.restored.content.clarificationTurns.map((turn, index) => <pre className="intent-draft-source" key={index}>{turn}</pre>)}</details>
       {view.restored.content.documents && (['brief', 'spec', 'exam'] as const).map(name => <details key={name}><summary>Stored {name.toUpperCase()}.md</summary>
         <BriefMarkdown content={view.restored!.content.documents![name]} /></details>)}
-      <button className="access-secondary" type="button" disabled={locked || pending} onClick={() => {
+      {view.restoredMode === 'latest' && <button className="access-secondary" type="button" disabled={locked || pending} onClick={() => {
         const restored = editor.current?.acceptRestore(); if (restored) onRestore(restored);
-      }}>Replace editor with this stored revision</button>
+      }}>Replace editor with this stored revision</button>}
       <button className="access-secondary" type="button" disabled={locked || pending} onClick={() => {
         editor.current?.cancelRestore(); (reviewButton.current ?? document.getElementById('intent-draft-reference'))?.focus();
       }}>Keep my current text</button>
-      <p>Replacing will remove all current editor text. Choose “Keep my current text” to close this preview without replacing anything; an existing conflict will remain unresolved.</p>
+      <p>{view.restoredMode === 'latest' && 'Replacing will remove all current editor text. '}Choose “Keep my current text” to close this preview without replacing anything; an existing conflict will remain unresolved.</p>
     </div>}
     {onResult && <IntentDevelopmentPanel source={developmentSource} enabled={enabled} subject={subject} identity={JSON.stringify([organizationId, productId, repository, subject])}
       expiresAt={expiresAt} onResult={onResult} reviewRequest={reviewRequest} discoveredDraft={discoveredDraft} />}

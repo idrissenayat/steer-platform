@@ -9,11 +9,12 @@ export interface DraftEditorView {
   status: 'idle' | 'saving' | 'preserved' | 'unknown' | 'conflict' | 'reading' | 'restore-ready' | 'closed';
   draftId: string | null; revision: number; latestRevision: number;
   preservedContent: IntentDraftContent | null; restored: IntentDraftReadOutput | null;
+  restoredMode: 'latest' | 'history' | null;
   revisionDigest: string | null; scopeInputDigest: string | null;
   message: string; retryAvailable: boolean;
 }
 const initial = (): DraftEditorView => ({ status: 'idle', draftId: null, revision: 0, latestRevision: 0,
-  preservedContent: null, restored: null, revisionDigest: null, scopeInputDigest: null, message: '', retryAvailable: false });
+  preservedContent: null, restored: null, restoredMode: null, revisionDigest: null, scopeInputDigest: null, message: '', retryAvailable: false });
 
 /** One verified session/scope, memory only. No automatic retries or implicit replacement. */
 export function createIntentDraftEditor(rawScope: unknown, transport: IntentDraftTransport,
@@ -21,10 +22,11 @@ export function createIntentDraftEditor(rawScope: unknown, transport: IntentDraf
   const scope = intentDraftScopeSchema.parse(rawScope);
   let view = initial(), pending: Pending | null = null, digest: string | null = null, busy = false, closed = false;
   let restoreStatus: DraftEditorView['status'] = 'idle';
+  let latestRead: { draftId: string; revision: number } | null = null;
   const publish = (next: Partial<DraftEditorView>) => { if (!closed) { view = { ...view, ...next }; changed(structuredClone(view)); } };
   async function execute() {
     if (closed || busy || !pending) return;
-    busy = true; publish({ status: 'saving', restored: null, retryAvailable: false, message: '' });
+    busy = true; publish({ status: 'saving', restored: null, restoredMode: null, retryAvailable: false, message: '' });
     try {
       if (pending.kind === 'create') {
         const request = pending;
@@ -75,38 +77,44 @@ export function createIntentDraftEditor(rawScope: unknown, transport: IntentDraf
       await execute();
     },
     retry: execute,
-    async load(draftId: string) {
+    async load(draftId: string, revision: number | 'latest' = 'latest') {
       if (closed || busy || pending) return;
+      if (revision !== 'latest' && (!Number.isInteger(revision) || revision < 1 || revision > 1000)) return;
       busy = true; const priorStatus = view.status === 'restore-ready' ? restoreStatus : view.status;
-      publish({ status: 'reading', restored: null, message: '' });
+      const minimumLatest = Math.max(view.draftId === draftId ? view.latestRevision : 0, latestRead?.draftId === draftId ? latestRead.revision : 0);
+      publish({ status: 'reading', restored: null, restoredMode: null, message: '' });
       try {
-        const result = await transport.read({ ...scope, draftId, revision: 'latest' });
+        const result = await transport.read({ ...scope, draftId, revision });
         if (closed) return;
-        if (result.revision !== result.latestRevision) {
+        if (result.draftId !== draftId || result.latestRevision < minimumLatest || result.revision > result.latestRevision
+          || (revision === 'latest' ? result.revision !== result.latestRevision : result.revision !== revision)) {
           publish({ status: priorStatus, message: 'The stored draft changed during the read. Read it again; your current text is unchanged.' }); return;
         }
+        latestRead = { draftId, revision: result.latestRevision };
         restoreStatus = priorStatus;
-        publish({ status: 'restore-ready', restored: result,
-          message: 'Review the stored content below. Loading it will replace the current editor text and require fresh scope and document review.' });
+        publish({ status: 'restore-ready', restored: result, restoredMode: revision === 'latest' ? 'latest' : 'history',
+          message: revision === 'latest'
+            ? 'Review the stored content below. Loading it will replace the current editor text and require fresh scope and document review.'
+            : 'Historical revision is read-only. Your current text and preserved base are unchanged. Review the latest revision before replacing the editor.' });
       } catch { publish({ status: priorStatus,
         message: 'The stored draft could not be read with current access. Your current text is unchanged.' }); }
       finally { busy = false; }
     },
     cancelRestore() {
       if (closed || busy || !view.restored) return;
-      publish({ status: restoreStatus, restored: null, message: restoreStatus === 'conflict'
+      publish({ status: restoreStatus, restored: null, restoredMode: null, message: restoreStatus === 'conflict'
         ? 'Stored preview closed. Your current text is unchanged; the revision conflict still needs resolution.'
         : 'Stored preview closed. Your current text is unchanged.' });
     },
     acceptRestore(): IntentDraftContent | null {
-      if (closed || busy || !view.restored) return null;
+      if (closed || busy || !view.restored || view.restoredMode !== 'latest' || view.restored.revision !== view.restored.latestRevision) return null;
       const restored = view.restored;
       digest = restored.revisionDigest;
       publish({ status: 'preserved', draftId: restored.draftId, revision: restored.revision, latestRevision: restored.latestRevision,
         revisionDigest: restored.revisionDigest, scopeInputDigest: restored.scopeInputDigest,
-        preservedContent: restored.content, restored: null, message: 'Stored draft loaded. Scope, authorship and approvals have not been restored.' });
+        preservedContent: restored.content, restored: null, restoredMode: null, message: 'Stored draft loaded. Scope, authorship and approvals have not been restored.' });
       return structuredClone(restored.content);
     },
-    close() { closed = true; transport.close(); pending = null; digest = null; view = { ...initial(), status: 'closed' }; },
+    close() { closed = true; transport.close(); pending = null; digest = null; latestRead = null; view = { ...initial(), status: 'closed' }; },
   };
 }

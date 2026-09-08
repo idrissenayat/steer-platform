@@ -34,7 +34,7 @@ test('actual editor graph preserves older ACKs, recovers exact lost writes and e
   const saved = Object.fromEntries(keys.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
   for (const [key, value] of Object.entries({ window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, IS_REACT_ACT_ENVIRONMENT: true })) Object.defineProperty(globalThis, key, { configurable: true, value });
   const scope = { organizationId: 'org', productId: 'product', repository: 'github:52' }, draftId = '00000000-0000-4000-8000-000000000001';
-  const calls = [], stored = new Map(); let mode = 'defer', current = null, release;
+  const calls = [], stored = new Map(), history = new Map(); let mode = 'defer', current = null, release;
   const ref = async (content, revision) => ({ draftId, revision, latestRevision: revision, revisionDigest: String(revision).repeat(64), sourceRevision: revision, savedToGit: false,
     ...(await fingerprintIntentScope({ ...scope, draftId, sourceRevision: revision, originalText: content.originalText,
       clarificationTurns: content.clarificationTurns, documents: content.documents ? { brief: content.documents.brief, spec: content.documents.spec } : null })) });
@@ -44,7 +44,10 @@ test('actual editor graph preserves older ACKs, recovers exact lost writes and e
     const input = JSON.parse(init.body); calls.push({ url, input });
     if (url.endsWith('intent.draft.create')) return Response.json({ outcome: 'created', requestId: input.requestId, draftId,
       createdAt: '2026-09-08T00:00:00.000Z', useUntil: '2026-09-09T00:00:00.000Z', retentionDeadline: '2026-09-10T00:00:00.000Z', contentPreserved: false, savedToGit: false });
-    if (url.endsWith('intent.draft.read')) return Response.json(current);
+    if (url.endsWith('intent.draft.read')) {
+      if (mode === 'deny-history') return Response.json({ error: 'PRIVATE history inaccessible' }, { status: 403 });
+      return Response.json(input.revision === 'latest' ? current : { ...history.get(input.revision), latestRevision: current.latestRevision });
+    }
     assert.ok(url.endsWith('intent.draft.append'), 'No agent, scope, Git write or other network command is allowed in this test');
     if (mode === 'conflict') return Response.json({ outcome: 'conflict', savedToGit: false });
     const cached = stored.get(input.mutationId);
@@ -52,6 +55,7 @@ test('actual editor graph preserves older ACKs, recovers exact lost writes and e
     const reference = wire(await ref(input.content, input.expectedRevision + 1));
     const ack = { ...reference, outcome: 'acknowledged', mutationId: input.mutationId };
     stored.set(input.mutationId, ack); current = { ...reference, content: input.content };
+    history.set(reference.revision, current);
     if (mode === 'defer') return new Promise(resolve => { release = () => resolve(Response.json(ack)); });
     if (mode === 'lost') { mode = 'normal'; throw new Error('Lost acknowledgement'); }
     return Response.json(ack);
@@ -88,10 +92,34 @@ test('actual editor graph preserves older ACKs, recovers exact lost writes and e
     const remote = { originalText: 'Remote exact intent\n  spaces', clarificationTurns: ['First turn', '', 'Third turn فارسی'],
       documents: { brief: '# Remote brief', spec: '# Remote spec', exam: '# Remote exam\n<script>unsafe()</script>\n![image](https://outside.invalid/img)' } };
     current = { ...wire(await ref(remote, 3)), content: remote };
+    history.set(3, current);
     await click('Review stored revision');
     assert.match(document.activeElement.textContent, /Stored revision 3/);
     assert.equal(document.getElementById('agent-intent').value, 'Third unsent edit');
     assert.equal(document.querySelector('script, img'), null);
+    const readCount = calls.length;
+    await click('Previous stored revision');
+    assert.match(document.activeElement.textContent, /Stored revision 2 — history only/);
+    assert.equal(document.getElementById('agent-intent').value, 'Third unsent edit');
+    assert.equal(button('Replace editor with this stored revision'), undefined);
+    assert.match(document.querySelector('.intent-restored-preview').textContent, /Newer edit during save/);
+    await click('Previous stored revision'); assert.equal(button('Previous stored revision').disabled, true);
+    assert.match(document.activeElement.textContent, /Stored revision 1 — history only/);
+    const historyAccessibility = await (await import('axe-core')).default.run(document.getElementById('root'),
+      { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] }, rules: { 'color-contrast': { enabled: false } } });
+    assert.deepEqual(historyAccessibility.violations.map(v => v.id), []);
+    await click('Next stored revision'); await click('Next stored revision');
+    assert.match(document.activeElement.textContent, /Stored revision 3 — history only/);
+    assert.equal(button('Next stored revision').disabled, true); assert.equal(button('Replace editor with this stored revision'), undefined);
+    assert.deepEqual(calls.slice(readCount).map(c => c.input.revision), [2, 1, 2, 3]);
+    assert.ok(calls.slice(readCount).every(c => c.url.endsWith('intent.draft.read')));
+    mode = 'deny-history'; await click('Previous stored revision');
+    assert.equal(document.querySelector('.intent-restored-preview'), null); assert.doesNotMatch(document.body.textContent, /PRIVATE history/);
+    assert.equal(document.getElementById('agent-intent').value, 'Third unsent edit');
+    assert.equal(button('Preserve draft').disabled, true); // Failed history cannot clear a conflict.
+    mode = 'normal'; await click('Review stored revision'); await click('Previous stored revision');
+    await click('Review latest revision'); assert.equal(calls.at(-1).input.revision, 'latest');
+    assert.ok(button('Replace editor with this stored revision'));
     await click('Keep my current text'); assert.equal(document.querySelector('.intent-restored-preview'), null);
     assert.equal(document.activeElement.textContent, 'Review stored revision');
     assert.equal(document.getElementById('agent-intent').value, 'Third unsent edit');

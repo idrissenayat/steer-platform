@@ -77,6 +77,24 @@ export async function testIntentDraftApi({ admin, connect, check }: {
       const recovered = await (await f.post('append', input, f.make())).json(); assert.equal(recovered.outcome, 'acknowledged'); assert.equal(recovered.revision, 1);
       assert.equal(await f.count(draftId), 1);
     });
+    await check('read-only HTTP history returns exact older draft bytes and latest metadata without rebasing or authorizing a write', async () => {
+      const f = setup(), { draftId } = await f.create(), input = f.append(draftId);
+      const first = await (await f.post('append', input)).json(); assert.equal(first.outcome, 'acknowledged');
+      const newer = { ...f.content, originalText: 'Newer intent stays current', documents: { brief: '# Corrected Brief', spec: '# Corrected Spec', exam: '# Corrected Exam' } };
+      const second = await (await f.post('append', { ...input, mutationId: randomUUID(), expectedRevision: 1, expectedDigest: first.revisionDigest, content: newer })).json();
+      assert.equal(second.outcome, 'acknowledged'); f.state.principal.toolGrants = ['intent.draft.read'];
+      const target = { ...f.scope, draftId, revision: 1 }, response = await f.post('read', target, f.make());
+      assert.equal(response.status, 200); assert.equal(response.headers.get('cache-control'), 'no-store');
+      const history = await response.json(); assert.deepEqual(history.content, f.content);
+      assert.equal(history.revision, 1); assert.equal(history.latestRevision, 2); assert.equal(history.revisionDigest, first.revisionDigest);
+      assert.equal(history.scopeInputDigest, first.scopeInputDigest); assert.equal(history.savedToGit, false);
+      const latest = await (await f.post('read', { ...target, revision: 'latest' })).json(); assert.deepEqual(latest.content, newer);
+      assert.equal(latest.revision, 2); assert.equal((await f.post('append', input)).status, 403); assert.equal(await f.count(draftId), 2);
+      f.state.keyDenied = true; const denied = await f.post('read', target);
+      assert.equal(denied.status, 503); assert.equal((await denied.text()).includes('Private HTTP intent'), false);
+      f.state.keyDenied = false; f.state.principal.subject = 'different-owner'; assert.equal((await f.post('read', target)).status, 403);
+      assert.equal(await f.count(draftId), 2);
+    });
     await check('owner changes, key denial and durable holds prevent private draft HTTP restoration without deleting retained rows', async () => {
       const f = setup(), { draftId } = await f.create(); assert.equal((await (await f.post('append', f.append(draftId))).json()).outcome, 'acknowledged');
       const input = { ...f.scope, draftId, revision: 'latest' };

@@ -5443,3 +5443,28 @@ No D1 activation, real migration, key inspection, model spend, runtime Git save,
 auth bypass, gate, deployment or release. User-owned files are untouched; only
 test-owned temporary synthetic replay files are created and removed by tests.
 The one-minute loop stays active.
+
+## Development increment: 0251 — Read-only preserved draft history
+
+The actual conversation now exposes previous/next preserved revisions, exact
+stored content and read-time latest metadata. Numbered snapshots are explicitly
+history-only and cannot replace/rebase the current editor—even when navigation
+reaches the newest number. A fresh latest read is required before explicit editor
+replacement. Unknown writes block navigation; denial/closure clears the preview;
+conflicts and unsaved edits remain intact. Existing safe Markdown, keyboard focus
+and wrapping pink/orange controls are reused. See [0251 evidence](../intent/0251/EVIDENCE.md)
+and [the history guide](DRAFT-HISTORY.md).
+
+The final 1,129/1,129 regressions and focused 24/24 controller/transport/actual
+React checks pass. Automated axe A/AA rules pass with contrast disabled; this is
+not real-browser visual or signed-in human acceptance. Types, optimized Next build,
+kit and workflow scope checks pass. Full PostgreSQL 16.14 integration passes
+**335/335 checks**, including the new exact read-only historical HTTP case. All
+162 local document links resolve and protected hashes are unchanged.
+
+No new server grants, schema, migration, dependency or live records activation.
+This closes the draft-snapshot browsing gap, not expired/superseded agent-run
+recovery, D1 activation, actual semantic evaluation or human Git save/reopen.
+No key inspection, model calls/spend, runtime Git write, gate, auth bypass,
+deployment or release. User-owned files remain untouched; the one-minute loop
+continues the remaining journey.
