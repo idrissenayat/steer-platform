@@ -5232,3 +5232,33 @@ editor, then real authority, semantic evaluation and I1–I6 human/save acceptan
 D1 remains unsigned/inactive and first-test model spending unapproved. No real
 migration, key, paid model call, runtime Git save, gate, deployment or release was
 enabled. Preserve user files and keep the existing one-minute loop active.
+
+## Development increment: 0244 — Authenticated exact-source scope preparation
+
+`intent.scope.prepare` now joins the current human's exact saved draft revision and
+reviewed repository snapshot to durable review admission and encrypted originals.
+An explicit composition uses the actual repository-wide source collector. Caller
+text, Exam, profile, budget, batch lists and review IDs cannot replace verified
+source. Exact replay and concurrent requests recover one original without another
+identity, renewed expiry, model reservation or dispatch. See
+[0244 evidence](../intent/0244/EVIDENCE.md) for verification and limits.
+
+Partial reviewable evidence retains its gaps. Empty or wholly unavailable evidence
+starts no work and never asserts uniqueness. Corrections, holds and authority loss
+prevent readiness; unknown acknowledgements preserve recoverable metadata. A final
+expiry guard also rejects readiness when the window closes during the last awaited
+authority check. No new table, migration or provider dependency.
+
+0244 verification: 1,068/1,068 full regression checks and 309/309 final full
+PostgreSQL 16.14 integration checks pass, including thirteen new HTTP/SQL/native-Git
+preparation cases. Focused and intermediate runs overlap those totals. Prototype/
+all package types, optimized Next build, Drizzle history, kit (95 artifacts), token
+scope audit, local document links and whitespace checks pass. Signed hashes are
+unchanged; user-owned files remain excluded.
+
+The factories remain uninstalled by default. Next connect authorized workflow
+start/recovery and actual editor review/progress, then real authority, semantic
+evaluation and I1–I6 human/save acceptance. No authentication change, alternate
+preview, real database migration, D1 activation, credential inspection/provisioning,
+paid model call, runtime Git save, gate, deployment or release occurred. First-test
+spending remains unapproved. Keep the existing one-minute loop active.

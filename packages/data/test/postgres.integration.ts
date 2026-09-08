@@ -18,6 +18,7 @@ import { testModelBudget } from './model-budget.integration.ts';
 import { testIntentOperations } from './intent-operations.integration.ts';
 import { testScopeReviewOperations } from './scope-review-operations.integration.ts';
 import { testScopeOriginals } from './scope-originals.integration.ts';
+import { testScopePreparation } from '../../../apps/api/test/intent-scope-prepare.integration.ts';
 import { testScopeObservations } from './scope-observations.integration.ts';
 import { testScopeReviewReader } from './scope-review-reader.integration.ts';
 import { testScopeStepRuntime } from '../../../apps/worker/test/scope-step-runtime.integration.ts';
@@ -78,7 +79,8 @@ try {
     assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 28);
   });
   if(selection.mode==='scope-runtime'){
-    console.log('FOCUSED scope SQL/recorded SDK/Temporal execution; NOT the full integration suite.');
+    console.log('FOCUSED scope preparation/SQL/recorded SDK/Temporal execution; NOT the full integration suite.');
+    await testScopePreparation({admin,connect,check});
     await testScopeStepRuntime({admin,connect,check});
     console.log(`FOCUSED scope runtime result: ${passed-1} runtime checks passed plus idempotent migration check; full suite NOT RUN.`);
   }else if(selection.mode==='clarification-repro'){
@@ -261,6 +263,7 @@ try {
   await testIntentOperations({ admin, app, connect, check, connection: { host: '127.0.0.1', port, user: 'steer_app', password, database: 'steer_test' } });
   await testScopeReviewOperations({ admin, app, connect, check });
   await testScopeOriginals({ admin, connect, check });
+  await testScopePreparation({ admin, connect, check });
   await testScopeObservations({ admin, connect, check });
   await testScopeReviewReader({ admin, connect, check });
   await testScopeStepRuntime({ admin, connect, check });

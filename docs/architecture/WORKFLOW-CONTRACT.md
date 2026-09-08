@@ -770,3 +770,20 @@ or a gate. Use the current-authority combined reader for findings and completene
 See [0243 specification](../../intent/0243/SPEC.md). Actual source preparation and
 authorized start/lost-ACK recovery into the editor remain subsequent work; no real
 records/source/model/save binding or I1–I6 acceptance is enabled.
+
+0244 connects the preparation stage through `intent.scope.prepare`. An explicitly
+granted current human supplies exact saved-draft and reviewed-corpus references,
+not private source bytes, a batch list, profile, budget or a new review ID. The
+server restores the current draft, excludes its Exam, verifies current repository
+evidence, admits the immutable review, encrypts its original and verifies readback.
+An explicit composition connects the actual repository-wide collector; current
+product/lifecycle/per-source authority is still mandatory and never caller-supplied.
+
+Rechecks surround admission, preservation and acknowledgement. Exact replay recovers
+the same identity and original without renewing expiry or reserving model cost.
+Unknown acknowledgements do not grant start or retry permission. Partial evidence
+remains visibly partial even when its available batches can be prepared; empty or
+entirely unavailable evidence starts no work and never establishes uniqueness.
+The final awaited authority check is followed by an expiry check before readiness.
+See [0244 specification](../../intent/0244/SPEC.md). Authorized start/recovery and
+actual editor binding remain next; no real runtime or authority is activated.

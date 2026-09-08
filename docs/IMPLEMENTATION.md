@@ -1,6 +1,6 @@
 # STEER platform implementation
 
-## Current checkpoint — 0243
+## Current checkpoint — 0244
 
 Use [the intent journey plan](INTENT-JOURNEY-PLAN.md) and
 [the delivery ledger](PHASE-1-DELIVERY.md) for current status; the implementation
@@ -69,6 +69,14 @@ Replaying history does not send models, and finished workflows do not establish
 semantic coverage. See [0243 evidence](../intent/0243/EVIDENCE.md). Source preparation,
 authorized start/recovery APIs and actual editor integration remain next; no live
 factory, records/model authority or runtime saving is enabled.
+
+0244 adds `intent.scope.prepare`: the current-human API now joins exact saved scope
+with independently verified corpus evidence, admits one durable review and reads
+back its encrypted original. A separate explicit composition uses the actual
+repository-wide collector; neither accepts caller text or profile/budget settings.
+Partial, empty, stale and uncertain preparations remain distinct. See
+[0244 evidence](../intent/0244/EVIDENCE.md). Start/recovery and actual editor binding
+are next; preparation does not dispatch, reserve model spending or save to Git.
 
 These are tested development capabilities, not live end-to-end acceptance. D1
 records activation, real source/lifecycle verifier binding, large-corpus contextual

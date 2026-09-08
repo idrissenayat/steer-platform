@@ -12,11 +12,11 @@ import { createScopeReviewOriginalStore } from '../src/scope-review-originals.ts
 import type { DatabasePool } from '../src/runtime-pool.ts';
 
 type Dependencies=Parameters<typeof createScopeReviewOriginalStore>[2];
-export async function scopeOriginalIntegrationFixture({admin,connect}:{admin:Pool;connect(role:string):Pool},large=false,ttl=3600000,
-  options:{sourceCount?:number;inventoryComplete?:boolean;accessGapCount?:number}={}) {
+export async function scopeDraftIntegrationFixture({admin,connect}:{admin:Pool;connect(role:string):Pool},large=false,ttl=3600000,
+  options:{sourceCount?:number;inventoryComplete?:boolean;accessGapCount?:number;branch?:string}={}) {
   const f=await scopeReviewFixture(options.sourceCount??(large?40:4));
   const config={organizationId:`scope-original-${randomUUID()}`,subject:'synthetic-human',productId:f.scope.productId,repository:f.scope.repository,
-    branch:f.evidence.branch,configurationRevision:'scope-original-r1',recordsPolicyDigest:'a'.repeat(64)};
+    branch:options.branch??f.evidence.branch,configurationRevision:'scope-original-r1',recordsPolicyDigest:'a'.repeat(64)};
   const budget={organizationId:config.organizationId,subject:config.subject,configurationRevision:config.configurationRevision,budgetId:randomUUID(),
     approvalDigest:'b'.repeat(64),capMicrousd:30,architectMicrousd:3,testAgentMicrousd:2};
   const execution={...config,expiresAt:new Date(Date.now()+ttl).toISOString(),budget,
@@ -35,17 +35,22 @@ export async function scopeOriginalIntegrationFixture({admin,connect}:{admin:Poo
   const scope={...f.scope,organizationId:config.organizationId,draftId},documents=f.evidence.documents.map((d,i)=>({...d,content:large?`# Source ${i}\n`+'x'.repeat(20000):d.content}));
   const evidence={...f.evidence,inventoryComplete:options.inventoryComplete??f.evidence.inventoryComplete,
     accessGapCount:options.accessGapCount??f.evidence.accessGapCount,
-    organizationId:config.organizationId,scopeInputDigest:(await fingerprintIntentScope(scope)).scopeInputDigest,documents,
+    organizationId:config.organizationId,branch:config.branch,scopeInputDigest:(await fingerprintIntentScope(scope)).scopeInputDigest,documents,
     inventory:f.evidence.inventory.map((s,i)=>({...s,contentDigest:createHash('sha256').update(documents[i]!.content).digest('hex'),
       blobOid:createHash('sha1').update(`blob ${Buffer.byteLength(documents[i]!.content)}\0${documents[i]!.content}`).digest('hex')}))};
   const described=await describeScopeOriginal({kind:'steer-scope-original/v1',configuration:execution,
     source:{revision:1,revisionDigest:saved.reference.revisionDigest,scope},evidence,profile:f.profile});
+  return{config,execution,pools,key,deps,draftId,drafts,lifecycle,saved,content,described};
+}
+export async function scopeOriginalIntegrationFixture(dependencies:Parameters<typeof scopeDraftIntegrationFixture>[0],large=false,ttl=3600000,
+  options:Parameters<typeof scopeDraftIntegrationFixture>[3]={}) {
+  const base=await scopeDraftIntegrationFixture(dependencies,large,ttl,options),{config,execution,pools,deps,described}=base;
   const reviews=createScopeReviewOperationStore(pools.execution,execution,{authorize:deps.authorizeReview}),admitted=await reviews.admit(described.manifest);
   assert.equal(admitted.outcome,'ok');if(admitted.outcome!=='ok')throw new Error('Synthetic review missing');
   const target={reviewId:admitted.value.reviewId,preparationDigest:described.manifest.preparationDigest},input={...target,original:described.original};
   const make=(overrides:Partial<Dependencies>={},otherPools:{drafts:DatabasePool;execution:DatabasePool}=pools,patch={})=>createScopeReviewOriginalStore(otherPools,{...config,...patch},{...deps,...overrides});
-  const row=async()=>(await admin.query('SELECT * FROM steer_drafts.scope_review_originals WHERE review_id=$1',[target.reviewId])).rows[0];
-  return{config,execution,pools,key,deps,draftId,drafts,lifecycle,saved,content,described,reviews,target,input,make,row};
+  const row=async()=>(await dependencies.admin.query('SELECT * FROM steer_drafts.scope_review_originals WHERE review_id=$1',[target.reviewId])).rows[0];
+  return{...base,reviews,target,input,make,row};
 }
 export async function testScopeOriginals({admin,connect,check}:{admin:Pool;connect(role:string):Pool;check(name:string,run:()=>Promise<void>):Promise<void>}) {
   const setup=(large=false,ttl=3600000)=>scopeOriginalIntegrationFixture({admin,connect},large,ttl);

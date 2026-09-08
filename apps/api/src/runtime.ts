@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { createIntentScopePreparer } from '@steer/data/intent-scope-preparer';
+import { scopeReviewConfigurationSchema } from '@steer/data/scope-review-operations';
 import { createScopeReviewReader } from '@steer/data/scope-review-reader';
 import { intentScopeReadInputSchema, type IntentScopeReader } from '@steer/tool-registry/intent-scope-read-contracts';
 import { scopeReviewProfileSchema } from '@steer/tool-registry/intent-scope-review';
@@ -33,6 +35,25 @@ import { readProjection } from '@steer/data';
 import { createHeldGitBriefWriterFactory, heldGitBriefConfigurationSchema, type HeldBriefAssessment } from '@steer/adapters/held-brief-writer';
 
 const text = z.string().min(1);
+/** Explicit preparation only. Current corpus/records/profile authorities are
+ * mandatory; no workflow/model call or default activation. */
+export function createRecordedScopePreparer(pools: Parameters<typeof createIntentScopePreparer>[0], configuration: unknown,
+  profile: unknown, dependencies: Parameters<typeof createIntentScopePreparer>[3]) {
+  return createIntentScopePreparer(pools, configuration, profile, dependencies);
+}
+/** Repository-wide source preparation through the existing verified collector.
+ * No caller-provided evidence or environment-only activation path. */
+export function createCorpusRecordedScopePreparer(reader: Parameters<typeof createIntentCorpusEvidence>[0],
+  pools: Parameters<typeof createIntentScopePreparer>[0], configuration: unknown, profile: unknown, retrievalConfigurationRevision: string,
+  dependencies: Omit<Parameters<typeof createIntentScopePreparer>[3], 'evidenceFor'> & { authority: IntentCorpusAuthority }) {
+  const config = scopeReviewConfigurationSchema.parse(configuration), { organizationId, productId, repository, branch } = config;
+  const corpus = createIntentCorpusEvidence(reader, { organizationId, productId, repository, branch, retrievalConfigurationRevision }, dependencies.authority);
+  try {
+    const preparer = createIntentScopePreparer(pools, config, profile, { records: dependencies.records, authorizePreparation: dependencies.authorizePreparation,
+      evidenceFor: async (input, current) => (await corpus.collect({ organizationId, productId, repository, branch, scopeInputDigest: input.scopeInputDigest }, current)).evidence });
+    return { scope: preparer.scope, prepare: preparer.prepare, close() { preparer.close(); corpus.close(); } };
+  } catch (error) { corpus.close(); throw error; }
+}
 /** Explicit read-only composition. The server supplies the current exact profile
  * and source/records authority; no credential, model transport or flag activation. */
 export function createVerifiedScopeReviewReader(pools: Parameters<typeof createScopeReviewReader>[0], configuration: unknown,
