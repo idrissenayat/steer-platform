@@ -140,6 +140,9 @@ importers:
       '@steer/adapters':
         specifier: workspace:*
         version: link:../../packages/adapters
+      '@steer/agents':
+        specifier: workspace:*
+        version: link:../../packages/agents
       '@steer/data':
         specifier: workspace:*
         version: link:../../packages/data

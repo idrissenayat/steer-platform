@@ -4710,3 +4710,34 @@ is held against the seven-entry real baseline. D1 is unsigned/inactive; no real
 database, key/grant, model call, runtime GitHub save, spending, deletion, deployment,
 signed document or accepted policy changed. I1–I6 remain open. Actual transport-bound
 recording, reference-only Temporal role activities and editor/API recovery are next.
+
+## Development increment: 0223 — Transport-bound Mastra recording
+
+Connected the installed Mastra/OpenAI-compatible serializer and parser to the
+actual encrypted observation journal in an uninstalled fixed-operation worker
+factory. Exact instructions/source, schema, model route and output limit must
+match before transport. Raw successful responses are checked for completion,
+refusal, model, output and usage, compared with the SDK result, and recorded before
+return. Readback reparses stored protocol bodies without a model call.
+
+Only the first acknowledged request insertion can proceed after the runner's
+acknowledged dispatch. Existing/lost-acknowledgement requests cannot send again.
+Current model authority and final source/state checks follow request capture and
+the last authorization wait, preventing stale sends. No retries, memory/tools,
+content telemetry, direct-provider routing or changes to the real app runtime.
+
+The test chain uses actual SDKs, SQL and encryption with synthetic transport
+responses. It does not contact OpenAI/LiteLLM or prove model quality, real cost,
+independent agent acceptance or the UI journey. See
+[0223 evidence](../intent/0223/EVIDENCE.md) for verified commands and limits.
+
+Verification: **169/169** disposable integration checks and **319/319** scoped
+units/migration controls pass. Full prototype/eight-package typecheck, kit (95
+artifacts), token-scope and whitespace checks pass; protected source hashes match.
+
+No schema/migration was added. The twenty-one-entry development journal remains
+held against the seven-entry real baseline. D1 is unsigned/inactive and no live
+key/grant/spending/runtime GitHub-save authority or signed source changed. I1–I6
+remain open. Next: reference-only Temporal development activities/workflow and
+actual API/editor recovery; live profile/pricing/provider acceptance and authorized
+unknown-outcome investigation remain separate prerequisites.

@@ -160,6 +160,15 @@ the supplied bodies, rendered packet, role result and extracted usage. The fixtu
 does not contact a provider. No observation row grants dispatch, retry, history
 access after job expiry or a gate decision. See [0222 evidence](../../intent/0222/EVIDENCE.md).
 
+0223 implements the uninstalled Mastra serializer/parser-to-journal binding. Only
+the first acknowledged request insertion can proceed to transport after renewed
+authority and source/state checks; a recovered request is not another send permit.
+The exact successful raw response is parsed and compared with the SDK result, then
+encrypted before returning; checkpoint verification reparses actual stored bodies.
+Tests exercise the installed SDK with synthetic responses, not a live gateway or
+provider. Failed-response capture/investigation, pricing/route acceptance and
+real records authority remain separate. See [0223 evidence](../../intent/0223/EVIDENCE.md).
+
 The API accepts/queries operations; an internal Temporal workflow owns the long
 conversation job. Use a draft-scoped identity before an item exists:
 `steer-intent-development/v1/<organizationId>/<draftId>/<operationId>` with

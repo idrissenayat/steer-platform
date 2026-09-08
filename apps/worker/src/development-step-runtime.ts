@@ -17,7 +17,7 @@ const targetSchema=z.strictObject({operationId:uuid,inputDigest:digest});
 type Target=z.infer<typeof targetSchema>;
 export type DevelopmentObservationBinding=Readonly<{organizationId:string;operationId:string;stepId:Role;inputDigest:string;
   stepInputDigest:string;outputDigest:string;recordsPolicyDigest:string}>;
-/** Production binding is deliberately absent. execute must capture the actual
+/** Live binding is deliberately uninstalled. execute must capture the actual
  * adapter request/response/usage before returning; verify must independently read
  * those durable observations under current authority. A void fixture is no proof.
  * No automatic provider retries or implicit environment-selected model clients.
@@ -31,7 +31,7 @@ type Outcome='succeeded'|'needs-clarification'|'superseded'|'attention-required'
 /** Uninstalled one-step orchestration over actual operation/request/result stores.
  * Fixed operation identity; only a freshly acknowledged SQL dispatch reaches the
  * model port. A restart observes succeeded checkpoints and never resends unknown
- * work. Provider observation storage/adapter and live authority remain unbound.
+ * work. Recorded-model composition exists separately; live authority is unbound.
  */
 export function createDevelopmentStepRuntime(pools:Parameters<typeof createDevelopmentRequestReader>[0],rawConfiguration:unknown,rawTarget:unknown,dependencies:{
   reader:ReaderDependencies;model:RecordedDevelopmentModel;

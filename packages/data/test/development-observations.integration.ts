@@ -8,13 +8,15 @@ import { createDevelopmentRequestReader } from '../src/development-requests.ts';
 import { createDraftLifecycleStore } from '../src/draft-lifecycle.ts';
 import { createDraftRevisionStore } from '../src/draft-revisions.ts';
 import { createIntentOperationStore } from '../src/intent-operations.ts';
-import { developmentOriginalHash as hash } from '../src/development-original-contracts.ts';
+import { developmentOriginalHash as hash, describeDevelopmentOriginal } from '../src/development-original-contracts.ts';
 import { originalFixture } from './development-original.fixture.ts';
 import { createDevelopmentStepRuntime } from '../../../apps/worker/src/development-step-runtime.ts';
+import { createRecordedDevelopmentModel } from '../../../apps/worker/src/recorded-development-model.ts';
+import { RECORDED_MASTRA_REVISION } from '../../agents/src/recorded-mastra.ts';
 type Deps = Parameters<typeof createDevelopmentObservationStore>[2];
 
 export async function testDevelopmentObservations({admin,connect,check}:{admin:Pool;connect(role:string):Pool;check(name:string,run:()=>Promise<void>):Promise<void>}) {
-  const setup=async(dispatch=true,claim=true)=>{
+  const setup=async(dispatch=true,claim=true,recorded=false)=>{
     const config={organizationId:`observations-${randomUUID()}`,subject:'synthetic-human',productId:'product',repository:'github:52',branch:'codex/synthetic',configurationRevision:'r1',recordsPolicyDigest:'a'.repeat(64)};
     const budget={organizationId:config.organizationId,subject:config.subject,configurationRevision:config.configurationRevision,budgetId:randomUUID(),approvalDigest:'b'.repeat(64),capMicrousd:30,architectMicrousd:3,testAgentMicrousd:2};
     await admin.query(`INSERT INTO steer_usage.model_budgets VALUES($1,$2,$3,$4,$5,30,3,2,now()-interval '1 minute',now()+interval '1 hour',true)`,[budget.organizationId,budget.budgetId,budget.subject,budget.configurationRevision,budget.approvalDigest]);
@@ -28,7 +30,11 @@ export async function testDevelopmentObservations({admin,connect,check}:{admin:P
     const drafts=createDraftRevisionStore(pools.drafts,config,{authorize:base.authorizeDraft,keyForDraft:base.keyForDraft});
     const content={originalText:' Private observed original 🌸\r\n',clarificationTurns:['Exact answer'],documents:null};
     const saved=await drafts.append({draftId,mutationId:randomUUID(),expectedRevision:0,expectedDigest:null,content});assert.equal(saved.outcome,'acknowledged');if(saved.outcome!=='acknowledged')throw new Error();
-    const original=await originalFixture(execution,{draftId,revision:1,sourceRevision:1,revisionDigest:saved.reference.revisionDigest,content});
+    const described=await originalFixture(execution,{draftId,revision:1,sourceRevision:1,revisionDigest:saved.reference.revisionDigest,content});
+    const original=recorded?await describeDevelopmentOriginal({...described.original,profiles:{
+      architect:{...described.original.profiles.architect,runtimeRevision:RECORDED_MASTRA_REVISION},
+      testAgent:{...described.original.profiles.testAgent,runtimeRevision:RECORDED_MASTRA_REVISION},
+    }}):described;
     const operations=createIntentOperationStore(pools.execution,execution,{authorize:base.authorizeOperation,verifyCheckpoint:async()=>{throw new Error();}});
     const op=await operations.create({draftId,draftRevision:1,inputDigest:original.inputDigest});assert.equal(op.outcome,'ok');if(op.outcome!=='ok')throw new Error();
     const target={operationId:op.value.operationId,inputDigest:original.inputDigest},ref={...target,stepId:'architect' as const};
@@ -45,7 +51,11 @@ export async function testDevelopmentObservations({admin,connect,check}:{admin:P
     const put=async(observation:unknown,overrides:Partial<Deps>={})=>{const store=make(overrides);try{return await store.put({...ref,owner,fencingToken,observation});}finally{store.close();}};
     const read=async(stage:'request'|'response',overrides:Partial<Deps>={})=>{const store=make(overrides);try{return await store.read({...ref,stage});}finally{store.close();}};
     const count=async()=>Number((await admin.query('SELECT count(*) AS n FROM steer_drafts.development_observations WHERE operation_id=$1',[target.operationId])).rows[0].n);
-    return{config,execution,pools,key,state,deps,reader,lifecycle,drafts,draftId,saved,content,operations,target,ref,prepared,owner,fencingToken,request,response,make,put,read,count};
+    const gatewayProfiles=Object.fromEntries(Object.entries(original.original.profiles).map(([role,p])=>[role,{profileRevision:p.configurationRevision,
+      instructions:p.instructions,modelRoute:p.modelRoute,maxOutputTokens:p.maxOutputTokens,allowedResponseModels:['synthetic-provider-model']}])) as Parameters<typeof createRecordedDevelopmentModel>[3]['gateway']['profiles'];
+    const recordedModel=(transport:typeof fetch,otherPools=pools,authorize:Parameters<typeof createRecordedDevelopmentModel>[3]['authorize']=async()=>{})=>
+      createRecordedDevelopmentModel(otherPools,config,target,{records:deps,authorize,gateway:{gatewayUrl:'http://127.0.0.1:4000/v1',gatewayKey:'synthetic-gateway-key',profiles:gatewayProfiles,transport}});
+    return{config,execution,pools,key,state,deps,reader,lifecycle,drafts,draftId,saved,content,operations,target,ref,prepared,owner,fencingToken,request,response,make,put,read,count,recordedModel};
   };
   await check('immutable encrypted observation stages restore exact bodies and usage across reconstructed stores without implying execution',async()=>{
     const f=await setup();assert.equal((await f.put(f.request)).outcome,'stored');assert.equal((await f.put(f.response)).outcome,'stored');
@@ -139,6 +149,7 @@ export async function testDevelopmentObservations({admin,connect,check}:{admin:P
   await check('concurrent observation writers converge on one immutable stage and SQL refuses a response with an unrelated request digest',async()=>{
     const f=await setup();const outcomes=await Promise.all(Array.from({length:4},()=>f.put(f.request)));
     assert.ok(outcomes.every(v=>v.outcome==='stored'));assert.equal(await f.count(),1);
+    assert.equal(outcomes.filter(v=>v.outcome==='stored'&&v.created).length,1);
     const row=(await admin.query('SELECT * FROM steer_drafts.development_observations WHERE operation_id=$1',[f.target.operationId])).rows[0];
     const c=await f.pools.drafts.connect();
     try{
@@ -148,5 +159,76 @@ export async function testDevelopmentObservations({admin,connect,check}:{admin:P
         VALUES($1,$2,$3,$4,$5,'response',$6,$7,$8,$9::jsonb,$10::jsonb)`,[row.organization_id,row.subject,row.product_id,row.operation_id,row.step_id,row.draft_id,row.draft_revision,row.payload_digest,JSON.stringify(record),JSON.stringify(row.encrypted_value)]),/Invalid development response/);
     }finally{await c.query('ROLLBACK');c.release();}
     assert.equal(await f.count(),1);
+  });
+  await check('actual Mastra transport recording completes and restores both SQL-backed roles without another provider send',async()=>{
+    const f=await setup(false,false,true);let calls=0;
+    const transport:typeof fetch=async(url,init)=>{
+      assert.equal(String(url),'http://127.0.0.1:4000/v1/chat/completions');assert.equal(init?.redirect,'error');calls++;
+      const body=JSON.parse(String(init?.body)),role=body.response_format.json_schema.schema.properties.exam?'test-agent':'architect';
+      const reader=f.make();try{const saved=await reader.read({...f.target,stepId:role,stage:'request'});
+        assert.equal(saved.observation.stage,'request');if(saved.observation.stage==='request')assert.equal(saved.observation.requestBody,init?.body);
+      }finally{reader.close();}
+      if(role==='test-agent'){const source=JSON.parse(body.messages[1].content);assert.equal(source.brief,f.response.result.output.brief);assert.ok(!body.messages[1].content.includes('Exact message'));}
+      const output=role==='architect'?f.response.result.output:{exam:' # Recorded Exam\r\nNOT RUN '};
+      return new Response(JSON.stringify({id:`synthetic-completion-${calls}`,object:'chat.completion',created:1,model:'synthetic-provider-model',
+        choices:[{index:0,message:{role:'assistant',content:JSON.stringify(output)},finish_reason:'stop'}],usage:{prompt_tokens:2,completion_tokens:1,total_tokens:3}})+'\r\n',
+        {headers:{'content-type':'application/json','x-request-id':`synthetic-http-${calls}`}});
+    };
+    const run=async(role:string)=>{const model=f.recordedModel(transport),runtime=createDevelopmentStepRuntime(f.pools,f.config,f.target,{reader:f.reader,model,authorize:async()=>{}});
+      try{return await runtime.run(role,new AbortController().signal);}finally{runtime.close();model.close();}};
+    for(const role of ['architect','test-agent']){const result=await run(role);assert.equal(result.outcome,'succeeded');assert.deepEqual(await run(role),result);}
+    assert.equal(calls,2);assert.equal(await f.count(),4);
+    assert.equal(Number((await admin.query('SELECT sum(amount_microusd) AS n FROM steer_usage.model_reservations WHERE budget_id=$1',[f.execution.budget.budgetId])).rows[0].n),5);
+  });
+  await check('recorded transport cannot send after lost request acknowledgement, and lost response acknowledgement cannot cause a resend',async()=>{
+    for(const stage of ['request','response'] as const){
+      const f=await setup(false,false,true);let lost=false,calls=0;
+      const transport:typeof fetch=async()=>{calls++;return Response.json({id:'synthetic',object:'chat.completion',created:1,model:'synthetic-provider-model',
+        choices:[{index:0,message:{role:'assistant',content:JSON.stringify(f.response.result.output)},finish_reason:'stop'}],usage:{prompt_tokens:2,completion_tokens:1,total_tokens:3}});};
+      const uncertain:DatabasePool={async connect(){const c=await f.pools.drafts.connect();let inserted=false;return{query:async(sql:string,values?:unknown[])=>{
+        const result=await c.query(sql,values);if(sql.startsWith('INSERT INTO steer_drafts.development_observations')&&values?.[5]===stage)inserted=true;
+        if(sql==='COMMIT'&&inserted&&!lost){lost=true;throw new Error('private-lost-ack');}return result;},release:(broken:boolean)=>c.release(broken)} as PoolClient;}};
+      const model=createRecordedDevelopmentModel({...f.pools,drafts:uncertain},f.config,f.target,{records:f.deps,authorize:async()=>{},
+        gateway:{gatewayUrl:'http://127.0.0.1:4000/v1',gatewayKey:'synthetic-gateway-key',profiles:{architect:{profileRevision:'synthetic-prompts-r1',instructions:f.prepared.rendered.request.instructions,
+          modelRoute:'synthetic-only',maxOutputTokens:1000,allowedResponseModels:['synthetic-provider-model']},testAgent:{profileRevision:'synthetic-prompts-r1',instructions:' Separate synthetic Test Agent instructions ',modelRoute:'synthetic-only',maxOutputTokens:1000,allowedResponseModels:['synthetic-provider-model']}},transport}});
+      const runtime=createDevelopmentStepRuntime(f.pools,f.config,f.target,{reader:f.reader,model,authorize:async()=>{}});
+      try{assert.equal((await runtime.run('architect',new AbortController().signal)).outcome,'attention-required');}finally{runtime.close();model.close();}
+      assert.ok(lost);assert.equal(calls,stage==='request'?0:1);assert.equal(await f.count(),stage==='request'?1:2);
+      const recovered=f.recordedModel(transport),next=createDevelopmentStepRuntime(f.pools,f.config,f.target,{reader:f.reader,model:recovered,authorize:async()=>{}});
+      try{assert.equal((await next.run('architect',new AbortController().signal)).outcome,'attention-required');}finally{next.close();recovered.close();}
+      assert.equal(calls,stage==='request'?0:1);
+    }
+  });
+  await check('an already recorded request cannot buy another transport send even through a newly constructed model binding',async()=>{
+    const f=await setup(true,true,true);let calls=0;
+    const transport:typeof fetch=async()=>{calls++;return Response.json({id:'synthetic',object:'chat.completion',created:1,model:'synthetic-provider-model',
+      choices:[{index:0,message:{role:'assistant',content:JSON.stringify(f.response.result.output)},finish_reason:'stop'}]});};
+    const step=(await f.operations.inspect(f.target));assert.equal(step.outcome,'ok');if(step.outcome!=='ok')throw new Error();
+    const input={rendered:f.prepared.rendered,owner:f.owner,fencingToken:1,reservationId:step.value.steps[0]!.record.reservationId!};
+    const first=f.recordedModel(transport);try{assert.deepEqual(await first.execute(input,new AbortController().signal),f.response.result);}finally{first.close();}
+    const second=f.recordedModel(transport);try{await assert.rejects(second.execute(input,new AbortController().signal));}finally{second.close();}
+    assert.equal(calls,1);assert.equal(await f.count(),2);
+  });
+  await check('model authority revoked after durable request capture prevents transport and preserves the consumed request record',async()=>{
+    const f=await setup(false,false,true);let calls=0;
+    const model=f.recordedModel(async()=>{calls++;throw new Error('must not send');},f.pools,async ctx=>{
+      if(ctx.action==='dispatch'&&await f.count()>0)throw new Error('private-revoked');
+    });
+    const runtime=createDevelopmentStepRuntime(f.pools,f.config,f.target,{reader:f.reader,model,authorize:async()=>{}});
+    try{assert.equal((await runtime.run('architect',new AbortController().signal)).outcome,'attention-required');}finally{runtime.close();model.close();}
+    assert.equal(calls,0);assert.equal(await f.count(),1);
+  });
+  await check('a source correction during the final model-authorization wait prevents a stale transport send',async()=>{
+    const f=await setup(false,false,true);let calls=0,afterCaptureChecks=0;
+    const model=f.recordedModel(async()=>{calls++;throw new Error('must not send stale source');},f.pools,async ctx=>{
+      if(ctx.action==='dispatch'&&await f.count()>0&&++afterCaptureChecks===2){
+        assert.equal((await f.drafts.append({draftId:f.draftId,mutationId:randomUUID(),expectedRevision:1,expectedDigest:f.saved.reference.revisionDigest,
+          content:{...f.content,originalText:'A correction during the last authorization wait'}})).outcome,'acknowledged');
+      }
+    });
+    const runtime=createDevelopmentStepRuntime(f.pools,f.config,f.target,{reader:f.reader,model,authorize:async()=>{}});
+    try{assert.equal((await runtime.run('architect',new AbortController().signal)).outcome,'attention-required');}finally{runtime.close();model.close();}
+    assert.equal(afterCaptureChecks,2);assert.equal(calls,0);assert.equal(await f.count(),1);
+    assert.equal((await f.drafts.read({draftId:f.draftId,revision:'latest'})).content.originalText,'A correction during the last authorization wait');
   });
 }

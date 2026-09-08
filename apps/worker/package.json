@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@steer/adapters": "workspace:*",
+    "@steer/agents": "workspace:*",
     "@steer/data": "workspace:*",
     "@steer/tool-registry": "workspace:*",
     "zod": "4.5.4",

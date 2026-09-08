@@ -167,7 +167,7 @@ export function createDevelopmentObservationStore(pools: Parameters<typeof creat
   }
   return {
     async put(raw: unknown) {
-      if (closed || active || pending) return { outcome: 'unavailable' as const }; active = true; let persisted = false;
+      if (closed || active || pending) return { outcome: 'unavailable' as const }; active = true; let persisted = false, created = false;
       try {
         const input = freeze(targetSchema.extend({ owner: id, fencingToken: z.number().int().positive().safe(), observation: developmentObservationSchema }).parse(raw));
         const t = freeze(targetSchema.parse({ operationId: input.operationId, inputDigest: input.inputDigest, stepId: input.stepId }));
@@ -186,11 +186,11 @@ export function createDevelopmentObservationStore(pools: Parameters<typeof creat
             await c.query(`INSERT INTO steer_drafts.development_observations
               (organization_id,subject,product_id,operation_id,step_id,stage,draft_id,draft_revision,payload_digest,record,encrypted_value)
               VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11::jsonb)`, [m.organizationId,m.subject,m.productId,m.operationId,m.stepId,m.stage,m.draftId,m.draftRevision,m.payloadDigest,JSON.stringify(m),JSON.stringify(envelope)]);
-            guard(); if (performance.now() >= expiry) throw new DraftStorageError(); return { metadata: m, envelope };
+            guard(); if (performance.now() >= expiry) throw new DraftStorageError(); created = true; return { metadata: m, envelope };
           });
         }
         persisted = true; await restore(t, row, 'put');
-        return freeze({ outcome: 'stored' as const, ...t, stage: m.stage, payloadDigest: m.payloadDigest });
+        return freeze({ outcome: 'stored' as const, ...t, stage: m.stage, payloadDigest: m.payloadDigest, created });
       } catch (e) { return { outcome: persisted || e instanceof DatabaseCommitOutcomeUnknownError ? 'unknown' as const : e instanceof Conflict ? 'conflict' as const : 'unavailable' as const }; }
       finally { active = false; }
     },

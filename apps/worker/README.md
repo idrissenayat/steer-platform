@@ -26,9 +26,9 @@ shared pools and external resources remain the caller's responsibility.
 
 Production `RecordedDevelopmentModel.execute` must record the actual adapter
 request/response/usage before returning, and `verify` must independently retrieve
-and validate those records. These bindings are not implemented here. The integration
-fixture uses synthetic responses and an in-memory observation map; it cannot serve
-as the production verifier. Likewise, current identity/profile/source/records and
+and validate those records. Increment 0223 supplies an uninstalled implementation;
+the original 0221 fixture's in-memory map cannot serve as the production verifier.
+Likewise, current identity/profile/source/records and
 spending authority must not be replaced with no-op callbacks.
 
 Under Node 24, run `pnpm --filter @steer/worker test` for unit tests and
@@ -43,3 +43,21 @@ readers, not the in-memory map. Production transport serialization, response par
 and usage extraction must still be connected to this journal; supplied body bytes
 and adapter labels alone are not provider proof. No runner/model/API registration
 or live storage authority is added. See [0222 evidence](../../intent/0222/EVIDENCE.md).
+
+## Recorded model binding — uninstalled
+
+`createRecordedDevelopmentModel` joins the actual Mastra serializer/parser to SQL
+observations for one operation. It requires explicit gateway/profile options and
+current model/records authority. A newly acknowledged request insertion is consumed
+once; reconstructing the model cannot resend an existing request. After capture,
+fresh authority and final source/state checks precede transport. Successful raw
+responses and usage are recorded before returning, then independently read/parsed
+when the step runner verifies a checkpoint.
+
+The adapter uses `steer-mastra-observed/v1`, fixed profiles and only the configured
+local gateway. No provider key, fallback endpoint, tools, memory, retries or content
+telemetry. Failed/refused/malformed calls keep an uncertain request and consumed
+reservation, not a fabricated completed response. Provider-side investigation,
+current cost bounds, real records adoption and live route acceptance are separate.
+See [0223 evidence](../../intent/0223/EVIDENCE.md). No Temporal/API/UI registration
+or change to the existing application's runtime is made by this factory.
