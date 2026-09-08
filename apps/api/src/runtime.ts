@@ -1,4 +1,8 @@
 import { z } from 'zod';
+import { createScopeReviewReader } from '@steer/data/scope-review-reader';
+import { intentScopeReadInputSchema, type IntentScopeReader } from '@steer/tool-registry/intent-scope-read-contracts';
+import { scopeReviewProfileSchema } from '@steer/tool-registry/intent-scope-review';
+import { createRecordedScopeMastraVerifier } from '@steer/agents/recorded-mastra';
 import { createIntentDraftDiscovery } from '@steer/data/intent-draft-discovery';
 import { createIntentDevelopmentReviewer } from '@steer/data/intent-development-reviewer';
 import { draftRecordsConfigurationSchema } from '@steer/data/draft-revisions';
@@ -29,6 +33,29 @@ import { readProjection } from '@steer/data';
 import { createHeldGitBriefWriterFactory, heldGitBriefConfigurationSchema, type HeldBriefAssessment } from '@steer/adapters/held-brief-writer';
 
 const text = z.string().min(1);
+/** Explicit read-only composition. The server supplies the current exact profile
+ * and source/records authority; no credential, model transport or flag activation. */
+export function createVerifiedScopeReviewReader(pools: Parameters<typeof createScopeReviewReader>[0], configuration: unknown,
+  dependencies: { records: Omit<Parameters<typeof createScopeReviewReader>[2], 'verifyObservation'>; profile: unknown }) {
+  const profile = scopeReviewProfileSchema.parse(dependencies.profile);
+  const reader = createScopeReviewReader(pools, configuration, { ...dependencies.records,
+    originals: { ...dependencies.records.originals, authorizeOriginal: async context => {
+      if (JSON.stringify(context.original.profile) !== JSON.stringify(profile)) throw new Error('Scope profile is unavailable.');
+      if (await dependencies.records.originals.authorizeOriginal(context) !== undefined) throw new Error('Scope source authority is unavailable.');
+    } },
+    verifyObservation: async ({ original, batchId, request, response }) => {
+      const verifier = await createRecordedScopeMastraVerifier({ scope: original.source.scope, evidence: original.evidence, profile });
+      const wire = { adapterRevision: request.adapterRevision, protocol: request.protocol, requestBody: request.requestBody };
+      verifier.verifyRequest(batchId, wire);
+      if (response) verifier.verify(batchId, wire, { responseBody: response.responseBody, providerRequestId: response.providerRequestId, usage: response.usage, result: response.result });
+    },
+  });
+  return { scope: reader.scope, async read(raw, current) {
+    const input = intentScopeReadInputSchema.parse(raw);
+    if ((['organizationId', 'productId', 'repository'] as const).some(k => input[k] !== reader.scope[k])) throw new Error('Scope read is unavailable.');
+    return reader.read({ reviewId: input.reviewId, preparationDigest: input.preparationDigest }, current);
+  }, close: reader.close } satisfies IntentScopeReader & { close(): void };
+}
 /** Connect actual repository enumeration to the existing review query. Trusted
  * product/lifecycle/read authorities remain mandatory; never installed by flags. */
 export function createCorpusRecordedDevelopmentReviewer(reader: Parameters<typeof createIntentCorpusEvidence>[0], configuration: unknown,

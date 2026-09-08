@@ -11,6 +11,7 @@ import {createScopeReviewObservationStore} from '../src/scope-review-observation
 import {createScopeReviewOperationStore} from '../src/scope-review-operations.ts';
 import {createScopeReviewCheckpointVerifier} from '../src/scope-review-checkpoints.ts';
 import type {DatabasePool} from '../src/runtime-pool.ts';
+import {testIntentScopeRead} from '../../../apps/api/test/intent-scope-read.integration.ts';
 
 type Records=Parameters<typeof createScopeReviewReader>[2];
 const verify:Records['verifyObservation']=async({original,batchId,request,response})=>{
@@ -35,7 +36,7 @@ export async function testScopeReviewReader({admin,connect,check:checkBase}:{adm
     const produce=async(index:number,{checkpoint=true,relation='related-distinct'}:{checkpoint?:boolean;relation?:'related-distinct'|'no-match-in-assessed-scope'|'insufficient-evidence'}={})=>{
       const batch=prepared.batches[index]!,target={...f.target,batchId:batch.metadata.batchId},reference={...target,inputDigest:batch.inputDigest};
       const claim=await f.reviews.claim({...reference,owner:'synthetic-scope-reader',leaseMs:300000});assert.equal(claim.outcome,'ok');
-      if(claim.outcome!=='ok')throw new Error('Missing claim');const owner={owner:claim.value.owner,fencingToken:claim.value.fencingToken};
+      if(claim.outcome!=='ok'||claim.value.owner===null)throw new Error('Missing claim');const owner={owner:claim.value.owner,fencingToken:claim.value.fencingToken};
       assert.equal((await f.reviews.transition({...reference,event:{type:'commit-dispatch',...owner}})).dispatchAllowed,true);
       const journal=createScopeReviewObservationStore(f.pools,f.config,records);let requestDigest!:string,resultDigest!:string;
       const output=fixture.result(batch);for(const finding of output.findings)(finding as any).relation=relation;
@@ -128,4 +129,5 @@ export async function testScopeReviewReader({admin,connect,check:checkBase}:{adm
     assert.equal((await f.read()).status,'review-available');
     assert.equal(f.calls(),1);
   });
+  await testIntentScopeRead(setup,check);
 }

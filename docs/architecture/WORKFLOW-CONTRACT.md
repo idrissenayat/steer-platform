@@ -710,3 +710,19 @@ close and bounded admission prevent late private output. It grants no semantic
 quality, uniqueness, disposition, execution, save or gate authority. See
 [0240 specification](../../intent/0240/SPEC.md). Query/API/UI binding, reference-only
 scope Temporal, real authority and actual I1–I6 acceptance remain separate work.
+
+0241 exposes `intent.scope.read` through the shared typed registry and normal
+authenticated HTTP endpoint. Require an explicit human query grant and exact
+current identity plus service owner/organization/product/repository binding, before
+and after awaited reads and before response release. Portable strict contracts
+cross-check state, source revision, checkpoint/result and pending batch membership,
+coverage/source/citation accounting and the combined digest. These checks cannot
+grant uniqueness, semantic truth, save authority or provider authorship.
+
+The explicit API factory supplies the current exact scope profile and pinned SDK
+codec, never a caller-selected verifier, gateway credential or model transport.
+Current records/source/key authority remains mandatory, including void source
+authorization ACKs. Missing configuration and revocation are errors, not no-match.
+The factory is not installed by flags or this increment. See
+[0241 specification](../../intent/0241/SPEC.md); scope preparation/Temporal, actual
+editor integration and real I1–I6 acceptance remain pending.

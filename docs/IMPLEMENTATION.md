@@ -1,6 +1,6 @@
 # STEER platform implementation
 
-## Current checkpoint — 0240
+## Current checkpoint — 0241
 
 Use [the intent journey plan](INTENT-JOURNEY-PLAN.md) and
 [the delivery ledger](PHASE-1-DELIVERY.md) for current status; the implementation
@@ -44,8 +44,13 @@ current authority and SDK verification, combine against the retained whole-corpu
 plan and reject a changing snapshot. Pending, unresolved, incomplete, superseded
 and expired states remain distinct. A read does not reserve, dispatch, update a
 checkpoint or claim uniqueness. See [0240 evidence](../intent/0240/EVIDENCE.md).
-Query/API/UI and scope Temporal composition, expired observation access, real
-authority and live acceptance remain unconnected.
+0241 exposes that reader through the shared explicit-grant human `intent.scope.read`
+query, strict portable response/digest contracts and an API factory using a current
+server-pinned scope profile and actual recorded SDK verifier. Missing service/grant
+or revoked authority never becomes an empty review. See
+[0241 evidence](../intent/0241/EVIDENCE.md). The factory remains uninstalled by
+default; actual editor and scope preparation/Temporal composition, expired
+observation access, real authority and live acceptance remain unconnected.
 
 These are tested development capabilities, not live end-to-end acceptance. D1
 records activation, real source/lifecycle verifier binding, large-corpus contextual

@@ -41,3 +41,20 @@ failure and total transaction/shutdown budgets still require separate proof.
 
 Evidence: `intent/0021/EVIDENCE.md`. These defaults authorize no deployment,
 spending, actual membership, provider writes or gate decision.
+
+## Recorded scope-review query — 0241
+
+`intent.scope.read` uses the normal authenticated 16 KiB tool-request boundary.
+The shared portable verifier limits the serialized combined review to 4,000,000
+bytes, with at most eight batch results; outer owner/source/status metadata has
+separate strict field limits. This is a buffered query, not SSE or a model stream.
+
+Its explicitly supplied combined reader admits four concurrent reads with a
+30-second total deadline and existing child-store dependency limits. Timed-out
+dependencies retain admission until they drain; close prevents late private output.
+The parent ingress limits still apply. No configured reader or current human query
+grant means unavailable/forbidden, not an empty result or automatic activation.
+
+The runtime factory remains uninstalled by default. These structural bounds and
+synthetic HTTP/SQL checks are not production capacity, full-corpus semantic quality
+or actual editor acceptance. See [0241 specification](../intent/0241/SPEC.md).

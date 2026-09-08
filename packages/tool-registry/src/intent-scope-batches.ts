@@ -71,6 +71,47 @@ export async function planIntentScopeBatches(raw: unknown) {
 }
 
 const receipt = z.strictObject({ planDigest: digest, batchId: digest, assessment: intentScopeAssessmentSchema });
+const validatedBatch = z.strictObject({ batchId: digest, ...intentScopeAssessmentSchema.shape,
+  kind: z.literal('steer-validated-scope-assessment/v1'), state: z.enum(['assessed-declared-scope', 'incomplete']),
+  unassessedSourceIds: z.array(id).max(32), authoritativeClearance: z.literal(false),
+});
+/** Portable response shape, not a substitute for verification against source bytes. */
+export const intentScopeBatchResultsSchema = z.strictObject({ kind: z.literal('steer-scope-batch-results/v1'),
+  planDigest: digest, configurationRevision: id, coverage: intentScopeBatchPlanSchema.shape.coverage,
+  pendingBatchIds: z.array(digest).max(8), results: z.array(validatedBatch).max(8),
+  state: z.enum(['no-sources', 'assessed-declared-corpus', 'incomplete']), structuralAssessmentComplete: z.boolean(),
+  semanticQualityVerified: z.literal(false), authoritativeClearance: z.literal(false), executionAuthorized: z.literal(false),
+  savedToGit: z.literal(false), resultsDigest: digest,
+}).superRefine((v, ctx) => {
+  const fail = () => ctx.addIssue({ code: 'custom', message: 'Inconsistent combined scope result.' });
+  const ids = [...v.pendingBatchIds, ...v.results.map(r => r.batchId)], c = v.coverage;
+  const recordedSources = v.results.flatMap(r => [...r.findings.flatMap(f => f.assessedSourceIds), ...r.unassessedSourceIds]);
+  if (new Set(ids).size !== ids.length || ids.length > 8 || c.plannedCount > c.inventoryCount
+    || ids.length > c.plannedCount || new Set(recordedSources).size !== recordedSources.length
+    || recordedSources.length > c.plannedCount || (v.pendingBatchIds.length === 0 && recordedSources.length !== c.plannedCount)
+    || (v.pendingBatchIds.length > 0 && recordedSources.length >= c.plannedCount)
+    || c.gaps.some(g => recordedSources.includes(g.sourceId))
+    || c.plannedCount + c.gaps.length !== c.inventoryCount || new Set(c.gaps.map(g => g.sourceId)).size !== c.gaps.length
+    || c.plannedComplete !== (c.inventoryComplete && c.accessGapCount === 0 && c.gaps.length === 0)) fail();
+  for (const r of v.results) {
+    const assessed = r.findings.flatMap(f => f.assessedSourceIds), targets = r.findings.map(f => f.targetId);
+    if (r.configurationRevision !== v.configurationRevision || new Set(assessed).size !== assessed.length
+      || assessed.length + r.unassessedSourceIds.length < 1 || assessed.length + r.unassessedSourceIds.length > 32
+      || new Set(targets).size !== targets.length || new Set([...assessed, ...r.unassessedSourceIds]).size !== assessed.length + r.unassessedSourceIds.length
+      || (r.state === 'assessed-declared-scope') !== (r.unassessedSourceIds.length === 0 && r.findings.every(f => f.relation !== 'insufficient-evidence'))) fail();
+    for (const finding of r.findings) {
+      if (finding.assessedSourceIds.some(s => !finding.citations.some(cite => cite.sourceId === s))
+        || finding.citations.some(cite => !finding.assessedSourceIds.includes(cite.sourceId) || cite.endByte - cite.startByte !== bytes(cite.quote).length)) fail();
+    }
+  }
+  const complete = c.plannedComplete && ids.length > 0 && v.pendingBatchIds.length === 0 && v.results.every(r => r.state === 'assessed-declared-scope');
+  if (v.structuralAssessmentComplete !== complete || v.state !== (c.inventoryCount === 0 ? 'no-sources' : complete ? 'assessed-declared-corpus' : 'incomplete')) fail();
+});
+export async function verifyIntentScopeBatchResults(raw: unknown) {
+  const result = intentScopeBatchResultsSchema.parse(raw), { resultsDigest, ...payload } = result;
+  if (bytes(JSON.stringify(result)).length > 4000000 || resultsDigest !== await hash(['steer-scope-batch-results/v1', payload])) throw new Error('Invalid scope result digest.');
+  return freeze(result);
+}
 /** Recompute from exact source bytes; never trust a caller's edited plan or an
  * individual batch's completeness as full-corpus coverage. This validates structure
  * and citations, NOT model quality, provider provenance, budget or authority. */
@@ -92,5 +133,5 @@ export async function validateIntentScopeBatchResults(rawEvidence: unknown, rawR
     coverage: plan.summary.coverage, pendingBatchIds, results,
     state: plan.summary.coverage.inventoryCount === 0 ? 'no-sources' as const : structuralAssessmentComplete ? 'assessed-declared-corpus' as const : 'incomplete' as const,
     structuralAssessmentComplete, semanticQualityVerified: false as const, authoritativeClearance: false as const, executionAuthorized: false as const, savedToGit: false as const };
-  return freeze({ ...payload, resultsDigest: await hash(['steer-scope-batch-results/v1', payload]) });
+  return freeze(intentScopeBatchResultsSchema.parse({ ...payload, resultsDigest: await hash(['steer-scope-batch-results/v1', payload]) }));
 }

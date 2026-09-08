@@ -5154,3 +5154,25 @@ the existing one-minute implementation loop active.
 checks pass, including nine new combined-reader cases. Prototype and package types,
 optimized Next build, existing migration history, kit (95 required artifacts),
 scope audit and whitespace checks pass. This is not signed-in UI/live acceptance.
+
+## Development increment: 0241 — Authorized scope-review API
+
+`intent.scope.read` now exposes recorded scope progress/findings through the shared
+typed registry and normal authenticated HTTP endpoint. It requires a current human
+grant and exact owner/organization/product/repository binding. The explicit API
+factory uses a server-pinned profile and actual recorded SDK verification against
+encrypted SQL originals/checkpoints. Portable response contracts cross-check
+progress, pending/result membership, source/citation/coverage accounting and the
+combined digest. Errors cannot become no-match or uniqueness claims. See
+[0241 evidence](../intent/0241/EVIDENCE.md) for verification and limits.
+
+The factory remains uninstalled by default; no actual editor control or live query
+grant was added. No new migration/private storage, D1 activation, key, paid model
+call, runtime Git save, gate, deployment or release occurs. Continue scope
+preparation/Temporal and editor integration, real authority, semantic evaluation
+and actual I1–I6 human/save acceptance. Keep the existing one-minute loop active.
+
+0241 verification: 1,050 regression checks and 271 full PostgreSQL integration
+checks pass, including six new actual HTTP/SQL/SDK scope-query cases. Prototype and
+all package types, optimized Next build, existing migration history, kit (95 required
+artifacts), scope audit and whitespace checks pass. No live UI acceptance is claimed.
