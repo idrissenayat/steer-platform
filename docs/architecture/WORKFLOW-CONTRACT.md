@@ -528,3 +528,13 @@ authority. Every response says savedToGit:false. The actual HTTP handler allows
 document-sized append requests within 256 KiB without changing other tool limits.
 See [0225 evidence](../../intent/0225/EVIDENCE.md). Records-policy authority remains
 independent of tool grants; the editor and live identity runtime are not activated.
+
+0226 adds actual editor transport/state integration without activating those real
+bindings. Preserve/retry/read/replace are explicit; unknown writes keep one exact
+request, and stale acknowledgements do not replace newer typing. Preview dismissal
+does not clear a conflict. Restored documents/clarification remain exact and inert,
+with fresh review required and no invented generation provenance. See
+[0226 specification](../../intent/0226/SPEC.md) for the default-off display hints,
+response limits and memory-only lifecycle. Recorded-development result retrieval,
+multi-turn continuation and owned-draft discovery remain next. D1, current runtime
+authority and actual signed-in journey acceptance are not implied by these controls.

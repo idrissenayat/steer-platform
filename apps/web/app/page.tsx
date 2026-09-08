@@ -1,6 +1,6 @@
 import { connection } from 'next/server';
 import { headers } from 'next/headers';
-import { identityView, sessionView, repositoryView } from './identity-view';
+import { identityView, sessionView, repositoryView, draftProductView } from './identity-view';
 import ProjectionPanel from './projection-panel';
 import BriefLibrary from './brief-library';
 import BriefAuthor from './brief-author';
@@ -31,7 +31,8 @@ export default async function FoundationPage() {
         <p className="access-hint session-snapshot">Checked for this page load. Refresh to recheck access. Every action is authorized again; this display is not a gate signature.</p>
       </section>
       <IntentConversation key={`agent:${session.subject}:${session.organizationId}:${session.expiresAt}`} organizationId={session.organizationId} subject={session.subject} expiresAt={session.expiresAt}
-        enabled={process.env.STEER_WEB_INTENT_AGENT === 'enabled'} repository={repository} />
+        enabled={process.env.STEER_WEB_INTENT_AGENT === 'enabled'} repository={repository}
+        draftProductId={draftProductView(process.env.STEER_WEB_DRAFT_EDITOR, process.env.STEER_WEB_DRAFT_PRODUCT_ID)} />
       <details className="workspace-diagnostics"><summary>Manual Brief tools</summary>
         <BriefAuthor key={`author:${session.subject}:${session.organizationId}:${session.expiresAt}`} organizationId={session.organizationId} subject={session.subject} expiresAt={session.expiresAt}
           submissionEnabled={process.env.STEER_WEB_BRIEF_SUBMISSION === 'enabled'} />

@@ -1,6 +1,6 @@
 import { agentInputSchema, agentOutputSchema, type AgentInput } from '@steer/tool-registry/agent-contracts';
 export class AgentScopeChangedError extends Error {
-  constructor() { super('Existing scope changed. Check current sources and confirm your direction again. Your text is still here; nothing was saved.'); }
+  constructor() { super('Existing scope changed. Check current sources and confirm your direction again. Your text is still here; no GitHub save occurred.'); }
 }
 
 /** Billable command transport is deliberately separate from read-only preview transport. No retries. */
@@ -24,7 +24,7 @@ export function createAgentTransport(origin: string, transport: typeof fetch = f
         if (response.status === 401) throw new Error('Your session ended. Sign in again before continuing.');
         if (response.status === 403) throw new Error('Agent access is not enabled for your workspace account yet.');
         if (response.status === 409) throw new AgentScopeChangedError();
-        if (response.status === 503) throw new Error('The agent could not complete this request. Its connection or model budget may be unavailable. Your text is still here; no documents were saved.');
+        if (response.status === 503) throw new Error('The agent could not complete this request. Its connection or model budget may be unavailable. Your text is still here; no GitHub save occurred.');
         if (response.status !== 200 || response.redirected || !response.body ||
             response.headers.get('content-type')?.split(';')[0]?.trim() !== 'application/json') throw new Error('The agent returned an unexpected response. Your text is still here.');
         reader = response.body.getReader(); let bytes = 0; let count = 0; const chunks: Uint8Array[] = [];

@@ -4798,3 +4798,27 @@ call, runtime GitHub write, deployment, deletion or signed-source change. D1 is
 unsigned/inactive and the real migration baseline stays held. Next: editor
 acknowledgement/conflict/restoration integration and authorized development results.
 I1–I6 live acceptance remains open.
+
+## Development increment: 0226 — Working-draft editor integration
+
+Connected the actual Next.js intent editor to draft create/append/read contracts.
+It distinguishes an empty reference, an acknowledged server revision, newer edits,
+uncertain writes and GitHub saving. Explicit exact-request retries preserve mutation
+identity and bytes. Conflicts stop stale saves; stored content is previewed before
+replacement, and dismissing the preview keeps local text and any conflict intact.
+Restoration invalidates prior provenance/reviews and retains all clarification turns.
+Keyboard focus follows preview, dismissal and restored content. No alternate preview
+or new dependency was introduced; existing pink/orange tokens are retained.
+
+Verification: **130/130** checks pass (119 web, nine architecture-boundary, two
+migration-hold). Full prototype/eight-package typecheck, production Next.js build,
+kit (95 artifacts), token-scope and whitespace checks pass. Production-component
+DOM tests use synthetic HTTP and pass the tested axe accessibility subset; no
+real-browser visual or signed-in persistence acceptance is claimed. See
+[0226 evidence](../intent/0226/EVIDENCE.md).
+
+The real editor display switch and records service remain inactive. No real config,
+database, credential, grant, model usage, runtime Git save, deployment, deletion or
+signed document changed. Next: recorded-development start/status/result API/editor
+connection and owned-draft discovery/recovery. Restored multi-turn continuation is
+explicitly blocked until that connection exists. D1 and I1–I6 remain open.

@@ -10,6 +10,10 @@ export function identityView(enabled: string | undefined, origin: string | undef
 }
 
 export interface SessionView { subject: string; organizationId: string; hats: string[]; expiresAt: string }
+/** Server deployment display binding only. It cannot activate records policy or grant a tool. */
+export function draftProductView(enabled: string | undefined, productId: string | undefined): string | null {
+  return enabled === 'enabled' && productId && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/.test(productId) ? productId : null;
+}
 /** Fixed public repository display hint; API authorization remains independent. */
 export function repositoryView(value: string | null): string | null {
   return value && /^[a-z][a-z0-9-]{0,31}:[A-Za-z0-9_-]{1,160}(?![\s\S])/.test(value) ? value : null;

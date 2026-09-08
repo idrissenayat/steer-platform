@@ -323,3 +323,15 @@ restoration with synthetic identity/records authority. See
 [0225 evidence](../intent/0225/EVIDENCE.md). Actual editor transport/state integration
 and current-authority development progress/result retrieval remain next. D1 adoption,
 real runtime binding and all live I1–I6 acceptance remain outstanding.
+
+0226 connects the actual Next.js editor to those draft endpoints with explicit
+preservation, exact-request retry, conflict review, cancellable restore preview and
+controlled replacement. Newer typing is not overwritten by older acknowledgements;
+restored bytes do not restore agent provenance or approvals. See
+[0226 evidence](../intent/0226/EVIDENCE.md). The real display/service binding stays
+off pending D1 and current records authority. Tests use actual production components
+with synthetic HTTP, not real signed-in persistence. Next: current-authority
+recorded-development start/status/result API/editor connection and owned-draft
+discovery/recovery after refresh, followed by full-source semantic review. Restored
+multi-turn conversations cannot yet continue through the earlier one-follow-up
+agent transport. I1–I6 live acceptance remains open.

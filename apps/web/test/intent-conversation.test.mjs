@@ -18,7 +18,9 @@ test('real conversation component sends free text, follows up and displays three
   };
   const markdown = await compile('brief-markdown', { './brief-reading-order': new URL('../app/brief-reading-order.ts', import.meta.url).href });
   const scopeReview = await compile('intent-scope-review', { './intent-scope-reader': new URL('../app/intent-scope-reader.ts', import.meta.url).href, './brief-location': new URL('../app/brief-location.ts', import.meta.url).href });
-  const Component = (await import(await compile('intent-conversation', { './agent-transport': new URL('../app/agent-transport.ts', import.meta.url).href, './brief-markdown': markdown, './intent-scope-review': scopeReview }))).default;
+  const panel = await compile('intent-draft-panel', { '@steer/tool-registry/intent-draft-content': pathToFileURL(require.resolve('@steer/tool-registry/intent-draft-content')).href,
+    './intent-draft-editor': new URL('../app/intent-draft-editor.ts', import.meta.url).href, './intent-draft-transport': new URL('../app/intent-draft-transport.ts', import.meta.url).href, './brief-markdown': markdown });
+  const Component = (await import(await compile('intent-conversation', { './agent-transport': new URL('../app/agent-transport.ts', import.meta.url).href, './brief-markdown': markdown, './intent-scope-review': scopeReview, './intent-draft-panel': panel }))).default;
   const dom = new JSDOM('<!doctype html><div id="root"></div>', { url: 'https://steer.example', pretendToBeVisual: true });
   const keys = ['window', 'document', 'HTMLElement', 'IS_REACT_ACT_ENVIRONMENT', 'fetch'];
   const saved = Object.fromEntries(keys.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
@@ -83,13 +85,13 @@ test('real conversation component sends free text, follows up and displays three
     assert.match(document.body.textContent, /NOT RUN/); assert.match(document.body.textContent, /not saved to GitHub/);
     assert.match(document.body.textContent, /The earlier check covered your message, not these documents/);
     assert.equal(document.querySelector('[data-intent-review-state]').getAttribute('data-intent-review-state'), 'needs-scope-review');
-    assert.match(document.body.textContent, /Draft revision 1/);
+    assert.match(document.body.textContent, /Document edit version 1/);
     assert.equal(document.querySelector('script, img'), null); assert.equal(window.localStorage.length, 0);
     const button = async label => act(async () => [...document.querySelectorAll('button')].find(button => button.textContent === label).click());
     assert.equal(document.getElementById('agent-intent').disabled, true);
     await button('Edit draft');
     await set('intent-document-editor', '# Exam\nNOT RUN\nHuman correction — فارسی <script>unsafe()</script>');
-    assert.match(document.body.textContent, /Draft revision 2/);
+    assert.match(document.body.textContent, /Document edit version 2/);
     assert.match(document.body.textContent, /Independent Exam review required/);
     assert.match(document.body.textContent, /Earlier direction retained for reference only/);
     await button('BRIEF.md'); await set('intent-document-editor', '# Brief\nEdited patient booking outcome');

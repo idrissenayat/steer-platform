@@ -20,7 +20,7 @@ const rules = {
     builtinEntryOnly: { 'node:https': 'src/identity-listener.ts' },
     entryOnly: { '@steer/agents': 'src/runtime.ts', '@steer/data': 'src/runtime.ts', zod: 'src/runtime.ts', '@modelcontextprotocol/server': 'src/mcp.ts' } },
   'apps/web': { folders: ['app'], packages: ['next', 'react', 'react-dom', 'react-markdown', '@steer/tool-registry'], builtins: [],
-    specifiersOnly: { '@steer/tool-registry': ['@steer/tool-registry/intent-revision-contracts', '@steer/tool-registry/intent-overlap-contracts', '@steer/tool-registry/agent-contracts', '@steer/tool-registry/projection-consumer', '@steer/tool-registry/brief-contracts', '@steer/tool-registry/decision-contracts', '@steer/tool-registry/lifecycle-contracts'] } },
+    specifiersOnly: { '@steer/tool-registry': ['@steer/tool-registry/intent-draft-contracts', '@steer/tool-registry/intent-draft-content', '@steer/tool-registry/intent-revision-contracts', '@steer/tool-registry/intent-overlap-contracts', '@steer/tool-registry/agent-contracts', '@steer/tool-registry/projection-consumer', '@steer/tool-registry/brief-contracts', '@steer/tool-registry/decision-contracts', '@steer/tool-registry/lifecycle-contracts'] } },
   'apps/worker': { folders: ['src'], packages: ['@steer/adapters', '@steer/agents', '@steer/data', '@steer/tool-registry', 'zod', '@temporalio/client', '@temporalio/activity', '@temporalio/worker', '@temporalio/workflow'], builtins: ['node:crypto'],
     builtinEntryOnly: { 'node:crypto': ['src/candidate-bundle-runtime.ts', 'src/development-step-runtime.ts'] },
     entryOnly: { '@steer/adapters': ['src/runtime.ts', 'src/candidate-bundle-runtime.ts'],

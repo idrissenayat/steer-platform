@@ -1,7 +1,13 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFile } from 'node:fs/promises';
-import { identityView, sessionView, repositoryView } from '../app/identity-view.ts';
+import { identityView, sessionView, repositoryView, draftProductView } from '../app/identity-view.ts';
+
+test('draft editor display requires explicit product configuration and cannot infer it from repository or auth', () => {
+  assert.equal(draftProductView('enabled', 'steer-product'), 'steer-product');
+  for (const [enabled, id] of [[undefined, 'steer'], ['true', 'steer'], ['enabled', undefined], ['enabled', ''], ['enabled', 'private\n'], ['enabled', 'https://example.test']])
+    assert.equal(draftProductView(enabled, id), null);
+});
 
 test('public identity view is explicitly enabled only for valid HTTPS configuration', () => {
   assert.deepEqual(identityView('enabled', 'https://steer.example', 'https://id.example/realm'), { origin: 'https://steer.example', issuerOrigin: 'https://id.example' });
