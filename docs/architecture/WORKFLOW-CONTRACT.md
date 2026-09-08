@@ -627,3 +627,14 @@ authority. No SQL role/budget enum or Temporal behavior changes; the distinct sc
 batch/records/reservation composition remains mandatory before activation. See
 [0234 specification](../../intent/0234/SPEC.md). Fixture hooks and provider responses
 are not real durable ownership, budget approval, source authority or live acceptance.
+
+0235 adds distinct scope run/batch ownership and reservations, without changing the
+Architect/Test Agent permit contract. One exact preparation has one immutable run;
+each batch has one reservation in the same transaction as its fenced claim. Scope
+cost terms are separate, default inactive and bound to the full profile; all roles
+consume the same existing cap. A replayed/ambiguous dispatch or read supplies no call
+authority. Both current-authority checks run without a leased SQL connection.
+Metadata excludes private prompts/findings and cannot record success yet. See
+[0235 specification](../../intent/0235/SPEC.md). Next integrate encrypted originals,
+observations/results, verified checkpoints and reference-only Temporal execution;
+real authority, D1, model approval and signed-in/save acceptance remain outstanding.

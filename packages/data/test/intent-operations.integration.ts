@@ -65,7 +65,7 @@ export async function testIntentOperations({ admin, app, connect, check, connect
 
   await check('execution metadata forces owner RLS and forbids binding rewrites, deletion, truncate and foreign roles', async () => {
     const tables = (await admin.query("SELECT relrowsecurity,relforcerowsecurity FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='steer_execution' AND c.relkind='r'")).rows;
-    assert.equal(tables.length, 2); assert.ok(tables.every(row => row.relrowsecurity && row.relforcerowsecurity));
+    assert.equal(tables.length, 4); assert.ok(tables.every(row => row.relrowsecurity && row.relforcerowsecurity));
     for (const table of ['intent_operations', 'intent_steps']) {
       assert.equal((await app.query(`SELECT * FROM steer_execution.${table}`)).rowCount, 0);
       for (const verb of ['DELETE FROM', 'TRUNCATE']) await assert.rejects(app.query(`${verb} steer_execution.${table}`), { code: '42501' });

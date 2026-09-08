@@ -5011,3 +5011,25 @@ source/records authority. Scope calls cannot use drafting-role cost reservations
 No real records, credentials, migrations, grants, model calls, runtime Git saving,
 gates, deployment, release or signed source changed; D1 remains inactive and I1–I6
 acceptance remains open. Continue the existing loop.
+
+## Development increment: 0235 — Durable scope-review ownership and reservations
+
+Exact preparation now yields a bounded metadata-only review manifest. Distinct
+SQL run/batch records bind draft, corpus, profile and per-batch input identities.
+Concurrent admission converges; atomic claim/reservation and lease fencing support
+pre-dispatch recovery without another charge. Only a newly acknowledged dispatch
+transition followed by current authority can permit a call. Lost acknowledgements,
+inspection, replay and post-dispatch takeover never permit another model request.
+
+Separately provisioned scope cost/profile terms default inactive. Scope-reviewer,
+Architect and Test Agent reservations share one existing total cap. Forced RLS,
+restricted privileges and SQL guards reject private manifest extras, invalid
+membership, wrong-role reservations, rewritten bindings, resets and invented success.
+See [0235 evidence](../intent/0235/EVIDENCE.md) for development verification and limits.
+
+The adapter is uninstalled, with no success checkpoint before encrypted observation
+and result integration. No actual records/migration, credential, grant, model call,
+runtime Git save, gate, deployment, release or spending was activated. D1 remains
+unsigned/inactive. Continue encrypted scope records and reference-only Temporal
+composition under real source/lifecycle/records/model authority, then actual UI/save
+and human acceptance. I1–I6 remains open; keep the existing loop active.

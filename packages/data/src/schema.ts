@@ -100,7 +100,7 @@ export const modelReservations = steerUsage.table('model_reservations', {
   check('model_reservation_step_pair', sql`(${table.operationId} IS NULL) = (${table.stepId} IS NULL)`),
   foreignKey({ columns: [table.organizationId, table.budgetId, table.subject], foreignColumns: [modelBudgets.organizationId, modelBudgets.budgetId, modelBudgets.subject] }),
   check('model_reservation_amount', sql`${table.amountMicrousd} BETWEEN 1 AND 1000000000000`),
-  check('model_reservation_role', sql`${table.role} IN ('architect', 'test-agent')`),
+  check('model_reservation_role', sql`${table.role} IN ('architect', 'test-agent', 'scope-reviewer') AND (${table.role} <> 'scope-reviewer' OR (${table.operationId} IS NOT NULL AND ${table.stepId} ~ '^[a-f0-9]{64}$'))`),
   pgPolicy('reservation_scope', { for: 'all', using: sql`${table.organizationId} = ${usageOrg} AND ${table.budgetId}::text = ${usageBudget} AND ${table.subject} = ${usageSubject}`,
     withCheck: sql`${table.organizationId} = ${usageOrg} AND ${table.budgetId}::text = ${usageBudget} AND ${table.subject} = ${usageSubject}` }),
 ]).enableRLS();
@@ -110,6 +110,41 @@ export const modelReservations = steerUsage.table('model_reservations', {
 export const steerExecution = pgSchema('steer_execution');
 const executionOrg = sql`nullif(current_setting('steer.execution_organization', true), '')`;
 const executionSubject = sql`nullif(current_setting('steer.execution_subject', true), '')`;
+const executionProduct = sql`nullif(current_setting('steer.execution_product', true), '')`;
+// Separate, default-inactive role terms; the existing budget remains the total cap.
+export const scopeReviewTerms = steerUsage.table('scope_review_terms', {
+  organizationId: text('organization_id').notNull(), budgetId: uuid('budget_id').notNull(), subject: text('subject').notNull(),
+  configurationRevision: text('configuration_revision').notNull(), approvalDigest: text('approval_digest').notNull(),
+  profileDigest: text('profile_digest').notNull(), amountMicrousd: bigint('amount_microusd', { mode: 'bigint' }).notNull(),
+  active: boolean('active').notNull().default(false),
+}, t => [primaryKey({ columns: [t.organizationId, t.budgetId, t.subject] }),
+  foreignKey({ columns: [t.organizationId, t.budgetId, t.subject], foreignColumns: [modelBudgets.organizationId, modelBudgets.budgetId, modelBudgets.subject] }),
+  check('scope_terms_bounds', sql`${t.approvalDigest} ~ '^[a-f0-9]{64}$' AND ${t.profileDigest} ~ '^[a-f0-9]{64}$' AND length(${t.configurationRevision}) BETWEEN 1 AND 200 AND ${t.amountMicrousd} BETWEEN 1 AND 1000000000000`),
+  pgPolicy('scope_terms_scope', { for: 'all', using: sql`${t.organizationId} = ${usageOrg} AND ${t.budgetId}::text = ${usageBudget} AND ${t.subject} = ${usageSubject}`,
+    withCheck: sql`${t.organizationId} = ${usageOrg} AND ${t.budgetId}::text = ${usageBudget} AND ${t.subject} = ${usageSubject}` }),
+]).enableRLS();
+export const scopeReviewRuns = steerExecution.table('scope_review_runs', {
+  organizationId: text('organization_id').notNull(), reviewId: uuid('review_id').notNull(), subject: text('subject').notNull(),
+  productId: text('product_id').notNull(), draftId: uuid('draft_id').notNull(), draftRevision: bigint('draft_revision', { mode: 'number' }).notNull(),
+  preparationDigest: text('preparation_digest').notNull(), configurationDigest: text('configuration_digest').notNull(), manifest: jsonb('manifest').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+}, t => [primaryKey({ columns: [t.organizationId, t.reviewId] }),
+  unique('scope_review_owner').on(t.organizationId, t.reviewId, t.subject, t.productId),
+  unique('scope_review_submission').on(t.organizationId, t.subject, t.draftId, t.draftRevision, t.preparationDigest),
+  check('scope_review_bounds', sql`${t.draftRevision} BETWEEN 1 AND 1000 AND ${t.preparationDigest} ~ '^[a-f0-9]{64}$' AND ${t.configurationDigest} ~ '^[a-f0-9]{64}$' AND octet_length(${t.manifest}::text) <= 12000 AND ${t.expiresAt} > ${t.createdAt} AND ${t.expiresAt} <= ${t.createdAt} + interval '24 hours'`),
+  pgPolicy('scope_review_scope', { for: 'all', using: sql`${t.organizationId} = ${executionOrg} AND ${t.subject} = ${executionSubject} AND ${t.productId} = ${executionProduct}`,
+    withCheck: sql`${t.organizationId} = ${executionOrg} AND ${t.subject} = ${executionSubject} AND ${t.productId} = ${executionProduct}` }),
+]).enableRLS();
+export const scopeReviewBatches = steerExecution.table('scope_review_batches', {
+  organizationId: text('organization_id').notNull(), reviewId: uuid('review_id').notNull(), subject: text('subject').notNull(), productId: text('product_id').notNull(),
+  batchId: text('batch_id').notNull(), record: jsonb('record').notNull(), budgetId: uuid('budget_id').notNull(), reservationId: uuid('reservation_id').notNull(),
+}, t => [primaryKey({ columns: [t.organizationId, t.reviewId, t.batchId] }),
+  foreignKey({ columns: [t.organizationId, t.reviewId, t.subject, t.productId], foreignColumns: [scopeReviewRuns.organizationId, scopeReviewRuns.reviewId, scopeReviewRuns.subject, scopeReviewRuns.productId] }),
+  foreignKey({ columns: [t.organizationId, t.budgetId, t.reservationId], foreignColumns: [modelReservations.organizationId, modelReservations.budgetId, modelReservations.reservationId] }),
+  check('scope_batch_bounds', sql`${t.batchId} ~ '^[a-f0-9]{64}$' AND octet_length(${t.record}::text) <= 8000`),
+  pgPolicy('scope_batch_scope', { for: 'all', using: sql`${t.organizationId} = ${executionOrg} AND ${t.subject} = ${executionSubject} AND ${t.productId} = ${executionProduct}`,
+    withCheck: sql`${t.organizationId} = ${executionOrg} AND ${t.subject} = ${executionSubject} AND ${t.productId} = ${executionProduct}` }),
+]).enableRLS();
 export const intentOperations = steerExecution.table('intent_operations', {
   organizationId: text('organization_id').notNull(), operationId: uuid('operation_id').notNull(), subject: text('subject').notNull(),
   draftId: uuid('draft_id').notNull(), draftRevision: bigint('draft_revision', { mode: 'number' }).notNull(),

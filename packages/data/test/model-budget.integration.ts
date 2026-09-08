@@ -20,7 +20,7 @@ export async function testModelBudget({ admin, app, connect, check }: {
 
   await check('usage tables force RLS; runtime cannot provision, raise, refund or delete a budget', async () => {
     const rows = (await admin.query("SELECT relrowsecurity,relforcerowsecurity FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='steer_usage' AND c.relkind='r'")).rows;
-    assert.equal(rows.length, 2); assert.ok(rows.every(row => row.relrowsecurity && row.relforcerowsecurity));
+    assert.equal(rows.length, 3); assert.ok(rows.every(row => row.relrowsecurity && row.relforcerowsecurity));
     assert.equal((await app.query('SELECT * FROM steer_usage.model_budgets')).rowCount, 0);
     assert.equal((await app.query('SELECT * FROM steer_usage.model_reservations')).rowCount, 0);
     for (const sql of ["UPDATE steer_usage.model_budgets SET cap_microusd=100", 'DELETE FROM steer_usage.model_budgets',

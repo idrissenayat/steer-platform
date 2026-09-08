@@ -15,7 +15,7 @@ const rules = {
   'packages/adapters': { folders: ['src'], packages: ['@steer/tool-registry', 'jose', 'zod'], builtins: ['node:crypto', 'node:fs', 'node:fs/promises', 'node:path'],
     builtinEntryOnly: { 'node:fs': 'src/secrets/file.ts', 'node:fs/promises': 'src/secrets/file.ts', 'node:path': 'src/secrets/file.ts' } },
   'packages/data': { folders: ['src'], packages: ['@steer/domain', '@steer/tool-registry', 'drizzle-orm', 'pg', 'zod'], builtins: ['node:crypto'],
-    entryOnly: { '@steer/domain': 'src/intent-operations.ts' }, specifiersOnly: { '@steer/domain': ['@steer/domain/intent-step'] } },
+    entryOnly: { '@steer/domain': ['src/intent-operations.ts', 'src/scope-review-operations.ts'] }, specifiersOnly: { '@steer/domain': ['@steer/domain/intent-step'] } },
   'apps/api': { folders: ['src'], packages: ['@steer/agents', '@steer/adapters', '@steer/data', '@steer/tool-registry', '@hono/node-server', '@modelcontextprotocol/server', 'hono', 'zod'], builtins: ['node:https'],
     builtinEntryOnly: { 'node:https': 'src/identity-listener.ts' },
     entryOnly: { '@steer/agents': 'src/runtime.ts', '@steer/data': 'src/runtime.ts', zod: 'src/runtime.ts', '@modelcontextprotocol/server': 'src/mcp.ts' } },

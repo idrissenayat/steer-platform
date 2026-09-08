@@ -148,6 +148,20 @@
       "when": 1788858490073,
       "tag": "0020_development_observation_isolation",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1788883242530,
+      "tag": "0021_scope_review_execution",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1788883242531,
+      "tag": "0022_scope_review_isolation",
+      "breakpoints": true
     }
   ]
 }

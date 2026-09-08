@@ -1,6 +1,6 @@
 # STEER platform implementation
 
-## Current checkpoint — 0234
+## Current checkpoint — 0235
 
 Use [the intent journey plan](INTENT-JOURNEY-PLAN.md) and
 [the delivery ledger](PHASE-1-DELIVERY.md) for current status; the implementation
@@ -13,8 +13,10 @@ review API/editor now expose whole-target scope batch plans, with portable combi
 result/citation validation (0233). Planning does not start semantic assessment or
 relax the legacy generation gate. A distinct pinned scope-review request/recorded
 Mastra adapter and exchange verifier now exist (0234), tested with synthetic
-responses. Durable scope-role records/reservations/Temporal and live authority are
-not connected. See [0234 evidence](../intent/0234/EVIDENCE.md).
+responses. Distinct durable scope identity, batch ownership and shared-cap scope-role
+reservations now follow in 0235. Scope cost terms default inactive and cannot expand
+the existing total model cap. Encrypted scope observations/results, verified success,
+Temporal and live authority remain unconnected. See [0235 evidence](../intent/0235/EVIDENCE.md).
 
 These are tested development capabilities, not live end-to-end acceptance. D1
 records activation, real source/lifecycle verifier binding, large-corpus contextual
