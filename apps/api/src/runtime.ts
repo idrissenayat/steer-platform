@@ -2,6 +2,8 @@ import { z } from 'zod';
 import type { IntentAgentService } from '@steer/tool-registry/agent-contracts';
 import { createIntentDevelopment, type DevelopmentPermit } from '@steer/agents';
 import { createMastraDevelopmentRuntime } from '@steer/agents/mastra';
+import { createRecordedMastraVerifier, type RecordedRequest, type RecordedResponse } from '@steer/agents/recorded-mastra';
+import { createIntentDevelopmentReader } from '@steer/data/intent-development-reader';
 import { createAppJwtSigner, createGitHubReader, artifactSelectionSchema, type ArtifactReader } from '@steer/adapters/github';
 import { createPostgresBrowserSessionStore } from '@steer/data/browser-session';
 import { createRuntimePool } from '@steer/data/runtime-pool';
@@ -21,6 +23,17 @@ import { readProjection } from '@steer/data';
 import { createHeldGitBriefWriterFactory, heldGitBriefConfigurationSchema, type HeldBriefAssessment } from '@steer/adapters/held-brief-writer';
 
 const text = z.string().min(1);
+/** Explicit uninstalled reader composition. Current profile allowlists are
+ * required, but no gateway secret, model transport or dispatch capability exists. */
+export function createVerifiedDevelopmentReader(pools: Parameters<typeof createIntentDevelopmentReader>[0], configuration: unknown,
+  dependencies: { records: Parameters<typeof createIntentDevelopmentReader>[2]['records'];
+    profiles: Parameters<typeof createRecordedMastraVerifier>[0] }) {
+  const verifier = createRecordedMastraVerifier(dependencies.profiles);
+  return createIntentDevelopmentReader(pools, configuration, { records: dependencies.records,
+    exchange: { verify: async input => verifier.verify(input.role, input.request,
+      input.requestObservation as RecordedRequest, input.responseObservation as RecordedResponse).result },
+  });
+}
 const databaseSchema = z.strictObject({ host: text, port: z.number(), database: text,
   transport: z.discriminatedUnion('kind', [z.strictObject({ kind: z.literal('tls'), ca: text }),
     z.strictObject({ kind: z.literal('isolated-loopback-test') })]) });

@@ -335,3 +335,14 @@ recorded-development start/status/result API/editor connection and owned-draft
 discovery/recovery after refresh, followed by full-source semantic review. Restored
 multi-turn conversations cannot yet continue through the earlier one-follow-up
 agent transport. I1–I6 live acceptance remains open.
+
+0227 adds the current-authority `intent.development.read` API and an uninstalled
+SQL/recorded-exchange reader. It returns verified progress/candidate results,
+distinguishes clarification, uncertainty, supersession and expiry, and has no model
+dispatch, retry, save or signature capability. See
+[0227 evidence](../intent/0227/EVIDENCE.md). Actual HTTP-to-encrypted-SQL tests use
+synthetic identity, records authority and provider responses. The live reader is not
+registered; recorded-development submission and actual editor progress/result/
+recovery integration remain next, followed by owned-draft discovery and full-source
+semantic review. Pure verification needs current profiles but no gateway secret.
+Real records/model/Git activation and I1–I6 live acceptance remain outstanding.

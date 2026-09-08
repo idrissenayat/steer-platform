@@ -14,14 +14,15 @@ import { createDevelopmentStepRuntime } from '../../../apps/worker/src/developme
 import { createRecordedDevelopmentModel } from '../../../apps/worker/src/recorded-development-model.ts';
 import { RECORDED_MASTRA_REVISION } from '../../agents/src/recorded-mastra.ts';
 import { testDevelopmentWorkflow } from '../../../apps/worker/test/development-workflow.integration.ts';
+import { testIntentDevelopmentRead } from '../../../apps/api/test/intent-development-read.integration.ts';
 type Deps = Parameters<typeof createDevelopmentObservationStore>[2];
 
 export async function testDevelopmentObservations({admin,connect,check}:{admin:Pool;connect(role:string):Pool;check(name:string,run:()=>Promise<void>):Promise<void>}) {
-  const setup=async(dispatch=true,claim=true,recorded=false)=>{
+  const setup=async(dispatch=true,claim=true,recorded=false,ttl=3600000)=>{
     const config={organizationId:`observations-${randomUUID()}`,subject:'synthetic-human',productId:'product',repository:'github:52',branch:'codex/synthetic',configurationRevision:'r1',recordsPolicyDigest:'a'.repeat(64)};
     const budget={organizationId:config.organizationId,subject:config.subject,configurationRevision:config.configurationRevision,budgetId:randomUUID(),approvalDigest:'b'.repeat(64),capMicrousd:30,architectMicrousd:3,testAgentMicrousd:2};
     await admin.query(`INSERT INTO steer_usage.model_budgets VALUES($1,$2,$3,$4,$5,30,3,2,now()-interval '1 minute',now()+interval '1 hour',true)`,[budget.organizationId,budget.budgetId,budget.subject,budget.configurationRevision,budget.approvalDigest]);
-    const execution={...config,action:'develop',expiresAt:new Date(Date.now()+3600000).toISOString(),budget},pools={drafts:connect('steer_draft_runtime'),execution:connect('steer_app')};
+    const execution={...config,action:'develop',expiresAt:new Date(Date.now()+ttl).toISOString(),budget},pools={drafts:connect('steer_draft_runtime'),execution:connect('steer_app')};
     const key={keyId:`synthetic-${randomUUID()}`,bytes:randomBytes(32)},state={denied:false};
     const base={authorizeOperation:async()=>{},authorizeDraft:async()=>{},keyForDraft:async()=>key};
     const originals={...base,authorize:async()=>{},authorizeOriginal:async()=>{}},results={...base,authorizeResult:async()=>{}};
@@ -56,7 +57,7 @@ export async function testDevelopmentObservations({admin,connect,check}:{admin:P
       instructions:p.instructions,modelRoute:p.modelRoute,maxOutputTokens:p.maxOutputTokens,allowedResponseModels:['synthetic-provider-model']}])) as Parameters<typeof createRecordedDevelopmentModel>[3]['gateway']['profiles'];
     const recordedModel=(transport:typeof fetch,otherPools=pools,authorize:Parameters<typeof createRecordedDevelopmentModel>[3]['authorize']=async()=>{})=>
       createRecordedDevelopmentModel(otherPools,config,target,{records:deps,authorize,gateway:{gatewayUrl:'http://127.0.0.1:4000/v1',gatewayKey:'synthetic-gateway-key',profiles:gatewayProfiles,transport}});
-    return{config,execution,pools,key,state,deps,reader,lifecycle,drafts,draftId,saved,content,operations,target,ref,prepared,owner,fencingToken,request,response,make,put,read,count,recordedModel};
+    return{config,execution,pools,key,state,deps,reader,lifecycle,drafts,draftId,saved,content,operations,target,ref,prepared,owner,fencingToken,request,response,make,put,read,count,recordedModel,gatewayProfiles};
   };
   await check('immutable encrypted observation stages restore exact bodies and usage across reconstructed stores without implying execution',async()=>{
     const f=await setup();assert.equal((await f.put(f.request)).outcome,'stored');assert.equal((await f.put(f.response)).outcome,'stored');
@@ -232,6 +233,7 @@ export async function testDevelopmentObservations({admin,connect,check}:{admin:P
     assert.equal(afterCaptureChecks,2);assert.equal(calls,0);assert.equal(await f.count(),1);
     assert.equal((await f.drafts.read({draftId:f.draftId,revision:'latest'})).content.originalText,'A correction during the last authorization wait');
   });
+  await testIntentDevelopmentRead(ttl => setup(false,false,true,ttl), check, admin);
   await testDevelopmentWorkflow(async()=>{
     const f=await setup(false,false,true);
     return{

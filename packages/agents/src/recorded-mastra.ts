@@ -40,23 +40,9 @@ const outputSchema = (role: Role) => role === 'architect' ? intentRoleResultSche
 const unavailable = () => new Error('Recorded model generation is unavailable.');
 function freeze<T>(value: T): T { if (value && typeof value === 'object') { Object.values(value).forEach(freeze); Object.freeze(value); } return value; }
 
-/** Uninstalled explicit LiteLLM binding. OpenAI provider credentials never belong
- * here; only a scoped gateway key. Fresh Agent/provider per call, no tools/memory,
- * no automatic retries, no telemetry and no provider response-store opt-in.
- * Hooks are mandatory: recorded request ACK and fresh dispatch authority precede
- * transport; successful raw response is recorded before any result is returned.
- */
-export function createRecordedMastraRuntime(options: {
-  gatewayUrl: string; gatewayKey: string;
-  profiles: { architect: z.infer<typeof profileSchema>; testAgent: z.infer<typeof profileSchema> };
-  transport?: typeof fetch;
-}) {
-  let url: URL, profiles: { architect: z.infer<typeof profileSchema>; testAgent: z.infer<typeof profileSchema> };
-  try { url = new URL(options.gatewayUrl); profiles = freeze(z.strictObject({ architect: profileSchema, testAgent: profileSchema }).parse(options.profiles)); }
-  catch { throw unavailable(); }
-  if (!['127.0.0.1', 'localhost'].includes(url.hostname) || !['http:', 'https:'].includes(url.protocol) || url.pathname !== '/v1'
-    || url.search || url.hash || url.username || url.password || typeof options.gatewayKey !== 'string' || !/^[!-~]{1,1024}(?![\s\S])/.test(options.gatewayKey)) throw unavailable();
-  const transport = options.transport ?? globalThis.fetch, gatewayKey = options.gatewayKey;
+type RecordedProfiles = { architect: z.infer<typeof profileSchema>; testAgent: z.infer<typeof profileSchema> };
+function createRecordedMastraCodec(rawProfiles: RecordedProfiles) {
+  const profiles = freeze(z.strictObject({ architect: profileSchema, testAgent: profileSchema }).parse(rawProfiles));
   const requestFor = (rawRole: unknown, rawRequest: unknown) => {
     const role = roleSchema.parse(rawRole), request = recordedRoleRequestSchema.parse(rawRequest), profile = role === 'architect' ? profiles.architect : profiles.testAgent;
     for (const field of ['profileRevision', 'instructions', 'modelRoute', 'maxOutputTokens'] as const) if (request[field] !== profile[field]) throw unavailable();
@@ -80,6 +66,40 @@ export function createRecordedMastraRuntime(options: {
       && usage.inputTokens + usage.outputTokens !== usage.totalTokens)) throw unavailable();
     return freeze({ result, usage });
   };
+  const verify = (rawRole: unknown, rawRequest: unknown, requestObservation: RecordedRequest, responseObservation: RecordedResponse) => {
+    try {
+      const { role, request } = requestFor(rawRole, rawRequest); verifyRequest(role, request, requestObservation);
+      id.nullable().parse(responseObservation.providerRequestId); const parsed = parseResponse(role, request, responseObservation.responseBody);
+      if (!isDeepStrictEqual(parsed.result, responseObservation.result) || !isDeepStrictEqual(parsed.usage, responseObservation.usage)) throw unavailable();
+      return parsed;
+    } catch { throw unavailable(); }
+  };
+  return { requestFor, verifyRequest, parseResponse, verify };
+}
+
+/** Read-only exchange verification. No gateway URL/key, provider construction,
+ * transport, generation method or environment fallback is accepted or needed. */
+export function createRecordedMastraVerifier(profiles: RecordedProfiles) {
+  const codec = createRecordedMastraCodec(profiles);
+  return Object.freeze({ verify: codec.verify });
+}
+
+/** Uninstalled explicit LiteLLM binding. OpenAI provider credentials never belong
+ * here; only a scoped gateway key. Fresh Agent/provider per call, no tools/memory,
+ * no automatic retries, no telemetry and no provider response-store opt-in.
+ * Hooks are mandatory: recorded request ACK and fresh dispatch authority precede
+ * transport; successful raw response is recorded before any result is returned.
+ */
+export function createRecordedMastraRuntime(options: {
+  gatewayUrl: string; gatewayKey: string; profiles: RecordedProfiles; transport?: typeof fetch;
+}) {
+  let url: URL, codec: ReturnType<typeof createRecordedMastraCodec>;
+  try { url = new URL(options.gatewayUrl); codec = createRecordedMastraCodec(options.profiles); }
+  catch { throw unavailable(); }
+  if (!['127.0.0.1', 'localhost'].includes(url.hostname) || !['http:', 'https:'].includes(url.protocol) || url.pathname !== '/v1'
+    || url.search || url.hash || url.username || url.password || typeof options.gatewayKey !== 'string' || !/^[!-~]{1,1024}(?![\s\S])/.test(options.gatewayKey)) throw unavailable();
+  const transport = options.transport ?? globalThis.fetch, gatewayKey = options.gatewayKey;
+  const { requestFor, verifyRequest, parseResponse } = codec;
   return {
     async generate(rawRole: unknown, rawRequest: unknown, hooks: RecordedModelHooks, cancellation: AbortSignal) {
       if (!(cancellation instanceof AbortSignal) || [hooks?.recordRequest, hooks?.authorizeDispatch, hooks?.recordResponse].some(v => typeof v !== 'function')) throw unavailable();
@@ -137,13 +157,6 @@ export function createRecordedMastraRuntime(options: {
       } catch { throw unavailable(); }
       finally { clearTimeout(timer); cancellation.removeEventListener('abort', abort); abort(); }
     },
-    verify(rawRole: unknown, rawRequest: unknown, requestObservation: RecordedRequest, responseObservation: RecordedResponse) {
-      try {
-        const { role, request } = requestFor(rawRole, rawRequest); verifyRequest(role, request, requestObservation);
-        id.nullable().parse(responseObservation.providerRequestId); const parsed = parseResponse(role, request, responseObservation.responseBody);
-        if (!isDeepStrictEqual(parsed.result, responseObservation.result) || !isDeepStrictEqual(parsed.usage, responseObservation.usage)) throw unavailable();
-        return parsed;
-      } catch { throw unavailable(); }
-    },
+    verify: codec.verify,
   };
 }

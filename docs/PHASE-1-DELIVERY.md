@@ -4822,3 +4822,23 @@ database, credential, grant, model usage, runtime Git save, deployment, deletion
 signed document changed. Next: recorded-development start/status/result API/editor
 connection and owned-draft discovery/recovery. Restored multi-turn continuation is
 explicitly blocked until that connection exists. D1 and I1–I6 remain open.
+
+## Development increment: 0227 — Recorded-development progress/results API
+
+Added an explicitly granted human query and uninstalled SQL reader for coherent
+development status and verified role results. Current identity, owner/product/repo,
+source, records policy/key access, step/checkpoint and recorded exchange must agree
+before documents are released. A pure existing-codec verifier has no gateway secret
+or generation capability. Status separates pending, clarification, candidate-ready,
+attention, superseded and expired; all save/gate/execution/retry flags remain false.
+
+Verification: **191/191** disposable SQL/SDK/Temporal integration checks,
+**437/437** scoped service/boundary/migration checks and **146/146** domain/frontend
+checks pass. Full prototype/eight-package typecheck, production Next.js build, kit
+(95 artifacts), token-scope and whitespace checks pass. Protected hashes are
+unchanged. See [0227 evidence](../intent/0227/EVIDENCE.md) for synthetic/live limits.
+
+No real runtime service, database, migration, key/grant, model usage, Git save, gate,
+deployment, deletion or signed source changed. Next: recorded-development submission
+and actual editor progress/result/recovery connection, owned-draft discovery and
+full-source semantic review. D1 is unsigned/inactive; I1–I6 live acceptance stays open.

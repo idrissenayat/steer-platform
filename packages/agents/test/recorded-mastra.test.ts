@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createRecordedMastraRuntime, RECORDED_MASTRA_REVISION, type RecordedRequest, type RecordedResponse } from '../src/recorded-mastra.ts';
+import { createRecordedMastraRuntime, createRecordedMastraVerifier, RECORDED_MASTRA_REVISION, type RecordedRequest, type RecordedResponse } from '../src/recorded-mastra.ts';
 const profile={profileRevision:'synthetic-profile',instructions:' Exact synthetic instructions 🌸\r\n',modelRoute:'synthetic-route',maxOutputTokens:1000,allowedResponseModels:['synthetic-model']};
 const options={gatewayUrl:'http://127.0.0.1:4000/v1',gatewayKey:'synthetic-fixture-key',profiles:{architect:profile,testAgent:{...profile,instructions:' Separate Test Agent instructions '}}};
 const request=(role:'architect'|'test-agent')=>{const {allowedResponseModels:_models,...p}=role==='architect'?options.profiles.architect:options.profiles.testAgent;return {...p,runtimeRevision:RECORDED_MASTRA_REVISION,source:' Exact synthetic source\r\n',outputContract:role==='architect'?'steer-architect-output/v1':'steer-exam-output/v1'};};
@@ -20,6 +20,14 @@ test('actual Mastra serialization is recorded before transport and exact raw par
     assert.deepEqual(runtime.verify(role,request(role),req,res).result,result);assert.ok(!JSON.stringify([req,res]).includes('synthetic-fixture-key'));
     assert.throws(()=>runtime.verify(role,request(role),{...req,requestBody:sent.replace('1000','1001')},res));
     assert.throws(()=>runtime.verify(role,request(role),req,{...res,usage:{...res.usage,totalTokens:4}}));
+    const priorFetch = globalThis.fetch;
+    try {
+      globalThis.fetch = async () => { throw new Error('Verifier must not have network capability'); };
+      const verifier = createRecordedMastraVerifier(options.profiles);
+      assert.deepEqual(Object.keys(verifier), ['verify']);
+      assert.deepEqual(verifier.verify(role, request(role), req, res), runtime.verify(role, request(role), req, res));
+      assert.throws(() => verifier.verify(role, request(role), req, { ...res, responseBody: JSON.stringify({ ...response(role), model: 'unapproved' }) }));
+    } finally { globalThis.fetch = priorFetch; }
   }
 });
 test('missing request acknowledgement, cancelled dispatch and lost response acknowledgement cannot manufacture success or retry',async()=>{

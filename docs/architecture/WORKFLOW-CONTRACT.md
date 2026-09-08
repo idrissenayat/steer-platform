@@ -538,3 +538,14 @@ with fresh review required and no invented generation provenance. See
 response limits and memory-only lifecycle. Recorded-development result retrieval,
 multi-turn continuation and owned-draft discovery remain next. D1, current runtime
 authority and actual signed-in journey acceptance are not implied by these controls.
+
+0227 provides shared `intent.development.read` and an uninstalled current-authority
+SQL reader. The API independently verifies recorded role exchanges through the same
+codec as generation, without taking a gateway secret or dispatch capability. Source
+and step snapshots must remain coherent before private candidate content is released.
+Expiry returns only currently authorized source metadata, never old execution
+authority or result history. Supersession identifies the older source without
+replacing newer human text. See [0227 specification](../../intent/0227/SPEC.md).
+Read status cannot start/retry work, sign gates, save Git or count an Exam as run.
+Recorded-development submission and editor progress/results are still unconnected;
+the real service remains inactive pending its existing records/runtime authority.
