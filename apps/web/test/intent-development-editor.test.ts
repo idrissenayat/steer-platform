@@ -17,6 +17,26 @@ async function setup() {
   const editor = createIntentDevelopmentEditor(transport, () => source, () => {});
   return { f, editor, calls, transport, setSource: (value: DevelopmentEditorSource | null) => { source = value; } };
 }
+test('resuming an exact retained terminal run reads results without review, preparation or start', async () => {
+  const { f, editor, transport, calls } = await setup();
+  const read = transport.read; transport.read = async input => { await read(input); return f.ready; };
+  await editor.resume(f.startInput);
+  assert.deepEqual(calls, [{ kind: 'read', input: f.readInput }]); assert.deepEqual(editor.takeResult(), f.ready);
+  assert.equal(editor.retryAvailable(), false); await editor.retry(); assert.equal(calls.length, 1);
+});
+test('pending retained-run resume never starts automatically; explicit recovery reuses its exact reference', async () => {
+  const { f, editor, calls } = await setup(); await editor.resume(f.startInput);
+  assert.deepEqual(calls.map(c => c.kind), ['read']); assert.equal(editor.retryAvailable(), true);
+  await editor.review(); await editor.develop(f.choice); assert.equal(calls.length, 1);
+  await editor.retry(); assert.deepEqual(calls.map(c => c.kind), ['read', 'start', 'read']); assert.deepEqual(calls[1]!.input, f.startInput);
+});
+test('resume rejects mismatched source and cannot replay after source edits or closure', async () => {
+  const { f, editor, calls, setSource } = await setup();
+  for (const patch of [{ draftId: '00000000-0000-4000-8000-000000000099' }, { revision: 2 }, { productId: 'other' }]) await editor.resume({ ...f.startInput, ...patch });
+  assert.equal(calls.length, 0); await editor.resume(f.startInput);
+  setSource(null); editor.sourceChanged(); await editor.retry(); assert.equal(calls.length, 1);
+  editor.close(); await editor.resume(f.startInput); assert.equal(calls.length, 1);
+});
 test('current draft review is read-only; explicit direction prepares, starts and reads the exact recorded run', async () => {
   const { f, editor, calls, transport } = await setup();
   await editor.develop(f.choice); assert.equal(calls.length, 0);

@@ -30,7 +30,9 @@ test('draft tools expose exact content and acknowledgement contracts without gen
   assert.equal(created.outcome, 'created'); assert.equal(created.savedToGit, false);
   const appended = await invokeTool('intent.draft.append', f.append, f.context); assert.equal(appended.outcome, 'acknowledged');
   const read = await invokeTool('intent.draft.read', f.read, f.context); assert.deepEqual(read.content, f.content); assert.equal(read.savedToGit, false);
-  assert.equal(f.state.calls, 3); assert.equal(describeTools().filter(v => v.name.startsWith('intent.draft.')).length, 3);
+  assert.equal(f.state.calls, 3);
+  assert.deepEqual(describeTools().filter(v => v.name.startsWith('intent.draft.')).map(v => v.name).sort(),
+    ['intent.draft.append', 'intent.draft.create', 'intent.draft.discover', 'intent.draft.read']);
 });
 test('draft access denies agents, foreign owner/product/repository, expired identity and missing services or grants before calls', async () => {
   const f = await fixture();

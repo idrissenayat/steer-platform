@@ -10,6 +10,7 @@ const reference = { draftId: id, revision: 1, sourceRevision: 1, scopeInputDiges
 function setup(overrides: Partial<IntentDraftTransport> = {}) {
   const requests: { kind: string; input: unknown }[] = []; let next = 2;
   const transport: IntentDraftTransport = {
+    discover: async () => assert.fail('Draft edit/restore does not discover implicitly'),
     close() { requests.push({ kind: 'close', input: null }); },
     async create(input) { requests.push({ kind: 'create', input }); return { outcome: 'created', draftId: id, requestId: input.requestId,
       createdAt: '2026-09-08T00:00:00.000Z', useUntil: '2026-09-09T00:00:00.000Z', retentionDeadline: '2026-09-10T00:00:00.000Z', contentPreserved: false, savedToGit: false }; },

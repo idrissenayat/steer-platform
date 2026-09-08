@@ -1,6 +1,6 @@
 import type { IntentDevelopmentReviewInput } from '@steer/tool-registry/intent-development-review-contracts';
 import { intentDevelopmentPrepareInputSchema, type IntentDevelopmentPrepareInput } from '@steer/tool-registry/intent-development-prepare-contracts';
-import type { IntentDevelopmentStartInput } from '@steer/tool-registry/intent-development-start-contracts';
+import { intentDevelopmentStartInputSchema, type IntentDevelopmentStartInput } from '@steer/tool-registry/intent-development-start-contracts';
 import type { IntentDevelopmentReadOutput } from '@steer/tool-registry/intent-development-read-contracts';
 import type { IntentDispositionChoice } from '@steer/tool-registry/intent-overlap-contracts';
 import type { IntentDraftContent } from '@steer/tool-registry/intent-draft-content';
@@ -44,7 +44,7 @@ export function createIntentDevelopmentEditor(transport: IntentDevelopmentTransp
     finally { busy = false; }
   }
   async function execute() {
-    if (closed || busy || !preparation || !retry) return;
+    if (closed || busy || !retry || (retry === 'prepare' ? !preparation : !view.operation)) return;
     // Edits/undo never create authority to replay stale source. Read-only recovery
     // remains available for a known operation, even when the editor has changed.
     if (!matches()) { publish({ message: 'Your draft changed. This earlier request cannot be started or replayed from the current editor.' }); return; }
@@ -52,7 +52,7 @@ export function createIntentDevelopmentEditor(transport: IntentDevelopmentTransp
     try {
       if (retry === 'prepare') {
         publish({ status: 'preparing', message: '' });
-        const output = await transport.prepare(preparation); if (closed) return;
+        const output = await transport.prepare(preparation!); if (closed) return;
         if (output.outcome !== 'prepared') {
           if (output.outcome === 'scope-incomplete' || output.outcome === 'conflict') {
             retry = null; preparation = null;
@@ -60,7 +60,7 @@ export function createIntentDevelopmentEditor(transport: IntentDevelopmentTransp
           } else publish({ status: 'preparation-unknown', message: 'Preparation is not confirmed. Retry only this exact reviewed request; a record may already exist.' });
           return;
         }
-        const { choice: _choice, sourceSnapshotDigest: _snapshot, configurationRevision: _configuration, scopeInputDigest: _scope, ...source } = preparation;
+        const { choice: _choice, sourceSnapshotDigest: _snapshot, configurationRevision: _configuration, scopeInputDigest: _scope, ...source } = preparation!;
         publish({ operation: { ...source, ...output.reference! } }); retry = 'start';
       }
       if (!matches()) { publish({ status: 'start-unknown', message: 'The source was preserved, but your editor changed before start. No start request was sent.' }); return; }
@@ -78,6 +78,17 @@ export function createIntentDevelopmentEditor(transport: IntentDevelopmentTransp
     snapshot: () => structuredClone(view),
     sourceChanged,
     retryAvailable: () => retry !== null,
+    async resume(raw: IntentDevelopmentStartInput) {
+      const source = currentSource(), parsed = intentDevelopmentStartInputSchema.safeParse(raw);
+      if (closed || busy || unresolved() || !source || !parsed.success) return;
+      const operation = parsed.data;
+      if ((['organizationId', 'productId', 'repository', 'draftId', 'revision', 'revisionDigest'] as const).some(k => source.input[k] !== operation[k])) return;
+      preparation = null; retry = 'start';
+      publish({ ...initial(), source: structuredClone(source), operation, status: 'pending' });
+      // Discovery supplies a pointer, not execution authority. Read first. Only
+      // explicit recovery can later request start under current server checks.
+      await read();
+    },
     async review() {
       const source = currentSource(); if (closed || busy || !source || unresolved()) return;
       busy = true; preparation = null; retry = null;

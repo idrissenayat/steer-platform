@@ -5,6 +5,7 @@ import {
   type IntentDraftCreateInput, type IntentDraftAppendInput, type IntentDraftReadInput,
 } from '@steer/tool-registry/intent-draft-contracts';
 import { fingerprintIntentScope } from '@steer/tool-registry/intent-revision-contracts';
+import { intentDraftDiscoveryInputSchema, intentDraftDiscoveryOutputSchema, type IntentDraftDiscoveryInput } from '@steer/tool-registry/intent-draft-discovery-contracts';
 
 const failure = () => new Error('Draft request could not be verified. Your current text has not been replaced.');
 /** Same-origin authenticated storage only. No model calls, retries, browser storage or credentials. */
@@ -55,6 +56,12 @@ export function createIntentDraftTransport(origin: string, transport: typeof fet
   }
   return {
     close() { closed = true; active?.abort(); },
+    async discover(raw: IntentDraftDiscoveryInput) {
+      const input = intentDraftDiscoveryInputSchema.parse(raw);
+      const output = intentDraftDiscoveryOutputSchema.parse(await request('discover', input, 16384));
+      if (closed || (['organizationId', 'productId', 'repository', 'cursor'] as const).some(k => JSON.stringify(input[k]) !== JSON.stringify(output[k]))) throw failure();
+      return output;
+    },
     async create(raw: IntentDraftCreateInput) {
       const input = intentDraftCreateInputSchema.parse(raw);
       const output = intentDraftCreateOutputSchema.parse(await request('create', input, 16384));

@@ -9,7 +9,8 @@ import { createIntentDraftService } from '@steer/data/intent-draft-service';
 import { createDevelopmentOriginalStore } from '@steer/data/development-originals';
 import { describeDevelopmentOriginal, type DevelopmentOriginal } from '@steer/data/development-original-contracts';
 import { originalFixture } from '../../../packages/data/test/development-original.fixture.ts';
-import { createRecordedDevelopmentPreparer, createRecordedDevelopmentReviewer } from '../src/runtime.ts';
+import { createRecordedDevelopmentPreparer, createRecordedDevelopmentReviewer, createRecordedDraftDiscovery } from '../src/runtime.ts';
+import { intentDraftDiscoveryOutputSchema } from '@steer/tool-registry/intent-draft-discovery-contracts';
 import { verifyDevelopmentReview } from '@steer/tool-registry/intent-development-review-contracts';
 import { createApi } from '../src/app.ts';
 
@@ -94,6 +95,65 @@ export async function testDevelopmentPreparation({ admin, connect, check }: {
       (SELECT count(*) FROM steer_drafts.draft_revisions WHERE organization_id=$1) AS revisions`, [config.organizationId])).rows[0];
     return { config, pools, records, original, make, snapshot, draftId, drafts, lifecycle, content, saved };
   };
+  const discover = (f: Awaited<ReturnType<typeof setup>>, patch: Partial<Parameters<typeof createRecordedDraftDiscovery>[2]> = {}, pool = f.pools.drafts, config = f.config) => {
+    const service = createRecordedDraftDiscovery(pool, config, { authorize: async () => {}, authorizeEntry: async () => {}, ...patch });
+    const state = { principal: { organizationId: config.organizationId, subject: config.subject, type: 'human', hats: [], toolGrants: ['intent.draft.discover'], expiresAt: new Date(Date.now() + 300000).toISOString() } };
+    const app = createApi({ authenticate: async () => state.principal, services: { intentDraftDiscovery: service } });
+    const post = (patch = {}) => app.fetch(new Request('https://steer.example/v1/tools/intent.draft.discover', { method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ organizationId: config.organizationId, productId: config.productId, repository: config.repository, cursor: null, ...patch }) }));
+    return { service, state, post };
+  };
+  await check('actual discovery HTTP reads latest owner-bound draft and retained run metadata without plaintext, reservations or writes', async () => {
+    const f = await setup(), ref = await prepareRecordedFixture(f.pools, f.original, f.records), app = discover(f);
+    try {
+      const before = await f.snapshot(), response = await app.post(); assert.equal(response.status, 200);
+      const page = intentDraftDiscoveryOutputSchema.parse(await response.json()); assert.equal(page.entries.length, 1);
+      assert.equal(page.entries[0]!.draftId, f.draftId); assert.equal(page.entries[0]!.latest!.revisionDigest, f.saved.reference.revisionDigest);
+      assert.deepEqual(page.entries[0]!.run, { operationId: ref.operationId, inputDigest: ref.inputDigest });
+      assert.doesNotMatch(JSON.stringify(page), /Exact original intent|Human Brief|encrypted|contentDigest/); assert.deepEqual(await f.snapshot(), before);
+      const edited = await f.drafts.append({ draftId: f.draftId, mutationId: randomUUID(), expectedRevision: 1, expectedDigest: f.saved.reference.revisionDigest, content: { ...f.content, originalText: 'New revision' } });
+      assert.equal(edited.outcome, 'acknowledged');
+      const latest = intentDraftDiscoveryOutputSchema.parse(await (await app.post()).json()); assert.equal(latest.entries[0]!.latest!.revision, 2); assert.equal(latest.entries[0]!.run, null);
+    } finally { app.service.close(); }
+  });
+  await check('actual discovery keyset pages include empty references exactly once and exclude held, discarded and foreign-config records', async () => {
+    const f = await setup(), ids = [f.draftId];
+    for (let i = 0; i < 23; i++) { const c = await f.lifecycle.create({ requestId: randomUUID() }); assert.equal(c.outcome, 'ok'); if (c.outcome === 'ok') ids.push(c.value.draftId); }
+    const app = discover(f);
+    try {
+      const first = intentDraftDiscoveryOutputSchema.parse(await (await app.post()).json()); assert.equal(first.entries.length, 20); assert.ok(first.nextCursor);
+      const next = intentDraftDiscoveryOutputSchema.parse(await (await app.post({ cursor: first.nextCursor })).json()); assert.equal(next.entries.length, 4); assert.equal(next.nextCursor, null);
+      assert.deepEqual([...first.entries, ...next.entries].map(e => e.draftId).sort(), ids.sort()); assert.equal(first.entries.filter(e => e.latest === null).length, 20);
+      await f.lifecycle.hold({ draftId: ids[0], holdReference: randomUUID() }); await f.lifecycle.discard({ draftId: ids[1] });
+      const fresh = intentDraftDiscoveryOutputSchema.parse(await (await app.post()).json());
+      const tail = intentDraftDiscoveryOutputSchema.parse(await (await app.post({ cursor: fresh.nextCursor })).json());
+      const visible = [...fresh.entries, ...tail.entries].map(e => e.draftId); assert.equal(visible.length, 22); assert.ok(!visible.includes(ids[0]!) && !visible.includes(ids[1]!));
+      for (const patch of [{ subject: 'other-human' }, { configurationRevision: 'different' }, { productId: 'other-product' }]) {
+        const other = discover(f, {}, f.pools.drafts, { ...f.config, ...patch });
+        try { assert.deepEqual(intentDraftDiscoveryOutputSchema.parse(await (await other.post()).json()).entries, []); } finally { other.service.close(); }
+      }
+    } finally { app.service.close(); }
+  });
+  await check('actual discovery conceals changed metadata, late permission loss and failed provenance instead of reporting no drafts', async () => {
+    for (const mode of ['hold', 'edit', 'permission', 'authority'] as const) {
+      const f = await setup(); let changed = false, app: ReturnType<typeof discover>;
+      app = discover(f, { authorizeEntry: async () => {
+        if (changed) return; changed = true;
+        if (mode === 'hold') await f.lifecycle.hold({ draftId: f.draftId, holdReference: randomUUID() });
+        if (mode === 'edit') await f.drafts.append({ draftId: f.draftId, mutationId: randomUUID(), expectedRevision: 1, expectedDigest: f.saved.reference.revisionDigest, content: { ...f.content, originalText: 'Concurrent edit' } });
+        if (mode === 'permission') app.state.principal.toolGrants = [];
+        if (mode === 'authority') throw new Error('PRIVATE');
+      } });
+      try { const r = await app.post(); assert.notEqual(r.status, 200); assert.doesNotMatch(await r.text(), /PRIVATE|Exact original intent/); }
+      finally { app.service.close(); }
+    }
+  });
+  await check('actual discovery rejects privileged login and malformed cursor without exposing private data', async () => {
+    const f = await setup(), adminApp = discover(f, {}, admin), app = discover(f);
+    try { assert.notEqual((await adminApp.post()).status, 200);
+      for (const patch of [{ cursor: { draftId: f.draftId } }, { productId: 'other' }, { limit: 999 }, { subject: 'other' }]) assert.notEqual((await app.post(patch)).status, 200);
+    } finally { adminApp.service.close(); app.service.close(); }
+  });
   await check('actual preparation HTTP assembles exact SQL draft, reviewed direction and fixed profiles; recreation and concurrency reuse one original without model reservations', async () => {
     const f = await setup(), clients = Array.from({ length: 3 }, () => f.make());
     try {

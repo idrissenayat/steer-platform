@@ -19,6 +19,8 @@ const readSchema = z.strictObject({ draftId: uuid, revision: z.union([revision, 
 const metadataSchema = z.strictObject({ organizationId: id, subject: id, productId: id, draftId: uuid, revision,
   mutationId: uuid, commandDigest: digest, parentRevision: z.number().int().min(0).max(999), parentDigest: digest.nullable(),
   sourceRevision: revision, contentDigest: digest, scopeInputDigest: digest, configurationDigest: digest, draftCreatedAt: timestamp });
+/** Canonical metadata ordering is shared by ciphertext-free discovery validation. */
+export const draftRevisionMetadataSchema = metadataSchema;
 type Configuration = z.infer<typeof configurationSchema>;
 type Metadata = z.infer<typeof metadataSchema>;
 type Stored = { metadata: Metadata; revisionDigest: string; envelope: z.infer<typeof draftEnvelopeSchema> };

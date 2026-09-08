@@ -38,9 +38,18 @@ test('actual editor preserves, reviews, clarifies, recovers a lost start and exp
   const keys = ['window', 'document', 'HTMLElement', 'IS_REACT_ACT_ENVIRONMENT', 'fetch'];
   const saved = Object.fromEntries(keys.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
   for (const [key, value] of Object.entries({ window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, IS_REACT_ACT_ENVIRONMENT: true })) Object.defineProperty(globalThis, key, { configurable: true, value });
-  const calls = [], operations = new Map(); let reference = null, content = null, lost = false, incomplete = true;
+  const calls = [], operations = new Map(); let reference = null, content = null, lost = false, incomplete = true, discoveryDenied = false;
   globalThis.fetch = async (url, init) => {
     const input = JSON.parse(init.body); calls.push({ url, input });
+    if (url.endsWith('intent.draft.discover')) {
+      if (discoveryDenied) return Response.json({ error: 'FORBIDDEN' }, { status: 403 });
+      const operation = operations.get(reference.revision), { revision, sourceRevision, revisionDigest, scopeInputDigest } = reference;
+      return Response.json({ ...input, kind: 'steer-draft-discovery/v1', observedAt: new Date().toISOString(), nextCursor: null,
+        scope: 'current-owner-records-configuration', contentLoaded: false, executionAuthorized: false, savedToGit: false, gateSigned: false,
+        entries: [{ draftId: reference.draftId, createdAt: new Date(Date.now() - 1000).toISOString(), useUntil: new Date(Date.now() + 600000).toISOString(),
+          latest: { revision, sourceRevision, revisionDigest, scopeInputDigest }, run: operation ? { operationId: operation.operationId, inputDigest: operation.inputDigest } : null }] });
+    }
+    if (url.endsWith('intent.draft.read')) return Response.json({ ...reference, content });
     if (url.endsWith('intent.draft.create')) return Response.json({ outcome: 'created', requestId: input.requestId, draftId: f.input.draftId,
       createdAt: '2026-09-08T00:00:00.000Z', useUntil: '2026-09-09T00:00:00.000Z', retentionDeadline: '2026-09-10T00:00:00.000Z', contentPreserved: false, savedToGit: false });
     if (url.endsWith('intent.draft.append')) {
@@ -113,11 +122,31 @@ test('actual editor preserves, reviews, clarifies, recovers a lost start and exp
     assert.deepEqual(operations.get(2).content.clarificationTurns, [' Patients can cancel up to 24 hours before.\n']);
     assert.equal(calls.filter(c => c.url.endsWith('.prepare')).length, 2);
     assert.ok(calls.every(c => !c.url.includes('intent.agent.develop'))); assert.equal(window.localStorage.length, 0); assert.equal(window.sessionStorage.length, 0);
+    // A fresh page has no browser-persisted run pointer. Find metadata, preview
+    // stored content without replacement, explicitly restore, then read the run.
+    await act(async () => root.render(null)); const beforeRefresh = calls.length;
+    await act(async () => root.render(createElement(Component, { ...props, enabled: false })));
+    assert.equal(calls.length, beforeRefresh); await set('agent-intent', 'Unsaved after-refresh text');
+    await click('Find my drafts'); assert.equal(calls.length, beforeRefresh + 1);
+    assert.equal(document.getElementById('agent-intent').value, 'Unsaved after-refresh text'); assert.equal(button('Resume this recorded run'), undefined);
+    await click('Review this draft'); assert.match(document.activeElement.textContent, /review before replacing/);
+    assert.equal(document.getElementById('agent-intent').value, 'Unsaved after-refresh text');
+    await click('Keep my current text'); assert.equal(document.getElementById('agent-intent').value, 'Unsaved after-refresh text');
+    await click('Review this draft'); await click('Replace editor with this stored revision');
+    assert.equal(document.getElementById('agent-intent').value, operations.get(2).content.originalText);
+    const beforeResume = calls.length; await click('Resume this recorded run');
+    assert.deepEqual(calls.slice(beforeResume).map(c => c.url.split('/').at(-1)), ['intent.development.read']);
+    assert.match(document.body.textContent, /Three generated candidates are ready/); await click('Use these generated documents');
+    assert.equal(calls.filter(c => c.url.endsWith('.prepare')).length, 2); assert.equal(calls.filter(c => c.url.endsWith('.start')).length, 3);
+    discoveryDenied = true; await click('Find my drafts');
+    assert.match(document.body.textContent, /This is not an empty result/); assert.equal(document.querySelector('[data-draft-reference]'), null);
+    assert.ok(document.querySelector('.intent-documents')); // Search failure does not erase the editor.
     const axe = (await import('axe-core')).default;
     const accessibility = await axe.run(document.getElementById('root'), { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] }, rules: { 'color-contrast': { enabled: false } } });
     assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, description: v.description })), []);
     await act(async () => root.render(createElement(Component, { ...props, subject: 'other-human' })));
     assert.equal(document.querySelector('.intent-documents'), null); assert.doesNotMatch(document.body.textContent, /Human Exam correction|Existing billing/);
+    assert.equal(document.querySelector('[data-draft-reference]'), null);
   } finally {
     await act(async () => root.unmount()); dom.window.close();
     for (const key of keys) { if (saved[key]) Object.defineProperty(globalThis, key, saved[key]); else delete globalThis[key]; }

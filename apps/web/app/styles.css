@@ -427,6 +427,11 @@ summary:focus-visible { outline: .2rem solid var(--steer-focus); outline-offset:
 .brief-decisions h3 { margin: 0; }
 .decision-record { margin-top: 1rem; padding: 1.25rem; border: 1px solid var(--steer-border); border-radius: 1rem; background: linear-gradient(125deg, #fff2fa, #fff4e7); }
 .decision-record h4 { font-size: 1.125rem; margin: 0 0 .75rem; }
+.intent-draft-discovery { margin-block: 1.5rem; }
+.intent-draft-discovery ul { list-style: none; padding: 0; }
+.intent-draft-discovery li { margin-block: .75rem; padding: 1rem; border: 1px solid var(--steer-border); border-radius: .75rem; background: var(--steer-pink-soft); }
+.intent-draft-discovery code { overflow-wrap: anywhere; }
+.intent-draft-discovery button { min-width: 0; max-width: 100%; white-space: normal; }
 .decision-record h5 { font-size: 1rem; margin: 1.25rem 0 .5rem; }
 .decision-record dt { font-weight: 600; margin-top: .75rem; }
 .decision-record dd { margin: .25rem 0 0; }

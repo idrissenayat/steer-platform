@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { createIntentDraftDiscovery } from '@steer/data/intent-draft-discovery';
 import { createIntentDevelopmentReviewer } from '@steer/data/intent-development-reviewer';
 import type { IntentAgentService } from '@steer/tool-registry/agent-contracts';
 import { createIntentDevelopment, type DevelopmentPermit } from '@steer/agents';
@@ -26,6 +27,11 @@ import { readProjection } from '@steer/data';
 import { createHeldGitBriefWriterFactory, heldGitBriefConfigurationSchema, type HeldBriefAssessment } from '@steer/adapters/held-brief-writer';
 
 const text = z.string().min(1);
+/** Owner-bound discovery is metadata only and remains uninstalled by default. */
+export function createRecordedDraftDiscovery(pool: Parameters<typeof createIntentDraftDiscovery>[0], configuration: unknown,
+  dependencies: Parameters<typeof createIntentDraftDiscovery>[2]) {
+  return createIntentDraftDiscovery(pool, configuration, dependencies);
+}
 /** Read-only reviewed metadata; real evidence and records authorities are mandatory. */
 export function createRecordedDevelopmentReviewer(configuration: unknown, dependencies: Parameters<typeof createIntentDevelopmentReviewer>[1]) {
   return createIntentDevelopmentReviewer(configuration, dependencies);

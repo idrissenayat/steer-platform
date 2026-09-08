@@ -583,3 +583,14 @@ requires unchanged source, and edits/undo invalidate stale review. See
 [0230 specification](../../intent/0230/SPEC.md). Owned-draft/run discovery,
 production source/lifecycle/semantic binding and authorized live activation remain
 open. The existing D1, runtime, model and Git authority boundaries are unchanged.
+
+0231 adds explicit `intent.draft.discover`: current owner/configuration metadata
+pages, no ciphertext, keys, writes or execution authority. The actual editor uses
+find → preview → explicit restore → exact retained-run status read. A completed
+run can be recovered with no replacement preparation/start; pending exact recovery
+remains a separate explicit command under current authority. The query excludes
+held/discarded/published/expired records and does not claim full run history,
+orphan-preparation recovery, repository duplicate coverage or content validity.
+Content/results still pass their independent authenticated readers. See
+[0231 specification](../../intent/0231/SPEC.md). Live D1, source/model and Git
+composition remain inactive; this does not complete the human acceptance journey.

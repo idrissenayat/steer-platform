@@ -3,14 +3,16 @@
 import { useEffect, useRef, useState } from 'react';
 import type { IntentDispositionChoice } from '@steer/tool-registry/intent-overlap-contracts';
 import type { IntentDevelopmentReadOutput } from '@steer/tool-registry/intent-development-read-contracts';
+import type { IntentDraftDiscoveryEntry } from '@steer/tool-registry/intent-draft-discovery-contracts';
 import { createIntentDevelopmentEditor, type DevelopmentEditorSource, type DevelopmentEditorView } from './intent-development-editor';
 import { createIntentDevelopmentTransport } from './intent-development-transport';
 import BriefMarkdown from './brief-markdown';
 
-export default function IntentDevelopmentPanel({ source, enabled, identity, expiresAt, onResult, reviewRequest = null }: {
+export default function IntentDevelopmentPanel({ source, enabled, identity, expiresAt, onResult, reviewRequest = null, discoveredDraft = null }: {
   source: DevelopmentEditorSource | null; enabled: boolean; identity: string; expiresAt: string;
   onResult: (source: DevelopmentEditorSource, result: IntentDevelopmentReadOutput) => void;
   reviewRequest?: { sequence: number; revisionDigest: string } | null;
+  discoveredDraft?: IntentDraftDiscoveryEntry | null;
 }) {
   const [view, setView] = useState<DevelopmentEditorView | null>(null);
   const [action, setAction] = useState<IntentDispositionChoice['action'] | ''>(''), [reason, setReason] = useState(''), [path, setPath] = useState('');
@@ -55,6 +57,9 @@ export default function IntentDevelopmentPanel({ source, enabled, identity, expi
   const recovering = controller.current?.retryAvailable() ?? false;
   const terminal = ['needs-clarification', 'candidates-ready', 'superseded', 'expired'].includes(view.status);
   const canReview = !busy && !recovering && (!view.operation || terminal);
+  const resumable = source && discoveredDraft?.run && discoveredDraft.latest && source.input.draftId === discoveredDraft.draftId
+    && source.input.revision === discoveredDraft.latest.revision && source.input.revisionDigest === discoveredDraft.latest.revisionDigest
+    && source.input.scopeInputDigest === discoveredDraft.latest.scopeInputDigest;
   const review = view.review?.envelope, architect = view.observation?.results.find(r => r.result.role === 'architect')?.result;
   const exam = view.observation?.results.find(r => r.result.role === 'test-agent')?.result;
   const candidates = architect?.role === 'architect' && architect.output.brief !== null && architect.output.spec !== null && exam?.role === 'test-agent'
@@ -74,6 +79,12 @@ export default function IntentDevelopmentPanel({ source, enabled, identity, expi
     <h3 id="development-title" ref={heading} tabIndex={-1}>Develop this intent with STEER</h3>
     <p>Review existing source documents, confirm your direction, then let the Architect and separate Test Agent develop this exact draft.</p>
     {!source && <p>Preserve your current text first. Only an acknowledged, current draft revision can enter the recorded workflow.</p>}
+    {resumable && <div className="access-note"><p>A retained agent run was found for this exact revision. Read its progress before requesting any new generation.</p>
+      <button className="access-secondary" type="button" disabled={!canReview} onClick={() => {
+        if (!source || !discoveredDraft?.run) return;
+        const { scopeInputDigest: _scope, ...input } = source.input;
+        void controller.current?.resume({ ...input, ...discoveredDraft.run });
+      }}>Resume this recorded run</button></div>}
     <button className="access-secondary" type="button" disabled={!source || !canReview} onClick={() => {
       setAction(''); setReason(''); setPath(''); void controller.current?.review();
     }}>{view.status === 'reviewing' ? 'Reviewing current sources…' : 'Review existing work for this draft'}</button>

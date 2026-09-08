@@ -1,5 +1,22 @@
 # STEER platform implementation
 
+## Current checkpoint — 0231
+
+Use [the intent journey plan](INTENT-JOURNEY-PLAN.md) and
+[the delivery ledger](PHASE-1-DELIVERY.md) for current status; the implementation
+history below is not the current remaining-work forecast. The actual Next editor
+now connects recorded review/prepare/start/read, clarification and candidate
+adoption (0230), plus owned-draft discovery and read-first retained-run recovery
+after refresh (0231). See [0231 evidence](../intent/0231/EVIDENCE.md).
+
+These are tested development capabilities, not live end-to-end acceptance. D1
+records activation, production source/lifecycle and semantic authority, approved
+model use, Git save/reopen integration and the human acceptance journey remain
+open. No alternate preview, new credentials, live records or paid calls were
+introduced by this increment.
+
+## Historical foundation overview
+
 This branch implements the Phase 0 kit and a validated UX/domain prototype
 toward Phase 1 against a rebuildable fixture connector. The production Phase 1
 foundation is defined in `intent/0001/ARCHITECTURE.md`; its complete walking

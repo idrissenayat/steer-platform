@@ -4919,3 +4919,30 @@ gate, deployment, release, deletion or signed source changed. The credential ski
 kept the existing resolved key decision intact. D1 is inactive and I1–I6 remains
 open. Next: owned-draft/run discovery after refresh, production full-corpus/lifecycle
 evidence and semantic review, authorized live integration and full UI/save acceptance.
+
+## Development increment: 0231 — Find drafts and resume retained runs
+
+`intent.draft.discover` provides current owner/configuration metadata in bounded
+20-entry pages. The uninstalled composition uses the existing restricted draft
+pool, read-only snapshots and current per-entry authority; it reads no ciphertext,
+requests no key and creates no work. It validates revision metadata and conceals
+concurrent changes or revoked access rather than returning a false empty result.
+
+The actual editor adds find, preview, keep/replace and exact retained-run resume.
+Fresh mount makes no request. Restoring is explicit; completed-run recovery sends
+only a status query, even with generation disabled. Generated document adoption
+remains explicit. Existing pink/orange tokens and session boundaries are preserved.
+
+Verification: **209/209** disposable PostgreSQL checks passed, including actual
+HTTP/SQL discovery, retained latest-run references, pagination, empty references,
+holds/discard, owner/configuration isolation, concurrent edits, late revocation and
+privileged-role denial. Production-component tests verify refresh recovery without
+new prepare/start or loss of current text. Final regression and build results are
+in [0231 evidence](../intent/0231/EVIDENCE.md); synthetic authority is not live proof.
+
+The current list does not cover older-revision run history or orphan preparations
+without a retained original. D1 remains inactive; models/Git/live acceptance remain
+closed. No real migration, configuration, grant, key, paid call, runtime save, gate,
+deployment, release, deletion or signed artifact changed. Continue production
+full-corpus/lifecycle evidence and semantic review, then authorized runtime/save
+integration and the actual human acceptance journey. I1–I6 remains open.

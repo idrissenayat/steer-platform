@@ -2,6 +2,20 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createIntentDraftTransport } from '../app/intent-draft-transport.ts';
 import { fingerprintIntentScope } from '@steer/tool-registry/intent-revision-contracts';
+import { discoveryFixture } from '../../../packages/tool-registry/test/intent-draft-discovery.fixture.ts';
+
+test('discovery uses a fixed authenticated read-only path and validates scoped cursor metadata', async () => {
+  const f = discoveryFixture(); let calls = 0;
+  const transport = createIntentDraftTransport('https://steer.example', async (url, init) => {
+    calls++; assert.equal(String(url), 'https://steer.example/v1/tools/intent.draft.discover');
+    assert.equal(init?.credentials, 'same-origin'); assert.equal(init?.cache, 'no-store');
+    assert.deepEqual(JSON.parse(String(init?.body)), f.input); return Response.json(f.output);
+  });
+  assert.deepEqual(await transport.discover(f.input), f.output); transport.close();
+  await assert.rejects(transport.discover(f.input)); assert.equal(calls, 1);
+  for (const patch of [{ repository: 'github:99' }, { cursor: { createdAt: f.entry.createdAt, draftId: f.entry.draftId } }, { savedToGit: true }])
+    await assert.rejects(createIntentDraftTransport('https://steer.example', async () => Response.json({ ...f.output, ...patch })).discover(f.input));
+});
 
 const scope = { organizationId: 'org', productId: 'product', repository: 'github:52' };
 const id = '00000000-0000-4000-8000-000000000001', mutationId = '00000000-0000-4000-8000-000000000002';
