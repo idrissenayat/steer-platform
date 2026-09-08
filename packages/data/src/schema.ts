@@ -232,6 +232,20 @@ export const developmentOriginals = steerDrafts.table('development_originals', {
     withCheck:sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}` }),
 ]).enableRLS();
 
+// Exact private scope input, independently encrypted from execution metadata.
+export const scopeReviewOriginals = steerDrafts.table('scope_review_originals', {
+  organizationId:text('organization_id').notNull(),subject:text('subject').notNull(),productId:text('product_id').notNull(),
+  reviewId:uuid('review_id').notNull(),preparationDigest:text('preparation_digest').notNull(),payloadDigest:text('payload_digest').notNull(),
+  draftId:uuid('draft_id').notNull(),draftRevision:bigint('draft_revision',{mode:'number'}).notNull(),
+  record:jsonb('record').notNull(),encryptedValue:jsonb('encrypted_value').notNull(),
+},t=>[primaryKey({columns:[t.organizationId,t.reviewId]}),
+  foreignKey({name:'scope_original_review_owner',columns:[t.organizationId,t.reviewId,t.subject,t.productId],foreignColumns:[scopeReviewRuns.organizationId,scopeReviewRuns.reviewId,scopeReviewRuns.subject,scopeReviewRuns.productId]}),
+  foreignKey({name:'scope_original_source',columns:[t.organizationId,t.draftId,t.draftRevision],foreignColumns:[draftRevisions.organizationId,draftRevisions.draftId,draftRevisions.revision]}),
+  check('scope_original_bounds',sql`${t.preparationDigest} ~ '^[a-f0-9]{64}$' AND ${t.payloadDigest} ~ '^[a-f0-9]{64}$' AND octet_length(${t.record}::text) <= 8000 AND octet_length(${t.encryptedValue}::text) <= 4200000`),
+  pgPolicy('scope_original_owner',{for:'all',using:sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}`,
+    withCheck:sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}`}),
+]).enableRLS();
+
 // Private immutable adapter observations; metadata is not proof of provider authorship.
 export const developmentObservations = steerDrafts.table('development_observations', {
   organizationId: text('organization_id').notNull(), subject: text('subject').notNull(), productId: text('product_id').notNull(),

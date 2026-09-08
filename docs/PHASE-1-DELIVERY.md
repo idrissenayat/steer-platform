@@ -5033,3 +5033,23 @@ runtime Git save, gate, deployment, release or spending was activated. D1 remain
 unsigned/inactive. Continue encrypted scope records and reference-only Temporal
 composition under real source/lifecycle/records/model authority, then actual UI/save
 and human acceptance. I1–I6 remains open; keep the existing loop active.
+
+## Development increment: 0236 — Encrypted scope-original recovery
+
+Exact intent/clarification, captured Brief/Spec, full permitted evidence input and
+pinned scope profile can now be captured as one immutable encrypted original for
+an admitted review. Multi-part authenticated encryption supports a bounded corpus
+larger than one document envelope without widening that existing primitive. Part
+order/count, payload and owner binding prevent silent truncation or transplantation.
+Exam, inherited role conversation and credentials have no scope-original field.
+
+The separate records reader validates current owner/source/key/lifecycle authority,
+recovers historical inputs after execution expiry without renewing the grant, and
+keeps later edits separate. New stale captures are rejected. No reservation, model
+call, result checkpoint, deletion or runtime activation is performed. See
+[0236 evidence](../intent/0236/EVIDENCE.md) for observed tests and limits.
+
+No real records/migration, keys, grants, model spending, runtime Git saves, gates,
+deployment, release or signed document changed. D1 remains unsigned/inactive.
+Continue immutable scope observations and verified result recovery, reference-only
+Temporal and real authority binding, then actual UI/save/semantic acceptance.

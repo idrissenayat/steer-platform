@@ -638,3 +638,13 @@ Metadata excludes private prompts/findings and cannot record success yet. See
 [0235 specification](../../intent/0235/SPEC.md). Next integrate encrypted originals,
 observations/results, verified checkpoints and reference-only Temporal execution;
 real authority, D1, model approval and signed-in/save acceptance remain outstanding.
+
+0236 supplies immutable encrypted scope originals for that admitted review. Exact
+intent/edited Brief/Spec, corpus and profile reconstruct the full manifest; Exam and
+prior role history are excluded. Authenticated indexed parts preserve larger bounded
+inputs atomically without changing the document envelope primitive. Capture requires
+the current durable source revision. Historical read requires current records/source/
+key/lifecycle authority but does not renew expired execution or replace later edits.
+See [0236 specification](../../intent/0236/SPEC.md). This is input recovery only;
+recorded observations, verified successful results, Temporal and live acceptance
+remain next. No actual records, grants, model calls or runtime saving are activated.

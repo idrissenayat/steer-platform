@@ -1,6 +1,6 @@
 # STEER platform implementation
 
-## Current checkpoint — 0235
+## Current checkpoint — 0236
 
 Use [the intent journey plan](INTENT-JOURNEY-PLAN.md) and
 [the delivery ledger](PHASE-1-DELIVERY.md) for current status; the implementation
@@ -15,8 +15,10 @@ relax the legacy generation gate. A distinct pinned scope-review request/recorde
 Mastra adapter and exchange verifier now exist (0234), tested with synthetic
 responses. Distinct durable scope identity, batch ownership and shared-cap scope-role
 reservations now follow in 0235. Scope cost terms default inactive and cannot expand
-the existing total model cap. Encrypted scope observations/results, verified success,
-Temporal and live authority remain unconnected. See [0235 evidence](../intent/0235/EVIDENCE.md).
+the existing total model cap. Exact encrypted scope originals now support immutable
+capture and historical recovery (0236), including bounded multi-part corpora and
+current source/key/lifecycle checks. Scope observations/results, verified success,
+Temporal and live authority remain unconnected. See [0236 evidence](../intent/0236/EVIDENCE.md).
 
 These are tested development capabilities, not live end-to-end acceptance. D1
 records activation, real source/lifecycle verifier binding, large-corpus contextual
