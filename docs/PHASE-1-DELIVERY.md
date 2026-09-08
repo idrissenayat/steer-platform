@@ -4319,3 +4319,25 @@ consumers still typecheck it. Kit/security/whitespace checks pass; protected has
 are unchanged. No live service, key, grant, budget, database or private draft changed.
 Next implement the disabled CAS bundle writer/receipt recovery, with verified
 lifecycle selection and full-corpus assembly still required before live authority.
+
+## Development increment: 0208 — Atomic candidate bundle store
+
+Implemented the uninstalled fixed-layout GitHub bundle store and shared bounded
+provider transport. New candidates/pre-pull revisions record seven files; amendments
+and corrections record six without canonical Spec/Exam or gate changes. Exact
+draft/confirmation binding, predecessor checks, native expected-head CAS, complete
+tree/blob verification and original-operation recovery guard against partial saves,
+concurrent overwrites and falsely acknowledged retries. Existing Brief-store paths
+retain their narrower default limits and regression behavior.
+
+Adapter suite 371/371, domain/registry suites 193/193 and web suite 100/100 pass.
+Full typecheck, kit validation, workflow scope audit and whitespace checks pass;
+protected/signed hashes are unchanged. [0208 evidence](../intent/0208/EVIDENCE.md)
+records native-Git/synthetic-provider scenarios and explicit limits.
+
+This is not an enabled UI save or production authority service. Tests supply a
+synthetic dispatch ledger; actual atomic operation ownership, current lifecycle and
+complete source/consent/authority verification still require integration. Next build
+durable operation/step claims and checkpoints against a disposable database, then
+compose verified source/lifecycle and final UI save/reopen. I1–I6 remain open. No
+runtime, credential, grant, budget, real database, accepted policy or user draft changed.

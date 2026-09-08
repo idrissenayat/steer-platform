@@ -15,6 +15,24 @@ manifest-based publication. Increment 0205 implements pure contracts and negativ
 tests plus editor invalidation, not durable worker, semantic assessment or bundle
 save integration. The current synchronous two-role limits below still apply.
 
+0206–0208 add uninstalled bundle reading, configured-item scope collection and
+atomic GitHub bundle storage. The store derives the fixed file set, checks exact
+draft/consent hashes and predecessor pointers, uses expected-head CAS and verifies
+the complete saved commit. Recovery reads the original operation; it never retries
+a mutation itself. `not-found` is only a provider observation with retry authority
+false, not proof that an uncertain in-flight operation failed. A known local attempt
+without a verified receipt stays unknown. After restart the durable owner must
+combine provider observation with its original dispatch state.
+
+The required trusted `authorizeAndClaimDispatch` service must verify current
+identity/grants, approved gate/policy evidence, actual lifecycle and complete source
+assessment at the same expected head, exact human consent, then atomically consume
+the operation's single durable dispatch permit. Tests supply a synthetic port;
+production composition does not. Lifecycle is never inferred from filenames or
+the configured-item collector. Current read authority is required for recovery as
+well as saving. See [0208 evidence](../intent/0208/EVIDENCE.md). This is not yet an
+enabled save command or a demonstrated user save/reopen journey.
+
 ## Human journey
 
 Open https://localhost:8443/ and sign in. The actual workspace now starts with

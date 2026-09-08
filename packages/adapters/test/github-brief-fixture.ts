@@ -16,7 +16,7 @@ export const ref = { organizationId: 'org', repository: 'github:52', branch: bin
 const hash = (content: string) => createHash('sha256').update(content).digest('hex');
 export type Override = (url: URL, init: RequestInit | undefined, result: unknown) => unknown;
 
-export function fixture(t: { after(run: () => void): void }) {
+export function fixture(t: { after(run: () => void): void }, mutationProfile: 'brief' | 'candidate-bundle' = 'brief') {
   // Only an isolated temporary object database is mutated. No credentials/network,
   // repository checkout, global git config or user's actual identity is used.
   const directory = mkdtempSync(join(tmpdir(), 'steer-0124-git-'));
@@ -75,7 +75,8 @@ export function fixture(t: { after(run: () => void): void }) {
       assert.match(query, /createCommitOnBranch/); assert.doesNotMatch(query, /updateRef|force|delete/);
       assert.deepEqual(variables.input.branch, { repositoryNameWithOwner: 'synthetic/fixture', branchName: binding.branch });
       assert.deepEqual(Object.keys(variables.input.fileChanges), ['additions']);
-      assert.equal(variables.input.fileChanges.additions.length, 2);
+      if (mutationProfile === 'brief') assert.equal(variables.input.fileChanges.additions.length, 2);
+      else assert.ok([6, 7].includes(variables.input.fileChanges.additions.length));
       // Allow competing adapter requests to reach the same native Git CAS boundary.
       await Promise.resolve();
       if (advanceAtDispatch) { advanceAtDispatch = false; add([{ path: 'unrelated.md', content: 'advance' }]); }
@@ -98,7 +99,7 @@ export function fixture(t: { after(run: () => void): void }) {
           const [mode, type, entrySha, path] = line.split(/[\t ]/); return { mode, type, sha: entrySha, path };
         }) };
       } else if (route.startsWith('/git/blobs/')) {
-        const sha = route.slice('/git/blobs/'.length), bytes = execFileSync('git', ['-C', directory, 'cat-file', 'blob', sha]);
+        const sha = route.slice('/git/blobs/'.length), bytes = execFileSync('git', ['-C', directory, 'cat-file', 'blob', sha], { stdio: ['pipe', 'pipe', 'pipe'] });
         result = { sha, encoding: 'base64', size: bytes.length, content: bytes.toString('base64') };
       } else if (route === '/commits') {
         assert.equal(url.searchParams.get('per_page'), '2');
@@ -119,6 +120,7 @@ export function fixture(t: { after(run: () => void): void }) {
       evaluatedAt: now.toISOString(), validThrough: new Date(now.getTime() + 5000).toISOString() }); };
   const make = () => createGitHubBriefStore(binding, config, { fetch: transport, appJwt: async () => 'synthetic-app-jwt', now: () => now, verifyAuthority });
   return { request, make, transport, verifyAuthority, add, git, commit, calls, head: () => head, mutations: () => mutations, approvals: () => approvals,
+    recordSyntheticApproval: () => { approvals++; },
     override: (value: Override) => { override = value; }, proof: (value: (v: unknown) => unknown) => { changeProof = value; },
     loseAck: () => { lostAck = true; }, deny: () => { deny = true; }, race: () => { advanceAtDispatch = true; } };
 }

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { briefSaveReferenceSchema, briefSaveScopeSchema, briefWriteAuthoritySchema,
   type BriefCreateRequest, type BriefSaveReference, type BriefSaveObservation } from '@steer/tool-registry';
 import { CodeHostError, type GitHubBinding } from './github.ts';
+import { createGitHubAtomicSession } from './github-atomic-session.ts';
 
 const sha = z.string().length(40).regex(/^[a-f0-9]{40}$/);
 const digest = z.string().length(64).regex(/^[a-f0-9]{64}$/);
@@ -24,14 +25,7 @@ export { configurationSchema as githubBriefConfigurationSchema, requestSchema as
 const markerSchema = briefSaveReferenceSchema.extend({ version: z.literal('steer-brief-operation/v1'),
   requestDigest: digest, expectedHead: sha, contentDigest: digest, blobSha: sha,
 });
-const commitSchema = z.object({ sha, tree: z.object({ sha }), parents: z.array(z.object({ sha })).max(2) });
 const historyCommitSchema = z.object({ sha, parents: z.array(z.object({ sha })).max(2) });
-const gitPath = z.string().min(1).max(1000).refine((v) => !/[\\\u0000-\u001f\u007f]/u.test(v) &&
-  v.split('/').every((p) => p !== '' && p !== '.' && p !== '..'));
-const treeSchema = z.object({ sha, truncated: z.literal(false), tree: z.array(z.object({
-  path: gitPath, mode: z.string(), type: z.string(), sha,
-})).max(10000) });
-type Tree = z.infer<typeof treeSchema>;
 const hash = (value: string | Uint8Array) => createHash('sha256').update(value).digest('hex');
 const blobHash = (bytes: Uint8Array) => createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
 const operationPath = (ref: BriefSaveReference) => `.steer/authoring/operations/${ref.idempotencyKey}.json`;
@@ -65,84 +59,8 @@ export function createGitHubBriefStore(rawBinding: GitHubBinding,
     return ref;
   };
   const io = () => {
-    const total = AbortSignal.timeout(60000);
-    let count = 0;
-    // A hung injected transport/signer/body must not outlive the operation budget.
-    const bounded = async <T>(work: Promise<T>, signal: AbortSignal): Promise<T> => {
-      signal.throwIfAborted();
-      let listener: () => void = () => {};
-      try { return await Promise.race([work, new Promise<never>((_, reject) => {
-        listener = () => reject(new CodeHostError()); signal.addEventListener('abort', listener, { once: true });
-      })]); } finally { signal.removeEventListener('abort', listener); }
-    };
-    const request = async (path: string, token: string, body?: unknown): Promise<unknown> => {
-      if (++count > 40) throw new CodeHostError();
-      const signal = AbortSignal.any([total, AbortSignal.timeout(10000)]);
-      signal.throwIfAborted();
-      const response = await bounded(dependencies.fetch(`https://api.github.com${path}`, {
-        method: body === undefined ? 'GET' : 'POST', redirect: 'error', cache: 'no-store', signal,
-        headers: { authorization: `Bearer ${token}`, accept: 'application/vnd.github+json',
-          'X-GitHub-Api-Version': '2026-03-10', 'content-type': 'application/json', 'cache-control': 'no-cache' },
-        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-      }), signal);
-      if (!response.ok || response.status >= 300 || !response.body) throw new CodeHostError();
-      const reader = response.body.getReader(); const chunks: Uint8Array[] = []; let size = 0;
-      try {
-        for (let parts = 0; ; parts++) {
-          if (parts >= 4096) throw new CodeHostError();
-          const part = await bounded(reader.read(), signal);
-          if (part.done) break;
-          size += part.value.length; if (size > 2 * 1024 * 1024) throw new CodeHostError();
-          chunks.push(part.value);
-        }
-        return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(Buffer.concat(chunks)));
-      } finally { void reader.cancel().catch(() => {}); reader.releaseLock(); }
-    };
-    const token = async (level: 'read' | 'write') => {
-      const now = clock().getTime(); if (!Number.isFinite(now)) throw new CodeHostError();
-      const jwt = await bounded(dependencies.appJwt(), total);
-      const result = z.object({ token: z.string().min(1).max(2000), expires_at: z.iso.datetime(),
-        repositories: z.array(z.object({ id: z.number(), full_name: z.string() })).length(1),
-        permissions: z.record(z.string(), z.string()),
-      }).parse(await request(`/app/installations/${binding.installationId}/access_tokens`, jwt,
-        { repository_ids: [binding.repositoryId], permissions: { contents: level } }));
-      const expiry = Date.parse(result.expires_at);
-      if (expiry <= now + 60000 || expiry > now + 3660000 || result.repositories[0]?.id !== binding.repositoryId ||
-          result.repositories[0].full_name.toLowerCase() !== `${binding.owner}/${binding.repository}`.toLowerCase() ||
-          result.permissions.contents !== level || Object.entries(result.permissions).some(([key, value]) =>
-            !((key === 'contents' && value === level) || (key === 'metadata' && value === 'read')))) throw new CodeHostError();
-      return result.token;
-    };
-    const head = async (credential: string) => {
-      const result = z.object({ ref: z.literal(`refs/heads/${binding.branch}`), object: z.object({ type: z.literal('commit'), sha }) })
-        .parse(await request(`${repo}/git/ref/heads/${binding.branch.split('/').map(encodeURIComponent).join('/')}`, credential));
-      return result.object.sha;
-    };
-    const treeAt = async (revision: string, credential: string) => {
-      const commit = commitSchema.parse(await request(`${repo}/git/commits/${revision}`, credential));
-      if (commit.sha !== revision) throw new CodeHostError();
-      const tree = treeSchema.parse(await request(`${repo}/git/trees/${commit.tree.sha}?recursive=1`, credential));
-      if (tree.sha !== commit.tree.sha || new Set(tree.tree.map((e) => e.path)).size !== tree.tree.length ||
-          tree.tree.some((e) => !((e.type === 'tree' && e.mode === '040000') || (e.type === 'commit' && e.mode === '160000') ||
-            (e.type === 'blob' && ['100644', '100755', '120000'].includes(e.mode))))) throw new CodeHostError();
-      return { commit, tree };
-    };
-    const absent = (tree: Tree, path: string) => {
-      // Existing file/dir, descendants or non-directory ancestors prevent creation.
-      return !tree.tree.some((e) => e.path === path || e.path.startsWith(`${path}/`) ||
-        (path.startsWith(`${e.path}/`) && e.type !== 'tree'));
-    };
-    const read = async (tree: Tree, path: string, credential: string) => {
-      const entry = tree.tree.find((e) => e.path === path);
-      if (!entry || entry.mode !== '100644' || entry.type !== 'blob') throw new CodeHostError();
-      const blob = z.object({ sha, encoding: z.literal('base64'), size: z.number().int().min(0).max(65536),
-        content: z.string().max(131072) }).parse(await request(`${repo}/git/blobs/${entry.sha}`, credential));
-      const encoded = blob.content.replace(/\n/g, ''), bytes = Buffer.from(encoded, 'base64');
-      if (bytes.length !== blob.size || bytes.toString('base64') !== encoded || blob.sha !== entry.sha || blobHash(bytes) !== entry.sha) throw new CodeHostError();
-      return { content: new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes), sha: entry.sha, digest: hash(bytes) };
-    };
-    const history = async (revision: string, path: string, credential: string) => z.array(historyCommitSchema).max(2)
-      .parse(await request(`${repo}/commits?sha=${revision}&path=${encodeURIComponent(path)}&per_page=2`, credential));
+    const session = createGitHubAtomicSession(binding, dependencies);
+    const { request, token, head, treeAt, absent, read, history, total, bounded } = session;
     const inspect = async (ref: BriefSaveReference, credential: string): Promise<BriefSaveObservation> => {
       const revision = await head(credential), current = await treeAt(revision, credential), path = operationPath(ref);
       const changes = await history(revision, path, credential);

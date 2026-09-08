@@ -41,7 +41,7 @@ No separate local preview, synthetic success, silent merging or lost work counts
 | I2 Explicit disposition | Open existing, propose adding missing scope, or create a distinct linked intent with a reason. Keep original text. No automatic merge, discard, update or item creation. Record the human choice against reviewed source revisions; changed scope invalidates it. | UI proposal/recheck and server drafting consumption implemented (0201–0202); save consumption, durable recording and live acceptance pending |
 | I3 Reliable drafting | Activate the configured Mastra/LiteLLM path with an approved capped budget and durable reservation ledger. Clarify conversationally, then produce source-faithful canonical Brief/Spec drafts and a fresh-context Test Agent Exam. Reject refusals, invalid outputs and invented facts; preserve unknowns explicitly. | Drafting composition (0198/0202) and durable reservation adapter (0203) tested; live binding/approval, cost bounds and content/eval acceptance pending |
 | I4 Review without loss | Show and edit all three documents, connect corrections to the source, expose conflicts/assumptions, preserve durable draft state across navigation, expiry, refresh and restart within the approved records policy. Never silently erase user work. Support retry without duplicate paid runs. | Editing/original comparison and explicit review invalidation implemented (0204–0205); durable versioned storage, restoration and full lossless acceptance pending |
-| I5 Save and reopen | Recheck scope and duplicate-review revisions immediately before an atomic, idempotent bundle write. Concurrent new intents/changes cause re-review, not two creations. Use actual granted GitHub paths and expected-head checks; uncertain saves require status/readback. Reopen exact saved versions in the application. | Inert candidate planner and disabled exact bundle/pointer reader tested (0205–0206); catalog, writer, UI integration and live authority incomplete |
+| I5 Save and reopen | Recheck scope and duplicate-review revisions immediately before an atomic, idempotent bundle write. Concurrent new intents/changes cause re-review, not two creations. Use actual granted GitHub paths and expected-head checks; uncertain saves require status/readback. Reopen exact saved versions in the application. | Disabled planner/reader, configured source collector and atomic bundle store implemented (0205–0208); durable dispatch ownership, verified lifecycle/full-corpus assembly, authority service and actual UI integration incomplete |
 | I6 Human acceptance | In the real signed-in UI demonstrate new, exact duplicate, paraphrased duplicate, partial overlap, related-but-distinct, empty/failed/stale search, corrections, permission loss, cost exhaustion, uncertain save, concurrent creation, refresh/reopen and keyboard/narrow-screen behavior. Record real source and saved commit. | Pending |
 
 I1's lexical retrieval is only a candidate finder, never a semantic verdict.
@@ -114,9 +114,11 @@ contract from integrated runtime behavior. All I1–I6 acceptance remains open.
 
 Next unblocked implementation sequence:
 
-1. Disabled exact bundle/pointer reading and configured-item source collection are
-   implemented in 0206–0207. Next implement the disabled CAS bundle writer with
-   current scope/consent checks and original-operation receipt readback. Verified
+1. Disabled exact bundle/pointer reading, configured-item source collection and
+   CAS bundle/receipt storage are implemented in 0206–0208. The store requires a
+   trusted atomic dispatch/authority service; its synthetic test port is not that
+   service. Continue with durable ownership in step 2 and then compose current
+   scope/consent verification. Verified
    canonical-versus-proposed lifecycle selection and full permitted-corpus assembly
    must be integrated before semantic clearance or actual save authority; filenames
    and configured-item coverage do not supply either.
@@ -143,3 +145,12 @@ accounts for missing/corrupt sources and limits. [Evidence](../intent/0207/EVIDE
 records native-Git/synthetic-provider checks. Lifecycle selection deliberately
 remains unverified; this is not a full authoritative catalog, semantic duplicate
 assessment or an enabled UI workflow.
+
+0208 adds the uninstalled GitHub bundle store: exact confirmation-bound receipt,
+seven-file candidate/revision or six-file amendment commit, native expected-head
+CAS, prior-pointer checks, whole-commit readback and original-operation recovery.
+It shares bounded provider I/O with the existing Brief store. [Evidence](../intent/0208/EVIDENCE.md)
+separates its synthetic dispatch proof from the still-required durable one-way
+claim, lifecycle/source authority and real protection acceptance. No UI save,
+model call or runtime write is enabled. Next implement the atomic operation/step
+claim and checkpoint adapter against a disposable database, without real provisioning.

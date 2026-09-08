@@ -262,7 +262,8 @@ are draft content derivatives under the records amendment, not an exempt cache.
 
 ### Candidate publication, discovery and promotion
 
-Design layout (new contract; existing readers/writers do not support it yet):
+Design layout (disabled reader/store primitives now exist in 0206–0208; the actual
+runtime does not install this publication path):
 
 ```text
 items/<NNNN-slug>/
@@ -303,7 +304,12 @@ items/<NNNN-slug>/
   validated IDs; reject traversal, symlinks, arbitrary URLs and extra files.
   Resolve same-commit content; obtain the commit ID from provider readback, not
   a self-referential “this commit” field inside that commit. Receipt binds the
-  operation/input digest, expected head, pointer and manifest hashes.
+  operation/input digest, expected head, pointer and manifest hashes. The 0208
+  bound write plan also records a digest of the exact schema-canonical save binding
+  (including draft ID/revision and human subject). Its input hash domain is
+  `steer-candidate-save-input/v2`. An inert pre-confirmation plan has a null binding
+  digest and cannot be submitted directly to the store. No raw private draft or
+  conversation is added to the receipt. This strengthens byte binding, not authority.
 - **Discovery** enumerates canonical roots and candidate/proposal pointers at the
   same head. A pre-pull pointer selects its bundle Brief/Spec for intake review;
   signed work retains canonical scope and separately exposes pending amendments

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { intentDocumentDraftsSchema } from './intent-revision-contracts.ts';
+import { assertIntentSaveBindingCurrent, intentDocumentDraftsSchema, intentSaveBindingSchema } from './intent-revision-contracts.ts';
 
 const id = z.string().min(1).max(200).refine(value => value.trim().length > 0 && !/[\uD800-\uDFFF]/u.test(value));
 const digest = z.string().regex(/^[a-f0-9]{64}(?![\s\S])/), head = z.string().regex(/^[a-f0-9]{40}(?![\s\S])/);
@@ -47,7 +47,7 @@ export const candidateBundlePointerSchema = z.strictObject({
     || (value.proposalTarget && value.proposalTarget.itemId !== value.itemId)
     || (!value.proposalTarget && value.parentProposalDigest)) ctx.addIssue({ code: 'custom', message: 'Invalid candidate pointer.' });
 });
-const inputSchema = z.strictObject({
+export const candidateBundleInputSchema = z.strictObject({
   organizationId: id, productId: id, repository: id, branch: id, itemId,
   bundleId: uuid, operationId: uuid,
   purpose: z.enum(['new-candidate', 'candidate-revision', 'amendment']),
@@ -91,8 +91,8 @@ function freeze<T>(value: T): T {
  * lifecycle and previous-pointer checks, path/symlink protection, provider CAS
  * and full readback. No canonical SPEC/EXAM or gate path can be generated here.
  */
-export async function planCandidateBundle(value: unknown) {
-  const input = inputSchema.parse(value);
+export async function planCandidateBundle(value: unknown, confirmedBinding?: unknown) {
+  const input = candidateBundleInputSchema.parse(value);
   const root = `items/${input.itemId}`, directory = `candidates/${input.bundleId}`;
   const documentRefs = {
     brief: { path: `${directory}/BRIEF.md`, contentDigest: await sha256(input.documents.brief) },
@@ -121,11 +121,21 @@ export async function planCandidateBundle(value: unknown) {
   });
   const pointerPath = input.amendment ? `${root}/proposals/${input.amendment.proposalId}.json` : `${root}/CANDIDATE.json`;
   const pointerContent = json(pointer), pointerDigest = await sha256(pointerContent);
-  const inputDigest = await sha256(json(['steer-candidate-save-input/v1', input.organizationId,
+  // Preview plans may precede confirmation. A writer must require a bound plan:
+  // the receipt then identifies the exact draft revision and consent snapshot,
+  // not merely another save with the same document bytes. Equality is not authority.
+  const confirmation = confirmedBinding === undefined ? null : intentSaveBindingSchema.parse(confirmedBinding);
+  if (confirmation) assertIntentSaveBindingCurrent(confirmation, { ...confirmation,
+    organizationId: input.organizationId, productId: input.productId, subject: input.originatorSubject,
+    repository: input.repository, branch: input.branch, item: root, expectedHead: input.expectedHead,
+    bundleManifestDigest: manifestDigest, scopeInputDigest: input.scopeInputDigest,
+    sourceSnapshotDigest: input.sourceSnapshotDigest, assessmentDigest: input.assessmentDigest, dispositionDigest: input.dispositionDigest });
+  const confirmationDigest = confirmation ? await sha256(json(confirmation)) : null;
+  const inputDigest = await sha256(json(['steer-candidate-save-input/v2', input.organizationId,
     input.productId, input.repository, input.branch, input.operationId, input.expectedHead,
-    manifestDigest, pointerPath, pointerDigest]));
+    manifestDigest, pointerPath, pointerDigest, confirmationDigest]));
   const receiptPath = `.steer/authoring/bundle-operations/${input.operationId}.json`;
-  const receipt = { kind: 'steer-candidate-operation/v1', operationId: input.operationId, inputDigest,
+  const receipt = { kind: 'steer-candidate-operation/v1', operationId: input.operationId, inputDigest, confirmationDigest,
     expectedHead: input.expectedHead, pointerPath, pointerDigest, manifestPath: `${root}/${pointer.manifestPath}`, manifestDigest };
   const files: Array<{ path: string; content: string; mode: 'create' | 'compare-and-swap'; contentDigest: string }> = [];
   async function add(path: string, content: string, mode: 'create' | 'compare-and-swap' = 'create') {
@@ -138,7 +148,7 @@ export async function planCandidateBundle(value: unknown) {
   await add(receiptPath, json(receipt));
   return freeze({ kind: 'steer-candidate-write-plan/v1' as const, destination: { organizationId: input.organizationId,
     productId: input.productId, repository: input.repository, branch: input.branch },
-    inputDigest, manifestDigest, pointerDigest, expectedHead: input.expectedHead,
+    inputDigest, confirmationDigest, manifestDigest, pointerDigest, expectedHead: input.expectedHead,
     requiredPreviousBundleDigest: input.previousBundleDigest,
     requiredParentProposalDigest: input.amendment?.parentProposalDigest ?? null,
     requiredLifecycle: input.purpose === 'new-candidate' ? 'absent-item' as const

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createHash } from 'node:crypto';
 import { planCandidateBundle } from '../src/candidate-bundle-contracts.ts';
+import { intentSaveBindingSchema } from '../src/intent-revision-contracts.ts';
 
 const bundleId = '57762718-d38a-4926-b96d-7a1c40fdd6f7', operationId = '51f1f1c9-a4d6-435e-9d6e-9b773b8260bb';
 const input = {
@@ -95,4 +96,25 @@ test('invalid purpose, lineage and prior-state combinations cannot become plans'
     { editedDocuments: ['spec'], specConformance: 'unreviewed', examReview: 'stale' },
     { editedDocuments: ['exam'], examReview: 'unreviewed' }, { editedDocuments: ['exam', 'exam'], examReview: 'stale' },
     { relationship: { itemId: input.itemId, revision: input.expectedHead } }]) await assert.rejects(planCandidateBundle({ ...input, ...change }));
+});
+
+test('confirmed plans bind the exact draft revision without changing the reviewed manifest', async () => {
+  const preview = await planCandidateBundle(input);
+  const confirmation = { kind: 'steer-intent-save-binding/v1', organizationId: input.organizationId, productId: input.productId,
+    subject: input.originatorSubject, repository: input.repository, branch: input.branch, item: `items/${input.itemId}`,
+    draftId: 'e2fe0069-6d88-427b-81e3-ff13dba59d45', draftRevision: 1, expectedHead: input.expectedHead,
+    bundleManifestDigest: preview.manifestDigest, scopeInputDigest: input.scopeInputDigest, sourceSnapshotDigest: input.sourceSnapshotDigest,
+    assessmentDigest: input.assessmentDigest, dispositionDigest: input.dispositionDigest };
+  const plan = await planCandidateBundle(input, confirmation);
+  assert.equal(preview.confirmationDigest, null); assert.equal(plan.manifestDigest, preview.manifestDigest);
+  assert.equal(plan.confirmationDigest, digest(`${JSON.stringify(intentSaveBindingSchema.parse(confirmation), null, 2)}\n`));
+  // Hashing is schema-canonical, independent of caller key order.
+  assert.deepEqual(await planCandidateBundle(input, Object.fromEntries(Object.entries(confirmation).reverse())), plan);
+  assert.notEqual(plan.inputDigest, preview.inputDigest); assert.equal(plan.saved, false); assert.equal(plan.executionAuthorized, false);
+  const later = await planCandidateBundle(input, { ...confirmation, draftRevision: 2 });
+  assert.notEqual(later.inputDigest, plan.inputDigest); assert.notEqual(later.confirmationDigest, plan.confirmationDigest);
+  assert.equal(later.manifestDigest, plan.manifestDigest);
+  const receipt = JSON.parse(plan.files.at(-1)!.content); assert.equal(receipt.confirmationDigest, plan.confirmationDigest);
+  for (const patch of [{ expectedHead: 'f'.repeat(40) }, { bundleManifestDigest: 'f'.repeat(64) }, { subject: 'other' }, { authorized: true }])
+    await assert.rejects(planCandidateBundle(input, { ...confirmation, ...patch }));
 });
