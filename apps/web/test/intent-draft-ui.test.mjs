@@ -21,7 +21,8 @@ async function component() {
   const local = name => new URL(`../app/${name}.ts`, import.meta.url).href;
   const markdown = await compile('brief-markdown', { './brief-reading-order': local('brief-reading-order') });
   const scope = await compile('intent-scope-review', { './intent-scope-reader': local('intent-scope-reader'), './brief-location': local('brief-location') });
-  const development = await compile('intent-development-panel', { './intent-development-editor': local('intent-development-editor'), './intent-development-transport': local('intent-development-transport'), './brief-markdown': markdown });
+  const scopePanel = await compile('intent-scope-panel', { './intent-scope-editor': local('intent-scope-editor'), './intent-scope-transport': local('intent-scope-transport'), './brief-location': local('brief-location') });
+  const development = await compile('intent-development-panel', { './intent-scope-panel': scopePanel, './intent-development-editor': local('intent-development-editor'), './intent-development-transport': local('intent-development-transport'), './brief-markdown': markdown });
   const panel = await compile('intent-draft-panel', { './intent-development-panel': development, './intent-draft-editor': local('intent-draft-editor'), './intent-draft-transport': local('intent-draft-transport'), './brief-markdown': markdown });
   return (await import(await compile('intent-conversation', { './agent-transport': local('agent-transport'), './intent-scope-review': scope, './intent-draft-panel': panel, './brief-markdown': markdown }))).default;
 }

@@ -7,9 +7,10 @@ import type { IntentDraftDiscoveryEntry } from '@steer/tool-registry/intent-draf
 import { createIntentDevelopmentEditor, type DevelopmentEditorSource, type DevelopmentEditorView } from './intent-development-editor';
 import { createIntentDevelopmentTransport } from './intent-development-transport';
 import BriefMarkdown from './brief-markdown';
+import IntentScopePanel from './intent-scope-panel';
 
-export default function IntentDevelopmentPanel({ source, enabled, identity, expiresAt, onResult, reviewRequest = null, discoveredDraft = null }: {
-  source: DevelopmentEditorSource | null; enabled: boolean; identity: string; expiresAt: string;
+export default function IntentDevelopmentPanel({ source, enabled, subject, identity, expiresAt, onResult, reviewRequest = null, discoveredDraft = null }: {
+  source: DevelopmentEditorSource | null; enabled: boolean; subject: string; identity: string; expiresAt: string;
   onResult: (source: DevelopmentEditorSource, result: IntentDevelopmentReadOutput) => void;
   reviewRequest?: { sequence: number; revisionDigest: string } | null;
   discoveredDraft?: IntentDraftDiscoveryEntry | null;
@@ -17,6 +18,7 @@ export default function IntentDevelopmentPanel({ source, enabled, identity, expi
   const [view, setView] = useState<DevelopmentEditorView | null>(null);
   const [action, setAction] = useState<IntentDispositionChoice['action'] | ''>(''), [reason, setReason] = useState(''), [path, setPath] = useState('');
   const [paused, setPaused] = useState(false);
+  const [scopeLocked, setScopeLocked] = useState(false);
   const sourceRef = useRef(source), controller = useRef<ReturnType<typeof createIntentDevelopmentEditor> | null>(null);
   const heading = useRef<HTMLHeadingElement>(null), polls = useRef(0), startedAt = useRef(0);
   const handledReview = useRef(0);
@@ -38,12 +40,12 @@ export default function IntentDevelopmentPanel({ source, enabled, identity, expi
       document.removeEventListener('visibilitychange', check); window.removeEventListener('pagehide', close); };
   }, [identity, expiresAt]);
   useEffect(() => {
-    if (!reviewRequest || reviewRequest.sequence === handledReview.current) return;
+    if (scopeLocked || !reviewRequest || reviewRequest.sequence === handledReview.current) return;
     handledReview.current = reviewRequest.sequence;
     if (source?.input.revisionDigest === reviewRequest.revisionDigest) {
       setAction(''); setReason(''); setPath(''); void controller.current?.review();
     }
-  }, [reviewRequest, source]);
+  }, [reviewRequest, source, scopeLocked]);
   useEffect(() => {
     if (view?.status !== 'pending' || controller.current?.retryAvailable()) return;
     if (polls.current >= 240 || Date.now() - startedAt.current >= 8 * 60000) { setPaused(true); return; }
@@ -56,7 +58,7 @@ export default function IntentDevelopmentPanel({ source, enabled, identity, expi
   const busy = ['reviewing', 'preparing', 'starting', 'reading'].includes(view.status);
   const recovering = controller.current?.retryAvailable() ?? false;
   const terminal = ['needs-clarification', 'candidates-ready', 'superseded', 'expired'].includes(view.status);
-  const canReview = !busy && !recovering && (!view.operation || terminal);
+  const canReview = !scopeLocked && !busy && !recovering && (!view.operation || terminal);
   const resumable = source && discoveredDraft?.run && discoveredDraft.latest && source.input.draftId === discoveredDraft.draftId
     && source.input.revision === discoveredDraft.latest.revision && source.input.revisionDigest === discoveredDraft.latest.revisionDigest
     && source.input.scopeInputDigest === discoveredDraft.latest.scopeInputDigest;
@@ -65,7 +67,7 @@ export default function IntentDevelopmentPanel({ source, enabled, identity, expi
   const candidates = architect?.role === 'architect' && architect.output.brief !== null && architect.output.spec !== null && exam?.role === 'test-agent'
     ? { brief: architect.output.brief, spec: architect.output.spec, exam: exam.output.exam } : null;
   function develop() {
-    if (!enabled || !action || !reason.trim() || !review) return;
+    if (scopeLocked || !enabled || !action || !reason.trim() || !review) return;
     const target = review.evidence.find(s => s.path === path && s.path.endsWith('/BRIEF.md'));
     const choice: IntentDispositionChoice | null = action === 'new-distinct' ? { action, reason }
       : target ? { action, reason, target: { path: target.path, revision: review.snapshot.head, contentDigest: target.contentDigest } } : null;
@@ -89,6 +91,8 @@ export default function IntentDevelopmentPanel({ source, enabled, identity, expi
       setAction(''); setReason(''); setPath(''); void controller.current?.review();
     }}>{view.status === 'reviewing' ? 'Reviewing current sources…' : 'Review existing work for this draft'}</button>
     {view.source && !matches && <p role="status">Your editor differs from this reviewed revision. Earlier results will not replace your text. Preserve and review the current revision before continuing.</p>}
+    <IntentScopePanel source={matches} review={view.review?.output ?? null} subject={subject} identity={identity} expiresAt={expiresAt}
+      enabled={enabled && !busy && !recovering && view.status === 'reviewed'} onLockChange={setScopeLocked} />
     {review && <div className="intent-development-sources">
       <p>Checked {review.coverage.includedCount} of {review.coverage.inventoryCount} source documents at commit <code>{review.snapshot.head.slice(0, 12)}</code>.</p>
       <section className="access-note" aria-label="Scope assessment plan">
@@ -103,7 +107,7 @@ export default function IntentDevelopmentPanel({ source, enabled, identity, expi
         <BriefMarkdown content={item.content} /></details>)}
       {review.coverage.gaps.length > 0 && <p>{review.coverage.gaps.length} listed sources could not be included in full.</p>}
       {review.coverage.accessGapCount > 0 && <p>Some source access is unavailable. Restricted item names are not exposed.</p>}
-      <fieldset className="intent-scope-choice" disabled={busy || !matches || view.status !== 'reviewed' || !review.coverage.complete}>
+      <fieldset className="intent-scope-choice" disabled={scopeLocked || busy || !matches || view.status !== 'reviewed' || !review.coverage.complete}>
         <legend>How should this intent proceed?</legend>
         <label htmlFor="development-direction">Your direction</label>
         <select id="development-direction" value={action} onChange={event => setAction(event.target.value as typeof action)}>
@@ -117,7 +121,7 @@ export default function IntentDevelopmentPanel({ source, enabled, identity, expi
             {review.evidence.filter(s => s.path.endsWith('/BRIEF.md')).map(s => <option key={s.sourceId} value={s.path}>{s.path}</option>)}</select></>}
         {action && <><label htmlFor="development-reason">What is missing or distinct?</label>
           <textarea id="development-reason" rows={3} maxLength={3000} value={reason} onChange={event => setReason(event.target.value)} /></>}
-        <button className="access-primary" type="button" disabled={!enabled || !action || !reason.trim() || (action !== 'new-distinct' && !review.evidence.some(s => s.path === path && s.path.endsWith('/BRIEF.md')))}
+        <button className="access-primary" type="button" disabled={scopeLocked || !enabled || !action || !reason.trim() || (action !== 'new-distinct' && !review.evidence.some(s => s.path === path && s.path.endsWith('/BRIEF.md')))}
           onClick={develop}>Confirm direction and develop this draft</button>
       </fieldset>
     </div>}

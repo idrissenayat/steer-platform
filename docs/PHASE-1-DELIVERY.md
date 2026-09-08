@@ -5290,3 +5290,35 @@ No auth bypass, alternative preview, real migration, D1 activation, credential
 inspection/provisioning, paid model call, runtime Git save, gate, deployment or
 release occurred. First-test spending is still unapproved. Preserve user-owned
 files and signed hashes; keep the existing one-minute loop active.
+
+## Development increment: 0246 — Recorded scope review in the actual editor
+
+The actual development editor now prepares/starts scope assessments, polls verified
+progress and displays cited overlap findings. Unknown requests keep identical
+recovery inputs; edits/undo, denied access, incomplete coverage and expiry cannot
+silently become a new intent or replacement generation. Findings are checked against
+the original reviewed source bytes and do not replace text, choose direction, save
+Git or sign a gate. See [0246 evidence](../intent/0246/EVIDENCE.md).
+
+UI testing found and corrected schema field-order normalization falsely invalidating
+unchanged source. Unsupported proposed Brief paths now retain citations instead of
+crashing or widening reader authority. Scope transport retains admission through
+ignored-abort fetch/body cleanup, and automatic polling performs read requests only.
+Existing pink/orange controls and authentication remain intact.
+
+0246 verification: 1,096/1,096 full regressions pass, including fifteen new scope
+transport/controller/React cases. The two React cases also pass after the final
+populated-findings structural axe check. All package/prototype types, optimized
+Next build, Drizzle history, kit (95 artifacts), scope audit, 137 document links
+and whitespace checks pass. Signed hashes are unchanged. The prior 319-check
+database integration belongs to 0245; no database code changed or new database
+integration run occurred in this UI increment.
+
+The production React graph uses synthetic HTTP in these tests; this is not real
+browser, semantic-quality or I1–I6 acceptance. Backend factories remain uninstalled.
+Continue scope discovery/read-first recovery after refresh and server-bound evidence
+consumption by direction/drafting, then real authority and human save/reopen. The
+legacy generation-envelope coverage gate remains unchanged. No D1 activation, real
+migration, credential inspection, paid model call, runtime Git save, gate, deployment
+or release occurred. First-test spending remains unapproved and the one-minute
+loop stays active.

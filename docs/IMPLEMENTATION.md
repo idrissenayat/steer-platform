@@ -1,6 +1,6 @@
 # STEER platform implementation
 
-## Current checkpoint — 0245
+## Current checkpoint — 0246
 
 Use [the intent journey plan](INTENT-JOURNEY-PLAN.md) and
 [the delivery ledger](PHASE-1-DELIVERY.md) for current status; the implementation
@@ -86,6 +86,17 @@ uncertainty never grants a repeated model dispatch or semantic completion. Actua
 HTTP/SQL/Temporal integration uses synthetic authority and model responses. See
 [0245 evidence](../intent/0245/EVIDENCE.md). The factories remain uninstalled;
 actual editor scope prepare/start/read/progress/recovery is next.
+
+0246 now mounts those scope controls in the actual development editor. An explicit
+assessment action prepares/starts the reviewed saved revision, then polls only
+authorized result reads. Findings are revalidated against whole-corpus source bytes
+and shown with exact citations, coverage gaps and distinct recovery/expiry states.
+Unknown requests retain their references; edits and denied access cannot become
+uniqueness or silently overwrite user text. Unsupported proposed Brief links retain
+cited passages. See [0246 evidence](../intent/0246/EVIDENCE.md). React/HTTP tests are
+synthetic, not live UI acceptance. Scope-specific discovery after refresh and
+server-bound assessment consumption by direction/drafting remain next; the smaller
+legacy generation-envelope gate is unchanged.
 
 These are tested development capabilities, not live end-to-end acceptance. D1
 records activation, real source/lifecycle verifier binding, large-corpus contextual

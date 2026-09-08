@@ -124,7 +124,7 @@ export default function IntentDraftPanel({ organizationId, productId, repository
       }}>Keep my current text</button>
       <p>Replacing will remove all current editor text. Choose “Keep my current text” to close this preview without replacing anything; an existing conflict will remain unresolved.</p>
     </div>}
-    {onResult && <IntentDevelopmentPanel source={developmentSource} enabled={enabled} identity={JSON.stringify([organizationId, productId, repository, subject])}
+    {onResult && <IntentDevelopmentPanel source={developmentSource} enabled={enabled} subject={subject} identity={JSON.stringify([organizationId, productId, repository, subject])}
       expiresAt={expiresAt} onResult={onResult} reviewRequest={reviewRequest} discoveredDraft={discoveredDraft} />}
   </section>;
 }

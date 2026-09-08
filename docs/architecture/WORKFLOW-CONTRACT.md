@@ -808,3 +808,25 @@ coverage nor permission to retry, draft, save or sign; use `intent.scope.read` f
 current authorized findings. See [0245 specification](../../intent/0245/SPEC.md).
 Factories remain uninstalled by default. Actual editor scope preparation/start/
 read/progress/recovery, real authority and live acceptance remain subsequent work.
+
+0246 binds the actual editor to those scope tools through a reference-only,
+same-origin authenticated transport. An explicit assessment prepares/starts one
+review; pending progress polls only reads. Unknown preparation/start retains exact
+recovery inputs and blocks conflicting source-review/generation controls. Edits,
+including edit-then-undo, invalidate the old source binding. Schema field ordering
+does not count as a content change. Known result reads remain independent of model
+dispatch capability and cannot send replacement work.
+
+The browser verifies owner/source revision and recomputes combined findings against
+the exact reviewed corpus bytes/plan before display. Partial, incomplete, unavailable,
+superseded and expired states cannot become a newness claim. Findings are inert text
+with source status, commit, digest and citation ranges. Supported Brief paths use
+the existing reader; proposed paths retain citations without expanding that reader.
+Hidden/expired/changed sessions close the controller and clear findings. Polling and
+transport/body cleanup are bounded, and no browser storage is introduced.
+
+See [0246 specification](../../intent/0246/SPEC.md). This is synthetic-HTTP-tested
+production UI composition, not live records/model activation or semantic quality.
+Scope-specific refresh discovery and server-side evidence consumption by direction/
+drafting remain open; the legacy generation-envelope gate is not bypassed by a
+completed larger scope assessment. Full human save/reopen acceptance remains open.
