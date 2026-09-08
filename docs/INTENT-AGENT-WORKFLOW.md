@@ -255,6 +255,12 @@ A queued candidate workflow observes a later durable hold and stops before Git.
 The adapter remains uninstalled and does not supply the missing live qualified-
 evidence/key services or generation-checkpoint content storage.
 
+Increment [0215](../intent/0215/EVIDENCE.md) adds disabled encrypted immutable
+source/clarification/document snapshots with parent CAS and exact command recovery.
+The test chain reopens a stored revision before candidate admission and Temporal
+save. Snapshot content carries no trusted generator/review/approval provenance;
+role-result checkpoints and actual editor/API restoration remain separate work.
+
 ### Existing model integration sources
 
 The pinned installed Mastra declarations were checked alongside the official

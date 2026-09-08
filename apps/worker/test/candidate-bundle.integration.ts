@@ -5,6 +5,7 @@ import type { Pool, PoolClient } from 'pg';
 import type { DatabasePool } from '@steer/data/runtime-pool';
 import { createCandidateOriginalStore } from '@steer/data/candidate-originals';
 import { createDraftLifecycleStore } from '@steer/data/draft-lifecycle';
+import { createDraftRevisionStore } from '@steer/data/draft-revisions';
 import { createDurableCandidateBundleStore } from '../src/candidate-bundle-runtime.ts';
 import { planCandidateBundle } from '@steer/tool-registry/candidate-bundle-contracts';
 import { createGitHubReader } from '@steer/adapters/github';
@@ -259,12 +260,31 @@ export async function testDurableCandidateBundles({ app, admin, connect, check }
         if (created.outcome !== 'ok') throw new Error('Synthetic draft creation unavailable');
         f.confirmation.draftId = created.value.draftId;
       } finally { creator.close(); }
+      const revisions = () => createDraftRevisionStore(connect('steer_draft_runtime'), config, {
+        authorize: async () => {}, keyForDraft: async (_ref, keyId) => { assert.ok(keyId === null || keyId === key.keyId); return key; },
+      });
+      const sourceWriter = revisions();
+      try {
+        const preserved = await sourceWriter.append({ draftId: f.confirmation.draftId, mutationId: randomUUID(), expectedRevision: 0, expectedDigest: null,
+          content: { originalText: 'Synthetic intent for the exact candidate bundle.', clarificationTurns: [], documents: f.bundle.documents } });
+        assert.equal(preserved.outcome, 'acknowledged');
+        if (preserved.outcome !== 'acknowledged') throw new Error('Synthetic revision unavailable');
+        f.bundle.scopeInputDigest = preserved.reference.scopeInputDigest;
+        f.confirmation.scopeInputDigest = preserved.reference.scopeInputDigest;
+        f.confirmation.bundleManifestDigest = (await planCandidateBundle({ ...f.bundle, operationId: randomUUID() })).manifestDigest;
+      } finally { sourceWriter.close(); }
       const originals = () => createCandidateOriginalStore(connect('steer_draft_runtime'), config, {
         authorize: async () => {}, verifyOriginal: request => f.make().verifyOriginal(request),
         lifecycle: async ref => { const store = lifecycles(); try { return await store.lifecycle(ref); } finally { store.close(); } },
         keyForDraft: async (_ref, keyId) => { assert.ok(keyId === null || keyId === key.keyId); return key; },
       });
       return { ...f, prepare: async () => {
+        const reader = revisions();
+        try {
+          const restored = await reader.read({ draftId: f.confirmation.draftId, revision: f.confirmation.draftRevision });
+          assert.deepEqual(restored.content.documents, f.bundle.documents);
+          assert.equal(restored.reference.scopeInputDigest, f.bundle.scopeInputDigest);
+        } finally { reader.close(); }
         const request = await f.prepare(), store = originals();
         try { assert.equal((await store.put(request)).outcome, 'stored'); } finally { store.close(); }
         return request;

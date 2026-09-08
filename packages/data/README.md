@@ -246,6 +246,53 @@ retention, backup or disposal implementation.
 
 Actual candidate Temporal tests load lifecycle state from SQL and deny original
 retrieval when a hold is recorded after queueing. See [0214 evidence](../../intent/0214/EVIDENCE.md).
-The real thirteen-entry migration set remains held against its seven-entry baseline.
+The expanded development migration set remains held against its seven-entry baseline.
 Qualified publication/hold evidence sources, all-copy/key controls, D1 adoption,
 versioned editor/checkpoint persistence and actual UI/runtime activation remain open.
+
+## Disabled encrypted draft revisions (0215)
+
+`@steer/data/draft-revisions` exports `createDraftRevisionStore` with the same
+fixed organization/owner/product/home/configuration/policy tuple as the lifecycle
+store. It requires current `authorize` and external per-draft `keyForDraft` ports;
+there is no fixture or credential fallback. Its actual lifecycle row is required.
+
+- `append({draftId,mutationId,expectedRevision,expectedDigest,content})` preserves
+  original text, ordered clarification turns and nullable Brief/Spec/Exam content.
+  Parent zero/null denotes the first snapshot. Subsequent parents must match the
+  current revision and digest. The server assigns consecutive revision numbers.
+- Exact command retries acknowledge the same revision. Different payload under
+  the same mutation ID or competing parents conflict. Repeating an old command
+  after a newer edit returns its old reference plus `latestRevision`, not a rewrite.
+- `read({draftId,revision})` accepts an exact number or `latest`, resolves one fixed
+  snapshot, verifies it and returns content/reference/latestRevision. A concurrent
+  newer append may be reported separately; it never silently replaces the selected
+  snapshot. There is no bulk cross-owner history search or export endpoint.
+- `close()` rejects new admission and withholds late content. It does not destroy
+  keys, delete old snapshots, cancel a committed insert or promise memory erasure.
+
+Content has no trusted authorship/review/consent/signature/Git-success fields.
+The server derives source revision from original/clarification changes and reuses
+the existing final-scope hash for Brief/Spec bytes; Exam-only edits leave that scope
+unchanged but do not validate Exam review. Matching bytes/undo never grant approval.
+Generation originals and role checkpoints still need verified provenance services.
+
+Migrations 0013/0014 bind `steer_drafts.draft_revisions` to the exact lifecycle
+owner, force RLS and grant only SELECT/INSERT. The insert guard checks current use,
+fixed metadata fields and contiguous parent chain under the lifecycle-row lock.
+Application CAS repeats after encryption; no transaction spans authority or key IO.
+AES-GCM metadata binds content, scope, parent, mutation, configuration and original
+creation. Historical key access/current authority/current lifecycle and immutable
+stored bytes are checked before releasing a snapshot. Source bytes and keys are
+absent from SQL params/records outside encrypted envelopes.
+
+Limits: 1,000 immutable revisions per draft and 768 KiB serialized plaintext per
+snapshot; five-second authority/key/acquisition calls with retained admission during
+timeouts. Expiry/holds deny every old revision without deletion. There is no silent
+pruning, reset, conflict merge or zero-loss guarantee for unacknowledged keystrokes.
+
+[0215 evidence](../../intent/0215/EVIDENCE.md) covers real disposable SQL and a
+stored-revision-to-candidate/Temporal/native-Git chain with synthetic authority/key
+ports. The actual editor/API is not wired to this service. D1 stays unsigned; the
+real baseline of seven migrations rejects the fifteen-entry development journal.
+No live content, migration, key, grant, spending, provider write or policy changes.

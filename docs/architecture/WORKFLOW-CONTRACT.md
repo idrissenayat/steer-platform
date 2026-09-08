@@ -218,6 +218,14 @@ Authority/evidence/key ports are still synthetic in tests. No actual UI, live
 policy adoption, key/all-copy lifecycle, versioned editor or generation-checkpoint
 content storage is implied by these disabled adapters.
 
+Implementation note (0215, inactive): encrypted content revisions now store exact
+source, clarification turns and editable documents under the server lifecycle.
+The service selects consecutive revisions, compares the expected parent digest,
+and binds a stable mutation ID to its command. An old acknowledgement after newer
+edits returns the original reference plus latest revision, never replacement bytes.
+Actual UI/API wiring, verified generation provenance and role checkpoints remain
+unimplemented. These stored snapshots alone confer no assessment or gate state.
+
 1. Search authorized candidates and existing Brief/Spec scope, including relevant
    completed/archived records. Resolve product, user group, exclusions and negation.
    Cite evidence and distinguish coverage from confidence.

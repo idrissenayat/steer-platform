@@ -149,6 +149,7 @@ export const draftLifecycles = steerDrafts.table('draft_lifecycles', {
   publishedAt: timestamp('published_at', { withTimezone: true }), publicationOperation: uuid('publication_operation'), publicationInput: text('publication_input'),
 }, t => [primaryKey({ columns: [t.organizationId, t.draftId] }),
   unique('draft_creation_request').on(t.organizationId, t.subject, t.requestId),
+  unique('draft_lifecycle_identity').on(t.organizationId, t.draftId, t.subject, t.productId),
   check('draft_lifecycle_bounds', sql`${t.configurationDigest} ~ '^[a-f0-9]{64}$' AND ${t.retentionDeadline} = ${t.createdAt} + interval '168 hours' AND ${t.useUntil} = LEAST(${t.retentionDeadline}, ${t.discardedAt} + interval '60 seconds', ${t.publishedAt} + interval '60 seconds') AND ${t.held} = (${t.holdReference} IS NOT NULL) AND (${t.publishedAt} IS NULL) = (${t.publicationOperation} IS NULL) AND (${t.publishedAt} IS NULL) = (${t.publicationInput} IS NULL) AND (${t.publicationInput} IS NULL OR ${t.publicationInput} ~ '^[a-f0-9]{64}$')`),
   pgPolicy('draft_lifecycle_owner', { for: 'all', using: sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}`,
     withCheck: sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}` }),
@@ -165,5 +166,19 @@ export const candidateOriginals = steerDrafts.table('candidate_originals', {
     foreignColumns: [intentOperations.organizationId, intentOperations.operationId, intentOperations.subject] }),
   check('candidate_original_bounds', sql`${t.draftRevision} BETWEEN 1 AND 9007199254740991 AND ${t.inputDigest} ~ '^[a-f0-9]{64}$' AND ${t.payloadDigest} ~ '^[a-f0-9]{64}$' AND ${t.configurationDigest} ~ '^[a-f0-9]{64}$' AND octet_length(${t.encryptedValue}::text) <= 1050000 AND ${t.retentionDeadline} = ${t.draftCreatedAt} + interval '168 hours' AND ${t.useUntil} <= ${t.retentionDeadline}`),
   pgPolicy('candidate_original_owner', { for: 'all', using: sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}`,
+    withCheck: sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}` }),
+]).enableRLS();
+
+export const draftRevisions = steerDrafts.table('draft_revisions', {
+  organizationId: text('organization_id').notNull(), subject: text('subject').notNull(), productId: text('product_id').notNull(), draftId: uuid('draft_id').notNull(),
+  revision: bigint('revision', { mode: 'number' }).notNull(), mutationId: uuid('mutation_id').notNull(), commandDigest: text('command_digest').notNull(),
+  revisionDigest: text('revision_digest').notNull(), record: jsonb('record').notNull(), encryptedValue: jsonb('encrypted_value').notNull(),
+  storedAt: timestamp('stored_at', { withTimezone: true }).notNull().defaultNow(),
+}, t => [primaryKey({ columns: [t.organizationId, t.draftId, t.revision] }),
+  unique('draft_revision_mutation').on(t.organizationId, t.draftId, t.mutationId),
+  foreignKey({ name: 'draft_revision_owner', columns: [t.organizationId, t.draftId, t.subject, t.productId],
+    foreignColumns: [draftLifecycles.organizationId, draftLifecycles.draftId, draftLifecycles.subject, draftLifecycles.productId] }),
+  check('draft_revision_bounds', sql`${t.revision} BETWEEN 1 AND 1000 AND ${t.commandDigest} ~ '^[a-f0-9]{64}$' AND ${t.revisionDigest} ~ '^[a-f0-9]{64}$' AND octet_length(${t.record}::text) <= 8000 AND octet_length(${t.encryptedValue}::text) <= 1050000`),
+  pgPolicy('draft_revision_owner', { for: 'all', using: sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}`,
     withCheck: sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}` }),
 ]).enableRLS();

@@ -92,6 +92,20 @@
       "when": 1788842709533,
       "tag": "0012_draft_lifecycle_isolation",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1788844743593,
+      "tag": "0013_draft_revisions",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1788844743594,
+      "tag": "0014_draft_revision_isolation",
+      "breakpoints": true
     }
   ]
 }

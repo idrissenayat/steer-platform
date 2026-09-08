@@ -98,8 +98,8 @@ matching protected secret bundle; copying only one is not a tested restore.
 
 ## Explicit operation
 
-**Migration hold (0209, extended through 0214):** the development journal contains thirteen migrations.
-New 0007–0012 execution, encrypted-original and draft-lifecycle migrations run only in disposable tests;
+**Migration hold (0209, extended through 0215):** the development journal contains fifteen migrations.
+New 0007–0014 execution, encrypted-original, lifecycle and revision migrations run only in disposable tests;
 their real records/schema adoption is still pending. `local-workspace.mjs migrate`
 refuses any set beyond the existing seven-migration baseline, before reading real
 private state or changing the database. Do not bypass this guard or increase its
@@ -129,7 +129,7 @@ are rejected; Keycloak and STEER clients validate the database server certificat
 `migrate` starts production-mode Keycloak, not `start-dev`. Both image digests are
 pinned to locally installed images; setup uses `--pull never`. Database changes
 were originally the five canonical migrations; the current local operations
-baseline expects seven; the expanded thirteen-migration set is explicitly held.
+baseline expects seven; the expanded fifteen-migration set is explicitly held.
 No real migration is authorized by this guide. No other project's containers or
 volumes are changed. Published database and identity ports bind IPv4 loopback
 only. A second bridge supplies Docker Desktop loopback publishing; it is not an

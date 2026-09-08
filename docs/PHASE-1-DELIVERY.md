@@ -4497,3 +4497,36 @@ This supplies metadata lifecycle, not the missing versioned editor/conversation
 or generation-checkpoint content stores. Those services, real publication/qualified-
 hold evidence binding, key/all-copy recovery controls, full-source/current authority,
 development-role execution and actual UI acceptance remain next. I1–I6 stay open.
+
+## Development increment: 0215 — Encrypted immutable draft revisions
+
+Implemented disabled versioned snapshots of original text, clarification turns
+and all three editable documents. Exact UTF-8 content is encrypted before SQL;
+parent revision/digest CAS prevents stale clients from overwriting a newer edit.
+Stable command retries return the same reference, including an older acknowledged
+revision alongside the latest version. All prior revisions stay immutable.
+
+Source-revision and final-scope fingerprints are derived on the server. Exam-only
+changes do not change Brief/Spec scope, but no stored content confers review,
+independent authorship, consent, signature or Git success. Current lifecycle,
+owner grants, historical keys and exact stored bytes govern restoration.
+
+The candidate test chain now reads a stored source/document revision before
+admission, encrypted-original recovery, Temporal and native Git. See
+[0215 evidence](../intent/0215/EVIDENCE.md) for verification and test boundaries.
+
+Verification: **112/112** disposable SQL/native-Git/Temporal integration checks,
+**280/280** scoped units/migration controls, **33/33** existing Temporal/projection
+and **1/1** destination runtime checks. Typecheck, kit/scope, schema-drift and
+whitespace checks pass; protected hashes match. The existing Temporal harness
+emitted a metrics-trailer warning despite passing functional checks; see evidence.
+
+Migrations 0013/0014 run only in disposable development databases. The real guard
+rejects the fifteen-entry journal against its seven-entry baseline. D1 remains
+unsigned/inactive; no real draft, key, role, migration, paid call, GitHub runtime
+write, deletion, deployment, signed source or accepted policy changed.
+
+Actual editor/API acknowledgement/conflict/history wiring and generation-result
+checkpoint provenance are still missing. Durable development roles, current source/
+authority, key/all-copy recovery controls and real UI acceptance remain next.
+This is backend history, not a completed autosave or I1–I6 journey.
