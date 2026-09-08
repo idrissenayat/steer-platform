@@ -2,11 +2,11 @@ import { z } from 'zod';
 
 const text = (max: number) => z.string().max(max).refine(value => !/[\uD800-\uDFFF]/u.test(value));
 const id = text(200).refine(value => value.trim().length > 0);
-const digest = z.string().regex(/^[a-f0-9]{64}$/);
-const oid = z.string().regex(/^[a-f0-9]{40}$/);
+const digest = z.string().regex(/^[a-f0-9]{64}(?![\s\S])/);
+const oid = z.string().regex(/^[a-f0-9]{40}(?![\s\S])/);
 const sourceRef = z.strictObject({
   sourceId: id, targetId: id,
-  path: z.string().max(400).regex(/^(?:intent\/[0-9]{4}|items\/[0-9]{4}-[a-z0-9]+(?:-[a-z0-9]+)*(?:\/candidates\/[a-f0-9-]{36})?)\/(?:BRIEF|SPEC)\.md$/),
+  path: z.string().max(400).regex(/^(?:intent\/[0-9]{4}|items\/[0-9]{4}-[a-z0-9]+(?:-[a-z0-9]+)*(?:\/candidates\/[a-f0-9-]{36})?)\/(?:BRIEF|SPEC)\.md(?![\s\S])/),
   status: z.enum(['canonical', 'candidate', 'amendment']),
   contentDigest: digest, blobOid: oid,
 });

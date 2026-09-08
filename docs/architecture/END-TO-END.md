@@ -271,7 +271,7 @@ live acceptance run.
 | Brief/Spec/Exam generation | Separate Architect/Test Agent contexts tested with synthetic responses, [0198](../../intent/0198/EVIDENCE.md), [0202](../../intent/0202/EVIDENCE.md) | Approved model budget, runtime composition, content/eval acceptance |
 | Cost reservations | Actual disposable-Postgres adapter tests, [0203](../../intent/0203/EVIDENCE.md) | Approved provisioning, pricing/token bounds, live binding and recovery controls |
 | Bundle correction | Editable copies/originals and explicit cumulative review invalidation, [0204](../../intent/0204/EVIDENCE.md)–[0205](../../intent/0205/EVIDENCE.md) | Final semantic review, durable versions, restore and safe regeneration; current edits are memory-only |
-| Git save and reopen | Brief-only infrastructure and inert candidate/amendment file plans, [0205](../../intent/0205/EVIDENCE.md) | Whole-bundle writer/discovery/reopen adapters, real authority, concurrency and live readback |
+| Git save and reopen | Candidate file plans and disabled exact bundle/pointer reader, [0205](../../intent/0205/EVIDENCE.md)–[0206](../../intent/0206/EVIDENCE.md) | Whole-bundle writer/catalog and UI integration, real authority, concurrency and live readback |
 | Gate waits and projection | Temporal/reconciliation components and scoped integration evidence | Complete current-source authority and live journey; watch completion is not approval |
 | Full delivery loop | Framework, policy and architecture contracts | Remaining Phase 1 exam and pilot; Phase 2/3 execution automation is not completed here |
 

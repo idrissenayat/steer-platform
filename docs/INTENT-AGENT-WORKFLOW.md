@@ -56,6 +56,12 @@ validator can check citations and declared coverage, not whether a model underst
 the source. Only unreviewed/stale Spec and Exam states are supported by the current
 candidate planner; independent publication/promotion remains a separate action.
 
+0206 adds an uninstalled bundle/pointer reader using the same manifest contracts.
+It verifies exact historical bytes without following latest pointers and rejects
+corrupt or missing sources; [evidence](../intent/0206/EVIDENCE.md) uses native Git
+with synthetic provider responses. This does not add a save/reopen control to the
+current UI or configure access to real candidate bundles.
+
 The current delivery is a bounded request/response workflow, not streaming, voice,
 a durable conversation, Temporal orchestration or a completed Gate 2 workflow.
 The source is limited to 10,000 characters, clarification to 3,000, and the encoded

@@ -70,6 +70,7 @@ test('invalid and regressed clocks and malformed metadata reject', () => {
     assert.throws(() => planIntentStepTransition(initial(), binding, { type: 'claim', owner: 'w', reservationId: 'r', leaseMs }, 1));
   }
   assert.throws(() => newIntentStep({ ...binding, inputDigest: 'not-a-digest' }, 0));
+  assert.throws(() => newIntentStep({ ...binding, inputDigest: binding.inputDigest + '\n' }, 0));
   assert.throws(() => newIntentStep({ ...binding, draftRevision: 0 }, 0));
   assert.throws(() => newIntentStep({ ...binding, organizationId: '\ud800' }, 0));
   assert.throws(() => newIntentStep({ ...binding, sourceText: 'must not enter workflow metadata' }, 0));

@@ -102,6 +102,8 @@ test('unknown and duplicate source IDs, paths and untrusted extra fields reject'
     { documents: [{ sourceId: 'invented', content: 'text' }] },
     { inventory: [{ ...fixture.inventory[0], path: 'https://outside.invalid/BRIEF.md' }] },
     { inventory: [{ ...fixture.inventory[0], targetId: 'intent/9999' }] },
+    { inventory: [{ ...fixture.inventory[0], path: fixture.inventory[0]!.path + '\n' }] },
+    { head: fixture.head + '\n' },
     { documents: [{ sourceId: 'source-0', content: '\ud800' }] }, { authorized: true },
   ]) await assert.rejects(buildIntentEvidenceEnvelope({ ...fixture, ...change }));
 });

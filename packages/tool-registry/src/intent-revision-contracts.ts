@@ -4,8 +4,8 @@ import { z } from 'zod';
 // them with U+FFFD while hashing; never trim or normalize accepted document bytes.
 const exactText = (max: number) => z.string().max(max).refine(value => !/[\uD800-\uDFFF]/u.test(value), 'Invalid Unicode');
 const identifier = exactText(200).refine(value => value.trim().length > 0, 'Missing identifier');
-const digest = z.string().regex(/^[a-f0-9]{64}$/);
-const head = z.string().regex(/^[a-f0-9]{40}$/);
+const digest = z.string().regex(/^[a-f0-9]{64}(?![\s\S])/);
+const head = z.string().regex(/^[a-f0-9]{40}(?![\s\S])/);
 export const intentDocumentDraftsSchema = z.strictObject({
   brief: exactText(30000), spec: exactText(30000), exam: exactText(30000),
 });
@@ -14,7 +14,7 @@ export type IntentDocumentDrafts = z.infer<typeof intentDocumentDraftsSchema>;
 /** This is an input binding, not permission to retain or disclose its contents. */
 export const intentScopeInputSchema = z.strictObject({
   organizationId: identifier, productId: identifier, repository: identifier,
-  draftId: z.uuid(), sourceRevision: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
+  draftId: z.uuid().length(36), sourceRevision: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
   originalText: exactText(10000),
   clarificationTurns: z.array(exactText(3000)).max(32),
   documents: z.strictObject({ brief: exactText(30000), spec: exactText(30000) }).nullable(),
@@ -77,11 +77,11 @@ export function invalidateIntentReviews(
 export const intentSaveBindingSchema = z.strictObject({
   kind: z.literal('steer-intent-save-binding/v1'),
   organizationId: identifier, productId: identifier, subject: identifier,
-  draftId: z.uuid(), draftRevision: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
+  draftId: z.uuid().length(36), draftRevision: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
   scopeInputDigest: digest, sourceSnapshotDigest: digest, assessmentDigest: digest,
   dispositionDigest: digest, bundleManifestDigest: digest,
   repository: identifier, branch: identifier,
-  item: z.string().regex(/^items\/[0-9]{4}-[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  item: z.string().regex(/^items\/[0-9]{4}-[a-z0-9]+(?:-[a-z0-9]+)*(?![\s\S])/),
   expectedHead: head,
 });
 export type IntentSaveBinding = z.infer<typeof intentSaveBindingSchema>;

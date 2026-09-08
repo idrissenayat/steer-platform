@@ -29,7 +29,7 @@ export type IntentStepEvent =
 function requireId(value: string) {
   if (typeof value !== 'string' || !value.trim() || value.length > 200 || /[\uD800-\uDFFF]/u.test(value)) throw new Error('Invalid step identifier.');
 }
-function requireDigest(value: string) { if (!/^[a-f0-9]{64}$/.test(value)) throw new Error('Invalid step digest.'); }
+function requireDigest(value: string) { if (!/^[a-f0-9]{64}(?![\s\S])/.test(value)) throw new Error('Invalid step digest.'); }
 function requireTime(value: number) { if (!Number.isSafeInteger(value) || value < 0) throw new Error('Invalid step clock.'); }
 const bindingKeys = ['organizationId', 'operationId', 'stepId', 'subject', 'draftId', 'draftRevision', 'inputDigest', 'configurationRevision'] as const;
 function requireBindingKeys(binding: IntentStepBinding) {

@@ -2,11 +2,51 @@ import { z } from 'zod';
 import { intentDocumentDraftsSchema } from './intent-revision-contracts.ts';
 
 const id = z.string().min(1).max(200).refine(value => value.trim().length > 0 && !/[\uD800-\uDFFF]/u.test(value));
-const digest = z.string().regex(/^[a-f0-9]{64}$/), head = z.string().regex(/^[a-f0-9]{40}$/);
-const itemId = z.string().regex(/^[0-9]{4}-[a-z0-9]+(?:-[a-z0-9]+)*$/).max(160);
-const uuid = z.uuid().refine(value => value === value.toLowerCase(), 'Path UUIDs must be lowercase.');
+const digest = z.string().regex(/^[a-f0-9]{64}(?![\s\S])/), head = z.string().regex(/^[a-f0-9]{40}(?![\s\S])/);
+const itemId = z.string().regex(/^[0-9]{4}-[a-z0-9]+(?:-[a-z0-9]+)*(?![\s\S])/).max(160);
+const uuid = z.uuid().length(36).refine(value => value === value.toLowerCase(), 'Path UUIDs must be lowercase.');
 const target = z.strictObject({ itemId, revision: head });
 const reviewState = z.enum(['unreviewed', 'stale']);
+const documentRef = z.strictObject({ path: z.string().min(1).max(200), contentDigest: digest });
+export const candidateBundleReferenceSchema = z.strictObject({
+  organizationId: id, productId: id, repository: id, branch: id, itemId, bundleId: uuid,
+  revision: head, manifestDigest: digest,
+});
+export type CandidateBundleReference = z.infer<typeof candidateBundleReferenceSchema>;
+export const candidatePointerReferenceSchema = candidateBundleReferenceSchema.omit({ bundleId: true, manifestDigest: true }).extend({ proposalId: uuid.nullable() });
+export const candidateBundleManifestSchema = z.strictObject({
+  kind: z.literal('steer-candidate-bundle/v1'), organizationId: id, productId: id, repository: id, itemId, bundleId: uuid,
+  purpose: z.enum(['new-candidate', 'candidate-revision', 'amendment']), previousBundleDigest: digest.nullable(),
+  target: target.nullable(), relationship: target.nullable(),
+  documents: z.strictObject({ brief: documentRef, spec: documentRef, exam: documentRef }),
+  review: z.strictObject({ scopeInputDigest: digest, sourceSnapshotDigest: digest, assessmentDigest: digest, dispositionDigest: digest }),
+  lineage: z.strictObject({ originatorSubject: id, serviceCommitter: id, architectConfigurationRevision: id,
+    examConfigurationRevision: id, editedDocuments: z.array(z.enum(['brief', 'spec', 'exam'])).max(3) }),
+  specConformance: z.strictObject({ state: reviewState }), examReview: z.strictObject({ state: reviewState }),
+}).superRefine((value, ctx) => {
+  const fail = (message: string) => ctx.addIssue({ code: 'custom', message });
+  for (const name of ['brief', 'spec', 'exam'] as const) {
+    if (value.documents[name].path !== `candidates/${value.bundleId}/${name.toUpperCase()}.md`) fail('Unexpected candidate document path.');
+  }
+  if ((value.purpose === 'amendment') !== Boolean(value.target)
+    || (value.target && (value.target.itemId !== value.itemId || value.relationship))) fail('Invalid amendment target.');
+  if (value.purpose === 'new-candidate' && value.previousBundleDigest) fail('Unexpected prior bundle.');
+  if (value.purpose === 'candidate-revision' && !value.previousBundleDigest) fail('Missing prior bundle.');
+  if (value.relationship?.itemId === value.itemId) fail('Self-linked item.');
+  const edits = value.lineage.editedDocuments;
+  if (new Set(edits).size !== edits.length) fail('Duplicate edit lineage.');
+  if (edits.some(name => name === 'brief' || name === 'spec') && value.specConformance.state !== 'stale') fail('Obsolete Spec review.');
+  if (edits.length && value.examReview.state !== 'stale') fail('Obsolete Exam review.');
+});
+export const candidateBundlePointerSchema = z.strictObject({
+  kind: z.literal('steer-candidate-pointer/v1'), itemId, bundleId: uuid,
+  manifestPath: z.string().min(1).max(200), manifestDigest: digest,
+  proposalTarget: target.nullable(), parentProposalDigest: digest.nullable(),
+}).superRefine((value, ctx) => {
+  if (value.manifestPath !== `candidates/${value.bundleId}/MANIFEST.json`
+    || (value.proposalTarget && value.proposalTarget.itemId !== value.itemId)
+    || (!value.proposalTarget && value.parentProposalDigest)) ctx.addIssue({ code: 'custom', message: 'Invalid candidate pointer.' });
+});
 const inputSchema = z.strictObject({
   organizationId: id, productId: id, repository: id, branch: id, itemId,
   bundleId: uuid, operationId: uuid,
@@ -59,7 +99,7 @@ export async function planCandidateBundle(value: unknown) {
     spec: { path: `${directory}/SPEC.md`, contentDigest: await sha256(input.documents.spec) },
     exam: { path: `${directory}/EXAM.md`, contentDigest: await sha256(input.documents.exam) },
   };
-  const manifest = {
+  const manifest = candidateBundleManifestSchema.parse({
     kind: 'steer-candidate-bundle/v1', organizationId: input.organizationId, productId: input.productId,
     repository: input.repository, itemId: input.itemId, bundleId: input.bundleId,
     purpose: input.purpose, previousBundleDigest: input.previousBundleDigest,
@@ -71,14 +111,14 @@ export async function planCandidateBundle(value: unknown) {
       architectConfigurationRevision: input.architectConfigurationRevision, examConfigurationRevision: input.examConfigurationRevision,
       editedDocuments: [...input.editedDocuments].sort() },
     specConformance: { state: input.specConformance }, examReview: { state: input.examReview },
-  };
+  });
   const manifestContent = json(manifest), manifestDigest = await sha256(manifestContent);
-  const pointer = {
+  const pointer = candidateBundlePointerSchema.parse({
     kind: 'steer-candidate-pointer/v1', itemId: input.itemId, bundleId: input.bundleId,
     manifestPath: `${directory}/MANIFEST.json`, manifestDigest,
     proposalTarget: input.amendment?.target ?? null,
     parentProposalDigest: input.amendment?.parentProposalDigest ?? null,
-  };
+  });
   const pointerPath = input.amendment ? `${root}/proposals/${input.amendment.proposalId}.json` : `${root}/CANDIDATE.json`;
   const pointerContent = json(pointer), pointerDigest = await sha256(pointerContent);
   const inputDigest = await sha256(json(['steer-candidate-save-input/v1', input.organizationId,

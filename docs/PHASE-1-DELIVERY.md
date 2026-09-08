@@ -4277,3 +4277,23 @@ accepted records-policy hashes are unchanged. No live paid call, real draft
 persistence, database migration, credential, grant or Git-writing capability was
 activated. Continue with disabled manifest catalog/reopen/writer and durable step
 adapters in the current journey plan; I1–I6 are not complete.
+
+## Development increment: 0206 — Disabled exact bundle reader
+
+Added shared strict manifest/pointer schemas and a bounded read-only adapter for
+exact historical bundles and same-commit candidate/proposal pointers. It verifies
+all three documents and scope/hash bindings, preserves exact Unicode/BOM/CRLF,
+rejects root Brief drift or malformed/missing sources, and does not follow the
+latest head or access canonical artifacts when reading an amendment. Close and
+current authorization checks suppress late/unauthorized output; admission is capped
+and no bundle cache is added. Also closed terminal-newline path/hash/UUID validation
+gaps in the new workflow contracts before any runtime binding.
+
+Full adapter suite 339/339, domain/registry suites 192/192 and web suite 100/100 pass;
+affected typechecks, kit/security and whitespace checks pass. Native Git fixtures
+exercise the actual GitHub reader using synthetic HTTP responses, not real provider
+accounts. See [0206 evidence](../intent/0206/EVIDENCE.md). The adapter is not installed
+in the application and this does not provide a UI save/reopen journey. Catalog
+enumeration/lifecycle selection, the CAS writer, durable operations and real
+authority/acceptance remain open. No service, credential, database, grant, budget,
+accepted policy or protected/signed source changed.

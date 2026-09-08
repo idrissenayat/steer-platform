@@ -82,6 +82,7 @@ test('input, document, destination and head changes alter the plan binding; tran
 
 test('arbitrary paths, authority claims, raw sources, missing content and false review states reject', async () => {
   for (const change of [{ itemId: '../0001' }, { itemId: '0007-booking/../../intent/0001' }, { bundleId: '../../EXAM.md' }, { bundleId: bundleId.toUpperCase() },
+    { itemId: input.itemId + '\n' }, { bundleId: bundleId + '\n' }, { operationId: operationId + '\n' }, { expectedHead: input.expectedHead + '\n' },
     { operationId: 'https://outside.invalid' }, { paths: ['intent/0001/EXAM.md'] }, { signed: true }, { sourceText: 'private source' },
     { specConformance: 'approved' }, { examReview: 'current' }, { documents: { ...input.documents, exam: '' } },
     { documents: { ...input.documents, exam: '\ud800' } }, { documents: { brief: 'one file only' } },

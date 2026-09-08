@@ -41,7 +41,7 @@ No separate local preview, synthetic success, silent merging or lost work counts
 | I2 Explicit disposition | Open existing, propose adding missing scope, or create a distinct linked intent with a reason. Keep original text. No automatic merge, discard, update or item creation. Record the human choice against reviewed source revisions; changed scope invalidates it. | UI proposal/recheck and server drafting consumption implemented (0201–0202); save consumption, durable recording and live acceptance pending |
 | I3 Reliable drafting | Activate the configured Mastra/LiteLLM path with an approved capped budget and durable reservation ledger. Clarify conversationally, then produce source-faithful canonical Brief/Spec drafts and a fresh-context Test Agent Exam. Reject refusals, invalid outputs and invented facts; preserve unknowns explicitly. | Drafting composition (0198/0202) and durable reservation adapter (0203) tested; live binding/approval, cost bounds and content/eval acceptance pending |
 | I4 Review without loss | Show and edit all three documents, connect corrections to the source, expose conflicts/assumptions, preserve durable draft state across navigation, expiry, refresh and restart within the approved records policy. Never silently erase user work. Support retry without duplicate paid runs. | Editing/original comparison and explicit review invalidation implemented (0204–0205); durable versioned storage, restoration and full lossless acceptance pending |
-| I5 Save and reopen | Recheck scope and duplicate-review revisions immediately before an atomic, idempotent bundle write. Concurrent new intents/changes cause re-review, not two creations. Use actual granted GitHub paths and expected-head checks; uncertain saves require status/readback. Reopen exact saved versions in the application. | Brief-only infrastructure plus tested inert candidate/amendment planner (0205); bundle adapter, discovery/reopen and live authority incomplete |
+| I5 Save and reopen | Recheck scope and duplicate-review revisions immediately before an atomic, idempotent bundle write. Concurrent new intents/changes cause re-review, not two creations. Use actual granted GitHub paths and expected-head checks; uncertain saves require status/readback. Reopen exact saved versions in the application. | Inert candidate planner and disabled exact bundle/pointer reader tested (0205–0206); catalog, writer, UI integration and live authority incomplete |
 | I6 Human acceptance | In the real signed-in UI demonstrate new, exact duplicate, paraphrased duplicate, partial overlap, related-but-distinct, empty/failed/stale search, corrections, permission loss, cost exhaustion, uncertain save, concurrent creation, refresh/reopen and keyboard/narrow-screen behavior. Record real source and saved commit. | Pending |
 
 I1's lexical retrieval is only a candidate finder, never a semantic verdict.
@@ -114,9 +114,10 @@ contract from integrated runtime behavior. All I1–I6 acceptance remains open.
 
 Next unblocked implementation sequence:
 
-1. Add a disabled manifest reader/catalog and exact historical bundle reopen
-   adapter, testing malformed/missing pointers, same-commit verification and
-   canonical-versus-proposed scope. Then add the disabled CAS bundle writer with
+1. The disabled exact bundle/pointer reader is implemented and tested in 0206.
+   Complete catalog/inventory integration, including canonical-versus-proposed
+   lifecycle selection, malformed/missing pointer coverage and same-commit source
+   enumeration. Then add the disabled CAS bundle writer with
    current scope/consent checks and original-operation receipt readback.
 2. Implement operation uniqueness, atomic step claim/reservation/CAS and checkpoint
    adapters against a disposable database; connect Temporal with explicit no-retry
@@ -129,3 +130,8 @@ Next unblocked implementation sequence:
    draft persistence still needs D1 adoption; live model usage and runtime Git
    writing still need their existing scoped approvals. Do not block steps 1–3's
    synthetic/disabled implementation while awaiting activation decisions.
+
+0206 adds the disabled exact historical bundle/pointer reader and shared strict
+manifest schemas; see [evidence](../intent/0206/EVIDENCE.md). Native-Git/synthetic-provider
+checks are not a real user save/reopen demonstration. Catalog enumeration, current
+lifecycle selection, the writer and actual UI/tool bindings remain incomplete.

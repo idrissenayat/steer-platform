@@ -88,6 +88,7 @@ test('all save references and destination fields must match; matching bytes cann
     assert.throws(() => assertIntentSaveBindingCurrent(binding, { ...binding, [key]: replacement }), /binding changed/);
   }
   for (const change of [{ approved: true }, { item: 'items/0007-booking/../../EXAM.md' }, { expectedHead: 'main' },
+    { item: binding.item + '\n' }, { expectedHead: binding.expectedHead + '\n' }, { draftId: binding.draftId + '\n' },
     { subject: '' }, { kind: 'steer-intent-save-binding/v2' }]) {
     assert.equal(intentSaveBindingSchema.safeParse({ ...binding, ...change }).success, false);
   }
