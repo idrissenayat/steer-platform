@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { createIntentScopeStarter } from '@steer/data/intent-scope-starter';
 import { createIntentScopePreparer } from '@steer/data/intent-scope-preparer';
 import { scopeReviewConfigurationSchema } from '@steer/data/scope-review-operations';
 import { createScopeReviewReader } from '@steer/data/scope-review-reader';
@@ -35,6 +36,12 @@ import { readProjection } from '@steer/data';
 import { createHeldGitBriefWriterFactory, heldGitBriefConfigurationSchema, type HeldBriefAssessment } from '@steer/adapters/held-brief-writer';
 
 const text = z.string().min(1);
+/** Start/recover only retained scope references under current authority. No
+ * default installation, source admission or direct model dispatch capability. */
+export function createRecordedScopeStarter(pools: Parameters<typeof createIntentScopeStarter>[0], configuration: unknown,
+  dependencies: Parameters<typeof createIntentScopeStarter>[2]) {
+  return createIntentScopeStarter(pools, configuration, dependencies);
+}
 /** Explicit preparation only. Current corpus/records/profile authorities are
  * mandatory; no workflow/model call or default activation. */
 export function createRecordedScopePreparer(pools: Parameters<typeof createIntentScopePreparer>[0], configuration: unknown,

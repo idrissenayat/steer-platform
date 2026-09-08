@@ -5262,3 +5262,31 @@ evaluation and I1–I6 human/save acceptance. No authentication change, alternat
 preview, real database migration, D1 activation, credential inspection/provisioning,
 paid model call, runtime Git save, gate, deployment or release occurred. First-test
 spending remains unapproved. Keep the existing one-minute loop active.
+
+## Development increment: 0245 — Authorized scope start and recovery
+
+`intent.scope.start` now joins exact retained encrypted reviews and current draft/
+execution authority to the authenticated API and a fixed-namespace Temporal
+scheduler. Recovery verifies the initial input, run, queue, timeout, retention and
+no-retry policy. Lost responses and concurrent starts converge on one retained run;
+wrong inputs/policies never become valid acknowledgements or replacement starts.
+See [0245 evidence](../intent/0245/EVIDENCE.md) for observed checks and limits.
+
+The command performs no source admission, draft mutation, model reservation or
+direct dispatch. Late source/authority changes withhold acknowledgements without
+erasing scheduled work. Bounded admission remains held while dependencies drain.
+Temporal completion is not semantic coverage, uniqueness, retry or save permission.
+
+0245 verification: 1,081/1,081 full regressions and 319/319 full PostgreSQL 16.14
+integration checks pass. The focused 48-case scope run overlaps those totals.
+Prototype/all package types, optimized Next build, Drizzle history, kit (95 required
+artifacts), workflow scope audit, 134 local document links and whitespace checks
+pass. Protected source hashes remain unchanged. No dependency or migration added.
+
+The factories remain uninstalled by default. Continue scope prepare/start/read/
+progress/recovery in the actual editor, then real authority, larger-corpus context,
+expired observation access, semantic evaluation and I1–I6 human/save acceptance.
+No auth bypass, alternative preview, real migration, D1 activation, credential
+inspection/provisioning, paid model call, runtime Git save, gate, deployment or
+release occurred. First-test spending is still unapproved. Preserve user-owned
+files and signed hashes; keep the existing one-minute loop active.

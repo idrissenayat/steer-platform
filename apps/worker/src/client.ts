@@ -26,6 +26,72 @@ export function startIntentDevelopment(client: Client, taskQueue: string, raw: u
 /** Uninstalled fixed-namespace scheduler. The caller owns the client/connection.
  * Fresh authority surrounds every wait; retries recover the same retained start,
  * not a workflow result or permission to retry an uncertain model dispatch. */
+export function createScopeSchedulerClient(client: Client, configuration: { namespace: string; taskQueue: string }) {
+  if (!configuration || Object.keys(configuration).length !== 2 || !['namespace', 'taskQueue'].every(k => Object.hasOwn(configuration, k)))
+    throw new Error('Invalid scope scheduler binding.');
+  const { namespace, taskQueue } = configuration;
+  for (const v of [namespace, taskQueue]) if (typeof v !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}(?![\s\S])/.test(v)) throw new Error('Invalid scope scheduler binding.');
+  if (client.options.namespace !== namespace) throw new Error('Invalid scope scheduler binding.');
+  let closed = false, active = 0;
+  return {
+    async start(raw: Readonly<{ organizationId: string; reviewId: string; preparationDigest: string; expiresAt: string }>, revalidate: () => Promise<void>) {
+      if (!raw || Object.keys(raw).length !== 4 || !['organizationId', 'reviewId', 'preparationDigest', 'expiresAt'].every(k => Object.hasOwn(raw, k))) throw new Error('Invalid scope start.');
+      const target = Object.freeze(parseScopeTarget({ organizationId: raw.organizationId, reviewId: raw.reviewId, preparationDigest: raw.preparationDigest }));
+      const expires = typeof raw.expiresAt === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/.test(raw.expiresAt) ? Date.parse(raw.expiresAt) : NaN, workflowId = scopeWorkflowId(target);
+      if (!Number.isFinite(expires) || typeof revalidate !== 'function' || closed || active >= 4) return { outcome: 'unavailable' as const };
+      active++;
+      let done = false, settled = false, pending = 0, released = false, timer: ReturnType<typeof setTimeout> | undefined;
+      const release = () => { if (settled && !pending && !released) { released = true; active--; } };
+      const guard = () => { const now = Date.now(); if (closed || done || client.options.namespace !== namespace || expires <= now || expires > now + 86400000) throw new Error(); };
+      const track = async <T>(work: Promise<T>) => { pending++; try { return await work; } finally { pending--; release(); } };
+      const current = async () => { guard(); if (await track(Promise.resolve().then(revalidate)) !== undefined) throw new Error(); guard(); };
+      const rpc = async <T>(work: () => Promise<T>) => {
+        await current(); const value = await track(client.withDeadline(Date.now() + 5000, () => { guard(); return work(); })); await current(); return value;
+      };
+      const inspect = async () => {
+        const description = await rpc(() => client.workflow.getHandle(workflowId).describe());
+        if (description.workflowId !== workflowId || !runId(description.runId) || description.type !== 'reviewIntentScope'
+          || description.taskQueue !== taskQueue || !states.has(description.status.name) || description.status.name === 'CONTINUED_AS_NEW') throw new Error();
+        // Fetch only the initial event. Never expose or decode role results/history.
+        const first = await rpc(() => client.workflowService.getWorkflowExecutionHistory({ namespace,
+          execution: { workflowId, runId: description.runId }, maximumPageSize: 1, waitNewEvent: false })).catch(() => { throw new Error('Initial scope event unavailable.'); });
+        const event = first.history?.events?.[0], started = event?.workflowExecutionStartedEventAttributes;
+        const payload = started?.input?.payloads?.[0], decoder = new TextDecoder('utf-8', { fatal: true });
+        if (Number(event?.eventId) !== 1 || !started || started.workflowType?.name !== 'reviewIntentScope' || started.taskQueue?.name !== taskQueue
+          || started.input?.payloads?.length !== 1 || !payload?.data || payload.data.byteLength > 4096
+          || !payload.metadata?.encoding || decoder.decode(payload.metadata.encoding) !== 'json/plain'
+          || Number(started.workflowExecutionTimeout?.seconds) !== 1800 || Number(started.workflowExecutionTimeout?.nanos ?? 0) !== 0) throw new Error();
+        if (started.retryPolicy != null || started.cronSchedule || started.continuedExecutionRunId || started.parentWorkflowExecution != null
+          || (started.attempt != null && started.attempt !== 1)) throw new Error();
+        const actual = parseScopeTarget(JSON.parse(decoder.decode(payload.data)));
+        if (Object.keys(target).some(k => actual[k as keyof typeof actual] !== target[k as keyof typeof target])) throw new Error();
+        return { outcome: 'acknowledged' as const, workflowId, runId: description.runId,
+          state: description.status.name as 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED' | 'TERMINATED' | 'TIMED_OUT' };
+      };
+      const work = Promise.resolve().then(async () => {
+        // REJECT_DUPLICATE applies only while closed executions are retained.
+        // SQL execution authority lasts at most 24h; verify at least that retention.
+        const observed = await rpc(() => client.workflowService.describeNamespace({ namespace }));
+        const retention = Number(observed.config?.workflowExecutionRetentionTtl?.seconds);
+        if (observed.namespaceInfo?.name !== namespace || observed.namespaceInfo.state !== 1 || !Number.isSafeInteger(retention) || retention < 86400) throw new Error();
+        try { return await inspect(); } catch (error) { if (!(error instanceof WorkflowNotFoundError)) throw error; }
+        await current();
+        try { await rpc(() => startIntentScopeReview(client, taskQueue, target)); }
+        catch (error) { if (!(error instanceof WorkflowExecutionAlreadyStartedError)) throw error; }
+        return await inspect();
+      });
+      void work.finally(() => { settled = true; release(); }).catch(() => {});
+      try { return await Promise.race([work, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error()), 30000); })]); }
+      catch { return { outcome: 'unknown' as const }; }
+      finally { done = true; if (timer) clearTimeout(timer); }
+    },
+    close() { closed = true; },
+  };
+}
+
+/** Uninstalled fixed-namespace scheduler. The caller owns the client/connection.
+ * Fresh authority surrounds every wait; retries recover the same retained start,
+ * not a workflow result or permission to retry an uncertain model dispatch. */
 export function createDevelopmentSchedulerClient(client: Client, configuration: { namespace: string; taskQueue: string }) {
   if (!configuration || Object.keys(configuration).length !== 2 || !['namespace', 'taskQueue'].every(k => Object.hasOwn(configuration, k)))
     throw new Error('Invalid development scheduler binding.');

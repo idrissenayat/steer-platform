@@ -787,3 +787,24 @@ entirely unavailable evidence starts no work and never establishes uniqueness.
 The final awaited authority check is followed by an expiry check before readiness.
 See [0244 specification](../../intent/0244/SPEC.md). Authorized start/recovery and
 actual editor binding remain next; no real runtime or authority is activated.
+
+0245 connects `intent.scope.start` to the exact encrypted prepared review and latest
+saved draft. A current explicitly granted human and separate execution/records
+authority are rechecked before, around and after scheduling. The command cannot
+admit source, select batches, change expiry/profile/budget or reserve model work.
+Corrections, holds, expiry and authority loss withhold acknowledgement while
+preserving any already scheduled operation.
+
+The explicit scheduler fixes namespace and queue, verifies registered namespace
+retention of at least 24 hours, and acknowledges only an exact initial start event
+for the described run: reference input, workflow type, queue, 30-minute execution
+timeout and no retry/cron/parent/continuation. Missing history is not an absent
+workflow. Only a missing description permits the existing duplicate-rejecting
+starter; concurrent starts and lost responses recover the same retained run.
+Deadlines, bounded admission and drainage checks suppress late scheduling.
+
+Receipts carry metadata only. RUNNING or COMPLETED is neither verified semantic
+coverage nor permission to retry, draft, save or sign; use `intent.scope.read` for
+current authorized findings. See [0245 specification](../../intent/0245/SPEC.md).
+Factories remain uninstalled by default. Actual editor scope preparation/start/
+read/progress/recovery, real authority and live acceptance remain subsequent work.

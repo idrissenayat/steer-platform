@@ -1,6 +1,6 @@
 # STEER platform implementation
 
-## Current checkpoint — 0244
+## Current checkpoint — 0245
 
 Use [the intent journey plan](INTENT-JOURNEY-PLAN.md) and
 [the delivery ledger](PHASE-1-DELIVERY.md) for current status; the implementation
@@ -77,6 +77,15 @@ repository-wide collector; neither accepts caller text or profile/budget setting
 Partial, empty, stale and uncertain preparations remain distinct. See
 [0244 evidence](../intent/0244/EVIDENCE.md). Start/recovery and actual editor binding
 are next; preparation does not dispatch, reserve model spending or save to Git.
+
+0245 adds `intent.scope.start` over the exact retained original and current draft,
+with explicit current-human/execution authority and a fixed-namespace scheduler.
+Recovery verifies initial workflow input, run, queue, timeout, retention and no-retry
+policy. Lost responses and concurrent starts converge on the same retained run;
+uncertainty never grants a repeated model dispatch or semantic completion. Actual
+HTTP/SQL/Temporal integration uses synthetic authority and model responses. See
+[0245 evidence](../intent/0245/EVIDENCE.md). The factories remain uninstalled;
+actual editor scope prepare/start/read/progress/recovery is next.
 
 These are tested development capabilities, not live end-to-end acceptance. D1
 records activation, real source/lifecycle verifier binding, large-corpus contextual

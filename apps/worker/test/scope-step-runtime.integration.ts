@@ -9,6 +9,7 @@ import {prepareIntentScopeReview} from '@steer/tool-registry/intent-scope-review
 import {createVerifiedScopeReviewReader} from '../../api/src/runtime.ts';
 import {createScopeStepRuntime} from '../src/scope-step-runtime.ts';
 import {testScopeWorkflow} from './scope-workflow.integration.ts';
+import {testScopeStart} from '../../api/test/intent-scope-start.integration.ts';
 type Dependencies=Parameters<typeof createScopeStepRuntime>[3];
 const gate=()=>{let release!:()=>void;const promise=new Promise<void>(r=>{release=r;});return{promise,release};};
 export async function scopeStepIntegrationFixture({admin,connect}:{admin:Pool;connect(role:string):Pool},sourceCount=4,ttl=3600000){
@@ -42,6 +43,7 @@ export async function testScopeStepRuntime({admin,connect,check:checkBase}:{admi
   const connection=(role:string)=>{const p=connect(role);owned.push(p);return p;};
   const check=(name:string,run:()=>Promise<void>)=>checkBase(name,async()=>{try{await run();}finally{await Promise.all(owned.splice(0).map(p=>p.end()));}});
   const setup=(sourceCount=4,ttl=3600000)=>scopeStepIntegrationFixture({admin,connect:connection},sourceCount,ttl);
+  await testScopeStart(setup,check,admin);
   await check('scope runner executes actual recorded SDK batches once and reconstructed SQL readback recovers combined review without dispatch credentials',async()=>{
     const f=await setup(34);assert.equal(f.prepared.batches.length,2);assert.equal((await f.read()).status,'pending');
     const first=await f.run();assert.equal(first.outcome,'succeeded');assert.equal(f.state.calls,1);assert.equal((await f.read()).status,'pending');
