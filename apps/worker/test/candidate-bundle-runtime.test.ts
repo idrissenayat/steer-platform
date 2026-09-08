@@ -27,7 +27,7 @@ test('candidate composition is lazy and malformed submissions or recovery reques
     { fetch: deny, appJwt: deny, authorizeRead: deny, authorizeOperation: deny, evaluateDispatch: deny });
   assert.equal(calls, 0);
   for (const raw of [{}, { operationId: 'caller-selected', approval: true }, { bundle: {}, confirmation: {} }]) {
-    await assert.rejects(store.prepare(raw)); await assert.rejects(store.inspect(raw)); await assert.rejects(store.compareAndWrite(raw));
+    await assert.rejects(store.prepare(raw)); await assert.rejects(store.inspect(raw)); await assert.rejects(store.compareAndWrite(raw)); await assert.rejects(store.reconcile(raw));
   }
   store.close(); store.close(); assert.equal(calls, 0);
 });

@@ -154,3 +154,11 @@ the missing trusted authority service or implement receipt-to-checkpoint promoti
 composition. The shared test harness verifies the actual SQL/Git/Temporal chain;
 the original-payload and current-authority services remain synthetic test ports.
 No new schema migration or runtime installation is introduced by that workflow.
+
+[0212](../../intent/0212/EVIDENCE.md) uses the existing checkpoint transition for
+candidate receipt reconciliation. The composed store verifies an immutable Git
+observation outside SQL and supplies a short-lived exact evidence binding to the
+checkpoint port. It needs separate reconciliation authority; ordinary `inspect`
+never records success. Only dispatch-committed or already-succeeded steps qualify;
+known failures and manually quarantined outcomes remain unchanged. No schema,
+refund, retry, automatic invocation or live authority is added.

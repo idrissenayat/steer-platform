@@ -41,7 +41,7 @@ No separate local preview, synthetic success, silent merging or lost work counts
 | I2 Explicit disposition | Open existing, propose adding missing scope, or create a distinct linked intent with a reason. Keep original text. No automatic merge, discard, update or item creation. Record the human choice against reviewed source revisions; changed scope invalidates it. | UI proposal/recheck and server drafting consumption implemented (0201–0202); save consumption, durable recording and live acceptance pending |
 | I3 Reliable drafting | Activate the configured Mastra/LiteLLM path with an approved capped budget and durable reservation ledger. Clarify conversationally, then produce source-faithful canonical Brief/Spec drafts and a fresh-context Test Agent Exam. Reject refusals, invalid outputs and invented facts; preserve unknowns explicitly. | Drafting composition (0198/0202), reservation adapter (0203) and uninstalled atomic operation/step ownership (0209) tested; Temporal/result-store composition, live binding/approval, cost bounds and content/eval acceptance pending |
 | I4 Review without loss | Show and edit all three documents, connect corrections to the source, expose conflicts/assumptions, preserve durable draft state across navigation, expiry, refresh and restart within the approved records policy. Never silently erase user work. Support retry without duplicate paid runs. | Editing/original comparison and explicit review invalidation implemented (0204–0205); durable versioned storage, restoration and full lossless acceptance pending |
-| I5 Save and reopen | Recheck scope and duplicate-review revisions immediately before an atomic, idempotent bundle write. Concurrent new intents/changes cause re-review, not two creations. Use actual granted GitHub paths and expected-head checks; uncertain saves require status/readback. Reopen exact saved versions in the application. | Disabled planner/reader, collector, bundle store, durable dispatch and reference-only candidate-save Temporal composition implemented (0205–0211); verified lifecycle/full-corpus authority, original-payload storage, result reconciliation and actual UI integration incomplete |
+| I5 Save and reopen | Recheck scope and duplicate-review revisions immediately before an atomic, idempotent bundle write. Concurrent new intents/changes cause re-review, not two creations. Use actual granted GitHub paths and expected-head checks; uncertain saves require status/readback. Reopen exact saved versions in the application. | Disabled planner/reader, collector, bundle store, durable dispatch, candidate-save Temporal and verified receipt checkpoint reconciliation implemented (0205–0212); verified lifecycle/full-corpus authority, original-payload storage, quarantined-outcome resolution and actual UI integration incomplete |
 | I6 Human acceptance | In the real signed-in UI demonstrate new, exact duplicate, paraphrased duplicate, partial overlap, related-but-distinct, empty/failed/stale search, corrections, permission loss, cost exhaustion, uncertain save, concurrent creation, refresh/reopen and keyboard/narrow-screen behavior. Record real source and saved commit. | Pending |
 
 I1's lexical retrieval is only a candidate finder, never a semantic verdict.
@@ -127,8 +127,9 @@ Next unblocked implementation sequence:
    references are implemented and tested against disposable PostgreSQL in 0209.
    0210 joins candidate saves to this dispatch protocol without runtime activation.
    0211 adds reference-only candidate-save Temporal execution with explicit no-retry
-   boundaries. Next compose original-payload storage, current authority and receipt
-   reconciliation, and then durable development-role activities. Test-only checkpoint bytes
+   boundaries. 0212 adds separately authorized receipt-to-checkpoint reconciliation
+   for sent/succeeded candidate steps. Next compose original-payload storage and
+   current authority, then durable development-role activities. Test-only checkpoint bytes
    do not supply approved encrypted draft storage. Explicit linked new attempts,
    verified unknown-outcome resolution and recovery reconciliation remain open.
 3. Compose authorized inventory reads with the evidence envelope and a pinned,
@@ -189,3 +190,13 @@ effect. [Evidence](../intent/0211/EVIDENCE.md) keeps a completed workflow with a
 unknown outcome distinct from a committed save. Real original-payload storage,
 current authority, receipt reconciliation, development-role execution and UI
 integration remain incomplete; no live activation occurs.
+
+0212 adds explicit, separately authorized `reconcile(originalRequest)` to the
+uninstalled candidate store. It reads/verifies the actual Git receipt before SQL,
+then checkpoints that immutable evidence without holding a transaction over the
+provider read. Lost SQL acknowledgement and repeated reconciliation cannot resend
+Git work. Missing/corrupt receipts remain unknown/conflict; known failures and
+manually quarantined outcomes cannot be cleared by this method. See
+[evidence](../intent/0212/EVIDENCE.md). There is no automatic workflow/UI invocation,
+payload storage or new authority. Original-payload persistence/current authority
+and durable development-role integration remain the next independent work.

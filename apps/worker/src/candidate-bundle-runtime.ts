@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import { createIntentOperationStore, intentOperationConfigurationSchema } from '@steer/data/intent-operations';
+import { createIntentOperationStore, intentOperationConfigurationSchema, type IntentCheckpointReference } from '@steer/data/intent-operations';
 import type { DatabasePool } from '@steer/data/runtime-pool';
 import { createGitHubCandidateBundleStore, candidateBundleStoreConfigurationSchema, candidateBundleDispatchProofSchema,
   type CandidateBundlePrepared } from '@steer/adapters/github-candidate-bundle-store';
@@ -36,6 +36,7 @@ export function createDurableCandidateBundleStore(pool: DatabasePool,
   dependencies: Pick<ProviderDependencies, 'fetch' | 'appJwt' | 'now' | 'authorizeRead'> & {
     authorizeOperation: Parameters<typeof createIntentOperationStore>[2]['authorize'];
     evaluateDispatch: (prepared: CandidateBundlePrepared) => Promise<unknown>;
+    authorizeReconciliation?: (prepared: CandidateBundlePrepared) => Promise<void>;
   }) {
   const config = freeze(optionsSchema.parse(rawOptions)), owner = randomUUID();
   if (config.execution.action !== 'candidate-save' || config.execution.budget !== null
@@ -44,9 +45,24 @@ export function createDurableCandidateBundleStore(pool: DatabasePool,
     if (config.execution[key] !== config.publication[key]) throw new Error('Candidate execution scope mismatch.');
   const publicationDigest = createHash('sha256').update(JSON.stringify([config.publication,
     binding.organizationId, binding.installationId, binding.repositoryId, binding.owner, binding.repository, binding.branch])).digest('hex');
+  let closed = false, active = false, pending = 0;
+  let checkpointProof: (IntentCheckpointReference & { verifiedAt: number }) | undefined;
   const operations = createIntentOperationStore(pool, config.execution, { authorize: dependencies.authorizeOperation,
-    verifyCheckpoint: async () => { throw new Error('Candidate receipt reconciliation is not installed.'); } });
-  let closed = false, active = false;
+    verifyCheckpoint: async ref => {
+      // Created ONLY from this adapter's verified native receipt read, never a
+      // caller assertion. Immutable Git-result evidence is prefetched outside SQL.
+      const proof = checkpointProof, time = performance.now();
+      if (closed || !proof || time < proof.verifiedAt || time - proof.verifiedAt >= 5000
+        || ref.resultRef !== proof.resultRef || ref.resultDigest !== proof.resultDigest || ref.recordsPolicyDigest !== proof.recordsPolicyDigest
+        || Object.keys(ref.binding).some(key => ref.binding[key as keyof typeof ref.binding] !== proof.binding[key as keyof typeof proof.binding]))
+        throw new Error('Candidate receipt checkpoint unavailable.');
+    } });
+  const within = async <T>(work: Promise<T>): Promise<T> => {
+    pending++; void work.finally(() => { pending--; }).catch(() => {});
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try { return await Promise.race([work, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error('Candidate reconciliation unavailable.')), 5000); })]); }
+    finally { if (timer) clearTimeout(timer); }
+  };
   const validate = async (raw: unknown) => {
     const request = freeze(requestSchema.parse(raw)), input = request.bundle;
     for (const key of ['organizationId', 'productId', 'repository', 'branch', 'serviceCommitter'] as const)
@@ -89,7 +105,7 @@ export function createDurableCandidateBundleStore(pool: DatabasePool,
   });
   async function run(raw: unknown, write: boolean) {
     const p = await validate(raw);
-    if (closed || active) return observe(p, 'unknown');
+    if (closed || active || pending) return observe(p, 'unknown');
     active = true;
     try {
       const current = await operations.inspect(reference(p));
@@ -111,7 +127,7 @@ export function createDurableCandidateBundleStore(pool: DatabasePool,
       // Validate purpose, exact document/consent hashes and configured scope
       // before allocating an operation; the placeholder plan never escapes.
       await validate({ ...submission, bundle: { ...submission.bundle, operationId: previewId } });
-      if (closed || active) return { outcome: 'unavailable' as const };
+      if (closed || active || pending) return { outcome: 'unavailable' as const };
       active = true;
       try {
         const result = await operations.create({ draftId: submission.confirmation.draftId,
@@ -123,6 +139,46 @@ export function createDurableCandidateBundleStore(pool: DatabasePool,
     },
     compareAndWrite: (request: unknown) => run(request, true),
     inspect: (request: unknown) => run(request, false),
+    async reconcile(request: unknown) {
+      const p = await validate(request);
+      const result = (outcome: 'recorded' | 'unknown' | 'unavailable' | 'conflict', revision: string | null = null, resultDigest: string | null = null) => freeze({
+        kind: 'steer-candidate-reconciliation/v1' as const, operationId: p.request.bundle.operationId, inputDigest: p.plan.inputDigest,
+        outcome, revision, resultDigest, gateSigned: false as const, executionAuthorized: false as const, retryAuthorized: false as const,
+      });
+      if (closed || active || pending || typeof dependencies.authorizeReconciliation !== 'function') return result('unavailable');
+      active = true;
+      const authorize = async () => {
+        if (closed || await within(dependencies.authorizeReconciliation!(p)) !== undefined) throw new Error();
+        if (closed || await within(dependencies.authorizeRead(p)) !== undefined) throw new Error();
+        if (closed) throw new Error();
+      };
+      try {
+        await authorize();
+        const current = await operations.inspect(reference(p));
+        if (current.outcome !== 'ok') return result(current.outcome === 'conflict' ? 'conflict' : 'unknown');
+        const op = current.value.operation, step = current.value.steps[0];
+        if (op.draftId !== p.request.confirmation.draftId || op.draftRevision !== p.request.confirmation.draftRevision
+          || (step && step.record.binding.inputDigest !== p.plan.inputDigest)) return result('conflict');
+        // No creation, reassignment, failure erasure or manual quarantine release.
+        if (!step || !['dispatch-committed', 'succeeded'].includes(step.record.state)) return result('unavailable');
+        const observed = await writer.inspect(p.request);
+        if (closed || observed.outcome !== 'committed') return result(observed.outcome === 'conflict' ? 'conflict' : 'unknown');
+        const verifiedAt = performance.now();
+        const resultDigest = createHash('sha256').update(JSON.stringify(['steer-candidate-receipt-checkpoint/v1', config.execution.organizationId,
+          observed.operationId, observed.inputDigest, observed.revision, observed.expectedHead, observed.manifestDigest, observed.pointerDigest])).digest('hex');
+        await authorize();
+        checkpointProof = freeze({ binding: step.record.binding, resultRef: p.request.bundle.operationId, resultDigest,
+          recordsPolicyDigest: config.execution.recordsPolicyDigest, verifiedAt });
+        const saved = await operations.transition({ ...reference(p), stepId: 'candidate-save', stepInputDigest: p.plan.inputDigest, predecessorResultDigest: null,
+          event: { type: 'checkpoint', owner: step.record.owner, fencingToken: step.record.fencingToken, resultRef: p.request.bundle.operationId, resultDigest } });
+        checkpointProof = undefined;
+        if (saved.outcome !== 'ok' || saved.dispatchAllowed || saved.value.record.state !== 'succeeded') return result(saved.outcome === 'conflict' ? 'conflict' : 'unknown');
+        await authorize();
+        if (performance.now() - verifiedAt >= 5000) return result('unknown');
+        return result('recorded', observed.revision, resultDigest);
+      } catch { return result('unknown'); }
+      finally { checkpointProof = undefined; active = false; }
+    },
     close: () => { closed = true; operations.close(); writer.close(); },
   };
 }

@@ -4419,3 +4419,27 @@ for cancellation and content-free heartbeats. No new downloaded package, schema,
 real service, credential, grant, spending authority, accepted policy or signed source
 changed. Next implement approved original-payload retrieval/current authority and
 receipt reconciliation, then development-role orchestration and actual UI integration.
+
+## Development increment: 0212 — Verified candidate receipt checkpoints
+
+Added explicit, separately authorized reconciliation to the uninstalled candidate
+store. Verified native Git receipt/bundle evidence now feeds the existing fenced
+SQL checkpoint transition, closing the normal dispatch-to-success metadata gap.
+The Git read occurs outside SQL; only a short-lived immutable evidence binding is
+available inside the transaction. Inspect remains read-only. Idempotent reconciliation
+and lost checkpoint acknowledgements never invoke another Git mutation.
+
+Tests cover absent/corrupt receipts, current-grant loss, delayed/expired proof,
+late authority reads, close, uncertain acknowledgements and exact repeated readback
+after later unrelated commits. Known-failed and manually quarantined steps remain
+unchanged. See [0212 evidence](../intent/0212/EVIDENCE.md) for verification and limits.
+
+The combined PostgreSQL/native-Git/Temporal suite passes **77/77** checks, including
+nine new reconciliation cases; worker/data/domain/registry/control tests pass
+**275/275**. Full typecheck, kit/security and whitespace checks pass; signed hashes
+are unchanged. No UI/visual or live-provider acceptance is implied.
+
+No actual application/workflow invokes the new method, and no real database,
+schema, key, grant, budget, signed source or records policy changed. Payload storage,
+live current-authority composition, quarantined-outcome resolution, development-role
+orchestration and UI acceptance remain open. I1–I6 are not complete.

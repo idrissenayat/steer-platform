@@ -89,6 +89,23 @@ approved original-payload persistence, a public scheduling command or a working
 user-facing save button. Durable Architect/Test Agent activities and actual
 lifecycle/full-corpus/authority services remain separate integration tasks.
 
+0212 adds a separate `reconcile(originalRequest)` command on the uninstalled
+candidate store. Ordinary read access and `inspect` still do not modify the SQL
+step: the composition must supply an explicit current `authorizeReconciliation`
+service as well as current operation/read authority. The method re-verifies the
+native Git receipt and full saved bundle, then stores only an exact result digest
+and operation-scoped receipt reference as the step's succeeded checkpoint. The
+provider read finishes before SQL begins; a five-second, in-process immutable
+evidence binding is consumed by the checkpoint verifier, never caller assertions.
+
+Repeated reconciliation re-verifies Git and returns the same checkpoint. Lost SQL
+commit acknowledgement returns unknown even when success persisted; retrying this
+explicit read/reconciliation path never retries the Git write. A missing/corrupt
+receipt, closed/revoked service, stale evidence or manually quarantined/known-failed
+step cannot be promoted. `recorded` means this checkpoint was acknowledged, not a
+gate approval or new execution permission. Neither the UI nor 0211's workflow
+invokes reconciliation automatically. See [0212 evidence](../intent/0212/EVIDENCE.md).
+
 ## Human journey
 
 Open https://localhost:8443/ and sign in. The actual workspace now starts with

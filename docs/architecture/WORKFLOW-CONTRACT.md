@@ -197,6 +197,16 @@ ID retention does not replace SQL fencing. Cancellation may stop an unsent opera
 but cannot erase an accepted external effect. Workflow completion with an unknown
 outcome is not save completion, a resolved SQL checkpoint or human gate authority.
 
+Implementation note (0212, inactive): an explicitly authorized reconciliation can
+record a verified candidate receipt as a SQL result checkpoint. Read the original
+provider receipt and exact saved bundle first, then consume a short-lived immutable
+evidence binding inside the existing fenced checkpoint transaction. Never hold SQL
+across Git reads, accept caller checkpoint assertions or treat receipt absence as
+retry permission. The result digest uses the `steer-candidate-receipt-checkpoint/v1`
+domain over organization, operation/input digest, commit/head and manifest/pointer
+digests. The result reference is the original operation's receipt ID. This initial
+path cannot release manually quarantined outcomes or erase known failures.
+
 ## 4. Duplicate prevention and atomic save
 
 1. Search authorized candidates and existing Brief/Spec scope, including relevant

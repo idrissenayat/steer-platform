@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
+import { setTimeout as delay } from 'node:timers/promises';
 import type { Pool, PoolClient } from 'pg';
 import type { DatabasePool } from '@steer/data/runtime-pool';
 import { createDurableCandidateBundleStore } from '../src/candidate-bundle-runtime.ts';
@@ -34,11 +35,13 @@ export async function testDurableCandidateBundles({ app, admin, connect, check }
       scopeInputDigest: bundle.scopeInputDigest, sourceSnapshotDigest: bundle.sourceSnapshotDigest,
       assessmentDigest: bundle.assessmentDigest, dispositionDigest: bundle.dispositionDigest };
     const make = (overrides: { pool?: DatabasePool; proof?: (p: Record<string, unknown>) => unknown;
-      authorizeOperation?: () => Promise<void>; authorizeRead?: () => Promise<void>; execution?: object; publication?: object } = {}) => {
+      authorizeOperation?: () => Promise<void>; authorizeRead?: () => Promise<void>; authorizeReconciliation?: () => Promise<void>;
+      execution?: object; publication?: object } = {}) => {
       const store = createDurableCandidateBundleStore(overrides.pool ?? app, binding,
         { execution: { ...execution, ...overrides.execution }, publication: { ...publication, ...overrides.publication } }, {
           fetch: git.transport, appJwt: async () => 'synthetic-app-jwt', now: () => now,
           authorizeRead: overrides.authorizeRead ?? (async () => {}), authorizeOperation: overrides.authorizeOperation ?? (async () => {}),
+          ...(overrides.authorizeReconciliation ? { authorizeReconciliation: overrides.authorizeReconciliation } : {}),
           evaluateDispatch: async p => {
             git.recordSyntheticApproval();
             const proof = { kind: 'steer-candidate-bundle-dispatch-proof/v1', operationId: p.request.bundle.operationId, inputDigest: p.plan.inputDigest,
@@ -150,6 +153,96 @@ export async function testDurableCandidateBundles({ app, admin, connect, check }
       assert.equal((await f.make({ authorizeRead: async () => { throw new Error('Synthetic revoked source'); } }).compareAndWrite(request)).outcome, 'unknown');
       assert.equal(f.git.calls.length, 0); assert.equal(await f.state(request.bundle.operationId), undefined);
       const store = f.make(); store.close(); assert.equal((await store.compareAndWrite(request)).outcome, 'unknown');
+    });
+    await check('receipt reconciliation needs its own grant, records verified success and replays idempotently without writing Git', async () => {
+      const f = await setup(), request = await f.prepare(); assert.equal((await f.make().compareAndWrite(request)).outcome, 'committed');
+      const before = f.git.calls.length;
+      assert.equal((await f.make().reconcile(request)).outcome, 'unavailable'); assert.equal(f.git.calls.length, before);
+      assert.equal((await f.make().inspect(request)).outcome, 'committed'); assert.equal(await f.state(request.bundle.operationId), 'dispatch-committed');
+      const result = await f.make({ authorizeReconciliation: async () => {} }).reconcile(request);
+      assert.equal(result.outcome, 'recorded'); assert.equal(result.revision, f.git.head()); assert.equal(result.retryAuthorized, false);
+      assert.equal(result.executionAuthorized, false); assert.equal(result.gateSigned, false);
+      assert.equal(await f.state(request.bundle.operationId), 'succeeded');
+      const row = (await admin.query('SELECT record,result_ref FROM steer_execution.intent_steps WHERE organization_id=$1 AND operation_id=$2', [binding.organizationId, request.bundle.operationId])).rows[0];
+      assert.equal(row.record.resultDigest, result.resultDigest); assert.equal(row.result_ref, request.bundle.operationId);
+      assert.equal(JSON.stringify(row).includes('Synthetic Brief'), false);
+      const later = f.git.add([{ path: 'unrelated-later.md', content: 'Synthetic unrelated commit\n' }]); assert.notEqual(later, result.revision);
+      assert.deepEqual(await f.make({ authorizeReconciliation: async () => {} }).reconcile(request), result);
+      assert.equal((await f.make().compareAndWrite(request)).outcome, 'committed'); assert.equal(f.git.mutations(), 1);
+    });
+    await check('uncertain Git acknowledgement becomes a verified SQL checkpoint without another external send', async () => {
+      const f = await setup(), request = await f.prepare(); f.git.loseAck();
+      assert.equal((await f.make().compareAndWrite(request)).outcome, 'unknown');
+      const result = await f.make({ authorizeReconciliation: async () => {} }).reconcile(request);
+      assert.equal(result.outcome, 'recorded'); assert.equal(await f.state(request.bundle.operationId), 'succeeded'); assert.equal(f.git.mutations(), 1);
+    });
+    await check('absent or substituted provider receipts never promote SQL state or manufacture retry permission', async () => {
+      for (const corrupt of [false, true]) {
+        const f = await setup(), request = await f.prepare(); if (!corrupt) f.git.deny();
+        await f.make().compareAndWrite(request);
+        if (corrupt) f.git.add([{ path: `.steer/authoring/bundle-operations/${request.bundle.operationId}.json`, content: '{}\n' }]);
+        const result = await f.make({ authorizeReconciliation: async () => {} }).reconcile(request);
+        assert.equal(result.outcome, corrupt ? 'conflict' : 'unknown'); assert.equal(result.retryAuthorized, false);
+        assert.equal(await f.state(request.bundle.operationId), 'dispatch-committed'); assert.equal(f.git.mutations(), 1);
+      }
+    });
+    await check('lost checkpoint COMMIT acknowledgement preserves the SQL result and fresh reconciliation never rewrites the save', async () => {
+      const f = await setup(), request = await f.prepare(); await f.make().compareAndWrite(request);
+      const uncertain: DatabasePool = { async connect() {
+        const client = await app.connect(); let checkpoint = false;
+        return { query: async (sql: string, values?: unknown[]) => {
+          const result = await client.query(sql, values);
+          if (sql.startsWith('UPDATE steer_execution.intent_steps') && String(values?.[0]).includes('succeeded')) checkpoint = true;
+          if (sql === 'COMMIT' && checkpoint) throw new Error('Synthetic lost checkpoint acknowledgement'); return result;
+        }, release: (broken: boolean) => client.release(broken) } as PoolClient;
+      } };
+      assert.equal((await f.make({ pool: uncertain, authorizeReconciliation: async () => {} }).reconcile(request)).outcome, 'unknown');
+      assert.equal(await f.state(request.bundle.operationId), 'succeeded');
+      assert.equal((await f.make({ authorizeReconciliation: async () => {} }).reconcile(request)).outcome, 'recorded'); assert.equal(f.git.mutations(), 1);
+    });
+    await check('reconciliation authority loss before SQL or before result release withholds a checkpoint acknowledgement', async () => {
+      for (const revokeAt of [2, 3]) {
+        const f = await setup(), request = await f.prepare(); await f.make().compareAndWrite(request); let calls = 0;
+        const result = await f.make({ authorizeReconciliation: async () => { if (++calls === revokeAt) throw new Error('Synthetic reconciliation grant revoked'); } }).reconcile(request);
+        assert.equal(result.outcome, 'unknown'); assert.equal(result.revision, null);
+        assert.equal(await f.state(request.bundle.operationId), revokeAt === 2 ? 'dispatch-committed' : 'succeeded'); assert.equal(f.git.mutations(), 1);
+      }
+    });
+    await check('closing reconciliation during an authority read cannot produce a late SQL success', async () => {
+      const f = await setup(), request = await f.prepare(); await f.make().compareAndWrite(request);
+      let entered!: () => void, release!: () => void;
+      const started = new Promise<void>(resolve => { entered = resolve; });
+      const store = f.make({ authorizeReconciliation: async () => { entered(); await new Promise<void>(resolve => { release = resolve; }); } });
+      const pending = store.reconcile(request); await started; store.close(); release();
+      assert.equal((await pending).outcome, 'unknown'); assert.equal(await f.state(request.bundle.operationId), 'dispatch-committed');
+      assert.equal((await store.reconcile(request)).outcome, 'unavailable'); assert.equal(f.git.mutations(), 1);
+    });
+    await check('reconciliation cannot erase a known failure or manually quarantined outcome even when Git has a receipt', async () => {
+      for (const state of ['failed-known', 'outcome-unknown']) {
+        const f = await setup(), request = await f.prepare(); await f.make().compareAndWrite(request);
+        await admin.query("UPDATE steer_execution.intent_steps SET record=jsonb_set(record,'{state}',to_jsonb($3::text)) WHERE organization_id=$1 AND operation_id=$2",
+          [binding.organizationId, request.bundle.operationId, state]);
+        const before = f.git.calls.length;
+        assert.equal((await f.make({ authorizeReconciliation: async () => {} }).reconcile(request)).outcome, 'unavailable');
+        assert.equal(f.git.calls.length, before); assert.equal(await f.state(request.bundle.operationId), state);
+      }
+    });
+    await check('an expired prefetched receipt proof cannot become a SQL checkpoint after delayed current authority checks', async () => {
+      const f = await setup(), request = await f.prepare(); await f.make().compareAndWrite(request); let calls = 0, delayRead = false;
+      const store = f.make({ authorizeReconciliation: async () => { if (++calls === 2) { await delay(3500); delayRead = true; } },
+        authorizeRead: async () => { if (delayRead) { delayRead = false; await delay(1800); } } });
+      assert.equal((await store.reconcile(request)).outcome, 'unknown'); assert.equal(await f.state(request.bundle.operationId), 'dispatch-committed');
+      assert.equal(f.git.mutations(), 1);
+    });
+    await check('timed-out reconciliation retains admission until the actual authority dependency drains', async () => {
+      const f = await setup(), request = await f.prepare(); await f.make().compareAndWrite(request); let first = true, release!: () => void;
+      const store = f.make({ authorizeReconciliation: async () => { if (first) { first = false; await new Promise<void>(resolve => { release = resolve; }); } } });
+      assert.equal((await store.reconcile(request)).outcome, 'unknown');
+      const before = f.git.calls.length;
+      assert.equal((await store.reconcile(request)).outcome, 'unavailable'); assert.equal((await store.inspect(request)).outcome, 'unknown');
+      assert.equal(f.git.calls.length, before); assert.equal(await f.state(request.bundle.operationId), 'dispatch-committed');
+      release(); await new Promise(resolve => setImmediate(resolve));
+      assert.equal((await store.reconcile(request)).outcome, 'recorded'); assert.equal(f.git.mutations(), 1);
     });
     await testCandidateSaveWorkflow(setup, check);
   } finally { for (const cleanup of cleanups.reverse()) cleanup(); }
