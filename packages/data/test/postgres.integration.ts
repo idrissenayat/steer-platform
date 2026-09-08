@@ -25,6 +25,7 @@ import { testDevelopmentRequests } from './development-requests.integration.ts';
 import { testDevelopmentStepRuntime } from '../../../apps/worker/test/development-step-runtime.integration.ts';
 import { testDevelopmentObservations } from './development-observations.integration.ts';
 import { testIntentDraftApi } from '../../../apps/api/test/intent-drafts.integration.ts';
+import { testDevelopmentPreparation } from '../../../apps/api/test/intent-development-prepare.integration.ts';
 
 const exec = promisify(execFile);
 const docker = async (...args: string[]) => (await exec('docker', args, { timeout: 30000 })).stdout.trim();
@@ -238,6 +239,7 @@ try {
   await testDevelopmentRequests({ admin, connect, check });
   await testDevelopmentStepRuntime({ admin, connect, check });
   await testDevelopmentObservations({ admin, connect, check });
+  await testDevelopmentPreparation({ admin, connect, check });
   await testIntentDraftApi({ admin, connect, check });
   await testDurableCandidateBundles({ admin, app, connect, check });
   console.log(`PostgreSQL integration: ${passed} checks passed; server ${(await admin.query('SHOW server_version')).rows[0].server_version}`);

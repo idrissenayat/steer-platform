@@ -559,3 +559,13 @@ operation, workflow replacement or model retry. A scheduling receipt is not docu
 readiness; 0227 remains the separate authorized SQL results query. See
 [0228 specification](../../intent/0228/SPEC.md). Reviewed-draft assembly/admission
 and the actual editor connection remain upstream work, with live activation closed.
+
+0229 supplies `intent.development.prepare` to assemble exact stored draft content,
+reviewed direction, evidence and fixed profiles/configuration before 0228 start.
+Incomplete declared coverage admits no operation. SQL uniqueness plus immutable
+original readback distinguishes prepared, conflicted, unavailable and unknown work;
+retry cannot silently renew expiry or replace retained inputs. Prepared is not a
+semantic-clearance or execution/save/gate grant. See
+[0229 specification](../../intent/0229/SPEC.md). Actual editor integration and the
+production full-corpus/evidence/authority binding remain unconnected; synthetic
+preparation-to-Temporal tests do not complete the live acceptance journey.

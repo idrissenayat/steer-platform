@@ -16,6 +16,8 @@ import { RECORDED_MASTRA_REVISION } from '../../agents/src/recorded-mastra.ts';
 import { testDevelopmentWorkflow } from '../../../apps/worker/test/development-workflow.integration.ts';
 import { testIntentDevelopmentRead } from '../../../apps/api/test/intent-development-read.integration.ts';
 import { testDevelopmentStart, createDevelopmentStartHarness } from '../../../apps/api/test/intent-development-start.integration.ts';
+import { prepareRecordedFixture } from '../../../apps/api/test/intent-development-prepare.integration.ts';
+import { buildIntentEvidenceEnvelope } from '@steer/tool-registry/intent-evidence-contracts';
 type Deps = Parameters<typeof createDevelopmentObservationStore>[2];
 
 export async function testDevelopmentObservations({admin,connect,check}:{admin:Pool;connect(role:string):Pool;check(name:string,run:()=>Promise<void>):Promise<void>}) {
@@ -34,14 +36,21 @@ export async function testDevelopmentObservations({admin,connect,check}:{admin:P
     const content={originalText:' Private observed original 🌸\r\n',clarificationTurns:['Exact answer'],documents:null};
     const saved=await drafts.append({draftId,mutationId:randomUUID(),expectedRevision:0,expectedDigest:null,content});assert.equal(saved.outcome,'acknowledged');if(saved.outcome!=='acknowledged')throw new Error();
     const described=await originalFixture(execution,{draftId,revision:1,sourceRevision:1,revisionDigest:saved.reference.revisionDigest,content});
-    const original=recorded?await describeDevelopmentOriginal({...described.original,profiles:{
+    const completeEvidence={...described.original.evidence,inventoryComplete:true},completeEnvelope=await buildIntentEvidenceEnvelope(completeEvidence);
+    const original=recorded?await describeDevelopmentOriginal({...described.original,evidence:completeEvidence,
+      direction:{...described.original.direction,sourceSnapshotDigest:completeEnvelope.sourceSnapshotDigest},profiles:{
       architect:{...described.original.profiles.architect,runtimeRevision:RECORDED_MASTRA_REVISION},
       testAgent:{...described.original.profiles.testAgent,runtimeRevision:RECORDED_MASTRA_REVISION},
     }}):described;
     const operations=createIntentOperationStore(pools.execution,execution,{authorize:base.authorizeOperation,verifyCheckpoint:async()=>{throw new Error();}});
-    const op=await operations.create({draftId,draftRevision:1,inputDigest:original.inputDigest});assert.equal(op.outcome,'ok');if(op.outcome!=='ok')throw new Error();
-    const target={operationId:op.value.operationId,inputDigest:original.inputDigest},ref={...target,stepId:'architect' as const};
-    const originalStore=createDevelopmentOriginalStore(pools,config,originals);assert.equal((await originalStore.put({...target,original:original.original})).outcome,'stored');originalStore.close();
+    let target:{operationId:string;inputDigest:string};
+    if(recorded)target=await prepareRecordedFixture(pools,original.original,originals);
+    else{
+      const op=await operations.create({draftId,draftRevision:1,inputDigest:original.inputDigest});assert.equal(op.outcome,'ok');if(op.outcome!=='ok')throw new Error();
+      target={operationId:op.value.operationId,inputDigest:original.inputDigest};
+      const originalStore=createDevelopmentOriginalStore(pools,config,originals);assert.equal((await originalStore.put({...target,original:original.original})).outcome,'stored');originalStore.close();
+    }
+    const ref={...target,stepId:'architect' as const};
     const reader={originals,results,authorizeRequest:async()=>{}},requests=createDevelopmentRequestReader(pools,config,reader);
     const prepared=await requests.read({...target,role:'architect'});requests.close();
     const owner=randomUUID(),fencingToken=1;

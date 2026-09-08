@@ -4866,3 +4866,27 @@ editor. Next complete that preparation and editor start/progress/result/recovery
 owned-draft discovery and full-source semantic review. No real database/migration,
 configuration, key/grant, model use, Git save, gate, deployment or deletion changed.
 D1 remains unsigned/inactive, the real migration baseline held, and I1–I6 open.
+
+## Development increment: 0229 — Reviewed-draft preparation/admission API
+
+Added an explicitly granted human preparation command over actual encrypted draft
+revisions, mandatory evidence/preparation authority, fixed server profiles and the
+existing operation/original stores. It preserves exact source, all clarification
+turns and document edits; binds reviewed snapshot/direction; and refuses incomplete
+declared coverage before admission. Only original readback under current source and
+authority yields a prepared receipt. Lost COMMIT acknowledgements recover exactly
+without duplicate operations, reservations or configuration/expiry renewal.
+
+Verification: **203/203** disposable SQL/SDK/Temporal integration checks,
+**454/454** scoped service/boundary/migration tests and **146/146** domain/frontend
+tests pass. Recorded SDK/Temporal fixtures now prepare through the actual HTTP API,
+then start and read recorded work. The source inventory/provenance, permissions and
+model responses are still synthetic. Full typecheck, production Next.js build, kit
+(95), token-scope and whitespace checks pass; protected hashes are unchanged.
+See [0229 evidence](../intent/0229/EVIDENCE.md).
+
+Next: actual editor prepare/start/read/result integration and reviewed metadata,
+verified full-corpus/lifecycle evidence, semantic scope assessment and owned-draft
+discovery. No real environment, database/migration, credential/grant, model usage,
+Git save, gate, deployment, deletion or signed source changed. D1 remains inactive
+and all live I1–I6 acceptance remains open.

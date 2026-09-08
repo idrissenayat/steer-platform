@@ -5,6 +5,7 @@ import { createMastraDevelopmentRuntime } from '@steer/agents/mastra';
 import { createRecordedMastraVerifier, type RecordedRequest, type RecordedResponse } from '@steer/agents/recorded-mastra';
 import { createIntentDevelopmentReader } from '@steer/data/intent-development-reader';
 import { createIntentDevelopmentStarter } from '@steer/data/intent-development-starter';
+import { createIntentDevelopmentPreparer } from '@steer/data/intent-development-preparer';
 import { createAppJwtSigner, createGitHubReader, artifactSelectionSchema, type ArtifactReader } from '@steer/adapters/github';
 import { createPostgresBrowserSessionStore } from '@steer/data/browser-session';
 import { createRuntimePool } from '@steer/data/runtime-pool';
@@ -24,6 +25,12 @@ import { readProjection } from '@steer/data';
 import { createHeldGitBriefWriterFactory, heldGitBriefConfigurationSchema, type HeldBriefAssessment } from '@steer/adapters/held-brief-writer';
 
 const text = z.string().min(1);
+/** Explicit owner-bound preparation; never derive profile, budget or evidence
+ * authority from browser fields or install this service by default. */
+export function createRecordedDevelopmentPreparer(pools: Parameters<typeof createIntentDevelopmentPreparer>[0], configuration: unknown,
+  profiles: unknown, dependencies: Parameters<typeof createIntentDevelopmentPreparer>[3]) {
+  return createIntentDevelopmentPreparer(pools, configuration, profiles, dependencies);
+}
 /** Explicit uninstalled composition; no queue, authority or records fallback. */
 export function createRecordedDevelopmentStarter(pools: Parameters<typeof createIntentDevelopmentStarter>[0], configuration: unknown,
   dependencies: Parameters<typeof createIntentDevelopmentStarter>[2]) {
