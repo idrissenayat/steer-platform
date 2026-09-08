@@ -33,20 +33,21 @@ scope, choose what to do, answer only necessary questions, review and correct a
 Brief/Spec/Exam bundle, save it to the authorized repository and reopen it exactly.
 No separate local preview, synthetic success, silent merging or lost work counts.
 
-Latest checkpoint: **0233 adds whole-target scope batch planning and result
-validation**, connected to the actual review API/editor as explicitly non-executing
-metadata. Brief/Spec/amendments stay together; incomplete targets or batch results
-cannot become complete assessment. The legacy generation gate remains unchanged.
-0232's corpus collection and 0231's draft/run recovery remain in place. Next
-prioritize real authority binding, bounded large-corpus fetching/context, durable
-semantic execution and content evaluation. Older increment notes below
+Latest checkpoint: **0234 adds exact semantic-review requests and a recorded Mastra
+scope-role adapter/verifier**, using synthetic provider responses. It reuses 0233's
+whole-target batch plan and citation/result validation; incomplete scope remains
+incomplete. Durable scope-role records/reservations/Temporal and current authority
+are not connected, and legacy generation gates remain unchanged. 0232's corpus
+collection and 0231's draft/run recovery remain in place. Next prioritize distinct
+durable semantic batch execution, real authority binding, larger-corpus context
+and content evaluation. Older increment notes below
 are historical, not an instruction to rebuild completed integration.
 
 ## Dependency-ordered implementation
 
 | Step | Deliverable and acceptance | Status |
 | --- | --- | --- |
-| I1 Existing-scope review | Search permitted existing intents and their Brief/Spec scope before drafting; show exact sources, revision, matching passages, coverage and uncertainty. Distinguish already covered, partially covered, related, and no match found. Incomplete or unavailable search must never be presented as a new intent. | Lexical query/UI (0199–0200), configured collector (0207), actual editor metadata query/display (0230), repository-wide enumeration and canonical/candidate/amendment evidence-to-review composition (0232), whole-target batch planning and combined citation/result validation (0233) tested; real access/lifecycle authority, larger-corpus fetching/context, durable semantic execution/judgments and live acceptance pending |
+| I1 Existing-scope review | Search permitted existing intents and their Brief/Spec scope before drafting; show exact sources, revision, matching passages, coverage and uncertainty. Distinguish already covered, partially covered, related, and no match found. Incomplete or unavailable search must never be presented as a new intent. | Lexical query/UI (0199–0200), configured collector (0207), actual editor metadata query/display (0230), repository-wide enumeration and canonical/candidate/amendment evidence-to-review composition (0232), whole-target batch planning and combined citation/result validation (0233), exact scope-role requests/recorded Mastra adapter/verifier (0234) tested with synthetic authority/model responses; real access/lifecycle authority, larger-corpus fetching/context, durable semantic batch records/reservations/Temporal, semantic quality and live acceptance pending |
 | I2 Explicit disposition | Open existing, propose adding missing scope, or create a distinct linked intent with a reason. Keep original text. No automatic merge, discard, update or item creation. Record the human choice against reviewed source revisions; changed scope invalidates it. | UI proposal/recheck (0201–0202), encrypted original direction (0229), and exact reviewed editor direction to preparation/start (0230) tested; final save consumption, real authority and live acceptance pending |
 | I3 Reliable drafting | Activate the configured Mastra/LiteLLM path with an approved capped budget and durable reservation ledger. Clarify conversationally, then produce source-faithful canonical Brief/Spec drafts and a fresh-context Test Agent Exam. Reject refusals, invalid outputs and invented facts; preserve unknowns explicitly. | Drafting (0198/0202), reservations/ownership (0203/0209), result/original recovery (0217–0219), exact requests (0220), SQL runner/observations (0221–0222), recorded Mastra/Temporal roles (0223–0224), prepare/start/read APIs (0227–0229) and actual editor review/clarification/progress/candidate integration (0230) tested with synthetic authority/model responses; production evidence/preparation authority, live provider evidence/approval, cost bounds, authorized activation and content/eval acceptance pending |
 | I4 Review without loss | Show and edit all three documents, connect corrections to the source, expose conflicts/assumptions, preserve durable draft state across navigation, expiry, refresh and restart within the approved records policy. Never silently erase user work. Support retry without duplicate paid runs. | Editing/comparison/invalidation (0204–0205), encrypted originals/lifecycle/revisions (0213–0215), recorded checkpoints/roles (0217–0224), HTTP draft service (0225), editor preserve/restore (0226), recorded result preview/adoption and exact recovery (0230), owned-draft discovery and latest retained-run resumption (0231) tested; older-run/orphan recovery scope, real runtime/records activation and full live acceptance pending |

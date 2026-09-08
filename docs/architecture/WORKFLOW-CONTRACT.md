@@ -616,3 +616,14 @@ single-envelope generation gates remain unchanged, even when more documents fit
 the plan. See [0233 specification](../../intent/0233/SPEC.md). No model dispatch,
 records activation or runtime save is introduced; durable semantic execution,
 larger-corpus context, real authority and human acceptance remain next work.
+
+0234 adds exact per-batch scope-role preparation and an uninstalled recorded Mastra
+adapter/verifier at the existing provider edge. Current edited scope, evidence and
+full profile policy bind the private request; inherited Exam/role conversation is
+excluded. Actual SDK serialization is verified before request ACK/current dispatch
+authority; raw response, citations and usage are verified and acknowledged before
+return. Combined structural coverage still asserts no semantic quality or action
+authority. No SQL role/budget enum or Temporal behavior changes; the distinct scope
+batch/records/reservation composition remains mandatory before activation. See
+[0234 specification](../../intent/0234/SPEC.md). Fixture hooks and provider responses
+are not real durable ownership, budget approval, source authority or live acceptance.

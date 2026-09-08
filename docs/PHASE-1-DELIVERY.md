@@ -4989,3 +4989,25 @@ gates, deployment, release or protected sources changed. D1 remains inactive.
 Continue real source/lifecycle authority, larger-corpus fetching/context and durable
 budgeted semantic execution/evaluation, then authorized save/reopen and the actual
 human journey. All I1–I6 acceptance remains open.
+
+## Development increment: 0234 — Recorded semantic scope-review role
+
+Exact private requests now bind current intent/clarification/edited Brief/Spec to
+whole-target batches and the full pinned semantic profile, including response-model
+policy. A distinct scope-reviewer adapter uses the existing recorded Mastra/LiteLLM
+transport edge; request acknowledgement and current dispatch authority precede
+transport, and validated response acknowledgement precedes success. A provider-free
+verifier reconstructs exact exchanges and citations. Prior Exam/role history is not
+inherited; incomplete findings and corpus gaps stay incomplete after aggregation.
+
+The Architect/Test Agent path retains its contracts and shares the internal SDK
+edge. [0234 evidence](../intent/0234/EVIDENCE.md) distinguishes real SDK serialization
+from synthetic provider responses, findings and acknowledgement/authority hooks.
+No live semantic accuracy, durable scope workflow or human UI acceptance is claimed.
+
+Next connect distinct scope-batch SQL identity, encrypted observations, approved
+per-call reservations and reference-only Temporal execution under real current
+source/records authority. Scope calls cannot use drafting-role cost reservations.
+No real records, credentials, migrations, grants, model calls, runtime Git saving,
+gates, deployment, release or signed source changed; D1 remains inactive and I1–I6
+acceptance remains open. Continue the existing loop.

@@ -1,6 +1,6 @@
 # STEER platform implementation
 
-## Current checkpoint — 0233
+## Current checkpoint — 0234
 
 Use [the intent journey plan](INTENT-JOURNEY-PLAN.md) and
 [the delivery ledger](PHASE-1-DELIVERY.md) for current status; the implementation
@@ -11,7 +11,10 @@ after refresh (0231). Repository-wide legacy/current scope enumeration now feeds
 the recorded review API under explicit access/lifecycle authority (0232). The same
 review API/editor now expose whole-target scope batch plans, with portable combined
 result/citation validation (0233). Planning does not start semantic assessment or
-relax the legacy generation gate. See [0233 evidence](../intent/0233/EVIDENCE.md).
+relax the legacy generation gate. A distinct pinned scope-review request/recorded
+Mastra adapter and exchange verifier now exist (0234), tested with synthetic
+responses. Durable scope-role records/reservations/Temporal and live authority are
+not connected. See [0234 evidence](../intent/0234/EVIDENCE.md).
 
 These are tested development capabilities, not live end-to-end acceptance. D1
 records activation, real source/lifecycle verifier binding, large-corpus contextual
