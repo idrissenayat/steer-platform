@@ -45,6 +45,28 @@ authorization and persisted synthetic checkpoint bytes. Temporal, verified lifec
 full-corpus assessment, approved result storage and provider/UI composition remain
 next; live model/save authority is unchanged. See [0209 evidence](../intent/0209/EVIDENCE.md).
 
+0210 joins those SQL and Git primitives in the uninstalled
+`apps/worker/src/candidate-bundle-runtime.ts`. `prepare` validates exact documents,
+consent and configured scope, then allocates/reuses a durable operation; it is not
+a save. Its admission digest excludes the not-yet-minted ID but binds the whole
+submission and publication profile. The final write-plan/receipt digest includes
+the server ID. Caller-selected IDs cannot enter admission, and changed input or
+publication authority configuration conflicts with the original operation.
+
+`compareAndWrite` verifies that original operation before provider access; the
+writer consumes a SQL claim only after current evidence validation. Only the first
+acknowledged dispatch may reach Git. Once SQL records the dispatch boundary,
+reconstructed adapters use the read-only receipt path even if the provider says
+not-found; that absence becomes unknown, not permission to send again. Exact
+original payload and current access are required for recovery. The SQL row remains
+at the dispatch boundary after a verified Git observation: separate receipt
+checkpoint reconciliation is not installed, and this does not invent a succeeded
+job record. See [0210 evidence](../intent/0210/EVIDENCE.md).
+
+The trusted current-authority/lifecycle/full-corpus ports are still missing in the
+actual application, as are approved original-payload storage, Temporal binding and
+UI save/reopen. There is no automatic publication, real account call or new grant.
+
 ## Human journey
 
 Open https://localhost:8443/ and sign in. The actual workspace now starts with

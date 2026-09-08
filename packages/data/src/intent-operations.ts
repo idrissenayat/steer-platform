@@ -38,6 +38,7 @@ const recordSchema = z.strictObject({ binding: stepBinding, state: z.enum(['clai
     || (r.state === 'succeeded') !== (r.resultDigest !== null)) ctx.addIssue({ code: 'custom', message: 'Invalid durable step state.' });
 });
 type Configuration = z.infer<typeof configuration>;
+export const intentOperationConfigurationSchema = configuration;
 export type IntentOperationReference = z.infer<typeof reference>;
 type Operation = z.infer<typeof operationBinding> & { operationId: string };
 type Step = { record: IntentStepRecord; predecessorResultDigest: string | null; resultRef: string | null; budgetId: string | null };

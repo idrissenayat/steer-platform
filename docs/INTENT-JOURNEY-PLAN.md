@@ -41,7 +41,7 @@ No separate local preview, synthetic success, silent merging or lost work counts
 | I2 Explicit disposition | Open existing, propose adding missing scope, or create a distinct linked intent with a reason. Keep original text. No automatic merge, discard, update or item creation. Record the human choice against reviewed source revisions; changed scope invalidates it. | UI proposal/recheck and server drafting consumption implemented (0201–0202); save consumption, durable recording and live acceptance pending |
 | I3 Reliable drafting | Activate the configured Mastra/LiteLLM path with an approved capped budget and durable reservation ledger. Clarify conversationally, then produce source-faithful canonical Brief/Spec drafts and a fresh-context Test Agent Exam. Reject refusals, invalid outputs and invented facts; preserve unknowns explicitly. | Drafting composition (0198/0202), reservation adapter (0203) and uninstalled atomic operation/step ownership (0209) tested; Temporal/result-store composition, live binding/approval, cost bounds and content/eval acceptance pending |
 | I4 Review without loss | Show and edit all three documents, connect corrections to the source, expose conflicts/assumptions, preserve durable draft state across navigation, expiry, refresh and restart within the approved records policy. Never silently erase user work. Support retry without duplicate paid runs. | Editing/original comparison and explicit review invalidation implemented (0204–0205); durable versioned storage, restoration and full lossless acceptance pending |
-| I5 Save and reopen | Recheck scope and duplicate-review revisions immediately before an atomic, idempotent bundle write. Concurrent new intents/changes cause re-review, not two creations. Use actual granted GitHub paths and expected-head checks; uncertain saves require status/readback. Reopen exact saved versions in the application. | Disabled planner/reader, configured source collector, atomic bundle store and durable dispatch ownership implemented (0205–0209); composition, verified lifecycle/full-corpus assembly, authority service and actual UI integration incomplete |
+| I5 Save and reopen | Recheck scope and duplicate-review revisions immediately before an atomic, idempotent bundle write. Concurrent new intents/changes cause re-review, not two creations. Use actual granted GitHub paths and expected-head checks; uncertain saves require status/readback. Reopen exact saved versions in the application. | Disabled planner/reader, collector, bundle store and durable dispatch composition implemented (0205–0210); verified lifecycle/full-corpus authority, result reconciliation, Temporal and actual UI integration incomplete |
 | I6 Human acceptance | In the real signed-in UI demonstrate new, exact duplicate, paraphrased duplicate, partial overlap, related-but-distinct, empty/failed/stale search, corrections, permission loss, cost exhaustion, uncertain save, concurrent creation, refresh/reopen and keyboard/narrow-screen behavior. Record real source and saved commit. | Pending |
 
 I1's lexical retrieval is only a candidate finder, never a semantic verdict.
@@ -117,16 +117,17 @@ Next unblocked implementation sequence:
 1. Disabled exact bundle/pointer reading, configured-item source collection and
    CAS bundle/receipt storage are implemented in 0206–0208. The store requires a
    trusted atomic dispatch/authority service; its synthetic test port is not that
-   service. Durable ownership is now implemented separately in 0209; compose it
-   with the writer and current
-   scope/consent verification. Verified
+   service. 0209 implements durable ownership; 0210 composes it with the writer
+   using separate immutable admission and receipt digests. Current authority still
+   requires trusted external evidence ports, not fixture assertions. Verified
    canonical-versus-proposed lifecycle selection and full permitted-corpus assembly
    must be integrated before semantic clearance or actual save authority; filenames
    and configured-item coverage do not supply either.
 2. Operation uniqueness, atomic step claim/reservation/CAS and verified checkpoint
    references are implemented and tested against disposable PostgreSQL in 0209.
+   0210 joins candidate saves to this dispatch protocol without runtime activation.
    Next connect Temporal with explicit no-retry boundaries and compose current
-   authority/result storage with the provider adapters. Test-only checkpoint bytes
+   authority/result storage and receipt reconciliation. Test-only checkpoint bytes
    do not supply approved encrypted draft storage. Explicit linked new attempts,
    verified unknown-outcome resolution and recovery reconciliation remain open.
 3. Compose authorized inventory reads with the evidence envelope and a pinned,
@@ -168,3 +169,12 @@ adoption remain open. The local migration command now holds the expanded schema
 before any real private-state/database work; normal startup is unchanged. Next
 compose ownership with Temporal and bundle dispatch, verified lifecycle/full corpus,
 current authority and approved result storage. No live model/save capability is enabled.
+
+0210 composes durable candidate operation admission and one-way dispatch with the
+GitHub bundle writer. Concurrent adapter instances share the SQL owner; reconstructed
+sent steps use read-only provider recovery, including when the receipt is absent.
+Eight new checks combine real disposable PostgreSQL and native Git behind synthetic
+HTTP/authority ports. [Evidence](../intent/0210/EVIDENCE.md) distinguishes the
+immutable pre-ID admission digest from the actual operation-bound receipt digest.
+The composition remains uninstalled. Original-payload retrieval, verified authority,
+receipt checkpoint resolution, Temporal and actual UI integration remain next.

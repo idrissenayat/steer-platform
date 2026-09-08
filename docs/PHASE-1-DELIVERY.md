@@ -4367,3 +4367,29 @@ The implementation has no runtime bootstrap binding, model call or Git provider
 write. Next compose durable ownership with Temporal/bundle dispatch, verified
 lifecycle/full-corpus authority and approved result storage. Explicit new attempts,
 unknown resolution and real UI save/reopen acceptance remain open; I1–I6 are not done.
+
+## Development increment: 0210 — Durable candidate dispatch composition
+
+Connected the uninstalled SQL operation owner to the GitHub bundle writer. Exact
+admission excludes caller-selected operation IDs; the server-minted ID is then bound
+into the final step/receipt digest. Admission also pins the publication/provider
+profile. Current source/lifecycle/consent/gate evidence must validate before the
+one-way SQL transition. Reconstructed sent steps use read-only provider recovery;
+missing receipts, lost SQL/Git acknowledgements and known provider rejection never
+permit a second send. No canonical Exam or accepted record changes.
+
+Disposable PostgreSQL/native Git integration passes **62/62** checks, including
+eight new composed scenarios. Four independent stores/pools contend for one actual
+synthetic seven-file CAS commit, and the existing bundle reader reopens all three
+exact documents. Synthetic HTTP and authority ports are explicit: this is not live
+GitHub acceptance. See [0210 evidence](../intent/0210/EVIDENCE.md).
+
+Worker/adapter/data/domain/registry and migration-control regressions pass
+**641/641**; full typecheck, kit/security and whitespace checks pass. Signed source
+hashes are unchanged. No separate browser or live Temporal acceptance is claimed.
+
+No runtime startup, real database, credential, grant, policy, paid call or UI changes.
+The migration hold remains intact. Receipt checkpoint resolution, approved original
+payload storage, complete source/lifecycle authority, Temporal binding and actual
+UI save/reopen remain next. A verified provider observation does not yet promote
+the SQL dispatch record to a succeeded job. I1–I6 acceptance remains open.

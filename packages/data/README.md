@@ -138,3 +138,10 @@ not exactly-once external execution or a hostile-SQL security boundary.
 See [0209 evidence](../../intent/0209/EVIDENCE.md) for real disposable PostgreSQL,
 independent-process contention, failure injection and the synthetic authority/result
 ports used in testing. No live database, budget, provider or user content is involved.
+
+Increment [0210](../../intent/0210/EVIDENCE.md) composes these operation claims with
+the existing candidate-bundle writer in an uninstalled worker-side factory.
+Admission hashes bind the exact submission/publication profile before a server ID
+exists; step and Git-receipt hashes bind the eventual ID as well. Sent-state recovery
+always takes the read-only provider path. This does not activate a database, supply
+the missing trusted authority service or implement receipt-to-checkpoint promotion.

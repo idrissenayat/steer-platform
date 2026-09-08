@@ -181,6 +181,14 @@ an exactly-once external-effect claim. Process-local `busy` flags, Temporal work
 ID retention and the spend cap are insufficient substitutes. Read/status retries
 are permitted under current grants; paid activity retries are not automatic.
 
+Implementation note (0210, inactive): candidate admission uses a separate versioned
+digest over the complete submission, exact consent and publication/provider profile,
+excluding the not-yet-minted operation ID. The immutable SQL operation then supplies
+that server ID to the existing v2 write-plan/receipt digest and fenced step binding.
+This avoids a circular ID/hash dependency without weakening either receipt binding
+or duplicate-submission uniqueness. Changed publication configuration conflicts;
+configuration fingerprints still do not verify the underlying gate/records grants.
+
 ## 4. Duplicate prevention and atomic save
 
 1. Search authorized candidates and existing Brief/Spec scope, including relevant

@@ -29,6 +29,8 @@ type Plan = Awaited<ReturnType<typeof planCandidateBundle>>;
 type Session = ReturnType<typeof createGitHubAtomicSession>;
 type Tree = Awaited<ReturnType<Session['treeAt']>>['tree'];
 type Prepared = Readonly<{ request: CandidateBundleSaveRequest; plan: Plan }>;
+export type CandidateBundlePrepared = Prepared;
+export const candidateBundleStoreConfigurationSchema = configuration;
 
 // This result may only come from trusted composition that verifies current source,
 // lifecycle, human consent and gate/grant evidence, AND atomically consumes the
