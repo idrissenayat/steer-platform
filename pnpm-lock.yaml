@@ -143,6 +143,9 @@ importers:
       '@steer/data':
         specifier: workspace:*
         version: link:../../packages/data
+      '@temporalio/activity':
+        specifier: 1.23.0
+        version: 1.23.0
       '@temporalio/client':
         specifier: 1.23.0
         version: 1.23.0

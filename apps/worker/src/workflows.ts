@@ -1,8 +1,21 @@
 import { ApplicationFailure, defineQuery, isCancellation, proxyActivities, setHandler, sleep, workflowInfo } from '@temporalio/workflow';
+import { candidateSaveWorkflowId, parseCandidateSaveTarget, parseCandidateSaveResult, type CandidateSaveWorkflowActivities } from './candidate-save-contracts.ts';
 import { parsePlan, parseReceipt, workflowId, parseGateWatchPlan, parseGateObservation, gateWatchId,
   parseRecordedBriefTarget, recordedBriefWorkflowId, parseRecordedBriefCheckpoint, type RecordedBriefActivities,
   parseRecordedBriefRecoveryPlan, recordedBriefRecoveryWorkflowId, type RecordedBriefRecoveryActivities,
   type ReconciliationActivities, type ReconciliationReceipt, type GateWatchActivities, type GateObservation } from './contracts.ts';
+
+const candidateSaveActivities = proxyActivities<CandidateSaveWorkflowActivities>({
+  startToCloseTimeout: '2 minutes', scheduleToCloseTimeout: '3 minutes', heartbeatTimeout: '10 seconds', retry: { maximumAttempts: 1 },
+});
+/** One reference-only attempt. Workflow completion is not necessarily a committed save. */
+export async function saveCandidateBundle(raw: unknown) {
+  let target;
+  try { target = parseCandidateSaveTarget(raw); if (workflowInfo().workflowId !== candidateSaveWorkflowId(target)) throw new Error(); }
+  catch { throw ApplicationFailure.nonRetryable('Invalid candidate save reference.', 'INVALID_BINDING'); }
+  try { return parseCandidateSaveResult(await candidateSaveActivities.saveCandidateBundle(target), target); }
+  catch (error) { if (isCancellation(error)) throw error; throw ApplicationFailure.nonRetryable('Candidate save requires attention.', 'CANDIDATE_SAVE_FAILED'); }
+}
 
 const recordedRecoveryActivities = proxyActivities<RecordedBriefRecoveryActivities>({
   startToCloseTimeout: '2 minutes', scheduleToCloseTimeout: '3 minutes', retry: { maximumAttempts: 1 },

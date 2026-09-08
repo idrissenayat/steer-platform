@@ -189,6 +189,14 @@ This avoids a circular ID/hash dependency without weakening either receipt bindi
 or duplicate-submission uniqueness. Changed publication configuration conflicts;
 configuration fingerprints still do not verify the underlying gate/records grants.
 
+Implementation note (0211, inactive): candidate-save Temporal history contains only
+organization, server operation ID and final write digest, plus bounded result
+metadata. The activity retrieves original bytes outside history and checks the
+exact digest before SQL/Git composition. Automatic retries are disabled; workflow
+ID retention does not replace SQL fencing. Cancellation may stop an unsent operation
+but cannot erase an accepted external effect. Workflow completion with an unknown
+outcome is not save completion, a resolved SQL checkpoint or human gate authority.
+
 ## 4. Duplicate prevention and atomic save
 
 1. Search authorized candidates and existing Brief/Spec scope, including relevant

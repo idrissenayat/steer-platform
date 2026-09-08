@@ -67,6 +67,28 @@ The trusted current-authority/lifecycle/full-corpus ports are still missing in t
 actual application, as are approved original-payload storage, Temporal binding and
 UI save/reopen. There is no automatic publication, real account call or new grant.
 
+0211 adds the uninstalled candidate-save Temporal path. A trusted internal client
+starts one deterministic workflow for an admitted operation; its input contains
+only organization, operation ID and final write digest. A dedicated fixed-operation
+activity reauthorizes, loads the exact original request through a required trusted
+port, recomputes its plan/hash, then calls 0210's durable store. Payloads, credentials,
+consent and authority proof objects never enter workflow arguments or heartbeats.
+The result contains only operation/digest, outcome and an optional saved revision.
+
+There are no automatic activity or workflow retries. Retained workflow IDs reject
+duplicate starts, but the SQL dispatch boundary remains the cross-process safety
+control. Missing/stale payloads fail instead of being regenerated. Five-second
+authority/load limits and cancellation prevent late reads from starting a save;
+heartbeat cancellation closes the bound writer. Cancellation after an accepted Git
+effect cannot undo it or permit a new send. A workflow may complete with `unknown`:
+only a verified `committed` observation means saved, and neither is a gate signature.
+The SQL row still requires separate receipt checkpoint reconciliation.
+
+See [0211 evidence](../intent/0211/EVIDENCE.md). This is not application startup,
+approved original-payload persistence, a public scheduling command or a working
+user-facing save button. Durable Architect/Test Agent activities and actual
+lifecycle/full-corpus/authority services remain separate integration tasks.
+
 ## Human journey
 
 Open https://localhost:8443/ and sign in. The actual workspace now starts with

@@ -1,6 +1,16 @@
 import { type Client, WorkflowIdConflictPolicy, WorkflowIdReusePolicy, WorkflowExecutionAlreadyStartedError, WorkflowNotFoundError } from '@temporalio/client';
 import { parsePlan, parseScope, workflowId, parseGateWatchPlan, gateWatchId, parseRecordedBriefTarget, recordedBriefWorkflowId } from './contracts.ts';
 import { parseRecordedBriefRecoveryPlan, recordedBriefRecoveryWorkflowId } from './contracts.ts';
+import { parseCandidateSaveTarget, candidateSaveWorkflowId } from './candidate-save-contracts.ts';
+
+/** Trusted internal caller binds the queue; only the reference enters history. */
+export function startCandidateBundleSave(client: Client, taskQueue: string, raw: unknown) {
+  const target = parseCandidateSaveTarget(raw);
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}(?![\s\S])/.test(taskQueue)) throw new Error('Invalid candidate save task queue.');
+  return client.workflow.start('saveCandidateBundle', { workflowId: candidateSaveWorkflowId(target), taskQueue, args: [target],
+    workflowExecutionTimeout: '5 minutes', workflowIdConflictPolicy: WorkflowIdConflictPolicy.FAIL,
+    workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE });
+}
 
 /** Read-only fixed parent guard. Caller owns the configured connection and current identity. */
 export function createRecordedBriefFailedParentGuard(client: Client, configuration: { namespace: string; taskQueue: string; plan: unknown }) {

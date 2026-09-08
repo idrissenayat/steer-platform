@@ -20,6 +20,10 @@ sandbox for hostile callbacks or stolen database credentials.
   applies Drizzle migrations, tests real isolation/privileges, and stops/removes
   only that container. No existing database, Docker volume or host data is used.
   Missing Docker or failed checks cause a nonzero exit, never a skipped pass.
+- The same integration command also verifies candidate saving with native Git and
+  an owned in-memory Temporal server. It downloads the existing pinned official
+  Temporal test archive and verifies its SHA-256 before execution; network failure
+  fails the test rather than skipping it. No real Temporal cluster is selected.
 - `pnpm --filter @steer/data db:generate`: reviews schema changes into migration
   files. The custom FORCE RLS/grant migration is not represented by Drizzle's
   table snapshot; preserve and extend its controls on future tables.
@@ -145,3 +149,8 @@ Admission hashes bind the exact submission/publication profile before a server I
 exists; step and Git-receipt hashes bind the eventual ID as well. Sent-state recovery
 always takes the read-only provider path. This does not activate a database, supply
 the missing trusted authority service or implement receipt-to-checkpoint promotion.
+
+[0211](../../intent/0211/EVIDENCE.md) adds a reference-only Temporal path around that
+composition. The shared test harness verifies the actual SQL/Git/Temporal chain;
+the original-payload and current-authority services remain synthetic test ports.
+No new schema migration or runtime installation is introduced by that workflow.

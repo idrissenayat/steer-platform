@@ -7,6 +7,7 @@ import { planCandidateBundle } from '@steer/tool-registry/candidate-bundle-contr
 import { createGitHubReader } from '@steer/adapters/github';
 import { createCandidateBundleReader } from '@steer/adapters/candidate-bundle-reader';
 import { fixture, binding, now } from '../../../packages/adapters/test/github-brief-fixture.ts';
+import { testCandidateSaveWorkflow } from './candidate-save.integration.ts';
 
 export async function testDurableCandidateBundles({ app, admin, connect, check }: {
   app: Pool; admin: Pool; connect(user: string): Pool; check(name: string, run: () => Promise<void>): Promise<void>;
@@ -150,5 +151,6 @@ export async function testDurableCandidateBundles({ app, admin, connect, check }
       assert.equal(f.git.calls.length, 0); assert.equal(await f.state(request.bundle.operationId), undefined);
       const store = f.make(); store.close(); assert.equal((await store.compareAndWrite(request)).outcome, 'unknown');
     });
+    await testCandidateSaveWorkflow(setup, check);
   } finally { for (const cleanup of cleanups.reverse()) cleanup(); }
 }

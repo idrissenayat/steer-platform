@@ -1,11 +1,27 @@
 import { Worker, type NativeConnection, type WorkflowBundle } from '@temporalio/worker';
+import { Context, CancelledFailure } from '@temporalio/activity';
+import type { createCandidateSaveActivities } from './candidate-save-activity.ts';
 import { createReconciliationActivities, createGateWatchActivities, type ReconciliationPort, type GateObservationPort } from './activities.ts';
 import { type ReconciliationScope, type ReconciliationActivities, type GateTarget, type RecordedBriefActivities } from './contracts.ts';
 import type { RecordedBriefRecoveryActivities } from './contracts.ts';
 
 interface WorkerBinding { connection: NativeConnection; namespace: string; taskQueue: string; workflowBundle: WorkflowBundle }
 function validateBinding(options: WorkerBinding) {
-  for (const name of [options.namespace, options.taskQueue]) if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(name)) throw new Error('Invalid worker binding.');
+  for (const name of [options.namespace, options.taskQueue]) if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}(?![\s\S])/.test(name)) throw new Error('Invalid worker binding.');
+}
+
+/** Dedicated fixed-operation worker. Heartbeats contain no payload or approval. */
+export function createCandidateSaveWorker(options: WorkerBinding, activities: ReturnType<typeof createCandidateSaveActivities>) {
+  validateBinding(options);
+  return Worker.create({ connection: options.connection, namespace: options.namespace, taskQueue: options.taskQueue,
+    workflowBundle: options.workflowBundle, activities: { saveCandidateBundle: async (raw: unknown) => {
+      const context = Context.current(); context.heartbeat();
+      const pulse = setInterval(() => { try { context.heartbeat(); } catch { activities.close(); } }, 1000);
+      try { return await activities.saveCandidateBundle(raw, context.cancellationSignal); }
+      catch (error) { if (context.cancellationSignal.aborted) throw new CancelledFailure('Candidate save cancelled.'); throw error; }
+      finally { clearInterval(pulse); }
+    } }, maxConcurrentActivityTaskExecutions: 1, maxConcurrentWorkflowTaskExecutions: 2,
+    maxHeartbeatThrottleInterval: '1 second', shutdownGraceTime: '10 seconds', shutdownForceTime: '30 seconds' });
 }
 /** Recovery has its own explicit queue and fixed activities; no recursive dispatch. */
 export function createRecordedBriefRecoveryWorker(options: WorkerBinding, activities: RecordedBriefRecoveryActivities) {

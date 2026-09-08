@@ -4393,3 +4393,29 @@ The migration hold remains intact. Receipt checkpoint resolution, approved origi
 payload storage, complete source/lifecycle authority, Temporal binding and actual
 UI save/reopen remain next. A verified provider observation does not yet promote
 the SQL dispatch record to a succeeded job. I1–I6 acceptance remains open.
+
+## Development increment: 0211 — Reference-only candidate-save workflow
+
+Added an uninstalled Temporal workflow, dedicated worker, fixed-operation activity
+and trusted internal start helper for candidate saving. Workflow history/heartbeats
+contain references and bounded outcomes only; original payload and current authority
+are loaded inside the activity, never carried in workflow arguments. Exact digest
+checks precede SQL/Git work. Activity and workflow retries are disabled, while the
+existing SQL dispatch protocol independently prevents duplicate effects.
+
+Actual disposable Temporal/PostgreSQL/native-Git checks exercise queued work,
+worker recreation/history replay, unknown provider outcomes, missing/stale payloads,
+wrong workflow references and cancellation before/after an accepted Git effect.
+See [0211 evidence](../intent/0211/EVIDENCE.md). Workflow COMPLETED plus outcome
+unknown is explicitly not a saved bundle; receipt checkpoint reconciliation remains
+unimplemented. No independent gate verdict or live UI acceptance is claimed.
+
+The combined data/candidate workflow suite passes **68/68**, the existing Temporal
+suite **33/33**, and worker/data/domain/registry/migration-control tests **275/275**.
+Full typecheck, kit/security and whitespace checks pass; signed hashes are unchanged.
+
+The already-installed Temporal activity SDK version is now an explicit dependency
+for cancellation and content-free heartbeats. No new downloaded package, schema,
+real service, credential, grant, spending authority, accepted policy or signed source
+changed. Next implement approved original-payload retrieval/current authority and
+receipt reconciliation, then development-role orchestration and actual UI integration.
