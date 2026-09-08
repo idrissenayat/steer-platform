@@ -183,6 +183,20 @@ export const draftRevisions = steerDrafts.table('draft_revisions', {
     withCheck: sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}` }),
 ]).enableRLS();
 
+// Private original operation context; never an execution grant or provider receipt.
+export const developmentOriginals = steerDrafts.table('development_originals', {
+  organizationId: text('organization_id').notNull(), subject: text('subject').notNull(), productId: text('product_id').notNull(),
+  operationId: uuid('operation_id').notNull(), inputDigest: text('input_digest').notNull(),
+  draftId: uuid('draft_id').notNull(), draftRevision: bigint('draft_revision', { mode: 'number' }).notNull(),
+  record: jsonb('record').notNull(), encryptedValue: jsonb('encrypted_value').notNull(),
+}, t => [primaryKey({ columns: [t.organizationId,t.operationId] }),
+  foreignKey({ name:'development_original_operation',columns:[t.organizationId,t.operationId],foreignColumns:[intentOperations.organizationId,intentOperations.operationId] }),
+  foreignKey({ name:'development_original_source',columns:[t.organizationId,t.draftId,t.draftRevision],foreignColumns:[draftRevisions.organizationId,draftRevisions.draftId,draftRevisions.revision] }),
+  check('development_original_bounds',sql`${t.inputDigest} ~ '^[a-f0-9]{64}$' AND octet_length(${t.record}::text) <= 8000 AND octet_length(${t.encryptedValue}::text) <= 1050000`),
+  pgPolicy('development_original_owner',{ for:'all',using:sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}`,
+    withCheck:sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}` }),
+]).enableRLS();
+
 // Immutable captured worker outputs, separate from editable document snapshots.
 export const developmentResults = steerDrafts.table('development_results', {
   organizationId: text('organization_id').notNull(), subject: text('subject').notNull(), productId: text('product_id').notNull(),

@@ -20,6 +20,8 @@ const envelopeInput = z.strictObject({
   documents: z.array(z.strictObject({ sourceId: id, content: text(512 * 1024) })).max(50),
 });
 
+export const intentEvidenceInputSchema = envelopeInput;
+
 async function hash(content: Uint8Array, algorithm: 'SHA-1' | 'SHA-256' = 'SHA-256') {
   const result = await crypto.subtle.digest(algorithm, new Uint8Array(content));
   return Array.from(new Uint8Array(result), byte => byte.toString(16).padStart(2, '0')).join('');

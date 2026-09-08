@@ -1,5 +1,28 @@
 # Tenant projections and operational storage
 
+## Original development context (uninstalled)
+
+`@steer/data/development-original-contracts` validates exact source/configuration,
+inspected evidence/direction and separate role instruction profiles; its digest
+is used when admitting the operation. `@steer/data/development-originals` captures
+that envelope against actual operation and encrypted source revision readback.
+One immutable encrypted row per operation is protected by owner/product RLS and
+insert-only runtime grants (0017/0018, disposable only).
+
+Construct with scoped records config, `drafts`/`execution` pools and required current
+record/evidence/profile/direction, operation, draft and key authority. `put` takes
+`{operationId,inputDigest,original}`; `read` takes only `{operationId,inputDigest}`.
+Original instructions, evidence and execution configuration restore privately;
+later draft revisions remain distinct. Lost acknowledgements stay unknown until
+authorized readback. Restoring an expired config never grants execution or retry.
+The historical-result reader can consume it under its own current authority.
+
+This is neither a UI store nor provider provenance. Current evidence permissions
+must be rechecked by `authorizeOriginal`; hashes alone cannot authorize source
+disclosure. Rendered role requests, durable activities, verified model bounds,
+all-copy/key recovery and real D1 adoption remain open. No model calls, secrets,
+deployment, deletion or real migration is performed by these adapters.
+
 ## Captured development results (uninstalled)
 
 `@steer/data/development-results` composes `intent-operations` inspection,

@@ -4609,3 +4609,27 @@ or accepted-policy change was made. The seventeen-entry development journal stay
 held against the seven-entry real baseline. D1 is unsigned/inactive and I1–I6 stay
 open. Original prompts/evidence, provider provenance, durable role activities and
 actual editor/API acknowledgement/recovery remain next.
+
+## Development increment: 0219 — Recoverable original development context
+
+Implemented disabled immutable encrypted operation inputs: exact source snapshot,
+evidence/omissions, declared direction, both instruction profiles and original
+execution configuration. Capture verifies the actual admitted SQL operation and
+decrypts/compares the actual source revision. Recovery restores the old execution
+configuration under current scoped records authority, then composes with expired
+result history without renewing execution or budget permission. Later edits stay
+separate; access loss, holds, corruption and late close deny release.
+See [0219 evidence](../intent/0219/EVIDENCE.md).
+
+Verification: **141/141** disposable SQL/native-Git/Temporal integration checks,
+**290/290** scoped units/migration controls, **1/1** destination runtime check and
+**33/33** existing Temporal/projection checks pass. Full typecheck, kit/scope,
+schema-drift and whitespace checks pass; protected
+source hashes remain unchanged. The destination fixture now expects the nineteen
+development migrations; the real migration hold was not changed.
+
+Migrations 0017/0018 are disposable-development only; the nineteen-entry journal
+is held against the seven-entry real baseline. D1 remains unsigned and I1–I6 stay
+open. Rendered requests/provider provenance, durable development activities and
+actual editor/API integration remain next. No live activation, spending, runtime
+GitHub write, deployment or signed-source change occurred.

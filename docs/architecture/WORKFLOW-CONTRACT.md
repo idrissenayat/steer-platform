@@ -124,6 +124,13 @@ hold/deletion and backup/restore treatment. PostHog's 90-day content-free event
 retention is **not** a policy for raw intent text. Do not infer authority to delete
 anything from expiry, logout, or this design.
 
+0219 adds disabled original-input preservation under the proposed draft class:
+exact source/evidence/direction, separate instruction profiles and original
+execution configuration. Restoring that configuration is a records read, not an
+execution grant. Current source/owner/key/lifecycle authority remains required.
+Rendered role requests and observed provider provenance remain unimplemented;
+no profile label proves delivery, independent authorship or pricing bounds.
+
 ### Durable execution ownership
 
 The API accepts/queries operations; an internal Temporal workflow owns the long
