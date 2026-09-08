@@ -9,19 +9,27 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const rules = {
   'packages/domain': { folders: ['src'], packages: [], builtins: [] },
   'packages/tool-registry': { folders: ['src'], packages: ['@steer/domain', 'zod'], builtins: [] },
-  'packages/agents': { folders: ['src'], packages: ['@steer/tool-registry', '@mastra/core', '@ai-sdk/openai-compatible', 'zod'], builtins: [],
-    entryOnly: { '@mastra/core': 'src/mastra.ts', '@ai-sdk/openai-compatible': 'src/mastra.ts' } },
+  'packages/agents': { folders: ['src'], packages: ['@steer/tool-registry', '@mastra/core', '@ai-sdk/openai-compatible', 'zod'], builtins: ['node:util'],
+    builtinEntryOnly: { 'node:util': 'src/recorded-mastra.ts' },
+    entryOnly: { '@mastra/core': ['src/mastra.ts', 'src/recorded-mastra.ts'], '@ai-sdk/openai-compatible': ['src/mastra.ts', 'src/recorded-mastra.ts'] } },
   'packages/adapters': { folders: ['src'], packages: ['@steer/tool-registry', 'jose', 'zod'], builtins: ['node:crypto', 'node:fs', 'node:fs/promises', 'node:path'],
     builtinEntryOnly: { 'node:fs': 'src/secrets/file.ts', 'node:fs/promises': 'src/secrets/file.ts', 'node:path': 'src/secrets/file.ts' } },
-  'packages/data': { folders: ['src'], packages: ['@steer/tool-registry', 'drizzle-orm', 'pg', 'zod'], builtins: ['node:crypto'] },
+  'packages/data': { folders: ['src'], packages: ['@steer/domain', '@steer/tool-registry', 'drizzle-orm', 'pg', 'zod'], builtins: ['node:crypto'],
+    entryOnly: { '@steer/domain': 'src/intent-operations.ts' }, specifiersOnly: { '@steer/domain': ['@steer/domain/intent-step'] } },
   'apps/api': { folders: ['src'], packages: ['@steer/agents', '@steer/adapters', '@steer/data', '@steer/tool-registry', '@hono/node-server', '@modelcontextprotocol/server', 'hono', 'zod'], builtins: ['node:https'],
     builtinEntryOnly: { 'node:https': 'src/identity-listener.ts' },
     entryOnly: { '@steer/agents': 'src/runtime.ts', '@steer/data': 'src/runtime.ts', zod: 'src/runtime.ts', '@modelcontextprotocol/server': 'src/mcp.ts' } },
   'apps/web': { folders: ['app'], packages: ['next', 'react', 'react-dom', 'react-markdown', '@steer/tool-registry'], builtins: [],
-    specifiersOnly: { '@steer/tool-registry': ['@steer/tool-registry/intent-overlap-contracts', '@steer/tool-registry/agent-contracts', '@steer/tool-registry/projection-consumer', '@steer/tool-registry/brief-contracts', '@steer/tool-registry/decision-contracts', '@steer/tool-registry/lifecycle-contracts'] } },
-  'apps/worker': { folders: ['src'], packages: ['@steer/adapters', '@steer/data', 'zod', '@temporalio/client', '@temporalio/worker', '@temporalio/workflow'], builtins: [],
-    entryOnly: { '@steer/adapters': 'src/runtime.ts', '@steer/data': 'src/runtime.ts', zod: 'src/runtime.ts',
-      '@temporalio/client': 'src/client.ts', '@temporalio/worker': 'src/worker.ts', '@temporalio/workflow': 'src/workflows.ts' } },
+    specifiersOnly: { '@steer/tool-registry': ['@steer/tool-registry/intent-revision-contracts', '@steer/tool-registry/intent-overlap-contracts', '@steer/tool-registry/agent-contracts', '@steer/tool-registry/projection-consumer', '@steer/tool-registry/brief-contracts', '@steer/tool-registry/decision-contracts', '@steer/tool-registry/lifecycle-contracts'] } },
+  'apps/worker': { folders: ['src'], packages: ['@steer/adapters', '@steer/agents', '@steer/data', '@steer/tool-registry', 'zod', '@temporalio/client', '@temporalio/activity', '@temporalio/worker', '@temporalio/workflow'], builtins: ['node:crypto'],
+    builtinEntryOnly: { 'node:crypto': ['src/candidate-bundle-runtime.ts', 'src/development-step-runtime.ts'] },
+    entryOnly: { '@steer/adapters': ['src/runtime.ts', 'src/candidate-bundle-runtime.ts'],
+      '@steer/agents': 'src/recorded-development-model.ts',
+      '@steer/data': ['src/runtime.ts', 'src/candidate-bundle-runtime.ts', 'src/development-step-runtime.ts', 'src/recorded-development-model.ts'],
+      '@steer/tool-registry': ['src/candidate-bundle-runtime.ts', 'src/candidate-save-activity.ts', 'src/development-step-runtime.ts'],
+      zod: ['src/runtime.ts', 'src/candidate-bundle-runtime.ts', 'src/candidate-save-activity.ts', 'src/development-step-runtime.ts', 'src/recorded-development-model.ts'],
+      '@temporalio/client': 'src/client.ts', '@temporalio/activity': 'src/worker.ts', '@temporalio/worker': 'src/worker.ts', '@temporalio/workflow': 'src/workflows.ts' },
+    specifiersOnly: { '@steer/agents': ['@steer/agents/recorded-mastra'], '@steer/tool-registry': ['@steer/tool-registry/candidate-bundle-contracts', '@steer/tool-registry/intent-revision-contracts', '@steer/tool-registry/intent-role-result'] } },
 };
 const packageName = (specifier) => specifier.startsWith('@') ? specifier.split('/').slice(0, 2).join('/') : specifier.split('/')[0];
 function imports(source) {
@@ -49,10 +57,10 @@ function allowed(specifier, file, packageRoot, rule) {
     // Production code may not reach its own test fixtures via a relative path.
     return rule.folders.some((folder) => destination.startsWith(resolve(packageRoot, folder) + sep));
   }
-  if (specifier.startsWith('node:')) return rule.builtins.includes(specifier) &&
-    (!rule.builtinEntryOnly?.[specifier] || file === resolve(packageRoot, rule.builtinEntryOnly[specifier]));
+  const atEntry = (entry) => !entry || (Array.isArray(entry) ? entry : [entry]).some(path => file === resolve(packageRoot, path));
+  if (specifier.startsWith('node:')) return rule.builtins.includes(specifier) && atEntry(rule.builtinEntryOnly?.[specifier]);
   const name = packageName(specifier);
-  return rule.packages.includes(name) && (!rule.entryOnly?.[name] || file === resolve(packageRoot, rule.entryOnly[name])) &&
+  return rule.packages.includes(name) && atEntry(rule.entryOnly?.[name]) &&
     (!rule.specifiersOnly?.[name] || rule.specifiersOnly[name].includes(specifier));
 }
 async function files(folder) {
@@ -66,6 +74,7 @@ async function files(folder) {
 }
 
 test('every production package declares and imports only its permitted architectural layer', async () => {
+  const violations = [];
   for (const parent of ['apps', 'packages']) {
     for (const entry of await readdir(resolve(root, parent), { withFileTypes: true })) {
       if (entry.isDirectory()) assert.ok(rules[`${parent}/${entry.name}`], `New package needs explicit boundary: ${parent}/${entry.name}`);
@@ -74,16 +83,17 @@ test('every production package declares and imports only its permitted architect
   for (const [name, rule] of Object.entries(rules)) {
     const packageRoot = resolve(root, name);
     const manifest = JSON.parse(await readFile(resolve(packageRoot, 'package.json'), 'utf8'));
-    for (const dependency of Object.keys(manifest.dependencies ?? {})) assert.ok(rule.packages.includes(dependency), `${name} declares forbidden dependency ${dependency}`);
+    for (const dependency of Object.keys(manifest.dependencies ?? {})) if (!rule.packages.includes(dependency)) violations.push(`${name} declares forbidden dependency ${dependency}`);
     for (const folder of rule.folders) for (const file of await files(resolve(packageRoot, folder))) {
       for (const specifier of imports(await readFile(file, 'utf8'))) {
-        assert.ok(allowed(specifier, file, packageRoot, rule), `${file}: forbidden import ${specifier}`);
+        if (!allowed(specifier, file, packageRoot, rule)) violations.push(`${file}: forbidden import ${specifier}`);
         if (specifier && !specifier.startsWith('.') && !specifier.startsWith('node:')) {
-          assert.ok(manifest.dependencies?.[packageName(specifier)], `${name}: undeclared production import ${specifier}`);
+          if (!manifest.dependencies?.[packageName(specifier)]) violations.push(`${name}: undeclared production import ${specifier}`);
         }
       }
     }
   }
+  assert.deepEqual(violations, []);
 });
 
 test('boundary detector rejects vendor-in-core, relative prototype escape and nonliteral import forms', () => {
@@ -127,11 +137,26 @@ test('every provider-free domain module imports under native Node without bundle
 test('Temporal SDK imports stay at worker edges and deterministic workflow contracts have no runtime dependencies', async () => {
   const base = resolve(root, 'apps/worker'); const rule = rules['apps/worker'];
   for (const [specifier, entry] of Object.entries(rule.entryOnly)) {
-    assert.equal(allowed(specifier, resolve(base, entry), base, rule), true);
+    const permittedSpecifier = rule.specifiersOnly?.[specifier]?.[0] ?? specifier;
+    for (const path of Array.isArray(entry) ? entry : [entry]) assert.equal(allowed(permittedSpecifier, resolve(base, path), base, rule), true);
     for (const other of ['src/activities.ts', 'src/contracts.ts']) assert.equal(allowed(specifier, resolve(base, other), base, rule), false);
   }
   assert.deepEqual(imports(await readFile(resolve(base, 'src/contracts.ts'), 'utf8')), []);
-  assert.deepEqual(imports(await readFile(resolve(base, 'src/workflows.ts'), 'utf8')), ['@temporalio/workflow', './contracts.ts']);
+  assert.deepEqual(imports(await readFile(resolve(base, 'src/candidate-save-contracts.ts'), 'utf8')), []);
+  assert.deepEqual(imports(await readFile(resolve(base, 'src/development-workflow-contracts.ts'), 'utf8')), ['./candidate-save-contracts.ts']);
+  assert.deepEqual(imports(await readFile(resolve(base, 'src/workflows.ts'), 'utf8')), ['@temporalio/workflow', './development-workflow-contracts.ts', './candidate-save-contracts.ts', './contracts.ts']);
+});
+
+test('recorded composition exceptions do not permit provider or storage imports in pure contracts and activities', () => {
+  const worker = resolve(root, 'apps/worker'), rule = rules['apps/worker'];
+  for (const file of ['src/workflows.ts', 'src/development-workflow-contracts.ts', 'src/development-activity.ts']) {
+    for (const specifier of ['@steer/agents/recorded-mastra', '@steer/data/intent-operations', '@steer/adapters', 'node:crypto', 'zod'])
+      assert.equal(allowed(specifier, resolve(worker, file), worker, rule), false);
+  }
+  assert.equal(allowed('@steer/agents/mastra', resolve(worker, 'src/recorded-development-model.ts'), worker, rule), false);
+  const agents = resolve(root, 'packages/agents');
+  assert.equal(allowed('@mastra/core/agent', resolve(agents, 'src/development.ts'), agents, rules['packages/agents']), false);
+  assert.equal(allowed('node:util', resolve(agents, 'src/development.ts'), agents, rules['packages/agents']), false);
 });
 
 test('API storage/configuration imports are restricted to the explicit composition root', () => {

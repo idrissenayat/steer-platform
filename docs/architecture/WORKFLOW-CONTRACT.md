@@ -510,3 +510,12 @@ identify actual app/build, source revisions, human-confirmed destination, provid
 commit, model configuration and consumed budget without exposing secrets or private
 source. Passing this journey is necessary but not sufficient for the full Phase 1
 walking-skeleton exam and ten-real-item pilot.
+
+0224 implements an uninstalled reference-only Temporal development workflow over
+the recorded SQL runner. Architect precedes Test Agent; clarification, supersession
+or uncertain/busy state stops the attempt. One attempt per role, content-free
+heartbeats and cancellation are explicit. Questions/documents remain in encrypted
+SQL records, not workflow history. Progress queries are historical metadata and
+cannot replace current API authority/source checks. See
+[0224 evidence](../../intent/0224/EVIDENCE.md). This does not install live persistence,
+authorize model usage, sign gates or complete the actual UI journey above.

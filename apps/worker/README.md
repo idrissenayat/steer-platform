@@ -33,8 +33,9 @@ spending authority must not be replaced with no-op callbacks.
 
 Under Node 24, run `pnpm --filter @steer/worker test` for unit tests and
 `pnpm test:data:integration` for the disposable PostgreSQL composition checks.
-`pnpm test:workflow:integration` tests the existing Temporal paths, not this runner's
-future Temporal registration. See [0221 evidence](../../intent/0221/EVIDENCE.md).
+`pnpm test:workflow:integration` tests the older Temporal paths. The runner's new
+0224 Temporal composition is covered by `pnpm test:data:integration` because it
+requires the actual disposable SQL stores. See [0221 evidence](../../intent/0221/EVIDENCE.md).
 
 Increment 0222 adds `@steer/data/development-observations`: separately immutable,
 encrypted request/response storage under current draft/source/step authority. A new
@@ -61,3 +62,23 @@ reservation, not a fabricated completed response. Provider-side investigation,
 current cost bounds, real records adoption and live route acceptance are separate.
 See [0223 evidence](../../intent/0223/EVIDENCE.md). No Temporal/API/UI registration
 or change to the existing application's runtime is made by this factory.
+
+## Intent development workflow — uninstalled
+
+`startIntentDevelopment` sends only the fixed organization/operation/input reference.
+`developIntent` schedules Architect then Test Agent, stopping for clarification,
+superseded output, busy state or uncertainty. `developmentProgress` exposes recorded
+reference-only progress, not current permission or current-source validation.
+The API must reauthorize and read private questions/documents separately from SQL.
+
+`createDevelopmentActivities` binds one trusted same-operation runtime and
+`createDevelopmentWorker` binds a dedicated explicit queue. Nothing registers these
+in the actual application. The caller still owns model, pool, connection and worker
+lifecycle; no-op grant callbacks are permitted only in named synthetic tests.
+
+Every role has one activity attempt, bounded timeouts and content-free heartbeats.
+Cancellation closes admission and aborts the runtime; late dependencies cannot
+publish success. Completed checkpoints can be reverified without generation, while
+uncertain requests cannot be resent. Do not reset failed workflows or substitute
+IDs to bypass that restriction. Future authorized recovery is separate work.
+See [0224 evidence](../../intent/0224/EVIDENCE.md).

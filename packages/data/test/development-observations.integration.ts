@@ -13,6 +13,7 @@ import { originalFixture } from './development-original.fixture.ts';
 import { createDevelopmentStepRuntime } from '../../../apps/worker/src/development-step-runtime.ts';
 import { createRecordedDevelopmentModel } from '../../../apps/worker/src/recorded-development-model.ts';
 import { RECORDED_MASTRA_REVISION } from '../../agents/src/recorded-mastra.ts';
+import { testDevelopmentWorkflow } from '../../../apps/worker/test/development-workflow.integration.ts';
 type Deps = Parameters<typeof createDevelopmentObservationStore>[2];
 
 export async function testDevelopmentObservations({admin,connect,check}:{admin:Pool;connect(role:string):Pool;check(name:string,run:()=>Promise<void>):Promise<void>}) {
@@ -231,4 +232,19 @@ export async function testDevelopmentObservations({admin,connect,check}:{admin:P
     assert.equal(afterCaptureChecks,2);assert.equal(calls,0);assert.equal(await f.count(),1);
     assert.equal((await f.drafts.read({draftId:f.draftId,revision:'latest'})).content.originalText,'A correction during the last authorization wait');
   });
+  await testDevelopmentWorkflow(async()=>{
+    const f=await setup(false,false,true);
+    return{
+      target:{organizationId:f.config.organizationId,...f.target},output:f.response.result.output,count:f.count,
+      make(transport,authorize=async()=>{}){
+        const model=f.recordedModel(transport),runtime=createDevelopmentStepRuntime(f.pools,f.config,f.target,{reader:f.reader,model,authorize});
+        return{run:runtime.run,close(){runtime.close();model.close();}};
+      },
+      async edit(){
+        assert.equal((await f.drafts.append({draftId:f.draftId,mutationId:randomUUID(),expectedRevision:1,expectedDigest:f.saved.reference.revisionDigest,
+          content:{...f.content,originalText:'Newer human edit during drafting'}})).outcome,'acknowledged');
+      },
+      async hold(){assert.equal((await f.lifecycle.hold({draftId:f.draftId,holdReference:randomUUID()})).outcome,'ok');},
+    };
+  },check);
 }

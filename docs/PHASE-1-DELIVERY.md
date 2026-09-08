@@ -4741,3 +4741,33 @@ key/grant/spending/runtime GitHub-save authority or signed source changed. I1–
 remain open. Next: reference-only Temporal development activities/workflow and
 actual API/editor recovery; live profile/pricing/provider acceptance and authorized
 unknown-outcome investigation remain separate prerequisites.
+
+## Development increment: 0224 — Durable intent development workflow
+
+Added strict reference-only Temporal sequencing over the actual recorded SQL runner:
+Architect first, then Test Agent only on verified success. Clarification, newer
+human edits, held drafts, busy state and uncertain outcomes stop the attempt.
+Stored Architect checkpoints are reverified without another generation. Duplicate
+workflow identities reject even if callers change the input digest. Cancellation
+propagates through content-free heartbeats; uncertain sends cannot be replayed.
+
+The dedicated worker/activity factories remain uninstalled. Workflow progress and
+results contain only references/status, never private source, questions, documents,
+model settings or grants. They are point-in-time observations, not current access
+rights or a gate decision. Actual API/editor acknowledgement, restoration/conflict
+handling and authorized recovery remain next. See [0224 evidence](../intent/0224/EVIDENCE.md).
+
+The architecture-boundary allowlist now recognizes the explicitly reviewed recorded
+and candidate composition files while retaining provider-free deterministic
+contracts and browser portable-only imports. This does not change the chosen stack.
+
+Verification: **178/178** disposable SQL/SDK/Temporal integration checks,
+**325/325** scoped units/migration controls and **9/9** architecture-boundary
+checks pass. Full prototype/eight-package typecheck, kit (95 artifacts), token-scope
+and whitespace checks pass; protected source hashes remain unchanged.
+The separate existing Temporal regression suite also passes **33/33** checks.
+
+No schema, dependency, real database, key/grant, paid model call, runtime GitHub save,
+deployment, deletion, accepted policy or signed source changed. Twenty-one
+development migrations remain held against the seven-entry real baseline. D1 is
+unsigned/inactive and I1–I6 live acceptance remains open.

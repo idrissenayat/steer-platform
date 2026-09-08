@@ -2,6 +2,16 @@ import { type Client, WorkflowIdConflictPolicy, WorkflowIdReusePolicy, WorkflowE
 import { parsePlan, parseScope, workflowId, parseGateWatchPlan, gateWatchId, parseRecordedBriefTarget, recordedBriefWorkflowId } from './contracts.ts';
 import { parseRecordedBriefRecoveryPlan, recordedBriefRecoveryWorkflowId } from './contracts.ts';
 import { parseCandidateSaveTarget, candidateSaveWorkflowId } from './candidate-save-contracts.ts';
+import { parseDevelopmentTarget, developmentWorkflowId } from './development-workflow-contracts.ts';
+
+/** Trusted fixed-operation start; no role selection, payload or automatic retry. */
+export function startIntentDevelopment(client: Client, taskQueue: string, raw: unknown) {
+  const target = parseDevelopmentTarget(raw);
+  if (typeof taskQueue !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}(?![\s\S])/.test(taskQueue)) throw new Error('Invalid development task queue.');
+  return client.workflow.start('developIntent', { workflowId: developmentWorkflowId(target), taskQueue, args: [target],
+    workflowExecutionTimeout: '8 minutes', workflowIdConflictPolicy: WorkflowIdConflictPolicy.FAIL,
+    workflowIdReusePolicy: WorkflowIdReusePolicy.REJECT_DUPLICATE });
+}
 
 /** Trusted internal caller binds the queue; only the reference enters history. */
 export function startCandidateBundleSave(client: Client, taskQueue: string, raw: unknown) {

@@ -1,9 +1,39 @@
-import { ApplicationFailure, defineQuery, isCancellation, proxyActivities, setHandler, sleep, workflowInfo } from '@temporalio/workflow';
+import { ActivityCancellationType, ApplicationFailure, defineQuery, isCancellation, proxyActivities, setHandler, sleep, workflowInfo } from '@temporalio/workflow';
+import { parseDevelopmentTarget, parseDevelopmentStepResult, developmentWorkflowId,
+  type DevelopmentStepResult, type DevelopmentWorkflowActivities } from './development-workflow-contracts.ts';
 import { candidateSaveWorkflowId, parseCandidateSaveTarget, parseCandidateSaveResult, type CandidateSaveWorkflowActivities } from './candidate-save-contracts.ts';
 import { parsePlan, parseReceipt, workflowId, parseGateWatchPlan, parseGateObservation, gateWatchId,
   parseRecordedBriefTarget, recordedBriefWorkflowId, parseRecordedBriefCheckpoint, type RecordedBriefActivities,
   parseRecordedBriefRecoveryPlan, recordedBriefRecoveryWorkflowId, type RecordedBriefRecoveryActivities,
   type ReconciliationActivities, type ReconciliationReceipt, type GateWatchActivities, type GateObservation } from './contracts.ts';
+
+const developmentActivities = proxyActivities<DevelopmentWorkflowActivities>({
+  startToCloseTimeout: '2 minutes', scheduleToCloseTimeout: '3 minutes', heartbeatTimeout: '10 seconds',
+  retry: { maximumAttempts: 1 }, cancellationType: ActivityCancellationType.WAIT_CANCELLATION_COMPLETED,
+});
+export const developmentProgress = defineQuery<{ phase: 'architect' | 'test-agent' | 'complete'; checkpoint: DevelopmentStepResult | null }>('developmentProgress');
+/** One fixed operation, at most two role activities. Clarification/supersession/
+ * uncertainty stop this attempt. A completed workflow is not a gate or saved item.
+ */
+export async function developIntent(raw: unknown) {
+  let target;
+  try { target = parseDevelopmentTarget(raw); if (workflowInfo().workflowId !== developmentWorkflowId(target)) throw new Error(); }
+  catch { throw ApplicationFailure.nonRetryable('Invalid development workflow binding.', 'INVALID_BINDING'); }
+  let phase: 'architect' | 'test-agent' | 'complete' = 'architect', checkpoint: DevelopmentStepResult | null = null;
+  setHandler(developmentProgress, () => ({ phase, checkpoint }));
+  try {
+    for (const role of ['architect', 'test-agent'] as const) {
+      phase = role;
+      const step = { ...target, role };
+      checkpoint = parseDevelopmentStepResult(await developmentActivities.developIntentStep(step), step);
+      if (checkpoint.outcome !== 'succeeded') break;
+    }
+    phase = 'complete'; return checkpoint!;
+  } catch (error) {
+    if (isCancellation(error)) throw error;
+    throw ApplicationFailure.nonRetryable('Intent development requires attention.', 'INTENT_DEVELOPMENT_FAILED');
+  }
+}
 
 const candidateSaveActivities = proxyActivities<CandidateSaveWorkflowActivities>({
   startToCloseTimeout: '2 minutes', scheduleToCloseTimeout: '3 minutes', heartbeatTimeout: '10 seconds', retry: { maximumAttempts: 1 },
