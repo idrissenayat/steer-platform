@@ -892,3 +892,17 @@ No increase to acquisition, record/request/wire, token or model-budget bounds.
 Fitting source content alone is not proof that every downstream bound fits. This
 does not complete arbitrary-corpus context, semantic quality, real activation or
 human acceptance. Beyond-bound evidence requires separate design and verification.
+
+0250 adds an offline quality-evaluation boundary, not an execution stage. The
+versioned synthetic corpus rebuilds production scope inputs and verifies supplied
+recorded SDK exchanges before scoring candidate relation, coverage and decisive-
+citation expectations. Suite/case/profile changes invalidate replay bindings;
+missing cases/batches remain failures in the full denominator. No oracle enters
+the role request. See [the evaluation contract](../../intent/0250/SPEC.md).
+
+Label agreement cannot prove explanation quality, independent adjudication or
+live provider provenance. Reports always keep those acceptance/authority flags
+false and require explanation review. No report digest or candidate-check result
+is a grant, runtime admission, save confirmation or gate decision. The command has
+no provider/gateway/key/records wiring and no live mode. Synthetic SDK replies
+prove harness behavior only; signed-in user and repository acceptance remain open.

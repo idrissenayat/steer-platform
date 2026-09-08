@@ -5413,3 +5413,33 @@ historical assessment recovery, real authority and the human save/reopen journey
 remain open. No records activation, real migration, credential inspection, model
 spending, runtime Git save, auth bypass, gate, deployment or release occurred.
 User-owned files remain excluded and the one-minute loop stays active.
+
+## Development increment: 0250 — Offline intent-scope quality evaluation
+
+A versioned 23-case synthetic corpus and read-only replay command now exercise
+production scope preparation, recorded SDK verification and combined batch
+validation. Candidate expectations check relations, coverage and decisive citation
+spans, including exclusions/ancestor qualifiers, correction, proposed scope and a
+relevant target beyond the first batch. Missing cases/batches stay in the full
+denominator. Labels and rationales never enter the model request; output reports
+contain metadata/counts/failure codes, not source or model prose.
+
+The reference labels are candidate, not human-adjudicated, and explanation review
+is still required. Raw exchange consistency is not provider provenance. Reports
+cannot set semantic-quality, execution, saving or gate authority. The command has
+no live mode, environment credential lookup or durable-record integration. See
+[0250 evidence](../intent/0250/EVIDENCE.md) and [the evaluation guide](INTENT-SCOPE-EVALUATION.md).
+
+Focused 9-case harness tests pass, including 23/23 synthetic reference scenarios,
+36 candidate target labels and 21 SDK exchanges. These are synthetic expected
+answers, not measured model accuracy. Final **1,124/1,124 regressions**, all-package
+types, optimized Next build, kit/scope checks and 155 local document links pass.
+Protected hashes are unchanged. Earlier full PostgreSQL evidence is not relabelled as a new
+database run because this increment changes no data/SQL/runtime binding.
+
+Continue historical recovery and actual human save/reopen integration while
+records/model authority and independent semantic acceptance remain outstanding.
+No D1 activation, real migration, key inspection, model spend, runtime Git save,
+auth bypass, gate, deployment or release. User-owned files are untouched; only
+test-owned temporary synthetic replay files are created and removed by tests.
+The one-minute loop stays active.

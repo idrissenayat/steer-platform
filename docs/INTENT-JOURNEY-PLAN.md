@@ -33,8 +33,16 @@ scope, choose what to do, answer only necessary questions, review and correct a
 Brief/Spec/Exam bundle, save it to the authorized repository and reopen it exactly.
 No separate local preview, synthetic success, silent merging or lost work counts.
 
-Latest checkpoint: **0249 carries full sources across assessment batches into
-drafting**. The explicit assessed path accepts up to the existing 50 acquired
+Latest checkpoint: **0250 adds offline scope-quality replay and candidate cases**.
+The 23-case corpus is bound to exact production inputs and a recorded SDK verifier;
+label/coverage/citation checks are separate from still-required human explanation
+review. Synthetic reference responses test the harness, not live model accuracy.
+See [the evaluation guide](INTENT-SCOPE-EVALUATION.md) and [0250 evidence](../intent/0250/EVIDENCE.md).
+Human adjudication, representative held-out evaluation and provider evidence remain
+open; no report grants execution, semantic clearance, saving or a gate.
+
+0249 carries full sources across assessment batches into
+drafting. The explicit assessed path accepts up to the existing 50 acquired
 documents when every whole target fits the unchanged 32,000-byte document and
 128,000-byte aggregate source limits. An exact versioned context digest binds the
 actual editor's choice, server admission and immutable role inputs. The old
@@ -46,8 +54,8 @@ still needs no scope model call.
 0247's retained discovery/read-first recovery remains in the editor. All backend
 factories, including the new assessed preparer, remain uninstalled by default.
 Production React is tested with synthetic HTTP, not live signed-in acceptance.
-Next prioritize semantic evaluation, historical recovery and actual human
-save/reopen alongside real authority. Beyond-bound acquisition/context remains
+Next prioritize historical recovery and actual human
+save/reopen alongside real authority and adjudicated semantic evaluation. Beyond-bound acquisition/context remains
 open; no source summaries or omissions can silently replace required evidence.
 Expired/superseded scope originals need
 separate historical display; current-only revalidation must not renew execution.

@@ -1,6 +1,16 @@
 # STEER platform implementation
 
-## Current checkpoint — 0249
+## Current checkpoint — 0250
+
+0250 adds an offline quality-evaluation harness for the current scope-review path.
+It verifies exact recorded SDK exchanges and scores 23 synthetic candidate cases
+for relations, coverage and decisive citations. Missing cases/batches cannot be
+excluded from the denominator. Reference labels stay out of model input; reports
+never claim semantic acceptance or provider provenance. See [the evaluation guide](INTENT-SCOPE-EVALUATION.md)
+and [0250 evidence](../intent/0250/EVIDENCE.md). Human label/explanation review,
+authorized model execution, historical recovery and actual save/reopen remain open.
+
+## Prior checkpoint — 0249
 
 0249 connects versioned full-source context to assessed preparation and the actual
 editor. Up to 50 acquired documents can span assessment batches within unchanged
