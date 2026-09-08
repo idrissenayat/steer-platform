@@ -128,8 +128,9 @@ anything from expiry, logout, or this design.
 exact source/evidence/direction, separate instruction profiles and original
 execution configuration. Restoring that configuration is a records read, not an
 execution grant. Current source/owner/key/lifecycle authority remains required.
-Rendered role requests and observed provider provenance remain unimplemented;
-no profile label proves delivery, independent authorship or pricing bounds.
+Rendered role requests are prepared in 0220; observed provider provenance remains
+unimplemented. No profile label proves delivery, independent authorship or pricing
+bounds.
 
 ### Durable execution ownership
 
@@ -140,6 +141,16 @@ not enter Test Agent context automatically. Exact request hashes bind role steps
 Preparation/readback is neither a paid dispatch permit nor observed provider
 delivery; actual request capture, provider provenance and durable activities remain
 open. The packet contains private bytes and cannot be a Temporal/history payload.
+
+0221 composes these readers with actual SQL claim/reservation, one-way dispatch and
+encrypted result checkpoints in an uninstalled step runner. Current authority and
+source/state checks precede the model port; a lost dispatch acknowledgement cannot
+reach it. Completed results are re-verified and reused; uncertain work is not
+resent, and late source edits produce a superseded result. Its required recorded-
+model execution/verification ports have no production implementation yet. Testing
+this orchestration independently does not replace actual durable provider request,
+response and usage capture. It is not a Temporal activity registration, API route,
+live execution grant or I3 acceptance. See [0221 evidence](../../intent/0221/EVIDENCE.md).
 
 The API accepts/queries operations; an internal Temporal workflow owns the long
 conversation job. Use a draft-scoped identity before an item exists:

@@ -12,6 +12,7 @@
   "dependencies": {
     "@steer/adapters": "workspace:*",
     "@steer/data": "workspace:*",
+    "@steer/tool-registry": "workspace:*",
     "zod": "4.5.4",
     "@temporalio/client": "1.23.0",
     "@temporalio/activity": "1.23.0",
@@ -19,7 +20,6 @@
     "@temporalio/workflow": "1.23.0"
   },
   "devDependencies": {
-    "@steer/tool-registry": "workspace:*",
     "pg": "8.23.0",
     "@types/pg": "8.23.1",
     "drizzle-orm": "0.45.2",

@@ -4655,3 +4655,32 @@ Provider-request persistence/observations, response/usage provenance, durable
 activities and actual editor/API integration remain next. No live model/storage/
 save authority, schema, real migration, accepted policy or signed source changed.
 D1 remains inactive; I1–I6 stay open.
+
+## Development increment: 0221 — Durable development step runner
+
+Composed exact original/request recovery, atomic role reservations, acknowledged
+one-way dispatch and encrypted result checkpoints in an uninstalled worker runtime.
+Recovered completed roles reuse their actual results without another model call.
+Clarification stops Test Agent dispatch; later edits retain the human's newer text
+and label older results superseded. Current source, authority, owner/fence and
+expiry are rechecked before the injected model port is reached.
+
+Timeout/cancellation/close and lost dispatch acknowledgement do not resend work or
+refund reservations. Lost checkpoint acknowledgement can recover the stored result.
+The required model-recording and verification ports remain production-unbound;
+synthetic observation maps are not durable provider request/response/usage proof.
+This independently testable orchestration does not skip that activation prerequisite
+or register a Temporal development activity. See [0221 evidence](../intent/0221/EVIDENCE.md)
+and [worker documentation](../apps/worker/README.md).
+
+Verification: **155/155** disposable SQL/native-Git/Temporal integration checks and
+**299/299** scoped units/migration controls pass. Full prototype/eight-package
+typecheck, required kit (95 artifacts), token-scope and whitespace checks pass;
+protected source hashes match. The worker's existing tool-registry dependency is
+now classified for production installation; no package/version was added.
+
+No schema, real migration, credential, model call, runtime GitHub write, deployment,
+accepted policy or signed source changed. Nineteen development migrations remain
+held against the seven-entry real baseline. D1 stays inactive and I1–I6 stay open.
+Actual provider capture/readback, reference-only Temporal development activities
+and actual editor/API acknowledgement/recovery remain next.

@@ -143,6 +143,9 @@ importers:
       '@steer/data':
         specifier: workspace:*
         version: link:../../packages/data
+      '@steer/tool-registry':
+        specifier: workspace:*
+        version: link:../../packages/tool-registry
       '@temporalio/activity':
         specifier: 1.23.0
         version: 1.23.0
@@ -159,9 +162,6 @@ importers:
         specifier: 4.5.4
         version: 4.5.4
     devDependencies:
-      '@steer/tool-registry':
-        specifier: workspace:*
-        version: link:../../packages/tool-registry
       '@temporalio/testing':
         specifier: 1.23.0
         version: 1.23.0(@swc/helpers@0.5.23)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.26)(sharp@0.35.4(@types/node@25.0.3))
