@@ -34,6 +34,7 @@ export function createIntentDevelopmentStarter(pools: Parameters<typeof createDe
       const checked = async <T>(work: () => Promise<T>) => { await current(); const value = await track(Promise.resolve().then(work)); await current(); return value; };
       const authority = async (action: string, work: () => Promise<void>) => { if (action !== 'read' || await checked(work) !== undefined) throw unavailable(); };
       const secured: Records = {
+        ...(r.scopeReview ? { scopeReview: r.scopeReview } : {}),
         authorize: c => authority(c.action, () => r.authorize(c)),
         authorizeOriginal: c => authority(c.action, () => r.authorizeOriginal(c)),
         authorizeDraft: c => authority(c.action, () => r.authorizeDraft(c)),

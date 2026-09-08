@@ -1,4 +1,6 @@
 import type { PoolClient } from 'pg';
+import type { IntentScopeReader } from '@steer/tool-registry/intent-scope-read-contracts';
+import { revalidateDevelopmentScopeReview } from './development-scope-review.ts';
 import { z } from 'zod';
 import { createIntentOperationStore } from './intent-operations.ts';
 import { createDraftRevisionStore } from './draft-revisions.ts';
@@ -33,6 +35,7 @@ export function createDevelopmentOriginalStore(pools:{ drafts:DatabasePool; exec
   authorizeOriginal:(context:Readonly<{ original:DevelopmentOriginal; action:'put'|'read' }>)=>Promise<void>;
   authorizeOperation:Parameters<typeof createIntentOperationStore>[2]['authorize'];
   authorizeDraft:DraftDependencies['authorize']; keyForDraft:DraftDependencies['keyForDraft'];
+  scopeReview?: IntentScopeReader;
 }) {
   const config=freeze(configurationSchema.parse(rawConfiguration)), configurationDigest=hash(config);
   for (const name of ['authorize','authorizeOriginal','authorizeOperation','authorizeDraft','keyForDraft'] as const)
@@ -50,6 +53,10 @@ export function createDevelopmentOriginalStore(pools:{ drafts:DatabasePool; exec
   };
   const verify=async (original:DevelopmentOriginal,action:'put'|'read') => {
     if (closed || await bounded(dependencies.authorizeOriginal(freeze({ original,action })))!==undefined || closed) throw new DraftStorageError();
+    await bounded(revalidateDevelopmentScopeReview(original, dependencies.scopeReview, async () => {
+      if (closed || await bounded(dependencies.authorizeOriginal(freeze({ original,action })))!==undefined || closed) throw new DraftStorageError();
+    }));
+    if (closed) throw new DraftStorageError();
   };
   const key=(draftId:string,keyId:string|null)=>bounded(dependencies.keyForDraft(freeze({ ...config,draftId }),keyId));
   async function transaction<T>(work:(client:PoolClient)=>Promise<T>):Promise<T> {

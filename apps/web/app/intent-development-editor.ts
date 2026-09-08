@@ -2,6 +2,8 @@ import type { IntentDevelopmentReviewInput } from '@steer/tool-registry/intent-d
 import { intentDevelopmentPrepareInputSchema, type IntentDevelopmentPrepareInput } from '@steer/tool-registry/intent-development-prepare-contracts';
 import { intentDevelopmentStartInputSchema, type IntentDevelopmentStartInput } from '@steer/tool-registry/intent-development-start-contracts';
 import type { IntentDevelopmentReadOutput } from '@steer/tool-registry/intent-development-read-contracts';
+import type { IntentScopeReadOutput } from '@steer/tool-registry/intent-scope-read-contracts';
+import { bindRecordedIntentScope, verifyBoundIntentScope, intentScopeSelectionFor, type IntentScopeSelection } from '@steer/tool-registry/intent-scope-selection';
 import type { IntentDispositionChoice } from '@steer/tool-registry/intent-overlap-contracts';
 import type { IntentDraftContent } from '@steer/tool-registry/intent-draft-content';
 import type { IntentDevelopmentTransport } from './intent-development-transport.ts';
@@ -60,7 +62,7 @@ export function createIntentDevelopmentEditor(transport: IntentDevelopmentTransp
           } else publish({ status: 'preparation-unknown', message: 'Preparation is not confirmed. Retry only this exact reviewed request; a record may already exist.' });
           return;
         }
-        const { choice: _choice, sourceSnapshotDigest: _snapshot, configurationRevision: _configuration, scopeInputDigest: _scope, ...source } = preparation!;
+        const { choice: _choice, sourceSnapshotDigest: _snapshot, configurationRevision: _configuration, scopeInputDigest: _scope, scopeReview: _assessment, ...source } = preparation!;
         publish({ operation: { ...source, ...output.reference! } }); retry = 'start';
       }
       if (!matches()) { publish({ status: 'start-unknown', message: 'The source was preserved, but your editor changed before start. No start request was sent.' }); return; }
@@ -100,13 +102,28 @@ export function createIntentDevelopmentEditor(transport: IntentDevelopmentTransp
       } catch { publish({ status: 'idle', message: 'Current sources could not be reviewed. Your text is unchanged. This does not mean the intent is new.' }); }
       finally { busy = false; }
     },
-    async develop(choice: IntentDispositionChoice) {
+    async develop(choice: IntentDispositionChoice, assessment?: IntentScopeReadOutput | null, subject?: string) {
       if (closed || busy || retry || view.status !== 'reviewed' || !matches() || !view.review?.envelope.coverage.complete) return;
       const { output, envelope } = view.review;
+      let scopeReview: IntentScopeSelection | undefined;
+      // Current UI always supplies this argument. Omission preserves the legacy
+      // controller contract, but the assessed server factory rejects omission.
+      if (assessment !== undefined) {
+        busy = true;
+        try {
+          const selected = assessment?.review ? { kind: 'recorded' as const, reviewId: assessment.reviewId,
+            preparationDigest: assessment.preparationDigest, resultsDigest: assessment.review.resultsDigest } : null;
+          const bound = selected ? await bindRecordedIntentScope(selected, assessment, output.evidence, { ...view.source!.input, subject: subject ?? '' })
+            : await verifyBoundIntentScope({ kind: 'empty-corpus', planDigest: output.scopeBatchPlan.planDigest }, output.evidence);
+          if (closed || !matches() || view.review?.output !== output) return;
+          scopeReview = intentScopeSelectionFor(bound);
+        } catch { publish({ message: 'The assessment is incomplete, unavailable or changed. Read the current review before confirming direction.' }); return; }
+        finally { busy = false; }
+      }
       if ('target' in choice && !envelope.evidence.some(s => s.path === choice.target.path && s.contentDigest === choice.target.contentDigest
         && envelope.snapshot.head === choice.target.revision && s.path.endsWith('/BRIEF.md'))) return;
       const parsed = intentDevelopmentPrepareInputSchema.safeParse({ ...view.source!.input, configurationRevision: output.configurationRevision,
-        sourceSnapshotDigest: output.sourceSnapshotDigest, choice });
+        sourceSnapshotDigest: output.sourceSnapshotDigest, choice, ...(scopeReview ? { scopeReview } : {}) });
       if (!parsed.success) return;
       preparation = parsed.data; retry = 'prepare'; await execute();
     },

@@ -9,7 +9,10 @@ import { createElement, act } from 'react';
 import { JSDOM } from 'jsdom';
 import { fingerprintIntentScope } from '@steer/tool-registry/intent-revision-contracts';
 import { buildIntentEvidenceEnvelope } from '@steer/tool-registry/intent-evidence-contracts';
-import { planIntentScopeBatches } from '@steer/tool-registry/intent-scope-batches';
+import { planIntentScopeBatches, validateIntentScopeBatchResults } from '@steer/tool-registry/intent-scope-batches';
+import { prepareIntentScopeReview } from '@steer/tool-registry/intent-scope-review';
+import { scopeReviewFixture } from '../../../packages/tool-registry/test/intent-scope-review.fixture.ts';
+import { scopeEditorFixture } from './intent-scope.fixture.ts';
 import { developmentFixture } from '../../../packages/tool-registry/test/intent-development.fixture.ts';
 
 // Entire production React graph and transports, only HTTP/provider inputs synthetic.
@@ -34,12 +37,12 @@ async function conversation() {
 }
 
 test('actual editor preserves, reviews, clarifies, recovers a lost start and explicitly adopts editable Brief/Spec/Test Agent Exam candidates', async () => {
-  const Component = await conversation(), f = await developmentFixture();
+  const Component = await conversation(), f = await developmentFixture(), sf = await scopeReviewFixture(), sfUI = await scopeEditorFixture();
   const dom = new JSDOM('<!doctype html><html lang="en"><title>STEER test</title><main id="root"></main></html>', { url: 'https://steer.example', pretendToBeVisual: true });
   const keys = ['window', 'document', 'HTMLElement', 'IS_REACT_ACT_ENVIRONMENT', 'fetch'];
   const saved = Object.fromEntries(keys.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
   for (const [key, value] of Object.entries({ window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, IS_REACT_ACT_ENVIRONMENT: true })) Object.defineProperty(globalThis, key, { configurable: true, value });
-  const calls = [], operations = new Map(); let reference = null, content = null, lost = false, incomplete = true, discoveryDenied = false;
+  const calls = [], operations = new Map(); let reference = null, content = null, lost = false, incomplete = true, discoveryDenied = false, scopePrepared = null, scopeReady = null;
   globalThis.fetch = async (url, init) => {
     const input = JSON.parse(init.body); calls.push({ url, input });
     if (url.endsWith('intent.draft.discover')) {
@@ -66,8 +69,24 @@ test('actual editor preserves, reviews, clarifies, recovers a lost start and exp
       return Response.json({ ...f.review, ...input, evidence, scopeBatchPlan: (await planIntentScopeBatches(evidence)).summary,
         sourceSnapshotDigest: (await buildIntentEvidenceEnvelope(evidence)).sourceSnapshotDigest });
     }
+    if (url.endsWith('intent.scope.prepare')) {
+      const evidence = { ...f.evidence, scopeInputDigest: reference.scopeInputDigest, inventoryComplete: !incomplete };
+      const prepared = await prepareIntentScopeReview({ ...f.scope, draftId: input.draftId, sourceRevision: input.revision, ...content }, evidence, sf.profile);
+      const review = await validateIntentScopeBatchResults(evidence, prepared.batches.map(b => ({ planDigest: prepared.plan.planDigest,
+        batchId: b.metadata.batchId, assessment: sf.result(b) })), sf.profile.profileRevision);
+      scopePrepared = { ...sfUI.prepared, ...input, reference: { reviewId: randomUUID(), preparationDigest: prepared.preparationDigest },
+        coverage: { ...sfUI.prepared.coverage, inventoryCount: 1, plannedCount: 1, batchCount: 1 } };
+      scopeReady = { ...sfUI.ready, ...f.scope, ...scopePrepared.reference, review,
+        source: { draftId: input.draftId, revision: input.revision, latestRevision: input.revision, revisionDigest: input.revisionDigest, scopeInputDigest: input.scopeInputDigest },
+        batches: prepared.batches.map(b => ({ batchId: b.metadata.batchId, state: 'succeeded', resultDigest: 'c'.repeat(64) })) };
+      return Response.json(scopePrepared);
+    }
+    if (url.endsWith('intent.scope.start')) return Response.json({ ...sfUI.started, ...input,
+      receipt: { ...sfUI.started.receipt, workflowId: `steer-scope/v1/${encodeURIComponent(input.organizationId)}/${input.reviewId}` } });
+    if (url.endsWith('intent.scope.read')) return Response.json({ ...scopeReady, ...input });
     if (url.endsWith('intent.development.prepare')) {
       assert.equal(incomplete, false); assert.equal(input.revisionDigest, reference.revisionDigest);
+      assert.deepEqual(input.scopeReview, { kind: 'recorded', ...scopePrepared.reference, resultsDigest: scopeReady.review.resultsDigest });
       let operation = operations.get(input.revision);
       if (!operation) { operation = { operationId: randomUUID(), inputDigest: String(input.revision + 3).repeat(64), reference: { ...reference }, content: structuredClone(content) }; operations.set(input.revision, operation); }
       return Response.json({ ...f.prepared, ...input, reference: { operationId: operation.operationId, inputDigest: operation.inputDigest } });
@@ -107,15 +126,20 @@ test('actual editor preserves, reviews, clarifies, recovers a lost start and exp
     assert.match(document.body.textContent, /Out of scope: patient booking/); assert.equal(document.activeElement.id, 'development-title');
     assert.match(document.querySelector('[aria-label="Scope assessment plan"]').textContent, /1 batch covering 1 of 1/);
     assert.match(document.body.textContent, /has not assessed duplicates or started model calls/);
+    assert.equal(button('Confirm direction and develop this draft').disabled, true);
+    await click('Assess existing scope');
+    assert.match(document.body.textContent, /Findings are ready to review/);
     await direction(); await click('Confirm direction and develop this draft'); assert.equal(operations.size, 1);
     assert.match(document.body.textContent, /Which booking rules apply/); await click('Answer these questions');
     assert.equal(document.activeElement.id, 'agent-clarification'); await set('agent-clarification', ' Patients can cancel up to 24 hours before.\n');
-    await click('Preserve draft'); await click('Review existing work for this draft'); await direction();
+    await click('Preserve draft'); await click('Review existing work for this draft');
+    assert.equal(button('Confirm direction and develop this draft').disabled, true);
+    await click('Assess existing scope'); await direction();
     await click('Confirm direction and develop this draft'); assert.equal(operations.size, 2);
     assert.match(document.body.textContent, /response was lost or access changed/);
     const before = calls.length; await click('Recover the same request');
     assert.equal(calls.length, before + 2); // Same start, then a status query.
-    const starts = calls.filter(c => c.url.endsWith('.start')); assert.deepEqual(starts[1], starts[2]);
+    const starts = calls.filter(c => c.url.endsWith('intent.development.start')); assert.deepEqual(starts[1], starts[2]);
     assert.match(document.body.textContent, /Three generated candidates are ready/); assert.equal(document.querySelector('.intent-documents'), null);
     await click('Use these generated documents'); assert.equal(document.activeElement.textContent, 'Your draft documents');
     for (const name of ['BRIEF.md', 'SPEC.md', 'EXAM.md']) { await click(name); assert.ok(button('Edit draft')); }
@@ -124,7 +148,7 @@ test('actual editor preserves, reviews, clarifies, recovers a lost start and exp
     await click('Check this run’s progress'); assert.equal(button('Use these generated documents').disabled, true);
     assert.equal(document.getElementById('intent-document-editor').value, '# Human Exam correction فارسی');
     assert.deepEqual(operations.get(2).content.clarificationTurns, [' Patients can cancel up to 24 hours before.\n']);
-    assert.equal(calls.filter(c => c.url.endsWith('.prepare')).length, 2);
+    assert.equal(calls.filter(c => c.url.endsWith('intent.development.prepare')).length, 2);
     assert.ok(calls.every(c => !c.url.includes('intent.agent.develop'))); assert.equal(window.localStorage.length, 0); assert.equal(window.sessionStorage.length, 0);
     // A fresh page has no browser-persisted run pointer. Find metadata, preview
     // stored content without replacement, explicitly restore, then read the run.
@@ -141,7 +165,7 @@ test('actual editor preserves, reviews, clarifies, recovers a lost start and exp
     const beforeResume = calls.length; await click('Resume this recorded run');
     assert.deepEqual(calls.slice(beforeResume).map(c => c.url.split('/').at(-1)), ['intent.development.read']);
     assert.match(document.body.textContent, /Three generated candidates are ready/); await click('Use these generated documents');
-    assert.equal(calls.filter(c => c.url.endsWith('.prepare')).length, 2); assert.equal(calls.filter(c => c.url.endsWith('.start')).length, 3);
+    assert.equal(calls.filter(c => c.url.endsWith('intent.development.prepare')).length, 2); assert.equal(calls.filter(c => c.url.endsWith('intent.development.start')).length, 3);
     discoveryDenied = true; await click('Find my drafts');
     assert.match(document.body.textContent, /This is not an empty result/); assert.equal(document.querySelector('[data-draft-reference]'), null);
     assert.ok(document.querySelector('.intent-documents')); // Search failure does not erase the editor.

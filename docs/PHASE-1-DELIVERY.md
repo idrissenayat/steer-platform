@@ -5351,3 +5351,35 @@ contexts, real records/model authority, semantic evaluation and human save/reope
 Legacy generation coverage gates remain unchanged. No real migration, D1
 activation, credential inspection, model spend, runtime Git save, gate, auth bypass,
 deployment or release occurred. The existing one-minute loop remains active.
+
+## Development increment: 0248 — Assessment-bound intent drafting
+
+The actual editor now requires a current complete scope assessment before a human
+confirms direction for non-empty evidence. It sends only exact review/result
+references. A separate assessed server factory reads recorded findings through its
+pinned SDK verifier, verifies current source/corpus coverage and preserves the full
+assessment with the human's direction in the encrypted immutable original. Both
+drafting roles receive this context; the Test Agent never receives an earlier Exam
+or Architect commentary. Explicitly complete empty inventory needs no scope model
+call; failed or incomplete search cannot take that path.
+
+Restoration revalidates current assessment for preparation, start, worker requests
+and result consumption. The new factory rejects omission; optional v1 fields only
+preserve historical compatibility. Missing reader, revoked permission, changed
+profile/source and expired/superseded assessment fail closed. Historical display of
+those assessed originals needs a separate read path. The legacy smaller generation
+coverage/byte limits remain unchanged. See [0248 evidence](../intent/0248/EVIDENCE.md).
+
+0248 verification: 1,111/1,111 full regressions and 332/332 full PostgreSQL 16.14
+integration checks pass, including six new API/SQL assessed-direction checks and
+the updated actual React conversation. Prototype/eight package typechecks,
+optimized Next.js build, Drizzle history, kit (95 artifacts), scope audit, 143 local
+document links and whitespace checks pass. Protected source hashes are unchanged.
+The earlier 60-case focused run overlaps the full SQL suite; it is not extra proof.
+
+Continue larger-corpus drafting/context, semantic evaluation, real records/model
+authority and actual human save/reopen. Factories remain uninstalled. Verification
+uses synthetic authority/model responses and disposable SQL, not live acceptance.
+No D1 adoption, real migration, credential inspection, model spending, runtime Git
+save, gate, auth bypass, deployment or release occurred. The one-minute loop stays
+active, and unrelated user files remain excluded from the commit.

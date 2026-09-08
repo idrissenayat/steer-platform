@@ -3,6 +3,40 @@ import test from 'node:test';
 import { createIntentDevelopmentEditor, type DevelopmentEditorSource } from '../app/intent-development-editor.ts';
 import type { IntentDevelopmentTransport } from '../app/intent-development-transport.ts';
 import { developmentFixture } from '../../../packages/tool-registry/test/intent-development.fixture.ts';
+import { scopeEditorFixture } from './intent-scope.fixture.ts';
+import { buildIntentEvidenceEnvelope } from '@steer/tool-registry/intent-evidence-contracts';
+import { planIntentScopeBatches } from '@steer/tool-registry/intent-scope-batches';
+
+test('assessed editor sends reference-only direction and retries exact bytes; pending, wrong-owner and changed findings send nothing', async () => {
+  const f = await scopeEditorFixture(), base = await developmentFixture();
+  const { configurationRevision, sourceSnapshotDigest, ...input } = f.input;
+  const source = { input, content: { originalText: f.scope.originalText, clarificationTurns: f.scope.clarificationTurns,
+    documents: { ...f.scope.documents!, exam: '# Prior human Exam' } } };
+  const output = { ...base.review, ...input, configurationRevision, sourceSnapshotDigest, evidence: f.evidence, scopeBatchPlan: f.source.plan };
+  for (const assessment of [null, f.pending, { ...f.ready, subject: 'other' }, { ...f.ready, preparationDigest: 'd'.repeat(64), review: null }]) {
+    const calls: unknown[] = [];
+    const controller = createIntentDevelopmentEditor({ close() {}, review: async () => ({ output, envelope: await buildIntentEvidenceEnvelope(f.evidence) }),
+      prepare: async value => { calls.push(value); throw new Error('Lost'); }, start: async () => { throw new Error('Forbidden'); }, read: async () => { throw new Error('Forbidden'); } }, () => source, () => {});
+    await controller.review(); await controller.develop(base.choice, assessment, 'human'); assert.equal(calls.length, 0); controller.close();
+  }
+  const calls: unknown[] = [];
+  const controller = createIntentDevelopmentEditor({ close() {}, review: async () => ({ output, envelope: await buildIntentEvidenceEnvelope(f.evidence) }),
+    prepare: async value => { calls.push(value); throw new Error('Lost'); }, start: async () => { throw new Error('Forbidden'); }, read: async () => { throw new Error('Forbidden'); } }, () => source, () => {});
+  await controller.review(); await controller.develop(base.choice, f.ready, 'human');
+  assert.deepEqual(calls, [{ ...input, configurationRevision, sourceSnapshotDigest, choice: base.choice,
+    scopeReview: { kind: 'recorded', ...f.prepared.reference, resultsDigest: f.ready.review!.resultsDigest } }]);
+  await controller.retry(); assert.deepEqual(calls[1], calls[0]); assert.doesNotMatch(JSON.stringify(calls), /Synthetic finding|Prior human Exam/); controller.close();
+});
+test('assessed editor distinguishes complete empty inventory from unavailable assessment without sending a scope model request', async () => {
+  const { f, editor, transport, calls } = await setup();
+  const evidence = { ...f.evidence, inventory: [], documents: [] };
+  const envelope = await buildIntentEvidenceEnvelope(evidence), plan = (await planIntentScopeBatches(evidence)).summary;
+  transport.review = async () => ({ output: { ...f.review, evidence, sourceSnapshotDigest: envelope.sourceSnapshotDigest, scopeBatchPlan: plan }, envelope });
+  transport.prepare = async input => { calls.push({ kind: 'prepare', input }); throw new Error('Lost'); };
+  await editor.review(); await editor.develop(f.choice, null, 'human');
+  assert.deepEqual((calls[0]!.input as any).scopeReview, { kind: 'empty-corpus', planDigest: plan.planDigest });
+  assert.deepEqual(calls.map(c => c.kind), ['prepare']); editor.close();
+});
 
 async function setup() {
   const f = await developmentFixture(), calls: Array<{ kind: string; input: unknown }> = [];

@@ -18,6 +18,7 @@ import { createRecordedMastraVerifier, type RecordedRequest, type RecordedRespon
 import { createIntentDevelopmentReader } from '@steer/data/intent-development-reader';
 import { createIntentDevelopmentStarter } from '@steer/data/intent-development-starter';
 import { createIntentDevelopmentPreparer } from '@steer/data/intent-development-preparer';
+import { intentOperationConfigurationSchema } from '@steer/data/intent-operations';
 import { createAppJwtSigner, createGitHubReader, artifactSelectionSchema, type ArtifactReader } from '@steer/adapters/github';
 import { createPostgresBrowserSessionStore } from '@steer/data/browser-session';
 import { createRuntimePool } from '@steer/data/runtime-pool';
@@ -114,6 +115,21 @@ export function createRecordedDevelopmentReviewer(configuration: unknown, depend
 export function createRecordedDevelopmentPreparer(pools: Parameters<typeof createIntentDevelopmentPreparer>[0], configuration: unknown,
   profiles: unknown, dependencies: Parameters<typeof createIntentDevelopmentPreparer>[3]) {
   return createIntentDevelopmentPreparer(pools, configuration, profiles, dependencies);
+}
+/** New journey composition: a source-assessed direction is mandatory. A pinned
+ * recorded reader, not browser findings, supplies and revalidates provenance.
+ * Legacy preparation remains available only for historical/uninstalled consumers. */
+export function createAssessedRecordedDevelopmentPreparer(pools: Parameters<typeof createIntentDevelopmentPreparer>[0], configuration: unknown,
+  profiles: unknown, dependencies: Omit<Parameters<typeof createIntentDevelopmentPreparer>[3], 'requireScopeReview'> & {
+    scope: Parameters<typeof createVerifiedScopeReviewReader>[2];
+  }) {
+  const { action: _action, budget: _budget, expiresAt: _expiry, ...recordsConfig } = intentOperationConfigurationSchema.parse(configuration);
+  const reader = createVerifiedScopeReviewReader(pools, recordsConfig, dependencies.scope);
+  try {
+    const preparer = createIntentDevelopmentPreparer(pools, configuration, profiles, { ...dependencies, requireScopeReview: true,
+      records: { ...dependencies.records, scopeReview: reader } });
+    return { scope: preparer.scope, prepare: preparer.prepare, close() { preparer.close(); reader.close(); } };
+  } catch (error) { reader.close(); throw error; }
 }
 /** Explicit uninstalled composition; no queue, authority or records fallback. */
 export function createRecordedDevelopmentStarter(pools: Parameters<typeof createIntentDevelopmentStarter>[0], configuration: unknown,

@@ -2,15 +2,17 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { IntentDevelopmentReviewOutput } from '@steer/tool-registry/intent-development-review-contracts';
+import type { IntentScopeReadOutput } from '@steer/tool-registry/intent-scope-read-contracts';
 import { createIntentScopeEditor, type ScopeEditorSource, type ScopeEditorView } from './intent-scope-editor';
 import { createIntentScopeTransport } from './intent-scope-transport';
 import { briefFragment } from './brief-location';
 
 const relations = { 'already-covered': 'Already covered', partial: 'Partially covered', 'related-distinct': 'Related but distinct',
   'no-match-in-assessed-scope': 'No match in assessed scope', 'insufficient-evidence': 'Insufficient evidence' };
-export default function IntentScopePanel({ source, review, subject, identity, expiresAt, enabled, onLockChange }: {
+export default function IntentScopePanel({ source, review, subject, identity, expiresAt, enabled, onLockChange, onAssessmentChange }: {
   source: boolean; review: IntentDevelopmentReviewOutput | null; subject: string; identity: string; expiresAt: string;
   enabled: boolean; onLockChange: (locked: boolean) => void;
+  onAssessmentChange: (assessment: IntentScopeReadOutput | null) => void;
 }) {
   const [view, setView] = useState<ScopeEditorView | null>(null), [paused, setPaused] = useState(false);
   const controller = useRef<ReturnType<typeof createIntentScopeEditor> | null>(null), context = useRef<ScopeEditorSource | null>(null);
@@ -21,6 +23,9 @@ export default function IntentScopePanel({ source, review, subject, identity, ex
     sourceSnapshotDigest: review.sourceSnapshotDigest,
   } } : null;
   const fingerprint = JSON.stringify(context.current);
+  useEffect(() => {
+    onAssessmentChange(source && view?.status === 'review-available' && !view.sourceInvalidated ? view.observation : null);
+  }, [source, view, onAssessmentChange]);
   useEffect(() => { controller.current?.sourceChanged(); }, [fingerprint]);
   useEffect(() => {
     let closed = false, last = Date.now();
@@ -28,13 +33,13 @@ export default function IntentScopePanel({ source, review, subject, identity, ex
       const okay = !closed && Number.isFinite(expiry) && now >= last && now < expiry && !document.hidden; last = now; return okay; };
     const current = createIntentScopeEditor(createIntentScopeTransport(window.location.origin), () => valid() ? context.current : null,
       next => { if (valid()) { setView(next); onLockChange(next.locked); } else close(); });
-    const close = () => { closed = true; current.close(); setView(current.snapshot()); onLockChange(false); };
+    const close = () => { closed = true; current.close(); setView(current.snapshot()); onLockChange(false); onAssessmentChange(null); };
     controller.current = current; setView(current.snapshot()); onLockChange(false); polls.current = 0; began.current = Date.now(); setPaused(false);
     const check = () => { if (!valid()) close(); };
     const timer = setInterval(check, 1000); check(); document.addEventListener('visibilitychange', check); window.addEventListener('pagehide', close);
     return () => { closed = true; current.close(); if (controller.current === current) controller.current = null;
-      clearInterval(timer); document.removeEventListener('visibilitychange', check); window.removeEventListener('pagehide', close); onLockChange(false); };
-  }, [identity, expiresAt, onLockChange]);
+      clearInterval(timer); document.removeEventListener('visibilitychange', check); window.removeEventListener('pagehide', close); onLockChange(false); onAssessmentChange(null); };
+  }, [identity, expiresAt, onLockChange, onAssessmentChange]);
   useEffect(() => {
     if (view?.status !== 'pending' || view.retryAvailable) return;
     if (polls.current >= 900 || Date.now() - began.current >= 30 * 60000) { setPaused(true); return; }

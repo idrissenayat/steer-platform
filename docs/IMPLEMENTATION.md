@@ -1,6 +1,16 @@
 # STEER platform implementation
 
-## Current checkpoint — 0247
+## Current checkpoint — 0248
+
+0248 connects the exact recorded scope assessment to the human's direction and
+immutable drafting input. The actual editor requires current findings for a
+non-empty corpus; the assessed server factory reads and verifies them independently.
+Both drafting roles receive that context without prior Exam, and restoration
+revalidates the assessment. An explicitly complete empty inventory needs no scope
+model call. See [0248 evidence](../intent/0248/EVIDENCE.md). Factories remain
+uninstalled; larger generation context, real authority and human save/reopen remain.
+
+## Prior checkpoint — 0247
 
 0247 connects exact-latest-draft scope discovery and read-first recovery to the
 existing editor. The disabled API factory performs keyless owner-bound metadata
@@ -102,9 +112,9 @@ and shown with exact citations, coverage gaps and distinct recovery/expiry state
 Unknown requests retain their references; edits and denied access cannot become
 uniqueness or silently overwrite user text. Unsupported proposed Brief links retain
 cited passages. See [0246 evidence](../intent/0246/EVIDENCE.md). React/HTTP tests are
-synthetic, not live UI acceptance. Scope-specific discovery after refresh and
-server-bound assessment consumption by direction/drafting remain next; the smaller
-legacy generation-envelope gate is unchanged.
+synthetic, not live UI acceptance. 0247 subsequently added scope-specific discovery
+after refresh and 0248 added server-bound assessment consumption by direction/
+drafting. The smaller legacy generation-envelope gate is unchanged.
 
 These are tested development capabilities, not live end-to-end acceptance. D1
 records activation, real source/lifecycle verifier binding, large-corpus contextual

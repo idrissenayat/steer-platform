@@ -5,6 +5,7 @@ import { fingerprintIntentScope } from '@steer/tool-registry/intent-revision-con
 import { intentDispositionChoiceSchema } from '@steer/tool-registry/intent-overlap-contracts';
 import { buildIntentEvidenceEnvelope, intentEvidenceInputSchema } from '@steer/tool-registry/intent-evidence-contracts';
 import { intentOperationConfigurationSchema } from './intent-operations.ts';
+import { intentScopeBindingSchema, verifyBoundIntentScope } from '@steer/tool-registry/intent-scope-selection';
 
 const text = (max: number) => z.string().min(1).max(max).refine(v => v.trim().length > 0 && !/[\uD800-\uDFFF]/u.test(v));
 const id = text(200).refine(v => !/[\u0000-\u001f\u007f]/u.test(v));
@@ -17,7 +18,8 @@ export const developmentOriginalSchema = z.strictObject({
   source: z.strictObject({ draftId: z.uuid().length(36).refine(v => v === v.toLowerCase()), revision, sourceRevision: revision,
     revisionDigest: digest, scopeInputDigest: digest, content: intentDraftContentSchema }),
   evidence: intentEvidenceInputSchema,
-  direction: z.strictObject({ choice: intentDispositionChoiceSchema, scopeInputDigest: digest, sourceSnapshotDigest: digest }),
+  direction: z.strictObject({ choice: intentDispositionChoiceSchema, scopeInputDigest: digest, sourceSnapshotDigest: digest,
+    scopeReview: intentScopeBindingSchema.optional() }),
   profiles: z.strictObject({ architect: profile, testAgent: profile }),
 });
 export type DevelopmentOriginal = z.infer<typeof developmentOriginalSchema>;
@@ -39,6 +41,7 @@ export async function describeDevelopmentOriginal(raw: unknown) {
     || original.direction.scopeInputDigest !== s.scopeInputDigest || original.direction.sourceSnapshotDigest !== evidence.sourceSnapshotDigest
     || (['organizationId','productId','repository','branch'] as const).some(k => evidence.snapshot[k] !== c[k])) throw new Error('Original input unavailable.');
   const choice = original.direction.choice;
+  if (original.direction.scopeReview) await verifyBoundIntentScope(original.direction.scopeReview, original.evidence);
   if ('target' in choice && (choice.target.revision !== evidence.snapshot.head || !evidence.evidence.some(ref =>
     ref.path === choice.target.path && ref.contentDigest === choice.target.contentDigest))) throw new Error('Original input unavailable.');
   // Domain separation pins the full source, original expiry/budget binding,

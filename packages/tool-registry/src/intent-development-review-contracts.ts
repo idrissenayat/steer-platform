@@ -4,7 +4,7 @@ import { intentEvidenceInputSchema } from './intent-evidence-contracts.ts';
 import { intentScopeBatchPlanSchema, planIntentScopeBatches } from './intent-scope-batches.ts';
 
 export const intentDevelopmentReviewInputSchema = intentDevelopmentPrepareInputSchema.omit({
-  configurationRevision: true, sourceSnapshotDigest: true, choice: true,
+  configurationRevision: true, sourceSnapshotDigest: true, choice: true, scopeReview: true,
 });
 export const intentDevelopmentReviewOutputSchema = intentDevelopmentReviewInputSchema.extend({
   kind: z.literal('steer-development-review/v1'), configurationRevision: z.string().min(1).max(200),

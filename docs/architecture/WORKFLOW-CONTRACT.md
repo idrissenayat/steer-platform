@@ -850,3 +850,25 @@ captured originals of the exact latest draft, not orphan admissions or older
 revisions. Historical-corpus display remains separate. See
 [0247 specification](../../intent/0247/SPEC.md). Factories remain uninstalled and
 server-bound assessment consumption by direction/drafting remains next.
+
+0248 completes that development handoff through the separate uninstalled
+`createAssessedRecordedDevelopmentPreparer`. The browser supplies only the exact
+review/preparation/result reference with explicit human direction. The server's
+pinned current reader must verify recorded observations and full current corpus
+coverage/citations before encrypting the complete binding inside the immutable
+development original. Both role contexts include this direction and assessment;
+the fresh Test Agent never inherits prior Exam or Architect commentary.
+
+The new factory refuses omitted assessment. Optional v1 fields preserve historical
+originals/hashes only; the legacy preparer is not a substitute for new live journey
+wiring. Pass the pinned reader through original-store ports for preparation, start,
+worker requests and result consumption. Missing/revoked/changed/expired/superseded
+assessment fails closed. Historical expired-scope display needs a separate current
+records-authorized path, not execution renewal. Explicitly complete empty inventory
+can bind its exact plan digest with no scope model call; failed search cannot.
+
+The actual editor checks owner, exact draft and current plan before enabling
+direction and revalidates findings before preparing. Retry preserves exact inputs.
+Larger scope coverage cannot override the legacy smaller generation envelope or
+record/request limits. See [0248 specification](../../intent/0248/SPEC.md).
+This does not activate records, model budget, execution, saving or gate authority.

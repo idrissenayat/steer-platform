@@ -54,6 +54,7 @@ export function createIntentDevelopmentReader(pools: Parameters<typeof createDev
       const secure: Records = {
         authorize: context => authority(context.action, () => r.authorize(context)),
         originals: {
+          ...(r.originals.scopeReview ? { scopeReview: r.originals.scopeReview } : {}),
           authorize: context => authority(context.action, () => r.originals.authorize(context)),
           authorizeOriginal: context => authority(context.action, () => r.originals.authorizeOriginal(context)),
           authorizeOperation: operationAuthority(true),

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { IntentDispositionChoice } from '@steer/tool-registry/intent-overlap-contracts';
 import type { IntentDevelopmentReadOutput } from '@steer/tool-registry/intent-development-read-contracts';
+import type { IntentScopeReadOutput } from '@steer/tool-registry/intent-scope-read-contracts';
 import type { IntentDraftDiscoveryEntry } from '@steer/tool-registry/intent-draft-discovery-contracts';
 import { createIntentDevelopmentEditor, type DevelopmentEditorSource, type DevelopmentEditorView } from './intent-development-editor';
 import { createIntentDevelopmentTransport } from './intent-development-transport';
@@ -19,6 +20,7 @@ export default function IntentDevelopmentPanel({ source, enabled, subject, ident
   const [action, setAction] = useState<IntentDispositionChoice['action'] | ''>(''), [reason, setReason] = useState(''), [path, setPath] = useState('');
   const [paused, setPaused] = useState(false);
   const [scopeLocked, setScopeLocked] = useState(false);
+  const [scopeAssessment, setScopeAssessment] = useState<IntentScopeReadOutput | null>(null);
   const sourceRef = useRef(source), controller = useRef<ReturnType<typeof createIntentDevelopmentEditor> | null>(null);
   const heading = useRef<HTMLHeadingElement>(null), polls = useRef(0), startedAt = useRef(0);
   const handledReview = useRef(0);
@@ -63,15 +65,21 @@ export default function IntentDevelopmentPanel({ source, enabled, subject, ident
     && source.input.revision === discoveredDraft.latest.revision && source.input.revisionDigest === discoveredDraft.latest.revisionDigest
     && source.input.scopeInputDigest === discoveredDraft.latest.scopeInputDigest;
   const review = view.review?.envelope, architect = view.observation?.results.find(r => r.result.role === 'architect')?.result;
+  const emptyCorpus = Boolean(review?.coverage.complete && review.coverage.inventoryCount === 0);
+  const assessed = matches && (emptyCorpus || Boolean(scopeAssessment?.status === 'review-available' && scopeAssessment.review?.structuralAssessmentComplete
+    && scopeAssessment.subject === subject && scopeAssessment.review.planDigest === view.review?.output.scopeBatchPlan.planDigest
+    && source && scopeAssessment.source.latestRevision === source.input.revision
+    && (['organizationId', 'productId', 'repository'] as const).every(k => scopeAssessment[k] === source.input[k])
+    && (['draftId', 'revision', 'revisionDigest', 'scopeInputDigest'] as const).every(k => scopeAssessment.source[k] === source.input[k])));
   const exam = view.observation?.results.find(r => r.result.role === 'test-agent')?.result;
   const candidates = architect?.role === 'architect' && architect.output.brief !== null && architect.output.spec !== null && exam?.role === 'test-agent'
     ? { brief: architect.output.brief, spec: architect.output.spec, exam: exam.output.exam } : null;
   function develop() {
-    if (scopeLocked || !enabled || !action || !reason.trim() || !review) return;
+    if (scopeLocked || !enabled || !assessed || !action || !reason.trim() || !review) return;
     const target = review.evidence.find(s => s.path === path && s.path.endsWith('/BRIEF.md'));
     const choice: IntentDispositionChoice | null = action === 'new-distinct' ? { action, reason }
       : target ? { action, reason, target: { path: target.path, revision: review.snapshot.head, contentDigest: target.contentDigest } } : null;
-    if (choice) { polls.current = 0; startedAt.current = Date.now(); setPaused(false); void controller.current?.develop(choice); }
+    if (choice) { polls.current = 0; startedAt.current = Date.now(); setPaused(false); void controller.current?.develop(choice, scopeAssessment, subject); }
   }
   function useResult() {
     const result = controller.current?.takeResult();
@@ -92,7 +100,7 @@ export default function IntentDevelopmentPanel({ source, enabled, subject, ident
     }}>{view.status === 'reviewing' ? 'Reviewing current sources…' : 'Review existing work for this draft'}</button>
     {view.source && !matches && <p role="status">Your editor differs from this reviewed revision. Earlier results will not replace your text. Preserve and review the current revision before continuing.</p>}
     <IntentScopePanel source={matches} review={view.review?.output ?? null} subject={subject} identity={identity} expiresAt={expiresAt}
-      enabled={enabled && !busy && !recovering && view.status === 'reviewed'} onLockChange={setScopeLocked} />
+      enabled={enabled && !busy && !recovering && view.status === 'reviewed'} onLockChange={setScopeLocked} onAssessmentChange={setScopeAssessment} />
     {review && <div className="intent-development-sources">
       <p>Checked {review.coverage.includedCount} of {review.coverage.inventoryCount} source documents at commit <code>{review.snapshot.head.slice(0, 12)}</code>.</p>
       <section className="access-note" aria-label="Scope assessment plan">
@@ -107,7 +115,10 @@ export default function IntentDevelopmentPanel({ source, enabled, subject, ident
         <BriefMarkdown content={item.content} /></details>)}
       {review.coverage.gaps.length > 0 && <p>{review.coverage.gaps.length} listed sources could not be included in full.</p>}
       {review.coverage.accessGapCount > 0 && <p>Some source access is unavailable. Restricted item names are not exposed.</p>}
-      <fieldset className="intent-scope-choice" disabled={scopeLocked || busy || !matches || view.status !== 'reviewed' || !review.coverage.complete}>
+      {!assessed && review.coverage.complete && <p role="status">Read a complete assessment of this exact scope before confirming direction. A source inventory alone is not a duplicate review.</p>}
+      {emptyCorpus && <p>No source documents exist in this explicitly complete reviewed inventory. No assessment model call is needed; the server will recheck this snapshot before drafting.</p>}
+      {assessed && !emptyCorpus && <p>The selected assessment will be checked again and preserved with your direction. Its findings inform your choice; they do not make it for you.</p>}
+      <fieldset className="intent-scope-choice" disabled={scopeLocked || busy || !assessed || view.status !== 'reviewed' || !review.coverage.complete}>
         <legend>How should this intent proceed?</legend>
         <label htmlFor="development-direction">Your direction</label>
         <select id="development-direction" value={action} onChange={event => setAction(event.target.value as typeof action)}>
@@ -121,7 +132,7 @@ export default function IntentDevelopmentPanel({ source, enabled, subject, ident
             {review.evidence.filter(s => s.path.endsWith('/BRIEF.md')).map(s => <option key={s.sourceId} value={s.path}>{s.path}</option>)}</select></>}
         {action && <><label htmlFor="development-reason">What is missing or distinct?</label>
           <textarea id="development-reason" rows={3} maxLength={3000} value={reason} onChange={event => setReason(event.target.value)} /></>}
-        <button className="access-primary" type="button" disabled={scopeLocked || !enabled || !action || !reason.trim() || (action !== 'new-distinct' && !review.evidence.some(s => s.path === path && s.path.endsWith('/BRIEF.md')))}
+        <button className="access-primary" type="button" disabled={scopeLocked || !enabled || !assessed || !action || !reason.trim() || (action !== 'new-distinct' && !review.evidence.some(s => s.path === path && s.path.endsWith('/BRIEF.md')))}
           onClick={develop}>Confirm direction and develop this draft</button>
       </fieldset>
     </div>}

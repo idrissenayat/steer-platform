@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { intentDraftScopeSchema } from './intent-draft-contracts.ts';
 import { intentDispositionChoiceSchema } from './intent-overlap-contracts.ts';
+import { intentScopeSelectionSchema } from './intent-scope-selection.ts';
 
 const digest = z.string().regex(/^[a-f0-9]{64}(?![\s\S])/);
 const uuid = z.uuid().length(36).refine(v => v === v.toLowerCase());
@@ -8,6 +9,7 @@ const revision = z.number().int().min(1).max(1000);
 export const intentDevelopmentPrepareInputSchema = intentDraftScopeSchema.extend({
   draftId: uuid, revision, revisionDigest: digest, scopeInputDigest: digest, sourceSnapshotDigest: digest,
   configurationRevision: z.string().min(1).max(200), choice: intentDispositionChoiceSchema,
+  scopeReview: intentScopeSelectionSchema.optional(),
 });
 const coverage = z.strictObject({ inventoryComplete: z.boolean(), inventoryCount: z.number().int().min(0).max(1000),
   includedCount: z.number().int().min(0).max(32), accessGapCount: z.number().int().min(0).max(1000000),

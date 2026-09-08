@@ -1,6 +1,7 @@
 import { intentDevelopmentPrepareInputSchema, intentDevelopmentPrepareOutputSchema,
   type IntentDevelopmentPreparer, type IntentDevelopmentPrepareInput, type IntentDevelopmentPrepareOutput } from '@steer/tool-registry/intent-development-prepare-contracts';
 import { buildIntentEvidenceEnvelope, intentEvidenceInputSchema } from '@steer/tool-registry/intent-evidence-contracts';
+import { resolveDevelopmentScopeReview, revalidateDevelopmentScopeReview } from './development-scope-review.ts';
 import { createDraftRevisionStore } from './draft-revisions.ts';
 import { createIntentOperationStore, intentOperationConfigurationSchema } from './intent-operations.ts';
 import { createDevelopmentOriginalStore, developmentRecordsConfigurationSchema } from './development-originals.ts';
@@ -16,6 +17,7 @@ class Conflict extends Error {}
  * approval services are mandatory trusted ports, not request attestations. */
 export function createIntentDevelopmentPreparer(pools: Parameters<typeof createDevelopmentOriginalStore>[0], rawConfiguration: unknown,
   rawProfiles: unknown, deps: { records: Records;
+    requireScopeReview?: boolean;
     evidenceFor(input: Readonly<IntentDevelopmentPrepareInput>, revalidate: () => Promise<void>): Promise<unknown>;
     authorizePreparation(original: Readonly<DevelopmentOriginal>): Promise<void>;
   }) {
@@ -32,6 +34,7 @@ export function createIntentDevelopmentPreparer(pools: Parameters<typeof createD
     scope,
     async prepare(raw, revalidate) {
       const input = intentDevelopmentPrepareInputSchema.parse(raw);
+      if (deps.requireScopeReview && !input.scopeReview) throw unavailable();
       if (closed || active >= 4 || typeof revalidate !== 'function' || (['organizationId', 'productId', 'repository', 'configurationRevision'] as const).some(k => input[k] !== scope[k])) throw unavailable();
       active++;
       let finished = false, settled = false, pending = 0, released = false, effectPossible = false, timer: ReturnType<typeof setTimeout> | undefined;
@@ -72,22 +75,27 @@ export function createIntentDevelopmentPreparer(pools: Parameters<typeof createD
           || evidence.scopeInputDigest !== input.scopeInputDigest || envelope.sourceSnapshotDigest !== input.sourceSnapshotDigest) throw new Conflict();
         const { gaps: _gaps, ...summary } = { ...envelope.coverage, gapCount: envelope.coverage.gaps.length }; coverage = summary;
         if (!envelope.coverage.complete) { await read(); await current(); return output('scope-incomplete'); }
+        const scopeReview = input.scopeReview ? await checked(() => resolveDevelopmentScopeReview(input.scopeReview!, evidence,
+          { ...input, subject: config.subject }, r.scopeReview, current)) : undefined;
         const described = await describeDevelopmentOriginal({ kind: 'steer-development-original/v1', configuration: execution,
           source: { draftId: input.draftId, revision: input.revision, sourceRevision: source.reference.sourceRevision,
             revisionDigest: input.revisionDigest, scopeInputDigest: input.scopeInputDigest, content: source.content }, evidence,
-          direction: { choice: input.choice, scopeInputDigest: input.scopeInputDigest, sourceSnapshotDigest: input.sourceSnapshotDigest }, profiles });
+          direction: { choice: input.choice, scopeInputDigest: input.scopeInputDigest, sourceSnapshotDigest: input.sourceSnapshotDigest,
+            ...(scopeReview ? { scopeReview } : {}) }, profiles });
         const original = described.original, submission = freeze({ draftId: input.draftId, draftRevision: input.revision, inputDigest: described.inputDigest });
         const recheck = async () => {
           await current(); if (hash(await read()) !== hash(source)) throw new Conflict();
           const fresh = intentEvidenceInputSchema.parse(await checked(() => deps.evidenceFor(freeze(input), current)));
           if (hash(fresh) !== hash(evidence)) throw new Conflict();
           await authority(() => deps.authorizePreparation(original));
+          await checked(() => revalidateDevelopmentScopeReview(original, r.scopeReview, current));
           if (hash(await read()) !== hash(source)) throw new Conflict();
           const final = intentEvidenceInputSchema.parse(await checked(() => deps.evidenceFor(freeze(input), current)));
           if (hash(final) !== hash(evidence)) throw new Conflict();
           await current();
         };
         const secured: Records = {
+          ...(r.scopeReview ? { scopeReview: r.scopeReview } : {}),
           authorize: async c => { if (!reference || hash(c.target) !== hash(reference)) throw unavailable(); await authority(() => r.authorize(c)); },
           authorizeOriginal: async c => { if (hash(c.original) !== hash(original)) throw unavailable(); await authority(() => r.authorizeOriginal(c)); },
           authorizeOperation: async c => { if (hash(c.request) !== hash(submission) && (!reference || hash(c.request) !== hash(reference))) throw unavailable(); await authority(() => r.authorizeOperation(c)); },
