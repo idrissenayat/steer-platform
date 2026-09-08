@@ -4771,3 +4771,30 @@ No schema, dependency, real database, key/grant, paid model call, runtime GitHub
 deployment, deletion, accepted policy or signed source changed. Twenty-one
 development migrations remain held against the seven-entry real baseline. D1 is
 unsigned/inactive and I1–I6 live acceptance remains open.
+
+## Development increment: 0225 — Draft acknowledgement/restoration API
+
+Added shared owner-scoped draft create, append and read tools plus an uninstalled
+composition over the actual encrypted lifecycle/revision stores. Human identity,
+exact tool grants and current owner/product/repository scope are checked before
+and after service waits. Records policy/key authority stays separate and mandatory.
+Restored content and acknowledged source fingerprints are checked before release.
+
+Creating a reference does not acknowledge preserved text. Append uses exact parent
+revision/digest and an idempotent mutation ID; conflicts preserve newer work and
+lost acknowledgements stay unknown until exact recovery. Draft readback and write
+acknowledgements never mean Git save, document authorship or gate approval. The
+HTTP append route has a bounded 256 KiB exception; other tool bodies remain 16 KiB.
+See [0225 evidence](../intent/0225/EVIDENCE.md).
+
+Verification: **185/185** disposable integration checks, **448/448** scoped
+units/migration controls and **9/9** architecture-boundary checks pass. The added
+post-commit permission-loss test recovers one revision only after reauthorization.
+Full prototype/eight-package typecheck, kit (95 artifacts), token-scope and whitespace
+checks pass; protected source hashes remain unchanged.
+
+No actual editor/identity-runtime binding, migration, credential, grant, paid model
+call, runtime GitHub write, deployment, deletion or signed-source change. D1 is
+unsigned/inactive and the real migration baseline stays held. Next: editor
+acknowledgement/conflict/restoration integration and authorized development results.
+I1–I6 live acceptance remains open.

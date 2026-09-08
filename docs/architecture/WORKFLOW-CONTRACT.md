@@ -519,3 +519,12 @@ SQL records, not workflow history. Progress queries are historical metadata and
 cannot replace current API authority/source checks. See
 [0224 evidence](../../intent/0224/EVIDENCE.md). This does not install live persistence,
 authorize model usage, sign gates or complete the actual UI journey above.
+
+0225 supplies shared `intent.draft.create/append/read` contracts and an uninstalled
+owner-bound encrypted SQL service. Reference creation explicitly acknowledges no
+content; append acknowledges one exact mutation/revision, possibly older than a
+separate latestRevision. Readback does not restore review, authorship or gate
+authority. Every response says savedToGit:false. The actual HTTP handler allows
+document-sized append requests within 256 KiB without changing other tool limits.
+See [0225 evidence](../../intent/0225/EVIDENCE.md). Records-policy authority remains
+independent of tool grants; the editor and live identity runtime are not activated.

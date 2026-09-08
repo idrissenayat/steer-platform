@@ -15,9 +15,9 @@ const maxBodyBytes = 16 * 1024;
 const error = (code: string, message: string) => ({ error: { code, message } });
 
 /** Read the stream with an actual byte bound, even if Content-Length is absent or false. */
-async function readBody(request: Request): Promise<string | null> {
+async function readBody(request: Request, limit: number): Promise<string | null> {
   try {
-    return new TextDecoder('utf-8', { fatal: true }).decode(await readRequestBody(request, maxBodyBytes));
+    return new TextDecoder('utf-8', { fatal: true }).decode(await readRequestBody(request, limit));
   } catch (cause) { if (cause instanceof RequestBodyError && cause.reason === 'size') return null; throw cause; }
 }
 
@@ -42,9 +42,12 @@ export function createApi(dependencies: ApiDependencies = {}) {
     }
     let body: string | null;
     let input: unknown;
+    // Exact draft documents exceed the ordinary command limit. Only this named
+    // tool admits up to 256 KiB; time/chunk bounds and authentication still apply.
+    const limit = c.req.param('name') === 'intent.draft.append' ? 256 * 1024 : maxBodyBytes;
     try {
-      body = await readBody(c.req.raw);
-      if (body === null) return c.json(error('PAYLOAD_TOO_LARGE', 'Request body exceeds 16 KiB.'), 413);
+      body = await readBody(c.req.raw, limit);
+      if (body === null) return c.json(error('PAYLOAD_TOO_LARGE', `Request body exceeds ${limit / 1024} KiB.`), 413);
       input = JSON.parse(body);
     } catch (cause) {
       if (cause instanceof RequestBodyError) return c.json(error('REQUEST_TIMEOUT', 'Request body was not completed.'), 408);

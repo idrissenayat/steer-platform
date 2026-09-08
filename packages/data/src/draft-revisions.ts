@@ -10,6 +10,7 @@ const digest = z.string().regex(/^[a-f0-9]{64}(?![\s\S])/), uuid = z.uuid().leng
 const revision = z.number().int().min(1).max(1000), timestamp = z.iso.datetime({ precision: 3 });
 const configurationSchema = z.strictObject({ organizationId: id, subject: id, productId: id, repository: id, branch: id,
   configurationRevision: id, recordsPolicyDigest: digest });
+export const draftRecordsConfigurationSchema = configurationSchema;
 const appendSchema = z.strictObject({ draftId: uuid, mutationId: uuid, expectedRevision: z.number().int().min(0).max(1000),
   expectedDigest: digest.nullable(), content: intentDraftContentSchema }).superRefine((v, ctx) => {
   if ((v.expectedRevision === 0) !== (v.expectedDigest === null)) ctx.addIssue({ code: 'custom', message: 'Invalid draft parent.' });

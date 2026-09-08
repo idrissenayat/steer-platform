@@ -5,7 +5,7 @@ export class RequestBodyError extends Error {
 
 /** Bound actual bytes and total read time, including empty or stalled streams. */
 export async function readRequestBody(request: Request, maxBytes: number, timeoutMs = 5000): Promise<Uint8Array> {
-  if (!Number.isSafeInteger(maxBytes) || maxBytes < 0 || maxBytes > 16384 ||
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 0 || maxBytes > 262144 ||
       !Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 30000) throw new Error('Invalid request body limit.');
   if (request.signal.aborted) throw new RequestBodyError('aborted');
   if (!request.body) return new Uint8Array();
