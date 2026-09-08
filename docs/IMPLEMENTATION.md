@@ -1,6 +1,6 @@
 # STEER platform implementation
 
-## Current checkpoint — 0239
+## Current checkpoint — 0240
 
 Use [the intent journey plan](INTENT-JOURNEY-PLAN.md) and
 [the delivery ledger](PHASE-1-DELIVERY.md) for current status; the implementation
@@ -37,8 +37,15 @@ before current encrypted/SDK verification, followed by a fresh state-checked
 transaction. Exact completed replay does not rewrite or resend; quarantined and
 failed states cannot be promoted. A narrow SQL guard checks retained bindings and
 current lifecycle without granting general private-record access. See
-[0239 evidence](../intent/0239/EVIDENCE.md). Completed-batch consumption, expired
-observation access, reference-only scope Temporal and live authority remain next.
+[0239 evidence](../intent/0239/EVIDENCE.md).
+
+0240 adds the completed-batch consumer: restore each succeeded exact response under
+current authority and SDK verification, combine against the retained whole-corpus
+plan and reject a changing snapshot. Pending, unresolved, incomplete, superseded
+and expired states remain distinct. A read does not reserve, dispatch, update a
+checkpoint or claim uniqueness. See [0240 evidence](../intent/0240/EVIDENCE.md).
+Query/API/UI and scope Temporal composition, expired observation access, real
+authority and live acceptance remain unconnected.
 
 These are tested development capabilities, not live end-to-end acceptance. D1
 records activation, real source/lifecycle verifier binding, large-corpus contextual

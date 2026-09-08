@@ -5131,3 +5131,26 @@ actual UI/save acceptance. The existing one-minute loop remains active.
 pass, including ten new checkpoint, authority and concurrency cases. Prototype and
 package types, optimized Next build, all 28 migration-history entries, kit (95
 artifacts), scope audit and whitespace checks pass. No live acceptance is claimed.
+
+## Development increment: 0240 — Read combined durable scope reviews
+
+The read-only scope consumer now joins verified successful batch checkpoints to the
+retained full-corpus review. It preserves pending batches, unresolved failures,
+coverage gaps and abstention instead of treating partial/no-match findings as
+clearance. Restart restores the same findings without another model reservation or
+send. Current identity, records/source/key and pinned SDK verification remain
+mandatory. A changed batch snapshot denies release, newer edits supersede the
+original and expired reads expose metadata only. See
+[0240 evidence](../intent/0240/EVIDENCE.md) for observed verification and limits.
+
+No new schema, migration, private result copy, query/API/UI binding or runtime
+activation was added. D1 remains unsigned/inactive and first-test spending
+unapproved. No real model call, credential, records adoption, runtime Git save, gate,
+deployment or release is enabled. Continue scope Temporal/query/UI integration,
+real authority, semantic evaluation and actual human save/reopen acceptance; keep
+the existing one-minute implementation loop active.
+
+0240 verification: 1,043 regression checks and 265 full PostgreSQL integration
+checks pass, including nine new combined-reader cases. Prototype and package types,
+optimized Next build, existing migration history, kit (95 required artifacts),
+scope audit and whitespace checks pass. This is not signed-in UI/live acceptance.

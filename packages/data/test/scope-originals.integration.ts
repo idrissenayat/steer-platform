@@ -12,8 +12,9 @@ import { createScopeReviewOriginalStore } from '../src/scope-review-originals.ts
 import type { DatabasePool } from '../src/runtime-pool.ts';
 
 type Dependencies=Parameters<typeof createScopeReviewOriginalStore>[2];
-export async function scopeOriginalIntegrationFixture({admin,connect}:{admin:Pool;connect(role:string):Pool},large=false,ttl=3600000) {
-  const f=await scopeReviewFixture(large?40:4);
+export async function scopeOriginalIntegrationFixture({admin,connect}:{admin:Pool;connect(role:string):Pool},large=false,ttl=3600000,
+  options:{sourceCount?:number;inventoryComplete?:boolean;accessGapCount?:number}={}) {
+  const f=await scopeReviewFixture(options.sourceCount??(large?40:4));
   const config={organizationId:`scope-original-${randomUUID()}`,subject:'synthetic-human',productId:f.scope.productId,repository:f.scope.repository,
     branch:f.evidence.branch,configurationRevision:'scope-original-r1',recordsPolicyDigest:'a'.repeat(64)};
   const budget={organizationId:config.organizationId,subject:config.subject,configurationRevision:config.configurationRevision,budgetId:randomUUID(),
@@ -32,7 +33,9 @@ export async function scopeOriginalIntegrationFixture({admin,connect}:{admin:Poo
   const saved=await drafts.append({draftId,mutationId:randomUUID(),expectedRevision:0,expectedDigest:null,content});
   assert.equal(saved.outcome,'acknowledged');if(saved.outcome!=='acknowledged')throw new Error('Synthetic revision missing');
   const scope={...f.scope,organizationId:config.organizationId,draftId},documents=f.evidence.documents.map((d,i)=>({...d,content:large?`# Source ${i}\n`+'x'.repeat(20000):d.content}));
-  const evidence={...f.evidence,organizationId:config.organizationId,scopeInputDigest:(await fingerprintIntentScope(scope)).scopeInputDigest,documents,
+  const evidence={...f.evidence,inventoryComplete:options.inventoryComplete??f.evidence.inventoryComplete,
+    accessGapCount:options.accessGapCount??f.evidence.accessGapCount,
+    organizationId:config.organizationId,scopeInputDigest:(await fingerprintIntentScope(scope)).scopeInputDigest,documents,
     inventory:f.evidence.inventory.map((s,i)=>({...s,contentDigest:createHash('sha256').update(documents[i]!.content).digest('hex'),
       blobOid:createHash('sha1').update(`blob ${Buffer.byteLength(documents[i]!.content)}\0${documents[i]!.content}`).digest('hex')}))};
   const described=await describeScopeOriginal({kind:'steer-scope-original/v1',configuration:execution,

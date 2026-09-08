@@ -19,6 +19,7 @@ import { testIntentOperations } from './intent-operations.integration.ts';
 import { testScopeReviewOperations } from './scope-review-operations.integration.ts';
 import { testScopeOriginals } from './scope-originals.integration.ts';
 import { testScopeObservations } from './scope-observations.integration.ts';
+import { testScopeReviewReader } from './scope-review-reader.integration.ts';
 import { parseIntegrationSelection,createIntegrationDatabaseTrace } from './integration-diagnostics.ts';
 import { testDurableCandidateBundles } from '../../../apps/worker/test/candidate-bundle.integration.ts';
 import { testDraftLifecycles } from './draft-lifecycle.integration.ts';
@@ -256,6 +257,7 @@ try {
   await testScopeReviewOperations({ admin, app, connect, check });
   await testScopeOriginals({ admin, connect, check });
   await testScopeObservations({ admin, connect, check });
+  await testScopeReviewReader({ admin, connect, check });
   await testDraftLifecycles({ admin, connect, check });
   await testDraftRevisions({ admin, connect, check });
   await testDevelopmentResults({ admin, connect, check });

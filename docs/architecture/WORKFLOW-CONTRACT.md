@@ -694,3 +694,19 @@ completed batch is not combined semantic coverage, quality, disposition, executi
 save or gate authority. See [0239 specification](../../intent/0239/SPEC.md).
 The development migration remains outside real-local activation; completed-batch
 consumption, reference-only Temporal and actual human/save acceptance remain open.
+
+0240 composes completed scope observations into a read-only combined result. Restore
+the original and exact current batch set, verify every contributing succeeded
+response through encrypted storage and the pinned SDK, and validate citations and
+whole-corpus coverage against the original evidence. Uncheckpointed, unknown and
+failed responses do not enter the success set. Reinspect the snapshot and source;
+changed steps deny release, newer human edits are superseded and expired reviews
+release records-authorized metadata only. Incomplete inventory/access/context or
+abstention stays incomplete even when all recorded relations say no match.
+
+All authority/key/codec callbacks retain current identity/query-grant checks. The
+reader exposes no mutation, scheduling, key creation, dispatch or retry interface;
+close and bounded admission prevent late private output. It grants no semantic
+quality, uniqueness, disposition, execution, save or gate authority. See
+[0240 specification](../../intent/0240/SPEC.md). Query/API/UI binding, reference-only
+scope Temporal, real authority and actual I1–I6 acceptance remain separate work.
