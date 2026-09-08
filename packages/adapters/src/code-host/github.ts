@@ -1,6 +1,7 @@
 import { createHash, createPrivateKey } from 'node:crypto';
 import { SignJWT } from 'jose';
 import { z } from 'zod';
+import { verifyScopeInventory, type ScopeInventory } from './scope-inventory.ts';
 
 const sha = z.string().length(40).regex(/^[a-f0-9]{40}$/);
 const bindingSchema = z.strictObject({
@@ -45,6 +46,9 @@ export interface DirectoryInventory {
 }
 export interface DirectoryRepositoryReader extends RepositoryReader {
   readDirectoryInventory(root: string, revision: string): Promise<DirectoryInventory>;
+}
+export interface CorpusRepositoryReader extends DirectoryRepositoryReader {
+  readScopeInventory(revision: string): Promise<ScopeInventory>;
 }
 export interface CommitSnapshot {
   organizationId: string;
@@ -103,7 +107,7 @@ export function createAppJwtSigner(appId: string, privateKeyPem: string, clock =
 
 export function createGitHubReader(rawBinding: GitHubBinding, dependencies: {
   appJwt: () => Promise<string>; fetch?: typeof globalThis.fetch; now?: () => Date;
-}): DirectoryRepositoryReader {
+}): CorpusRepositoryReader {
   const parsed = bindingSchema.safeParse(rawBinding);
   if (!parsed.success) throw new CodeHostError();
   const binding = Object.freeze(parsed.data);
@@ -141,6 +145,18 @@ export function createGitHubReader(rawBinding: GitHubBinding, dependencies: {
   };
   return {
     binding,
+    readScopeInventory: revision => safely(async () => {
+      sha.parse(revision); const credential = await token();
+      const commit = z.object({ sha, tree: z.object({ sha }) }).parse(await request(`${repoPath}/git/commits/${revision}`, credential));
+      if (commit.sha !== revision) throw new CodeHostError();
+      const tree = z.object({ sha, truncated: z.literal(false), tree: z.array(z.object({ path: pathSchema, mode: z.string(), type: z.string(), sha })).max(10000) })
+        .parse(await request(`${repoPath}/git/trees/${commit.tree.sha}?recursive=1`, credential));
+      if (tree.sha !== commit.tree.sha || new Set(tree.tree.map(e => e.path)).size !== tree.tree.length) throw new CodeHostError();
+      const { roots: _roots, unsupportedRootCount: _unsupported, ...inventory } = verifyScopeInventory({ organizationId: binding.organizationId, repositoryId: binding.repositoryId,
+        revision, treeSha: tree.sha, entries: tree.tree.filter(e => ['intent', 'items'].includes(e.path.split('/')[0]!))
+          .map(e => ({ path: e.path, objectSha: e.sha, mode: e.mode, type: e.type })) });
+      return inventory;
+    }),
     readCommit: (revision: string) => safely(async () => {
       sha.parse(revision);
       const commit = z.object({ sha, parents: z.array(z.object({ sha })).max(16) }).parse(

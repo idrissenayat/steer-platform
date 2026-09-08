@@ -4946,3 +4946,25 @@ closed. No real migration, configuration, grant, key, paid call, runtime save, g
 deployment, release, deletion or signed artifact changed. Continue production
 full-corpus/lifecycle evidence and semantic review, then authorized runtime/save
 integration and the actual human acceptance journey. I1–I6 remains open.
+
+## Development increment: 0232 — Repository-wide scope evidence
+
+The GitHub reader enumerates `intent/` and `items/` at one immutable commit instead
+of relying on configured item IDs. Structural validation rejects truncated,
+contradictory or substituted inventories; unsupported roots stay incomplete.
+The new uninstalled collector verifies source bytes, keeps canonical/current
+candidate/amendment scope distinct, classifies product/access/lifecycle before
+content reads, rechecks current evidence and head, and enforces read/time bounds.
+
+An explicit composition connects this collector to the existing recorded-review
+HTTP service. Native-Git/HTTP tests cover full context, exclusions, amendments,
+restricted sources, stale authority/head, missing sources, capacity and exact
+source/repository binding. [0232 evidence](../intent/0232/EVIDENCE.md) records the
+verified checks and distinguishes real Git objects from synthetic access/lifecycle
+and draft authority. Collection is not semantic duplicate assessment.
+
+No live runtime, real verifier, records/model/Git service, credential, migration,
+grant, spending, gate, deployment, release or signed source changed. Continue real
+authority binding and contextual/semantic assessment, then authorized runtime/save
+integration and human acceptance. Larger corpora currently stop incomplete at the
+document/read/context bounds. I1–I6 remains open.

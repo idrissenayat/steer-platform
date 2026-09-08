@@ -594,3 +594,13 @@ orphan-preparation recovery, repository duplicate coverage or content validity.
 Content/results still pass their independent authenticated readers. See
 [0231 specification](../../intent/0231/SPEC.md). Live D1, source/model and Git
 composition remain inactive; this does not complete the human acceptance journey.
+
+0232 adds same-commit repository-wide `intent/`/`items/` enumeration and an
+uninstalled evidence-to-recorded-review composition. Current trusted inventory,
+product/lifecycle and per-source authority is required before selecting canonical,
+pre-pull or proposed scope. Schema-valid evidence is not real authority verification.
+Unsupported/missing/restricted/unassessed roots remain incomplete; changed head,
+reader binding or authority suppresses output. The current whole-document/read
+bounds still require contextual batching for larger corpora. See
+[0232 specification](../../intent/0232/SPEC.md). Real verifier binding, semantic
+assessment and live records/model/save acceptance remain outstanding.

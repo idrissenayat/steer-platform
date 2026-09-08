@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { createIntentDraftDiscovery } from '@steer/data/intent-draft-discovery';
 import { createIntentDevelopmentReviewer } from '@steer/data/intent-development-reviewer';
+import { draftRecordsConfigurationSchema } from '@steer/data/draft-revisions';
+import { createIntentCorpusEvidence, type IntentCorpusAuthority } from '@steer/adapters/intent-corpus-evidence';
 import type { IntentAgentService } from '@steer/tool-registry/agent-contracts';
 import { createIntentDevelopment, type DevelopmentPermit } from '@steer/agents';
 import { createMastraDevelopmentRuntime } from '@steer/agents/mastra';
@@ -27,6 +29,16 @@ import { readProjection } from '@steer/data';
 import { createHeldGitBriefWriterFactory, heldGitBriefConfigurationSchema, type HeldBriefAssessment } from '@steer/adapters/held-brief-writer';
 
 const text = z.string().min(1);
+/** Connect actual repository enumeration to the existing review query. Trusted
+ * product/lifecycle/read authorities remain mandatory; never installed by flags. */
+export function createCorpusRecordedDevelopmentReviewer(reader: Parameters<typeof createIntentCorpusEvidence>[0], configuration: unknown,
+  retrievalConfigurationRevision: string, dependencies: Omit<Parameters<typeof createIntentDevelopmentReviewer>[1], 'evidenceFor'> & { authority: IntentCorpusAuthority }) {
+  const config = draftRecordsConfigurationSchema.parse(configuration), { organizationId, productId, repository, branch } = config;
+  const corpus = createIntentCorpusEvidence(reader, { organizationId, productId, repository, branch, retrievalConfigurationRevision }, dependencies.authority);
+  const reviewer = createIntentDevelopmentReviewer(config, { drafts: dependencies.drafts, authorizeReview: dependencies.authorizeReview,
+    evidenceFor: async (input, current) => (await corpus.collect({ organizationId, productId, repository, branch, scopeInputDigest: input.scopeInputDigest }, current)).evidence });
+  return { scope: reviewer.scope, review: reviewer.review, close() { reviewer.close(); corpus.close(); } };
+}
 /** Owner-bound discovery is metadata only and remains uninstalled by default. */
 export function createRecordedDraftDiscovery(pool: Parameters<typeof createIntentDraftDiscovery>[0], configuration: unknown,
   dependencies: Parameters<typeof createIntentDraftDiscovery>[2]) {
