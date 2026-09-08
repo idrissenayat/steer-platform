@@ -1,6 +1,6 @@
 # STEER platform implementation
 
-## Current checkpoint — 0238
+## Current checkpoint — 0239
 
 Use [the intent journey plan](INTENT-JOURNEY-PLAN.md) and
 [the delivery ledger](PHASE-1-DELIVERY.md) for current status; the implementation
@@ -20,8 +20,7 @@ capture and historical recovery (0236), including bounded multi-part corpora and
 current source/key/lifecycle checks. Immutable encrypted scope request/response
 observations now add exact SDK verification and uncertain-state readback (0237).
 SQL insert-time batch locking rejects stale dispatch state. Recovered records are
-not retry permission, semantic quality or successful checkpoints. Success, expired
-observation access, Temporal and live authority remain unconnected. See
+not retry permission or semantic quality. See
 [0237 evidence](../intent/0237/EVIDENCE.md).
 
 0238 adds verified paired development-observation reads, reducing redundant source/
@@ -31,6 +30,15 @@ A controlled five-millisecond SQL-delay clarification failure is corrected witho
 longer deadlines or model retries. Focused repetition is distinct from the full
 suite, and the earlier intermittent event's precise cause remains unconfirmed. See
 [0238 evidence](../intent/0238/EVIDENCE.md).
+
+0239 now checkpoints the exact verified scope response in existing batch metadata,
+without a second private result copy. A read-only preflight releases its SQL lease
+before current encrypted/SDK verification, followed by a fresh state-checked
+transaction. Exact completed replay does not rewrite or resend; quarantined and
+failed states cannot be promoted. A narrow SQL guard checks retained bindings and
+current lifecycle without granting general private-record access. See
+[0239 evidence](../intent/0239/EVIDENCE.md). Completed-batch consumption, expired
+observation access, reference-only scope Temporal and live authority remain next.
 
 These are tested development capabilities, not live end-to-end acceptance. D1
 records activation, real source/lifecycle verifier binding, large-corpus contextual

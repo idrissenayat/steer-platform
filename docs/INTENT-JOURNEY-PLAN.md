@@ -33,17 +33,19 @@ scope, choose what to do, answer only necessary questions, review and correct a
 Brief/Spec/Exam bundle, save it to the authorized repository and reopen it exactly.
 No separate local preview, synthetic success, silent merging or lost work counts.
 
-Latest checkpoint: **0238 reduces repeated development-observation reads and
-tests clarification under controlled database latency**; see the reliability note
-below. **0237 adds immutable encrypted scope request/response observations and
-verified readback**, tied to 0236's retained original, 0235's
-fenced dispatch/reservation and 0234's exact SDK codec. Lost acknowledgements and
-quarantined outcomes do not authorize another call. SQL serializes new observation
-inserts with batch-state transitions. Current source/key/lifecycle authority governs
-readback; records are not success or semantic quality. Successful result checkpoints,
-expired observation access, Temporal and real authority remain unconnected; legacy
-generation gates are unchanged. 0232's corpus and 0231's recovery remain in place.
-Next prioritize that durable semantic composition, real authority binding,
+Latest checkpoint: **0239 connects immutable scope responses to verified durable
+batch completion and restart readback**, using the existing encrypted response
+rather than copying private results. Preflight releases its SQL lease before SDK/
+records readback; the second transaction rechecks current state. Missing proof,
+quarantine, known failure, holds or changed authority cannot produce completion.
+Lost checkpoint acknowledgements can recover exact committed success without another
+model call or reservation. Current source/key/lifecycle authority still governs
+result access; completion is not semantic quality or clearance. See
+[0239 evidence](../intent/0239/EVIDENCE.md). 0238's clarification fix, 0232's corpus
+and 0231's recovery remain in place. Completed-batch consumption, expired observation
+access, reference-only Temporal and real authority remain unconnected; legacy
+generation gates are unchanged. Next prioritize that durable semantic composition,
+real authority binding,
 larger-corpus context and content evaluation. Older increment notes below
 are historical, not an instruction to rebuild completed integration.
 
@@ -60,7 +62,7 @@ and cancellation checks during scope/Temporal composition and live acceptance.
 
 | Step | Deliverable and acceptance | Status |
 | --- | --- | --- |
-| I1 Existing-scope review | Search permitted existing intents and their Brief/Spec scope before drafting; show exact sources, revision, matching passages, coverage and uncertainty. Distinguish already covered, partially covered, related, and no match found. Incomplete or unavailable search must never be presented as a new intent. | Lexical query/UI (0199–0200), configured collector (0207), actual editor metadata query/display (0230), repository-wide enumeration and canonical/candidate/amendment evidence-to-review composition (0232), whole-target batch planning and combined citation/result validation (0233), exact scope-role requests/recorded Mastra adapter/verifier (0234), durable scope identity/fenced ownership/shared-cap reservations (0235), exact encrypted scope-original capture/recovery (0236), immutable verified request/response observations (0237) developed under synthetic authority; real access/lifecycle authority, larger-corpus fetching/context, successful scope checkpoints, expired observation access and Temporal composition, semantic quality and live acceptance pending |
+| I1 Existing-scope review | Search permitted existing intents and their Brief/Spec scope before drafting; show exact sources, revision, matching passages, coverage and uncertainty. Distinguish already covered, partially covered, related, and no match found. Incomplete or unavailable search must never be presented as a new intent. | Lexical query/UI (0199–0200), configured collector (0207), actual editor metadata query/display (0230), repository-wide enumeration and canonical/candidate/amendment evidence-to-review composition (0232), whole-target batch planning and combined citation/result validation (0233), exact scope-role requests/recorded Mastra adapter/verifier (0234), durable scope identity/fenced ownership/shared-cap reservations (0235), exact encrypted scope-original capture/recovery (0236), immutable verified request/response observations (0237), verified completion and restart checkpoints (0239) developed under synthetic authority; real access/lifecycle authority, larger-corpus fetching/context, completed-batch consumption, expired observation access and Temporal composition, semantic quality and live acceptance pending |
 | I2 Explicit disposition | Open existing, propose adding missing scope, or create a distinct linked intent with a reason. Keep original text. No automatic merge, discard, update or item creation. Record the human choice against reviewed source revisions; changed scope invalidates it. | UI proposal/recheck (0201–0202), encrypted original direction (0229), and exact reviewed editor direction to preparation/start (0230) tested; final save consumption, real authority and live acceptance pending |
 | I3 Reliable drafting | Activate the configured Mastra/LiteLLM path with an approved capped budget and durable reservation ledger. Clarify conversationally, then produce source-faithful canonical Brief/Spec drafts and a fresh-context Test Agent Exam. Reject refusals, invalid outputs and invented facts; preserve unknowns explicitly. | Drafting (0198/0202), reservations/ownership (0203/0209), result/original recovery (0217–0219), exact requests (0220), SQL runner/observations (0221–0222), recorded Mastra/Temporal roles (0223–0224), prepare/start/read APIs (0227–0229) and actual editor review/clarification/progress/candidate integration (0230) tested with synthetic authority/model responses; production evidence/preparation authority, live provider evidence/approval, cost bounds, authorized activation and content/eval acceptance pending |
 | I4 Review without loss | Show and edit all three documents, connect corrections to the source, expose conflicts/assumptions, preserve durable draft state across navigation, expiry, refresh and restart within the approved records policy. Never silently erase user work. Support retry without duplicate paid runs. | Editing/comparison/invalidation (0204–0205), encrypted originals/lifecycle/revisions (0213–0215), recorded checkpoints/roles (0217–0224), HTTP draft service (0225), editor preserve/restore (0226), recorded result preview/adoption and exact recovery (0230), owned-draft discovery and latest retained-run resumption (0231) tested; older-run/orphan recovery scope, real runtime/records activation and full live acceptance pending |

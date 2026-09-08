@@ -73,7 +73,7 @@ try {
   await check('versioned Drizzle migrations apply twice without replay effects', async () => {
     await migrate(drizzle(admin), { migrationsFolder });
     await migrate(drizzle(admin), { migrationsFolder });
-    assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 27);
+    assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 28);
   });
   if(selection.mode==='clarification-repro'){
     console.log(`FOCUSED clarification reproduction: ${selection.iterations} iterations; synthetic query delay ${selection.queryDelayMs}ms; NOT the full integration suite.`);

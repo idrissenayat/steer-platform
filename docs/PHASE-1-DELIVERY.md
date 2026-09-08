@@ -5105,3 +5105,29 @@ unchanged. Keep the existing one-minute implementation loop active.
 checks pass, including five new paired-read denial/key/tampering cases. The separate
 delayed clarification repetition passes 5/5. Types, optimized Next build, Drizzle
 history, kit (95 artifacts), scope audit and whitespace checks pass.
+
+## Development increment: 0239 — Verified scope completion checkpoints
+
+Scope batches can now record successful completion against the exact immutable
+response payload. The trusted composition reads encrypted observations and runs the
+pinned SDK verifier outside the SQL lease, then rechecks current state before
+checkpointing. Restart and exact replay recover the same result without rewriting
+success, reserving again or sending another model call. Retained observations are
+reused rather than copied into another private-result table.
+
+The new SQL checkpoint guard validates exact retained response/original/source and
+current lifecycle while keeping execution runtime out of private records. A busy
+lifecycle writer prevents completion without a reverse-order wait. Quarantine,
+known failure, missing/incorrect proof and current authority loss cannot become
+successful work. See [0239 evidence](../intent/0239/EVIDENCE.md) for verification.
+
+No real migration, D1 activation, key, model call/spend, runtime Git save, gate,
+deployment or release was enabled. Protected signed documents and user-owned files
+remain unchanged. Continue completed-batch consumption and reference-only scope
+Temporal, real source/lifecycle/records/model authority, semantic evaluation and
+actual UI/save acceptance. The existing one-minute loop remains active.
+
+0239 verification: 1,041 regression checks and 256 PostgreSQL integration checks
+pass, including ten new checkpoint, authority and concurrency cases. Prototype and
+package types, optimized Next build, all 28 migration-history entries, kit (95
+artifacts), scope audit and whitespace checks pass. No live acceptance is claimed.

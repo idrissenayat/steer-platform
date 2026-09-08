@@ -7,6 +7,8 @@ import {scopeReviewFixture} from '../../tool-registry/test/intent-scope-review.f
 import {prepareIntentScopeReview} from '../../tool-registry/src/intent-scope-review.ts';
 import {createRecordedScopeMastraRuntime,createRecordedScopeMastraVerifier,type RecordedRequest,type RecordedScopeResult,type RecordedResponse} from '../../agents/src/recorded-mastra.ts';
 import {createScopeReviewObservationStore} from '../src/scope-review-observations.ts';
+import {createScopeReviewOperationStore} from '../src/scope-review-operations.ts';
+import {createScopeReviewCheckpointVerifier} from '../src/scope-review-checkpoints.ts';
 import {scopeOriginalHash as hash} from '../src/scope-original-contracts.ts';
 import type {DatabasePool} from '../src/runtime-pool.ts';
 
@@ -63,6 +65,12 @@ export async function testScopeObservations({admin,connect,check:checkBase}:{adm
         [row.organization_id,row.subject,row.product_id,row.review_id,row.batch_id,row.stage,row.draft_id,row.draft_revision,row.payload_digest,JSON.stringify(record),JSON.stringify(envelope)]);
     }finally{await c.query('ROLLBACK');c.release();}
   };
+  const checkpointVerifier=(f:Awaited<ReturnType<typeof setup>>,overrides:Partial<Dependencies>={})=>
+    createScopeReviewCheckpointVerifier(f.pools,f.config,{originals:f.deps,authorize:async()=>{},verifyObservation:verify,...overrides});
+  const checkpointStore=(f:Awaited<ReturnType<typeof setup>>,overrides:Partial<Parameters<typeof createScopeReviewOperationStore>[2]>={},pool:DatabasePool=f.pools.execution)=>
+    createScopeReviewOperationStore(pool,f.execution,{authorize:f.deps.authorizeReview,verifyCheckpoint:checkpointVerifier(f),...overrides});
+  const checkpointInput=async(f:Awaited<ReturnType<typeof setup>>)=>({...f.reference,event:{type:'checkpoint' as const,...f.owner,resultDigest:(await f.row('response'))?.payload_digest??'f'.repeat(64)}});
+  const reviewTarget=(f:Awaited<ReturnType<typeof setup>>)=>({reviewId:f.target.reviewId,preparationDigest:f.target.preparationDigest});
   await check('scope SDK request/response acknowledgements survive restart with exact raw bytes, one reservation and no retry grant',async()=>{
     const f=await setup(),store=f.make(),result=await f.exchange(store);store.close();
     const request=await f.make().read({...f.target,stage:'request'}),response=await f.make().read({...f.target,stage:'response'});
@@ -179,5 +187,104 @@ export async function testScopeObservations({admin,connect,check:checkBase}:{adm
     const read=await f.make().read({...f.target,stage:'response'});assert.deepEqual(read.observation,f.response());assert.equal(read.batchState,'failed-known');
     assert.equal(read.requiresOutcomeResolution,true);assert.equal(read.retryAuthorized,false);assert.equal(read.executionAuthorized,false);
     assert.deepEqual(await f.row('response'),stored);assert.equal(f.calls(),1);
+  });
+  await check('verified scope checkpoint recovers exact SDK output after restart and replay without another reservation or call',async()=>{
+    const f=await setup();await f.exchange();const input=await checkpointInput(f),verify=checkpointVerifier(f);let checks=0;
+    const store=checkpointStore(f,{verifyCheckpoint:async reference=>{checks++;await f.pools.execution.query('SELECT 1');await verify(reference);}});
+    const first=await store.transition(input);assert.equal(first.outcome,'ok');assert.equal(first.dispatchAllowed,false);
+    if(first.outcome!=='ok')throw new Error('Checkpoint missing');assert.equal(first.value.state,'succeeded');store.close();
+    const read=await f.make().read({...f.target,stage:'response'});assert.deepEqual(read.observation,f.response());assert.equal(read.batchState,'succeeded');
+    assert.equal(read.requiresOutcomeResolution,false);assert.equal(read.checkpoint?.resultDigest,read.payloadDigest);assert.equal(read.executionAuthorized,false);assert.equal(read.authoritativeClearance,false);
+    const replay=await checkpointStore(f,{verifyCheckpoint:async ref=>{checks++;await verify(ref);}}).transition(input);
+    assert.equal(replay.outcome,'ok');if(replay.outcome==='ok')assert.deepEqual(replay.value,first.value);assert.equal(checks,2);
+    assert.equal((await f.reviews.claim({...f.reference,owner:'replacement',leaseMs:1000})).dispatchAllowed,false);
+    assert.notEqual((await f.make().put({...f.target,...f.owner,observation:f.response()})).outcome,'stored');
+    assert.equal(f.calls(),1);assert.equal((await admin.query('SELECT count(*)::int AS n FROM steer_usage.model_reservations WHERE budget_id=$1',[f.execution.budget.budgetId])).rows[0].n,1);
+  });
+  await check('scope checkpoint needs a real durable response and exact verifier acknowledgement, owner and payload binding',async()=>{
+    const f=await setup(),missing=await checkpointInput(f);
+    assert.notEqual((await checkpointStore(f).transition(missing)).outcome,'ok');
+    assert.notEqual((await checkpointStore(f,{verifyCheckpoint:async()=>{}}).transition(missing)).outcome,'ok');
+    await f.exchange();const input=await checkpointInput(f);
+    assert.equal((await f.reviews.transition(input)).outcome,'unavailable');
+    assert.equal((await checkpointStore(f,{verifyCheckpoint:async()=>true as any}).transition(input)).outcome,'unavailable');
+    for(const event of [{...input.event,owner:'foreign'},{...input.event,fencingToken:2},{...input.event,resultDigest:hash(f.response().result)}])
+      assert.notEqual((await checkpointStore(f).transition({...input,event})).outcome,'ok');
+    const state=await f.reviews.inspect(reviewTarget(f));assert.equal(state.outcome,'ok');if(state.outcome==='ok')assert.equal(state.value.batches[0]!.state,'dispatch-committed');
+    assert.equal(f.calls(),1);
+  });
+  await check('lost scope checkpoint COMMIT acknowledgement recovers committed success without rewriting or resending',async()=>{
+    const f=await setup();await f.exchange();let updated=false;
+    const uncertain=wrap(f.pools.execution,async(sql,_values,run)=>{const value=await run();if(sql.startsWith('UPDATE steer_execution.scope_review_batches'))updated=true;
+      if(sql==='COMMIT'&&updated)throw new Error('Synthetic lost checkpoint ACK');return value;});
+    const input=await checkpointInput(f),result=await checkpointStore(f,{},uncertain).transition(input);assert.equal(result.outcome,'unknown');assert.equal(result.dispatchAllowed,false);
+    const state=await f.reviews.inspect(reviewTarget(f));assert.equal(state.outcome,'ok');if(state.outcome!=='ok')throw new Error('Missing committed metadata');
+    assert.equal(state.value.batches[0]!.state,'succeeded');const replay=await checkpointStore(f).transition(input);assert.equal(replay.outcome,'ok');
+    if(replay.outcome==='ok')assert.deepEqual(replay.value,state.value.batches[0]);assert.equal(f.calls(),1);
+  });
+  await check('scope quarantine or known failure winning during checkpoint readback cannot be erased by the second transaction',async()=>{
+    for(const type of ['outcome-unknown','known-failure'] as const){
+      const f=await setup();await f.exchange();const verify=checkpointVerifier(f),input=await checkpointInput(f);
+      const result=await checkpointStore(f,{verifyCheckpoint:async ref=>{await verify(ref);assert.equal((await f.reviews.transition({...f.reference,event:{type,...f.owner}})).outcome,'ok');}}).transition(input);
+      assert.equal(result.outcome,'conflict');assert.equal((await checkpointStore(f).transition(input)).outcome,'conflict');
+      const read=await f.make().read({...f.target,stage:'response'});assert.equal(read.requiresOutcomeResolution,true);assert.equal(read.checkpoint,null);assert.equal(f.calls(),1);
+    }
+  });
+  await check('scope checkpoint current authority, source, key and hold checks deny promotion and recovered content',async()=>{
+    const f=await setup();await f.exchange();const input=await checkpointInput(f),base=checkpointVerifier(f);let denied=false;
+    const late=checkpointStore(f,{authorize:async()=>{if(denied)throw new Error('Synthetic revoked authority');},verifyCheckpoint:async ref=>{await base(ref);denied=true;}});
+    assert.equal((await late.transition(input)).outcome,'unavailable');late.close();
+    for(const overrides of [{authorize:async()=>{throw new Error('Records denied');}},
+      {originals:{...f.deps,authorizeOriginal:async()=>{throw new Error('Source denied');}}},
+      {originals:{...f.deps,keyForDraft:async()=>({...f.key,bytes:randomBytes(32)})}}])
+      assert.notEqual((await checkpointStore(f,{verifyCheckpoint:checkpointVerifier(f,overrides)}).transition(input)).outcome,'ok');
+    assert.equal((await f.lifecycle.hold({draftId:f.draftId,holdReference:randomUUID()})).outcome,'ok');
+    assert.notEqual((await checkpointStore(f).transition(input)).outcome,'ok');await assert.rejects(f.make().read({...f.target,stage:'response'}));assert.equal(f.calls(),1);
+  });
+  await check('scope checkpoint SQL keeps records private and ignores temporary shadow relations',async()=>{
+    const f=await setup();const grants=(await admin.query("SELECT p.prosecdef,p.proconfig,has_function_privilege('steer_app',p.oid,'EXECUTE') AS callable FROM pg_proc p WHERE p.oid='steer_execution.guard_scope_checkpoint()'::regprocedure")).rows[0];
+    assert.equal(grants.prosecdef,true);assert.equal(grants.callable,false);assert.ok(grants.proconfig.includes('search_path=pg_catalog, pg_temp'));
+    await assert.rejects(f.pools.execution.query('SELECT * FROM steer_drafts.scope_review_observations'),/permission denied/);
+    // Use the leased client itself for contamination, not a second pool checkout.
+    const contaminated:DatabasePool={async connect(){const c=await f.pools.execution.connect();return{query:async(sql:string,values?:unknown[])=>{
+      const r=await c.query(sql,values);if(sql==='BEGIN ISOLATION LEVEL READ COMMITTED'){
+        await c.query('SET LOCAL search_path=pg_temp,public');await c.query('CREATE TEMP TABLE scope_review_observations (payload_digest text) ON COMMIT DROP');
+        await c.query('CREATE TEMP TABLE draft_lifecycles (held boolean) ON COMMIT DROP');
+      }return r;},release:(broken:boolean)=>c.release(broken)} as PoolClient;}};
+    assert.notEqual((await checkpointStore(f,{verifyCheckpoint:async()=>{}},contaminated).transition(await checkpointInput(f))).outcome,'ok');
+    await f.exchange();assert.equal((await checkpointStore(f,{},contaminated).transition(await checkpointInput(f))).outcome,'ok');assert.equal(f.calls(),1);
+  });
+  await check('scope checkpoint refuses a concurrent lifecycle lock rather than deadlocking while holding batch ownership',async()=>{
+    const f=await setup();await f.exchange();const verify=checkpointVerifier(f);let lease:PoolClient|undefined;
+    try{
+      const result=await checkpointStore(f,{verifyCheckpoint:async ref=>{await verify(ref);lease=await admin.connect();await lease.query('BEGIN');
+        await lease.query('SELECT * FROM steer_drafts.draft_lifecycles WHERE organization_id=$1 AND draft_id=$2 FOR UPDATE',[f.config.organizationId,f.draftId]);}}).transition(await checkpointInput(f));
+      assert.notEqual(result.outcome,'ok');assert.equal(result.dispatchAllowed,false);
+    }finally{if(lease){await lease.query('ROLLBACK');lease.release();}}
+    const state=await f.reviews.inspect(reviewTarget(f));assert.equal(state.outcome,'ok');if(state.outcome==='ok')assert.equal(state.value.batches[0]!.state,'dispatch-committed');assert.equal(f.calls(),1);
+  });
+  await check('timed-out scope checkpoint readback retains bounded admission until drainage and close prevents late success',async()=>{
+    const f=await setup();await f.exchange();let release!:()=>void;const held=new Promise<void>(r=>{release=r;}),input=await checkpointInput(f);
+    const store=checkpointStore(f,{verifyCheckpoint:async()=>{await held;}}),pending=Array.from({length:8},()=>store.transition(input));
+    const outcomes=await Promise.all(pending);assert.ok(outcomes.every(r=>r.outcome==='unavailable'&&!r.dispatchAllowed));
+    assert.equal((await store.inspect(reviewTarget(f))).outcome,'unavailable');await f.pools.execution.query('SELECT 1');store.close();release();await delay(20);
+    const state=await f.reviews.inspect(reviewTarget(f));assert.equal(state.outcome,'ok');if(state.outcome==='ok')assert.equal(state.value.batches[0]!.state,'dispatch-committed');assert.equal(f.calls(),1);
+  });
+  await check('parallel scope checkpoint acknowledgements converge on one immutable completion',async()=>{
+    const f=await setup();await f.exchange();const input=await checkpointInput(f);
+    const results=await Promise.all(Array.from({length:3},()=>checkpointStore(f).transition(input)));
+    assert.ok(results.every(r=>r.outcome==='ok'&&!r.dispatchAllowed),JSON.stringify(results.map(r=>r.outcome)));
+    const first=results[0]!;if(first.outcome!=='ok')throw new Error('Missing concurrent completion');
+    for(const result of results)if(result.outcome==='ok')assert.deepEqual(result.value,first.value);
+    assert.equal(first.value.state,'succeeded');assert.equal(f.calls(),1);assert.deepEqual((await f.make().read({...f.target,stage:'response'})).observation,f.response());
+  });
+  await check('a lifecycle hold recorded after scope readback blocks the checkpoint at SQL commit-time validation',async()=>{
+    const f=await setup();await f.exchange();const verify=checkpointVerifier(f);
+    const result=await checkpointStore(f,{verifyCheckpoint:async ref=>{await verify(ref);
+      assert.equal((await f.lifecycle.hold({draftId:f.draftId,holdReference:randomUUID()})).outcome,'ok');
+    }}).transition(await checkpointInput(f));
+    assert.notEqual(result.outcome,'ok');assert.equal(result.dispatchAllowed,false);
+    const state=await f.reviews.inspect(reviewTarget(f));assert.equal(state.outcome,'ok');if(state.outcome==='ok')assert.equal(state.value.batches[0]!.state,'dispatch-committed');
+    await assert.rejects(f.make().read({...f.target,stage:'response'}));assert.equal(f.calls(),1);
   });
 }

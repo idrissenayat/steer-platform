@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { intentScopeAssessmentSchema,validateIntentScopeAssessment } from '@steer/tool-registry/intent-evidence-contracts';
 import { prepareIntentScopeReview } from '@steer/tool-registry/intent-scope-review';
 import { createScopeReviewOriginalStore, scopeRecordsConfigurationSchema } from './scope-review-originals.ts';
-import { createScopeReviewOperationStore } from './scope-review-operations.ts';
+import { createScopeReviewOperationStore, describeScopeReviewCheckpoint } from './scope-review-operations.ts';
 import { scopeOriginalHash as hash, freezeScopeOriginal as freeze, type ScopeOriginal } from './scope-original-contracts.ts';
 import { draftEnvelopeSchema, sealDraft, openDraft, DraftStorageError } from './draft-envelope.ts';
 import { applyRuntimeQueryLimits, DatabaseCommitOutcomeUnknownError } from './runtime-pool.ts';
@@ -38,8 +38,8 @@ class Conflict extends Error {}
  * authorship. Mandatory verifier callbacks must use the pinned recorded SDK codec
  * to validate the exact wire request before ACK and request/response/usage on read.
  * Quarantined/failed batches can be read without granting reconciliation or retry;
- * new observations require a dispatch-committed batch. Expired-review observation
- * access and successful checkpoints remain separate future integration.
+ * new observations require a dispatch-committed batch. Succeeded response reads
+ * must match the checkpoint's exact payload digest; expired access stays closed.
  * No headers, credentials, URLs, model dispatch, budget mutation or deletion API.
  */
 export function createScopeReviewObservationStore(pools: Parameters<typeof createScopeReviewOriginalStore>[0], rawConfiguration: unknown, dependencies: {
@@ -108,7 +108,7 @@ export function createScopeReviewObservationStore(pools: Parameters<typeof creat
       const observed = await bounded(operations.inspect({ reviewId: t.reviewId, preparationDigest: t.preparationDigest })); guard();
       if (observed.outcome !== 'ok') throw new DraftStorageError();
       const own = observed.value.batches.find(s => s.binding.stepId === t.batchId);
-      const allowed=action==='put'?['dispatch-committed']:['dispatch-committed','outcome-unknown','failed-known'];
+      const allowed=action==='put'?['dispatch-committed']:['dispatch-committed','outcome-unknown','failed-known','succeeded'];
       if (!own || !allowed.includes(own.state) || hash(restored.manifest)!==hash(observed.value.manifest)) throw new DraftStorageError();
       const prepared=await prepareIntentScopeReview(original.source.scope,original.evidence,original.profile),batch=prepared.batches.find(b=>b.metadata.batchId===t.batchId);guard();
       if(!batch || prepared.preparationDigest!==t.preparationDigest || batch.inputDigest!==own.binding.inputDigest)throw new Conflict();
@@ -149,6 +149,7 @@ export function createScopeReviewObservationStore(pools: Parameters<typeof creat
     try {
       const payload = freeze(scopeReviewObservationSchema.parse(openDraft(row.envelope, aad(row.metadata), lease)));
       const current = await context(t,action); if (hash(metadata(t, payload, current)) !== hash(row.metadata)) throw new Conflict();
+      if(payload.stage==='response'&&current.record.state==='succeeded'&&current.record.resultDigest!==row.metadata.payloadDigest)throw new Conflict();
       await validate(t, payload, current);
       const fresh = await bounded(dependencies.originals.keyForDraft(freeze({ ...config, draftId: row.metadata.draftId }), row.envelope.keyId));
       if (!(fresh.bytes instanceof Uint8Array) || fresh.bytes.byteLength !== 32) throw new DraftStorageError();
@@ -156,8 +157,12 @@ export function createScopeReviewObservationStore(pools: Parameters<typeof creat
       try { if (fresh.keyId !== lease.keyId || !bytes.equals(lease.bytes)) throw new DraftStorageError(); } finally { bytes.fill(0); }
       await authorize(t, action); const finalContext = await context(t,action);
       if (hash(metadata(t, payload, finalContext)) !== hash(row.metadata)) throw new Conflict();
+      if(payload.stage==='response'&&finalContext.record.state==='succeeded'&&finalContext.record.resultDigest!==row.metadata.payloadDigest)throw new Conflict();
       const final = await transaction(async c => ({ expiry: await lifecycle(c, row.metadata), row: await select(c, t, payload.stage) }));
-      guard(); if (performance.now() >= final.expiry || hash(final.row) !== hash(row)) throw new DraftStorageError(); return {payload,state:finalContext.record.state};
+      guard(); if (performance.now() >= final.expiry || hash(final.row) !== hash(row)) throw new DraftStorageError();
+      const checkpoint=payload.stage==='response'&&['dispatch-committed','succeeded'].includes(finalContext.record.state)
+        ?describeScopeReviewCheckpoint(finalContext.original.configuration,t.preparationDigest,finalContext.record,row.metadata.payloadDigest):null;
+      return {payload,state:finalContext.record.state,checkpoint};
     } finally { lease.bytes.fill(0); }
   }
   return {
@@ -198,7 +203,7 @@ export function createScopeReviewObservationStore(pools: Parameters<typeof creat
         if (!row) throw new DraftStorageError(); const restored = await restore(t, row, 'read');
         return freeze({ observation:restored.payload, payloadDigest: row.metadata.payloadDigest, stepInputDigest: row.metadata.stepInputDigest,
           outputDigest: row.metadata.outputDigest, recordsPolicyDigest: config.recordsPolicyDigest,
-          batchState:restored.state,requiresOutcomeResolution:restored.state!=='dispatch-committed',semanticQualityVerified:false as const,authoritativeClearance:false as const,
+          checkpoint:restored.checkpoint,batchState:restored.state,requiresOutcomeResolution:['outcome-unknown','failed-known'].includes(restored.state),semanticQualityVerified:false as const,authoritativeClearance:false as const,
           executionAuthorized: false as const, retryAuthorized: false as const, gateSigned: false as const });
       } catch { throw new DraftStorageError(); } finally { active = false; }
     },

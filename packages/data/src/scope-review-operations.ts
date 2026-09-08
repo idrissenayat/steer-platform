@@ -46,25 +46,44 @@ export const scopeReviewConfigurationSchema = z.strictObject({ organizationId: i
 const reference = z.strictObject({ reviewId: uuid, preparationDigest: digest });
 const batchReference = reference.extend({ batchId: digest, inputDigest: digest });
 const claimSchema = batchReference.extend({ owner: id, leaseMs: integer.min(1).max(300000) });
-const transitionSchema = batchReference.extend({ event: z.strictObject({
-  type: z.enum(['commit-dispatch', 'outcome-unknown', 'known-failure']), owner: id, fencingToken: integer.positive(),
-}) });
-const recordSchema = z.strictObject({ binding: z.strictObject({ organizationId: id, operationId: uuid, stepId: digest, subject: id,
-  draftId: uuid, draftRevision: revision, inputDigest: digest, configurationRevision: id }),
-  state: z.enum(['claimed', 'dispatch-committed', 'outcome-unknown', 'failed-known']), fencingToken: integer.positive(),
-  owner: id, reservationId: uuid, leaseUntil: integer.nullable(), updatedAt: integer, resultDigest: z.null(),
+const transitionSchema = batchReference.extend({ event: z.union([
+  z.strictObject({type:z.enum(['commit-dispatch','outcome-unknown','known-failure']),owner:id,fencingToken:integer.positive()}),
+  z.strictObject({type:z.literal('checkpoint'),owner:id,fencingToken:integer.positive(),resultDigest:digest}),
+]) });
+const bindingSchema = z.strictObject({ organizationId: id, operationId: uuid, stepId: digest, subject: id,
+  draftId: uuid, draftRevision: revision, inputDigest: digest, configurationRevision: id });
+const recordSchema = z.strictObject({ binding: bindingSchema,
+  state: z.enum(['claimed', 'dispatch-committed', 'outcome-unknown', 'failed-known','succeeded']), fencingToken: integer.positive(),
+  owner: id, reservationId: uuid, leaseUntil: integer.nullable(), updatedAt: integer, resultDigest: digest.nullable(),
 }).superRefine((r, ctx) => {
-  if ((r.state === 'claimed') !== (r.leaseUntil !== null) || (r.leaseUntil !== null && r.leaseUntil <= r.updatedAt))
+  if ((r.state === 'claimed') !== (r.leaseUntil !== null) || (r.leaseUntil !== null && r.leaseUntil <= r.updatedAt)
+    || (r.state==='succeeded')!==(r.resultDigest!==null))
     ctx.addIssue({ code: 'custom', message: 'Invalid scope batch state.' });
 });
 type Manifest = z.infer<typeof scopeReviewManifestSchema>;
 type Configuration = z.infer<typeof scopeReviewConfigurationSchema>;
 type Reference = z.infer<typeof reference>;
 type Run = { reviewId: string; manifest: Manifest };
+/** Metadata-only reference. resultDigest is the complete immutable response
+ * payload digest, not merely the parsed finding/output digest. No call authority. */
+export const scopeCheckpointReferenceSchema=z.strictObject({kind:z.literal('steer-scope-checkpoint/v1'),
+  configurationDigest:digest,preparationDigest:digest,recordsPolicyDigest:digest,productId:id,binding:bindingSchema,
+  owner:id,fencingToken:integer.positive(),reservationId:uuid,resultDigest:digest});
+export type ScopeCheckpointReference=z.infer<typeof scopeCheckpointReferenceSchema>;
+export function describeScopeReviewCheckpoint(config:Configuration,preparationDigest:string,record:IntentStepRecord,resultDigest:string){
+  return freeze(scopeCheckpointReferenceSchema.parse({kind:'steer-scope-checkpoint/v1',configurationDigest:hash(config),preparationDigest,
+    recordsPolicyDigest:config.recordsPolicyDigest,productId:config.productId,binding:record.binding,
+    owner:record.owner,fencingToken:record.fencingToken,reservationId:record.reservationId,resultDigest}));
+}
 type Result<T> = { outcome: 'ok'; value: T; dispatchAllowed: boolean }
   | { outcome: 'conflict' | 'unavailable' | 'unknown'; dispatchAllowed: false };
 class Unavailable extends Error {}
 class Conflict extends Error {}
+class CheckpointReadbackRequired extends Error {
+  readonly reference:Readonly<ScopeCheckpointReference>;
+  constructor(reference:Readonly<ScopeCheckpointReference>){super('Scope checkpoint readback required.');this.reference=reference;}
+}
+type CheckpointProof={reference:Readonly<ScopeCheckpointReference>;startedAt:number};
 const clearScope = "SELECT set_config('steer.execution_organization','',false),set_config('steer.execution_subject','',false),set_config('steer.execution_product','',false),set_config('steer.usage_organization','',false),set_config('steer.usage_subject','',false),set_config('steer.usage_budget','',false)";
 
 /** Uninstalled ownership/reservation adapter, not a runner or authorization service.
@@ -72,18 +91,19 @@ const clearScope = "SELECT set_config('steer.execution_organization','',false),s
  * draft lifecycle, adopted records policy and approved role/budget terms. It runs
  * without a leased SQL connection before and after every transaction. Stored
  * metadata and configuration alone never establish any of those facts.
- * Success checkpoints await encrypted observation/result integration; there is
- * deliberately no reset, refund, automatic retry or succeeded-state API here. */
+ * Checkpoints require verified immutable encrypted response readback outside the
+ * SQL lease, then current-state rechecks. No reset, refund or automatic retry. */
 export function createScopeReviewOperationStore(pool: DatabasePool, rawConfiguration: unknown, dependencies: {
   authorize: (context: Readonly<{ configuration: Configuration; request: unknown }>) => Promise<void>;
+  verifyCheckpoint?: (reference:Readonly<ScopeCheckpointReference>)=>Promise<void>;
 }) {
   const config = freeze(scopeReviewConfigurationSchema.parse(rawConfiguration)), configurationDigest = hash(config);
-  if (typeof dependencies.authorize !== 'function') throw new Error('Missing scope-review authority.');
+  if (typeof dependencies.authorize !== 'function'||(dependencies.verifyCheckpoint!==undefined&&typeof dependencies.verifyCheckpoint!=='function')) throw new Error('Missing scope-review authority.');
   let closed = false, active = 0;
-  async function transaction<T>(request: unknown, work: (client: PoolClient) => Promise<{ value: T; dispatchAllowed: boolean }>): Promise<Result<T>> {
+  async function transaction<T>(request: unknown, work: (client: PoolClient,verify:(reference:Readonly<ScopeCheckpointReference>)=>void) => Promise<{ value: T; dispatchAllowed: boolean }>): Promise<Result<T>> {
     if (closed || active >= 8) return { outcome: 'unavailable', dispatchAllowed: false };
     active++;
-    let pending = 0, finished = false, ended = false, client: PoolClient | undefined, committing = false, broken = false;
+    let pending = 0, finished = false;
     const drain = () => { if (finished && !pending) { finished = false; active--; } };
     const bounded = async <V>(task: Promise<V>): Promise<V> => {
       pending++; void task.finally(() => { pending--; drain(); }).catch(() => {});
@@ -96,34 +116,57 @@ export function createScopeReviewOperationStore(pool: DatabasePool, rawConfigura
         if (closed || await bounded(dependencies.authorize(freeze({ configuration: config, request }))) !== undefined || closed) throw new Unavailable();
       } catch { throw new Unavailable(); }
     };
-    try {
-      await authorize();
-      client = await bounded(pool.connect().then(c => { if (ended || closed) { c.release(true); throw new Unavailable(); } return c; }));
-      if (!client) throw new Unavailable();
-      await applyRuntimeQueryLimits(client); await client.query(clearScope); await client.query('BEGIN ISOLATION LEVEL READ COMMITTED');
-      const runtime = (await client.query(`SELECT r.rolname,session_user AS login_role,r.rolsuper,r.rolbypassrls,
-        EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
-          WHERE n.nspname IN ('steer_execution','steer_usage') AND c.relowner=r.oid) AS owns_objects
-        FROM pg_roles r WHERE r.rolname=current_user`)).rows[0];
-      if (!runtime || runtime.rolname !== 'steer_app' || runtime.login_role !== 'steer_app' || runtime.rolsuper || runtime.rolbypassrls || runtime.owns_objects) throw new Unavailable();
-      await client.query("SELECT set_config('steer.execution_organization',$1,true),set_config('steer.execution_subject',$2,true),set_config('steer.execution_product',$3,true),set_config('steer.usage_organization',$1,true),set_config('steer.usage_subject',$2,true),set_config('steer.usage_budget',$4,true)",
-        [config.organizationId, config.subject, config.productId, config.budget.budgetId]);
-      const start = await now(client);
-      if (Date.parse(config.expiresAt) <= start || Date.parse(config.expiresAt) > start + 86400000) throw new Unavailable();
-      const result = await work(client), end = await now(client);
-      if (closed || end < start || end >= Date.parse(config.expiresAt)) throw new Unavailable();
-      const committedAt = performance.now();
-      committing = true; await client.query('COMMIT'); await client.query(clearScope); client.release(); client = undefined;
-      // Reauthorization may use the same max-one pool. Never hold a lease/lock over it.
-      await authorize();
-      const elapsed = performance.now() - committedAt;
-      if (elapsed < 0 || elapsed >= 3000 || end + elapsed >= Date.parse(config.expiresAt)) throw new Unavailable();
-      return freeze({ outcome: 'ok' as const, ...result });
-    } catch (error) {
-      broken = committing;
-      if (client) try { await client.query('ROLLBACK'); await client.query(clearScope); } catch { broken = true; }
-      return { outcome: committing ? 'unknown' : error instanceof Conflict ? 'conflict' : error instanceof Unavailable ? 'unavailable' : 'unknown', dispatchAllowed: false };
-    } finally { ended = true; client?.release(broken); finished = true; drain(); }
+    const fresh=(proof:CheckpointProof)=>{const elapsed=performance.now()-proof.startedAt;if(elapsed<0||elapsed>=5000)throw new Unavailable();};
+    const pass=async(proof?:CheckpointProof):Promise<Result<T>>=>{
+      let ended=false,client:PoolClient|undefined,committing=false,broken=false;
+      try {
+        await authorize();
+        client = await bounded(pool.connect().then(c => { if (ended || closed) { c.release(true); throw new Unavailable(); } return c; }));
+        if (!client) throw new Unavailable();
+        await applyRuntimeQueryLimits(client); await client.query(clearScope); await client.query('BEGIN ISOLATION LEVEL READ COMMITTED');
+        const runtime = (await client.query(`SELECT r.rolname,session_user AS login_role,r.rolsuper,r.rolbypassrls,
+          EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+            WHERE n.nspname IN ('steer_execution','steer_usage') AND c.relowner=r.oid) AS owns_objects
+          FROM pg_roles r WHERE r.rolname=current_user`)).rows[0];
+        if (!runtime || runtime.rolname !== 'steer_app' || runtime.login_role !== 'steer_app' || runtime.rolsuper || runtime.rolbypassrls || runtime.owns_objects) throw new Unavailable();
+        await client.query("SELECT set_config('steer.execution_organization',$1,true),set_config('steer.execution_subject',$2,true),set_config('steer.execution_product',$3,true),set_config('steer.usage_organization',$1,true),set_config('steer.usage_subject',$2,true),set_config('steer.usage_budget',$4,true)",
+          [config.organizationId, config.subject, config.productId, config.budget.budgetId]);
+        const start = await now(client);
+        if (Date.parse(config.expiresAt) <= start || Date.parse(config.expiresAt) > start + 86400000) throw new Unavailable();
+        const verify=(ref:Readonly<ScopeCheckpointReference>)=>{
+          if(!proof)throw new CheckpointReadbackRequired(ref);
+          fresh(proof);if(json(ref)!==json(proof.reference))throw new Unavailable();
+        };
+        const result = await work(client,verify), end = await now(client);
+        if (closed || end < start || end >= Date.parse(config.expiresAt)) throw new Unavailable();
+        if(proof)fresh(proof);
+        const committedAt = performance.now();
+        committing = true; await client.query('COMMIT'); await client.query(clearScope); client.release(); client = undefined;
+        // Reauthorization may use the same max-one pool. Never hold a lease/lock over it.
+        await authorize();
+        const elapsed = performance.now() - committedAt;
+        if (elapsed < 0 || elapsed >= 3000 || end + elapsed >= Date.parse(config.expiresAt)) throw new Unavailable();
+        if(proof)fresh(proof);
+        return freeze({ outcome: 'ok' as const, ...result });
+      } catch (error) {
+        broken = committing;
+        if (client) try { await client.query('ROLLBACK'); await client.query(clearScope); } catch { broken = true; }
+        if(!committing&&!broken&&error instanceof CheckpointReadbackRequired)throw error;
+        return { outcome: committing ? 'unknown' : error instanceof Conflict ? 'conflict' : error instanceof Unavailable ? 'unavailable' : 'unknown', dispatchAllowed: false };
+      } finally { ended = true; client?.release(broken); }
+    };
+    try{
+      try{return await pass();}catch(error){
+        if(!(error instanceof CheckpointReadbackRequired)||closed||typeof dependencies.verifyCheckpoint!=='function')throw new Unavailable();
+        // The preflight has rolled back and released its lease. The verifier may
+        // reuse this exact max-one pool; it cannot inherit SQL locks or authority.
+        await authorize();if(closed)throw new Unavailable();
+        const proof=freeze({reference:error.reference,startedAt:performance.now()});
+        if(await bounded(dependencies.verifyCheckpoint(proof.reference))!==undefined||closed)throw new Unavailable();
+        fresh(proof);return await pass(proof);
+      }
+    }catch(error){return{outcome:error instanceof Unavailable?'unavailable':'unknown',dispatchAllowed:false};}
+    finally{finished=true;drain();}
   }
   async function now(client: PoolClient) {
     return integer.parse(Number((await client.query('SELECT floor(extract(epoch FROM clock_timestamp())*1000)::bigint AS now')).rows[0]?.now));
@@ -223,9 +266,14 @@ export function createScopeReviewOperationStore(pool: DatabasePool, rawConfigura
     },
     transition(raw: unknown) {
       const request = freeze(transitionSchema.parse(raw));
-      return transaction(request, async client => {
+      return transaction(request, async (client,verify) => {
         const op = await run(client, request), prior = await readBatch(client, op, request), event = request.event;
         if (!prior || prior.owner !== event.owner || prior.fencingToken !== event.fencingToken) throw new Conflict();
+        if(event.type==='checkpoint'){
+          if(!['dispatch-committed','succeeded'].includes(prior.state)||(prior.state==='succeeded'&&prior.resultDigest!==event.resultDigest))throw new Conflict();
+          verify(describeScopeReviewCheckpoint(config,request.preparationDigest,prior,event.resultDigest));
+          if(prior.state==='succeeded')return{value:prior,dispatchAllowed:false};
+        }
         if (event.type === 'commit-dispatch') {
           if (prior.state !== 'claimed') return { value: prior, dispatchAllowed: false };
           await reserve(client, op, request.batchId, prior.reservationId, true);

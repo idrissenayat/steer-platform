@@ -674,3 +674,23 @@ Timeouts and no-retry behavior are unchanged. The test-only focused latency runn
 is bounded and explicitly not the full suite. See
 [0238 specification](../../intent/0238/SPEC.md). Real records/model/save activation
 and signed-in acceptance remain outside this increment.
+
+0239 connects scope response observations to durable batch checkpoints. A strict
+reference binds the complete response payload digest, exact execution/preparation,
+records policy, product, source binding, owner, fence and reservation. It references
+existing ciphertext, not a second result copy. The normal checkpoint path accepts
+only dispatch-committed or exact already-succeeded work. Preflight releases its SQL
+lease before mandatory current encrypted/SDK readback; a bounded fresh proof must
+match the second transaction's current owner and state. Post-commit authority runs
+after lease release. Exact replay re-verifies without rewriting success; lost ACKs
+never authorize another provider call. Inspection alone remains metadata, not proof.
+
+SQL preserves the original transition guard and adds a narrow scope-checked trigger
+for response/original/lifecycle binding. Lifecycle locking uses NOWAIT so a writer
+blocks completion without reverse-order waiting or skipped-row success. Readback
+still requires current keys/source/records authority. Quarantined/failed evidence
+has no checkpoint reference; normal completion cannot promote or reset it. A
+completed batch is not combined semantic coverage, quality, disposition, execution,
+save or gate authority. See [0239 specification](../../intent/0239/SPEC.md).
+The development migration remains outside real-local activation; completed-batch
+consumption, reference-only Temporal and actual human/save acceptance remain open.

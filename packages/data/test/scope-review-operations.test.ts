@@ -33,7 +33,8 @@ test('role configuration cannot supply an extra cap, borrow another owner budget
   const store = createScopeReviewOperationStore({ connect: async () => { connections++; throw new Error('Unexpected database'); } }, config,
     { authorize: async () => { throw new Error('Synthetic authority denied'); } });
   assert.equal((await store.admit(manifest)).outcome, 'unavailable'); assert.equal(connections, 0);
-  assert.throws(() => store.transition({ reviewId: randomUUID(), preparationDigest: manifest.preparationDigest, ...manifest.batches[0],
-    event: { type: 'checkpoint', owner: 'worker', fencingToken: 1, resultDigest: 'f'.repeat(64) } }));
+  assert.equal((await store.transition({ reviewId: randomUUID(), preparationDigest: manifest.preparationDigest, ...manifest.batches[0],
+    event: { type: 'checkpoint', owner: 'worker', fencingToken: 1, resultDigest: 'f'.repeat(64) } })).outcome,'unavailable');
+  assert.equal(connections,0);
   store.close(); assert.equal((await store.admit(manifest)).outcome, 'unavailable');
 });
