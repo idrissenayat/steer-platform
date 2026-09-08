@@ -4341,3 +4341,29 @@ complete source/consent/authority verification still require integration. Next b
 durable operation/step claims and checkpoints against a disposable database, then
 compose verified source/lifecycle and final UI save/reopen. I1–I6 remain open. No
 runtime, credential, grant, budget, real database, accepted policy or user draft changed.
+
+## Development increment: 0209 — Durable operation ownership and dispatch fencing
+
+Implemented an uninstalled PostgreSQL execution-metadata adapter. Immutable
+operation/submission keys, atomic unique step/cost claims, pre-dispatch lease
+takeover, fencing and one-way dispatch acknowledgements survive client/process
+reconstruction. Lost commit acknowledgement returns unknown without permission;
+status or repeated transitions never resend work. Checkpoints require persisted
+result readback before the next role, storing only reference/digest metadata here.
+Both legacy permits and new claims serialize the same budget cap without refunds.
+
+Disposable PostgreSQL 16.14 passes **54/54** checks, including four independent
+Node processes competing for one dispatch and fresh processes reading status with
+no permission. Data/domain/registry plus local migration-control tests pass
+**228/228**. Full typecheck, kit/security and whitespace checks pass. See
+[0209 evidence](../intent/0209/EVIDENCE.md) for the synthetic authority/checkpoint
+ports, uncertainty scenarios and explicit non-claims. Protected hashes are unchanged.
+
+Added migrations 0007/0008 for development tests only. The real local migration
+entry now rejects the expanded set before private-state/database access, preserving
+its seven-migration baseline pending exact adoption. Existing startup is unchanged;
+no real database, process, credential, grant, budget or accepted policy was changed.
+The implementation has no runtime bootstrap binding, model call or Git provider
+write. Next compose durable ownership with Temporal/bundle dispatch, verified
+lifecycle/full-corpus authority and approved result storage. Explicit new attempts,
+unknown resolution and real UI save/reopen acceptance remain open; I1–I6 are not done.

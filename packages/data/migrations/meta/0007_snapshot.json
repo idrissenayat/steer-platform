@@ -1,0 +1,998 @@
+{
+  "id": "7ddb33f2-28ec-4e23-98f2-f41ab247ad08",
+  "prevId": "84af9af7-3bc0-405a-aa6a-f1f5d03c282d",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "steer_auth.browser_sessions": {
+      "name": "browser_sessions",
+      "schema": "steer_auth",
+      "columns": {
+        "namespace": {
+          "name": "namespace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "key_hash": {
+          "name": "key_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "encrypted_value": {
+          "name": "encrypted_value",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "browser_sessions_expiry": {
+          "name": "browser_sessions_expiry",
+          "columns": [
+            {
+              "expression": "namespace",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "expires_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "browser_sessions_namespace_key_hash_pk": {
+          "name": "browser_sessions_namespace_key_hash_pk",
+          "columns": [
+            "namespace",
+            "key_hash"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {
+        "browser_sessions_namespace": {
+          "name": "browser_sessions_namespace",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "using": "\"steer_auth\".\"browser_sessions\".\"namespace\" = nullif(current_setting('steer.auth_namespace', true), '')",
+          "withCheck": "\"steer_auth\".\"browser_sessions\".\"namespace\" = nullif(current_setting('steer.auth_namespace', true), '')"
+        }
+      },
+      "checkConstraints": {
+        "browser_sessions_keys": {
+          "name": "browser_sessions_keys",
+          "value": "\"steer_auth\".\"browser_sessions\".\"namespace\" ~ '^[a-f0-9]{64}$' AND \"steer_auth\".\"browser_sessions\".\"key_hash\" ~ '^[a-f0-9]{64}$'"
+        },
+        "browser_sessions_ttl": {
+          "name": "browser_sessions_ttl",
+          "value": "\"steer_auth\".\"browser_sessions\".\"expires_at\" > \"steer_auth\".\"browser_sessions\".\"created_at\" AND \"steer_auth\".\"browser_sessions\".\"expires_at\" <= \"steer_auth\".\"browser_sessions\".\"created_at\" + interval '5 minutes'"
+        },
+        "browser_sessions_size": {
+          "name": "browser_sessions_size",
+          "value": "octet_length(\"steer_auth\".\"browser_sessions\".\"encrypted_value\"::text) <= 41000"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "steer.ingestion_events": {
+      "name": "ingestion_events",
+      "schema": "steer",
+      "columns": {
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "repository": {
+          "name": "repository",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_revision": {
+          "name": "source_revision",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content_digest": {
+          "name": "content_digest",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "received_at": {
+          "name": "received_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "ingestion_events_organization_id_event_id_pk": {
+          "name": "ingestion_events_organization_id_event_id_pk",
+          "columns": [
+            "organization_id",
+            "event_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {
+        "event_tenant": {
+          "name": "event_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "using": "\"steer\".\"ingestion_events\".\"organization_id\" = nullif(current_setting('steer.organization_id', true), '')",
+          "withCheck": "\"steer\".\"ingestion_events\".\"organization_id\" = nullif(current_setting('steer.organization_id', true), '')"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "steer_execution.intent_operations": {
+      "name": "intent_operations",
+      "schema": "steer_execution",
+      "columns": {
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "operation_id": {
+          "name": "operation_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "subject": {
+          "name": "subject",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "draft_id": {
+          "name": "draft_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "draft_revision": {
+          "name": "draft_revision",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "action": {
+          "name": "action",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "configuration_revision": {
+          "name": "configuration_revision",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "binding": {
+          "name": "binding",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "intent_operations_organization_id_operation_id_pk": {
+          "name": "intent_operations_organization_id_operation_id_pk",
+          "columns": [
+            "organization_id",
+            "operation_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {
+        "intent_operation_owner": {
+          "name": "intent_operation_owner",
+          "nullsNotDistinct": false,
+          "columns": [
+            "organization_id",
+            "operation_id",
+            "subject"
+          ]
+        },
+        "intent_operation_submission": {
+          "name": "intent_operation_submission",
+          "nullsNotDistinct": false,
+          "columns": [
+            "organization_id",
+            "draft_id",
+            "draft_revision",
+            "action",
+            "configuration_revision"
+          ]
+        }
+      },
+      "policies": {
+        "operation_scope": {
+          "name": "operation_scope",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "using": "\"steer_execution\".\"intent_operations\".\"organization_id\" = nullif(current_setting('steer.execution_organization', true), '') AND \"steer_execution\".\"intent_operations\".\"subject\" = nullif(current_setting('steer.execution_subject', true), '')",
+          "withCheck": "\"steer_execution\".\"intent_operations\".\"organization_id\" = nullif(current_setting('steer.execution_organization', true), '') AND \"steer_execution\".\"intent_operations\".\"subject\" = nullif(current_setting('steer.execution_subject', true), '')"
+        }
+      },
+      "checkConstraints": {
+        "intent_operation_bounds": {
+          "name": "intent_operation_bounds",
+          "value": "\"steer_execution\".\"intent_operations\".\"draft_revision\" BETWEEN 1 AND 9007199254740991 AND \"steer_execution\".\"intent_operations\".\"action\" IN ('develop','candidate-save') AND octet_length(\"steer_execution\".\"intent_operations\".\"binding\"::text) <= 8000 AND \"steer_execution\".\"intent_operations\".\"expires_at\" > \"steer_execution\".\"intent_operations\".\"created_at\""
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "steer_execution.intent_steps": {
+      "name": "intent_steps",
+      "schema": "steer_execution",
+      "columns": {
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "operation_id": {
+          "name": "operation_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "subject": {
+          "name": "subject",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "step_id": {
+          "name": "step_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "record": {
+          "name": "record",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "predecessor_result_digest": {
+          "name": "predecessor_result_digest",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "budget_id": {
+          "name": "budget_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reservation_id": {
+          "name": "reservation_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "result_ref": {
+          "name": "result_ref",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "intent_steps_organization_id_operation_id_subject_intent_operations_organization_id_operation_id_subject_fk": {
+          "name": "intent_steps_organization_id_operation_id_subject_intent_operations_organization_id_operation_id_subject_fk",
+          "tableFrom": "intent_steps",
+          "tableTo": "intent_operations",
+          "schemaTo": "steer_execution",
+          "columnsFrom": [
+            "organization_id",
+            "operation_id",
+            "subject"
+          ],
+          "columnsTo": [
+            "organization_id",
+            "operation_id",
+            "subject"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "intent_steps_organization_id_budget_id_reservation_id_model_reservations_organization_id_budget_id_reservation_id_fk": {
+          "name": "intent_steps_organization_id_budget_id_reservation_id_model_reservations_organization_id_budget_id_reservation_id_fk",
+          "tableFrom": "intent_steps",
+          "tableTo": "model_reservations",
+          "schemaTo": "steer_usage",
+          "columnsFrom": [
+            "organization_id",
+            "budget_id",
+            "reservation_id"
+          ],
+          "columnsTo": [
+            "organization_id",
+            "budget_id",
+            "reservation_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "intent_steps_organization_id_operation_id_step_id_pk": {
+          "name": "intent_steps_organization_id_operation_id_step_id_pk",
+          "columns": [
+            "organization_id",
+            "operation_id",
+            "step_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {
+        "step_scope": {
+          "name": "step_scope",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "using": "\"steer_execution\".\"intent_steps\".\"organization_id\" = nullif(current_setting('steer.execution_organization', true), '') AND \"steer_execution\".\"intent_steps\".\"subject\" = nullif(current_setting('steer.execution_subject', true), '')",
+          "withCheck": "\"steer_execution\".\"intent_steps\".\"organization_id\" = nullif(current_setting('steer.execution_organization', true), '') AND \"steer_execution\".\"intent_steps\".\"subject\" = nullif(current_setting('steer.execution_subject', true), '')"
+        }
+      },
+      "checkConstraints": {
+        "intent_step_bounds": {
+          "name": "intent_step_bounds",
+          "value": "\"steer_execution\".\"intent_steps\".\"step_id\" IN ('architect','test-agent','candidate-save') AND octet_length(\"steer_execution\".\"intent_steps\".\"record\"::text) <= 8000 AND (\"steer_execution\".\"intent_steps\".\"predecessor_result_digest\" IS NULL OR \"steer_execution\".\"intent_steps\".\"predecessor_result_digest\" ~ '^[a-f0-9]{64}$')"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "steer_auth.login_transactions": {
+      "name": "login_transactions",
+      "schema": "steer_auth",
+      "columns": {
+        "namespace": {
+          "name": "namespace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "key_hash": {
+          "name": "key_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "encrypted_value": {
+          "name": "encrypted_value",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "login_transactions_expiry": {
+          "name": "login_transactions_expiry",
+          "columns": [
+            {
+              "expression": "namespace",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "expires_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "login_transactions_namespace_key_hash_pk": {
+          "name": "login_transactions_namespace_key_hash_pk",
+          "columns": [
+            "namespace",
+            "key_hash"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {
+        "login_transactions_namespace": {
+          "name": "login_transactions_namespace",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "using": "\"steer_auth\".\"login_transactions\".\"namespace\" = nullif(current_setting('steer.auth_namespace', true), '')",
+          "withCheck": "\"steer_auth\".\"login_transactions\".\"namespace\" = nullif(current_setting('steer.auth_namespace', true), '')"
+        }
+      },
+      "checkConstraints": {
+        "login_transactions_keys": {
+          "name": "login_transactions_keys",
+          "value": "\"steer_auth\".\"login_transactions\".\"namespace\" ~ '^[a-f0-9]{64}$' AND \"steer_auth\".\"login_transactions\".\"key_hash\" ~ '^[a-f0-9]{64}$'"
+        },
+        "login_transactions_ttl": {
+          "name": "login_transactions_ttl",
+          "value": "\"steer_auth\".\"login_transactions\".\"expires_at\" > \"steer_auth\".\"login_transactions\".\"created_at\" AND \"steer_auth\".\"login_transactions\".\"expires_at\" <= \"steer_auth\".\"login_transactions\".\"created_at\" + interval '5 minutes'"
+        },
+        "login_transactions_size": {
+          "name": "login_transactions_size",
+          "value": "octet_length(\"steer_auth\".\"login_transactions\".\"encrypted_value\"::text) <= 41000"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "steer_usage.model_budgets": {
+      "name": "model_budgets",
+      "schema": "steer_usage",
+      "columns": {
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "budget_id": {
+          "name": "budget_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "subject": {
+          "name": "subject",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "configuration_revision": {
+          "name": "configuration_revision",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "approval_digest": {
+          "name": "approval_digest",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cap_microusd": {
+          "name": "cap_microusd",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "architect_microusd": {
+          "name": "architect_microusd",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "test_agent_microusd": {
+          "name": "test_agent_microusd",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "valid_after": {
+          "name": "valid_after",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "model_budgets_organization_id_budget_id_pk": {
+          "name": "model_budgets_organization_id_budget_id_pk",
+          "columns": [
+            "organization_id",
+            "budget_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {
+        "model_budget_owner": {
+          "name": "model_budget_owner",
+          "nullsNotDistinct": false,
+          "columns": [
+            "organization_id",
+            "budget_id",
+            "subject"
+          ]
+        }
+      },
+      "policies": {
+        "budget_scope": {
+          "name": "budget_scope",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "using": "\"steer_usage\".\"model_budgets\".\"organization_id\" = nullif(current_setting('steer.usage_organization', true), '') AND \"steer_usage\".\"model_budgets\".\"budget_id\"::text = nullif(current_setting('steer.usage_budget', true), '') AND \"steer_usage\".\"model_budgets\".\"subject\" = nullif(current_setting('steer.usage_subject', true), '')",
+          "withCheck": "\"steer_usage\".\"model_budgets\".\"organization_id\" = nullif(current_setting('steer.usage_organization', true), '') AND \"steer_usage\".\"model_budgets\".\"budget_id\"::text = nullif(current_setting('steer.usage_budget', true), '') AND \"steer_usage\".\"model_budgets\".\"subject\" = nullif(current_setting('steer.usage_subject', true), '')"
+        }
+      },
+      "checkConstraints": {
+        "model_budget_bounds": {
+          "name": "model_budget_bounds",
+          "value": "\"steer_usage\".\"model_budgets\".\"cap_microusd\" BETWEEN 1 AND 1000000000000 AND \"steer_usage\".\"model_budgets\".\"architect_microusd\" BETWEEN 1 AND \"steer_usage\".\"model_budgets\".\"cap_microusd\" AND \"steer_usage\".\"model_budgets\".\"test_agent_microusd\" BETWEEN 1 AND \"steer_usage\".\"model_budgets\".\"cap_microusd\""
+        },
+        "model_budget_identity": {
+          "name": "model_budget_identity",
+          "value": "length(\"steer_usage\".\"model_budgets\".\"organization_id\") BETWEEN 1 AND 200 AND length(\"steer_usage\".\"model_budgets\".\"subject\") BETWEEN 1 AND 200 AND length(\"steer_usage\".\"model_budgets\".\"configuration_revision\") BETWEEN 1 AND 200 AND \"steer_usage\".\"model_budgets\".\"approval_digest\" ~ '^[a-f0-9]{64}$'"
+        },
+        "model_budget_time": {
+          "name": "model_budget_time",
+          "value": "\"steer_usage\".\"model_budgets\".\"expires_at\" > \"steer_usage\".\"model_budgets\".\"valid_after\" AND \"steer_usage\".\"model_budgets\".\"expires_at\" <= \"steer_usage\".\"model_budgets\".\"valid_after\" + interval '24 hours'"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "steer_usage.model_reservations": {
+      "name": "model_reservations",
+      "schema": "steer_usage",
+      "columns": {
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "budget_id": {
+          "name": "budget_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reservation_id": {
+          "name": "reservation_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "subject": {
+          "name": "subject",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount_microusd": {
+          "name": "amount_microusd",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "operation_id": {
+          "name": "operation_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "step_id": {
+          "name": "step_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "model_reservations_organization_id_budget_id_subject_model_budgets_organization_id_budget_id_subject_fk": {
+          "name": "model_reservations_organization_id_budget_id_subject_model_budgets_organization_id_budget_id_subject_fk",
+          "tableFrom": "model_reservations",
+          "tableTo": "model_budgets",
+          "schemaTo": "steer_usage",
+          "columnsFrom": [
+            "organization_id",
+            "budget_id",
+            "subject"
+          ],
+          "columnsTo": [
+            "organization_id",
+            "budget_id",
+            "subject"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "model_reservations_organization_id_budget_id_reservation_id_pk": {
+          "name": "model_reservations_organization_id_budget_id_reservation_id_pk",
+          "columns": [
+            "organization_id",
+            "budget_id",
+            "reservation_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {
+        "model_reservation_step": {
+          "name": "model_reservation_step",
+          "nullsNotDistinct": false,
+          "columns": [
+            "organization_id",
+            "operation_id",
+            "step_id"
+          ]
+        }
+      },
+      "policies": {
+        "reservation_scope": {
+          "name": "reservation_scope",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "using": "\"steer_usage\".\"model_reservations\".\"organization_id\" = nullif(current_setting('steer.usage_organization', true), '') AND \"steer_usage\".\"model_reservations\".\"budget_id\"::text = nullif(current_setting('steer.usage_budget', true), '') AND \"steer_usage\".\"model_reservations\".\"subject\" = nullif(current_setting('steer.usage_subject', true), '')",
+          "withCheck": "\"steer_usage\".\"model_reservations\".\"organization_id\" = nullif(current_setting('steer.usage_organization', true), '') AND \"steer_usage\".\"model_reservations\".\"budget_id\"::text = nullif(current_setting('steer.usage_budget', true), '') AND \"steer_usage\".\"model_reservations\".\"subject\" = nullif(current_setting('steer.usage_subject', true), '')"
+        }
+      },
+      "checkConstraints": {
+        "model_reservation_step_pair": {
+          "name": "model_reservation_step_pair",
+          "value": "(\"steer_usage\".\"model_reservations\".\"operation_id\" IS NULL) = (\"steer_usage\".\"model_reservations\".\"step_id\" IS NULL)"
+        },
+        "model_reservation_amount": {
+          "name": "model_reservation_amount",
+          "value": "\"steer_usage\".\"model_reservations\".\"amount_microusd\" BETWEEN 1 AND 1000000000000"
+        },
+        "model_reservation_role": {
+          "name": "model_reservation_role",
+          "value": "\"steer_usage\".\"model_reservations\".\"role\" IN ('architect', 'test-agent')"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "steer.projection_changes": {
+      "name": "projection_changes",
+      "schema": "steer",
+      "columns": {
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "repository": {
+          "name": "repository",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "generation": {
+          "name": "generation",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "position": {
+          "name": "position",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "record_key": {
+          "name": "record_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_revision": {
+          "name": "source_revision",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content_digest": {
+          "name": "content_digest",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "projection_changes_organization_id_repository_generation_position_pk": {
+          "name": "projection_changes_organization_id_repository_generation_position_pk",
+          "columns": [
+            "organization_id",
+            "repository",
+            "generation",
+            "position"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {
+        "change_tenant": {
+          "name": "change_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "using": "\"steer\".\"projection_changes\".\"organization_id\" = nullif(current_setting('steer.organization_id', true), '')",
+          "withCheck": "\"steer\".\"projection_changes\".\"organization_id\" = nullif(current_setting('steer.organization_id', true), '')"
+        }
+      },
+      "checkConstraints": {
+        "projection_change_position": {
+          "name": "projection_change_position",
+          "value": "\"steer\".\"projection_changes\".\"position\" > 0"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "steer.projection_records": {
+      "name": "projection_records",
+      "schema": "steer",
+      "columns": {
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "record_key": {
+          "name": "record_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "repository": {
+          "name": "repository",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_revision": {
+          "name": "source_revision",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content_digest": {
+          "name": "content_digest",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "projection_records_organization_id_record_key_pk": {
+          "name": "projection_records_organization_id_record_key_pk",
+          "columns": [
+            "organization_id",
+            "record_key"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {
+        "projection_tenant": {
+          "name": "projection_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "using": "\"steer\".\"projection_records\".\"organization_id\" = nullif(current_setting('steer.organization_id', true), '')",
+          "withCheck": "\"steer\".\"projection_records\".\"organization_id\" = nullif(current_setting('steer.organization_id', true), '')"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "steer.projection_streams": {
+      "name": "projection_streams",
+      "schema": "steer",
+      "columns": {
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "repository": {
+          "name": "repository",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "generation": {
+          "name": "generation",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "position": {
+          "name": "position",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "projection_streams_organization_id_repository_pk": {
+          "name": "projection_streams_organization_id_repository_pk",
+          "columns": [
+            "organization_id",
+            "repository"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {
+        "stream_tenant": {
+          "name": "stream_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "using": "\"steer\".\"projection_streams\".\"organization_id\" = nullif(current_setting('steer.organization_id', true), '')",
+          "withCheck": "\"steer\".\"projection_streams\".\"organization_id\" = nullif(current_setting('steer.organization_id', true), '')"
+        }
+      },
+      "checkConstraints": {
+        "projection_stream_position": {
+          "name": "projection_stream_position",
+          "value": "\"steer\".\"projection_streams\".\"position\" > 0"
+        }
+      },
+      "isRLSEnabled": true
+    }
+  },
+  "enums": {},
+  "schemas": {
+    "steer": "steer",
+    "steer_auth": "steer_auth",
+    "steer_execution": "steer_execution",
+    "steer_usage": "steer_usage"
+  },
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

@@ -156,7 +156,9 @@ opening another tab or inventing a fresh request ID is not that instruction.
    A reservation remains consumed on uncertainty. All claim/result mutations
    compare the token and expected state; an old worker cannot publish over a new
    owner. Existing `DevelopmentPermit.reserve()` and random reservation IDs do
-   **not** implement this operation-scoped protocol yet.
+   **not** implement this operation-scoped protocol. Increment 0209 adds a separate,
+   uninstalled operation/step adapter with atomic unique reservations and fencing;
+   it does not retrofit the legacy permit or complete live workflow composition.
 4. Commit a one-way `dispatch-committed` state before the external model call;
    only the worker that receives an unambiguous acknowledgement may dispatch it
    once. Do not hold a SQL transaction open across the model request. A lease may

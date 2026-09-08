@@ -221,6 +221,9 @@ importers:
 
   packages/data:
     dependencies:
+      '@steer/domain':
+        specifier: workspace:*
+        version: link:../domain
       '@steer/tool-registry':
         specifier: workspace:*
         version: link:../tool-registry

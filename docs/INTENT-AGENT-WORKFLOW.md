@@ -33,6 +33,18 @@ the configured-item collector. Current read authority is required for recovery a
 well as saving. See [0208 evidence](../intent/0208/EVIDENCE.md). This is not yet an
 enabled save command or a demonstrated user save/reopen journey.
 
+0209 implements a separate, uninstalled PostgreSQL operation/step store. Identical
+submissions converge on one immutable operation; claims and cost reservations are
+atomic. Only an unambiguously acknowledged first dispatch transition supplies
+permission, so a lost response or restarted worker cannot resend it. Expired
+pre-dispatch leases may transfer with a new fencing token; sent steps may not.
+The Test Agent can reuse the original Architect checkpoint only after exact
+persisted-result readback. This metadata adapter is not the result-content store
+or the combined `authorizeAndClaimDispatch` authority service. Tests use synthetic
+authorization and persisted synthetic checkpoint bytes. Temporal, verified lifecycle/
+full-corpus assessment, approved result storage and provider/UI composition remain
+next; live model/save authority is unchanged. See [0209 evidence](../intent/0209/EVIDENCE.md).
+
 ## Human journey
 
 Open https://localhost:8443/ and sign in. The actual workspace now starts with

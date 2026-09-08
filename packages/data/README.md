@@ -1,7 +1,9 @@
-# Tenant projection data
+# Tenant projections and operational storage
 
-`schema.ts` and Drizzle migrations define rebuildable data, not authoritative
-business state. `withTenant` acquires one connection, checks its runtime role,
+Git-derived tables in `schema.ts` are rebuildable projections, not authoritative
+business state. Authentication, usage and execution tables have separate operational
+lifecycles; usage/execution records must never be discarded as a projection cache.
+`withTenant` acquires one connection, checks its runtime role,
 sets tenant context transaction-locally, and commits or rolls back before pool
 release. Callers must already have passed the shared tool authorization boundary.
 
@@ -84,3 +86,55 @@ reconciled. There is no automatic retention/deletion or replenishment job.
 RLS protects trusted parameterized operations and reused connections, not arbitrary
 SQL issued with stolen runtime credentials. The adapter is the serialized admission
 path; no alternative code may append an unaccounted reservation or bypass it.
+
+## Intent operation ownership (uninstalled runtime binding)
+
+`@steer/data/intent-operations` adds server-minted operation IDs, immutable submission
+bindings and one-way fenced role steps. Migrations 0007/0008 add `steer_execution`
+with forced organization/subject RLS and link model reservations to unique
+`(organization, operation, step)` keys. Apply these only in disposable harnesses
+until the exact records/schema adoption and recovery requirements are satisfied.
+The real local workspace's `migrate` command now refuses the expanded migration
+set before private-state reads or database changes; `start` does not migrate.
+
+The factory requires trusted `authorize` and `verifyCheckpoint` ports. Configuration
+binds identity, product/repository/branch, action, revision, records-policy digest,
+expiry and (for development) budget. Neither a digest nor this callback signature
+supplies actual policy adoption, current source/lifecycle evidence or spending
+authority. No production bootstrap installs the adapter.
+
+- `create`: identical draft/revision/action/configuration submissions converge on
+  one operation. Changed input/configuration conflicts; expired IDs never recreate.
+- `inspect`: reads original operation/step metadata under current authorization;
+  it never returns dispatch permission.
+- `claim`: atomically claims Architect, Test Agent or candidate-save. Paid steps
+  reserve their worst-case cost once using the same lock/cap as legacy permits.
+  Pre-dispatch takeover reuses that reservation and increments the fencing token.
+- `transition`: only the first unambiguously acknowledged `commit-dispatch` yields
+  `dispatchAllowed: true`. Repeated calls, sent-state status and lost COMMIT
+  acknowledgements never do. Checkpoints require exact persisted-result readback;
+  Test Agent requires the verified Architect checkpoint and predecessor digest.
+- `close`: stops admission/withholds late results; it does not undo external work.
+
+Transactions use READ COMMITTED, restricted `steer_app`, connection-context
+scrubbing and 5-second statement/1-second lock/5-second idle-transaction limits.
+Authorization, pool acquisition and read-only checkpoint verification have 3-second
+bounds; at most eight calls are admitted, with slots retained while timed-out
+dependencies drain. SQL is never held across a model/provider call. Configuration
+expires within 24 hours; claims last at most five minutes. Each organization/subject
+has a technical limit of 10,000 operations, with no automatic purge or replenishment.
+
+Only hashes, identifiers, status and result references are stored—not draft/model
+bytes. Result encryption/storage and authorized retention are separate requirements.
+The caller must dispatch only once on a fresh positive acknowledgement and recheck
+action-time authority; these internal protocol results are not public tool grants.
+Unknown outcomes remain blocked. Explicit linked new attempts, verified unknown
+resolution, Scout/semantic/embedding roles, Temporal activity integration and the
+actual GitHub dispatch-authority composition are not implemented by this adapter.
+Stale-backup/copy recovery must withhold dispatch until accounting and external
+effects are reconciled. This is at-most-one authorized dispatch under the protocol,
+not exactly-once external execution or a hostile-SQL security boundary.
+
+See [0209 evidence](../../intent/0209/EVIDENCE.md) for real disposable PostgreSQL,
+independent-process contention, failure injection and the synthetic authority/result
+ports used in testing. No live database, budget, provider or user content is involved.

@@ -3,9 +3,10 @@ import { z } from 'zod';
 import { applyRuntimeQueryLimits, type DatabasePool } from './runtime-pool.ts';
 
 const amount = z.number().int().min(1).max(1_000_000_000_000);
-const bindingSchema = z.strictObject({ organizationId: z.string().min(1).max(200), budgetId: z.uuid(), subject: z.string().min(1).max(200),
+export const modelBudgetBindingSchema = z.strictObject({ organizationId: z.string().min(1).max(200), budgetId: z.uuid(), subject: z.string().min(1).max(200),
   configurationRevision: z.string().min(1).max(200), approvalDigest: z.string().regex(/^[a-f0-9]{64}$/),
   capMicrousd: amount, architectMicrousd: amount, testAgentMicrousd: amount });
+const bindingSchema = modelBudgetBindingSchema;
 const requestSchema = z.strictObject({ organizationId: z.string(), subject: z.string(), configurationRevision: z.string(), role: z.enum(['architect', 'test-agent']) });
 const clearScope = "SELECT set_config('steer.usage_organization', '', false), set_config('steer.usage_budget', '', false), set_config('steer.usage_subject', '', false)";
 

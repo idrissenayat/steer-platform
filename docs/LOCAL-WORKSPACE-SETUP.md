@@ -98,6 +98,15 @@ matching protected secret bundle; copying only one is not a tested restore.
 
 ## Explicit operation
 
+**Migration hold (0209):** the development journal now contains nine migrations.
+New 0007/0008 execution-record migrations are exercised only in disposable tests;
+their real records/schema adoption is still pending. `local-workspace.mjs migrate`
+refuses any set beyond the existing seven-migration baseline, before reading real
+private state or changing the database. Do not bypass this guard or increase its
+baseline to make setup pass. The sequence below is historical setup guidance, not
+permission to migrate the current expanded schema. Existing `start` does not apply
+migrations and is unaffected. See [0209 evidence](../intent/0209/EVIDENCE.md).
+
 Use Node 24+ from the repository root. The normal API command is unchanged and
 still unconfigured. This operations entry wraps the existing production composition
 root; it does not import disposable test harnesses or invent identity transports.
@@ -119,7 +128,9 @@ are rejected; Keycloak and STEER clients validate the database server certificat
 
 `migrate` starts production-mode Keycloak, not `start-dev`. Both image digests are
 pinned to locally installed images; setup uses `--pull never`. Database changes
-are the five existing canonical migrations. No other project's containers or
+were originally the five canonical migrations; the current local operations
+baseline expects seven, and 0209 explicitly holds the new nine-migration set.
+No real migration is authorized by this guide. No other project's containers or
 volumes are changed. Published database and identity ports bind IPv4 loopback
 only. A second bridge supplies Docker Desktop loopback publishing; it is not an
 outbound-egress firewall. Internal container ports must never be published widely.

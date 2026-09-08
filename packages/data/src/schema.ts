@@ -94,10 +94,43 @@ export const modelReservations = steerUsage.table('model_reservations', {
   organizationId: text('organization_id').notNull(), budgetId: uuid('budget_id').notNull(), reservationId: uuid('reservation_id').notNull(),
   subject: text('subject').notNull(), role: text('role').notNull(), amountMicrousd: bigint('amount_microusd', { mode: 'bigint' }).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  operationId: uuid('operation_id'), stepId: text('step_id'),
 }, table => [primaryKey({ columns: [table.organizationId, table.budgetId, table.reservationId] }),
+  unique('model_reservation_step').on(table.organizationId, table.operationId, table.stepId),
+  check('model_reservation_step_pair', sql`(${table.operationId} IS NULL) = (${table.stepId} IS NULL)`),
   foreignKey({ columns: [table.organizationId, table.budgetId, table.subject], foreignColumns: [modelBudgets.organizationId, modelBudgets.budgetId, modelBudgets.subject] }),
   check('model_reservation_amount', sql`${table.amountMicrousd} BETWEEN 1 AND 1000000000000`),
   check('model_reservation_role', sql`${table.role} IN ('architect', 'test-agent')`),
   pgPolicy('reservation_scope', { for: 'all', using: sql`${table.organizationId} = ${usageOrg} AND ${table.budgetId}::text = ${usageBudget} AND ${table.subject} = ${usageSubject}`,
     withCheck: sql`${table.organizationId} = ${usageOrg} AND ${table.budgetId}::text = ${usageBudget} AND ${table.subject} = ${usageSubject}` }),
+]).enableRLS();
+
+// Non-projection execution metadata. No draft/model bytes, automatic purge or
+// runtime provisioning. SQL privileges/FORCE RLS are in the companion migration.
+export const steerExecution = pgSchema('steer_execution');
+const executionOrg = sql`nullif(current_setting('steer.execution_organization', true), '')`;
+const executionSubject = sql`nullif(current_setting('steer.execution_subject', true), '')`;
+export const intentOperations = steerExecution.table('intent_operations', {
+  organizationId: text('organization_id').notNull(), operationId: uuid('operation_id').notNull(), subject: text('subject').notNull(),
+  draftId: uuid('draft_id').notNull(), draftRevision: bigint('draft_revision', { mode: 'number' }).notNull(),
+  action: text('action').notNull(), configurationRevision: text('configuration_revision').notNull(),
+  binding: jsonb('binding').notNull(), createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+}, t => [primaryKey({ columns: [t.organizationId, t.operationId] }),
+  unique('intent_operation_owner').on(t.organizationId, t.operationId, t.subject),
+  unique('intent_operation_submission').on(t.organizationId, t.draftId, t.draftRevision, t.action, t.configurationRevision),
+  check('intent_operation_bounds', sql`${t.draftRevision} BETWEEN 1 AND 9007199254740991 AND ${t.action} IN ('develop','candidate-save') AND octet_length(${t.binding}::text) <= 8000 AND ${t.expiresAt} > ${t.createdAt}`),
+  pgPolicy('operation_scope', { for: 'all', using: sql`${t.organizationId} = ${executionOrg} AND ${t.subject} = ${executionSubject}`,
+    withCheck: sql`${t.organizationId} = ${executionOrg} AND ${t.subject} = ${executionSubject}` }),
+]).enableRLS();
+export const intentSteps = steerExecution.table('intent_steps', {
+  organizationId: text('organization_id').notNull(), operationId: uuid('operation_id').notNull(), subject: text('subject').notNull(),
+  stepId: text('step_id').notNull(), record: jsonb('record').notNull(), predecessorResultDigest: text('predecessor_result_digest'),
+  budgetId: uuid('budget_id'), reservationId: uuid('reservation_id').notNull(), resultRef: uuid('result_ref'),
+}, t => [primaryKey({ columns: [t.organizationId, t.operationId, t.stepId] }),
+  foreignKey({ columns: [t.organizationId, t.operationId, t.subject], foreignColumns: [intentOperations.organizationId, intentOperations.operationId, intentOperations.subject] }),
+  foreignKey({ columns: [t.organizationId, t.budgetId, t.reservationId], foreignColumns: [modelReservations.organizationId, modelReservations.budgetId, modelReservations.reservationId] }),
+  check('intent_step_bounds', sql`${t.stepId} IN ('architect','test-agent','candidate-save') AND octet_length(${t.record}::text) <= 8000 AND (${t.predecessorResultDigest} IS NULL OR ${t.predecessorResultDigest} ~ '^[a-f0-9]{64}$')`),
+  pgPolicy('step_scope', { for: 'all', using: sql`${t.organizationId} = ${executionOrg} AND ${t.subject} = ${executionSubject}`,
+    withCheck: sql`${t.organizationId} = ${executionOrg} AND ${t.subject} = ${executionSubject}` }),
 ]).enableRLS();
