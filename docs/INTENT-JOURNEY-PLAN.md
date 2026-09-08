@@ -39,7 +39,7 @@ No separate local preview, synthetic success, silent merging or lost work counts
 | --- | --- | --- |
 | I1 Existing-scope review | Search permitted existing intents and their Brief/Spec scope before drafting; show exact sources, revision, matching passages, coverage and uncertainty. Distinguish already covered, partially covered, related, and no match found. Incomplete or unavailable search must never be presented as a new intent. | Lexical query/UI wired (0199–0200) and disabled same-commit source collector tested (0207); lifecycle/full-corpus assembly, live configuration, semantic judgments and orchestration pending |
 | I2 Explicit disposition | Open existing, propose adding missing scope, or create a distinct linked intent with a reason. Keep original text. No automatic merge, discard, update or item creation. Record the human choice against reviewed source revisions; changed scope invalidates it. | UI proposal/recheck and server drafting consumption implemented (0201–0202); save consumption, durable recording and live acceptance pending |
-| I3 Reliable drafting | Activate the configured Mastra/LiteLLM path with an approved capped budget and durable reservation ledger. Clarify conversationally, then produce source-faithful canonical Brief/Spec drafts and a fresh-context Test Agent Exam. Reject refusals, invalid outputs and invented facts; preserve unknowns explicitly. | Drafting composition (0198/0202), reservation adapter (0203) and uninstalled atomic operation/step ownership (0209) tested; Temporal/result-store composition, live binding/approval, cost bounds and content/eval acceptance pending |
+| I3 Reliable drafting | Activate the configured Mastra/LiteLLM path with an approved capped budget and durable reservation ledger. Clarify conversationally, then produce source-faithful canonical Brief/Spec drafts and a fresh-context Test Agent Exam. Reject refusals, invalid outputs and invented facts; preserve unknowns explicitly. | Drafting (0198/0202), reservations (0203), operation ownership (0209) and disabled encrypted role-result checkpoint composition (0217) tested; original prompt/evidence and provider provenance, durable Temporal activities, live binding/approval, cost bounds and content/eval acceptance pending |
 | I4 Review without loss | Show and edit all three documents, connect corrections to the source, expose conflicts/assumptions, preserve durable draft state across navigation, expiry, refresh and restart within the approved records policy. Never silently erase user work. Support retry without duplicate paid runs. | Editing/original comparison and invalidation implemented (0204–0205); disabled encrypted originals, server lifecycle and immutable source/clarification/document revisions tested (0213–0215); generation checkpoint provenance, actual editor/API acknowledgement/conflict/restore wiring and full live acceptance pending |
 | I5 Save and reopen | Recheck scope and duplicate-review revisions immediately before an atomic, idempotent bundle write. Concurrent new intents/changes cause re-review, not two creations. Use actual granted GitHub paths and expected-head checks; uncertain saves require status/readback. Reopen exact saved versions in the application. | Disabled planner/reader, collector, bundle store, durable dispatch, candidate-save Temporal, receipt reconciliation and encrypted immutable originals implemented (0205–0213); verified lifecycle/full-corpus authority, key/recovery controls, quarantined-outcome resolution and actual UI integration incomplete |
 | I6 Human acceptance | In the real signed-in UI demonstrate new, exact duplicate, paraphrased duplicate, partial overlap, related-but-distinct, empty/failed/stale search, corrections, permission loss, cost exhaustion, uncertain save, concurrent creation, refresh/reopen and keyboard/narrow-screen behavior. Record real source and saved commit. | Pending |
@@ -131,7 +131,10 @@ Next unblocked implementation sequence:
    for sent/succeeded candidate steps. Next compose original-payload storage and
    current authority, then durable development-role activities. 0216 removes SQL
    locks and pool leases from generic checkpoint readback, with exact short-lived
-   proofs and current-state rechecks before mutation. Test-only checkpoint bytes
+   proofs and current-state rechecks before mutation. 0217 now composes actual
+   encrypted role-result readback with SQL steps and source revisions; original
+   prompt/evidence storage, provider provenance and durable activities remain open.
+   Synthetic model/authority fixtures and stored checkpoint bytes
    do not supply approved encrypted draft storage. Explicit linked new attempts,
    verified unknown-outcome resolution and recovery reconciliation remain open.
 3. Compose authorized inventory reads with the evidence envelope and a pinned,
@@ -233,3 +236,14 @@ live editor autosave, generation-result provenance or lossless UI acceptance.
 Next implement role checkpoints/durable development execution, current-source
 authority and actual editor acknowledgements/conflict/restore. D1 remains inactive
 and the real migration baseline unchanged; no live model/save activation occurs.
+
+0217 adds disabled encrypted role-result capture bound to actual source revisions
+and dispatch-committed SQL steps, consumed by the real checkpoint reader. Its test
+chain advances from a preserved Architect output to Test Agent without another
+Architect charge. Captured bytes/role labels are not proof of provider delivery,
+fresh context or content adequacy. Prompt/evidence originals, provider provenance,
+durable development activities and actual editor integration remain open. Historical
+result access currently also requires the original operation configuration to
+remain valid (maximum 24 hours); longer-lived scoped reads remain to implement.
+See [0217 evidence](../intent/0217/EVIDENCE.md). No live persistence or model/save
+authority is activated; I1–I6 remain incomplete.

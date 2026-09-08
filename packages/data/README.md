@@ -1,5 +1,48 @@
 # Tenant projections and operational storage
 
+## Captured development results (uninstalled)
+
+`@steer/data/development-results` composes `intent-operations` inspection,
+`draft-revisions` restoration and encrypted immutable role-result rows (0015/0016).
+Construct with separate `execution` (`steer_app`) and `drafts`
+(`steer_draft_runtime`) pools and required operation, draft, capture/read authority
+and per-draft historical-key services. No real bootstrap installs this adapter.
+
+- `put({ operationId, inputDigest, stepId, owner, fencingToken, result })` accepts
+  only trusted worker capture. `result` is strict `{ role, output }`, with either
+  Architect message/questions/nullable Brief/Spec, or Test Agent Exam. Unicode and
+  whitespace remain exact. The actual step must be dispatch-committed (or an exact
+  already-stored succeeded result). First capture mints the result UUID; identical
+  concurrent/retried capture converges, changed reuse conflicts, lost ACK is unknown.
+- `read({ operationId, inputDigest, stepId })` restores under current operation,
+  draft lifecycle/source integrity, result authority and historical-key checks.
+  Original/latest draft revisions are separate; the result never edits the draft
+  or revives gate/execution/retry authority.
+- `verifyCheckpoint(reference)` supplies the operation store's actual encrypted
+  result readback port. It compares the entire input/configuration/policy/result
+  binding; unknown/known-failed/undispatched states cannot satisfy it. Construct a
+  separately scoped instance for each active worker/readback lane; an instance is
+  single-flight and retains admission while timed-out dependencies drain.
+- `close()` prevents new admission and suppresses late results. No deletion,
+  refund, step transition, provider dispatch or automatic retry is available.
+
+Ciphertext authenticates source revision/scope, operation/role, input, configuration,
+owner/fence/reservation, predecessor and output digests. SQL grants only SELECT/
+INSERT with forced owner/org/product RLS; source and step foreign keys plus a
+lifecycle/metadata trigger constrain insertion. One row per role/operation limits
+this table to at most two results per admitted development operation. Each plaintext
+envelope is capped at 768 KiB. There is no purge or permission to discard history.
+
+All external key/authority calls run outside transactions. Result access currently
+also requires the original operation configuration to remain valid (maximum 24
+hours); seven-day draft retention is not a seven-day result-access guarantee.
+Capturing bytes against a dispatch-committed record is not proof of provider
+delivery, model authorship, fresh context or semantic/Exam adequacy. Original
+prompt/evidence envelopes, provider provenance, durable activities, scoped historical
+access beyond operation expiry and actual UI integration remain separate work.
+
+## Shared storage boundaries
+
 Git-derived tables in `schema.ts` are rebuildable projections, not authoritative
 business state. Authentication, usage and execution tables have separate operational
 lifecycles; usage/execution records must never be discarded as a projection cache.

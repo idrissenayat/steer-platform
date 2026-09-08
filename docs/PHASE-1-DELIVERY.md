@@ -4553,3 +4553,32 @@ kit/scope and whitespace checks. Protected source hashes remain unchanged.
 No schema/migration, live service, model call, GitHub runtime write, gate or policy
 activation changed. Encrypted generation-result/provenance storage, durable role
 activities and actual editor integration remain next; I1–I6 are still incomplete.
+
+## Development increment: 0217 — Encrypted development-step results
+
+Implemented disabled immutable capture/readback of exact Architect responses and
+separate Test Agent outputs. Source revision, actual dispatch-committed step,
+owner/fence, configuration/reservation and predecessor bind the encrypted bytes.
+The integrated SQL test chain now checkpoints an Architect result and advances
+Test Agent without buying another Architect run. Same-command recovery reuses the
+original result; changed output conflicts, and no capture grants retry authority.
+
+Current lifecycle, owner/key access, source integrity and SQL step state govern
+readback. Older captured originals never overwrite later editable snapshots.
+Only a trusted worker can capture; a role label does not prove model authorship,
+provider delivery, fresh context, content adequacy or a gate verdict. See
+[0217 evidence](../intent/0217/EVIDENCE.md) for test boundaries and verification.
+
+Verification: **129/129** disposable SQL/native-Git/Temporal integration checks,
+**284/284** scoped units/migration controls and **1/1** destination runtime checks
+plus **33/33** existing Temporal/projection checks pass. Typecheck, kit/scope,
+schema-drift and whitespace checks pass; protected source hashes match.
+
+Migrations 0015/0016 remain disposable-development only. The real guard rejects the
+seventeen-entry journal against its seven-entry baseline. D1 is unsigned/inactive;
+no actual workspace model, storage, migration, provider write, spending or deployment
+was activated. Signed sources and the accepted policy remain unchanged.
+
+Original prompts/evidence and provider provenance, durable development activities,
+historical result authority beyond the original operation's 24-hour maximum,
+and actual editor integration remain next. I1–I6 are still incomplete.

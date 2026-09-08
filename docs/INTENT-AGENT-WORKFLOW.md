@@ -261,6 +261,12 @@ The test chain reopens a stored revision before candidate admission and Temporal
 save. Snapshot content carries no trusted generator/review/approval provenance;
 role-result checkpoints and actual editor/API restoration remain separate work.
 
+Increment [0217](../intent/0217/EVIDENCE.md) composes immutable encrypted captured
+role outputs with actual SQL step checkpoints and restored source revisions. The
+test chain progresses Architect to Test Agent without another Architect charge.
+Captured output is not model/provider provenance or independent role acceptance;
+original prompts/evidence, durable role activities and actual UI wiring remain open.
+
 ### Existing model integration sources
 
 The pinned installed Mastra declarations were checked alongside the official

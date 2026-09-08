@@ -189,6 +189,14 @@ exact call-local proof within five seconds of readback start. Failed cleanup,
 concurrent quarantine, stale evidence or late close denies. No committed mutation
 or external effect is retried. Generation-result storage/provenance remains pending.
 
+Implementation note (0217, inactive): captured role outputs are now encrypted and
+immutable, bound to actual source revisions and dispatch-committed SQL steps. The
+execution reader verifies real stored bytes before advancing a checkpoint. This
+does not establish provider delivery or model/role authorship. Prompt/evidence
+originals, provider provenance and durable development activities remain open.
+Result access currently also requires the original operation config to remain
+valid; longer-lived historical read authority must not reactivate an expired job.
+
 Implementation note (0210, inactive): candidate admission uses a separate versioned
 digest over the complete submission, exact consent and publication/provider profile,
 excluding the not-yet-minted operation ID. The immutable SQL operation then supplies

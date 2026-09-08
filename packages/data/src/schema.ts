@@ -182,3 +182,20 @@ export const draftRevisions = steerDrafts.table('draft_revisions', {
   pgPolicy('draft_revision_owner', { for: 'all', using: sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}`,
     withCheck: sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}` }),
 ]).enableRLS();
+
+// Immutable captured worker outputs, separate from editable document snapshots.
+export const developmentResults = steerDrafts.table('development_results', {
+  organizationId: text('organization_id').notNull(), subject: text('subject').notNull(), productId: text('product_id').notNull(),
+  operationId: uuid('operation_id').notNull(), stepId: text('step_id').notNull(), resultRef: uuid('result_ref').notNull(),
+  draftId: uuid('draft_id').notNull(), draftRevision: bigint('draft_revision', { mode: 'number' }).notNull(),
+  resultDigest: text('result_digest').notNull(), record: jsonb('record').notNull(), encryptedValue: jsonb('encrypted_value').notNull(),
+}, t => [primaryKey({ columns: [t.organizationId, t.operationId, t.stepId] }),
+  unique('development_result_reference').on(t.organizationId, t.resultRef),
+  foreignKey({ name: 'development_result_step', columns: [t.organizationId, t.operationId, t.stepId],
+    foreignColumns: [intentSteps.organizationId, intentSteps.operationId, intentSteps.stepId] }),
+  foreignKey({ name: 'development_result_source', columns: [t.organizationId, t.draftId, t.draftRevision],
+    foreignColumns: [draftRevisions.organizationId, draftRevisions.draftId, draftRevisions.revision] }),
+  check('development_result_bounds', sql`${t.stepId} IN ('architect','test-agent') AND ${t.resultDigest} ~ '^[a-f0-9]{64}$' AND octet_length(${t.record}::text) <= 16000 AND octet_length(${t.encryptedValue}::text) <= 1050000`),
+  pgPolicy('development_result_owner', { for: 'all', using: sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}`,
+    withCheck: sql`${t.organizationId} = ${draftOrg} AND ${t.subject} = ${draftOwner} AND ${t.productId} = ${draftProduct}` }),
+]).enableRLS();
