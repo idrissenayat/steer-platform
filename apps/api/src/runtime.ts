@@ -1,4 +1,7 @@
 import { z } from 'zod';
+import { createCandidateOriginalStore, candidateOriginalConfigurationSchema } from '@steer/data/candidate-originals';
+import { createCandidateSaveStatusReader } from '@steer/adapters/candidate-save-status-reader';
+import { candidateBundleStoreConfigurationSchema } from '@steer/adapters/github-candidate-bundle-store';
 import { createIntentScopeDiscovery } from '@steer/data/intent-scope-discovery';
 import { createIntentScopeStarter } from '@steer/data/intent-scope-starter';
 import { createIntentScopePreparer } from '@steer/data/intent-scope-preparer';
@@ -38,6 +41,22 @@ import { readProjection } from '@steer/data';
 import { createHeldGitBriefWriterFactory, heldGitBriefConfigurationSchema, type HeldBriefAssessment } from '@steer/adapters/held-brief-writer';
 
 const text = z.string().min(1);
+/** Read-only recovery from adopted, encrypted originals and verified native Git
+ * receipts. Explicit factory only: no records activation, workflow or dispatch.
+ */
+export function createRecordedCandidateSaveStatusReader(pool: Parameters<typeof createCandidateOriginalStore>[0],
+  binding: Parameters<typeof createCandidateSaveStatusReader>[1], recordsConfiguration: unknown, publicationConfiguration: unknown,
+  dependencies: { records: Parameters<typeof createCandidateOriginalStore>[2];
+    provider: Omit<Parameters<typeof createCandidateSaveStatusReader>[3], 'loadOriginal'> }) {
+  const recordsConfig = candidateOriginalConfigurationSchema.parse(recordsConfiguration), publication = candidateBundleStoreConfigurationSchema.parse(publicationConfiguration);
+  const originals = createCandidateOriginalStore(pool, recordsConfig, dependencies.records);
+  try {
+    const { organizationId, subject, productId, repository, branch } = recordsConfig;
+    const reader = createCandidateSaveStatusReader({ organizationId, subject, productId, repository, branch, itemIds: publication.itemIds }, binding, publication,
+      { ...dependencies.provider, loadOriginal: target => originals.read(target) });
+    return { scope: reader.scope, read: reader.read, close() { reader.close(); originals.close(); } };
+  } catch (error) { originals.close(); throw error; }
+}
 /** Start/recover only retained scope references under current authority. No
  * default installation, source admission or direct model dispatch capability. */
 export function createRecordedScopeStarter(pools: Parameters<typeof createIntentScopeStarter>[0], configuration: unknown,

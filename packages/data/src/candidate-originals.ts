@@ -12,6 +12,7 @@ const uuid = z.uuid().length(36).refine(v => v === v.toLowerCase());
 const integer = z.number().int().nonnegative().safe();
 const configurationSchema = z.strictObject({ organizationId: id, subject: id, productId: id, repository: id, branch: id,
   configurationRevision: id, recordsPolicyDigest: digest });
+export const candidateOriginalConfigurationSchema = configurationSchema;
 const requestSchema = z.strictObject({ bundle: candidateBundleInputSchema, confirmation: intentSaveBindingSchema });
 const targetSchema = z.strictObject({ organizationId: id, operationId: uuid, inputDigest: digest });
 const lifecycleSchema = z.strictObject({ createdAt: z.iso.datetime(), useUntil: z.iso.datetime(), held: z.boolean() });

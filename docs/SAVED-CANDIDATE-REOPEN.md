@@ -49,10 +49,14 @@ the human to supply document bytes or to claim approval.
 
 ## Not yet complete
 
+0253 now connects an original-operation status query to this viewer: a verified
+receipt produces an exact reopen link under separate current read permission.
+Unknown or missing receipts never produce a retry action. See [save recovery](CANDIDATE-SAVE-RECOVERY.md).
+
 This slice verifies explicit-link reopening with native temporary Git fixtures,
 synthetic identities and actual React components. It does not prove a live human
-saved a bundle. Save preparation/confirmation/start/status wiring, current
-full-corpus/lifecycle authority and save-receipt-to-link integration remain open.
+saved a bundle. Save preparation/confirmation/start wiring, current
+full-corpus/lifecycle authority and live human save/receipt acceptance remain open.
 Candidate discovery is separate; this reader does not enumerate all items.
 Existing draft records and model-spend activation boundaries remain unchanged.
 See [0252 evidence](../intent/0252/EVIDENCE.md) and [the journey plan](INTENT-JOURNEY-PLAN.md).

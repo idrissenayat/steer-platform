@@ -937,3 +937,24 @@ preview; late responses cannot restore it. No write, gate or retry follows a rea
 This is the exact-link reading surface, not final-save consent consumption or a
 live successful-save receipt. Save preparation/confirmation/status, receipt-link
 integration, current authority and human acceptance remain pending.
+
+0253 adds reference-only `intent.candidate.save.status` to HTTP/OpenAPI/MCP and the
+actual signed-in workspace. The explicit API factory recovers encrypted original
+documents/confirmation under current owner/records/key/lifecycle authority, then
+rebuilds the exact operation plan and uses a read-only native Git inspector. It
+restores and compares that original again after provider inspection before
+releasing metadata. Identity and fixed scope are also revalidated throughout.
+See [0253 contract](../../intent/0253/SPEC.md).
+
+Only a verified original receipt yields a commit-bound reopen reference. Missing,
+unknown and conflicting outcomes carry no reference and never authorize retry.
+The query cannot admit a new operation, start a workflow, dispatch, checkpoint,
+reconcile or clear quarantine. Existing original-store monotone lifecycle denial
+is not bypassed. A verified Git save is not completed workflow bookkeeping, Spec/
+Exam acceptance, gate approval or execution authority.
+
+The status view offers explicit same-operation recheck and separate-authorized
+exact bundle opening. It never replaces the draft, polls automatically or stores
+private browser state. Hide/navigation/expiry/denial/closure clear results and
+links; late responses cannot restore them. Preparation/confirmation/start still
+must supply original recovery references under real authority and human acceptance.

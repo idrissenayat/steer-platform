@@ -5489,3 +5489,21 @@ Save preparation/confirmation/status and receipt-link integration, source/lifecy
 authority, real activation and human saved-repository acceptance remain open.
 No SQL/schema, migration, credential access, model spend, runtime Git write,
 auth bypass, gate, deployment or release. The loop continues every minute.
+
+## Development increment: 0253 — Original candidate-save status and reopen link
+
+The shared reference-only status query now composes encrypted original recovery
+with native Git receipt inspection. It rechecks original records/keys/lifecycle
+after provider reads, binds the original draft/revision/consent/operation and
+returns only metadata. The actual signed-in UI exposes exact reopen links only
+for verified commits; unknown, missing and conflicting receipts never enable a
+new submission or retry. Current drafts and execution bookkeeping stay unchanged.
+See [0253 evidence](../intent/0253/EVIDENCE.md) and [the recovery guide](CANDIDATE-SAVE-RECOVERY.md).
+
+Final **1,148/1,148 regressions**, **336/336 PostgreSQL 16.14 checks**, all-package
+types, optimized Next build, kit and token-scope audit pass. All 182 local document
+links resolve; protected hashes are unchanged. Real records/provider
+activation and signed-in human acceptance remain pending. Preparation/confirmation/
+start must still produce the original recovery reference. No real migration,
+credential inspection, model spend, runtime Git write, gate, auth bypass,
+deployment or release. The one-minute loop remains active.

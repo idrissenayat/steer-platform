@@ -1,6 +1,17 @@
 # STEER platform implementation
 
-## Current checkpoint — 0252
+## Current checkpoint — 0253
+
+0253 adds original candidate-save status through the shared API/MCP and actual
+signed-in UI. The records-backed composition restores the immutable original,
+checks its native Git receipt, rechecks current records/key access and provides
+an exact reopen link only when verified. Missing or uncertain receipts cannot
+authorize retry; current drafts and execution state remain untouched. See [the
+recovery guide](CANDIDATE-SAVE-RECOVERY.md) and [0253 evidence](../intent/0253/EVIDENCE.md).
+The factory remains uninstalled. Save preparation/confirmation/start and live
+authority/human acceptance are still open.
+
+## Prior checkpoint — 0252
 
 0252 connects exact saved-candidate reads through the shared authenticated API/MCP
 and a read-only view in the actual signed-in workspace. Original manifest and all

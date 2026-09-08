@@ -6,10 +6,14 @@ import { createCandidateOriginalStore } from '@steer/data/candidate-originals';
 import { planCandidateBundle } from '@steer/tool-registry/candidate-bundle-contracts';
 import type { CandidateBundleSaveRequest } from '@steer/adapters/github-candidate-bundle-store';
 import type { createDurableCandidateBundleStore } from '../src/candidate-bundle-runtime.ts';
+import { createRecordedCandidateSaveStatusReader } from '../../api/src/runtime.ts';
+import { createApi } from '../../api/src/app.ts';
+import { binding, now as providerNow } from '../../../packages/adapters/test/github-brief-fixture.ts';
 
 type Fixture = { prepare(): Promise<CandidateBundleSaveRequest>; make(): ReturnType<typeof createDurableCandidateBundleStore>;
   execution: { organizationId: string; subject: string; productId: string; repository: string; branch: string; configurationRevision: string; recordsPolicyDigest: string };
-  git: { mutations(): number; calls: unknown[] } };
+  publication: unknown;
+  git: { mutations(): number; calls: unknown[]; transport: typeof fetch; loseAck(): void } };
 type Dependencies = Parameters<typeof createCandidateOriginalStore>[2];
 
 /** Only synthetic keys, synthetic lifecycle/authority ports and the owned test DB. */
@@ -49,6 +53,42 @@ export async function testCandidateOriginals(setup: () => Promise<Fixture>, admi
     for (const text of [JSON.stringify(row), ...queries]) for (const forbidden of ['Synthetic Brief', 'Candidate Exam', t.key.bytes.toString('base64url')])
       assert.equal(text.includes(forbidden), false);
     assert.equal(t.f.git.calls.length, 0); assert.equal(t.f.git.mutations(), 0);
+  });
+  await check('HTTP status recovers a lost native Git acknowledgement from encrypted SQL originals without redispatch or checkpoint mutation', async () => {
+    const t = await fresh(), originalStore = t.make();
+    assert.equal((await originalStore.put(t.request)).outcome, 'stored'); originalStore.close();
+    t.f.git.loseAck(); assert.equal((await t.f.make().compareAndWrite(t.request)).outcome, 'unknown');
+    assert.equal(t.f.git.mutations(), 1);
+    const before = (await admin.query('SELECT record,result_ref FROM steer_execution.intent_steps WHERE operation_id=$1', [t.target.operationId])).rows;
+    assert.equal(before[0].record.state, 'dispatch-committed');
+    const input = { organizationId: t.config.organizationId, productId: t.config.productId, repository: t.config.repository, branch: t.config.branch,
+      draftId: t.request.confirmation.draftId, draftRevision: t.request.confirmation.draftRevision, operationId: t.target.operationId, inputDigest: t.target.inputDigest };
+    const principal = { subject: t.config.subject, organizationId: t.config.organizationId, type: 'human', hats: [],
+      toolGrants: ['intent.candidate.save.status'], expiresAt: new Date(Date.now() + 300000).toISOString() };
+    const request = (value = input) => ({ method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(value) });
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const service = createRecordedCandidateSaveStatusReader(connect('steer_draft_runtime'), binding, t.config, t.f.publication, {
+        records: t.dependencies, provider: { fetch: t.f.git.transport, appJwt: async () => 'synthetic-app-jwt', now: () => providerNow, authorizeRead: async () => {} },
+      });
+      const api = createApi({ authenticate: async () => principal, services: { candidateSaveStatusReader: service } });
+      try {
+        const response = await api.request('/v1/tools/intent.candidate.save.status', request()); assert.equal(response.status, 200);
+        const result = await response.json(); assert.equal(result.outcome, 'committed'); assert.equal(result.saveVerified, true);
+        assert.equal(result.retryAuthorized, false); assert.equal(result.reference.bundleId, t.request.bundle.bundleId);
+        assert.equal(result.inputDigest, t.target.inputDigest); assert.doesNotMatch(JSON.stringify(result), /Synthetic Brief|Candidate Exam/);
+        const calls = t.f.git.calls.length;
+        assert.equal((await api.request('/v1/tools/intent.candidate.save.status', request({ ...input, draftRevision: 2 }))).status, 503);
+        assert.equal(t.f.git.calls.length, calls);
+        if (attempt === 1) {
+          t.state.lifecycle.held = true;
+          assert.equal((await api.request('/v1/tools/intent.candidate.save.status', request())).status, 503);
+          assert.equal(t.f.git.calls.length, calls);
+        }
+      } finally { service.close(); }
+    }
+    assert.equal(t.f.git.mutations(), 1);
+    assert.deepEqual((await admin.query('SELECT record,result_ref FROM steer_execution.intent_steps WHERE operation_id=$1', [t.target.operationId])).rows, before);
+    assert.equal((await admin.query('SELECT count(*)::int AS n FROM steer_drafts.candidate_originals WHERE operation_id=$1', [t.target.operationId])).rows[0].n, 1);
   });
   await check('concurrent immutable inserts reuse one original and historical key instead of overwriting or extending retention', async () => {
     const t = await fresh();

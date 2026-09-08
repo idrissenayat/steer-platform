@@ -8,6 +8,7 @@ import IntentConversation from './intent-conversation';
 import ReviewWorkspace from './review-workspace';
 import LearnHub from './learn-hub';
 import CandidateBundle from './candidate-bundle';
+import CandidateSaveStatus from './candidate-save-status';
 import learnCorpus from './generated/learn.json';
 import type { LearnCorpus } from './learn-reader';
 
@@ -35,6 +36,8 @@ export default async function FoundationPage() {
         enabled={process.env.STEER_WEB_INTENT_AGENT === 'enabled'} repository={repository}
         draftProductId={draftProductView(process.env.STEER_WEB_DRAFT_EDITOR, process.env.STEER_WEB_DRAFT_PRODUCT_ID)} />
       {repository && <CandidateBundle key={`candidate:${session.subject}:${session.organizationId}:${repository}:${session.expiresAt}`}
+        organizationId={session.organizationId} repository={repository} expiresAt={session.expiresAt} />}
+      {repository && <CandidateSaveStatus key={`candidate-status:${session.subject}:${session.organizationId}:${repository}:${session.expiresAt}`}
         organizationId={session.organizationId} repository={repository} expiresAt={session.expiresAt} />}
       <details className="workspace-diagnostics"><summary>Manual Brief tools</summary>
         <BriefAuthor key={`author:${session.subject}:${session.organizationId}:${session.expiresAt}`} organizationId={session.organizationId} subject={session.subject} expiresAt={session.expiresAt}

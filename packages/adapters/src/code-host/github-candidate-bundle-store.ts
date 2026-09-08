@@ -172,15 +172,17 @@ export function createGitHubCandidateBundleStore(rawBinding: GitHubBinding, rawC
     return observe(p, { outcome: 'committed', revision: created, expectedHead: plan.expectedHead,
       manifestDigest: plan.manifestDigest, pointerDigest: plan.pointerDigest });
   }
-  async function run(raw: unknown, write: boolean): Promise<Observation> {
+  async function run(raw: unknown, write: boolean, current?: () => Promise<void>): Promise<Observation> {
     const p = await prepare(raw);
     if (lifetime.signal.aborted || active) return observe(p, { outcome: 'unknown' });
     active = true;
     const io = createGitHubAtomicSession(binding, dependencies, { signal: lifetime.signal, maxRequests: 80, maxBlobBytes: 131072 });
     const authorize = async () => {
       io.total.throwIfAborted();
+      if (current && await io.bounded(current(), io.total) !== undefined) throw new CodeHostError();
       const value = await io.bounded(dependencies.authorizeRead(p), io.total);
       if (value !== undefined) throw new CodeHostError();
+      if (current && await io.bounded(current(), io.total) !== undefined) throw new CodeHostError();
       io.total.throwIfAborted();
     };
     try {
@@ -234,8 +236,16 @@ export function createGitHubCandidateBundleStore(rawBinding: GitHubBinding, rawC
     finally { void io.whenDrained().then(() => { active = false; }); }
   }
   return {
-    inspect: (originalRequest: unknown) => run(originalRequest, false),
+    inspect: (originalRequest: unknown, current?: () => Promise<void>) => run(originalRequest, false, current),
     compareAndWrite: (originalRequest: unknown) => run(originalRequest, true),
     close: () => lifetime.abort(),
   };
+}
+
+/** Read-only capability: no compare/write or dispatch authority is exposed. */
+export function createGitHubCandidateBundleInspector(binding: GitHubBinding, configuration: unknown,
+  dependencies: GitHubAtomicDependencies & { authorizeRead: (prepared: Prepared) => Promise<void> }) {
+  const store = createGitHubCandidateBundleStore(binding, configuration, { ...dependencies,
+    authorizeAndClaimDispatch: async () => { throw new CodeHostError(); } });
+  return Object.freeze({ inspect: store.inspect, close: store.close });
 }
