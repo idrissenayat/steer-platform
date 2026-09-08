@@ -128,6 +128,17 @@ dependencies drain. SQL is never held across a model/provider call. Configuratio
 expires within 24 hours; claims last at most five minutes. Each organization/subject
 has a technical limit of 10,000 operations, with no automatic purge or replenishment.
 
+Checkpoint readback is outside SQL and outside the execution pool lease (0216).
+A read-only preflight resolves the exact required reference, then rolls back,
+clears scope and releases its connection. After authorization, the trusted result
+reader may use the same single-connection pool. A second transaction rereads the
+current operation/step/predecessor and consumes only the matching, call-local
+proof. Freshness starts before readback and must remain below five seconds at
+consumption, COMMIT and acknowledgement. Owner/fence/state/budget checks still run;
+concurrent quarantine, revoked authority, failed rollback or expired proof denies.
+Only this effect-free preflight is repeated, never a committed mutation or external
+effect. This boundary does not itself supply encrypted result storage or provenance.
+
 Only hashes, identifiers, status and result references are stored—not draft/model
 bytes. Result encryption/storage and authorized retention are separate requirements.
 The caller must dispatch only once on a fresh positive acknowledgement and recheck

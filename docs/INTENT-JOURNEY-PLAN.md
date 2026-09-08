@@ -129,7 +129,9 @@ Next unblocked implementation sequence:
    0211 adds reference-only candidate-save Temporal execution with explicit no-retry
    boundaries. 0212 adds separately authorized receipt-to-checkpoint reconciliation
    for sent/succeeded candidate steps. Next compose original-payload storage and
-   current authority, then durable development-role activities. Test-only checkpoint bytes
+   current authority, then durable development-role activities. 0216 removes SQL
+   locks and pool leases from generic checkpoint readback, with exact short-lived
+   proofs and current-state rechecks before mutation. Test-only checkpoint bytes
    do not supply approved encrypted draft storage. Explicit linked new attempts,
    verified unknown-outcome resolution and recovery reconciliation remain open.
 3. Compose authorized inventory reads with the evidence envelope and a pinned,

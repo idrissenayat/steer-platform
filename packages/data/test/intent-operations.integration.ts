@@ -54,6 +54,14 @@ export async function testIntentOperations({ admin, app, connect, check, connect
       const result = await client.query(sql, values); if (sql === 'COMMIT') throw new Error('Synthetic lost COMMIT acknowledgement'); return result;
     }, release: (broken: boolean) => client.release(broken) } as PoolClient;
   } });
+  const checkpointFixture = async () => {
+    const f = await setup(), ref = await f.create(), claim = f.claimInput(ref), claimed = await f.make().claim(claim);
+    assert.equal(claimed.outcome, 'ok'); if (claimed.outcome !== 'ok') throw new Error('Synthetic claim unavailable');
+    assert.equal((await f.make().transition(f.dispatch(claim))).dispatchAllowed, true);
+    const result = await persist({ binding: claimed.value.record.binding, recordsPolicyDigest: f.config.recordsPolicyDigest });
+    const checkpoint = { ...f.stepRef(claim), event: { type: 'checkpoint', owner: claim.owner, fencingToken: 1, ...result } };
+    return { ...f, ref, claim, result, checkpoint };
+  };
 
   await check('execution metadata forces owner RLS and forbids binding rewrites, deletion, truncate and foreign roles', async () => {
     const tables = (await admin.query("SELECT relrowsecurity,relforcerowsecurity FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='steer_execution' AND c.relkind='r'")).rows;
@@ -143,6 +151,114 @@ export async function testIntentOperations({ admin, app, connect, check, connect
     assert.equal((await f.make().claim(testClaim)).dispatchAllowed, false); assert.equal(await f.used(), 5);
     await admin.query('DELETE FROM public.synthetic_execution_results WHERE id=$1', [result.resultRef]);
     assert.notEqual((await f.make().transition(checkpoint)).outcome, 'ok');
+  });
+  await check('checkpoint and predecessor readback run after rollback and lease release, even with the same single-connection pool', async () => {
+    const f = await checkpointFixture(), pool = connect('steer_app'); let leases = 0, inTransaction = false, verifications = 0;
+    const observed: DatabasePool = { async connect() {
+      const client = await pool.connect(); leases++;
+      return { query: async (sql: string, values?: unknown[]) => {
+        const result = await client.query(sql, values);
+        if (sql.startsWith('BEGIN')) inTransaction = true;
+        if (sql === 'COMMIT' || sql === 'ROLLBACK') inTransaction = false;
+        return result;
+      }, release: (broken: boolean) => { assert.equal(inTransaction, false); leases--; client.release(broken); } } as PoolClient;
+    } };
+    const store = createIntentOperationStore(observed, f.config, { authorize: async () => {}, verifyCheckpoint: async target => {
+      assert.equal(inTransaction, false); assert.equal(leases, 0); verifications++;
+      // This query needs the exact pool lease the preflight used. It also proves
+      // that no execution/usage context is inherited by the external result reader.
+      assert.equal((await pool.query('SELECT * FROM steer_execution.intent_steps')).rowCount, 0);
+      assert.equal((await pool.query('SELECT * FROM steer_usage.model_reservations')).rowCount, 0);
+      await verifyCheckpoint(target);
+    } });
+    assert.equal((await store.transition(f.checkpoint)).outcome, 'ok');
+    const next = f.claimInput(f.ref, { stepId: 'test-agent', stepInputDigest: 'e'.repeat(64), predecessorResultDigest: f.result.resultDigest });
+    assert.equal((await store.claim(next)).outcome, 'ok');
+    assert.equal((await store.transition(f.dispatch(next))).dispatchAllowed, true);
+    assert.equal(verifications, 3); assert.equal(leases, 0); assert.equal(await f.used(), 5); store.close();
+  });
+  await check('a quarantine recorded during checkpoint readback is reread and cannot be overwritten by the preflight', async () => {
+    const f = await checkpointFixture(), pool = connect('steer_app'); let calls = 0;
+    const store = createIntentOperationStore(pool, f.config, { authorize: async () => {}, verifyCheckpoint: async target => {
+      calls++; await verifyCheckpoint(target);
+      const quarantined = await f.make(pool).transition({ ...f.stepRef(f.claim), event: { type: 'outcome-unknown', fencingToken: 1 } });
+      assert.equal(quarantined.outcome, 'ok');
+    } });
+    assert.equal((await store.transition(f.checkpoint)).outcome, 'conflict'); assert.equal(calls, 1);
+    const current = await f.make().inspect(f.ref); assert.equal(current.outcome, 'ok');
+    if (current.outcome === 'ok') assert.equal(current.value.steps[0]?.record.state, 'outcome-unknown');
+    assert.equal((await f.make().transition(f.dispatch(f.claim))).dispatchAllowed, false); assert.equal(await f.used(), 3); store.close();
+  });
+  await check('readback does not grant current authority or bypass a budget revoked before the second transaction', async () => {
+    const f = await checkpointFixture(); let denied = false;
+    const store = createIntentOperationStore(app, f.config, { authorize: async () => { if (denied) throw new Error('private-revocation-marker'); },
+      verifyCheckpoint: async target => { await verifyCheckpoint(target); denied = true; } });
+    const rejected = await store.transition(f.checkpoint); assert.notEqual(rejected.outcome, 'ok');
+    assert.equal(JSON.stringify(rejected).includes('private-revocation-marker'), false); assert.equal(rejected.dispatchAllowed, false);
+    assert.equal((await f.make().transition(f.checkpoint)).outcome, 'ok');
+    const next = f.claimInput(f.ref, { stepId: 'test-agent', stepInputDigest: 'e'.repeat(64), predecessorResultDigest: f.result.resultDigest });
+    const revokedBudget = createIntentOperationStore(app, f.config, { authorize: async () => {}, verifyCheckpoint: async target => {
+      await verifyCheckpoint(target); await admin.query('UPDATE steer_usage.model_budgets SET active=false WHERE budget_id=$1', [f.budget.budgetId]);
+    } });
+    assert.equal((await revokedBudget.claim(next)).outcome, 'unavailable'); assert.equal(await f.used(), 3);
+    store.close(); revokedBudget.close();
+  });
+  await check('expired readback proof cannot checkpoint after slow reauthorization and never authorizes another dispatch', async () => {
+    const f = await checkpointFixture(); let authorizations = 0, readbacks = 0;
+    const store = createIntentOperationStore(app, f.config, {
+      authorize: async () => { if (++authorizations === 3) await delay(2700); },
+      verifyCheckpoint: async target => { readbacks++; await verifyCheckpoint(target); await delay(2700); },
+    });
+    assert.equal((await store.transition(f.checkpoint)).outcome, 'unavailable'); assert.equal(readbacks, 1);
+    const current = await f.make().inspect(f.ref); assert.equal(current.outcome, 'ok');
+    if (current.outcome === 'ok') assert.equal(current.value.steps[0]?.record.state, 'dispatch-committed');
+    assert.equal((await f.make().transition(f.dispatch(f.claim))).dispatchAllowed, false); store.close();
+  });
+  await check('timed-out readback retains all admission slots until callbacks drain, with no held SQL leases or late checkpoints', async () => {
+    const f = await checkpointFixture(); let release!: () => void, entered = 0;
+    const held = new Promise<void>(resolve => { release = resolve; });
+    const store = createIntentOperationStore(app, f.config, { authorize: async () => {}, verifyCheckpoint: async target => {
+      await verifyCheckpoint(target); entered++; await held;
+    } });
+    const requests = Array.from({ length: 8 }, () => store.transition(f.checkpoint));
+    const limit = Date.now() + 2500;
+    while (entered < 8 && Date.now() < limit) await delay(5);
+    assert.equal(entered, 8); assert.equal((await store.transition(f.checkpoint)).outcome, 'unavailable');
+    // The callbacks can stall, but all pool leases have already been returned.
+    assert.equal((await app.query('SELECT * FROM steer_execution.intent_steps')).rowCount, 0);
+    assert.ok((await Promise.all(requests)).every(result => result.outcome === 'unavailable' && !result.dispatchAllowed));
+    assert.equal((await store.transition(f.checkpoint)).outcome, 'unavailable'); assert.equal(entered, 8);
+    release(); await delay(20);
+    const current = await f.make().inspect(f.ref); assert.equal(current.outcome, 'ok');
+    if (current.outcome === 'ok') assert.equal(current.value.steps[0]?.record.state, 'dispatch-committed');
+    assert.equal((await store.transition(f.checkpoint)).outcome, 'ok'); assert.equal(entered, 9); assert.equal(await f.used(), 3); store.close();
+  });
+  await check('wrong checkpoint owner or fence is rejected before external readback and failed preflight rollback cannot proceed', async () => {
+    const f = await checkpointFixture(); let reads = 0, evicted = false;
+    const dependencies = { authorize: async () => {}, verifyCheckpoint: async (target: IntentCheckpointReference) => { reads++; await verifyCheckpoint(target); } };
+    const store = createIntentOperationStore(app, f.config, dependencies);
+    for (const patch of [{ owner: 'wrong-worker' }, { fencingToken: 2 }])
+      assert.equal((await store.transition({ ...f.checkpoint, event: { ...f.checkpoint.event, ...patch } })).outcome, 'conflict');
+    assert.equal(reads, 0);
+    const broken: DatabasePool = { async connect() { const client = await app.connect(); return {
+      query: async (sql: string, values?: unknown[]) => { if (sql === 'ROLLBACK') throw new Error('private-rollback-failure'); return client.query(sql, values); },
+      release: (destroy: boolean) => { evicted = destroy; client.release(destroy); },
+    } as PoolClient; } };
+    const unavailable = createIntentOperationStore(broken, f.config, dependencies);
+    assert.equal((await unavailable.transition(f.checkpoint)).outcome, 'unknown'); assert.equal(evicted, true); assert.equal(reads, 0);
+    assert.equal((await f.make().transition(f.checkpoint)).outcome, 'ok'); store.close(); unavailable.close();
+  });
+  await check('close during external checkpoint readback prevents a late second transaction or checkpoint', async () => {
+    const f = await checkpointFixture(); let release!: () => void, entered!: () => void, acquisitions = 0;
+    const held = new Promise<void>(resolve => { release = resolve; }), reached = new Promise<void>(resolve => { entered = resolve; });
+    const observed: DatabasePool = { connect: async () => { acquisitions++; return app.connect(); } };
+    const store = createIntentOperationStore(observed, f.config, { authorize: async () => {}, verifyCheckpoint: async target => {
+      await verifyCheckpoint(target); entered(); await held;
+    } });
+    const pending = store.transition(f.checkpoint); await reached; assert.equal(acquisitions, 1); store.close(); release();
+    assert.equal((await pending).outcome, 'unavailable'); assert.equal(acquisitions, 1);
+    const current = await f.make().inspect(f.ref); assert.equal(current.outcome, 'ok');
+    if (current.outcome === 'ok') assert.equal(current.value.steps[0]?.record.state, 'dispatch-committed');
   });
   await check('missing and mismatched budgets roll back new claims, including the append-only reservation', async () => {
     const f = await setup('develop', 3), ref = await f.create(), claim = f.claimInput(ref);

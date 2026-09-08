@@ -4530,3 +4530,26 @@ Actual editor/API acknowledgement/conflict/history wiring and generation-result
 checkpoint provenance are still missing. Durable development roles, current source/
 authority, key/all-copy recovery controls and real UI acceptance remain next.
 This is backend history, not a completed autosave or I1–I6 journey.
+
+## Development increment: 0216 — Checkpoint readback outside SQL
+
+Corrected a composition hazard found while preparing generation-result recovery:
+the generic operation store called the external checkpoint reader while holding
+execution locks and its pool connection. It now rolls back/releases an effect-free
+preflight, reauthorizes, verifies exact stored-result evidence outside SQL, and
+rereads current state in a second transaction before mutation. The private proof
+expires five seconds after readback starts; no effect or committed mutation retries.
+
+Same-pool result reads no longer depend on the held execution lease. Concurrent
+quarantine, current authority/budget loss, stale proofs, failed rollback and late
+close remain denied. Timed-out readers retain admission slots until they drain,
+without keeping SQL leases. See [0216 evidence](../intent/0216/EVIDENCE.md).
+
+Verification: **119/119** disposable SQL/native-Git/Temporal integration checks
+and **280/280** scoped units/migration controls plus **33/33** existing Temporal/
+projection checks pass, alongside typecheck,
+kit/scope and whitespace checks. Protected source hashes remain unchanged.
+
+No schema/migration, live service, model call, GitHub runtime write, gate or policy
+activation changed. Encrypted generation-result/provenance storage, durable role
+activities and actual editor integration remain next; I1–I6 are still incomplete.

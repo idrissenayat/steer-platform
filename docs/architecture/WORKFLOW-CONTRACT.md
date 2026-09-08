@@ -181,6 +181,14 @@ an exactly-once external-effect claim. Process-local `busy` flags, Temporal work
 ID retention and the spend cap are insufficient substitutes. Read/status retries
 are permitted under current grants; paid activity retries are not automatic.
 
+Implementation note (0216, inactive): generic checkpoint readback now follows an
+effect-free SQL preflight, rollback and connection release. A trusted result reader
+can reconstruct bytes without holding execution locks or a pool lease. A second
+transaction rechecks current state/fence/authority/budget and only consumes the
+exact call-local proof within five seconds of readback start. Failed cleanup,
+concurrent quarantine, stale evidence or late close denies. No committed mutation
+or external effect is retried. Generation-result storage/provenance remains pending.
+
 Implementation note (0210, inactive): candidate admission uses a separate versioned
 digest over the complete submission, exact consent and publication/provider profile,
 excluding the not-yet-minted operation ID. The immutable SQL operation then supplies

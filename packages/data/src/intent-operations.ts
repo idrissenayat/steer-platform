@@ -47,6 +47,11 @@ type Result<T> = { outcome: 'ok'; value: T; dispatchAllowed: boolean }
 export type IntentCheckpointReference = { binding: IntentStepRecord['binding']; resultRef: string; resultDigest: string; recordsPolicyDigest: string };
 class Conflict extends Error {}
 class Unavailable extends Error {}
+class CheckpointReadbackRequired extends Error {
+  readonly reference: Readonly<IntentCheckpointReference>;
+  constructor(reference: Readonly<IntentCheckpointReference>) { super('Checkpoint readback required.'); this.reference = reference; }
+}
+type CheckpointProof = { reference: Readonly<IntentCheckpointReference>; startedAt: number };
 const clearScope = "SELECT set_config('steer.execution_organization','',false), set_config('steer.execution_subject','',false), set_config('steer.usage_organization','',false), set_config('steer.usage_budget','',false), set_config('steer.usage_subject','',false)";
 const json = (v: unknown) => JSON.stringify(v);
 function freeze<T>(v: T): T {
@@ -57,7 +62,9 @@ function freeze<T>(v: T): T {
  * Trusted authorize verifies current identity, scope, source and records authority.
  * verifyCheckpoint must read back already-durable, authorized result bytes against
  * their exact input/configuration binding; this adapter stores no result content.
- * No retry, expired-ID recreation, refund, provider call or SQL across model work.
+ * Checkpoint readback runs only after rollback and connection release; a second
+ * transaction rereads current state and consumes the exact short-lived proof.
+ * No effect retry, expired-ID recreation, refund or SQL across external work.
  */
 export function createIntentOperationStore(pool: DatabasePool, rawConfiguration: unknown, dependencies: {
   authorize: (context: Readonly<{ configuration: Configuration; request: unknown }>) => Promise<void>;
@@ -70,7 +77,6 @@ export function createIntentOperationStore(pool: DatabasePool, rawConfiguration:
   async function transaction<T>(request: unknown, work: (client: PoolClient, verify: (step: Step) => Promise<void>) => Promise<{ value: T; dispatchAllowed: boolean }>): Promise<Result<T>> {
     if (closed || active >= 8) return { outcome: 'unavailable', dispatchAllowed: false };
     active++;
-    let client: PoolClient | undefined, committing = false, broken = false;
     let pending = 0, finished = false;
     const releaseAdmission = () => { if (finished && pending === 0) { finished = false; active--; } };
     const bounded = async <T>(task: Promise<T>): Promise<T> => {
@@ -82,40 +88,71 @@ export function createIntentOperationStore(pool: DatabasePool, rawConfiguration:
     const authorize = async () => {
       if (await bounded(dependencies.authorize(freeze({ configuration: config, request }))) !== undefined) throw new Unavailable();
     };
+    const fresh = (proof: CheckpointProof) => {
+      const elapsed = performance.now() - proof.startedAt;
+      if (elapsed < 0 || elapsed >= 5000) throw new Unavailable();
+    };
+    const run = async (proof?: CheckpointProof): Promise<Result<T>> => {
+      let client: PoolClient | undefined, committing = false, broken = false, passFinished = false;
+      try {
+        await authorize();
+        if (closed) throw new Unavailable();
+        client = await bounded(pool.connect().then(value => { if (passFinished || closed) { value.release(true); throw new Unavailable(); } return value; }));
+        if (!client) throw new Unavailable();
+        await applyRuntimeQueryLimits(client); await client.query(clearScope); await client.query('BEGIN ISOLATION LEVEL READ COMMITTED');
+        const runtime = (await client.query(`SELECT r.rolname, session_user AS login_role, r.rolsuper, r.rolbypassrls,
+          EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+            WHERE n.nspname IN ('steer_execution','steer_usage') AND c.relowner=r.oid) AS owns_objects
+          FROM pg_roles r WHERE r.rolname=current_user`)).rows[0];
+        if (!runtime || runtime.rolname !== 'steer_app' || runtime.login_role !== 'steer_app' || runtime.rolsuper || runtime.rolbypassrls || runtime.owns_objects) throw new Unavailable();
+        await client.query("SELECT set_config('steer.execution_organization',$1,true), set_config('steer.execution_subject',$2,true), set_config('steer.usage_organization',$1,true), set_config('steer.usage_subject',$2,true), set_config('steer.usage_budget',$3,true)",
+          [config.organizationId, config.subject, config.budget?.budgetId ?? '']);
+        const time = await now(client);
+        if (Date.parse(config.expiresAt) <= time || Date.parse(config.expiresAt) > time + 86400000) throw new Unavailable();
+        const verify = async (step: Step) => {
+          if (!step.resultRef || !step.record.resultDigest) throw new Unavailable();
+          const ref = freeze({ binding: step.record.binding, resultRef: step.resultRef,
+            resultDigest: step.record.resultDigest, recordsPolicyDigest: config.recordsPolicyDigest });
+          if (!proof) throw new CheckpointReadbackRequired(ref);
+          fresh(proof);
+          if (json(proof.reference) !== json(ref)) throw new Unavailable();
+        };
+        const result = await work(client, verify);
+        const beforeCommit = await now(client);
+        if (closed || beforeCommit < time || beforeCommit >= Date.parse(config.expiresAt)) throw new Unavailable();
+        if (proof) fresh(proof);
+        committing = true; await client.query('COMMIT');
+        await client.query(clearScope);
+        await authorize();
+        const afterCommit = await now(client);
+        if (closed || afterCommit < beforeCommit || afterCommit >= Date.parse(config.expiresAt)) throw new Unavailable();
+        if (proof) fresh(proof);
+        return freeze({ outcome: 'ok', ...result });
+      } catch (error) {
+        broken = committing;
+        if (client) try { await client.query('ROLLBACK'); await client.query(clearScope); } catch { broken = true; }
+        if (!committing && !broken && error instanceof CheckpointReadbackRequired) throw error;
+        return { outcome: committing ? 'unknown' : error instanceof Conflict ? 'conflict' : error instanceof Unavailable ? 'unavailable' : 'unknown', dispatchAllowed: false };
+      } finally { passFinished = true; client?.release(broken); }
+    };
     try {
-      await authorize();
-      if (closed) throw new Unavailable();
-      client = await bounded(pool.connect().then(value => { if (finished || closed) { value.release(true); throw new Unavailable(); } return value; }));
-      if (!client) throw new Unavailable();
-      await applyRuntimeQueryLimits(client); await client.query(clearScope); await client.query('BEGIN ISOLATION LEVEL READ COMMITTED');
-      const runtime = (await client.query(`SELECT r.rolname, session_user AS login_role, r.rolsuper, r.rolbypassrls,
-        EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
-          WHERE n.nspname IN ('steer_execution','steer_usage') AND c.relowner=r.oid) AS owns_objects
-        FROM pg_roles r WHERE r.rolname=current_user`)).rows[0];
-      if (!runtime || runtime.rolname !== 'steer_app' || runtime.login_role !== 'steer_app' || runtime.rolsuper || runtime.rolbypassrls || runtime.owns_objects) throw new Unavailable();
-      await client.query("SELECT set_config('steer.execution_organization',$1,true), set_config('steer.execution_subject',$2,true), set_config('steer.usage_organization',$1,true), set_config('steer.usage_subject',$2,true), set_config('steer.usage_budget',$3,true)",
-        [config.organizationId, config.subject, config.budget?.budgetId ?? '']);
-      const time = await now(client);
-      if (Date.parse(config.expiresAt) <= time || Date.parse(config.expiresAt) > time + 86400000) throw new Unavailable();
-      const verify = async (step: Step) => {
-        if (!step.resultRef || !step.record.resultDigest) throw new Unavailable();
-        if (await bounded(dependencies.verifyCheckpoint(freeze({ binding: step.record.binding, resultRef: step.resultRef,
-          resultDigest: step.record.resultDigest, recordsPolicyDigest: config.recordsPolicyDigest }))) !== undefined) throw new Unavailable();
-      };
-      const result = await work(client, verify);
-      const beforeCommit = await now(client);
-      if (closed || beforeCommit < time || beforeCommit >= Date.parse(config.expiresAt)) throw new Unavailable();
-      committing = true; await client.query('COMMIT');
-      await client.query(clearScope);
-      await authorize();
-      const afterCommit = await now(client);
-      if (closed || afterCommit < beforeCommit || afterCommit >= Date.parse(config.expiresAt)) throw new Unavailable();
-      return freeze({ outcome: 'ok', ...result });
+      try { return await run(); }
+      catch (error) {
+        if (!(error instanceof CheckpointReadbackRequired) || closed) throw new Unavailable();
+        // The first pass has rolled back and released its lease. A result reader
+        // can use this very same single-connection pool without a deadlock.
+        await authorize();
+        if (closed) throw new Unavailable();
+        const proof = freeze({ reference: error.reference, startedAt: performance.now() });
+        if (await bounded(dependencies.verifyCheckpoint(proof.reference)) !== undefined || closed) throw new Unavailable();
+        fresh(proof);
+        // Not an effect retry: only the read-only preflight was rolled back.
+        // Reread owner/fence/state/budget and reauthorize before any mutation.
+        return await run(proof);
+      }
     } catch (error) {
-      broken = committing;
-      if (client) try { await client.query('ROLLBACK'); await client.query(clearScope); } catch { broken = true; }
-      return { outcome: committing ? 'unknown' : error instanceof Conflict ? 'conflict' : error instanceof Unavailable ? 'unavailable' : 'unknown', dispatchAllowed: false };
-    } finally { client?.release(broken); finished = true; releaseAdmission(); }
+      return { outcome: error instanceof Unavailable ? 'unavailable' : 'unknown', dispatchAllowed: false };
+    } finally { finished = true; releaseAdmission(); }
   }
   async function now(client: PoolClient) {
     return integer.parse(Number((await client.query("SELECT floor(extract(epoch FROM clock_timestamp())*1000)::bigint AS now")).rows[0]?.now));
