@@ -11,6 +11,9 @@ const ok = (r: Awaited<ReturnType<ReturnType<typeof createDraftLifecycleStore>['
 export async function testDraftLifecycles({ admin, connect, check }: {
   admin: Pool; connect(role: string): Pool; check(name: string, run: () => Promise<void>): Promise<void>;
 }) {
+  // Lifecycle timestamps belong to PostgreSQL, not the host/VM wall clock.
+  const databaseNow = async () => Number((await admin.query(
+    "SELECT floor(extract(epoch FROM clock_timestamp())*1000)::bigint AS clock_ms")).rows[0].clock_ms);
   const fresh = () => {
     const config = { organizationId: `org-${randomUUID()}`, subject: 'synthetic-human', productId: 'product', repository: 'github:52',
       branch: 'codex/fixture', configurationRevision: 'draft-r1', recordsPolicyDigest: 'a'.repeat(64) };
@@ -20,10 +23,10 @@ export async function testDraftLifecycles({ admin, connect, check }: {
     return { config, pool, request, make, create: async () => ok(await make().create(request)) };
   };
   await check('draft creation mints one server ID and database clock across concurrent requests and reconstruction', async () => {
-    const f = fresh(), before = Date.now();
+    const f = fresh(), before = await databaseNow();
     const results = await Promise.all(Array.from({ length: 4 }, () => f.make({}, connect('steer_draft_runtime')).create(f.request)));
     const values = results.map(ok), value = values[0]!; assert.equal(new Set(values.map(v => v.draftId)).size, 1);
-    assert.notEqual(value.draftId, f.request.requestId); assert.ok(Date.parse(value.createdAt) >= before && Date.parse(value.createdAt) <= Date.now());
+    assert.notEqual(value.draftId, f.request.requestId); assert.ok(Date.parse(value.createdAt) >= before && Date.parse(value.createdAt) <= await databaseNow());
     assert.equal(Date.parse(value.retentionDeadline) - Date.parse(value.createdAt), 168 * 3600000);
     assert.equal(value.useUntil, value.retentionDeadline); assert.equal(value.held, false); assert.equal(value.expired, false);
     assert.deepEqual(ok(await f.make().create(f.request)), value);
@@ -48,9 +51,9 @@ export async function testDraftLifecycles({ admin, connect, check }: {
   });
   await check('explicit discard records one server observation and sixty-second use window without deletion or renewal', async () => {
     const f = fresh(), original = await f.create(), target = { draftId: original.draftId }, actions: string[] = [];
-    const store = f.make({ authorize: async ctx => { actions.push(ctx.action); } }), before = Date.now();
+    const store = f.make({ authorize: async ctx => { actions.push(ctx.action); } }), before = await databaseNow();
     const discarded = ok(await store.discard(target));
-    assert.ok(Date.parse(discarded.discardedAt!) >= before && Date.parse(discarded.discardedAt!) <= Date.now());
+    assert.ok(Date.parse(discarded.discardedAt!) >= before && Date.parse(discarded.discardedAt!) <= await databaseNow());
     assert.equal(Date.parse(discarded.useUntil) - Date.parse(discarded.discardedAt!), 60000);
     assert.equal(discarded.createdAt, original.createdAt); assert.equal(discarded.retentionDeadline, original.retentionDeadline);
     assert.deepEqual(ok(await f.make().discard(target)), discarded); assert.deepEqual(ok(await f.make().create(f.request)), discarded);
@@ -83,9 +86,9 @@ export async function testDraftLifecycles({ admin, connect, check }: {
   });
   await check('publication references require independently verified exact time/effect and preserve the earliest deadline', async () => {
     const f = fresh(), original = await f.create(), request = { draftId: original.draftId, operationId: randomUUID(), inputDigest: 'a'.repeat(64) };
-    const proof = { ...request, publishedAt: new Date().toISOString() };
+    const proof = { ...request, publishedAt: new Date(await databaseNow()).toISOString() };
     assert.equal((await f.make().recordPublication(request)).outcome, 'unavailable');
-    for (const patch of [{ draftId: randomUUID() }, { inputDigest: 'f'.repeat(64) }, { publishedAt: new Date(Date.now() + 60000).toISOString() },
+    for (const patch of [{ draftId: randomUUID() }, { inputDigest: 'f'.repeat(64) }, { publishedAt: new Date(await databaseNow() + 60000).toISOString() },
       { publishedAt: new Date(Date.parse(original.createdAt) - 1).toISOString() }])
       assert.notEqual((await f.make({ verifyPublication: async () => ({ ...proof, ...patch }) }).recordPublication(request)).outcome, 'ok');
     const store = f.make({ verifyPublication: async () => proof }), published = ok(await store.recordPublication(request));

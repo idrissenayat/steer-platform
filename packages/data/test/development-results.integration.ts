@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
+import { setTimeout as delay } from 'node:timers/promises';
 import type { Pool, PoolClient } from 'pg';
 import { createDevelopmentResultStore } from '../src/development-results.ts';
 import { createDraftLifecycleStore } from '../src/draft-lifecycle.ts';
 import { createDraftRevisionStore } from '../src/draft-revisions.ts';
-import { createIntentOperationStore, type IntentCheckpointReference } from '../src/intent-operations.ts';
+import { createIntentOperationStore, createExpiredDevelopmentStepReader, type IntentCheckpointReference } from '../src/intent-operations.ts';
 import type { DatabasePool } from '../src/runtime-pool.ts';
 type Dependencies = Parameters<typeof createDevelopmentResultStore>[2];
 const hash = (v: unknown) => createHash('sha256').update(JSON.stringify(v)).digest('hex');
@@ -14,14 +15,14 @@ const stored = (v: Awaited<ReturnType<ReturnType<typeof createDevelopmentResultS
 export async function testDevelopmentResults({ admin, connect, check }: {
   admin: Pool; connect(role: string): Pool; check(name: string, run: () => Promise<void>): Promise<void>;
 }) {
-  const setup = async (dispatch = true) => {
+  const setup = async (dispatch = true, operationTtl = 3600000) => {
     const draftConfig = { organizationId: `results-${randomUUID()}`, subject: 'synthetic-human', productId: 'product', repository: 'github:52',
       branch: 'codex/synthetic', configurationRevision: 'results-r1', recordsPolicyDigest: 'a'.repeat(64) };
     const budget = { organizationId: draftConfig.organizationId, subject: draftConfig.subject, configurationRevision: draftConfig.configurationRevision,
       budgetId: randomUUID(), approvalDigest: 'b'.repeat(64), capMicrousd: 30, architectMicrousd: 3, testAgentMicrousd: 2 };
     await admin.query(`INSERT INTO steer_usage.model_budgets VALUES ($1,$2,$3,$4,$5,$6,$7,$8,now()-interval '1 minute',now()+interval '1 hour',true)`,
       [budget.organizationId,budget.budgetId,budget.subject,budget.configurationRevision,budget.approvalDigest,30,3,2]);
-    const config = { ...draftConfig, action: 'develop', expiresAt: new Date(Date.now()+3600000).toISOString(), budget };
+    const config = { ...draftConfig, action: 'develop', expiresAt: new Date(Date.now()+operationTtl).toISOString(), budget };
     const pools = { execution: connect('steer_app'), drafts: connect('steer_draft_runtime') };
     const key = { keyId: `synthetic-${randomUUID()}`, bytes: randomBytes(32) }, state = { denied: false, keys: 0 };
     const dependencies: Dependencies = { authorizeOperation: async () => { if (state.denied) throw new Error('private-authority-marker'); },
@@ -190,5 +191,82 @@ export async function testDevelopmentResults({ admin, connect, check }: {
       await client.query('ROLLBACK');
     } finally { await client.query('ROLLBACK'); client.release(); }
     assert.equal(await f.count(),1); await f.make().verifyCheckpoint(ref);
+  });
+  await check('explicit historical result access after real operation expiry preserves originals without reactivating execution or budget authority', async () => {
+    const f = await setup(true,5000), ref = stored(await f.make().put(f.input));
+    assert.equal((await f.operations().transition(f.checkpointCommand(ref))).outcome,'ok');
+    let historyReads=0;
+    const historical = f.make({ authorizeHistoricalResult:async ctx => { historyReads++; assert.equal(ctx.action,'read'); } });
+    await assert.rejects(historical.readHistorical(f.target)); // Not an alternative active-job route.
+    await delay(Math.max(0,Date.parse(f.config.expiresAt)-Date.now()+25));
+    const before = (await admin.query('SELECT * FROM steer_execution.intent_steps WHERE operation_id=$1',[f.target.operationId])).rows;
+    await admin.query('UPDATE steer_usage.model_budgets SET active=false WHERE budget_id=$1',[f.config.budget.budgetId]);
+    await assert.rejects(f.make().readHistorical(f.target)); // Capability omitted by default.
+    await assert.rejects(historical.read(f.target)); await assert.rejects(historical.verifyCheckpoint(ref));
+    assert.equal((await historical.put(f.input)).outcome,'unavailable');
+    assert.equal((await f.operations().transition(f.dispatchCommand)).dispatchAllowed,false);
+    assert.notEqual((await f.operations().transition(f.checkpointCommand(ref))).outcome,'ok');
+    const original = await historical.readHistorical(f.target);
+    assert.deepEqual(original.result,f.input.result); assert.equal(original.historical,true);
+    assert.equal('checkpoint' in original,false); assert.equal(original.executionAuthorized,false); assert.equal(original.retryAuthorized,false);
+    assert.deepEqual((await admin.query('SELECT * FROM steer_execution.intent_steps WHERE operation_id=$1',[f.target.operationId])).rows,before);
+    assert.equal(await f.used(),3); assert.ok(historyReads>0); historical.close();
+  });
+  await check('expired-step metadata uses read-only SQL, exact original binding and current history authorization outside the pool lease', async () => {
+    const f = await setup(true,4000); stored(await f.make().put(f.input));
+    await delay(Math.max(0,Date.parse(f.config.expiresAt)-Date.now()+25));
+    const sql: string[] = []; let leases=0,checks=0;
+    const observed: DatabasePool = { async connect() { const c = await f.pools.execution.connect(); leases++; return {
+      query:async (query:string,values?:unknown[]) => { sql.push(query); return c.query(query,values); },
+      release:(broken:boolean) => { leases--; c.release(broken); },
+    } as PoolClient; } };
+    const authorize = async () => { checks++; assert.equal(leases,0); assert.equal((await f.pools.execution.query('SELECT * FROM steer_execution.intent_steps')).rowCount,0); };
+    const reader = createExpiredDevelopmentStepReader(observed,f.config,{ authorize });
+    const result = await reader.inspectExpired(f.target); assert.equal(result.dispatchAllowed,false); assert.equal(checks,2);
+    assert.ok(sql.includes('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY'));
+    assert.ok(sql.every(query => !/\b(?:INSERT|UPDATE|DELETE|TRUNCATE|pg_advisory_xact_lock)\b/i.test(query)));
+    assert.equal('claim' in reader,false); assert.equal('transition' in reader,false);
+    await assert.rejects(reader.inspectExpired({ ...f.target,inputDigest:'f'.repeat(64) }));
+    await assert.rejects(createExpiredDevelopmentStepReader(f.pools.execution,{ ...f.config,productId:'foreign' },{ authorize }).inspectExpired(f.target));
+    for (const pool of [admin,connect('steer_projector'),connect('steer_auth_runtime'),connect('steer_draft_runtime')])
+      await assert.rejects(createExpiredDevelopmentStepReader(pool,f.config,{ authorize:async () => {} }).inspectExpired(f.target));
+    reader.close(); await assert.rejects(reader.inspectExpired(f.target));
+  });
+  await check('current historical authority, draft holds and newer edits still govern originals after operation expiry', async () => {
+    const f = await setup(true,4000); stored(await f.make().put(f.input));
+    await delay(Math.max(0,Date.parse(f.config.expiresAt)-Date.now()+25));
+    let allowed=true;
+    const reader = f.make({ authorizeHistoricalResult:async () => { if (!allowed) throw new Error('private-history-revoked'); } });
+    assert.equal((await f.drafts.append({ draftId:f.draftId,mutationId:randomUUID(),expectedRevision:1,expectedDigest:f.saved.reference.revisionDigest,
+      content:{ ...f.source,originalText:'A newer human decision' } })).outcome,'acknowledged');
+    const historical = await reader.readHistorical(f.target); assert.equal(historical.sourceDraftRevision,1); assert.equal(historical.latestDraftRevision,2);
+    assert.deepEqual(historical.result,f.input.result);
+    await assert.rejects(f.make({ authorizeHistoricalResult:async () => {} },f.pools,
+      { subject:'foreign',budget:{ ...f.config.budget,subject:'foreign' } }).readHistorical(f.target));
+    await assert.rejects(f.make({ authorizeHistoricalResult:async () => {} },f.pools,{ recordsPolicyDigest:'f'.repeat(64) }).readHistorical(f.target));
+    allowed=false; const keys=f.state.keys; await assert.rejects(reader.readHistorical(f.target)); assert.equal(f.state.keys,keys);
+    allowed=true; await f.lifecycle.hold({ draftId:f.draftId,holdReference:randomUUID() });
+    await assert.rejects(reader.readHistorical(f.target)); assert.equal(f.state.keys,keys); assert.equal(await f.count(),1); reader.close();
+  });
+  await check('historical access cannot erase quarantines and suppresses late key-time authority loss or close', async () => {
+    const f = await setup(true,5000); stored(await f.make().put(f.input));
+    assert.equal((await f.operations().transition({ ...f.step,event:{ type:'outcome-unknown',fencingToken:1 } })).outcome,'ok');
+    const g = await setup(true,5000); stored(await g.make().put(g.input));
+    await delay(Math.max(0,Date.parse(g.config.expiresAt)-Date.now()+25));
+    const keys=f.state.keys;
+    await assert.rejects(f.make({ authorizeHistoricalResult:async () => {} }).readHistorical(f.target)); assert.equal(f.state.keys,keys);
+    let allowed=true;
+    await assert.rejects(g.make({ authorizeHistoricalResult:async () => { if (!allowed) throw new Error('private-history-marker'); },
+      keyForDraft:async () => { allowed=false; return g.key; } }).readHistorical(g.target));
+    let draftAllowed=true,keyReads=0;
+    await assert.rejects(g.make({ authorizeHistoricalResult:async () => {},
+      authorizeDraft:async () => { if (!draftAllowed) throw new Error('private-draft-read-revoked'); },
+      keyForDraft:async () => { if (++keyReads===3) draftAllowed=false; return g.key; } }).readHistorical(g.target));
+    assert.equal(keyReads,4); // Revoked after source restoration, during result decryption.
+    let release!: () => void,entered!: () => void;
+    const held=new Promise<void>(resolve => { release=resolve; }),reached=new Promise<void>(resolve => { entered=resolve; });
+    const reader=g.make({ authorizeHistoricalResult:async () => {},keyForDraft:async () => { entered(); await held; return g.key; } });
+    const pending=reader.readHistorical(g.target); await reached; reader.close(); release(); await assert.rejects(pending);
+    assert.equal(await f.count(),1); assert.equal(await g.count(),1); assert.equal(await g.used(),3);
   });
 }

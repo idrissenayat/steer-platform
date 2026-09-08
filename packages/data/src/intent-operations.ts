@@ -57,6 +57,16 @@ const json = (v: unknown) => JSON.stringify(v);
 function freeze<T>(v: T): T {
   if (v && typeof v === 'object') { Object.values(v).forEach(freeze); Object.freeze(v); } return v;
 }
+function storedStep(row: any, config: Configuration, op: Operation, stepId: string): Step | null {
+  if (!row) return null;
+  const record = recordSchema.parse(row.record);
+  if (record.binding.organizationId !== config.organizationId || record.binding.subject !== config.subject || record.binding.operationId !== op.operationId
+    || record.binding.stepId !== stepId || record.binding.draftId !== op.draftId || record.binding.draftRevision !== op.draftRevision
+    || record.binding.configurationRevision !== config.configurationRevision || record.reservationId !== row.reservation_id
+    || row.budget_id !== (config.budget?.budgetId ?? null) || ((record.state === 'succeeded') !== (row.result_ref !== null))) throw new Conflict();
+  return { record, predecessorResultDigest: digest.nullable().parse(row.predecessor_result_digest),
+    resultRef: uuid.nullable().parse(row.result_ref), budgetId: row.budget_id };
+}
 
 /** Uninstalled metadata adapter. Configuration is not policy/spending authority.
  * Trusted authorize verifies current identity, scope, source and records authority.
@@ -170,14 +180,7 @@ export function createIntentOperationStore(pool: DatabasePool, rawConfiguration:
   async function readStep(client: PoolClient, op: Operation, stepId: string): Promise<Step | null> {
     const row = (await client.query('SELECT * FROM steer_execution.intent_steps WHERE organization_id=$1 AND operation_id=$2 AND step_id=$3 AND subject=$4 FOR UPDATE',
       [config.organizationId, op.operationId, stepId, config.subject])).rows[0];
-    if (!row) return null;
-    const record = recordSchema.parse(row.record);
-    if (record.binding.organizationId !== config.organizationId || record.binding.subject !== config.subject || record.binding.operationId !== op.operationId
-      || record.binding.stepId !== stepId || record.binding.draftId !== op.draftId || record.binding.draftRevision !== op.draftRevision
-      || record.binding.configurationRevision !== config.configurationRevision || record.reservationId !== row.reservation_id
-      || row.budget_id !== (config.budget?.budgetId ?? null) || ((record.state === 'succeeded') !== (row.result_ref !== null))) throw new Conflict();
-    return { record, predecessorResultDigest: digest.nullable().parse(row.predecessor_result_digest),
-      resultRef: uuid.nullable().parse(row.result_ref), budgetId: row.budget_id };
+    return storedStep(row, config, op, stepId);
   }
   async function predecessor(client: PoolClient, op: Operation, request: z.infer<typeof stepReference>, verify: (step: Step) => Promise<void>) {
     const roles = config.action === 'develop' ? ['architect', 'test-agent'] : ['candidate-save'];
@@ -289,5 +292,67 @@ export function createIntentOperationStore(pool: DatabasePool, rawConfiguration:
       });
     },
     close: () => { closed = true; },
+  };
+}
+
+const expiredStepTarget = reference.extend({ stepId: z.enum(['architect','test-agent']) });
+/** Separate, explicit historical metadata read. Never used by claim/transition.
+ * Current history/policy authority is mandatory; the old configuration only binds
+ * an expired record. It supplies no current execution, budget or retry permission.
+ */
+export function createExpiredDevelopmentStepReader(pool: DatabasePool, originalConfiguration: unknown, dependencies: {
+  authorize: (context: Readonly<{ configuration: Configuration; request: z.infer<typeof expiredStepTarget> }>) => Promise<void>;
+}) {
+  const config = freeze(configuration.parse(originalConfiguration)), configurationDigest = createHash('sha256').update(json(config)).digest('hex');
+  if (config.action !== 'develop' || typeof dependencies.authorize !== 'function') throw new Unavailable();
+  let closed = false, active = false, pending = 0;
+  const bounded = async <T>(work: Promise<T>): Promise<T> => {
+    pending++; void work.finally(() => { pending--; }).catch(() => {});
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try { return await Promise.race([work, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Unavailable()), 5000); })]); }
+    finally { if (timer) clearTimeout(timer); }
+  };
+  return {
+    async inspectExpired(raw: unknown): Promise<{ operation: Operation; step: Step; dispatchAllowed: false }> {
+      if (closed || active || pending) throw new Unavailable(); active = true;
+      let client: PoolClient | undefined, finished = false, broken = false;
+      try {
+        const request = freeze(expiredStepTarget.parse(raw));
+        const authorize = async () => {
+          if (closed || await bounded(dependencies.authorize(freeze({ configuration: config, request }))) !== undefined || closed) throw new Unavailable();
+        };
+        await authorize();
+        client = await bounded(pool.connect().then(c => { if (finished || closed) { c.release(true); throw new Unavailable(); } return c; }));
+        if (!client) throw new Unavailable();
+        await applyRuntimeQueryLimits(client); await client.query(clearScope);
+        await client.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');
+        const role = (await client.query(`SELECT r.rolname, session_user AS login_role, r.rolsuper, r.rolbypassrls,
+          EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+            WHERE n.nspname IN ('steer_execution','steer_usage') AND c.relowner=r.oid) AS owns_objects
+          FROM pg_roles r WHERE r.rolname=current_user`)).rows[0];
+        if (!role || role.rolname !== 'steer_app' || role.login_role !== 'steer_app' || role.rolsuper || role.rolbypassrls || role.owns_objects) throw new Unavailable();
+        await client.query("SELECT set_config('steer.execution_organization',$1,true),set_config('steer.execution_subject',$2,true)", [config.organizationId,config.subject]);
+        const row = (await client.query(`SELECT *, floor(extract(epoch FROM clock_timestamp())*1000)::bigint AS clock_ms
+          FROM steer_execution.intent_operations WHERE organization_id=$1 AND operation_id=$2 AND subject=$3`,
+          [config.organizationId,request.operationId,config.subject])).rows[0];
+        if (!row || row.action !== 'develop' || row.configuration_revision !== config.configurationRevision
+          || row.expires_at.getTime() !== Date.parse(config.expiresAt) || Number(row.clock_ms) < row.expires_at.getTime()) throw new Unavailable();
+        const binding = operationBinding.parse(row.binding);
+        if (binding.configurationDigest !== configurationDigest || binding.inputDigest !== request.inputDigest
+          || binding.draftId !== row.draft_id || binding.draftRevision !== Number(row.draft_revision)) throw new Unavailable();
+        const operation = { ...binding, operationId: request.operationId };
+        const step = storedStep((await client.query(`SELECT * FROM steer_execution.intent_steps
+          WHERE organization_id=$1 AND operation_id=$2 AND step_id=$3 AND subject=$4`,
+          [config.organizationId,request.operationId,request.stepId,config.subject])).rows[0], config, operation, request.stepId);
+        if (!step || closed) throw new Unavailable();
+        await client.query('COMMIT'); await client.query(clearScope); client.release(); client = undefined;
+        // No lease spans a current historical-authority lookup either.
+        await authorize(); return freeze({ operation, step, dispatchAllowed: false as const });
+      } catch {
+        if (client) try { await client.query('ROLLBACK'); await client.query(clearScope); } catch { broken = true; }
+        throw new Unavailable();
+      } finally { finished = true; client?.release(broken); active = false; }
+    },
+    close() { closed = true; },
   };
 }

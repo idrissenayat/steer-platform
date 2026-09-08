@@ -197,6 +197,13 @@ originals, provider provenance and durable development activities remain open.
 Result access currently also requires the original operation config to remain
 valid; longer-lived historical read authority must not reactivate an expired job.
 
+Implementation note (0218, inactive): that historical path now uses a separate
+current-authority port and read-only expired-step metadata reader. The original
+config is only a record-integrity binding. Historical outputs retain current
+draft/source/key/hold restrictions and omit checkpoint continuation references.
+No active mutation/checkpoint method falls back to history; expired jobs and their
+spending/dispatch grants remain expired. This is not live records-policy adoption.
+
 Implementation note (0210, inactive): candidate admission uses a separate versioned
 digest over the complete submission, exact consent and publication/provider profile,
 excluding the not-yet-minted operation ID. The immutable SQL operation then supplies

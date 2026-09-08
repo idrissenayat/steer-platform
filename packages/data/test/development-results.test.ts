@@ -14,6 +14,7 @@ test('result capture has no construction effects and malformed or denied request
   assert.throws(() => createDevelopmentResultStore({ execution:pool,drafts:pool },{ ...config,action:'candidate-save',budget:null },deps));
   const store = createDevelopmentResultStore({ execution:pool,drafts:pool },config,deps);
   await assert.rejects(store.read({ ...target,source:'private' })); await assert.rejects(store.read(target));
+  await assert.rejects(store.readHistorical(target));
   assert.equal(connects,0); store.close(); await assert.rejects(store.read(target)); assert.equal(connects,0);
 });
 test('timed-out result authorization keeps admission until it drains and never starts a late database operation', async () => {

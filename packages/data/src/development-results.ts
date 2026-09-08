@@ -2,7 +2,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import type { PoolClient } from 'pg';
 import { z } from 'zod';
 import { intentRoleResultSchema } from '@steer/tool-registry/intent-role-result';
-import { createIntentOperationStore, intentOperationConfigurationSchema, type IntentCheckpointReference } from './intent-operations.ts';
+import { createIntentOperationStore, createExpiredDevelopmentStepReader, intentOperationConfigurationSchema, type IntentCheckpointReference } from './intent-operations.ts';
 import { createDraftRevisionStore } from './draft-revisions.ts';
 import { draftEnvelopeSchema, DraftStorageError, openDraft, sealDraft } from './draft-envelope.ts';
 import { applyRuntimeQueryLimits, DatabaseCommitOutcomeUnknownError, type DatabasePool } from './runtime-pool.ts';
@@ -23,6 +23,8 @@ type Metadata = z.infer<typeof metadataSchema>;
 type Target = z.infer<typeof targetSchema>;
 type Stored = { metadata: Metadata; resultDigest: string; envelope: z.infer<typeof draftEnvelopeSchema> };
 type DraftDependencies = Parameters<typeof createDraftRevisionStore>[2];
+type ResultAuthorityContext = Readonly<{ configuration: z.infer<typeof intentOperationConfigurationSchema>;
+  target: { operationId: string; stepId: 'architect' | 'test-agent' }; action: 'put' | 'read' }>;
 const hash = (v: unknown) => createHash('sha256').update(JSON.stringify(v)).digest('hex');
 const resultHash = (v: Metadata) => hash(['steer-development-result/v1', v]);
 const aad = (v: Metadata) => JSON.stringify(['steer-development-result-content/v1', v]);
@@ -38,13 +40,16 @@ const clearScope = "SELECT set_config('steer.draft_organization','',false),set_c
 export function createDevelopmentResultStore(pools: { execution: DatabasePool; drafts: DatabasePool }, rawConfiguration: unknown, dependencies: {
   authorizeOperation: Parameters<typeof createIntentOperationStore>[2]['authorize'];
   authorizeDraft: DraftDependencies['authorize']; keyForDraft: DraftDependencies['keyForDraft'];
-  authorizeResult: (context: Readonly<{ configuration: z.infer<typeof intentOperationConfigurationSchema>;
-    target: { operationId: string; stepId: 'architect' | 'test-agent' }; action: 'put' | 'read' }>) => Promise<void>;
+  authorizeResult: (context: ResultAuthorityContext) => Promise<void>;
+  /** Current historical-read/policy authority, never the expired execution grant.
+   * Optional and disabled by default. Only readHistorical can use this port. */
+  authorizeHistoricalResult?: (context: ResultAuthorityContext) => Promise<void>;
 }) {
   const config = freeze(intentOperationConfigurationSchema.parse(rawConfiguration)), configurationDigest = hash(config);
   if (config.action !== 'develop') throw new DraftStorageError();
   for (const name of ['authorizeOperation','authorizeDraft','authorizeResult','keyForDraft'] as const)
     if (typeof dependencies[name] !== 'function') throw new DraftStorageError();
+  if (dependencies.authorizeHistoricalResult !== undefined && typeof dependencies.authorizeHistoricalResult !== 'function') throw new DraftStorageError();
   const draftConfig = freeze({ organizationId: config.organizationId, subject: config.subject, productId: config.productId,
     repository: config.repository, branch: config.branch, configurationRevision: config.configurationRevision, recordsPolicyDigest: config.recordsPolicyDigest });
   const draftConfigurationDigest = hash(draftConfig);
@@ -58,10 +63,14 @@ export function createDevelopmentResultStore(pools: { execution: DatabasePool; d
     try { return await Promise.race([work, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new DraftStorageError()), 5000); })]); }
     finally { if (timer) clearTimeout(timer); }
   };
-  const authorize = async (target: Pick<Target, 'operationId' | 'stepId'>, action: 'put' | 'read') => {
-    if (closed || await bounded(dependencies.authorizeResult(freeze({ configuration: config,
+  const authorize = async (target: Pick<Target, 'operationId' | 'stepId'>, action: 'put' | 'read', historical = false) => {
+    const check = historical ? dependencies.authorizeHistoricalResult : dependencies.authorizeResult;
+    if (closed || !check || (historical && action !== 'read') || await bounded(check(freeze({ configuration: config,
       target: { operationId: target.operationId, stepId: target.stepId }, action }))) !== undefined || closed) throw new DraftStorageError();
   };
+  const history = dependencies.authorizeHistoricalResult ? createExpiredDevelopmentStepReader(pools.execution, config, {
+    authorize: async context => authorize(context.request, 'read', true),
+  }) : null;
   const key = (draftId: string, keyId: string | null) => bounded(dependencies.keyForDraft(freeze({ ...draftConfig, draftId }), keyId));
   async function transaction<T>(work: (client: PoolClient) => Promise<T>): Promise<T> {
     let client: PoolClient | undefined, finished = false, committing = false, broken = false;
@@ -107,7 +116,13 @@ export function createDevelopmentResultStore(pools: { execution: DatabasePool; d
       || resultHash(m) !== resultDigest) throw new Conflict();
     return { metadata: m, resultDigest, envelope: draftEnvelopeSchema.parse(row.encrypted_value) };
   }
-  async function execution(t: Target) {
+  async function execution(t: Target, historical = false) {
+    if (historical) {
+      if (!history) throw new DraftStorageError();
+      const observed = await history.inspectExpired({ operationId:t.operationId,inputDigest:t.inputDigest,stepId:t.stepId });
+      if (closed || !['dispatch-committed','succeeded'].includes(observed.step.record.state)) throw new DraftStorageError();
+      return { op: observed.operation, step: observed.step };
+    }
     const observed = await operations.inspect({ operationId: t.operationId, inputDigest: t.inputDigest });
     if (closed || observed.outcome !== 'ok') throw new DraftStorageError();
     const step = observed.value.steps.find(s => s.record.binding.stepId === t.stepId);
@@ -120,15 +135,15 @@ export function createDevelopmentResultStore(pools: { execution: DatabasePool; d
       draftId: m.draftId, draftRevision: m.draftRevision, inputDigest: m.stepInputDigest, configurationRevision: config.configurationRevision },
       resultRef: m.resultRef, resultDigest: row.resultDigest, recordsPolicyDigest: config.recordsPolicyDigest });
   }
-  async function verifyExecution(row: Stored) {
-    const m = row.metadata, { op, step } = await execution(m), r = step.record;
+  async function verifyExecution(row: Stored, historical = false) {
+    const m = row.metadata, { op, step } = await execution(m, historical), r = step.record;
     if (op.draftId !== m.draftId || op.draftRevision !== m.draftRevision || r.binding.inputDigest !== m.stepInputDigest
       || r.owner !== m.owner || r.fencingToken !== m.fencingToken || r.reservationId !== m.reservationId
       || step.predecessorResultDigest !== m.predecessorResultDigest
       || (r.state === 'succeeded' && (r.resultDigest !== row.resultDigest || step.resultRef !== m.resultRef))) throw new Conflict();
   }
-  async function restore(row: Stored, action: 'put' | 'read') {
-    const m = row.metadata; await authorize(m, action); await verifyExecution(row);
+  async function restore(row: Stored, action: 'put' | 'read', historical = false) {
+    const m = row.metadata; await authorize(m, action, historical); await verifyExecution(row, historical);
     await transaction(c => currentSource(c, m));
     const source = await drafts.read({ draftId: m.draftId, revision: m.draftRevision });
     if (source.reference.revisionDigest !== m.draftRevisionDigest || source.reference.scopeInputDigest !== m.scopeInputDigest) throw new Conflict();
@@ -142,7 +157,9 @@ export function createDevelopmentResultStore(pools: { execution: DatabasePool; d
       if (!(currentKey.bytes instanceof Uint8Array) || currentKey.bytes.byteLength !== 32) throw new DraftStorageError();
       const current = Buffer.from(currentKey.bytes);
       try { if (currentKey.keyId !== lease.keyId || !current.equals(lease.bytes)) throw new DraftStorageError(); } finally { current.fill(0); }
-      await authorize(m, action); await verifyExecution(row);
+      if (await bounded(dependencies.authorizeDraft(freeze({ configuration:draftConfig,draftId:m.draftId,action:'read' }))) !== undefined || closed)
+        throw new DraftStorageError();
+      await authorize(m, action, historical); await verifyExecution(row, historical);
       const final = await transaction(async c => ({ expiry: await currentSource(c, m), row: await select(c, m),
         latestRevision: Number((await c.query('SELECT max(revision) AS revision FROM steer_drafts.draft_revisions WHERE organization_id=$1 AND draft_id=$2',
           [config.organizationId, m.draftId])).rows[0]?.revision) }));
@@ -195,6 +212,15 @@ export function createDevelopmentResultStore(pools: { execution: DatabasePool; d
         return await restore(row, 'read');
       } catch { throw new DraftStorageError(); } finally { active = false; }
     },
+    async readHistorical(raw: unknown) {
+      if (closed || active || pending || !history) throw new DraftStorageError(); active = true;
+      try {
+        const t = targetSchema.parse(raw); await authorize(t, 'read', true);
+        const row = await transaction(c => select(c, t)); if (!row || row.metadata.inputDigest !== t.inputDigest) throw new Conflict();
+        const { checkpoint: _notAContinuationReference, ...original } = await restore(row, 'read', true);
+        return freeze({ ...original, historical: true as const });
+      } catch { throw new DraftStorageError(); } finally { active = false; }
+    },
     async verifyCheckpoint(raw: IntentCheckpointReference): Promise<void> {
       if (closed || active || pending) throw new DraftStorageError(); active = true;
       try {
@@ -206,6 +232,6 @@ export function createDevelopmentResultStore(pools: { execution: DatabasePool; d
         await restore(row, 'read');
       } catch { throw new DraftStorageError(); } finally { active = false; }
     },
-    close() { closed = true; operations.close(); drafts.close(); },
+    close() { closed = true; operations.close(); drafts.close(); history?.close(); },
   };
 }

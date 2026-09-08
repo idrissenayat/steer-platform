@@ -23,6 +23,14 @@ and per-draft historical-key services. No real bootstrap installs this adapter.
   binding; unknown/known-failed/undispatched states cannot satisfy it. Construct a
   separately scoped instance for each active worker/readback lane; an instance is
   single-flight and retains admission while timed-out dependencies drain.
+- `readHistorical({ operationId, inputDigest, stepId })` is disabled unless the
+  separate `authorizeHistoricalResult` current-authority port is provided. It
+  requires actual operation expiry, uses the original config only as an integrity
+  binding, and still checks current draft/source/key/records access. It omits the
+  checkpoint reference and returns historical=true, never execution/retry authority.
+  Normal reads/writes/checkpoints never fall back to this route. The underlying
+  `createExpiredDevelopmentStepReader` exposes only read/close, uses READ ONLY SQL
+  and cannot claim, dispatch, checkpoint, extend expiry or renew a budget.
 - `close()` prevents new admission and suppresses late results. No deletion,
   refund, step transition, provider dispatch or automatic retry is available.
 
@@ -33,13 +41,14 @@ lifecycle/metadata trigger constrain insertion. One row per role/operation limit
 this table to at most two results per admitted development operation. Each plaintext
 envelope is capped at 768 KiB. There is no purge or permission to discard history.
 
-All external key/authority calls run outside transactions. Result access currently
-also requires the original operation configuration to remain valid (maximum 24
-hours); seven-day draft retention is not a seven-day result-access guarantee.
+All external key/authority calls run outside transactions. Active result access
+requires the original operation configuration to remain valid (maximum 24 hours).
+Historical reading after that deadline needs the separate current authority above;
+neither path extends draft retention or guarantees key/record availability.
 Capturing bytes against a dispatch-committed record is not proof of provider
 delivery, model authorship, fresh context or semantic/Exam adequacy. Original
-prompt/evidence envelopes, provider provenance, durable activities, scoped historical
-access beyond operation expiry and actual UI integration remain separate work.
+prompt/evidence envelopes, provider provenance, durable activities, actual current
+history/records authority and UI integration remain separate work.
 
 ## Shared storage boundaries
 

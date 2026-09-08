@@ -4582,3 +4582,30 @@ was activated. Signed sources and the accepted policy remain unchanged.
 Original prompts/evidence and provider provenance, durable development activities,
 historical result authority beyond the original operation's 24-hour maximum,
 and actual editor integration remain next. I1–I6 are still incomplete.
+
+## Development increment: 0218 — Historical results without job reactivation
+
+Added opt-in historical result reading after actual operation expiry, with a
+separate current-authority port. A read-only expired-step metadata reader validates
+the original owner/config/input binding without renewing execution or spending
+authority. Current source integrity, draft lifecycle, holds and historical keys
+still govern encrypted output restoration. Responses omit checkpoint continuation
+references and preserve original/latest draft revisions separately.
+
+Normal reads, captures and checkpoint verification still reject expired jobs;
+there is no automatic fallback. Historical access cannot erase a quarantine,
+change a result or reservation, extend expiry, authorize retry or sign a gate.
+See [0218 evidence](../intent/0218/EVIDENCE.md) for tests and limits.
+
+Verification: **133/133** disposable SQL/native-Git/Temporal integration checks and
+**286/286** scoped units/migration controls plus **33/33** existing Temporal/
+projection checks pass. Full typecheck, kit/scope and
+whitespace checks pass; protected source hashes remain unchanged. A pre-existing
+host/database-clock assumption in lifecycle test fixtures was corrected to use
+database observations without changing runtime expiry rules.
+
+No schema, real migration, live authority/key/model/runtime GitHub write, deployment
+or accepted-policy change was made. The seventeen-entry development journal stays
+held against the seven-entry real baseline. D1 is unsigned/inactive and I1–I6 stay
+open. Original prompts/evidence, provider provenance, durable role activities and
+actual editor/API acknowledgement/recovery remain next.

@@ -247,3 +247,11 @@ result access currently also requires the original operation configuration to
 remain valid (maximum 24 hours); longer-lived scoped reads remain to implement.
 See [0217 evidence](../intent/0217/EVIDENCE.md). No live persistence or model/save
 authority is activated; I1–I6 remain incomplete.
+
+0218 adds the separate disabled historical-read path for retained result originals
+after actual operation expiry. It requires current historical authority, keeps
+draft/source/key/lifecycle limits, omits checkpoint continuation references and
+never renews jobs, budgets or expired grants. Active read/put/checkpoint paths do
+not fall back to history. See [0218 evidence](../intent/0218/EVIDENCE.md). Original
+prompt/evidence storage, provider provenance, durable role activities and actual
+editor integration remain next; no live authority or UI acceptance is supplied.
