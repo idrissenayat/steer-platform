@@ -4633,3 +4633,25 @@ is held against the seven-entry real baseline. D1 remains unsigned and I1–I6 s
 open. Rendered requests/provider provenance, durable development activities and
 actual editor/API integration remain next. No live activation, spending, runtime
 GitHub write, deployment or signed-source change occurred.
+
+## Development increment: 0220 — Exact role contexts and request-bound steps
+
+Implemented disabled deterministic Architect/Test Agent request preparation from
+actual encrypted originals and succeeded checkpoints. Original human source and
+source-revision Brief/Spec remain separate from the generated candidate; no prior
+Exam or Architect commentary field is inherited by the Test Agent. Exact context,
+instructions/profile and predecessor bind each durable step's input digest.
+
+The reader checks current revision/access/lifecycle and actual SQL state, including
+a final state check after source restoration. Existing mismatched, sent, failed or
+quarantined own work cannot return as newly prepared work. Preparation never
+reserves money or authorizes dispatch. See [0220 evidence](../intent/0220/EVIDENCE.md).
+
+Verification: **147/147** disposable SQL/native-Git/Temporal integration checks and
+**296/296** scoped units/migration controls pass. Full typecheck, kit/scope and
+whitespace checks pass; protected source hashes remain unchanged.
+
+Provider-request persistence/observations, response/usage provenance, durable
+activities and actual editor/API integration remain next. No live model/storage/
+save authority, schema, real migration, accepted policy or signed source changed.
+D1 remains inactive; I1–I6 stay open.

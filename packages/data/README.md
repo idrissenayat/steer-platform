@@ -1,5 +1,26 @@
 # Tenant projections and operational storage
 
+## Private development requests (uninstalled)
+
+`@steer/data/development-requests` renders explicit Architect/Test Agent contexts
+from preserved original input. The Test Agent receives original source-revision
+Brief/Spec separately from its actual Architect predecessor's candidate documents;
+old Exam and Architect commentary fields are excluded. Exact instructions, context,
+role profile and predecessor bind a domain-separated step-input digest.
+
+`createDevelopmentRequestReader` takes the records scope, execution/draft pools,
+required original/result dependencies and current role-request authority. Its only
+methods are `read({operationId,inputDigest,role})` and `close`. It requires current
+draft revision and actual succeeded Architect checkpoint, rejects mismatched/sent/
+failed/quarantined own steps and rechecks state after source restoration. It never
+claims, dispatches, reserves, renews, saves or signs anything.
+
+The returned packet contains private text, not a workflow/status payload. Send
+references through Temporal and load inside the worker. This is deterministic
+preparation, not observed or persisted provider-request capture; current source/
+budget authority, profile binding, acknowledged dispatch and actual provider
+provenance remain required before model execution.
+
 ## Original development context (uninstalled)
 
 `@steer/data/development-original-contracts` validates exact source/configuration,

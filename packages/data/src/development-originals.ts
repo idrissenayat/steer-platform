@@ -10,6 +10,7 @@ const id = z.string().min(1).max(200).refine(v => v.trim().length > 0 && !/[\u00
 const digest = z.string().regex(/^[a-f0-9]{64}(?![\s\S])/), uuid = z.uuid().length(36).refine(v => v === v.toLowerCase());
 const revision = z.number().int().min(1).max(1000);
 const configurationSchema = z.strictObject({ organizationId:id,subject:id,productId:id,repository:id,branch:id,configurationRevision:id,recordsPolicyDigest:digest });
+export const developmentRecordsConfigurationSchema = configurationSchema;
 const targetSchema = z.strictObject({ operationId:uuid,inputDigest:digest });
 const metadataSchema = configurationSchema.pick({ organizationId:true,subject:true,productId:true }).extend({ operationId:uuid,inputDigest:digest,
   draftId:uuid,draftRevision:revision,draftRevisionDigest:digest,scopeInputDigest:digest,configurationDigest:digest,executionConfigurationDigest:digest });

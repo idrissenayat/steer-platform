@@ -133,6 +133,14 @@ no profile label proves delivery, independent authorship or pricing bounds.
 
 ### Durable execution ownership
 
+0220 adds disabled deterministic private request preparation over retained inputs
+and actual succeeded Architect checkpoints. Both source-revision Brief/Spec and
+new candidate documents remain explicit; prior Exam and Architect commentary do
+not enter Test Agent context automatically. Exact request hashes bind role steps.
+Preparation/readback is neither a paid dispatch permit nor observed provider
+delivery; actual request capture, provider provenance and durable activities remain
+open. The packet contains private bytes and cannot be a Temporal/history payload.
+
 The API accepts/queries operations; an internal Temporal workflow owns the long
 conversation job. Use a draft-scoped identity before an item exists:
 `steer-intent-development/v1/<organizationId>/<draftId>/<operationId>` with
