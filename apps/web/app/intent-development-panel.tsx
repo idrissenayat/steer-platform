@@ -91,6 +91,11 @@ export default function IntentDevelopmentPanel({ source, enabled, identity, expi
     {view.source && !matches && <p role="status">Your editor differs from this reviewed revision. Earlier results will not replace your text. Preserve and review the current revision before continuing.</p>}
     {review && <div className="intent-development-sources">
       <p>Checked {review.coverage.includedCount} of {review.coverage.inventoryCount} source documents at commit <code>{review.snapshot.head.slice(0, 12)}</code>.</p>
+      <section className="access-note" aria-label="Scope assessment plan">
+        <p>Assessment plan: {view.review!.output.scopeBatchPlan.batches.length} {view.review!.output.scopeBatchPlan.batches.length === 1 ? 'batch' : 'batches'} covering {view.review!.output.scopeBatchPlan.coverage.plannedCount} of {view.review!.output.scopeBatchPlan.coverage.inventoryCount} source documents.</p>
+        <p>Planning keeps each intent’s Brief, Spec and proposed amendments together. This has not assessed duplicates or started model calls.</p>
+        {!view.review!.output.scopeBatchPlan.coverage.plannedComplete && <p>Planning coverage is incomplete. Missing, inaccessible or oversized context must be resolved before claiming complete assessment.</p>}
+      </section>
       <p className="access-note">These are source documents, not a semantic duplicate verdict. Rephrased or partially overlapping work still needs assessment. A complete source inventory alone does not establish that an intent is new.</p>
       {!review.coverage.complete && <p role="alert">Coverage is incomplete. Agent development is blocked until missing or inaccessible sources are resolved. No new-intent conclusion has been made.</p>}
       {review.evidence.map(item => <details key={item.sourceId}><summary>{item.path} · {item.status}</summary>

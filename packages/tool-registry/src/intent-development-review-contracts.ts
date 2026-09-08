@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { intentDevelopmentPrepareInputSchema } from './intent-development-prepare-contracts.ts';
-import { buildIntentEvidenceEnvelope, intentEvidenceInputSchema } from './intent-evidence-contracts.ts';
+import { intentEvidenceInputSchema } from './intent-evidence-contracts.ts';
+import { intentScopeBatchPlanSchema, planIntentScopeBatches } from './intent-scope-batches.ts';
 
 export const intentDevelopmentReviewInputSchema = intentDevelopmentPrepareInputSchema.omit({
   configurationRevision: true, sourceSnapshotDigest: true, choice: true,
@@ -8,6 +9,7 @@ export const intentDevelopmentReviewInputSchema = intentDevelopmentPrepareInputS
 export const intentDevelopmentReviewOutputSchema = intentDevelopmentReviewInputSchema.extend({
   kind: z.literal('steer-development-review/v1'), configurationRevision: z.string().min(1).max(200),
   sourceSnapshotDigest: intentDevelopmentPrepareInputSchema.shape.sourceSnapshotDigest,
+  scopeBatchPlan: intentScopeBatchPlanSchema,
   evidence: intentEvidenceInputSchema.refine(v => new TextEncoder().encode(JSON.stringify(v)).length <= 350000,
     'Source review exceeds the bounded response limit.'),
   semanticReviewComplete: z.literal(false), authoritativeClearance: z.literal(false),
@@ -21,8 +23,8 @@ export async function verifyDevelopmentReview(rawInput: unknown, rawOutput: unkn
   const input = intentDevelopmentReviewInputSchema.parse(rawInput), output = intentDevelopmentReviewOutputSchema.parse(rawOutput);
   if ((Object.keys(input) as Array<keyof typeof input>).some(k => output[k] !== input[k])
     || (['organizationId', 'productId', 'repository', 'scopeInputDigest'] as const).some(k => output.evidence[k] !== input[k])) throw new Error('Source review changed.');
-  const envelope = await buildIntentEvidenceEnvelope(output.evidence);
-  if (envelope.sourceSnapshotDigest !== output.sourceSnapshotDigest) throw new Error('Source review changed.');
+  const plan = await planIntentScopeBatches(output.evidence), envelope = plan.envelope;
+  if (envelope.sourceSnapshotDigest !== output.sourceSnapshotDigest || JSON.stringify(output.scopeBatchPlan) !== JSON.stringify(plan.summary)) throw new Error('Source review changed.');
   return { output, envelope };
 }
 export interface IntentDevelopmentReviewReader {

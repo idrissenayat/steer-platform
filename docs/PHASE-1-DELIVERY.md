@@ -4968,3 +4968,24 @@ grant, spending, gate, deployment, release or signed source changed. Continue re
 authority binding and contextual/semantic assessment, then authorized runtime/save
 integration and human acceptance. Larger corpora currently stop incomplete at the
 document/read/context bounds. I1–I6 remains open.
+
+## Development increment: 0233 — Whole-target scope review batches
+
+Provider-free planning keeps each target's listed Brief, Spec and proposed
+amendments together in at most eight exact-context batches. Missing or oversized
+context withholds its target, and parent coverage preserves global inventory/access
+gaps. Portable result validation recomputes the plan and checks every batch/profile,
+source and citation; missing batches/findings or abstentions remain incomplete.
+Structural completion never asserts semantic quality or action authority.
+
+The recorded-review API and actual editor now exchange and display the verified
+plan. Existing first-32 evidence and generation eligibility remain unchanged;
+planning more batches cannot enable model execution. No additional preview or
+browser persistence is introduced. [0233 evidence](../intent/0233/EVIDENCE.md)
+records development verification and the boundary from real semantic acceptance.
+
+No real records, credentials, migrations, grants, paid calls, runtime Git saving,
+gates, deployment, release or protected sources changed. D1 remains inactive.
+Continue real source/lifecycle authority, larger-corpus fetching/context and durable
+budgeted semantic execution/evaluation, then authorized save/reopen and the actual
+human journey. All I1–I6 acceptance remains open.

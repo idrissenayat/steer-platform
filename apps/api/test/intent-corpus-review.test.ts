@@ -33,6 +33,8 @@ test('actual review HTTP consumes repository-enumerated native Git evidence thro
   assert.equal(output.evidence.head, f.git.head()); assert.equal(envelope.coverage.complete, true);
   assert.deepEqual(output.evidence.inventory.map(s => s.path), ['intent/0001/BRIEF.md', 'intent/0001/SPEC.md']);
   assert.match(output.evidence.documents[1]!.content, /Out of scope: patient booking/);
+  assert.equal(output.scopeBatchPlan.batches.length, 1); assert.equal(output.scopeBatchPlan.coverage.plannedCount, 2);
+  assert.equal(output.scopeBatchPlan.scopeInputDigest, f.f.input.scopeInputDigest); assert.equal(output.scopeBatchPlan.modelCallsStarted, 0);
   assert.equal(output.semanticReviewComplete, false); assert.equal(output.executionAuthorized, false); assert.equal(f.git.mutations(), 0);
 });
 test('actual corpus review denies missing authority and changed Git head between its independent source reads', async t => {

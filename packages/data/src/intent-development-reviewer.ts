@@ -1,7 +1,8 @@
 import { intentDevelopmentReviewInputSchema, verifyDevelopmentReview, type IntentDevelopmentReviewReader,
   type IntentDevelopmentReviewInput } from '@steer/tool-registry/intent-development-review-contracts';
 import { intentDraftReadOutputSchema, type IntentDraftService } from '@steer/tool-registry/intent-draft-contracts';
-import { buildIntentEvidenceEnvelope, intentEvidenceInputSchema } from '@steer/tool-registry/intent-evidence-contracts';
+import { intentEvidenceInputSchema } from '@steer/tool-registry/intent-evidence-contracts';
+import { planIntentScopeBatches } from '@steer/tool-registry/intent-scope-batches';
 import { developmentRecordsConfigurationSchema } from './development-originals.ts';
 import { developmentOriginalHash as hash, freezeOriginal as freeze } from './development-original-contracts.ts';
 
@@ -44,9 +45,9 @@ export function createIntentDevelopmentReviewer(rawConfiguration: unknown, deps:
         if (await deps.authorizeReview(input, value) !== undefined) throw unavailable(); await current(); return value;
       };
       const work = Promise.resolve().then(async () => {
-        const draft = await read(), sources = await evidence(), envelope = await buildIntentEvidenceEnvelope(sources);
+        const draft = await read(), sources = await evidence(), plan = await planIntentScopeBatches(sources), envelope = plan.envelope;
         const { output } = await verifyDevelopmentReview(input, { ...input, kind: 'steer-development-review/v1', configurationRevision,
-          sourceSnapshotDigest: envelope.sourceSnapshotDigest, evidence: sources, semanticReviewComplete: false,
+          sourceSnapshotDigest: envelope.sourceSnapshotDigest, scopeBatchPlan: plan.summary, evidence: sources, semanticReviewComplete: false,
           authoritativeClearance: false, executionAuthorized: false, savedToGit: false, gateSigned: false });
         if (hash(await read()) !== hash(draft) || hash(await evidence()) !== hash(sources)) throw unavailable();
         await current(); return freeze(output);

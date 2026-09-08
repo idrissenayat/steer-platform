@@ -98,6 +98,7 @@ const assessment = z.strictObject({
     citations: z.array(citation).min(1).max(64),
   })).max(32),
 });
+export const intentScopeAssessmentSchema = assessment;
 
 /** Valid citations do NOT prove semantic quality, independence, newness or authority. */
 export function validateIntentScopeAssessment(envelope: IntentEvidenceEnvelope, value: unknown, configurationRevision: string) {

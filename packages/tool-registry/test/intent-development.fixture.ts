@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { buildIntentEvidenceEnvelope } from '../src/intent-evidence-contracts.ts';
+import { planIntentScopeBatches } from '../src/intent-scope-batches.ts';
 import { fingerprintIntentScope } from '../src/intent-revision-contracts.ts';
 import { intentDevelopmentReviewOutputSchema } from '../src/intent-development-review-contracts.ts';
 import { intentDevelopmentPrepareOutputSchema } from '../src/intent-development-prepare-contracts.ts';
@@ -19,6 +20,7 @@ export async function developmentFixture() {
     documents: [{ sourceId: 'brief-1', content: text }] };
   const envelope = await buildIntentEvidenceEnvelope(evidence);
   const review = intentDevelopmentReviewOutputSchema.parse({ ...input, kind: 'steer-development-review/v1', configurationRevision: 'config-r1',
+    scopeBatchPlan: (await planIntentScopeBatches(evidence)).summary,
     sourceSnapshotDigest: envelope.sourceSnapshotDigest, evidence, semanticReviewComplete: false, authoritativeClearance: false,
     executionAuthorized: false, savedToGit: false, gateSigned: false });
   const choice = { action: 'new-distinct' as const, reason: 'The reviewed billing scope excludes patient booking.' };

@@ -604,3 +604,15 @@ reader binding or authority suppresses output. The current whole-document/read
 bounds still require contextual batching for larger corpora. See
 [0232 specification](../../intent/0232/SPEC.md). Real verifier binding, semantic
 assessment and live records/model/save acceptance remain outstanding.
+
+0233 plans whole-target batches over that declared corpus. All listed Brief/Spec/
+amendment sources for a target stay together; missing or oversized context is an
+explicit gap. The parent manifest binds global coverage and exact local envelopes.
+Combined receipt validation recomputes the plan, verifies configured assessments
+and byte-exact citations, and keeps absent/abstained results incomplete. Structural
+coverage is not semantic accuracy, independence, provenance or action authority.
+The actual review API/editor display verified planning metadata only. Existing
+single-envelope generation gates remain unchanged, even when more documents fit
+the plan. See [0233 specification](../../intent/0233/SPEC.md). No model dispatch,
+records activation or runtime save is introduced; durable semantic execution,
+larger-corpus context, real authority and human acceptance remain next work.

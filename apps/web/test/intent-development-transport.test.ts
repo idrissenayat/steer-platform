@@ -23,7 +23,8 @@ test('substituted identity, source, direction, snapshots or false authority clai
   const f = await developmentFixture();
   for (const output of [{ ...f.review, draftId: f.prepared.reference!.operationId }, { ...f.review, sourceSnapshotDigest: 'f'.repeat(64) },
     { ...f.review, evidence: { ...f.review.evidence, documents: [{ sourceId: 'brief-1', content: 'Altered' }] } },
-    { ...f.review, semanticReviewComplete: true }]) await assert.rejects(createIntentDevelopmentTransport('https://steer.example', async () => Response.json(output)).review(f.input));
+    { ...f.review, semanticReviewComplete: true }, { ...f.review, scopeBatchPlan: { ...f.review.scopeBatchPlan, planDigest: 'f'.repeat(64) } },
+    { ...f.review, scopeBatchPlan: { ...f.review.scopeBatchPlan, modelCallsStarted: 1 } }]) await assert.rejects(createIntentDevelopmentTransport('https://steer.example', async () => Response.json(output)).review(f.input));
   for (const output of [{ ...f.prepared, choice: { ...f.choice, reason: 'Silently different' } }, { ...f.prepared, revision: 2 }, { ...f.prepared, savedToGit: true }])
     await assert.rejects(createIntentDevelopmentTransport('https://steer.example', async () => Response.json(output)).prepare(f.prepareInput));
   await assert.rejects(createIntentDevelopmentTransport('https://steer.example', async () => Response.json({ ...f.ready, organizationId: 'foreign' })).read(f.readInput));

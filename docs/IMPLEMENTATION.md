@@ -1,6 +1,6 @@
 # STEER platform implementation
 
-## Current checkpoint — 0232
+## Current checkpoint — 0233
 
 Use [the intent journey plan](INTENT-JOURNEY-PLAN.md) and
 [the delivery ledger](PHASE-1-DELIVERY.md) for current status; the implementation
@@ -8,8 +8,10 @@ history below is not the current remaining-work forecast. The actual Next editor
 now connects recorded review/prepare/start/read, clarification and candidate
 adoption (0230), plus owned-draft discovery and read-first retained-run recovery
 after refresh (0231). Repository-wide legacy/current scope enumeration now feeds
-the recorded review API under explicit access/lifecycle authority (0232). See
-[0232 evidence](../intent/0232/EVIDENCE.md).
+the recorded review API under explicit access/lifecycle authority (0232). The same
+review API/editor now expose whole-target scope batch plans, with portable combined
+result/citation validation (0233). Planning does not start semantic assessment or
+relax the legacy generation gate. See [0233 evidence](../intent/0233/EVIDENCE.md).
 
 These are tested development capabilities, not live end-to-end acceptance. D1
 records activation, real source/lifecycle verifier binding, large-corpus contextual

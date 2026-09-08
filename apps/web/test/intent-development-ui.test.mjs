@@ -9,6 +9,7 @@ import { createElement, act } from 'react';
 import { JSDOM } from 'jsdom';
 import { fingerprintIntentScope } from '@steer/tool-registry/intent-revision-contracts';
 import { buildIntentEvidenceEnvelope } from '@steer/tool-registry/intent-evidence-contracts';
+import { planIntentScopeBatches } from '@steer/tool-registry/intent-scope-batches';
 import { developmentFixture } from '../../../packages/tool-registry/test/intent-development.fixture.ts';
 
 // Entire production React graph and transports, only HTTP/provider inputs synthetic.
@@ -62,7 +63,8 @@ test('actual editor preserves, reviews, clarifies, recovers a lost start and exp
     if (url.endsWith('intent.development.review')) {
       assert.equal(input.revisionDigest, reference.revisionDigest);
       const evidence = { ...f.evidence, scopeInputDigest: reference.scopeInputDigest, inventoryComplete: !incomplete };
-      return Response.json({ ...f.review, ...input, evidence, sourceSnapshotDigest: (await buildIntentEvidenceEnvelope(evidence)).sourceSnapshotDigest });
+      return Response.json({ ...f.review, ...input, evidence, scopeBatchPlan: (await planIntentScopeBatches(evidence)).summary,
+        sourceSnapshotDigest: (await buildIntentEvidenceEnvelope(evidence)).sourceSnapshotDigest });
     }
     if (url.endsWith('intent.development.prepare')) {
       assert.equal(incomplete, false); assert.equal(input.revisionDigest, reference.revisionDigest);
@@ -103,6 +105,8 @@ test('actual editor preserves, reviews, clarifies, recovers a lost start and exp
     assert.equal(button('Confirm direction and develop this draft').disabled, true); assert.equal(operations.size, 0);
     incomplete = false; await click('Review existing work for this draft');
     assert.match(document.body.textContent, /Out of scope: patient booking/); assert.equal(document.activeElement.id, 'development-title');
+    assert.match(document.querySelector('[aria-label="Scope assessment plan"]').textContent, /1 batch covering 1 of 1/);
+    assert.match(document.body.textContent, /has not assessed duplicates or started model calls/);
     await direction(); await click('Confirm direction and develop this draft'); assert.equal(operations.size, 1);
     assert.match(document.body.textContent, /Which booking rules apply/); await click('Answer these questions');
     assert.equal(document.activeElement.id, 'agent-clarification'); await set('agent-clarification', ' Patients can cancel up to 24 hours before.\n');
