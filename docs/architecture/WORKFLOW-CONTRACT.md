@@ -549,3 +549,13 @@ replacing newer human text. See [0227 specification](../../intent/0227/SPEC.md).
 Read status cannot start/retry work, sign gates, save Git or count an Exam as run.
 Recorded-development submission and editor progress/results are still unconnected;
 the real service remains inactive pending its existing records/runtime authority.
+
+0228 supplies `intent.development.start` for an already admitted, retained operation
+and exact expected source revision. The uninstalled data/Temporal composition checks
+current records, source and execution authority, and recovers only the same verified
+reference-only workflow start. Retention must cover the bounded operation lifetime;
+an absent/mismatched record, stale source or unknown start cannot authorize a new
+operation, workflow replacement or model retry. A scheduling receipt is not document
+readiness; 0227 remains the separate authorized SQL results query. See
+[0228 specification](../../intent/0228/SPEC.md). Reviewed-draft assembly/admission
+and the actual editor connection remain upstream work, with live activation closed.

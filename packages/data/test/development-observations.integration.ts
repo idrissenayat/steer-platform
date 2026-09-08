@@ -15,6 +15,7 @@ import { createRecordedDevelopmentModel } from '../../../apps/worker/src/recorde
 import { RECORDED_MASTRA_REVISION } from '../../agents/src/recorded-mastra.ts';
 import { testDevelopmentWorkflow } from '../../../apps/worker/test/development-workflow.integration.ts';
 import { testIntentDevelopmentRead } from '../../../apps/api/test/intent-development-read.integration.ts';
+import { testDevelopmentStart, createDevelopmentStartHarness } from '../../../apps/api/test/intent-development-start.integration.ts';
 type Deps = Parameters<typeof createDevelopmentObservationStore>[2];
 
 export async function testDevelopmentObservations({admin,connect,check}:{admin:Pool;connect(role:string):Pool;check(name:string,run:()=>Promise<void>):Promise<void>}) {
@@ -234,10 +235,12 @@ export async function testDevelopmentObservations({admin,connect,check}:{admin:P
     assert.equal((await f.drafts.read({draftId:f.draftId,revision:'latest'})).content.originalText,'A correction during the last authorization wait');
   });
   await testIntentDevelopmentRead(ttl => setup(false,false,true,ttl), check, admin);
+  await testDevelopmentStart(() => setup(false,false,true), check, admin);
   await testDevelopmentWorkflow(async()=>{
     const f=await setup(false,false,true);
     return{
       target:{organizationId:f.config.organizationId,...f.target},output:f.response.result.output,count:f.count,
+      startHarness: scheduler => createDevelopmentStartHarness(f, scheduler),
       make(transport,authorize=async()=>{}){
         const model=f.recordedModel(transport),runtime=createDevelopmentStepRuntime(f.pools,f.config,f.target,{reader:f.reader,model,authorize});
         return{run:runtime.run,close(){runtime.close();model.close();}};

@@ -4,12 +4,15 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { DefaultLogger, Runtime, Worker } from '@temporalio/worker';
 import { createDevelopmentActivities } from '../src/development-activity.ts';
 import { createDevelopmentWorker } from '../src/worker.ts';
-import { startIntentDevelopment } from '../src/client.ts';
+import { startIntentDevelopment, createDevelopmentSchedulerClient } from '../src/client.ts';
+import type { createDevelopmentStartHarness } from '../../../apps/api/test/intent-development-start.integration.ts';
+import type { Client } from '@temporalio/client';
 import { developmentWorkflowId, type DevelopmentTarget } from '../src/development-workflow-contracts.ts';
 import { createIsolatedTemporalHarness } from './isolated-temporal-harness.ts';
 
 type DevelopmentRuntime = Parameters<typeof createDevelopmentActivities>[1];
 export type DevelopmentWorkflowFixture = {
+  startHarness(scheduler: Parameters<typeof createDevelopmentStartHarness>[1]): ReturnType<typeof createDevelopmentStartHarness>;
   target: DevelopmentTarget;
   output: { message: string; questions: string[]; brief: string; spec: string };
   make(transport: typeof fetch, authorize?: () => Promise<void>): DevelopmentRuntime;
@@ -42,6 +45,38 @@ export async function testDevelopmentWorkflow(setup: () => Promise<DevelopmentWo
     running = worker.run();
   };
   try {
+    await check('actual HTTP-to-SQL-to-Temporal start and lost-response recovery use one workflow and two recorded model steps', async () => {
+      const t = await fresh(); let starts = 0, calls = 0;
+      const uncertain = { options: env.client.options, workflowService: env.client.workflowService, withDeadline: env.client.withDeadline.bind(env.client),
+        workflow: { getHandle: env.client.workflow.getHandle.bind(env.client.workflow), start: async (...args: Parameters<typeof env.client.workflow.start>) => {
+          starts++; await env.client.workflow.start(...args); throw new Error('private-start-response-lost');
+        } } } as unknown as Client;
+      const scheduler = createDevelopmentSchedulerClient(uncertain, { namespace: 'default', taskQueue: t.queue });
+      const api = t.f.startHarness(scheduler);
+      try {
+        const first = await api.post(); assert.equal(first.status, 200); assert.equal((await first.json()).receipt.outcome, 'unknown');
+        const receiptResponse = await api.post(); assert.equal(receiptResponse.status, 200); const receipt = (await receiptResponse.json()).receipt;
+        assert.equal(receipt.outcome, 'acknowledged'); assert.equal(starts, 1);
+        await runWorker(t, async (_url, init) => { calls++; const body = JSON.parse(String(init?.body));
+          return response(body.response_format.json_schema.schema.properties.exam ? { exam: '# Recorded Exam\nNOT RUN' } : t.f.output); });
+        const handle = env.client.workflow.getHandle(developmentWorkflowId(t.f.target));
+        assert.equal((await handle.result()).outcome, 'succeeded'); assert.equal(calls, 2); assert.equal(await t.f.count(), 4);
+        assertPrivateHistory(await handle.fetchHistory()); await stop();
+        const reconstructed = createDevelopmentSchedulerClient(env.client, { namespace: 'default', taskQueue: t.queue });
+        const reopened = t.f.startHarness(reconstructed);
+        try { const after = await reopened.post(); assert.equal(after.status, 200); const body = await after.json();
+          assert.equal(body.receipt.runId, receipt.runId); assert.equal(body.receipt.state, 'COMPLETED'); assert.equal(body.documentsReady, false); assert.equal(calls, 2);
+        } finally { reopened.service.close(); reconstructed.close(); }
+      } finally { api.service.close(); scheduler.close(); await stop(); }
+    });
+    await check('actual Temporal same-ID foreign input is not acknowledged by development HTTP and cannot start replacement work', async () => {
+      const t = await fresh(), foreign = { ...t.f.target, inputDigest: 'f'.repeat(64) };
+      const handle = await startIntentDevelopment(env.client, t.queue, foreign);
+      const scheduler = createDevelopmentSchedulerClient(env.client, { namespace: 'default', taskQueue: t.queue }), api = t.f.startHarness(scheduler);
+      try { const result = await api.post(); assert.equal(result.status, 200); assert.equal((await result.json()).receipt.outcome, 'unknown');
+        assert.equal(await t.f.count(), 0); assertPrivateHistory(await handle.fetchHistory());
+      } finally { api.service.close(); scheduler.close(); await handle.terminate(); }
+    });
     await check('Temporal develops both SQL-backed roles once, replays reference-only history and rejects duplicate starts after worker recreation', async () => {
       const t = await fresh(); let calls = 0;
       const transport: typeof fetch = async (_url, init) => {

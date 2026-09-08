@@ -4842,3 +4842,27 @@ No real runtime service, database, migration, key/grant, model usage, Git save, 
 deployment, deletion or signed source changed. Next: recorded-development submission
 and actual editor progress/result/recovery connection, owned-draft discovery and
 full-source semantic review. D1 is unsigned/inactive; I1–I6 live acceptance stays open.
+
+## Development increment: 0228 — Recorded-development start/recovery API
+
+Added an explicitly granted human start command over an exact admitted operation,
+retained original and current source/records/execution checks. An uninstalled
+Temporal adapter fixes namespace/queue, checks sufficient history retention and
+verifies original reference input before acknowledging the existing run. Lost
+acknowledgements stay unknown until exact recovery. Newer source, holds and revoked
+permission cannot become fresh scheduling authority; receipts do not imply generated
+documents, model retries, Git save or gate signatures.
+
+Verification: **197/197** disposable SQL/SDK/Temporal integration checks,
+**448/448** scoped service/boundary/migration checks and **146/146** domain/frontend
+checks pass. The actual HTTP-to-SQL-to-Temporal test loses a start response, recovers
+the same run, generates exactly two synthetic recorded role calls and recovers the
+same run after completion. Full typecheck, production Next.js build, kit (95),
+token-scope and whitespace checks pass; signed-source hashes remain unchanged.
+See [0228 evidence](../intent/0228/EVIDENCE.md).
+
+Source assembly/admission is prepared by fixtures, not yet connected to the actual
+editor. Next complete that preparation and editor start/progress/result/recovery,
+owned-draft discovery and full-source semantic review. No real database/migration,
+configuration, key/grant, model use, Git save, gate, deployment or deletion changed.
+D1 remains unsigned/inactive, the real migration baseline held, and I1–I6 open.

@@ -4,6 +4,7 @@ import { createIntentDevelopment, type DevelopmentPermit } from '@steer/agents';
 import { createMastraDevelopmentRuntime } from '@steer/agents/mastra';
 import { createRecordedMastraVerifier, type RecordedRequest, type RecordedResponse } from '@steer/agents/recorded-mastra';
 import { createIntentDevelopmentReader } from '@steer/data/intent-development-reader';
+import { createIntentDevelopmentStarter } from '@steer/data/intent-development-starter';
 import { createAppJwtSigner, createGitHubReader, artifactSelectionSchema, type ArtifactReader } from '@steer/adapters/github';
 import { createPostgresBrowserSessionStore } from '@steer/data/browser-session';
 import { createRuntimePool } from '@steer/data/runtime-pool';
@@ -23,6 +24,11 @@ import { readProjection } from '@steer/data';
 import { createHeldGitBriefWriterFactory, heldGitBriefConfigurationSchema, type HeldBriefAssessment } from '@steer/adapters/held-brief-writer';
 
 const text = z.string().min(1);
+/** Explicit uninstalled composition; no queue, authority or records fallback. */
+export function createRecordedDevelopmentStarter(pools: Parameters<typeof createIntentDevelopmentStarter>[0], configuration: unknown,
+  dependencies: Parameters<typeof createIntentDevelopmentStarter>[2]) {
+  return createIntentDevelopmentStarter(pools, configuration, dependencies);
+}
 /** Explicit uninstalled reader composition. Current profile allowlists are
  * required, but no gateway secret, model transport or dispatch capability exists. */
 export function createVerifiedDevelopmentReader(pools: Parameters<typeof createIntentDevelopmentReader>[0], configuration: unknown,
