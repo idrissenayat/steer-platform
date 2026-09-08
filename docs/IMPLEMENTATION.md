@@ -1,6 +1,6 @@
 # STEER platform implementation
 
-## Current checkpoint — 0241
+## Current checkpoint — 0242
 
 Use [the intent journey plan](INTENT-JOURNEY-PLAN.md) and
 [the delivery ledger](PHASE-1-DELIVERY.md) for current status; the implementation
@@ -48,9 +48,17 @@ checkpoint or claim uniqueness. See [0240 evidence](../intent/0240/EVIDENCE.md).
 query, strict portable response/digest contracts and an API factory using a current
 server-pinned scope profile and actual recorded SDK verifier. Missing service/grant
 or revoked authority never becomes an empty review. See
-[0241 evidence](../intent/0241/EVIDENCE.md). The factory remains uninstalled by
-default; actual editor and scope preparation/Temporal composition, expired
-observation access, real authority and live acceptance remain unconnected.
+[0241 evidence](../intent/0241/EVIDENCE.md).
+
+0242 composes actual SQL ownership, encrypted scope originals/exchanges and the
+pinned recorded SDK in a one-batch runner. Fresh dispatch and newly stored request
+ACKs precede transport. Completed recovery requires current verification but no
+gateway credentials or new model call. Uncertain outcomes do not resend; edits
+supersede historical results, and cancellation retains admission until underlying
+dependencies drain. See [0242 evidence](../intent/0242/EVIDENCE.md). The runner and
+reader remain uninstalled by default; actual editor and scope preparation/Temporal
+composition, expired observation access, real authority and live acceptance remain
+unconnected.
 
 These are tested development capabilities, not live end-to-end acceptance. D1
 records activation, real source/lifecycle verifier binding, large-corpus contextual

@@ -5,9 +5,10 @@ import {setTimeout as delay} from 'node:timers/promises';
  * as the full integration suite, including when inherited environment is dirty. */
 export function parseIntegrationSelection(args:readonly string[]) {
   if(!args.length)return {mode:'full' as const};
+  if(args.length===1&&args[0]==='--scope-runtime')return {mode:'scope-runtime' as const};
   if(![2,4].includes(args.length)||args[0]!=='--clarification-repro'||!/^([1-9]|1[0-9]|20)$/.test(args[1]!)
     ||(args.length===4&&(args[2]!=='--query-delay-ms'||! /^[0-5]$/.test(args[3]!))))
-    throw new Error('Use no arguments for the full suite, or --clarification-repro 1-20 [--query-delay-ms 0-5].');
+    throw new Error('Use no arguments for the full suite, --scope-runtime, or --clarification-repro 1-20 [--query-delay-ms 0-5].');
   return {mode:'clarification-repro' as const,iterations:Number(args[1]),queryDelayMs:args.length===4?Number(args[3]):0};
 }
 type Phase='connect'|'commit'|'rollback'|'observation-write'|'result-write'|'execution-write'|'query';

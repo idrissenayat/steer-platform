@@ -5176,3 +5176,31 @@ and actual I1–I6 human/save acceptance. Keep the existing one-minute loop acti
 checks pass, including six new actual HTTP/SQL/SDK scope-query cases. Prototype and
 all package types, optimized Next build, existing migration history, kit (95 required
 artifacts), scope audit and whitespace checks pass. No live UI acceptance is claimed.
+
+## Development increment: 0242 — Durable scope-batch execution
+
+The explicit worker composition now connects actual SQL batch ownership, shared-cap
+reservations, encrypted originals/exchanges and the pinned recorded SDK. A fresh
+acknowledged dispatch and newly stored verified request are required before the
+provider transport. Completed work recovers the same response checkpoint without
+another call, reservation or dispatch credential. Unknown and failed work cannot
+be resent, human corrections remain intact, and late authority loss withholds
+completion without erasing durable success. See
+[0242 evidence](../intent/0242/EVIDENCE.md) for verification and limits.
+
+Cancellation keeps admission until underlying authority, key, transport and body
+cleanup actually drain. A new test exposed premature slot release during body
+cancellation; that case now passes with explicit body-read/cleanup tracking and
+unchanged deadlines and SQL no-resend rules. No new private result copy or schema.
+
+The runner remains uninstalled by default. No real migration, D1 activation, key,
+paid model call, runtime Git save, gate, deployment or release is enabled. Next
+connect reference-only scope Temporal, source preparation and actual editor review
+progress/recovery, then real authority, semantic evaluation and I1–I6 human/save
+acceptance. Preserve signed sources/user files and the existing one-minute loop.
+
+0242 verification: 1,054/1,054 full regressions and 285/285 full PostgreSQL 16.14
+checks pass, including 14 new scope-runner integration checks. Focused results
+overlap those totals. Prototype/all package types, optimized Next build, existing
+28-entry migration history, kit (95 artifacts), scope audit and whitespace checks
+pass. No live UI, semantic-quality or runtime-save acceptance is claimed.

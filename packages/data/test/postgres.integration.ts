@@ -20,6 +20,7 @@ import { testScopeReviewOperations } from './scope-review-operations.integration
 import { testScopeOriginals } from './scope-originals.integration.ts';
 import { testScopeObservations } from './scope-observations.integration.ts';
 import { testScopeReviewReader } from './scope-review-reader.integration.ts';
+import { testScopeStepRuntime } from '../../../apps/worker/test/scope-step-runtime.integration.ts';
 import { parseIntegrationSelection,createIntegrationDatabaseTrace } from './integration-diagnostics.ts';
 import { testDurableCandidateBundles } from '../../../apps/worker/test/candidate-bundle.integration.ts';
 import { testDraftLifecycles } from './draft-lifecycle.integration.ts';
@@ -76,7 +77,11 @@ try {
     await migrate(drizzle(admin), { migrationsFolder });
     assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 28);
   });
-  if(selection.mode==='clarification-repro'){
+  if(selection.mode==='scope-runtime'){
+    console.log('FOCUSED scope SQL/recorded SDK execution; NOT the full integration suite.');
+    await testScopeStepRuntime({admin,connect,check});
+    console.log(`FOCUSED scope runtime result: ${passed-1} runtime checks passed plus idempotent migration check; full suite NOT RUN.`);
+  }else if(selection.mode==='clarification-repro'){
     console.log(`FOCUSED clarification reproduction: ${selection.iterations} iterations; synthetic query delay ${selection.queryDelayMs}ms; NOT the full integration suite.`);
     const trace=createIntegrationDatabaseTrace(selection.queryDelayMs);let matched=0,completed=0;
     await testDevelopmentObservations({admin,connect:role=>trace.wrap(connect(role)),check:async(name,run)=>{
@@ -258,6 +263,7 @@ try {
   await testScopeOriginals({ admin, connect, check });
   await testScopeObservations({ admin, connect, check });
   await testScopeReviewReader({ admin, connect, check });
+  await testScopeStepRuntime({ admin, connect, check });
   await testDraftLifecycles({ admin, connect, check });
   await testDraftRevisions({ admin, connect, check });
   await testDevelopmentResults({ admin, connect, check });

@@ -726,3 +726,25 @@ authorization ACKs. Missing configuration and revocation are errors, not no-matc
 The factory is not installed by flags or this increment. See
 [0241 specification](../../intent/0241/SPEC.md); scope preparation/Temporal, actual
 editor integration and real I1–I6 acceptance remain pending.
+
+0242 connects one exact scope batch to actual SQL ownership and the pinned recorded
+SDK. Restore the retained original/profile/manifest under current authority, claim
+the existing shared budget, and require both a fresh acknowledged dispatch and a
+newly inserted verified request before transport. Recheck current source revision,
+owner/fence/reservation immediately before sending. Record response bytes and
+usage, verify the SDK result, then checkpoint its complete payload through the
+existing readback protocol. No separate private result storage or retry path.
+
+Reconstruction reads succeeded work without dispatch credentials or another charge.
+Sent, unknown and failed work cannot be resent or normally promoted. A newer edit
+before dispatch stops the old request; an in-flight result may remain a superseded
+historical checkpoint without replacing human corrections. Current identity loss
+withholds completion, even when durable success must remain intact. Cancellation
+attempts metadata quarantine under current authority; if denied, sent state still
+blocks retries. The runner keeps admission while underlying keys, transport, body
+reads/cancellation or other dependencies drain and never releases late success.
+Receiving response headers does not release the body-cleanup resource slot.
+Outcomes contain references only, not findings, private errors or authority. See
+[0242 specification](../../intent/0242/SPEC.md). Reference-only scope Temporal and
+source preparation/editor integration remain next; this is not live activation or
+combined semantic quality/uniqueness acceptance.
