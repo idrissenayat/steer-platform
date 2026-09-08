@@ -661,3 +661,16 @@ success, semantic-quality or clearance claim. Observation access after review ex
 and successful checkpoints remain unimplemented. See
 [0237 specification](../../intent/0237/SPEC.md). No real migration, D1 activation,
 model call, runtime Git saving or gate is enabled by these development adapters.
+
+0238 changes development-role exchange verification, not scope-review authority.
+The recorded model reads both immutable observation stages through one initial
+source/execution context and a final current-context recheck. Match every common
+binding; authenticate both stages with their own historical keys; preserve payload
+limits, predecessor/result checks, final records/source/model authorization and
+lifecycle/row rereads. No cross-call cache or recorded exchange grants dispatch,
+retry, gate, semantic quality or checkpoint authority. The pinned SDK still verifies
+the exact rendered request, wire response, usage and result after storage readback.
+Timeouts and no-retry behavior are unchanged. The test-only focused latency runner
+is bounded and explicitly not the full suite. See
+[0238 specification](../../intent/0238/SPEC.md). Real records/model/save activation
+and signed-in acceptance remain outside this increment.

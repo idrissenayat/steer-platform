@@ -19,6 +19,7 @@ import { testIntentOperations } from './intent-operations.integration.ts';
 import { testScopeReviewOperations } from './scope-review-operations.integration.ts';
 import { testScopeOriginals } from './scope-originals.integration.ts';
 import { testScopeObservations } from './scope-observations.integration.ts';
+import { parseIntegrationSelection,createIntegrationDatabaseTrace } from './integration-diagnostics.ts';
 import { testDurableCandidateBundles } from '../../../apps/worker/test/candidate-bundle.integration.ts';
 import { testDraftLifecycles } from './draft-lifecycle.integration.ts';
 import { testDraftRevisions } from './draft-revisions.integration.ts';
@@ -31,6 +32,7 @@ import { testIntentDraftApi } from '../../../apps/api/test/intent-drafts.integra
 import { testDevelopmentPreparation } from '../../../apps/api/test/intent-development-prepare.integration.ts';
 
 const exec = promisify(execFile);
+const selection=parseIntegrationSelection(process.argv.slice(2));
 const docker = async (...args: string[]) => (await exec('docker', args, { timeout: 30000 })).stdout.trim();
 const image = 'postgres@sha256:16bc17c64a573ef34162af9298258d1aec548232985b33ed7b1eac33ba35c229';
 const containerName = `steer-0009-${randomUUID()}`;
@@ -73,6 +75,22 @@ try {
     await migrate(drizzle(admin), { migrationsFolder });
     assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 27);
   });
+  if(selection.mode==='clarification-repro'){
+    console.log(`FOCUSED clarification reproduction: ${selection.iterations} iterations; synthetic query delay ${selection.queryDelayMs}ms; NOT the full integration suite.`);
+    const trace=createIntegrationDatabaseTrace(selection.queryDelayMs);let matched=0,completed=0;
+    await testDevelopmentObservations({admin,connect:role=>trace.wrap(connect(role)),check:async(name,run)=>{
+      if(name!=='Temporal clarification stops before Test Agent and stores question bytes only in encrypted role records')return;
+      matched++;
+      for(let i=0;i<selection.iterations;i++){
+        trace.reset();const before=pools.length,start=performance.now();
+        try{await run();completed++;console.log(`FOCUSED PASS clarification ${i+1}/${selection.iterations} ${JSON.stringify({durationMs:Math.ceil(performance.now()-start),database:trace.summary()})}`);}
+        catch(error){console.log(`FOCUSED FAIL clarification ${i+1}/${selection.iterations} ${JSON.stringify(trace.summary())}`);throw error;}
+        finally{await Promise.all(pools.slice(before).filter(p=>!p.ending).map(p=>p.end()));}
+      }
+    }});
+    assert.equal(matched,1);assert.equal(completed,selection.iterations);
+    console.log(`FOCUSED clarification result: ${completed}/${selection.iterations} passed; full suite NOT RUN.`);
+  }else{
   const app = connect('steer_app');
   const projector = connect('steer_projector');
   await check('all four data tables force RLS and every policy has USING and WITH CHECK', async () => {
@@ -249,6 +267,7 @@ try {
   await testIntentDraftApi({ admin, connect, check });
   await testDurableCandidateBundles({ admin, app, connect, check });
   console.log(`PostgreSQL integration: ${passed} checks passed; server ${(await admin.query('SHOW server_version')).rows[0].server_version}`);
+  }
 } finally {
   await Promise.all(pools.filter(pool => !pool.ending).map((pool) => pool.end()));
   if (containerId && /^[a-f0-9]{64}$/.test(containerId)) {

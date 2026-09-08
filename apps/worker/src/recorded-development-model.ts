@@ -90,12 +90,11 @@ export function createRecordedDevelopmentModel(pools:Parameters<typeof createDev
         const binding=freeze(bindingSchema.parse(raw));
         if(binding.organizationId!==config.organizationId||binding.operationId!==target.operationId||binding.inputDigest!==target.inputDigest||binding.recordsPolicyDigest!==config.recordsPolicyDigest)throw unavailable();
         await authorize(binding.stepId,'read');store=journal();
-        const request=await bounded(store.read({...target,stepId:binding.stepId,stage:'request'}));guard();
-        const response=await bounded(store.read({...target,stepId:binding.stepId,stage:'response'}));guard();
-        if(request.observation.stage!=='request'||response.observation.stage!=='response'||response.observation.requestDigest!==request.payloadDigest
-          ||request.stepInputDigest!==binding.stepInputDigest||response.stepInputDigest!==binding.stepInputDigest||response.outputDigest!==binding.outputDigest)throw unavailable();
-        const rendered=request.observation.rendered as ModelInput['rendered'];
-        const parsed=runtime.verify(binding.stepId,rendered.request,request.observation as RecordedRequest,response.observation as RecordedResponse);
+        const exchange=await bounded(store.readExchange({...target,stepId:binding.stepId}));guard();
+        if(exchange.response.requestDigest!==exchange.requestDigest||exchange.stepInputDigest!==binding.stepInputDigest
+          ||exchange.outputDigest!==binding.outputDigest||exchange.recordsPolicyDigest!==binding.recordsPolicyDigest)throw unavailable();
+        const rendered=exchange.request.rendered as ModelInput['rendered'];
+        const parsed=runtime.verify(binding.stepId,rendered.request,exchange.request as RecordedRequest,exchange.response as RecordedResponse);
         if(hash(parsed.result)!==binding.outputDigest)throw unavailable();await authorize(binding.stepId,'read');
       }catch{throw unavailable();}finally{if(store)closeChild(store);active=false;}
     },

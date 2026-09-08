@@ -5078,3 +5078,30 @@ Final verification: 1,038 regression checks and 241 PostgreSQL integration check
 passed, alongside types/build/migration/kit/scope checks. One earlier intermittent
 Temporal clarification failure is recorded in the evidence despite a passing final
 non-overlapping run; triage it before live acceptance without relaxing controls.
+
+## Development increment: 0238 — Clarification latency reliability
+
+The recorded development model now verifies an immutable request/response pair
+without repeatedly restoring the same source/execution context for each nested
+read. Both stages, historical keys, current source/records/model authority, lifecycle,
+final rows and the pinned SDK verifier remain checked. There is no cross-call cache,
+longer production timeout or retry permission. No schema or migration was added.
+
+A bounded CLI diagnostic mode reproduces the existing Temporal clarification case
+with synthetic SQL delay and content-free aggregate/last-32-event traces. The
+five-millisecond baseline failure became a passing five-run repetition after the
+change, with 28.2% fewer traced database operations. This identifies and corrects a
+controlled latency-sensitive mode; it does not prove the exact cause of 0237's
+earlier intermittent event. See [0238 evidence](../intent/0238/EVIDENCE.md) for full
+verification, negative tests and focused-versus-full-suite boundaries.
+
+Continue scope success checkpoints, reference-only Temporal, real authority binding,
+semantic evaluation and actual UI/save acceptance. D1 remains unsigned/inactive and
+first-test spending unapproved. No real migration, records, credential, model call,
+runtime Git saving, gate, deployment or release was enabled; signed sources remain
+unchanged. Keep the existing one-minute implementation loop active.
+
+0238 verification: 1,040 regression checks and 246 full PostgreSQL integration
+checks pass, including five new paired-read denial/key/tampering cases. The separate
+delayed clarification repetition passes 5/5. Types, optimized Next build, Drizzle
+history, kit (95 artifacts), scope audit and whitespace checks pass.

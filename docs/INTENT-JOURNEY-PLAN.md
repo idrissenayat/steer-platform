@@ -33,8 +33,10 @@ scope, choose what to do, answer only necessary questions, review and correct a
 Brief/Spec/Exam bundle, save it to the authorized repository and reopen it exactly.
 No separate local preview, synthetic success, silent merging or lost work counts.
 
-Latest checkpoint: **0237 adds immutable encrypted scope request/response
-observations and verified readback**, tied to 0236's retained original, 0235's
+Latest checkpoint: **0238 reduces repeated development-observation reads and
+tests clarification under controlled database latency**; see the reliability note
+below. **0237 adds immutable encrypted scope request/response observations and
+verified readback**, tied to 0236's retained original, 0235's
 fenced dispatch/reservation and 0234's exact SDK codec. Lost acknowledgements and
 quarantined outcomes do not authorize another call. SQL serializes new observation
 inserts with batch-state transitions. Current source/key/lifecycle authority governs
@@ -45,11 +47,14 @@ Next prioritize that durable semantic composition, real authority binding,
 larger-corpus context and content evaluation. Older increment notes below
 are historical, not an instruction to rebuild completed integration.
 
-Reliability follow-up: 0237 recorded an intermittent existing Temporal clarification
-test failure during a run that initially overlapped another integration job; its
-non-overlapping scenario recheck passed. Cause is not confirmed. Triage this with
-the new content-free failure counts before live acceptance; do not relax assertions,
-deadlines or no-retry boundaries. See [0237 evidence](../intent/0237/EVIDENCE.md).
+Reliability checkpoint: 0237's historical intermittent clarification failure still
+has no confirmed exact cause. 0238 reproduces a latency-sensitive failure with five
+milliseconds injected before SQL queries, then passes five repetitions after paired
+observation verification reduces traced database operations by 28.2%. Current
+authority, keys, source/lifecycle, exact SDK verification, deadlines and no-retry
+controls remain in place. The focused runner is not the full suite or live human
+acceptance. See [0238 evidence](../intent/0238/EVIDENCE.md); retain realistic latency
+and cancellation checks during scope/Temporal composition and live acceptance.
 
 ## Dependency-ordered implementation
 

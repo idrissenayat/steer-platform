@@ -1,6 +1,6 @@
 # STEER platform implementation
 
-## Current checkpoint — 0237
+## Current checkpoint — 0238
 
 Use [the intent journey plan](INTENT-JOURNEY-PLAN.md) and
 [the delivery ledger](PHASE-1-DELIVERY.md) for current status; the implementation
@@ -23,6 +23,14 @@ SQL insert-time batch locking rejects stale dispatch state. Recovered records ar
 not retry permission, semantic quality or successful checkpoints. Success, expired
 observation access, Temporal and live authority remain unconnected. See
 [0237 evidence](../intent/0237/EVIDENCE.md).
+
+0238 adds verified paired development-observation reads, reducing redundant source/
+operation restoration without caching across calls. Both stage keys, current
+authority, lifecycle, final immutable rows and exact SDK verification remain checked.
+A controlled five-millisecond SQL-delay clarification failure is corrected without
+longer deadlines or model retries. Focused repetition is distinct from the full
+suite, and the earlier intermittent event's precise cause remains unconfirmed. See
+[0238 evidence](../intent/0238/EVIDENCE.md).
 
 These are tested development capabilities, not live end-to-end acceptance. D1
 records activation, real source/lifecycle verifier binding, large-corpus contextual

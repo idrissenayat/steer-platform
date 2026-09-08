@@ -243,6 +243,67 @@ export async function testDevelopmentObservations({admin,connect,check}:{admin:P
     assert.equal(afterCaptureChecks,2);assert.equal(calls,0);assert.equal(await f.count(),1);
     assert.equal((await f.drafts.read({draftId:f.draftId,revision:'latest'})).content.originalText,'A correction during the last authorization wait');
   });
+  await check('paired observation read restores both exact stages with matching digests and no retained key mutation or authority',async()=>{
+    const f=await setup(),key=Buffer.from(f.key.bytes);assert.equal((await f.put(f.request)).outcome,'stored');assert.equal((await f.put(f.response)).outcome,'stored');
+    const store=f.make(),pair=await store.readExchange(f.ref);store.close();
+    assert.deepEqual(pair.request,f.request);assert.deepEqual(pair.response,f.response);
+    assert.equal(pair.requestDigest,(await f.read('request')).payloadDigest);assert.equal(pair.responseDigest,(await f.read('response')).payloadDigest);
+    assert.equal(pair.response.requestDigest,pair.requestDigest);assert.equal(pair.outputDigest,hash(f.response.result));assert.equal(pair.stepInputDigest,f.prepared.stepReference.stepInputDigest);
+    assert.equal(pair.executionAuthorized,false);assert.equal(pair.retryAuthorized,false);assert.equal(pair.gateSigned,false);assert.deepEqual(f.key.bytes,key);
+    assert.equal(await f.count(),2);
+  });
+  await check('paired observations reject missing stages, foreign scope, current denial and holds before plaintext release',async()=>{
+    const f=await setup();assert.equal((await f.put(f.request)).outcome,'stored');await assert.rejects(f.make().readExchange(f.ref));
+    assert.equal((await f.put(f.response)).outcome,'stored');
+    for(const patch of [{organizationId:'foreign'},{subject:'foreign'},{productId:'foreign'},{recordsPolicyDigest:'f'.repeat(64)}])await assert.rejects(f.make({},f.pools,patch).readExchange(f.ref));
+    let keys=0;const keyForDraft=async()=>{keys++;return f.key;};
+    await assert.rejects(f.make({authorize:async()=>{throw new Error('Denied');},originals:{...f.deps.originals,keyForDraft}}).readExchange(f.ref));assert.equal(keys,0);
+    await assert.rejects(f.make({originals:{...f.deps.originals,authorizeOriginal:async()=>{throw new Error('Source denied');}}}).readExchange(f.ref));
+    assert.equal((await f.lifecycle.hold({draftId:f.draftId,holdReference:randomUUID()})).outcome,'ok');
+    await assert.rejects(f.make({originals:{...f.deps.originals,keyForDraft}}).readExchange(f.ref));assert.equal(keys,0);assert.equal(await f.count(),2);
+  });
+  await check('paired observations recheck both rows and current authority instead of caching a prior successful verification',async()=>{
+    const f=await setup();await f.put(f.request);await f.put(f.response);
+    const rows=(await admin.query('SELECT * FROM steer_drafts.development_observations WHERE operation_id=$1 ORDER BY stage',[f.target.operationId])).rows;
+    const request=rows.find(r=>r.stage==='request')!,response=rows.find(r=>r.stage==='response')!;
+    await admin.query("UPDATE steer_drafts.development_observations SET encrypted_value=$1::jsonb WHERE operation_id=$2 AND stage='response'",[JSON.stringify(request.encrypted_value),f.target.operationId]);
+    await assert.rejects(f.make().readExchange(f.ref));
+    await admin.query("UPDATE steer_drafts.development_observations SET encrypted_value=$1::jsonb WHERE operation_id=$2 AND stage='response'",[JSON.stringify(response.encrypted_value),f.target.operationId]);
+    let authorization=0;
+    await assert.rejects(f.make({authorize:async()=>{if(++authorization===2)throw new Error('Late denial');}}).readExchange(f.ref));assert.equal(authorization,2);
+    let reads=0;
+    const changing:DatabasePool={async connect(){const c=await f.pools.drafts.connect();return{query:async(sql:string,values?:unknown[])=>{
+      if(sql.startsWith('SELECT * FROM steer_drafts.development_observations')&&++reads===3)
+        await admin.query("UPDATE steer_drafts.development_observations SET encrypted_value=$1::jsonb WHERE operation_id=$2 AND stage='request'",[JSON.stringify(response.encrypted_value),f.target.operationId]);
+      return c.query(sql,values);},release:(broken:boolean)=>c.release(broken)} as PoolClient;}};
+    await assert.rejects(f.make({}, {...f.pools,drafts:changing}).readExchange(f.ref));assert.ok(reads>=3);
+    await admin.query("UPDATE steer_drafts.development_observations SET encrypted_value=$1::jsonb WHERE operation_id=$2 AND stage='request'",[JSON.stringify(request.encrypted_value),f.target.operationId]);
+    const store=f.make();assert.deepEqual((await store.readExchange(f.ref)).response,f.response);f.state.denied=true;await assert.rejects(store.readExchange(f.ref));store.close();
+  });
+  await check('paired observation key loss, pending shutdown and quarantined execution cannot expose a usable exchange',async()=>{
+    const f=await setup();await f.put(f.request);await f.put(f.response);
+    await assert.rejects(f.make({originals:{...f.deps.originals,keyForDraft:async()=>({...f.key,bytes:randomBytes(32)})}}).readExchange(f.ref));
+    let release!:()=>void,entered!:()=>void;const held=new Promise<void>(r=>{release=r;}),reached=new Promise<void>(r=>{entered=r;});
+    const store=f.make({originals:{...f.deps.originals,keyForDraft:async()=>{entered();await held;return f.key;}}}),read=store.readExchange(f.ref);
+    await reached;store.close();release();await assert.rejects(read);
+    assert.equal((await f.operations.transition({...f.prepared.stepReference,event:{type:'outcome-unknown',fencingToken:1}})).outcome,'ok');
+    await assert.rejects(f.make().readExchange(f.ref));assert.equal(await f.count(),2);
+  });
+  await check('paired observations retain separate historical key checks across request-response key rotation',async()=>{
+    const f=await setup(),rotated={keyId:`rotated-${randomUUID()}`,bytes:randomBytes(32)},originalBytes=Buffer.from(f.key.bytes),rotatedBytes=Buffer.from(rotated.bytes);
+    assert.equal((await f.put(f.request)).outcome,'stored');
+    const keyForDraft:Deps['originals']['keyForDraft']=async(_context,keyId)=>{
+      if(keyId===f.key.keyId)return f.key;if(keyId===null||keyId===rotated.keyId)return rotated;throw new Error('Unknown synthetic key');
+    };
+    const originals={...f.deps.originals,keyForDraft};assert.equal((await f.put(f.response,{originals})).outcome,'stored');
+    const store=f.make({originals});assert.deepEqual((await store.readExchange(f.ref)).response,f.response);store.close();
+    let responseKeys=0;
+    const revoked=f.make({originals:{...originals,keyForDraft:async(context,keyId)=>{
+      if(keyId===rotated.keyId&&++responseKeys===2)throw new Error('Synthetic key revoked at final check');return keyForDraft(context,keyId);
+    }}});
+    await assert.rejects(revoked.readExchange(f.ref));revoked.close();assert.equal(responseKeys,2);
+    assert.deepEqual(f.key.bytes,originalBytes);assert.deepEqual(rotated.bytes,rotatedBytes);assert.equal(await f.count(),2);
+  });
   await testIntentDevelopmentRead(ttl => setup(false,false,true,ttl), check, admin);
   await testDevelopmentStart(() => setup(false,false,true), check, admin);
   await testDevelopmentWorkflow(async()=>{

@@ -206,6 +206,50 @@ export function createDevelopmentObservationStore(pools: Parameters<typeof creat
           executionAuthorized: false as const, retryAuthorized: false as const, gateSigned: false as const });
       } catch { throw new DraftStorageError(); } finally { active = false; }
     },
+    /** Verify an immutable pair under one current authority/source context and
+     * its final recheck. No cache crosses calls or replaces current policy/key
+     * checks. Both stages must share every execution/source/owner binding. */
+    async readExchange(raw: unknown) {
+      if (closed || active || pending) throw new DraftStorageError(); active = true;
+      const leases: Array<{keyId:string;bytes:Buffer;draftId:string}> = [];
+      try {
+        const t=freeze(targetSchema.parse(raw)); await authorize(t,'read');
+        const rows=await transaction(async c=>{
+          const request=await select(c,t,'request'),response=await select(c,t,'response');
+          if(!request||!response)throw new DraftStorageError();
+          const common=({stage:_stage,payloadDigest:_payload,requestDigest:_request,outputDigest:_output,...binding}:Metadata)=>binding;
+          if(hash(common(request.metadata))!==hash(common(response.metadata))||response.metadata.requestDigest!==request.metadata.payloadDigest)throw new Conflict();
+          await lifecycle(c,response.metadata);return {request,response};
+        });
+        const current=await context(t);
+        const decode=async(row:Stored)=>{
+          if(row.metadata.draftId!==current.original.source.draftId||row.metadata.draftRevision!==current.original.source.revision)throw new Conflict();
+          const key=await bounded(dependencies.originals.keyForDraft(freeze({...config,draftId:row.metadata.draftId}),row.envelope.keyId));guard();
+          if(!(key.bytes instanceof Uint8Array)||key.bytes.byteLength!==32)throw new DraftStorageError();
+          const lease={keyId:key.keyId,bytes:Buffer.from(key.bytes),draftId:row.metadata.draftId};leases.push(lease);
+          const payload=freeze(developmentObservationSchema.parse(openDraft(row.envelope,aad(row.metadata),lease)));
+          if(Buffer.byteLength(JSON.stringify(payload))>786432)throw new DraftStorageError();
+          if(hash(metadata(t,payload,current))!==hash(row.metadata))throw new Conflict();return payload;
+        };
+        const request=await decode(rows.request),response=await decode(rows.response);
+        if(request.stage!=='request'||response.stage!=='response'||hash(request.rendered)!==hash(current.prepared.rendered)
+          ||response.result.role!==t.stepId||response.requestDigest!==rows.request.metadata.payloadDigest)throw new Conflict();
+        const u=response.usage;if(u.inputTokens!==null&&u.outputTokens!==null&&u.totalTokens!==null&&u.inputTokens+u.outputTokens!==u.totalTokens)throw new Conflict();
+        for(const lease of leases){
+          const fresh=await bounded(dependencies.originals.keyForDraft(freeze({...config,draftId:lease.draftId}),lease.keyId));guard();
+          if(!(fresh.bytes instanceof Uint8Array)||fresh.bytes.byteLength!==32)throw new DraftStorageError();
+          const bytes=Buffer.from(fresh.bytes);try{if(fresh.keyId!==lease.keyId||!bytes.equals(lease.bytes))throw new DraftStorageError();}finally{bytes.fill(0);}
+        }
+        await authorize(t,'read');const finalContext=await context(t);
+        if(hash(metadata(t,request,finalContext))!==hash(rows.request.metadata)||hash(metadata(t,response,finalContext))!==hash(rows.response.metadata)
+          ||(finalContext.completedOutputDigest!==null&&finalContext.completedOutputDigest!==hash(response.result)))throw new Conflict();
+        const final=await transaction(async c=>({expiry:await lifecycle(c,rows.response.metadata),request:await select(c,t,'request'),response:await select(c,t,'response')}));
+        guard();if(performance.now()>=final.expiry||hash(final.request)!==hash(rows.request)||hash(final.response)!==hash(rows.response))throw new DraftStorageError();
+        return freeze({request,response,requestDigest:rows.request.metadata.payloadDigest,responseDigest:rows.response.metadata.payloadDigest,
+          stepInputDigest:rows.response.metadata.stepInputDigest,outputDigest:rows.response.metadata.outputDigest,recordsPolicyDigest:config.recordsPolicyDigest,
+          executionAuthorized:false as const,retryAuthorized:false as const,gateSigned:false as const});
+      }catch{throw new DraftStorageError();}finally{for(const lease of leases)lease.bytes.fill(0);active=false;}
+    },
     close() { closed = true; originals.close(); for (const child of children) child.close(); },
   };
 }

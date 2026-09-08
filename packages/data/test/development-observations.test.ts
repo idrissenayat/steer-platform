@@ -19,7 +19,7 @@ test('observation schemas preserve exact body text and unknown usage without acc
 test('observation journal is lazy, strictly scoped and sanitizes denial before private reads',async()=>{
   let connects=0;const pool={connect:async()=>{connects++;throw new Error('private-pool');}};
   const store=createDevelopmentObservationStore({execution:pool,drafts:pool},config,{...deps,authorize:async()=>{throw new Error('private-denial');}});
-  assert.deepEqual(Object.keys(store),['put','read','close']);
+  assert.deepEqual(Object.keys(store),['put','read','readExchange','close']);
   await assert.rejects(store.read(target),{message:'Draft storage is unavailable.'});
   await assert.rejects(store.read({...target,approved:true}));assert.equal(connects,0);store.close();
 });
