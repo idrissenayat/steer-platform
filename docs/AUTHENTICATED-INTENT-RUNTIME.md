@@ -58,6 +58,39 @@ records transition and its recovery path.
 
 ## Evidence and remaining work
 
+### Scope and drafting through fixed workflows — 0276
+
+The authenticated joined case now starts both scope reviews and the two drafting
+roles through the actual factory and existing Temporal schedulers/workers, instead
+of directly invoking model steps. Each start uses exact admitted references and
+separate synthetic start authority. Denied starts have no effects; lost scheduler
+ACKs, repeated starts and history replay do not duplicate workflows or reservations.
+The fixed workflows determine the two batch orders and Architect → Test Agent
+order. The Test Agent receives exact predecessor Brief/Spec and all 34 permitted
+sources without the Architect's message or generated Exam transcript.
+
+An initial 30-second development-start failure exposed six repeated full scope
+traversals in each read-only scheduler revalidation. A private current-scope
+window now uses first/final full current reads around exact immutable reuse.
+Every caller/source check and the existing original/key/lifecycle/execution/start
+policy checks remain. Changed, expired, superseded and historical results deny.
+The final full read completes before any scheduler RPC, and every scheduler
+revalidation gets a fresh window. No deadline, source coverage or permission is
+extended; this is not an authorization cache or cross-service atomic snapshot.
+
+The repaired joined run reaches confirmation, one fixed native save and exact
+reopen, with two scope workflows, one drafting workflow, one save workflow, six
+synthetic model requests/reservations and one native Git commit. Owned workers
+and managed API runtimes close. Verification and remaining performance evidence
+are recorded in [0276 evidence](../intent/0276/EVIDENCE.md).
+
+Only `new-distinct` is fully joined here. These owned disposable workers do not
+install a live startup profile, adopt records/model/write authority, demonstrate
+semantic quality or pass signed-in UI acceptance. Drafting starts still cost
+13–15 seconds and tens of thousands of native-provider calls; confirmation costs
+52–56 seconds in this run. Reduce that volume before live-provider/UX acceptance,
+then complete governed bindings and the remaining dispositions.
+
 ### Confirmed save and exact reopen through identity — 0275
 
 The same authenticated 34-source generation/correction/reassessment/confirmation
@@ -78,8 +111,9 @@ withhold access. One encrypted original, two operations and six synthetic model
 reservations remain unchanged; all four API runtimes and owned worker resources
 close. See [0275 evidence](../intent/0275/EVIDENCE.md) for verification scope.
 
-Only `new-distinct` is joined through this save root; scope/drafting workers still
-execute directly in the fixture. This is not current authority adoption, a real
+At 0275, only `new-distinct` was joined through this save root; scope/drafting
+workers still executed directly. 0276 joins those fixed workflows as noted above.
+This is not current authority adoption, a real
 provider write, signed-in UI acceptance, publication retention or acceptable
 live-provider performance. Confirmation still takes approximately 47–50 seconds;
 further bounded read composition and governed model-worker scheduling remain next.
@@ -204,8 +238,9 @@ semantic quality, all destination save cases or signed-in I1–I6 acceptance.
 
 0272 assembles the constructor graph, 0273 joins recorded generation/recovery and
 0274–0275 join corrected confirmation/fixed save/exact reopen through identity.
-Next complete bounded read performance, owned scope/drafting worker scheduling and
-governed bindings. Actual clock provenance and late recovery, D1 adoption, model
+0276 joins scope/drafting scheduling and owned worker shutdown in that same test.
+Next complete bounded read performance, remaining dispositions and governed
+startup/bindings. Actual clock provenance and late recovery, D1 adoption, model
 spending, runtime GitHub write authority and real-user
 acceptance remain separate prerequisites. No real profile, secrets or grants are
 changed by this increment.

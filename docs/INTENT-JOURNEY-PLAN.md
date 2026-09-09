@@ -33,7 +33,22 @@ scope, choose what to do, answer only necessary questions, review and correct a
 Brief/Spec/Exam bundle, save it to the authorized repository and reopen it exactly.
 No separate local preview, synthetic success, silent merging or lost work counts.
 
-Latest checkpoint: **0275 saves and reopens the confirmed package through identity**.
+Latest joined checkpoint: **0276 runs scope, drafting and save as fixed workflows**.
+Both scope reviews and the Architect → Test Agent drafting sequence now start
+through the actual authenticated factory and Temporal workers, followed by exact
+confirmation/save/reopen. Denied starts, lost acknowledgements, replay, restart
+and owned shutdown pass with six synthetic model requests/reservations and one
+native Git commit. A private read-only current-scope validation window fixes the
+observed drafting-start timeout without extending deadlines or authority. See
+[0276 evidence](../intent/0276/EVIDENCE.md): all three joined SQL checks, four
+focused start checks, idempotent migrations, 1,349 broad tests, typechecks and
+production build pass. The full SQL suite was not run.
+Drafting starts still take 13–15 seconds and confirmation 52–56 seconds in this
+synthetic run. Request volume/performance, other dispositions, governed startup
+and adopted runtime authority remain open; this is not live or signed-in UI
+acceptance. Continue safe engineering without installing unapproved bindings.
+
+Prior checkpoint: **0275 saves and reopens the confirmed package through identity**.
 The same authenticated journey now reaches one fixed Temporal/native Git save,
 lost scheduler/provider acknowledgement recovery, actual identity/factory restart
 and exact older-commit reopen. Current read-policy and Git-grant revocation deny;

@@ -6105,3 +6105,28 @@ not install live bindings or demonstrate signed-in UI acceptance. Other save
 directions, high request volume/latency, owned scope/drafting scheduling and current
 records/model/provider/write authority remain open. No publication-retention action,
 real credential/profile, protected document or user-owned roadmap/output changes.
+
+## 0276 — Authenticated scope/drafting workflows
+
+The joined case now schedules initial and corrected scope reviews plus both
+drafting roles through the actual authenticated factory's fixed Temporal starts.
+The worker-owned helper checks denied/lost-acknowledgement starts, reference-only
+single-attempt activities, exact batch/role order, replay, unchanged reservation
+counts and owned worker-service shutdown. The first run exposed a 30-second
+drafting-start timeout from repeated scope traversal. A private read-only current
+scope window now brackets immutable reuse with full current checks before each
+scheduler effect; deadlines and authority remain unchanged. The repaired full
+joined journey passes both scope workflows, ordered drafting roles, confirmation,
+fixed save, exact reopen and owned shutdown: six synthetic model requests and
+reservations, one native Git commit, no duplicates on lost acknowledgements,
+restart or replay. The separate focused start regression also passes all four
+HTTP/SQL checks plus idempotent migrations. All 1,349 broad tests, prototype/eight
+package typechecks, production build, protected hashes, the 95-artifact kit,
+read-only workflow audit and 211 links in six changed/new documents pass.
+No live startup adoption or signed-in UI acceptance is claimed. See
+[0276 specification](../intent/0276/SPEC.md) and [evidence](../intent/0276/EVIDENCE.md).
+
+Drafting starts still take 13–15 seconds and confirmation 52–56 seconds with very
+high synthetic native-provider volume. Reduce that volume and complete the other
+dispositions and governed startup/bindings next. D1, model spending, real runtime
+GitHub writes, signatures, release and deletion remain unapproved/unchanged.

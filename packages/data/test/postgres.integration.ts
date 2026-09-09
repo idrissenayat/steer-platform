@@ -86,6 +86,17 @@ try {
     await testAuthenticatedGeneration({admin,connect,check});
     assert.equal(passed,4);
     console.log(`FOCUSED journey runtime result: ${passed-1} joined checks passed plus idempotent migration check; full suite NOT RUN.`);
+  }else if(selection.mode==='development-start'){
+    console.log('FOCUSED development start HTTP/SQL authority regressions; NOT the full integration suite.');
+    const names=new Set([
+      'actual development start HTTP binds the retained original and source before reference-only scheduling; ACK is not generated documents',
+      'missing start grant, denied records/execution authority and stale source never reach development scheduling',
+      'draft hold or source change during last start authority check blocks the scheduler callback',
+      'lost development scheduling ACK remains unknown; post-dispatch grant revocation withholds it without another scheduling call',
+    ]);
+    await testDevelopmentObservations({admin,connect,check:async(name,run)=>{if(names.has(name))await check(name,run);}});
+    assert.equal(passed,5);
+    console.log(`FOCUSED development start result: ${passed-1} checks passed plus idempotent migration check; full suite NOT RUN.`);
   }else if(selection.mode==='candidate-start'){
     console.log('FOCUSED candidate HTTP start to SQL/Temporal/native-Git; NOT the full integration suite.');
     await testDurableCandidateBundles({app:connect('steer_app'),admin,connect,check:async(name,run)=>{

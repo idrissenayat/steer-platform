@@ -21,10 +21,11 @@ import { createRecordedDevelopmentModel } from '../../worker/src/recorded-develo
 import { createDevelopmentStepRuntime } from '../../worker/src/development-step-runtime.ts';
 import { authenticatedCandidateConfirmation } from './authenticated-candidate-confirmation.integration.ts';
 import { authenticatedCandidateSave } from '../../worker/test/authenticated-candidate-save.integration.ts';
+import { authenticatedModelWorkflows } from '../../worker/test/authenticated-model-workflows.integration.ts';
 
 /** Signed synthetic JWT + native Git grants, real API constructor graph, SQL and
  * recorded SDK roles. No real issuer, model transport, live migration or external Git write.
- * Model workers run directly; the confirmed save has one fixed Temporal activity.
+ * Scope, drafting and confirmed save execute on their fixed Temporal workflows.
  * This check does not claim real provider authority or signed-in UI acceptance. */
 export async function testAuthenticatedGeneration({ admin, connect, check }: {
   admin: Pool; connect(role: string): Pool; check(name: string, run: () => Promise<void>): Promise<void>;
@@ -41,7 +42,11 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
         'intent.development.prepare', 'intent.development.read', 'intent.development.history',
         'intent.candidate.save.review', 'intent.candidate.save.preview', 'intent.candidate.save.prepare',
         'intent.candidate.save.start', 'intent.candidate.save.status', 'intent.candidate.read',
+        'intent.scope.start', 'intent.development.start',
       ] } });
+    // Extend only this disposable membership before any reviewed corpus snapshot;
+    // each HTTP action still gets a freshly signed three-minute synthetic token.
+    identity.publish({ ...identity.grant, expiresAt: new Date(Date.now() + 1200000).toISOString() });
     const pools: Pool[] = [], runtimes: Awaited<ReturnType<typeof createIdentityRuntime>>[] = [];
     const connection = (role: string) => { const pool = connect(role); pools.push(pool); return pool; };
     const f = await scopeDraftIntegrationFixture({ admin, connect: connection }, false, 3600000, { sourceCount: 32,
@@ -62,7 +67,8 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
     delete (fixture.config.development as Partial<typeof f.execution>).scopeTerms;
     fixture.config.candidate = { ...f.config, action: 'candidate-save', expiresAt: f.execution.expiresAt, budget: null };
     fixture.config.retrievalConfigurationRevision = 'synthetic-native-corpus-r1';
-    const candidate = authenticatedCandidateConfirmation(f, native, authority, scopeRecords);
+    const workflows = authenticatedModelWorkflows(executionAuthority);
+    const candidate = authenticatedCandidateConfirmation(f, native, authority, scopeRecords, workflows);
     const save = authenticatedCandidateSave(f, native, fixture.config, authority);
     const profiles = fixture.config.developmentProfiles;
     const { recordedScheduling: _unused, ...base } = identity.profile;
@@ -86,19 +92,22 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
           deps.development.authorizeReview = authority; deps.development.authorizePreparation = executionAuthority;
           candidate.configure(deps);
           save.configure(deps);
+          workflows.configure(deps);
           owned = await createOwnedIntentJourney(expected, fixture.config, deps); return owned;
         } });
       runtimes.push(runtime); return runtime;
     };
     let runtime: Awaited<ReturnType<typeof createIdentityRuntime>>;
-    let freshCandidateIdentity = false;
     const post = async (name: string, input: unknown) => runtime.fetch(new Request(`https://steer.example/v1/tools/${name}`, {
-      method: 'POST', headers: { authorization: `Bearer ${freshCandidateIdentity ? await identity.issueBearer() : identity.token}`, 'content-type': 'application/json' }, body: JSON.stringify(input),
+      method: 'POST', headers: { authorization: `Bearer ${await identity.issueBearer()}`, 'content-type': 'application/json' }, body: JSON.stringify(input),
     }));
     const read = async (name: string, input: unknown) => { const start = performance.now(), before = native.git.calls.length;
       const response = await post(name, input);
       assert.equal(response.status, 200, JSON.stringify({ tool: name, ms: Math.round(performance.now() - start),
-        nativeRequests: native.git.calls.length - before, identity: identity.counts(), response: await response.clone().text() })); return response.json(); };
+        nativeRequests: native.git.calls.length - before, identity: identity.counts(), response: await response.clone().text() }));
+      if (name === 'intent.scope.start' || name === 'intent.development.start') console.log('Synthetic authenticated workflow start: ' + JSON.stringify({
+        tool: name, ms: Math.round(performance.now() - start), nativeRequests: native.git.calls.length - before }));
+      return response.json(); };
     const scope = { organizationId: f.config.organizationId, productId: f.config.productId, repository: f.config.repository };
     const source = { ...scope, draftId: f.draftId, revision: 1, revisionDigest: f.saved.reference.revisionDigest, scopeInputDigest: f.saved.reference.scopeInputDigest };
     const snapshot = async () => (await admin.query(`SELECT
@@ -121,15 +130,18 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
       assert.deepEqual(await read('intent.scope.prepare', prepareInput), scopePrepared); assert.deepEqual(await snapshot(), beforeScope);
       const prepared = await prepareIntentScopeReview(f.described.original.source.scope, reviewed.output.evidence, fixture.config.scopeProfile);
       const sample = await scopeReviewFixture(); assert.equal(prepared.batches.length, 2);
-      for (const batch of prepared.batches) {
+      {
         const worker = createScopeStepRuntime(f.pools, f.config, scopePrepared.reference!, {
           records: { originals: scopeRecords, authorize: authority }, profile: fixture.config.scopeProfile, authorize: executionAuthority,
           gateway: { gatewayUrl: 'http://127.0.0.1:4000/v1', gatewayKey: 'synthetic-unused', transport: async (_url, init) => {
-            modelCalls++; const wire = JSON.parse(String(init?.body)); assert.equal(wire.messages[1].content, batch.packet.request.source);
+            modelCalls++; const wire = JSON.parse(String(init?.body));
+            const batch = prepared.batches.find(batch => batch.packet.request.source === wire.messages[1].content); assert.ok(batch);
             return Response.json({ id: 'synthetic-authenticated-scope', object: 'chat.completion', model: 'synthetic-model', choices: [{ index: 0,
               finish_reason: 'stop', message: { role: 'assistant', content: JSON.stringify(sample.result(batch)) } }], usage: { prompt_tokens: 2, completion_tokens: 1, total_tokens: 3 } });
           } } });
-        try { assert.equal((await worker.run(batch.metadata.batchId, new AbortController().signal)).outcome, 'succeeded'); }
+        try { await workflows.run({ kind: 'scope', runtime: worker, batchIds: prepared.batches.map(batch => batch.metadata.batchId),
+          input: { ...scope, ...scopePrepared.reference!, draftId: f.draftId, revision: 1, revisionDigest: source.revisionDigest },
+          post, read, effects: snapshot, modelCalls: () => modelCalls }); }
         finally { worker.close(); }
       }
       const scopeOutput = await verifyIntentScopeReadOutput(await read('intent.scope.read', { ...scope, ...scopePrepared.reference! }));
@@ -142,11 +154,15 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
       assert.deepEqual(await read('intent.development.prepare', developmentInput), generated);
       const reference = generated.reference!, records = { originals: { ...originalRecords, scopeReview: owned.services.intentScopeReader }, results, authorize: authority };
       const documents = { brief: '# Synthetic generated Brief\r\nBooking فارسی 🌸', spec: '# Synthetic generated Spec\nEmail only; never SMS.', exam: '# Synthetic generated Exam\nNOT RUN' };
-      for (const role of ['architect', 'test-agent'] as const) {
+      {
         const model = createRecordedDevelopmentModel(f.pools, f.config, reference, { records, authorize: executionAuthority,
           gateway: { gatewayUrl: 'http://127.0.0.1:4000/v1', gatewayKey: 'synthetic-unused', profiles, transport: async (_url, init) => {
             modelCalls++; const wire = JSON.parse(String(init?.body)), input = JSON.parse(wire.messages[1].content);
+            const role = wire.messages[0].content === profiles.architect.instructions ? 'architect' : 'test-agent';
+            assert.equal(wire.messages[0].content, role === 'architect' ? profiles.architect.instructions : profiles.testAgent.instructions);
             assert.equal(input.scopeEvidence.evidence.length, 34); assert.doesNotMatch(wire.messages[1].content, /EXAM-MARKER-NOT-FOR-SCOPE/);
+            if (role === 'test-agent') { assert.equal(input.brief, documents.brief); assert.equal(input.spec, documents.spec);
+              assert.doesNotMatch(wire.messages[1].content, /Drafted from the recorded source|Synthetic generated Exam/); }
             return Response.json({ id: 'synthetic-authenticated-development', object: 'chat.completion', model: 'synthetic-only', choices: [{ index: 0,
               finish_reason: 'stop', message: { role: 'assistant', content: JSON.stringify(role === 'architect'
                 ? { message: 'Drafted from the recorded source', questions: [], brief: documents.brief, spec: documents.spec } : { exam: documents.exam }) } }],
@@ -154,7 +170,9 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
           } } });
         const worker = createDevelopmentStepRuntime(f.pools, f.config, reference, { reader: { originals: records.originals, results, authorizeRequest: authority },
           model, authorize: executionAuthority });
-        try { assert.equal((await worker.run(role, new AbortController().signal)).outcome, 'succeeded'); }
+        try { await workflows.run({ kind: 'development', runtime: worker, closeModel: () => model.close(),
+          input: { ...scope, ...reference, draftId: f.draftId, revision: 1, revisionDigest: source.revisionDigest },
+          post, read, effects: snapshot, modelCalls: () => modelCalls }); }
         finally { worker.close(); model.close(); }
       }
       const target = { ...scope, ...reference }, output = intentDevelopmentReadOutputSchema.parse(await read('intent.development.read', target));
@@ -179,18 +197,19 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
       assert.equal((await post('intent.development.read', { ...target, productId: 'foreign' })).status, 403);
       allowed = false; const denied = await post('intent.development.history', target); assert.equal(denied.status, 503);
       assert.doesNotMatch(await denied.text(), /PRIVATE|Synthetic generated|Human correction/); allowed = true;
-      identity.publish({ ...identity.grant, toolGrants: [] }); assert.equal((await post('intent.development.history', target)).status, 403);
+      identity.publish({ ...identity.grant, expiresAt: new Date(Date.now() + 1200000).toISOString(), toolGrants: [] }); assert.equal((await post('intent.development.history', target)).status, 403);
       assert.deepEqual(await snapshot(), complete); assert.equal(modelCalls, 4); assert.equal(native.git.mutations(), 0);
       console.log('PASS authenticated concrete factory: 34 native sources, two recorded scope batches, separate Brief/Spec and Exam roles, exact result restart, editable durable draft and historical lineage after correction; four synthetic calls/reservations, no Git save');
       // A long synthetic integration is not one perpetual session. Renew only
       // fixture membership before capturing the final Git snapshot and issue a
       // fresh short-lived signed bearer for each subsequent HTTP action.
       identity.publish({ ...identity.grant, expiresAt: new Date(Date.now() + 1200000).toISOString() });
-      freshCandidateIdentity = true; executionAllowed = true;
+      executionAllowed = true;
       const confirmed = await candidate.run({ admin, post, read, generation: reference,
-        previousScope: { ...scopePrepared.reference!, resultsDigest: scopeOutput.review!.resultsDigest }, modelCall: () => { modelCalls++; },
+        previousScope: { ...scopePrepared.reference!, resultsDigest: scopeOutput.review!.resultsDigest }, modelCall: () => { modelCalls++; }, modelCalls: () => modelCalls,
         restart: async () => { await runtime.shutdown(); runtime = await make(); } });
       assert.equal(modelCalls, 6); assert.equal(native.git.mutations(), 0);
+      assert.deepEqual(workflows.completed, { scope: 2, development: 1 });
       await save.run({ admin, post, read, ...confirmed,
         restart: async () => { await runtime.shutdown(); runtime = await make(); },
         revokeReadGrant: () => identity.publish({ ...identity.grant, expiresAt: new Date(Date.now() + 1200000).toISOString(),

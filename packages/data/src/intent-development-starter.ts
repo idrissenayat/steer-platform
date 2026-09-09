@@ -3,6 +3,7 @@ import { intentDevelopmentStartInputSchema, intentDevelopmentStartOutputSchema, 
 import { createDevelopmentOriginalStore, developmentRecordsConfigurationSchema } from './development-originals.ts';
 import { createIntentOperationStore } from './intent-operations.ts';
 import { developmentOriginalHash as hash, freezeOriginal as freeze, type DevelopmentOriginal } from './development-original-contracts.ts';
+import { withCurrentScopeReadWindow } from './current-scope-read-window.ts';
 
 type Records = Parameters<typeof createDevelopmentOriginalStore>[2];
 const unavailable = () => new Error('Development start is unavailable.');
@@ -33,8 +34,9 @@ export function createIntentDevelopmentStarter(pools: Parameters<typeof createDe
       const current = async () => { guard(); if (await track(Promise.resolve().then(revalidate)) !== undefined) throw unavailable(); guard(); };
       const checked = async <T>(work: () => Promise<T>) => { await current(); const value = await track(Promise.resolve().then(work)); await current(); return value; };
       const authority = async (action: string, work: () => Promise<void>) => { if (action !== 'read' || await checked(work) !== undefined) throw unavailable(); };
+      const sourceScope = r.scopeReview; let scopeReader = sourceScope, validating = false;
       const secured: Records = {
-        ...(r.scopeReview ? { scopeReview: r.scopeReview } : {}),
+        ...(sourceScope ? { scopeReview: { scope: sourceScope.scope, read: (input, current) => scopeReader!.read(input, current) } } : {}),
         authorize: c => authority(c.action, () => r.authorize(c)),
         authorizeOriginal: c => authority(c.action, () => r.authorizeOriginal(c)),
         authorizeDraft: c => authority(c.action, () => r.authorizeDraft(c)),
@@ -57,14 +59,18 @@ export function createIntentDevelopmentStarter(pools: Parameters<typeof createDe
           authorize: secured.authorizeOperation, verifyCheckpoint: async () => { throw unavailable(); },
         }));
         const authorize = async () => {
-          await current(); if (hash(await read()) !== hash(original)) throw unavailable();
-          if (await checked(() => deps.authorizeStart(original)) !== undefined) throw unavailable();
-          // Recheck source and SQL operation after the external authorization wait.
-          if (hash(await read()) !== hash(original)) throw unavailable();
-          const op = await operations.inspect(target); guard();
-          if (op.outcome !== 'ok' || op.value.operation.draftId !== input.draftId || op.value.operation.draftRevision !== input.revision) throw unavailable();
-          if (hash(await read()) !== hash(original)) throw unavailable();
-          await current();
+          if (validating) throw unavailable(); validating = true;
+          try { await withCurrentScopeReadWindow(sourceScope, current, async reader => {
+            scopeReader = reader;
+            await current(); if (hash(await read()) !== hash(original)) throw unavailable();
+            if (await checked(() => deps.authorizeStart(original)) !== undefined) throw unavailable();
+            // Recheck source and SQL operation after the external authorization wait.
+            if (hash(await read()) !== hash(original)) throw unavailable();
+            const op = await operations.inspect(target); guard();
+            if (op.outcome !== 'ok' || op.value.operation.draftId !== input.draftId || op.value.operation.draftRevision !== input.revision) throw unavailable();
+            if (hash(await read()) !== hash(original)) throw unavailable();
+            await current();
+          }); } finally { scopeReader = sourceScope; validating = false; }
         };
         await authorize();
         const receipt = developmentScheduleReceiptSchema.parse(await track(deps.scheduler.start(freeze({ organizationId: scope.organizationId,

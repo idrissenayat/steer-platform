@@ -13,6 +13,7 @@ import { verifyCandidateSavePreview } from '@steer/tool-registry/candidate-save-
 import { verifyCandidateSavePrepare } from '@steer/tool-registry/candidate-save-prepare-contracts';
 import { scopeReviewFixture } from '../../../packages/tool-registry/test/intent-scope-review.fixture.ts';
 import { createScopeStepRuntime } from '../../worker/src/scope-step-runtime.ts';
+import type { authenticatedModelWorkflows } from '../../worker/test/authenticated-model-workflows.integration.ts';
 
 type Fixture = Awaited<ReturnType<typeof scopeDraftIntegrationFixture>>;
 /** Continue the SAME signed-identity/SQL/recorded-generation test after correction.
@@ -20,7 +21,8 @@ type Fixture = Awaited<ReturnType<typeof scopeDraftIntegrationFixture>>;
  * production factory still constructs the services; no service result is injected.
  * Scheduling, Git writing and publication policies remain unavailable. */
 export function authenticatedCandidateConfirmation(f: Fixture, native: ReturnType<typeof nativeCandidateJourneyFixture>,
-  authority: () => Promise<void>, scopeRecords: IntentJourneyFactoryDependencies['scope']['records']['originals']) {
+  authority: () => Promise<void>, scopeRecords: IntentJourneyFactoryDependencies['scope']['records']['originals'],
+  workflows: ReturnType<typeof authenticatedModelWorkflows>) {
   let enabled = false;
   const current = async () => { await authority(); if (!enabled) throw new Error('PRIVATE candidate confirmation policy denied'); };
   const records = { authorize: current, lifecycle: f.lifecycle.lifecycle, keyForDraft: f.deps.keyForDraft };
@@ -33,7 +35,7 @@ export function authenticatedCandidateConfirmation(f: Fixture, native: ReturnTyp
     async run(input: {
       admin: Pool; post(name: string, input: unknown): Promise<Response>; read(name: string, input: unknown): Promise<unknown>;
       restart(): Promise<void>; generation: { operationId: string; inputDigest: string };
-      previousScope: { reviewId: string; preparationDigest: string; resultsDigest: string }; modelCall(): void;
+      previousScope: { reviewId: string; preparationDigest: string; resultsDigest: string }; modelCall(): void; modelCalls(): number;
     }) {
       const { admin, post } = input, measurements: Array<{ tool: string; ms: number; nativeRequests: number }> = [];
       const read = async (tool: string, body: unknown) => {
@@ -76,17 +78,20 @@ export function authenticatedCandidateConfirmation(f: Fixture, native: ReturnTyp
           documents: { brief: draft.content.documents.brief, spec: draft.content.documents.spec } }, review.evidence, f.described.original.profile);
         assert.equal(prepared.batches.length, 2); assert.equal(review.evidence.documents.length, 34);
         const sample = await scopeReviewFixture();
-        for (const batch of prepared.batches) {
+        {
           const worker = createScopeStepRuntime(f.pools, f.config, admitted.reference, {
             records: { originals: scopeRecords, authorize: authority }, profile: f.described.original.profile, authorize: authority,
             gateway: { gatewayUrl: 'http://127.0.0.1:4000/v1', gatewayKey: 'synthetic-unused', transport: async (_url, init) => {
-              input.modelCall(); const wire = JSON.parse(String(init?.body)); assert.equal(wire.messages[1].content, batch.packet.request.source);
+              input.modelCall(); const wire = JSON.parse(String(init?.body));
+              const batch = prepared.batches.find(batch => batch.packet.request.source === wire.messages[1].content); assert.ok(batch);
               return Response.json({ id: 'synthetic-final-scope', object: 'chat.completion', model: 'synthetic-model', choices: [{ index: 0,
                 finish_reason: 'stop', message: { role: 'assistant', content: JSON.stringify(sample.result(batch)) } }],
                 usage: { prompt_tokens: 2, completion_tokens: 1, total_tokens: 3 } });
             } },
           });
-          try { assert.equal((await worker.run(batch.metadata.batchId, new AbortController().signal)).outcome, 'succeeded'); }
+          try { await workflows.run({ kind: 'scope', runtime: worker, batchIds: prepared.batches.map(batch => batch.metadata.batchId),
+            input: { ...scope, ...admitted.reference, draftId: f.draftId, revision: draft.revision, revisionDigest: draft.revisionDigest },
+            post, read, effects: snapshot, modelCalls: input.modelCalls }); }
           finally { worker.close(); }
         }
         const assessed = await verifyIntentScopeReadOutput(await read('intent.scope.read', { ...scope, ...admitted.reference }));
@@ -124,7 +129,7 @@ export function authenticatedCandidateConfirmation(f: Fixture, native: ReturnTyp
         const unavailable = await post('intent.candidate.save.preview', previewInput); assert.equal(unavailable.status, 503);
         assert.doesNotMatch(await unavailable.text(), /PRIVATE|Human correction|Synthetic generated/);
         assert.deepEqual(await rows(), encrypted); assert.deepEqual(await snapshot(), stored);
-        console.log('PASS authenticated corrected package: stale assessment denied, two fresh recorded scope batches, exact edited-document lineage, human confirmation, discarded HTTP acknowledgement and reconstructed idempotent original recovery; six synthetic model calls/reservations, no scheduling or Git save');
+      console.log('PASS authenticated corrected package: stale assessment denied, two fresh recorded scope batches, exact edited-document lineage, human confirmation, discarded HTTP acknowledgement and reconstructed idempotent original recovery; six synthetic model calls/reservations, no candidate-save scheduling or Git save');
         console.log('Synthetic authenticated corrected-package request measurements: ' + JSON.stringify(measurements));
         return { reference: recovered.reference, documents: draft.content.documents };
       } finally { enabled = false; }
