@@ -1433,3 +1433,24 @@ cache permission or reduce Git-head freshness. Existing key/lifecycle/records,
 predecessor/SDK and final readback checks remain. See [0277 evidence](../../intent/0277/EVIDENCE.md)
 for the measured result and regression status; low live-provider load and usable
 latency must not be inferred from synthetic completion.
+
+### Request-owned corpus evidence — 0279
+
+Source review may own a private immutable corpus read session inside the actual
+composition root. The first full collection verifies the current tree and all
+consumed blobs. Each reuse and the final session return recheck current caller,
+inventory permission revision, current heads, all observed lifecycle/product
+choices and every consumed-source grant. This includes pointer/manifest/Exam
+bytes supporting Brief/Spec provenance and roots excluded by product selection.
+Changed bindings, installed ports, head, authority or selection deny. Captured
+proof is not public tool input and never crosses requests or effect boundaries.
+
+Missing, inaccessible or corrupt coverage remains full-read and cannot silently
+become complete within a session. Whole-source bytes beyond one semantic batch
+keep their exact coverage gaps; session reuse supplies no uniqueness verdict.
+Both draft reads and review-provenance checks remain mandatory. Timed-out or
+abandoned callbacks retain bounded admission until drained; closure withholds
+late results. Ordinary corpus reads and write/dispatch admission do not reuse this
+session. See [0279 specification](../../intent/0279/SPEC.md) and
+[evidence](../../intent/0279/EVIDENCE.md). Signed architecture, policy, deadlines
+and live activation authority are unchanged.

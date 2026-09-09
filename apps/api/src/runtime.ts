@@ -201,11 +201,13 @@ export function createVerifiedScopeReviewHistoryReader(pools: Parameters<typeof 
 /** Connect actual repository enumeration to the existing review query. Trusted
  * product/lifecycle/read authorities remain mandatory; never installed by flags. */
 export function createCorpusRecordedDevelopmentReviewer(reader: Parameters<typeof createIntentCorpusEvidence>[0], configuration: unknown,
-  retrievalConfigurationRevision: string, dependencies: Omit<Parameters<typeof createIntentDevelopmentReviewer>[1], 'evidenceFor'> & { authority: IntentCorpusAuthority }) {
+  retrievalConfigurationRevision: string, dependencies: Omit<Parameters<typeof createIntentDevelopmentReviewer>[1], 'evidenceFor' | 'withEvidenceRead'> & { authority: IntentCorpusAuthority }) {
   const config = draftRecordsConfigurationSchema.parse(configuration), { organizationId, productId, repository, branch } = config;
   const corpus = createIntentCorpusEvidence(reader, { organizationId, productId, repository, branch, retrievalConfigurationRevision }, dependencies.authority);
   try {
     const reviewer = createIntentDevelopmentReviewer(config, { drafts: dependencies.drafts, authorizeReview: dependencies.authorizeReview,
+      withEvidenceRead: (input, current, work) => corpus.withReadSession({ organizationId, productId, repository, branch, scopeInputDigest: input.scopeInputDigest }, current,
+        read => work(async () => (await read()).evidence)),
       evidenceFor: async (input, current) => (await corpus.collect({ organizationId, productId, repository, branch, scopeInputDigest: input.scopeInputDigest }, current)).evidence });
     return { scope: reviewer.scope, review: reviewer.review, close() { reviewer.close(); corpus.close(); } };
   } catch (error) { corpus.close(); throw error; }

@@ -6165,3 +6165,26 @@ typechecks, production build, protected hashes, 95-artifact kit, scope audit and
 see [0278 evidence](../intent/0278/EVIDENCE.md) and the
 [next-change investigation](../intent/0278/INVESTIGATION.md). This is a verified
 diagnosis, not a delivered performance improvement, changed authority or UI acceptance.
+
+## 0279 — Request-owned corpus verification
+
+Private immutable content reuse is
+installed only around read-only development source review. Fresh current head,
+inventory authority, lifecycle selection and every consumed source grant remain
+mandatory, including supporting pointer/manifest/Exam access. Incomplete evidence
+uses full reads. Bounded session admission stays owned until late work drains.
+See [specification](../intent/0279/SPEC.md) and [evidence](../intent/0279/EVIDENCE.md).
+All three authenticated joined checks and ten historical SQL checks plus their
+migration checks pass. The same 34-source/two-scope/independent-role/fixed-save
+journey preserves six synthetic model reservations, one native commit, exact
+confirmation and older-commit reopen across lost acknowledgements/restart. All
+1,367 broad tests, prototype/eight-package types, production build, protected
+hashes, the 95-artifact kit, scope audit and 312 links in seven documents pass.
+
+Source review removes 23.4% of requests; preview removes 3,724 (11.1%) and each
+confirmation removes 7,448 (11.0%). Ordinary scope preparation adds 224 requests
+to cover all consumed supporting-file grants. Confirmation still makes about
+60,000 attempts and takes 36 seconds locally; further bounded reduction is needed.
+No full SQL-suite, real-provider-load, live activation or signed-in UI acceptance
+claim is made. D1, model spending, real runtime writes and protected/user files
+remain unchanged.

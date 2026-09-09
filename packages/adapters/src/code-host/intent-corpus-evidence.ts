@@ -44,9 +44,10 @@ export function createIntentCorpusEvidence(reader: CorpusRepositoryReader, rawCo
   if (!reader.readScopeInventory || !authority.authorize || !authority.select || !authority.authorizeSource
     || reader.binding.organizationId !== config.organizationId || `github:${reader.binding.repositoryId}` !== config.repository || reader.binding.branch !== config.branch) throw unavailable();
   let closed = false, busy = false, cancel: (() => void) | undefined;
-  return {
-    scope,
-    async collect(raw: unknown, revalidate: () => Promise<void>) {
+  type Observation = { context: CorpusSelectionContext; selected: z.infer<typeof selectionSchema> | null };
+  type Proof = { head: string; permissionsRevision: string; observations: Observation[]; consumed: string[] };
+  const sessions = new Set<() => void>();
+  async function collect(raw: unknown, revalidate: () => Promise<void>, capture?: (proof: Proof) => void) {
       const input = freeze(inputSchema.parse(raw));
       if (closed || busy || typeof revalidate !== 'function' || Object.keys(scope).some(k => input[k as keyof typeof scope] !== scope[k as keyof typeof scope])) throw unavailable();
       busy = true; let finished = false, drained = false, timer: ReturnType<typeof setTimeout> | undefined, reads = 0;
@@ -67,7 +68,7 @@ export function createIntentCorpusEvidence(reader: CorpusRepositoryReader, rawCo
         if (tree.organizationId !== scope.organizationId || tree.repositoryId !== binding.repositoryId || tree.revision !== head) throw unavailable();
         const entries = new Map(tree.entries.map(e => [e.path, e]));
         const inventory: z.infer<typeof shape.inventory> = [], documents: z.infer<typeof shape.documents> = [];
-        const observations: Array<{ context: CorpusSelectionContext; selected: z.infer<typeof selectionSchema> | null }> = [];
+        const observations: Observation[] = [], consumed = new Set<string>();
         let accessGapCount = 0, unresolvedCount = tree.unsupportedRootCount, excludedCount = 0, sourceGapCount = 0;
         const select = async (context: CorpusSelectionContext) => {
           await check(); let value: unknown;
@@ -83,7 +84,7 @@ export function createIntentCorpusEvidence(reader: CorpusRepositoryReader, rawCo
           if (file.organizationId !== scope.organizationId || file.repositoryId !== binding.repositoryId || file.revision !== head || file.path !== path
             || entry.type !== 'blob' || entry.mode !== '100644' || entry.objectSha !== file.blobSha || digest(file.content) !== file.contentDigest
             || blob(file.content) !== file.blobSha || Buffer.byteLength(file.content) > 131072 || !file.content.trim()) throw unavailable();
-          if (await authority.authorizeSource(freeze({ ...reference, path })) !== undefined) throw unavailable(); guard(); await check(); return file;
+          if (await authority.authorizeSource(freeze({ ...reference, path })) !== undefined) throw unavailable(); guard(); await check(); consumed.add(path); return file;
         };
         const include = (file: ArtifactSnapshot, status: 'canonical' | 'candidate' | 'amendment', targetId: string) => {
           if (inventory.length >= 1000 || inventory.some(i => i.path === file.path)) throw unavailable();
@@ -124,14 +125,19 @@ export function createIntentCorpusEvidence(reader: CorpusRepositoryReader, rawCo
           }
         }
         for (const observed of observations) if (hash(await select(observed.context)) !== hash(observed.selected)) throw unavailable();
-        // Reauthorize every emitted source after all other asynchronous work.
-        for (const file of inventory) { await check(); if (await authority.authorizeSource(freeze({ ...reference, path: file.path })) !== undefined) throw unavailable(); guard(); }
+        // Pointer, manifest and Exam bytes are consumed evidence too, even when
+        // only Brief/Spec bodies are emitted for semantic scope assessment.
+        for (const path of consumed) { await check(); if (await authority.authorizeSource(freeze({ ...reference, path })) !== undefined) throw unavailable(); guard(); }
         if (shape.head.parse(await io(() => reader.readHead())) !== head) throw unavailable(); await check();
         const selectionDigest = hash(observations.map(o => o.selected));
         const evidence = intentEvidenceInputSchema.parse({ ...scope, head, scopeInputDigest: input.scopeInputDigest, permissionsRevision,
           retrievalConfigurationRevision: `${config.retrievalConfigurationRevision}:${selectionDigest}`, inventoryComplete: unresolvedCount === 0 && sourceGapCount === 0,
           accessGapCount, inventory, documents });
         const envelope = await buildIntentEvidenceEnvelope(evidence); guard(); await check();
+        // A batch/context limit is not missing source content. Preserve those
+        // exact envelope gaps; never reuse unread, inaccessible or corrupt bytes.
+        if (evidence.inventoryComplete && !accessGapCount && inventory.length === documents.length && reads < 98)
+          capture?.(freeze({ head, permissionsRevision: evidence.permissionsRevision, observations, consumed: [...consumed] }));
         return freeze({ evidence, envelope, coverage: { scope: 'configured-repository-intent-and-items' as const, enumeratedRootCount: tree.roots.length,
           excludedCount, unresolvedCount, sourceGapCount, accessGapCount, readLimitReached: reads >= 98 },
           authoritativeClearance: false as const, semanticReviewComplete: false as const });
@@ -140,7 +146,79 @@ export function createIntentCorpusEvidence(reader: CorpusRepositoryReader, rawCo
       try { return await Promise.race([work, new Promise<never>((_, reject) => { cancel = () => reject(unavailable()); timer = setTimeout(cancel, 30000); })]); }
       catch { throw unavailable(); }
       finally { finished = true; cancel = undefined; if (timer) clearTimeout(timer); catalogs.forEach(c => c.close()); if (drained) busy = false; }
+  }
+  return {
+    scope,
+    // Do not expose the proof-capture callback on the ordinary collection port.
+    collect: (raw: unknown, revalidate: () => Promise<void>) => collect(raw, revalidate),
+    /** Trusted read-only composition only. Immutable content belongs to this
+     * invocation, never a request DTO, global cache, authorization lease or write. */
+    async withReadSession<T>(raw: unknown, revalidate: () => Promise<void>, work: (read: () => Promise<Awaited<ReturnType<typeof collect>>>) => Promise<T>): Promise<T> {
+      const input = freeze(inputSchema.parse(raw));
+      if (closed || sessions.size >= 4 || typeof revalidate !== 'function' || typeof work !== 'function'
+        || Object.keys(scope).some(k => input[k as keyof typeof scope] !== scope[k as keyof typeof scope])) throw unavailable();
+      const ports = [reader.readHead, reader.readScopeInventory, reader.readArtifact, authority.authorize, authority.select, authority.authorizeSource];
+      let finished = false, reading = false, failed = false, proof: Proof | undefined, previous: Awaited<ReturnType<typeof collect>> | undefined;
+      const pending = new Set<Promise<unknown>>(), deadline = performance.now() + 30000;
+      const guard = () => {
+        if (closed || finished || failed || performance.now() >= deadline || hash(reader.binding) !== hash(binding)
+          || [reader.readHead, reader.readScopeInventory, reader.readArtifact, authority.authorize, authority.select, authority.authorizeSource].some((port, i) => port !== ports[i])) throw unavailable();
+      };
+      const current = async () => { guard(); if (await revalidate() !== undefined) throw unavailable(); guard(); };
+      const fresh = async (p: Proof) => {
+        const check = async () => {
+          await current();
+          const permission = z.strictObject({ permissionsRevision: shape.permissionsRevision }).parse(await authority.authorize(scope));
+          await current(); if (permission.permissionsRevision !== p.permissionsRevision) throw unavailable();
+        };
+        const checked = async <V>(read: () => Promise<V>) => { await check(); const value = await read(); await check(); return value; };
+        if (shape.head.parse(await checked(() => reader.readHead())) !== p.head) throw unavailable();
+        for (const observation of p.observations) {
+          const selected = selectionSchema.parse(await checked(() => authority.select(observation.context)));
+          if (hash(selected) !== hash(observation.selected)) throw unavailable();
+        }
+        for (const path of p.consumed)
+          if (await checked(() => authority.authorizeSource(freeze({ ...scope, revision: p.head, path }))) !== undefined) throw unavailable();
+        if (shape.head.parse(await checked(() => reader.readHead())) !== p.head) throw unavailable();
+        await check();
+      };
+      const read = () => {
+        if (reading) { failed = true; return Promise.reject(unavailable()); }
+        reading = true;
+        const operation = Promise.resolve().then(async () => {
+          await current();
+          if (proof && previous) { await fresh(proof); return previous; }
+          const value = await collect(input, current, captured => { proof = captured; });
+          await current();
+          // Incomplete collections stay on the full path. A later repair or new
+          // head cannot silently turn earlier evidence into different consent.
+          if (previous && hash(previous) !== hash(value)) throw unavailable();
+          previous = value; return value;
+        }).catch(() => { failed = true; throw unavailable(); });
+        pending.add(operation);
+        void operation.finally(() => { reading = false; pending.delete(operation); }).catch(() => {});
+        return operation;
+      };
+      let rejectSession!: () => void, timer: ReturnType<typeof setTimeout> | undefined;
+      const cancelled = new Promise<never>((_, reject) => { rejectSession = () => reject(unavailable()); });
+      sessions.add(rejectSession); timer = setTimeout(rejectSession, 30000);
+      const running = Promise.resolve().then(async () => {
+        try {
+          await current(); const result = await work(read); guard();
+          if (pending.size || !previous) throw unavailable();
+          // Recheck after the caller's final draft/provenance checks as well.
+          await read(); await current(); return result;
+        } finally {
+          finished = true;
+          // An abandoned read still owns admission until the actual I/O drains.
+          await Promise.allSettled([...pending]);
+        }
+      });
+      void running.finally(() => { sessions.delete(rejectSession); }).catch(() => {});
+      try { return await Promise.race([running, cancelled]); }
+      catch { throw unavailable(); }
+      finally { finished = true; proof = undefined; previous = undefined; if (timer) clearTimeout(timer); }
     },
-    close() { closed = true; cancel?.(); },
+    close() { closed = true; cancel?.(); sessions.forEach(stop => stop()); },
   };
 }

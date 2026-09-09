@@ -12,12 +12,16 @@ const unavailable = () => new Error('Current source review is unavailable; this 
 export function createIntentDevelopmentReviewer(rawConfiguration: unknown, deps: {
   drafts: IntentDraftService;
   evidenceFor(input: Readonly<IntentDevelopmentReviewInput>, revalidate: () => Promise<void>): Promise<unknown>;
+  // Installed only by the trusted read-only repository composition. This is not
+  // selected by an HTTP input and must never enclose admission or other effects.
+  withEvidenceRead?<T>(input: Readonly<IntentDevelopmentReviewInput>, revalidate: () => Promise<void>, work: (read: () => Promise<unknown>) => Promise<T>): Promise<T>;
   authorizeReview(input: Readonly<IntentDevelopmentReviewInput>, evidence: Readonly<ReturnType<typeof intentEvidenceInputSchema.parse>>): Promise<void>;
 }) {
   const config = freeze(developmentRecordsConfigurationSchema.parse(rawConfiguration));
   const { organizationId, subject, productId, repository, configurationRevision } = config;
   const scope = freeze({ organizationId, subject, productId, repository, configurationRevision });
   if (typeof deps.drafts?.read !== 'function' || typeof deps.evidenceFor !== 'function' || typeof deps.authorizeReview !== 'function') throw unavailable();
+  if (deps.withEvidenceRead !== undefined && typeof deps.withEvidenceRead !== 'function') throw unavailable();
   let closed = false, active = 0;
   return {
     scope,
@@ -39,18 +43,22 @@ export function createIntentDevelopmentReviewer(rawConfiguration: unknown, deps:
           || draft.revisionDigest !== input.revisionDigest || draft.scopeInputDigest !== input.scopeInputDigest) throw unavailable();
         return draft;
       };
-      const evidence = async () => {
-        await current(); const value = freeze(intentEvidenceInputSchema.parse(await deps.evidenceFor(input, current))); await current();
+      const evidence = async (evidenceFor: () => Promise<unknown>) => {
+        await current(); const value = freeze(intentEvidenceInputSchema.parse(await evidenceFor())); await current();
         if ((['organizationId', 'productId', 'repository', 'branch'] as const).some(k => value[k] !== config[k]) || value.scopeInputDigest !== input.scopeInputDigest) throw unavailable();
         if (await deps.authorizeReview(input, value) !== undefined) throw unavailable(); await current(); return value;
       };
-      const work = Promise.resolve().then(async () => {
-        const draft = await read(), sources = await evidence(), plan = await planIntentScopeBatches(sources), envelope = plan.envelope;
+      const run = async (evidenceFor: () => Promise<unknown>) => {
+        const draft = await read(), sources = await evidence(evidenceFor), plan = await planIntentScopeBatches(sources), envelope = plan.envelope;
         const { output } = await verifyDevelopmentReview(input, { ...input, kind: 'steer-development-review/v1', configurationRevision,
           sourceSnapshotDigest: envelope.sourceSnapshotDigest, scopeBatchPlan: plan.summary, evidence: sources, semanticReviewComplete: false,
           authoritativeClearance: false, executionAuthorized: false, savedToGit: false, gateSigned: false });
-        if (hash(await read()) !== hash(draft) || hash(await evidence()) !== hash(sources)) throw unavailable();
+        if (hash(await read()) !== hash(draft) || hash(await evidence(evidenceFor)) !== hash(sources)) throw unavailable();
         await current(); return freeze(output);
+      };
+      const work = Promise.resolve().then(async () => {
+        const result = deps.withEvidenceRead ? await deps.withEvidenceRead(input, current, run) : await run(() => deps.evidenceFor(input, current));
+        await current(); return result;
       });
       // A timed-out dependency still owns its admission slot until it settles.
       void work.finally(() => { active--; }).catch(() => {});

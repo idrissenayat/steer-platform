@@ -153,3 +153,152 @@ test('elapsed monotonic deadline blocks I/O even before a delayed timer callback
   f.authority.authorize = async () => { clock = 30001; return { permissionsRevision: 'p1' }; };
   await assert.rejects(f.service.collect(input, async () => {})); assert.equal(f.git.calls.length, 0);
 });
+test('a private corpus session reads immutable bodies once, rechecks every consumed path and cannot be reused by another request', async t => {
+  const f = await setup(t); await candidate(f, 'new-candidate'); f.selections.set('items/0003-candidate', 'pre-pull-candidate');
+  const source = f.reader.readArtifact, authorize = f.authority.authorizeSource;
+  const consumed = new Set<string>(), checked = new Set<string>(); let bodyReads = 0, later = false, headReads = 0;
+  const head = f.reader.readHead;
+  f.reader.readHead = async () => { headReads++; return head(); };
+  f.reader.readArtifact = async (path, revision) => { bodyReads++; consumed.add(path); return source(path, revision); };
+  f.authority.authorizeSource = async ref => { if (later) checked.add(ref.path); await authorize(ref); };
+  let escaped!: () => Promise<unknown>;
+  await assert.rejects(f.service.withReadSession({ ...input, proof: { evidence: 'forged' } }, async () => {}, async read => read()));
+  const result = await f.service.withReadSession(input, async () => {}, async read => {
+    escaped = read; const first = await read(), before = bodyReads; later = true;
+    assert.strictEqual(await read(), first); assert.equal(bodyReads, before);
+    assert.ok(Object.isFrozen(first.evidence.documents)); return first;
+  });
+  assert.equal(result.envelope.coverage.complete, true); assert.equal(headReads, 6);
+  assert.deepEqual(checked, consumed); assert.ok([...consumed].some(path => path.endsWith('/EXAM.md')));
+  assert.ok(consumed.size > result.evidence.inventory.length); assert.equal(f.git.mutations(), 0);
+  await assert.rejects(escaped()); const before = bodyReads;
+  await f.service.withReadSession(input, async () => {}, async read => read());
+  assert.equal(bodyReads, before * 2); // A fresh invocation has no captured bytes.
+});
+test('session revalidation denies changed heads, permissions, bindings, ports, selection and grants including non-emitted Exam', async t => {
+  for (const mode of ['head', 'permission', 'grant', 'exam', 'selection', 'excluded', 'port', 'caller', 'nonvoid'] as const) {
+    const f = await setup(t); const plan = await candidate(f, 'new-candidate'); f.selections.set('items/0003-candidate', 'pre-pull-candidate');
+    f.git.add([{ path: 'items/0009-other/BRIEF.md', content: 'Excluded product' }]); f.selections.set('items/0009-other', 'out-of-product');
+    let valid = true, badVoid = false;
+    const current = async () => { if (!valid) throw new Error('PRIVATE'); return badVoid ? false as unknown as void : undefined; };
+    await assert.rejects(f.service.withReadSession(input, current, async read => {
+      await read();
+      if (mode === 'head') f.git.add([{ path: 'unrelated.md', content: 'New head' }]);
+      if (mode === 'permission') f.permissions('p2');
+      if (mode === 'grant') f.denied.add('intent/0001/BRIEF.md');
+      if (mode === 'exam') f.denied.add(plan.files.find(file => file.path.endsWith('/EXAM.md'))!.path);
+      if (mode === 'selection') f.selections.set('intent/0001', 'inaccessible');
+      if (mode === 'excluded') f.selections.set('items/0009-other', 'canonical');
+      if (mode === 'port') { const head = f.reader.readHead; f.reader.readHead = () => head(); }
+      if (mode === 'caller') valid = false;
+      if (mode === 'nonvoid') badVoid = true;
+      return read();
+    }), error => { assert.doesNotMatch(String(error), /PRIVATE/); return true; });
+  }
+  const f = await setup(t), reader = { ...f.reader, binding: { ...f.reader.binding } };
+  const service = createIntentCorpusEvidence(reader, config, f.authority);
+  await assert.rejects(service.withReadSession(input, async () => {}, async read => { await read(); reader.binding.repositoryId = 99; return read(); })); service.close();
+});
+test('final session checks withhold output for late source revocation or changed lifecycle after the last explicit read', async t => {
+  for (const mode of ['grant', 'selection', 'head', 'permission'] as const) {
+    const f = await setup(t);
+    await assert.rejects(f.service.withReadSession(input, async () => {}, async read => {
+      const result = await read(); await read();
+      if (mode === 'grant') f.denied.add('items/0002-canonical/SPEC.md');
+      if (mode === 'selection') f.selections.set('intent/0001', 'out-of-product');
+      if (mode === 'head') f.git.add([{ path: 'another.md', content: 'Later head' }]);
+      if (mode === 'permission') f.permissions('p2');
+      return result;
+    }));
+  }
+});
+test('a complete collection checks consumed pointer Exam grants again before the first result escapes', async t => {
+  const f = await setup(t), plan = await candidate(f, 'new-candidate'); f.selections.set('items/0003-candidate', 'pre-pull-candidate');
+  const exam = plan.files.find(file => file.path.endsWith('/EXAM.md'))!.path, select = f.authority.select; let count = 0;
+  f.authority.select = async context => { if (++count > 3) f.denied.add(exam); return select(context); };
+  await assert.rejects(f.service.collect(input, async () => {}));
+});
+test('incomplete and corrupt collections are recollected in full and cannot silently become complete', async t => {
+  for (const mode of ['missing', 'inaccessible', 'corrupt'] as const) {
+    const f = await setup(t), source = f.reader.readArtifact; let reads = 0, repair = false;
+    f.reader.readArtifact = async (path, revision) => { reads++; const value = await source(path, revision); return mode === 'corrupt' && !repair ? { ...value, content: 'Corrupt bytes' } : value; };
+    if (mode === 'missing') f.git.add([{ path: 'intent/0001/SPEC.md', content: null }]);
+    if (mode === 'inaccessible') f.selections.set('intent/0001', 'inaccessible');
+    await f.service.withReadSession(input, async () => {}, async read => {
+      const first = await read(), before = reads; assert.equal(first.envelope.coverage.complete, false);
+      assert.deepEqual(await read(), first); assert.ok(reads > before); return first;
+    });
+    await assert.rejects(f.service.withReadSession(input, async () => {}, async read => {
+      await read(); repair = true;
+      if (mode === 'missing') f.git.add([{ path: 'intent/0001/SPEC.md', content: '# Repaired' }]);
+      if (mode === 'inaccessible') f.selections.set('intent/0001', 'canonical');
+      return read();
+    }));
+  }
+});
+test('sessions reject absent reads, parallel reads, swallowed read failures and callbacks that return nonvoid', async t => {
+  const f = await setup(t);
+  await assert.rejects(f.service.withReadSession(input, async () => {}, async () => 'unverified'));
+  await assert.rejects(f.service.withReadSession(input, async () => {}, async read => { await Promise.allSettled([read(), read()]); return 'ignored failures'; }));
+  await assert.rejects(f.service.withReadSession(input, async () => {}, async read => {
+    await read(); f.permissions('p2'); await assert.rejects(read()); return 'ignored revoked grant';
+  }));
+  const auth = f.authority.authorizeSource;
+  f.authority.authorizeSource = async ref => { await auth(ref); return false as unknown as void; };
+  const partial = await f.service.withReadSession(input, async () => {}, async read => read());
+  assert.equal(partial.envelope.coverage.complete, false); // Denied source cannot enter a proof.
+});
+test('session deadline retains four occupied slots until timed-out callbacks drain', async t => {
+  const f = await setup(t), releases: Array<() => void> = [], pending: Array<Promise<void>> = [];
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  for (let i = 0; i < 4; i++) {
+    let entered!: () => void; const begun = new Promise<void>(resolve => { entered = resolve; });
+    const operation = f.service.withReadSession(input, async () => {}, async read => {
+      await read(); entered(); await new Promise<void>(resolve => releases.push(resolve)); return 'late';
+    });
+    pending.push(assert.rejects(operation)); await begun;
+  }
+  t.mock.timers.tick(30001); await Promise.all(pending);
+  await assert.rejects(f.service.withReadSession(input, async () => {}, async read => read()));
+  releases.forEach(release => release()); await new Promise<void>(resolve => setImmediate(resolve));
+  const result = await f.service.withReadSession(input, async () => {}, async read => read());
+  assert.equal(result.envelope.coverage.complete, true);
+});
+test('closure rejects a pending fresh check immediately and suppresses its late read', async t => {
+  const f = await setup(t); let hold = false, entered!: () => void, release!: () => void;
+  const begun = new Promise<void>(resolve => { entered = resolve; });
+  const authorize = f.authority.authorize;
+  f.authority.authorize = async () => { if (hold) { entered(); await new Promise<void>(resolve => { release = resolve; }); } return authorize(); };
+  const pending = assert.rejects(f.service.withReadSession(input, async () => {}, async read => { await read(); hold = true; return read(); }));
+  await begun; const requests = f.git.calls.length; f.service.close(); await pending;
+  release(); await new Promise<void>(resolve => setImmediate(resolve)); assert.equal(f.git.calls.length, requests);
+});
+test('verified sources beyond one semantic batch retain their exact gaps without another body traversal', async t => {
+  const f = await setup(t);
+  f.git.add(Array.from({ length: 15 }, (_, index) => ['BRIEF', 'SPEC'].map(name => ({
+    path: `intent/${String(index + 2).padStart(4, '0')}/${name}.md`, content: `# ${name}\nDistinct context ${index}\n`,
+  }))).flat());
+  let bodies = 0; const readSource = f.reader.readArtifact;
+  f.reader.readArtifact = async (...args) => { bodies++; return readSource(...args); };
+  await f.service.withReadSession(input, async () => {}, async read => {
+    const first = await read(); assert.equal(first.evidence.inventory.length, 34);
+    assert.equal(first.evidence.documents.length, 34); assert.equal(first.envelope.coverage.complete, false);
+    assert.equal(first.envelope.coverage.gaps.length, 2); const before = bodies;
+    assert.strictEqual(await read(), first); assert.equal(bodies, before); return first;
+  });
+  assert.equal(bodies, 34);
+});
+test('fresh callbacks cannot return nonvoid, revoke the caller or run after the monotonic deadline', async t => {
+  for (const mode of ['nonvoid', 'caller', 'deadline'] as const) {
+    const f = await setup(t); let later = false, valid = true, clock = 0;
+    const source = f.authority.authorizeSource; t.mock.method(performance, 'now', () => clock);
+    f.authority.authorizeSource = async ref => {
+      await source(ref);
+      if (later && mode === 'nonvoid') return false as unknown as void;
+      if (later && mode === 'caller') valid = false;
+    };
+    await assert.rejects(f.service.withReadSession(input, async () => { if (!valid) throw new Error('PRIVATE'); }, async read => {
+      await read(); later = true; if (mode === 'deadline') clock = 30001; return read();
+    })); t.mock.restoreAll();
+  }
+});

@@ -66,8 +66,21 @@ fetching is not the dominant source. All three joined checks pass with unchanged
 request totals and behavior; all 1,355 broad tests, typechecks and build pass. See
 [0278 evidence](../intent/0278/EVIDENCE.md). Next review and implement the
 [request-owned corpus verification proposal](../intent/0278/INVESTIGATION.md),
-with current-grant/source/closure negatives before measuring any reduction. It is
-not an implemented session, authorization lease or current approval to cache grants.
+with current-grant/source/closure negatives before measuring any reduction. That
+diagnostic alone implemented no session or permission cache; 0279 follows below.
+
+0279 implements that private read-only source-review session, with full
+initial collection, current head/permission/lifecycle revalidation and all consumed
+source grants, including supporting manifests and Exam. All three joined workflow
+checks, ten historical SQL checks and their migration checks pass, along with
+1,367 broad tests, typechecks and build. Source review removes 23.4% of provider
+attempts; preview/confirmation remove about 11%. The same 34-source journey keeps
+six synthetic model reservations and one native commit/exact reopen. See
+[0279 evidence](../intent/0279/EVIDENCE.md) for exact measurements and the extra
+supporting-file checks on ordinary collection. Confirmation still makes roughly
+60,000 requests and takes 36 seconds locally. Continue bounded read-performance
+work, remaining dispositions and governed startup without changing live authority;
+neither remote load nor signed-in I1–I6 acceptance is demonstrated.
 
 Prior checkpoint: **0275 saves and reopens the confirmed package through identity**.
 The same authenticated journey now reaches one fixed Temporal/native Git save,

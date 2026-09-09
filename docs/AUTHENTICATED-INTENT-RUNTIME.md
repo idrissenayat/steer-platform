@@ -58,6 +58,33 @@ records transition and its recovery path.
 
 ## Evidence and remaining work
 
+### Request-owned corpus verification — 0279
+
+The actual corpus-backed development source reviewer now installs a private
+read-only session, never selected by HTTP input. The first read verifies the tree
+and every consumed blob at the current commit. Supporting pointers, manifests and
+Exam files are tracked and reauthorized even though only Brief/Spec are emitted
+for scope assessment. Every reuse rechecks current caller, inventory permission
+revision, both current heads, every observed lifecycle/product choice (including
+excluded roots) and every consumed-source grant. Installed ports and repository
+binding are pinned. Content is request-owned; permissions are not cached.
+
+The session repeats those checks after the source review's final read-only work.
+Both exact draft reads and review-provenance callbacks remain. Incomplete sources
+are fully recollected and cannot silently become complete; verified source bytes
+above a semantic batch limit keep their exact gaps for the existing batch planner.
+Four bounded slots, close and the unchanged 30-second deadline suppress late work;
+occupied slots are retained until abandoned callbacks drain. No session encloses
+admission/original retention, scheduling, model dispatch, Git writes or publication.
+Ordinary scope/assessed corpus collection remains full traversal.
+
+See [0279 evidence](../intent/0279/EVIDENCE.md): three joined workflow checks, ten
+historical SQL checks, 1,367 broad tests, types and build pass. In the same fixture,
+source review removes 23.4% of requests; preview/confirmation remove about 11%.
+Confirmation still makes about 60,000 attempts and takes 36 seconds locally, so
+remote load and smooth human UX remain open. No runtime binding, D1 adoption,
+live permission or signed-in UI acceptance is supplied here.
+
 ### Native traffic ownership — 0278
 
 The joined fixture now meters the actual identity runtime's synthetic transport
@@ -69,10 +96,11 @@ The dominant cost is repeated fresh-head verification, not downloading that file
 
 No production behavior or request totals change in this diagnostic. All prior
 workflow/recovery checks remain; see [0278 evidence](../intent/0278/EVIDENCE.md).
-The [next-change investigation](../intent/0278/INVESTIGATION.md) proposes a private
+The [next-change investigation](../intent/0278/INVESTIGATION.md) proposed a private
 corpus-read session to remove repeated immutable work and associated checks while
-preserving current source/grant/head verification. It must be tested before use;
-it is not an implemented permission lease, live binding or signed-in acceptance.
+preserving current source/grant/head verification. The separate 0279 implementation
+and verification are described above; neither checkpoint supplies a permission
+lease, live binding or signed-in acceptance.
 
 ### Historical caller-barrier reduction — 0277
 

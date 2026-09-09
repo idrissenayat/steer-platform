@@ -46,3 +46,28 @@ test('pending dependencies retain bounded admission and late closure cannot rele
   assert.equal(releases.length, 4); service.close(); releases.forEach(release => release());
   await Promise.all(reads.map(read => assert.rejects(read)));
 });
+test('trusted evidence session encloses only source review and keeps both draft and provenance checks', async () => {
+  const { f, state, service, deps } = await setup(); let sessions = 0;
+  deps.evidenceFor = async () => assert.fail('Session path must own evidence');
+  deps.withEvidenceRead = async (input, current, work) => {
+    sessions++; assert.deepEqual(input, f.input); await current();
+    const result = await work(async () => { state.evidenceReads++; return f.evidence; }); await current(); return result;
+  };
+  assert.deepEqual(await service.review(f.input, async () => {}), f.review);
+  assert.equal(sessions, 1); assert.deepEqual(state, { reads: 2, evidenceReads: 2, authorizations: 2 }); service.close();
+});
+test('session path preserves exact draft, evidence, authority and late-caller rejection', async () => {
+  for (const mode of ['draft', 'source', 'authority', 'late-current', 'closed'] as const) {
+    const { f, deps, service } = await setup(); let valid = true, sources = 0;
+    const read = deps.drafts.read;
+    if (mode === 'draft') deps.drafts.read = async (...args) => ({ ...await read(...args) as object, latestRevision: 2 });
+    if (mode === 'authority') deps.authorizeReview = async () => { throw new Error('PRIVATE'); };
+    deps.withEvidenceRead = async (_input, current, work) => {
+      const result = await work(async () => ({ ...f.evidence, head: mode === 'source' && ++sources > 1 ? 'f'.repeat(40) : f.evidence.head }));
+      if (mode === 'late-current') valid = false;
+      if (mode === 'closed') service.close();
+      await current(); return result;
+    };
+    await assert.rejects(service.review(f.input, async () => { if (!valid) throw new Error('PRIVATE'); }), error => { assert.doesNotMatch(String(error), /PRIVATE/); return true; }); service.close();
+  }
+});
