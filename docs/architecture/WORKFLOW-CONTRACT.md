@@ -989,5 +989,23 @@ explicitly, labels source revisions/expiry, preserves human text and never passe
 this output into current disposition/drafting/save admission. See [the guide](../SCOPE-ASSESSMENT-HISTORY.md)
 and [0255 specification](../../intent/0255/SPEC.md).
 
-Generation-original history and final-save lineage are still separate work. Do not
+Generation-original history and final-save lineage are separate contracts. Do not
 loosen current-only scope selection or original admission to accept this read.
+
+## Historical generation inputs are not output authorship — 0256
+
+`createDevelopmentOriginalStore.readHistorical` requires its own present history
+permission and verifies captured scope history against the immutable original's
+owner, exact assessment/source references, inventory and findings. Current source,
+records, key and draft lifecycle permissions remain mandatory. Expired execution
+and later human revisions are historical metadata, never renewed authority.
+
+Ordinary reads, writes, start and worker reconstruction retain current-only scope
+validation. The historical read changes no records or reservations and returns no
+checkpoint or execution capability. Complete empty inventory and legacy missing
+assessments cannot become invented model evidence.
+
+Raw originals contain private source/profile material and remain server-side.
+Historical role/SDK output verification, a safe human-facing lineage projection
+and immutable save preparation are separate remaining work. See [the input-history
+guide](../GENERATION-INPUT-HISTORY.md) and [0256 specification](../../intent/0256/SPEC.md).

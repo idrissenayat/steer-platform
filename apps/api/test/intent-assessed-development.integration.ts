@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
+import { setTimeout as delay } from 'node:timers/promises';
 import type { Pool } from 'pg';
 import type { scopeStepIntegrationFixture } from '../../worker/test/scope-step-runtime.integration.ts';
 import { buildIntentEvidenceEnvelope } from '@steer/tool-registry/intent-evidence-contracts';
@@ -9,7 +10,7 @@ import { createDevelopmentOriginalStore } from '@steer/data/development-original
 import { describeDevelopmentOriginal } from '@steer/data/development-original-contracts';
 import { renderDevelopmentRequest, createDevelopmentRequestReader } from '@steer/data/development-requests';
 import { originalFixture } from '../../../packages/data/test/development-original.fixture.ts';
-import { createAssessedRecordedDevelopmentPreparer, createVerifiedScopeReviewReader, createRecordedDevelopmentStarter } from '../src/runtime.ts';
+import { createAssessedRecordedDevelopmentPreparer, createVerifiedScopeReviewReader, createVerifiedScopeReviewHistoryReader, createRecordedDevelopmentStarter } from '../src/runtime.ts';
 import { createApi } from '../src/app.ts';
 
 type Fixture = Awaited<ReturnType<typeof scopeStepIntegrationFixture>>;
@@ -38,6 +39,64 @@ const selection = (f: Fixture, review: Awaited<ReturnType<Fixture['read']>>) => 
 
 export async function testAssessedDevelopment(setup: (count?: number, ttl?: number, large?: boolean) => Promise<Fixture>,
   check: (name: string, run: () => Promise<void>) => Promise<void>, admin: Pool) {
+  await check('assessed generation input history restores exact multi-batch lineage after source edits and expiry without current execution or new records',async()=>{
+    const f=await setup(34,15000);assert.equal((await f.run(0)).outcome,'succeeded');assert.equal((await f.run(1)).outcome,'succeeded');
+    const a=await assessedApi(f),review=await f.read(),current=createVerifiedScopeReviewReader(f.pools,f.config,a.scope);
+    const normal=createDevelopmentOriginalStore(f.pools,f.config,{...a.records,scopeReview:current});
+    const history=createVerifiedScopeReviewHistoryReader(f.pools,f.config,{...a.scope,records:{...a.scope.records,
+      authorizeHistoricalRead:async()=>{},authorizeHistoricalReview:async()=>{},originals:{...a.scope.records.originals,
+        authorizeReview:async()=>{throw new Error('Old scope execution unavailable');}}}});
+    let oldAccess=0;
+    const records={...a.records,scopeHistory:history,authorizeHistoricalRead:async()=>{},
+      authorize:async()=>{oldAccess++;throw new Error('Ordinary original access denied');},
+      authorizeOperation:async()=>{oldAccess++;throw new Error('Old generation execution unavailable');},
+      scopeReview:{scope:current.scope,read:async()=>{oldAccess++;throw new Error('Current scope reader must not be called');}}};
+    const stored=async()=>({originals:(await admin.query('SELECT * FROM steer_drafts.development_originals WHERE organization_id=$1 ORDER BY operation_id',[f.config.organizationId])).rows,
+      operations:(await admin.query('SELECT * FROM steer_execution.intent_operations WHERE organization_id=$1 ORDER BY operation_id',[f.config.organizationId])).rows,
+      revisions:(await admin.query('SELECT * FROM steer_drafts.draft_revisions WHERE organization_id=$1 ORDER BY revision',[f.config.organizationId])).rows});
+    try {
+      const prepared=await (await a.post(selection(f,review))).json();assert.equal(prepared.outcome,'prepared');
+      const captured=(await normal.read(prepared.reference)).original;await f.edit();await assert.rejects(normal.read(prepared.reference));
+      const before=await stored();
+      for(let attempt=0;attempt<2;attempt++){
+        const reader=createDevelopmentOriginalStore(f.pools,f.config,records);
+        try {const result=await reader.readHistorical(prepared.reference);assert.equal(result.historical,true);assert.equal(result.latestDraftRevision,2);
+          assert.deepEqual(result.original,captured);assert.equal(result.original.evidence.documents.length,34);assert.equal(result.executionAuthorized,false);assert.equal(result.retryAuthorized,false);
+        } finally {reader.close();}
+      }
+      await delay(Math.max(0,Date.parse(f.execution.expiresAt)-Date.now()+50));
+      const reader=createDevelopmentOriginalStore(f.pools,f.config,records);
+      try {const result=await reader.readHistorical(prepared.reference);assert.equal(result.operationExpired,true);assert.deepEqual(result.original,captured);
+        assert.equal((await reader.put({...prepared.reference,original:result.original})).outcome,'unavailable');
+      } finally {reader.close();}
+      assert.equal(oldAccess,1); // Only the deliberately attempted ordinary put.
+      assert.deepEqual(await stored(),before);assert.equal(f.state.calls,2);assert.equal(await f.reservations(),2);
+    } finally {normal.close();current.close();history.close();a.service.close();}
+  });
+  await check('assessed generation history rejects missing or revoked history, substituted evidence, original key loss and holds without reviving current reads',async()=>{
+    const f=await setup();assert.equal((await f.run()).outcome,'succeeded');const review=await f.read(),a=await assessedApi(f);
+    const history=createVerifiedScopeReviewHistoryReader(f.pools,f.config,{...a.scope,records:{...a.scope.records,
+      authorizeHistoricalRead:async()=>{},authorizeHistoricalReview:async()=>{}}});
+    const records={...a.records,authorizeHistoricalRead:async()=>{},scopeHistory:history};
+    const readers:Array<{close():void}>=[];
+    const make=(patch:Partial<Parameters<typeof createDevelopmentOriginalStore>[2]>={})=>{const r=createDevelopmentOriginalStore(f.pools,f.config,{...records,...patch});readers.push(r);return r;};
+    try {
+      const prepared=await (await a.post(selection(f,review))).json();assert.equal(prepared.outcome,'prepared');await f.edit();
+      assert.equal((await make().readHistorical(prepared.reference)).latestDraftRevision,2);
+      for(const field of ['authorizeHistoricalRead','scopeHistory'] as const){
+        const incomplete:Parameters<typeof createDevelopmentOriginalStore>[2]={...records};delete incomplete[field];
+        const reader=createDevelopmentOriginalStore(f.pools,f.config,incomplete);readers.push(reader);
+        await assert.rejects(reader.readHistorical(prepared.reference),{message:'Draft storage is unavailable.'});
+      }
+      for(const patch of [{authorizeHistoricalRead:async()=>true as any},{authorizeOriginal:async()=>{throw new Error('Retained source denied');}},
+        {scopeHistory:{...history,read:async()=>({...await history.read({organizationId:f.config.organizationId,productId:f.config.productId,repository:f.config.repository,...f.target},async()=>{}) as object,sourceSnapshotDigest:'f'.repeat(64)})}},
+        {keyForDraft:async()=>{throw new Error('Historical key revoked');}}])await assert.rejects(make(patch).readHistorical(prepared.reference),{message:'Draft storage is unavailable.'});
+      let allowed=true;await assert.rejects(make({authorizeHistoricalRead:async()=>{if(!allowed)throw new Error('History revoked');},
+        keyForDraft:async(...args)=>{const key=await a.records.keyForDraft(...args);allowed=false;return key;}}).readHistorical(prepared.reference));
+      assert.equal((await f.lifecycle.hold({draftId:f.draftId,holdReference:randomUUID()})).outcome,'ok');await assert.rejects(make().readHistorical(prepared.reference));
+      assert.equal(f.state.calls,1);assert.equal(await f.reservations(),1);
+    } finally {readers.forEach(r=>r.close());history.close();a.service.close();}
+  });
   await check('assessed HTTP preparation binds actual recorded SDK/SQL findings, retries one immutable input and renders both fresh roles without prior Exam', async () => {
     const f = await setup(); assert.equal((await f.run()).outcome, 'succeeded'); const review = await f.read(), selected = selection(f, review), a = await assessedApi(f);
     const reader = createVerifiedScopeReviewReader(f.pools, f.config, a.scope);
@@ -105,6 +164,11 @@ export async function testAssessedDevelopment(setup: (count?: number, ttl?: numb
     try { const prepared = await (await a.post(selected)).json(); assert.equal(prepared.outcome, 'prepared');
       const originals = createDevelopmentOriginalStore(f.pools, f.config, a.records);
       try { assert.deepEqual((await originals.read(prepared.reference)).original.direction.scopeReview, selected); } finally { originals.close(); }
+      const history = createDevelopmentOriginalStore(f.pools, f.config, { ...a.records, authorizeHistoricalRead: async () => {},
+        authorize: async () => { throw new Error('No ordinary input permission'); } });
+      try { const retained = await history.readHistorical(prepared.reference); assert.equal(retained.historical, true);
+        assert.deepEqual(retained.original.direction.scopeReview, selected);
+      } finally { history.close(); }
       assert.equal(f.state.calls, 0); assert.equal(await f.reservations(), 0);
     } finally { a.service.close(); }
     const incomplete = await assessedApi(f, { ...evidence, inventoryComplete: false });

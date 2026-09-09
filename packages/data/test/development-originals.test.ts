@@ -33,10 +33,32 @@ test('original storage is lazy, sanitizes denial and has no dispatch, mutation o
   const pool={connect:async()=>{calls++;throw new Error('private-connection');}};
   const store=createDevelopmentOriginalStore({execution:pool,drafts:pool},config,{authorize:async()=>{throw new Error('private-denial');},
     authorizeOriginal:async()=>{},authorizeOperation:async()=>{},authorizeDraft:async()=>{},keyForDraft:async()=>{throw new Error('must not read keys');}});
-  assert.deepEqual(Object.keys(store),['put','read','close']);
+  assert.deepEqual(Object.keys(store),['put','read','readHistorical','close']);
   await assert.rejects(store.read({ operationId:source.draftId,inputDigest:'a'.repeat(64),approved:true }));
   await assert.rejects(store.read({ operationId:source.draftId,inputDigest:'a'.repeat(64) }),{message:'Draft storage is unavailable.'});
   assert.equal(calls,0);store.close();
+});
+
+test('historical original reads require their distinct current authorization before SQL and never fall back to ordinary access',async()=>{
+  let connections=0,current=0,history=0;
+  const pool={connect:async()=>{connections++;throw new Error('Private SQL');}};
+  const deps={authorize:async()=>{current++;},authorizeOriginal:async()=>{},authorizeOperation:async()=>{},authorizeDraft:async()=>{},keyForDraft:async()=>{throw new Error('Private key');}};
+  const target={operationId:source.draftId,inputDigest:'a'.repeat(64)};
+  const missing=createDevelopmentOriginalStore({drafts:pool,execution:pool},config,deps);
+  await assert.rejects(missing.readHistorical(target),{message:'Draft storage is unavailable.'});assert.equal(current,0);assert.equal(connections,0);missing.close();
+  const denied=createDevelopmentOriginalStore({drafts:pool,execution:pool},config,{...deps,authorizeHistoricalRead:async()=>{history++;return true as any;}});
+  await assert.rejects(denied.readHistorical({...target,approved:true}));assert.equal(history,0);
+  await assert.rejects(denied.readHistorical(target));assert.equal(history,1);assert.equal(current,0);assert.equal(connections,0);denied.close();
+});
+
+test('timed-out historical original authorization retains admission and close prevents late source/key access',async()=>{
+  let release!:()=>void,calls=0,connections=0;const held=new Promise<void>(r=>{release=r;});
+  const pool={connect:async()=>{connections++;throw new Error('Private SQL');}};
+  const store=createDevelopmentOriginalStore({drafts:pool,execution:pool},config,{authorize:async()=>{throw new Error('No ordinary access');},
+    authorizeHistoricalRead:async()=>{calls++;await held;},authorizeOriginal:async()=>{},authorizeOperation:async()=>{},authorizeDraft:async()=>{},keyForDraft:async()=>{throw new Error('Private key');}});
+  const target={operationId:source.draftId,inputDigest:'a'.repeat(64)};
+  await assert.rejects(store.readHistorical(target));await assert.rejects(store.readHistorical(target));assert.equal(calls,1);assert.equal(connections,0);
+  store.close();release();await new Promise(r=>setImmediate(r));await assert.rejects(store.readHistorical(target));assert.equal(connections,0);
 });
 test('timed-out original access retains admission and cannot acquire SQL or release late bytes after close',async()=>{
   let release!:()=>void,calls=0,connections=0;const held=new Promise<void>(r=>{release=r;});

@@ -5539,3 +5539,26 @@ See [0255 evidence](../intent/0255/EVIDENCE.md) and [the guide](SCOPE-ASSESSMENT
 The backend remains uninstalled. Continue assessed generation-original historical
 lineage, final bundle preparation/confirmation/start and authorized human acceptance;
 do not mark live I1–I6 complete.
+
+## Development increment: 0256 — Exact historical generation inputs
+
+The immutable generation-original store now has an explicit historical read with
+separate present authority. It verifies the captured assessment, exact source and
+repository inventory against retained SDK history after expiry or human edits.
+Current source/records/key/lifecycle checks remain mandatory; ordinary reads,
+puts, starts and worker reconstruction stay current-only. Recovery changes no
+original, operation, draft revision or model reservation.
+
+See [0256 evidence](../intent/0256/EVIDENCE.md) and [the input-history guide](GENERATION-INPUT-HISTORY.md).
+This server-only primitive is not a new UI or generated-output authorship proof.
+Historical role/exchange verification, human comparison, final save preparation/
+confirmation/start, real authority and signed-in acceptance remain outstanding.
+
+Final **1,171/1,171 regressions** and **342/342 PostgreSQL 16.14 checks** pass.
+The earlier focused scope SQL/runtime run passed 65 checks plus idempotent migration
+verification. Types, optimized Next build, kit and workflow token-scope audit pass;
+all 207 local document links resolve and protected hashes are unchanged.
+No records activation, live migration, credential
+inspection, model spending, runtime Git write, auth bypass, gate, deployment or
+release. User-owned roadmap/outputs remain untouched. The one-minute loop remains
+active and unchanged.

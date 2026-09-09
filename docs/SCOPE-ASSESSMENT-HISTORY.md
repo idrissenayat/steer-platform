@@ -64,10 +64,11 @@ source/observation limits; unfinished dependencies retain admission until draine
 
 ## Remaining work and activation
 
-This closes historical scope **inspection**, not development-original lineage.
-Assessed generation originals still use current-only scope revalidation; their
-independent historical verification/read path must be implemented before save
-lineage can be prepared. Do not weaken current admission checks to reuse history.
+This closes historical scope **inspection**, not complete generation lineage.
+0256 adds [independent historical input recovery](GENERATION-INPUT-HISTORY.md)
+for assessed generation originals; ordinary reads retain current-only revalidation.
+Historical role/output verification and save-lineage composition remain open.
+Do not weaken current admission checks to reuse history.
 All-revision run discovery and a human-friendly lineage comparison remain open.
 
 No backend is enabled by this increment. D1 adoption, current records/provider

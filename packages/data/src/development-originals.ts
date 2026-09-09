@@ -1,6 +1,7 @@
 import type { PoolClient } from 'pg';
 import type { IntentScopeReader } from '@steer/tool-registry/intent-scope-read-contracts';
-import { revalidateDevelopmentScopeReview } from './development-scope-review.ts';
+import type { IntentScopeHistoryReader } from '@steer/tool-registry/intent-scope-history-contracts';
+import { revalidateDevelopmentScopeReview, verifyHistoricalDevelopmentScopeReview } from './development-scope-review.ts';
 import { z } from 'zod';
 import { createIntentOperationStore } from './intent-operations.ts';
 import { createDraftRevisionStore } from './draft-revisions.ts';
@@ -29,6 +30,10 @@ class Conflict extends Error {}
  * are historical data, never renewed authorization. No dispatch, renewal or delete.
  * authorizeOriginal verifies current permission to every retained evidence source;
  * for put it also verifies the trusted profiles and actual human direction evidence.
+ * readHistorical additionally requires distinct present historical-read authority
+ * and exact retained scope verification; ordinary reads and admission stay current-only.
+ * The returned private input is for server-side lineage verification, not a public
+ * browser response or proof that a model produced the human's current documents.
  */
 export function createDevelopmentOriginalStore(pools:{ drafts:DatabasePool; execution:DatabasePool }, rawConfiguration:unknown, dependencies:{
   authorize:(context:Readonly<{ configuration:z.infer<typeof configurationSchema>; target:Target; action:'put'|'read' }>)=>Promise<void>;
@@ -36,6 +41,8 @@ export function createDevelopmentOriginalStore(pools:{ drafts:DatabasePool; exec
   authorizeOperation:Parameters<typeof createIntentOperationStore>[2]['authorize'];
   authorizeDraft:DraftDependencies['authorize']; keyForDraft:DraftDependencies['keyForDraft'];
   scopeReview?: IntentScopeReader;
+  scopeHistory?: IntentScopeHistoryReader;
+  authorizeHistoricalRead?:(context:Readonly<{ configuration:z.infer<typeof configurationSchema>; target:Target }>)=>Promise<void>;
 }) {
   const config=freeze(configurationSchema.parse(rawConfiguration)), configurationDigest=hash(config);
   for (const name of ['authorize','authorizeOriginal','authorizeOperation','authorizeDraft','keyForDraft'] as const)
@@ -47,15 +54,20 @@ export function createDevelopmentOriginalStore(pools:{ drafts:DatabasePool; exec
     try { return await Promise.race([work,new Promise<never>((_,reject)=>{ timer=setTimeout(()=>reject(new DraftStorageError()),5000); })]); }
     finally { if (timer) clearTimeout(timer); }
   };
-  const authorize=async (target:Target,action:'put'|'read') => {
-    if (closed || await bounded(dependencies.authorize(freeze({ configuration:config,target:{ operationId:target.operationId,inputDigest:target.inputDigest },action })))!==undefined || closed)
+  const authorize=async (target:Target,action:'put'|'read',historical=false) => {
+    if (historical && (action!=='read' || typeof dependencies.authorizeHistoricalRead!=='function')) throw new DraftStorageError();
+    const context=freeze({configuration:config,target:{operationId:target.operationId,inputDigest:target.inputDigest}});
+    if (closed || await bounded(historical ? dependencies.authorizeHistoricalRead!(context)
+      : dependencies.authorize(freeze({...context,action})))!==undefined || closed)
       throw new DraftStorageError();
   };
-  const verify=async (original:DevelopmentOriginal,action:'put'|'read') => {
+  const verify=async (original:DevelopmentOriginal,action:'put'|'read',historical=false) => {
     if (closed || await bounded(dependencies.authorizeOriginal(freeze({ original,action })))!==undefined || closed) throw new DraftStorageError();
-    await bounded(revalidateDevelopmentScopeReview(original, dependencies.scopeReview, async () => {
+    const current=async () => {
       if (closed || await bounded(dependencies.authorizeOriginal(freeze({ original,action })))!==undefined || closed) throw new DraftStorageError();
-    }));
+    };
+    await bounded(historical ? verifyHistoricalDevelopmentScopeReview(original,dependencies.scopeHistory,current)
+      : revalidateDevelopmentScopeReview(original,dependencies.scopeReview,current));
     if (closed) throw new DraftStorageError();
   };
   const key=(draftId:string,keyId:string|null)=>bounded(dependencies.keyForDraft(freeze({ ...config,draftId }),keyId));
@@ -118,27 +130,33 @@ export function createDevelopmentOriginalStore(pools:{ drafts:DatabasePool; exec
     if (actual.reference.revisionDigest!==s.revisionDigest || actual.reference.scopeInputDigest!==s.scopeInputDigest
       || actual.reference.sourceRevision!==s.sourceRevision || hash(actual.content)!==hash(s.content)) throw new Conflict();
   }
-  async function restore(t:Target,row:Stored,action:'put'|'read') {
-    await authorize(t,action); await transaction(c=>sourceState(c,row.metadata));
+  async function restore(t:Target,row:Stored,action:'put'|'read',historical=false) {
+    await authorize(t,action,historical); await transaction(c=>sourceState(c,row.metadata));
     const originalKey=await key(row.metadata.draftId,row.envelope.keyId);
     if (!(originalKey.bytes instanceof Uint8Array) || originalKey.bytes.byteLength!==32) throw new DraftStorageError();
     const lease={ keyId:originalKey.keyId,bytes:Buffer.from(originalKey.bytes) };
     try {
       const described=await describeDevelopmentOriginal(openDraft(row.envelope,aad(row.metadata),lease)),original=described.original;
       if (described.inputDigest!==t.inputDigest || hash(metadata(t,original))!==hash(row.metadata)) throw new Conflict();
-      await verify(original,action); await source(original);
+      await verify(original,action,historical); await source(original);
       const currentKey=await key(row.metadata.draftId,row.envelope.keyId);
       if (!(currentKey.bytes instanceof Uint8Array) || currentKey.bytes.byteLength!==32) throw new DraftStorageError();
       const current=Buffer.from(currentKey.bytes);
       try { if (currentKey.keyId!==lease.keyId || !current.equals(lease.bytes)) throw new DraftStorageError(); } finally { current.fill(0); }
       if (await bounded(dependencies.authorizeDraft(freeze({ configuration:config,draftId:row.metadata.draftId,action:'read' })))!==undefined || closed) throw new DraftStorageError();
-      await verify(original,action); await authorize(t,action);
+      await verify(original,action,historical); await authorize(t,action,historical);
       if (action==='put') await execution(t,original);
       const final=await transaction(async c=>({ state:await sourceState(c,row.metadata),row:await select(c,t) }));
       if (closed || performance.now()>=final.state.expiry || hash(final.row)!==hash(row)) throw new DraftStorageError();
       return freeze({ original,latestDraftRevision:final.state.latestRevision,operationExpired:final.state.clock>=Date.parse(original.configuration.expiresAt),
         executionAuthorized:false as const,retryAuthorized:false as const,gateSigned:false as const });
     } finally { lease.bytes.fill(0); }
+  }
+  async function read(raw:unknown,historical:boolean) {
+    if (closed || active || pending) throw new DraftStorageError(); active=true;
+    try { const t=freeze(targetSchema.parse(raw)); await authorize(t,'read',historical); const row=await transaction(c=>select(c,t));
+      if (!row) throw new DraftStorageError(); return await restore(t,row,'read',historical);
+    } catch { throw new DraftStorageError(); } finally { active=false; }
   }
   return {
     async put(raw:unknown) {
@@ -166,12 +184,8 @@ export function createDevelopmentOriginalStore(pools:{ drafts:DatabasePool; exec
       } catch (e) { return { outcome:persisted || e instanceof DatabaseCommitOutcomeUnknownError ? 'unknown' as const : e instanceof Conflict ? 'conflict' as const : 'unavailable' as const }; }
       finally { active=false; }
     },
-    async read(raw:unknown) {
-      if (closed || active || pending) throw new DraftStorageError(); active=true;
-      try { const t=freeze(targetSchema.parse(raw)); await authorize(t,'read'); const row=await transaction(c=>select(c,t));
-        if (!row) throw new DraftStorageError(); return await restore(t,row,'read');
-      } catch { throw new DraftStorageError(); } finally { active=false; }
-    },
+    read(raw:unknown) { return read(raw,false); },
+    async readHistorical(raw:unknown) { return freeze({...await read(raw,true),historical:true as const}); },
     close() { closed=true; drafts.close(); },
   };
 }

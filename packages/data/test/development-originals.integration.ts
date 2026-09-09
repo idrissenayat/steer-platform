@@ -70,6 +70,11 @@ export async function testDevelopmentOriginals({admin,connect,check}:{admin:Pool
     await delay(Math.max(0,Date.parse(f.execution.expiresAt)-Date.now()+50));
     await admin.query('UPDATE steer_usage.model_budgets SET active=false WHERE budget_id=$1',[f.execution.budget.budgetId]);
     const recovered=await f.make({authorizeOperation:async()=>{throw new Error('expired-execution-grant');}}).read(f.target);assert.equal(recovered.operationExpired,true);
+    const inputHistory=f.make({authorizeHistoricalRead:async()=>{},authorize:async()=>{throw new Error('ordinary-access-denied');},
+      authorizeOperation:async()=>{throw new Error('expired-execution-grant');}});
+    try {const retained=await inputHistory.readHistorical(f.target);assert.equal(retained.historical,true);assert.equal(retained.operationExpired,true);
+      assert.deepEqual(retained.original,recovered.original);assert.equal(retained.original.direction.scopeReview,undefined);
+    } finally {inputHistory.close();}
     const history=createDevelopmentResultStore(f.pools,recovered.original.configuration,{...resultDeps,authorizeOperation:async()=>{throw new Error('expired-execution-grant');}});
     assert.deepEqual((await history.readHistorical({...f.target,stepId:'architect'})).result,result);await assert.rejects(history.read({...f.target,stepId:'architect'}));
     assert.notEqual((await f.make().put(f.input)).outcome,'stored');assert.equal(recovered.retryAuthorized,false);

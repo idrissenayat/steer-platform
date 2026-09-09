@@ -1,6 +1,16 @@
 # STEER platform implementation
 
-## Current checkpoint — 0255
+## Current checkpoint — 0256
+
+0256 adds explicit server-side historical generation-input recovery. Exact captured
+scope findings, source revisions and repository evidence can be verified after
+expiry or human edits under distinct current history/records/source/key authority.
+Ordinary reads and execution remain current-only. See [the input-history guide](GENERATION-INPUT-HISTORY.md)
+and [0256 evidence](../intent/0256/EVIDENCE.md). This does not verify generated output
+authorship or expose a new UI. Historical role/output composition, human lineage
+comparison, final save preparation/confirmation/start and real acceptance remain.
+
+## Prior checkpoint — 0255
 
 0255 connects explicit historical scope inspection to the actual editor and shared
 API. A separate current-authority path restores exact retained SDK evidence after
