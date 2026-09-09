@@ -112,6 +112,11 @@ try {
     await testAuthenticatedGeneration({admin,connect,check});
     assert.equal(passed,4);
     console.log(`FOCUSED journey runtime result: ${passed-1} joined checks passed plus idempotent migration check; full suite NOT RUN.`);
+  }else if(selection.mode==='development-prepare'){
+    console.log('FOCUSED development preparation/source-review/discovery HTTP/SQL; NOT the full integration suite.');
+    await testDevelopmentPreparation({admin,connect,check});
+    assert.ok(passed>1,'No development preparation checks selected');
+    console.log(`FOCUSED development preparation result: ${passed-1} checks passed plus idempotent migration check; full suite NOT RUN.`);
   }else if(selection.mode==='development-start'){
     console.log('FOCUSED development start HTTP/SQL authority regressions; NOT the full integration suite.');
     const names=new Set([

@@ -9,20 +9,20 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0288 / partial C22 — 68% (17/25; 8 remaining; +0 points)**.
-0283 completed C10. 0284 and 0286 reduce privately proven duplicate checks; 0285
-introduced the [performance benchmark prefix](INTENT-CAPTURE-PERFORMANCE.md).
-0287 reduces scope-preparation requests by 15.55%. 0288 removes privately proven
-duplicate caller barriers from current-scope validation: drafting-start requests
-fall 44.78%, from 41,768 to 23,064. Receipt recovery/repeated starts fall 45.14%.
-Full current reads and separate scheduler revalidation windows remain. See
-[0288 evidence](../intent/0288/EVIDENCE.md) for focused/start-SQL and authenticated
-recovery/save/reopen verification. Source review, preparation and confirmation
-counts remain unchanged; the previous delayed prefix fails before this boundary.
-C22 is failed/incomplete. Next reduce remaining policy/evidence traversal without weakening
-authority/recovery guarantees. This is synthetic
-integration progress; live activation, real model quality and signed-in UI acceptance
-remain open and retain their specific prerequisites.
+Current delivery checkpoint: **0289 / partial C22 — 68% (17/25; 8 remaining; +0 points)**.
+0283 completed C10. 0284–0288 reduce proven repeated checks and establish the
+[performance benchmark prefix](INTENT-CAPTURE-PERFORMANCE.md). 0289 extends separate
+read-only evidence windows to drafting preparation, closing before each effect.
+The native two-source comparison uses 52 rather than 70 requests for the same
+original; this is not a measured reduction for the managed 34-source journey.
+That journey now records preparation at 20,130 / 18,790 requests, still far over
+budget. Its final save/reopen rerun passes, but an earlier already-sent recovery
+returned unknown; the cause is unestablished and retained in
+[0289 evidence](../intent/0289/EVIDENCE.md), not declared fixed by a rerun.
+C22 remains failed/incomplete. Next investigate that recovery observation and
+reduce repeated identity-policy traversal, beginning with source review's 2,634
+requests, without weakening authority/effect/recovery guarantees. Live activation,
+real model quality and signed-in UI acceptance retain their specific prerequisites.
 
 ## End-to-end design checkpoint — 2026-09-07
 
@@ -192,6 +192,19 @@ See [0288 evidence](../intent/0288/EVIDENCE.md) for verification and limitations
 Overall remains **68% (17/25; 8 remaining; +0 points)**. Continue remaining
 current-policy and preparation/final-package traversal work without weakening
 authority, effect separation or recovery. Actual live acceptance remains open.
+
+0289 uses the existing guarded corpus-window helper in each drafting-preparation
+source/policy/source pair. Admission and original put/readback are outside the
+windows, with a full fresh collection after each effect; full assessment and
+current records/source checks remain. The native two-source comparison reduces
+body reads from fourteen to eight and requests from 70 to 52. The managed
+34-source preparation records 20,130 / 18,790 requests, with no earlier managed
+preparation baseline. Source review, scope preparation, starts, preview and
+confirmation counts stay unchanged. Focused preparation and save checks pass;
+the final authenticated joined rerun passes through one save and exact reopen.
+Its earlier unexplained recovery-unknown result remains a follow-up, not a fixed
+bug or discarded sample. See [0289 evidence](../intent/0289/EVIDENCE.md).
+Overall remains **68% (17/25; 8 remaining; +0 points)**.
 
 Prior checkpoint: **0275 saves and reopens the confirmed package through identity**.
 The same authenticated journey now reaches one fixed Temporal/native Git save,

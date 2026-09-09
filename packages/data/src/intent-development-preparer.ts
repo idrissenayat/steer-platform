@@ -8,6 +8,7 @@ import { createIntentOperationStore, intentOperationConfigurationSchema } from '
 import { createDevelopmentOriginalStore, developmentRecordsConfigurationSchema } from './development-originals.ts';
 import { describeDevelopmentOriginal, developmentOriginalSchema, developmentOriginalHash as hash, freezeOriginal as freeze,
   type DevelopmentOriginal } from './development-original-contracts.ts';
+import { withPreparationEvidence, type PreparationEvidenceWindow } from './preparation-evidence-window.ts';
 
 type Records = Parameters<typeof createDevelopmentOriginalStore>[2];
 const unavailable = () => new Error('Development preparation is unavailable.');
@@ -20,6 +21,8 @@ export function createIntentDevelopmentPreparer(pools: Parameters<typeof createD
   rawProfiles: unknown, deps: { records: Records;
     requireScopeReview?: boolean;
     evidenceFor(input: Readonly<IntentDevelopmentPrepareInput>, revalidate: () => Promise<void>): Promise<unknown>;
+    // Trusted read-only recheck composition; never encloses admission or puts.
+    withEvidenceRead?(input: Readonly<IntentDevelopmentPrepareInput>, revalidate: () => Promise<void>, work: Parameters<PreparationEvidenceWindow>[0]): Promise<void>;
     authorizePreparation(original: Readonly<DevelopmentOriginal>): Promise<void>;
   }) {
   const execution = freeze(intentOperationConfigurationSchema.parse(rawConfiguration));
@@ -29,6 +32,7 @@ export function createIntentDevelopmentPreparer(pools: Parameters<typeof createD
   const profiles = freeze(developmentOriginalSchema.shape.profiles.parse(rawProfiles)), r = deps.records;
   if ([r?.authorize, r?.authorizeOriginal, r?.authorizeOperation, r?.authorizeDraft, r?.keyForDraft, deps.evidenceFor, deps.authorizePreparation]
     .some(v => typeof v !== 'function')) throw unavailable();
+  if (deps.withEvidenceRead !== undefined && typeof deps.withEvidenceRead !== 'function') throw unavailable();
   const scope = freeze({ organizationId: config.organizationId, subject: config.subject, productId: config.productId, repository: config.repository, configurationRevision: config.configurationRevision });
   let closed = false, active = 0; const children = new Set<{ close(): void }>();
   return {
@@ -41,8 +45,9 @@ export function createIntentDevelopmentPreparer(pools: Parameters<typeof createD
       let finished = false, settled = false, pending = 0, released = false, effectPossible = false, timer: ReturnType<typeof setTimeout> | undefined;
       let reference: IntentDevelopmentPrepareOutput['reference'] = null, coverage: IntentDevelopmentPrepareOutput['coverage'] = null;
       const owned: { close(): void }[] = [];
+      const evidenceWindow = deps.withEvidenceRead;
       const release = () => { if (settled && !pending && !released) { released = true; active--; } };
-      const guard = () => { if (finished || closed) throw unavailable(); };
+      const guard = () => { if (finished || closed || deps.withEvidenceRead !== evidenceWindow) throw unavailable(); };
       const track = async <T>(work: Promise<T>) => { pending++; try { return await work; } finally { pending--; release(); } };
       const current = async () => { guard(); if (await track(Promise.resolve().then(revalidate)) !== undefined) throw unavailable(); guard(); };
       const checked = async <T>(work: () => Promise<T>) => { await current(); const value = await track(Promise.resolve().then(work)); await current(); return value; };
@@ -85,17 +90,21 @@ export function createIntentDevelopmentPreparer(pools: Parameters<typeof createD
           direction: { choice: input.choice, scopeInputDigest: input.scopeInputDigest, sourceSnapshotDigest: input.sourceSnapshotDigest,
             ...(scopeReview ? { scopeReview } : {}), ...(input.draftingContextDigest ? { draftingContextDigest: input.draftingContextDigest } : {}) }, profiles });
         const original = described.original, submission = freeze({ draftId: input.draftId, draftRevision: input.revision, inputDigest: described.inputDigest });
-        const recheck = async () => {
+        const evidenceFor = () => deps.evidenceFor(freeze(input), current);
+        const validate = async (readEvidence: () => Promise<unknown>) => {
           await current(); if (hash(await read()) !== hash(source)) throw new Conflict();
-          const fresh = intentEvidenceInputSchema.parse(await checked(() => deps.evidenceFor(freeze(input), current)));
+          const fresh = intentEvidenceInputSchema.parse(await checked(readEvidence));
           if (hash(fresh) !== hash(evidence)) throw new Conflict();
           await authority(() => deps.authorizePreparation(original));
           await checked(() => revalidateDevelopmentScopeReview(original, r.scopeReview, current));
           if (hash(await read()) !== hash(source)) throw new Conflict();
-          const final = intentEvidenceInputSchema.parse(await checked(() => deps.evidenceFor(freeze(input), current)));
+          const final = intentEvidenceInputSchema.parse(await checked(readEvidence));
           if (hash(final) !== hash(evidence)) throw new Conflict();
           await current();
         };
+        const recheck = () => withPreparationEvidence(
+          evidenceWindow ? work => Reflect.apply(evidenceWindow, deps, [freeze(input), current, work]) : undefined,
+          evidenceFor, validate, track, guard);
         const secured: Records = {
           ...(r.scopeReview ? { scopeReview: r.scopeReview } : {}),
           authorize: async c => { if (!reference || hash(c.target) !== hash(reference)) throw unavailable(); await authority(() => r.authorize(c)); },

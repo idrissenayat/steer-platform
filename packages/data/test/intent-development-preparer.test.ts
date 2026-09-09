@@ -16,6 +16,17 @@ test('preparer is lazy and denies absent evidence/admission authority, foreign s
   assert.equal((await service.prepare(input, async () => { throw new Error(); })).outcome, 'unavailable');
   service.close(); await assert.rejects(service.prepare(input, async () => {})); assert.equal(calls, 0);
   assert.throws(() => createIntentDevelopmentPreparer({ drafts: pool, execution: pool }, config, profiles, { ...deps, evidenceFor: undefined } as never));
+  assert.throws(() => createIntentDevelopmentPreparer({ drafts: pool, execution: pool }, config, profiles, { ...deps, withEvidenceRead: true } as never));
+});
+
+test('replacing the installed evidence hook during a current check denies before SQL', async () => {
+  let calls = 0; const pool = { connect: async () => { calls++; throw new Error(); } };
+  const deps = { records, evidenceFor: async () => {}, authorizePreparation: async () => {}, withEvidenceRead: async () => {} };
+  const service = createIntentDevelopmentPreparer({ drafts: pool, execution: pool }, config, profiles, deps);
+  try {
+    assert.equal((await service.prepare(input, async () => { deps.withEvidenceRead = async () => {}; })).outcome, 'unavailable');
+    assert.equal(calls, 0);
+  } finally { service.close(); }
 });
 test('timed-out preparation keeps its admission until dependencies drain and close blocks late storage', async t => {
   t.mock.timers.enable({ apis: ['setTimeout'] }); let release!: () => void, calls = 0;

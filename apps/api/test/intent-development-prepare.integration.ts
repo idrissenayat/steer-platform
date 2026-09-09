@@ -14,6 +14,9 @@ import { verifyCandidateSaveReview } from '@steer/tool-registry/candidate-save-r
 import { intentDraftDiscoveryOutputSchema } from '@steer/tool-registry/intent-draft-discovery-contracts';
 import { verifyDevelopmentReview } from '@steer/tool-registry/intent-development-review-contracts';
 import { createApi } from '../src/app.ts';
+import { createGitHubReader } from '@steer/adapters/github';
+import { createIntentCorpusEvidence } from '@steer/adapters/intent-corpus-evidence';
+import { fixture as nativeGitFixture, binding, now } from '../../../packages/adapters/test/github-brief-fixture.ts';
 
 type Dependencies = Parameters<typeof createRecordedDevelopmentPreparer>[3];
 type Pools = Parameters<typeof createRecordedDevelopmentPreparer>[0];
@@ -67,9 +70,9 @@ export async function prepareRecordedFixture(pools: Pools, original: Development
 export async function testDevelopmentPreparation({ admin, connect, check }: {
   admin: Pool; connect(role: string): Pool; check(name: string, run: () => Promise<void>): Promise<void>;
 }) {
-  const setup = async () => {
+  const setup = async (branch = 'codex/synthetic') => {
     const config = { organizationId: `prepare-${randomUUID()}`, subject: 'synthetic-human', productId: 'product', repository: 'github:52',
-      branch: 'codex/synthetic', configurationRevision: 'prepare-r1', recordsPolicyDigest: 'a'.repeat(64) };
+      branch, configurationRevision: 'prepare-r1', recordsPolicyDigest: 'a'.repeat(64) };
     const budget = { organizationId: config.organizationId, subject: config.subject, configurationRevision: config.configurationRevision,
       budgetId: randomUUID(), approvalDigest: 'b'.repeat(64), capMicrousd: 30, architectMicrousd: 3, testAgentMicrousd: 2 };
     await admin.query("INSERT INTO steer_usage.model_budgets VALUES($1,$2,$3,$4,$5,30,3,2,now()-interval '1 minute',now()+interval '1 hour',true)",
@@ -284,5 +287,111 @@ export async function testDevelopmentPreparation({ admin, connect, check }: {
     finally { app.service.close(); }
     await prepareRecordedFixture(f.pools, f.original, f.records);
     assert.deepEqual(await f.snapshot(), { operations: '1', originals: '1', reservations: '0', revisions: '1' });
+  });
+
+  const native = async () => {
+    const f = await setup(binding.branch), cleanup: Array<() => void> = [], git = nativeGitFixture({ after: run => cleanup.push(run) });
+    git.add([{ path: 'intent/0001/BRIEF.md', content: '# Existing billing\nHuman invoices.\n' },
+      { path: 'intent/0001/SPEC.md', content: '# Existing scope\nOut of scope: payroll.\n' },
+      { path: 'intent/0001/EXAM.md', content: 'PRIVATE-EXAM-NOT-SCOPE' }]);
+    const reader = createGitHubReader({ ...binding, organizationId: f.config.organizationId },
+      { appJwt: async () => 'synthetic-app-jwt', fetch: git.transport, now: () => now });
+    const authority: Parameters<typeof createIntentCorpusEvidence>[2] = {
+      authorize: async () => ({ permissionsRevision: 'p1' }),
+      select: async context => ({ ...context, selection: 'canonical', authorityDigest: 'a'.repeat(64) }), authorizeSource: async () => {},
+    };
+    const { organizationId, productId, repository, branch } = f.config;
+    const corpus = createIntentCorpusEvidence(reader, { organizationId, productId, repository, branch, retrievalConfigurationRevision: 'native-r1' }, authority);
+    const source = { organizationId, productId, repository, branch, scopeInputDigest: f.original.source.scopeInputDigest };
+    const evidence = (await corpus.collect(source, async () => {})).evidence, envelope = await buildIntentEvidenceEnvelope(evidence);
+    const original = (await describeDevelopmentOriginal({ ...f.original, evidence,
+      direction: { ...f.original.direction, sourceSnapshotDigest: envelope.sourceSnapshotDigest } })).original;
+    const evidenceFor: Dependencies['evidenceFor'] = async (_input, current) => (await corpus.collect(source, current)).evidence;
+    const window: NonNullable<Dependencies['withEvidenceRead']> = (input, current, work) => corpus.withReadSession({ ...source,
+      scopeInputDigest: input.scopeInputDigest }, current, read => work(async () => (await read()).evidence));
+    const services: Array<{ close(): void }> = [];
+    const make = (patch: Partial<Dependencies> = {}, pools: Pools = f.pools, useWindow = true) => {
+      const app = f.make({ evidenceFor, ...(useWindow ? { withEvidenceRead: window } : {}), ...patch }, pools, original); services.push(app.service); return app;
+    };
+    return { f, reader, git, authority, original, evidence, window, make,
+      close() { services.forEach(s => s.close()); corpus.close(); f.drafts.close(); f.lifecycle.close(); cleanup.forEach(run => run()); } };
+  };
+  await check('native drafting preparation windows reduce source reads versus full fallback with the same exact immutable original', async () => {
+    const n = await native(); let bodies = 0; const method = n.reader.readArtifact;
+    n.reader.readArtifact = async (...args) => { bodies++; return method(...args); };
+    try {
+      const before = n.git.calls.length, prepared = await (await n.make().post()).json(); assert.equal(prepared.outcome, 'prepared');
+      const windowRequests = n.git.calls.length - before; assert.equal(bodies, 8); const snapshot = await n.f.snapshot();
+      bodies = 0; const fallbackBefore = n.git.calls.length;
+      assert.deepEqual(await (await n.make({}, n.f.pools, false).post()).json(), prepared);
+      const fallbackRequests = n.git.calls.length - fallbackBefore; assert.equal(bodies, 14); assert.ok(windowRequests < fallbackRequests);
+      assert.deepEqual(await n.f.snapshot(), snapshot); assert.deepEqual(snapshot, { operations: '1', originals: '1', reservations: '0', revisions: '1' });
+      const originals = createDevelopmentOriginalStore(n.f.pools, n.f.config, n.f.records);
+      try { assert.deepEqual((await originals.read(prepared.reference)).original, n.original); } finally { originals.close(); }
+      assert.doesNotMatch(JSON.stringify(n.original.evidence), /PRIVATE-EXAM-NOT-SCOPE/); assert.equal(n.git.mutations(), 0);
+      console.log('Synthetic native drafting preparation comparison: ' + JSON.stringify({ sources: 2, windowBodyReads: 8,
+        fallbackBodyReads: 14, windowRequests, fallbackRequests, originalUnchanged: true, reservations: 0, providerSaves: 0 }));
+    } finally { n.close(); }
+  });
+  await check('native drafting preparation sessions close before admission and persistence and reopen with fresh bodies', async () => {
+    const n = await native(); let open = false, windows = 0, policies = 0;
+    const writes: string[] = [], bodies: string[] = [], method = n.reader.readArtifact;
+    n.reader.readArtifact = async (...args) => { bodies.push(`${open ? windows : 0}:${writes.length}`); return method(...args); };
+    const pool = (role: 'drafts' | 'execution') => ({ async connect() { const client = await n.f.pools[role].connect(); return {
+      query: async (sql: string, values?: unknown[]) => {
+        if (/^\s*INSERT INTO steer_(execution\.intent_operations|drafts\.development_originals)\b/.test(sql)) {
+          assert.equal(open, false); writes.push(sql.includes('intent_operations') ? 'admission' : 'original');
+        } return client.query(sql, values);
+      }, release: (broken: boolean) => client.release(broken),
+    } as PoolClient; } });
+    try {
+      const app = n.make({ authorizePreparation: async () => { assert.equal(open, true); policies++; },
+        withEvidenceRead: async (input, current, work) => {
+          assert.equal(open, false); open = true; windows++;
+          try { await n.window(input, current, work); } finally { open = false; }
+        } }, { drafts: pool('drafts'), execution: pool('execution') });
+      const result = await (await app.post()).json(); assert.equal(result.outcome, 'prepared');
+      assert.equal(open, false); assert.equal(windows, 3); assert.equal(policies, 3); assert.deepEqual(writes, ['admission', 'original']);
+      assert.deepEqual(bodies, ['0:0', '0:0', '1:0', '1:0', '2:1', '2:1', '3:2', '3:2']);
+      assert.deepEqual(await n.f.snapshot(), { operations: '1', originals: '1', reservations: '0', revisions: '1' }); assert.equal(n.git.mutations(), 0);
+    } finally { n.close(); }
+  });
+  await check('native drafting preparation rejects final grant loss and malformed evidence windows before admission', async () => {
+    for (const mode of ['grant', 'skipped', 'replayed', 'nonvoid'] as const) {
+      const n = await native(); let revoked = false;
+      n.authority.authorizeSource = async ref => { if (revoked && ref.path.endsWith('/SPEC.md')) throw new Error('PRIVATE source revoked'); };
+      try {
+        const app = n.make({ withEvidenceRead: async (input, current, work) => {
+          if (mode === 'skipped') return;
+          await n.window(input, current, async read => { await work(read); if (mode === 'grant') revoked = true;
+            if (mode === 'replayed') await work(read).catch(() => {}); });
+          if (mode === 'nonvoid') return true as unknown as void;
+        } });
+        const result = await (await app.post()).json(); assert.equal(result.outcome, 'unavailable'); assert.equal(result.originalPreserved, false);
+        assert.deepEqual(await n.f.snapshot(), { operations: '0', originals: '0', reservations: '0', revisions: '1' }); assert.equal(n.git.mutations(), 0);
+      } finally { n.close(); }
+    }
+  });
+  await check('native drafting preparation source drift after an effect preserves existing records and returns uncertainty', async () => {
+    for (const target of ['intent_operations', 'development_originals']) {
+      const n = await native(), role = target === 'intent_operations' ? 'execution' : 'drafts'; let inserted = false, changed = false;
+      const pools = { ...n.f.pools, [role]: { async connect() { const client = await n.f.pools[role].connect(); return {
+        query: async (sql: string, values?: unknown[]) => { const result = await client.query(sql, values);
+          if (sql.includes(`INSERT INTO steer_${role === 'execution' ? 'execution' : 'drafts'}.${target}`)) inserted = true;
+          if (sql === 'COMMIT' && inserted && !changed) { changed = true; n.git.add([{ path: 'intent/0001/SPEC.md', content: '# Changed after an effect\n' }]); }
+          return result;
+        }, release: (broken: boolean) => client.release(broken),
+      } as PoolClient; } } };
+      try {
+        const result = await (await n.make({}, pools).post()).json(); assert.equal(changed, true); assert.equal(result.outcome, 'unknown');
+        assert.equal(result.originalPreserved, false); assert.equal(result.readyToRequestStart, false);
+        assert.deepEqual(await n.f.snapshot(), { operations: '1', originals: target === 'intent_operations' ? '0' : '1', reservations: '0', revisions: '1' });
+        if (target === 'development_originals') {
+          const originals = createDevelopmentOriginalStore(n.f.pools, n.f.config, n.f.records);
+          try { assert.deepEqual((await originals.read(result.reference)).original, n.original); } finally { originals.close(); }
+        }
+        assert.equal(n.git.mutations(), 0);
+      } finally { n.close(); }
+    }
   });
 }

@@ -95,8 +95,26 @@ reads and all independent policies remain. The complete synthetic save/reopen
 regression passes, but no delayed prefix or complete performance acceptance is
 claimed; the earliest source-review limit remains open.
 
-Next reduce the remaining repeated current-policy traversal, including the
-remaining preparation/final-package verification path, then extend the prefix to later stages
+[0289](../intent/0289/EVIDENCE.md) applies separate read-only windows to drafting
+preparation. The native two-source fallback comparison reduces requests from 70
+to 52 (25.71%) and body reads from fourteen to eight, with the same original and
+fresh reads after each effect. The managed 34-source journey now logs preparation:
+20,130 requests initially and 18,790 when repeated, with identity traffic of
+19,586 / 18,246 and repository traffic of 544 in each. There is no earlier managed
+preparation baseline. Final-run local times are 14,868 / 13,562 ms; they are not
+warmed p95 or a latency speedup. Both are far above the 200-attempt budget.
+
+The [raw artifact](../intent/0289/PERFORMANCE.json) retains the failed first joined
+run and the passing final rerun. The first run failed at already-sent durable
+recovery after one verified native commit/HTTP receipt; the final run completed
+reconciliation and exact old-commit reopen. Root cause is unestablished, not fixed
+by a rerun. Forty focused save/recovery checks also pass. All twelve corrected-
+package request counts/partitions and drafting-start counts remain unchanged from
+0288. The delayed prefix and other full dispositions were not rerun.
+
+Next investigate the retained recovery-unknown observation and reduce remaining
+repeated identity-policy traversal, including source review and final-package
+verification, then extend the prefix to later stages
 and the full measurement protocol. Preserve every independent policy and fresh
 revocation boundary. No permission cache, longer deadline, hidden background write
 or substituted preview is an acceptable shortcut.

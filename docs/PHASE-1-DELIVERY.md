@@ -6432,3 +6432,39 @@ provider acceptance is claimed. Next reduce remaining current-policy and
 preparation/final-package traversal, preserving independent grants, effect
 separation and recovery. No live configuration, credentials, spending, runtime
 grant/write, records adoption, signature, deployment or release changed.
+
+## 0289 — Separate drafting-preparation evidence windows
+
+The actual owned journey installs the existing guarded read-session hook in
+assessed drafting preparation. Three source/policy/source validation pairs each
+have their own read-only window, closed before admission or original put/readback.
+Initial acquisition and full fresh collection after effects remain. All current
+assessment, source/draft/records, human-direction and exact-equality checks stay.
+The hook is pinned per operation, pending work remains owned and the no-hook
+fallback is unchanged. No caller input, activation option or authority override
+is introduced. See [specification](../intent/0289/SPEC.md),
+[evidence](../intent/0289/EVIDENCE.md) and [raw measurements](../intent/0289/PERFORMANCE.json).
+
+The two-source native comparison uses eight rather than fourteen body reads and
+52 rather than 70 requests (25.71% fewer), preserving the exact immutable original
+and one operation with no reservations or provider saves. The managed 34-source
+preparation records 20,130 / 18,790 requests (19,586 / 18,246 identity, 544 repository
+in each). No previous managed preparation baseline exists. Its final local times
+are 14,868 / 13,562 ms, not warmed p95 or a latency-speedup claim. All twelve
+corrected-package request counts/partitions and drafting-start totals match 0288.
+
+Twelve focused tests, 17 preparation/source-review/discovery SQL checks, 40
+candidate-save SQL/Temporal/native checks, three final authenticated joined checks,
+**1,416 broad regressions**, prototype/eight-package types and optimized build pass.
+The first joined run failed at already-sent durable recovery after one verified
+native commit and authenticated receipt. Its final rerun passed reconciliation and
+exact old-commit reopen with 17 recovery requests and no database errors. Bounded
+content-free diagnostics and both runs are retained; no production recovery fix
+or established root cause is claimed. Four idempotent migration runs passed;
+kit and workflow-token audit pass. Only owned disposable test data was removed.
+
+Overall stays **68% (17/25; 8 remaining; +0 points)**. Next investigate that recovery
+observation and reduce repeated identity-policy traversal before the complete
+delayed performance protocol. No real UI/live-provider acceptance, credentials,
+spending, runtime grants/writes, records/D1 adoption, signature, deployment or
+release changed. User files and signed source documents remain untouched.

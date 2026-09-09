@@ -62,6 +62,32 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Separate drafting-preparation read windows — 0289
+
+The owned journey now installs the same private evidence hook in assessed drafting
+preparation. Each source/policy/source pair has its own read-only corpus session;
+initial evidence collection stays full, and a fresh collection follows admission
+and original persistence. The hook cannot enclose admission, original put/readback
+or a scheduler/model/Git effect. Current assessment verification remains complete;
+no original, human direction, permission or deadline is changed.
+
+The hook is pinned per operation. The existing helper retains pending work,
+rejects skipped/replayed/early/nonvoid completion and preserves exact owner
+conflicts through session error sanitization. Full fallback and every independent
+grant remain. Native tests verify fresh bodies after effects, pre-effect denial
+and post-effect uncertainty without overwriting preserved originals.
+
+See [0289 evidence](../intent/0289/EVIDENCE.md) and [raw measurements](../intent/0289/PERFORMANCE.json).
+The native two-source path uses 52 instead of 70 requests. The actual 34-source
+preparation now records 20,130 / 18,790 requests; 19,586 / 18,246 are identity
+traffic and 544 in each are repository traffic. No managed preparation baseline
+was previously recorded, so no managed reduction or latency acceptance is claimed.
+The final authenticated save/reopen rerun passes; one earlier already-sent
+recovery returned unknown after verified receipt recovery. Its cause remains
+unestablished, and bounded diagnostics now accompany that assertion. No production
+reconciliation fix, live authority or performance acceptance is implied.
+Overall stays **68% (17/25; 8 remaining; +0 points)**.
+
 ### Proven current-scope caller barriers — 0288
 
 Drafting start constructs a private immutable read-only original authorizer that

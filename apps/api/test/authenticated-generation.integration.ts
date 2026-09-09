@@ -22,7 +22,7 @@ import { createDevelopmentStepRuntime } from '../../worker/src/development-step-
 import { authenticatedCandidateConfirmation } from './authenticated-candidate-confirmation.integration.ts';
 import { authenticatedCandidateSave } from '../../worker/test/authenticated-candidate-save.integration.ts';
 import { authenticatedModelWorkflows } from '../../worker/test/authenticated-model-workflows.integration.ts';
-import { createNativeRequestMeter } from './native-request-metrics.ts';
+import { createNativeRequestMeter, summarizeNativeRequests, subtractNativeRequests } from './native-request-metrics.ts';
 import { authenticatedJourneyChoice, authenticatedJourneyItem, type AuthenticatedJourneyDirection } from './authenticated-journey-direction.fixture.ts';
 import { createIntentPerformanceProbe } from './intent-performance-probe.ts';
 import { testAuthenticatedPerformancePrefix } from './authenticated-performance-prefix.integration.ts';
@@ -119,12 +119,19 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
     const post = async (name: string, input: unknown) => runtime.fetch(new Request(`https://steer.example/v1/tools/${name}`, {
       method: 'POST', headers: { authorization: `Bearer ${await identity.issueBearer()}`, 'content-type': 'application/json' }, body: JSON.stringify(input),
     }));
-    const read = async (name: string, input: unknown) => { const start = performance.now(), before = native.git.calls.length;
+    const read = async (name: string, input: unknown) => { const start = performance.now(), before = native.git.calls.length, identityBefore = identityTraffic.snapshot();
       const response = await post(name, input);
       assert.equal(response.status, 200, JSON.stringify({ tool: name, ms: Math.round(performance.now() - start),
         nativeRequests: native.git.calls.length - before, identity: identity.counts(), response: await response.clone().text() }));
       if (name === 'intent.scope.start' || name === 'intent.development.start') console.log('Synthetic authenticated workflow start: ' + JSON.stringify({
         tool: name, ms: Math.round(performance.now() - start), nativeRequests: native.git.calls.length - before }));
+      if (name === 'intent.development.prepare') {
+        const requestKinds = summarizeNativeRequests(native.git.calls, before), identity = subtractNativeRequests(identityTraffic.snapshot(), identityBefore),
+          repository = subtractNativeRequests(requestKinds, identity), nativeRequests = native.git.calls.length - before;
+        assert.equal(Object.values(requestKinds).reduce((sum, count) => sum + count, 0), nativeRequests);
+        console.log('Synthetic authenticated development preparation: ' + JSON.stringify({ tool: name, ms: Math.round(performance.now() - start),
+          nativeRequests, requestKinds, origins: { identity, repository } }));
+      }
       return response.json(); };
     const scope = { organizationId: f.config.organizationId, productId: f.config.productId, repository: f.config.repository };
     const source = { ...scope, draftId: f.draftId, revision: 1, revisionDigest: f.saved.reference.revisionDigest, scopeInputDigest: f.saved.reference.scopeInputDigest };

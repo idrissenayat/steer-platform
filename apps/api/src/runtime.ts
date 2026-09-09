@@ -772,6 +772,8 @@ export async function createOwnedIntentJourney(expected: IntentJourneyConfigurat
       intentDevelopmentReviewReader: sourceReview,
       intentDevelopmentPreparer: own(createAssessedRecordedDevelopmentPreparer(pools, config.development, profiles, {
         records: originalRecords, scope: scopeBindings, authorizePreparation: deps.development.authorizePreparation,
+        withEvidenceRead: (input, current, work) => corpus.withReadSession({ organizationId, productId, repository, branch,
+          scopeInputDigest: input.scopeInputDigest }, current, read => work(async () => (await read()).evidence)),
         evidenceFor: async (input, current) => (await corpus.collect({ organizationId, productId, repository, branch,
           scopeInputDigest: input.scopeInputDigest }, current)).evidence,
       })),

@@ -20,6 +20,7 @@ import { createCandidateSaveWorker } from '../src/worker.ts';
 import { createCandidateSaveSchedulerClient } from '../src/client.ts';
 import { candidateSaveWorkflowId, parseCandidateSaveTarget } from '../src/candidate-save-contracts.ts';
 import type { AuthenticatedJourneyDirection } from '../../api/test/authenticated-journey-direction.fixture.ts';
+import { createIntegrationDatabaseTrace } from '../../../packages/data/test/integration-diagnostics.ts';
 
 type Fixture = Awaited<ReturnType<typeof scopeDraftIntegrationFixture>>;
 const historyText = (value: unknown): string => value instanceof Uint8Array ? Buffer.from(value).toString('utf8')
@@ -38,8 +39,8 @@ export function authenticatedCandidateSave(f: Fixture, native: ReturnType<typeof
   const owned: Array<{ close(): void }> = [];
   const current = async () => { await authority(); if (!enabled) throw new Error('PRIVATE synthetic save policy unavailable'); };
   const records = { authorize: current, lifecycle: f.lifecycle.lifecycle, keyForDraft: f.deps.keyForDraft };
-  const make = () => {
-    const store = createDurableCandidateBundleStore(f.pools.execution, binding, { execution, publication }, {
+  const make = (pool = f.pools.execution) => {
+    const store = createDurableCandidateBundleStore(pool, binding, { execution, publication }, {
       fetch: native.git.transport, appJwt: async () => 'synthetic-app-jwt', now: () => now,
       authorizeRead: current, authorizeOperation: current, authorizeReconciliation: current,
       evaluateDispatch: async p => {
@@ -245,7 +246,15 @@ export function authenticatedCandidateSave(f: Fixture, native: ReturnType<typeof
           assert.notDeepEqual(previous.documents, input.documents);
         }
         assert.equal(await step(), 'dispatch-committed', 'HTTP status is read-only and cannot checkpoint or retry');
-        const reconciler = make(); assert.equal((await reconciler.compareAndWrite(request)).outcome, 'committed');
+        const reconciliationTrace = createIntegrationDatabaseTrace(), reconciler = make(reconciliationTrace.wrap(f.pools.execution));
+        const reconciliationStarted = performance.now(), requestsBefore = native.git.calls.length;
+        const recovered = await reconciler.compareAndWrite(request);
+        // Failure diagnostics retain only bounded synthetic phases/counts, not
+        // SQL, source, keys, identities, references or provider response bodies.
+        const recoveryDiagnostic = { outcome: recovered.outcome, ms: Math.round(performance.now() - reconciliationStarted),
+          nativeRequests: native.git.calls.length - requestsBefore, database: reconciliationTrace.summary() };
+        console.log('Synthetic authenticated saved-operation recovery: ' + JSON.stringify(recoveryDiagnostic));
+        assert.equal(recovered.outcome, 'committed', JSON.stringify(recoveryDiagnostic));
         assert.equal((await reconciler.reconcile(request)).outcome, 'recorded'); assert.equal(await step(), 'succeeded');
         assert.equal((verifyCandidateSaveStart(start, await read('intent.candidate.save.start', start))).receipt.outcome, 'acknowledged');
         assert.equal(starts, 1); assert.equal(native.git.mutations(), 1);
