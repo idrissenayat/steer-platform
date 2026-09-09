@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import { createCandidateSavePreviewer } from '@steer/data/candidate-save-previewer';
+import { createCandidateSavePreparer } from '@steer/data/candidate-save-preparer';
+import { describeCandidatePublication } from '@steer/adapters/github-candidate-bundle-store';
 import { createCandidateSaveReviewer } from '@steer/data/candidate-save-reviewer';
 import { createCandidateOriginalStore, candidateOriginalConfigurationSchema } from '@steer/data/candidate-originals';
 import { createCandidateSaveStatusReader } from '@steer/adapters/candidate-save-status-reader';
@@ -48,6 +50,17 @@ import { readProjection } from '@steer/data';
 import { createHeldGitBriefWriterFactory, heldGitBriefConfigurationSchema, type HeldBriefAssessment } from '@steer/adapters/held-brief-writer';
 
 const text = z.string().min(1);
+/** Explicit and uninstalled. Shares admission identity with the durable worker,
+ * but neither creates a provider client nor starts a workflow. */
+export function createRecordedCandidateSavePreparer(pools: Parameters<typeof createCandidateSavePreparer>[0],
+  binding: Parameters<typeof describeCandidatePublication>[0], configuration: unknown, publication: unknown,
+  dependencies: Parameters<typeof createCandidateSavePreparer>[3]) {
+  const config = z.strictObject({ records: candidateOriginalConfigurationSchema, execution: intentOperationConfigurationSchema }).parse(configuration);
+  const bound = describeCandidatePublication(binding, publication);
+  for (const key of ['organizationId', 'productId', 'repository', 'branch'] as const)
+    if (bound.configuration[key] !== config.execution[key]) throw new Error('Candidate preparation scope mismatch.');
+  return createCandidateSavePreparer(pools, config, bound.options, dependencies);
+}
 /** Explicit, uninstalled final-package preview. Trusted lifecycle evidence and
  * verified historical SDK readers are required; never a save/grant fallback. */
 export function createRecordedCandidateSavePreviewer(pools: Parameters<typeof createCandidateSavePreviewer>[0],

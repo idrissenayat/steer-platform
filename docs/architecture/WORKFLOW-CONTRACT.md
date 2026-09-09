@@ -1095,8 +1095,36 @@ an admitted original, a provider grant, a save receipt or a gate. No placeholder
 operation/receipt or private source/prompts/wire output is disclosed.
 
 The actual UI explicitly discovers/selects a retained drafting run and previews
-the package. Its backend remains uninstalled; human confirmation, immutable
-original admission/readback and workflow start must be composed next. Existing
+the package. Its backend remains uninstalled; 0261 now composes human confirmation
+and immutable original admission/readback. Workflow start remains next. Existing
 amendment correction selection and explicit legacy publication mapping remain
 separate. See [the package guide](../CANDIDATE-PACKAGE-PREVIEW.md) and
 [0260 specification](../../intent/0260/SPEC.md).
+
+### Exact human confirmation and immutable original — 0261
+
+The separate `intent.candidate.save.prepare` human command accepts only preview
+references, its digest and exact confirmation binding. It reconstructs the
+complete current package and latest draft, verifies current human consent through
+a mandatory independent port, and uses shared API/worker admission with unchanged
+publication/submission hashing and fixed expiry. No browser-selected operation ID,
+profile, source text or lifecycle assertion is accepted.
+
+Candidate-save admission checks all prior execution configurations for the same
+preserved revision under the existing organization lock. A configuration change
+or ambiguous legacy rows cannot mint another save on recovery. New reviewed work
+requires a separately preserved draft revision; expiry cannot be refreshed in place.
+
+After admission, the exact request is encrypted in the existing original store
+and read back under current admission, owner, records, lifecycle and key checks.
+The complete preview, draft and consent authority are rechecked before `prepared`.
+Preparation never claims a step, allocates model budget, starts Temporal, writes
+Git or signs a gate. Records and execution configuration revisions stay separate.
+
+Possible admission followed by failure is unknown. The UI retains the identical
+recovery command and known original status link, never automatically retries or
+silently substitutes a new package. Current authority and identical configuration
+are required even for recovery. Pending work keeps its bounded admission until
+drain. Reference-only save start and real authority/acceptance remain separate;
+the factory is uninstalled. See [the confirmation guide](../CANDIDATE-PACKAGE-CONFIRMATION.md)
+and [0261 specification](../../intent/0261/SPEC.md).

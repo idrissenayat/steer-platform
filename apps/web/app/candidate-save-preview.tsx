@@ -7,31 +7,36 @@ import type { IntentRunDiscoveryOutput } from '@steer/tool-registry/intent-run-d
 import type { DevelopmentEditorSource } from './intent-development-editor';
 import { createCandidateSavePreviewClient } from './candidate-save-preview-client';
 import { createIntentRunDiscoveryTransport } from './intent-run-discovery-transport';
+import { createCandidateSavePrepareClient } from './candidate-save-prepare-client';
+import { candidateSaveStatusFragment } from './candidate-save-status-client';
+import { candidateSavePrepareInputSchema, type CandidateSavePrepareInput, type CandidateSavePrepareOutput } from '@steer/tool-registry/candidate-save-prepare-contracts';
 
 export default function CandidatePackagePreview({ review, source, identity, expiresAt }: {
   review: CandidateSaveReviewOutput; source: DevelopmentEditorSource; identity: string; expiresAt: string;
 }) {
   const [page, setPage] = useState<IntentRunDiscoveryOutput | null>(null), [selected, setSelected] = useState('');
   const [item, setItem] = useState(''), [state, setState] = useState('idle'), [receipt, setReceipt] = useState<{ key: string; output: CandidateSavePreviewOutput } | null>(null);
+  const [confirmation, setConfirmation] = useState<{ key: string; input: CandidateSavePrepareInput; output: CandidateSavePrepareOutput | null; reference: CandidateSavePrepareOutput['reference']; busy: boolean } | null>(null);
   const contextKey = JSON.stringify([review, source, identity, expiresAt]), selectionKey = JSON.stringify([contextKey, selected, item]);
   const active = useRef(selectionKey); active.current = selectionKey;
-  const owner = useRef<{ preview: ReturnType<typeof createCandidateSavePreviewClient>; discovery: ReturnType<typeof createIntentRunDiscoveryTransport>; valid(): boolean } | null>(null);
+  const owner = useRef<{ prepare: ReturnType<typeof createCandidateSavePrepareClient>; preview: ReturnType<typeof createCandidateSavePreviewClient>; discovery: ReturnType<typeof createIntentRunDiscoveryTransport>; valid(): boolean } | null>(null);
   const busy = useRef(false), recordsExpiry = useRef(0), heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
-    const preview = createCandidateSavePreviewClient(window.location.origin), discovery = createIntentRunDiscoveryTransport(window.location.origin);
+    const preview = createCandidateSavePreviewClient(window.location.origin), discovery = createIntentRunDiscoveryTransport(window.location.origin), prepare = createCandidateSavePrepareClient(window.location.origin);
     let closed = false, last = Date.now(); recordsExpiry.current = 0; busy.current = false;
     const valid = () => { const now = Date.now(), expiry = Date.parse(expiresAt);
       const result = !closed && !document.hidden && Number.isFinite(expiry) && now >= last && now < expiry && (!recordsExpiry.current || now < recordsExpiry.current);
       last = now; return result; };
-    const session = { preview, discovery, valid }; owner.current = session;
-    const clear = () => { closed = true; preview.close(); discovery.close(); setPage(null); setSelected(''); setReceipt(null); setState('closed'); };
+    const session = { prepare, preview, discovery, valid }; owner.current = session;
+    const clear = () => { closed = true; prepare.close(); preview.close(); discovery.close(); setPage(null); setSelected(''); setReceipt(null); setConfirmation(null); setState('closed'); };
     const check = () => { if (!valid()) clear(); };
-    setPage(null); setSelected(''); setItem(''); setReceipt(null); setState('idle'); check();
+    setPage(null); setSelected(''); setItem(''); setReceipt(null); setConfirmation(null); setState('idle'); check();
     const timer = setInterval(check, 1000); document.addEventListener('visibilitychange', check); window.addEventListener('pagehide', clear);
-    return () => { closed = true; preview.close(); discovery.close(); if (owner.current === session) owner.current = null; clearInterval(timer);
+    return () => { closed = true; prepare.close(); preview.close(); discovery.close(); if (owner.current === session) owner.current = null; clearInterval(timer);
       document.removeEventListener('visibilitychange', check); window.removeEventListener('pagehide', clear); };
   }, [contextKey, expiresAt]);
   const result = receipt?.key === selectionKey ? receipt.output : null;
+  const confirmed = confirmation?.key === selectionKey ? confirmation : null;
   useEffect(() => { if (result) heading.current?.focus(); }, [result]);
   async function find(cursor: IntentRunDiscoveryOutput['cursor'] = null) {
     const session = owner.current;
@@ -68,7 +73,23 @@ export default function CandidatePackagePreview({ review, source, identity, expi
     } }
     finally { if (owner.current === session) busy.current = false; }
   }
-  const working = state === 'finding' || state === 'previewing';
+  async function confirm() {
+    const session = owner.current, key = selectionKey;
+    if (!session?.valid() || busy.current || !result || confirmed?.output?.outcome === 'prepared') return;
+    const input = confirmed?.input ?? candidateSavePrepareInputSchema.parse({ organizationId: result.input.organizationId,
+      preview: result.input, previewDigest: result.previewDigest, confirmation: result.proposedConfirmation, confirm: true });
+    const reference = confirmed?.reference ?? null;
+    busy.current = true; setConfirmation({ key, input, output: null, reference, busy: true });
+    try {
+      const output = await session.prepare.prepare(input);
+      if (owner.current !== session || !session.valid() || active.current !== key) return;
+      setConfirmation({ key, input, output, reference: output.reference ?? reference, busy: false });
+    } catch { if (owner.current === session && session.valid() && active.current === key) setConfirmation({ key, input, output: null, reference, busy: false }); }
+    finally { if (owner.current === session) busy.current = false; }
+  }
+  // An uncertain acknowledgement keeps the same command. The package controls
+  // cannot silently turn a recovery click into a new confirmation.
+  const working = state === 'finding' || state === 'previewing' || !!confirmed;
   return <section aria-label="Candidate package preview">
     <h5>Preview the repository package</h5>
     <p>Select the drafting run to compare with your preserved documents. Previewing does not confirm a save or start an agent.</p>
@@ -86,7 +107,7 @@ export default function CandidatePackagePreview({ review, source, identity, expi
         placeholder="For example, 0260-booking" onChange={e => { setItem(e.target.value); setReceipt(null); }} />
         <p>Use the assigned four-digit number and a short name. The server checks that this destination is available; this field does not reserve it.</p></>}
     <button type="button" className="access-secondary" disabled={working || state === 'closed' || !parsed.success || (review.choice.action === 'extend-existing' && !existing)} onClick={() => { void preview(); }}>Preview exact package</button>
-    <div role="status" aria-live="polite">{working && <p>{state === 'finding' ? 'Finding recorded drafting runs…' : 'Verifying the documents, both agent roles and destination…'}</p>}
+    <div role="status" aria-live="polite">{(state === 'finding' || state === 'previewing') && <p>{state === 'finding' ? 'Finding recorded drafting runs…' : 'Verifying the documents, both agent roles and destination…'}</p>}
       {state === 'unavailable' && <p>Package preview is unavailable or changed under current configuration or permissions. Your documents are unchanged; nothing was confirmed or saved.</p>}</div>
     {result && <div><h5 ref={heading} tabIndex={-1}>Exact package preview — not saved</h5>
       <p>{result.destination.purpose} · {result.destination.repository} · {result.destination.branch} · items/{result.destination.itemId}</p>
@@ -95,7 +116,18 @@ export default function CandidatePackagePreview({ review, source, identity, expi
       <p>Spec conformance: {result.manifest.specConformance.state}. Exam review: {result.manifest.examReview.state}. Neither is a gate signature.</p>
       <details><summary>Exact package references</summary><p>Expected commit: <code>{result.destination.expectedHead}</code></p>
         <p>Manifest: <code>{result.manifestDigest}</code></p><p>Preview: <code>{result.previewDigest}</code></p></details>
-      <p>This is the package proposed for confirmation. Durable human confirmation and save start are not enabled by this preview.</p>
+      <p>Confirming preserves this exact package for a later authorized save. It does not start the save, commit to GitHub, or sign a gate.</p>
+      {!confirmed && <button type="button" className="access-primary" onClick={() => { void confirm(); }}>Confirm this exact package</button>}
+      <div role="status" aria-live="polite">{confirmed?.busy && <p>Rechecking your confirmation and preserving the exact original…</p>}
+        {confirmed && !confirmed.busy && (confirmed.output?.outcome === 'prepared'
+          ? <p>Exact original preserved and read back. Not saved to GitHub. The authorized save-start step is not connected yet.</p>
+          : confirmed.output?.outcome === 'conflict'
+            ? <p>The package changed before admission. Review the current draft and destination again; no save was started.</p>
+            : <p>Confirmation acknowledgement is unavailable or uncertain. Do not create another submission. Recovery rechecks this same confirmation; it cannot start a save.</p>)}</div>
+      {confirmed && !confirmed.busy && confirmed.output?.outcome !== 'prepared' && confirmed.output?.outcome !== 'conflict'
+        && <button type="button" className="access-secondary" onClick={() => { void confirm(); }}>Recover this exact confirmation</button>}
+      {confirmed?.output?.outcome === 'conflict' && <button type="button" className="access-secondary" onClick={() => { setConfirmation(null); setReceipt(null); }}>Return to package review</button>}
+      {confirmed?.reference && <a className="access-secondary" href={candidateSaveStatusFragment(confirmed.reference)}>Check this original save operation</a>}
     </div>}
   </section>;
 }

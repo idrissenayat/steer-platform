@@ -31,6 +31,15 @@ type Tree = Awaited<ReturnType<Session['treeAt']>>['tree'];
 type Prepared = Readonly<{ request: CandidateBundleSaveRequest; plan: Plan }>;
 export type CandidateBundlePrepared = Prepared;
 export const candidateBundleStoreConfigurationSchema = configuration;
+/** Pure shared admission binding. Keeps the original durable hash domain and
+ * order; no token, provider access, grant or writer is created by this helper. */
+export function describeCandidatePublication(rawBinding: GitHubBinding, rawConfiguration: unknown) {
+  const binding = bindingSchema.parse(rawBinding), config = configuration.parse(rawConfiguration);
+  if (binding.organizationId !== config.organizationId || `github:${binding.repositoryId}` !== config.repository || binding.branch !== config.branch) throw new CodeHostError();
+  const publicationDigest = createHash('sha256').update(JSON.stringify([config,
+    binding.organizationId, binding.installationId, binding.repositoryId, binding.owner, binding.repository, binding.branch])).digest('hex');
+  return freeze({ configuration: config, options: { publicationDigest, serviceCommitter: config.serviceCommitter, itemIds: config.itemIds } });
+}
 
 // This result may only come from trusted composition that verifies current source,
 // lifecycle, human consent and gate/grant evidence, AND atomically consumes the

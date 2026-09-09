@@ -217,8 +217,14 @@ export function createIntentOperationStore(pool: DatabasePool, rawConfiguration:
       return transaction(input, async client => {
         await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1,1))', [config.organizationId]);
         const count = (await client.query('SELECT count(*) AS count FROM steer_execution.intent_operations WHERE organization_id=$1 AND subject=$2', [config.organizationId, config.subject])).rows[0];
-        const prior = (await client.query(`SELECT operation_id,binding FROM steer_execution.intent_operations WHERE organization_id=$1 AND draft_id=$2 AND draft_revision=$3 AND action=$4 AND configuration_revision=$5`,
-          [config.organizationId, input.draftId, input.draftRevision, config.action, config.configurationRevision])).rows[0];
+        // A save confirmation is for one preserved revision. Rotating server
+        // configuration must not make an exact recovery allocate a new save.
+        // The existing organization lock serializes API/worker admissions across
+        // configurations. Refuse ambiguous legacy rows instead of choosing one.
+        const candidates = (await client.query(`SELECT operation_id,binding FROM steer_execution.intent_operations WHERE organization_id=$1 AND draft_id=$2 AND draft_revision=$3 AND action=$4 AND (configuration_revision=$5 OR action='candidate-save') LIMIT 2`,
+          [config.organizationId, input.draftId, input.draftRevision, config.action, config.configurationRevision])).rows;
+        if (candidates.length > 1) throw new Conflict();
+        const prior = candidates[0];
         let operationId = prior?.operation_id as string | undefined;
         if (!prior) {
           if (BigInt(count.count) >= 10000n) throw new Unavailable();

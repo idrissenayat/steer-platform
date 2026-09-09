@@ -33,14 +33,26 @@ scope, choose what to do, answer only necessary questions, review and correct a
 Brief/Spec/Exam bundle, save it to the authorized repository and reopen it exactly.
 No separate local preview, synthetic success, silent merging or lost work counts.
 
-Latest checkpoint: **0260 connects a reproducible repository package preview**.
+Latest checkpoint: **0261 connects exact human confirmation and original preservation**.
+The actual package panel now sends an explicit reference-only confirmation command.
+The server rebuilds the current preview, checks independent human authority, uses
+shared API/worker admission, preserves the immutable encrypted original and reads
+it back before rechecking the package. Unknown acknowledgements retain the same
+recovery command and any known status reference; no workflow or Git save starts.
+See [the confirmation guide](CANDIDATE-PACKAGE-CONFIRMATION.md) and
+[0261 evidence](../intent/0261/EVIDENCE.md). Reference-only workflow start,
+existing-proposal selection, missing-original diagnostics, real records/model/
+provider authority and signed-in I1–I6 acceptance remain open. Factories stay
+explicit and uninstalled; synthetic tests are not live authority or acceptance.
+
+0260 connects a reproducible repository package preview.
 The actual final-review panel discovers retained drafting runs and previews exact
 preserved bytes with verified two-role history and current destination/lifecycle
 evidence. Edit lineage and unreviewed/stale states are derived server-side. The
 manifest and proposed confirmation are reproducible, not a consent record or save.
 See [the package guide](CANDIDATE-PACKAGE-PREVIEW.md) and [0260 evidence](../intent/0260/EVIDENCE.md).
-Next connect exact human confirmation to immutable original admission/readback
-and reference-only save start. Existing-proposal selection, uncaptured-admission
+0261 now connects exact human confirmation to immutable original admission/readback;
+reference-only save start remains next. Existing-proposal selection, uncaptured-admission
 diagnostics, real records/model/provider authority and signed-in I1–I6 acceptance
 remain open. The destination authority factory is explicit and uninstalled.
 
@@ -172,7 +184,7 @@ and cancellation checks during scope/Temporal composition and live acceptance.
 | I2 Explicit disposition | Open existing, propose adding missing scope, or create a distinct linked intent with a reason. Keep original text. No automatic merge, discard, update or item creation. Record the human choice against reviewed source revisions; changed scope invalidates it. | UI proposal/recheck (0201–0202), encrypted original direction (0229), and exact reviewed editor direction to preparation/start (0230), plus recorded assessment binding and revalidation (0248) tested; read-only final edited-scope/direction review (0254); durable save consumption, real authority and live acceptance pending |
 | I3 Reliable drafting | Activate the configured Mastra/LiteLLM path with an approved capped budget and durable reservation ledger. Clarify conversationally, then produce source-faithful canonical Brief/Spec drafts and a fresh-context Test Agent Exam. Reject refusals, invalid outputs and invented facts; preserve unknowns explicitly. | Drafting (0198/0202), reservations/ownership (0203/0209), result/original recovery (0217–0219), exact requests (0220), SQL runner/observations (0221–0222), recorded Mastra/Temporal roles (0223–0224), prepare/start/read APIs (0227–0229) and actual editor review/clarification/progress/candidate integration (0230) tested with synthetic authority/model responses; assessed direction reaches both role contexts (0248), with full cross-batch sources within existing byte bounds (0249); composed 34-source SQL/SDK drafting and corrected response acknowledgement (0257); production evidence/preparation authority, live provider evidence/approval, cost bounds, authorized activation and content/eval acceptance pending |
 | I4 Review without loss | Show and edit all three documents, connect corrections to the source, expose conflicts/assumptions, preserve durable draft state across navigation, expiry, refresh and restart within the approved records policy. Never silently erase user work. Support retry without duplicate paid runs. | Editing/comparison/invalidation (0204–0205), encrypted originals/lifecycle/revisions (0213–0215), recorded checkpoints/roles (0217–0224), HTTP draft service (0225), editor preserve/restore (0226), recorded result preview/adoption and exact recovery (0230), owned-draft discovery and latest retained-run resumption (0231) tested; read-only draft-history UI (0251), retained scope inspection (0255), server-side historical generation inputs (0256), per-role retained SDK exchange verification (0257), combined role/source snapshots and actual-editor read-only original/current comparison over authenticated HTTP/MCP (0258), all-preserved-revision captured scope/drafting run discovery with explicit history navigation (0259); uncaptured-admission diagnostics, real runtime/records activation and full live acceptance pending |
-| I5 Save and reopen | Recheck scope and duplicate-review revisions immediately before an atomic, idempotent bundle write. Concurrent new intents/changes cause re-review, not two creations. Use actual granted GitHub paths and expected-head checks; uncertain saves require status/readback. Reopen exact saved versions in the application. | Disabled planner/reader, collector, bundle store, durable dispatch, candidate-save Temporal, receipt reconciliation and encrypted immutable originals implemented (0205–0213); exact-reference read query/API/MCP and actual UI developed under synthetic authority (0252); original save-status API/MCP/UI and receipt-to-exact-reopen link (0253); final preserved-bundle review without generation or admission (0254); reproducible package preview with retained lineage and trusted destination/lifecycle evidence (0260). Current lifecycle/full-corpus authority, key/recovery controls, quarantined-outcome resolution, save preparation/confirmation/start and live human acceptance remain incomplete |
+| I5 Save and reopen | Recheck scope and duplicate-review revisions immediately before an atomic, idempotent bundle write. Concurrent new intents/changes cause re-review, not two creations. Use actual granted GitHub paths and expected-head checks; uncertain saves require status/readback. Reopen exact saved versions in the application. | Disabled planner/reader, collector, bundle store, durable dispatch, candidate-save Temporal, receipt reconciliation and encrypted immutable originals implemented (0205–0213); exact-reference read query/API/MCP and actual UI developed under synthetic authority (0252); original save-status API/MCP/UI and receipt-to-exact-reopen link (0253); final preserved-bundle review without generation or admission (0254); reproducible package preview with retained lineage and trusted destination/lifecycle evidence (0260); exact human confirmation, shared API/worker admission and immutable encrypted-original preservation/readback with same-command recovery in the actual UI (0261). Current lifecycle/full-corpus authority, key/recovery controls, quarantined-outcome resolution, reference-only save start and live human acceptance remain incomplete |
 | I6 Human acceptance | In the real signed-in UI demonstrate new, exact duplicate, paraphrased duplicate, partial overlap, related-but-distinct, empty/failed/stale search, corrections, permission loss, cost exhaustion, uncertain save, concurrent creation, refresh/reopen and keyboard/narrow-screen behavior. Record real source and saved commit. | Pending |
 
 I1's lexical retrieval is only a candidate finder, never a semantic verdict.

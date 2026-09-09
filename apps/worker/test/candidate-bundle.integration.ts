@@ -72,6 +72,9 @@ export async function testDurableCandidateBundles({ app, admin, connect, check }
       const ids = results.map(r => r.outcome === 'prepared' ? r.request.bundle.operationId : ''); assert.equal(new Set(ids).size, 1);
       assert.notEqual(ids[0], '00000000-0000-4000-8000-000000000000'); assert.equal(f.git.calls.length, 0);
       assert.equal((await f.make().prepare({ bundle: f.bundle, confirmation: f.confirmation })).outcome, 'prepared');
+      assert.equal((await f.make({ execution: { configurationRevision: 'candidate-save-r2' } }).prepare({ bundle: f.bundle, confirmation: f.confirmation })).outcome, 'conflict');
+      assert.equal((await admin.query("SELECT count(*)::int AS n FROM steer_execution.intent_operations WHERE organization_id=$1 AND draft_id=$2 AND action='candidate-save'",
+        [binding.organizationId, f.confirmation.draftId])).rows[0].n, 1);
       assert.equal((await f.make().prepare({ bundle: { ...f.bundle, architectConfigurationRevision: 'changed' }, confirmation: {
         ...f.confirmation, bundleManifestDigest: (await planCandidateBundle({ ...f.bundle, architectConfigurationRevision: 'changed', operationId: ids[0] })).manifestDigest,
       } })).outcome, 'conflict');
@@ -81,6 +84,15 @@ export async function testDurableCandidateBundles({ app, admin, connect, check }
       assert.equal(JSON.parse(plan.files.at(-1)!.content).inputDigest, plan.inputDigest);
       const stored = (await admin.query('SELECT binding FROM steer_execution.intent_operations WHERE operation_id=$1', [ids[0]])).rows[0].binding;
       assert.notEqual(stored.inputDigest, plan.inputDigest); assert.equal(JSON.stringify(stored).includes('Synthetic Brief'), false);
+    });
+    await check('concurrent candidate configuration rotations cannot mint two saves for one preserved draft revision', async () => {
+      const f = await setup();
+      const results = await Promise.all(['candidate-save-r1', 'candidate-save-r2'].map(configurationRevision =>
+        f.make({ pool: connect('steer_app'), execution: { configurationRevision } }).prepare({ bundle: f.bundle, confirmation: f.confirmation })));
+      assert.deepEqual(results.map(r => r.outcome).sort(), ['conflict', 'prepared']);
+      assert.equal((await admin.query("SELECT count(*)::int AS n FROM steer_execution.intent_operations WHERE organization_id=$1 AND draft_id=$2 AND action='candidate-save'",
+        [binding.organizationId, f.confirmation.draftId])).rows[0].n, 1);
+      assert.equal(f.git.calls.length, 0);
     });
     await check('real PostgreSQL claims compose with native Git CAS for one seven-file save and exact three-document reopen', async () => {
       const f = await setup(), request = await f.prepare();

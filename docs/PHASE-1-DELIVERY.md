@@ -5670,3 +5670,34 @@ reference-only workflow start. Existing-proposal selection, uncaptured-admission
 diagnostics and real records/model/provider authority remain open. No paid call,
 credential inspection, live migration, runtime Git save, auth bypass, gate,
 release or deployment; user-owned roadmap/outputs remain untouched.
+
+## Development increment: 0261 — Confirm and preserve the exact package
+
+The actual package panel now explicitly confirms the exact preview and retains
+the same recovery command and original status reference after uncertainty.
+A separately granted human HTTP/MCP command reconstructs the complete current
+package, verifies independent human authority, shares durable admission identity
+with the worker, and captures/reads back the encrypted immutable original before
+rechecking source, destination and authority. Configuration revisions for draft
+records and save execution remain separate; no expiry is renewed.
+
+Candidate-save admission now checks prior execution configurations under the
+existing organization lock. A rotated configuration or ambiguous prior rows
+cannot turn recovery into a new save for the same preserved revision.
+
+Final verification: **1,219/1,219 regressions** and **357/357 PostgreSQL 16.14
+integration checks**, including the concurrent configuration-rotation test, pass.
+Types, optimized Next build, kit and workflow token-scope audit also pass.
+Actual browser inspection remained unavailable because the Mac was locked;
+automated fixtures do not constitute signed-in or live-provider acceptance.
+
+Possible effects followed by failure are unknown, not proof of absence or a
+replacement submission. Preparation never claims a save step, allocates model
+spending, starts a workflow, writes Git or signs. The dedicated browser command
+transport is not in the read-only allowlist and never automatically retries.
+
+See [0261 evidence](../intent/0261/EVIDENCE.md) and
+[the confirmation guide](CANDIDATE-PACKAGE-CONFIRMATION.md) for measured tests and
+limitations. Runtime factories remain uninstalled. Next is reference-only save
+start; existing-proposal selection, uncaptured-admission diagnostics, real adopted
+records and provider authority, and signed-in I1–I6 acceptance remain open.

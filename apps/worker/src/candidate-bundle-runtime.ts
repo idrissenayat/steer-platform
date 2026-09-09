@@ -1,30 +1,18 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { createIntentOperationStore, intentOperationConfigurationSchema, type IntentCheckpointReference } from '@steer/data/intent-operations';
+import { createCandidateAdmission, candidateRequestSchema as requestSchema, candidateSubmissionOf as submissionOf,
+  candidateSubmissionDigest as inputDigest } from '@steer/data/candidate-admission';
 import type { DatabasePool } from '@steer/data/runtime-pool';
-import { createGitHubCandidateBundleStore, candidateBundleStoreConfigurationSchema, candidateBundleDispatchProofSchema,
+import { createGitHubCandidateBundleStore, candidateBundleStoreConfigurationSchema, candidateBundleDispatchProofSchema, describeCandidatePublication,
   type CandidateBundlePrepared } from '@steer/adapters/github-candidate-bundle-store';
-import { candidateBundleInputSchema, planCandidateBundle } from '@steer/tool-registry/candidate-bundle-contracts';
-import { intentSaveBindingSchema, assertIntentSaveBindingCurrent } from '@steer/tool-registry/intent-revision-contracts';
+import { planCandidateBundle } from '@steer/tool-registry/candidate-bundle-contracts';
+import { assertIntentSaveBindingCurrent } from '@steer/tool-registry/intent-revision-contracts';
 
-const submissionSchema = z.strictObject({
-  bundle: z.strictObject(candidateBundleInputSchema.shape).omit({ operationId: true }), confirmation: intentSaveBindingSchema,
-});
-const requestSchema = z.strictObject({ bundle: candidateBundleInputSchema, confirmation: intentSaveBindingSchema });
 type ProviderDependencies = Parameters<typeof createGitHubCandidateBundleStore>[2];
 const optionsSchema = z.strictObject({ execution: intentOperationConfigurationSchema, publication: candidateBundleStoreConfigurationSchema });
-const previewId = '00000000-0000-4000-8000-000000000000'; // Never admitted or sent to a provider.
 function freeze<T>(value: T): T {
   if (value && typeof value === 'object') { Object.values(value).forEach(freeze); Object.freeze(value); } return value;
-}
-function submissionOf(request: CandidateBundlePrepared['request']) {
-  const { operationId: _operation, ...bundle } = request.bundle;
-  return submissionSchema.parse({ bundle, confirmation: request.confirmation });
-}
-function inputDigest(value: z.infer<typeof submissionSchema>, publicationDigest: string) {
-  // Admission excludes the not-yet-minted operation ID. The step/receipt digest
-  // remains the v2 write plan, including the actual server ID and exact consent.
-  return createHash('sha256').update(JSON.stringify(['steer-candidate-submission/v1', publicationDigest, value])).digest('hex');
 }
 
 /** Uninstalled composition, never a public save tool or an authority verifier.
@@ -43,8 +31,8 @@ export function createDurableCandidateBundleStore(pool: DatabasePool,
     || typeof dependencies.evaluateDispatch !== 'function') throw new Error('Invalid candidate execution configuration.');
   for (const key of ['organizationId', 'productId', 'repository', 'branch'] as const)
     if (config.execution[key] !== config.publication[key]) throw new Error('Candidate execution scope mismatch.');
-  const publicationDigest = createHash('sha256').update(JSON.stringify([config.publication,
-    binding.organizationId, binding.installationId, binding.repositoryId, binding.owner, binding.repository, binding.branch])).digest('hex');
+  const publication = describeCandidatePublication(binding, config.publication), publicationDigest = publication.options.publicationDigest;
+  const admission = createCandidateAdmission(pool, config.execution, publication.options, dependencies.authorizeOperation);
   let closed = false, active = false, pending = 0;
   let checkpointProof: (IntentCheckpointReference & { verifiedAt: number }) | undefined;
   const operations = createIntentOperationStore(pool, config.execution, { authorize: dependencies.authorizeOperation,
@@ -123,32 +111,15 @@ export function createDurableCandidateBundleStore(pool: DatabasePool,
   }
   return {
     async prepare(raw: unknown) {
-      const submission = freeze(submissionSchema.parse(raw));
-      // Validate purpose, exact document/consent hashes and configured scope
-      // before allocating an operation; the placeholder plan never escapes.
-      await validate({ ...submission, bundle: { ...submission.bundle, operationId: previewId } });
       if (closed || active || pending) return { outcome: 'unavailable' as const };
       active = true;
-      try {
-        const result = await operations.create({ draftId: submission.confirmation.draftId,
-          draftRevision: submission.confirmation.draftRevision, inputDigest: inputDigest(submission, publicationDigest) });
-        if (result.outcome !== 'ok') return { outcome: result.outcome };
-        if (closed) return { outcome: 'unknown' as const };
-        return freeze({ outcome: 'prepared' as const, request: { ...submission, bundle: { ...submission.bundle, operationId: result.value.operationId } } });
-      } finally { active = false; }
+      try { return await admission.prepare(raw); } finally { active = false; }
     },
     /** Admission-only original-payload verification. Never contacts Git or claims a step. */
     async verifyOriginal(request: unknown): Promise<void> {
-      const p = await validate(request);
       if (closed || active || pending) throw new Error('Candidate original unavailable.');
       active = true;
-      try {
-        const current = await operations.inspect(reference(p));
-        if (closed || current.outcome !== 'ok' || current.value.operation.draftId !== p.request.confirmation.draftId
-          || current.value.operation.draftRevision !== p.request.confirmation.draftRevision
-          || current.value.steps.some(step => step.record.binding.inputDigest !== p.plan.inputDigest))
-          throw new Error('Candidate original unavailable.');
-      } finally { active = false; }
+      try { await admission.verifyOriginal(request); } finally { active = false; }
     },
     compareAndWrite: (request: unknown) => run(request, true),
     inspect: (request: unknown) => run(request, false),
@@ -192,6 +163,6 @@ export function createDurableCandidateBundleStore(pool: DatabasePool,
       } catch { return result('unknown'); }
       finally { checkpointProof = undefined; active = false; }
     },
-    close: () => { closed = true; operations.close(); writer.close(); },
+    close: () => { closed = true; admission.close(); operations.close(); writer.close(); },
   };
 }

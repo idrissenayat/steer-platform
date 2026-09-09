@@ -70,11 +70,12 @@ The preview contains `saveConfirmed: false`, `operationCreated: false` and
 `savedToGit: false`. It is not stored as an immutable accepted original and does
 not start a workflow. Browser checks establish response/byte equality, not authority.
 
-The next implementation must reconstitute this exact proposal when the human
-confirms, compare its digest/binding, admit the existing durable operation once,
-capture and read back its encrypted original, then request the reference-only
-save workflow. A lost acknowledgement must recover the original operation,
-not produce another save. Dispatch independently rechecks current authority.
+0261 [connects explicit human confirmation](CANDIDATE-PACKAGE-CONFIRMATION.md) to
+reconstitution of this exact proposal, digest/binding comparison, one durable
+admission and encrypted original capture/readback. This is a separate command;
+preview stays read-only. Reference-only save start remains next. A lost
+acknowledgement must recover the original operation, not produce another save.
+Dispatch independently rechecks current authority.
 
 D1 adoption, the proposed model budget, real destination/source/lifecycle/gate
 authority and the signed-in saved-repository acceptance journey remain open.

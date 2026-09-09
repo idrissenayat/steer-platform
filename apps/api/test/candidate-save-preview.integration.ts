@@ -6,6 +6,7 @@ import { createIntentDevelopmentReviewer } from '@steer/data/intent-development-
 import { createRecordedCandidateSaveReviewer, createRecordedCandidateSavePreviewer, createVerifiedDevelopmentHistoryReader } from '../src/runtime.ts';
 import { createApi } from '../src/app.ts';
 import { verifyCandidateSavePreview } from '@steer/tool-registry/candidate-save-preview-contracts';
+import { testCandidateConfirmationWithHistory } from './candidate-save-prepare.integration.ts';
 
 type Fixture = Awaited<ReturnType<typeof scopeStepIntegrationFixture>>;
 /** Composed inside the actual SQL + 34-source SDK journey. All authorities and
@@ -62,5 +63,6 @@ export async function testCandidateSavePreviewWithHistory(f: Fixture,
     assert.equal(await f.reservations(), reservations);
     assert.deepEqual(await snapshot(), before);
     console.log('PASS composed candidate preview: exact preserved bytes, both retained SDK roles, reproducibility and late destination/result/grant denial; no admission or model calls');
+    await testCandidateConfirmationWithHistory(f, drafts, service, output, admin);
   } finally { service.close(); history.close(); review.close(); sources.close(); drafts.close(); }
 }
