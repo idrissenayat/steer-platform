@@ -59,3 +59,10 @@ No whole-confirmation budget, delayed p95, real-model quality, runtime GitHub
 save/reopen, UI/accessibility acceptance or C22 completion follows from this test.
 A separate large-document diagnostic must preserve bytes and expose additional
 requests rather than extrapolate the small representative fixture's result.
+
+The follow-up authorization experiment uses actual OIDC signature/grant validation
+and the current Git resolver in place of the head-only caller. Account separately
+for cold bootstrap, a new request in the same reader/JWKS process, and two complete
+corpus phases separated by a source commit. Count all requests, including bootstrap;
+verify revoked membership/grants and token expiry. This does not substitute for
+the HTTP registry, records integration or an actual persisted confirmation boundary.

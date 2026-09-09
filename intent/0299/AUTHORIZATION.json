@@ -1,0 +1,128 @@
+{
+  "kind": "steer-corpus-authorization-feasibility/v1",
+  "baselineCommit": "f7e40f9e3701fd66955c0121dcf37fb9c1ac8dc2",
+  "node": "v24.19.0",
+  "sourceHashes": {
+    "apps/api/test/corpus-batch-authorization.test.ts": "b291f7f7d115fd0292af1b998259e1f79a82eb45f538dc5d79e83c1085f90692",
+    "apps/api/test/corpus-batch-prototype.ts": "1ff6a31e25daab8f34ebb54744106732385d92ded63074eb37cec0ea9b2c5a56",
+    "apps/api/test/corpus-batch-prototype.fixture.ts": "7e46a9a7fe54ccf75f8dc2e0857a2c7aa7667d7c65c4980355aa7266d9f46c11",
+    "packages/adapters/test/github-brief-fixture.ts": "7f1d9c181cdced72b5f97eb876f81315815f3ddc8ebebeee2fe90f4bd5331fa9",
+    "packages/adapters/src/identity/authorization.ts": "82bc55c65c8c7eea81dff18d45093281a9101c583af9655a5b7c4ea9c26b393c",
+    "packages/adapters/src/identity/oidc.ts": "7137fb797a0deac829986d3e90c72d511edbd31f9a0ef6fd8819bd1eafff8fae",
+    "packages/adapters/src/code-host/github.ts": "31923e09e518496fe607a18bcbe0fa709696a1df8f5ff5f159499bc01dfa74f9"
+  },
+  "result": {
+    "cold": {
+      "bootstrapAttempts": 7,
+      "snapshots": [
+        {
+          "revision": "71a430ae381ede7245a3eec8f27f29dcf01f364f",
+          "files": 42,
+          "semantic": 34,
+          "attempts": 26
+        }
+      ],
+      "total": 33,
+      "identity": {
+        "jwks": 1,
+        "token": 1,
+        "head": 18,
+        "commit": 1,
+        "tree": 1,
+        "blob": 1
+      },
+      "corpus": {
+        "token": 1,
+        "head": 2,
+        "commit": 1,
+        "tree": 1,
+        "graphql-read": 5
+      }
+    },
+    "nextRequest": {
+      "bootstrapAttempts": 5,
+      "snapshots": [
+        {
+          "revision": "71a430ae381ede7245a3eec8f27f29dcf01f364f",
+          "files": 42,
+          "semantic": 34,
+          "attempts": 26
+        }
+      ],
+      "total": 31,
+      "identity": {
+        "head": 18,
+        "commit": 1,
+        "tree": 1,
+        "blob": 1
+      },
+      "corpus": {
+        "token": 1,
+        "head": 2,
+        "commit": 1,
+        "tree": 1,
+        "graphql-read": 5
+      }
+    },
+    "separated": {
+      "bootstrapAttempts": 5,
+      "snapshots": [
+        {
+          "revision": "71a430ae381ede7245a3eec8f27f29dcf01f364f",
+          "files": 42,
+          "semantic": 34,
+          "attempts": 26
+        },
+        {
+          "revision": "1943659f62ec839b2641375bd1bf762aa1ffdf55",
+          "files": 42,
+          "semantic": 34,
+          "attempts": 26
+        }
+      ],
+      "total": 57,
+      "identity": {
+        "head": 34,
+        "commit": 1,
+        "tree": 1,
+        "blob": 1
+      },
+      "corpus": {
+        "token": 2,
+        "head": 4,
+        "commit": 2,
+        "tree": 2,
+        "graphql-read": 10
+      }
+    },
+    "signedJwtVerified": true,
+    "gitAuthorizationResolverUsed": true,
+    "sourceMetadataAuthoritySynthetic": true,
+    "httpRegistryAndRecordsIntegrated": false,
+    "wholeJourneyPerformanceAccepted": false,
+    "productionInstalled": false
+  },
+  "verification": {
+    "tests": 3,
+    "pass": 3,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "durationMs": 16931.192291,
+    "typecheck": {
+      "prototype": "pass",
+      "packages": 8,
+      "successful": 8,
+      "cached": 7,
+      "durationMs": 1059
+    }
+  },
+  "limits": [
+    "Synthetic native Git transport only; no real credentials or providers.",
+    "Actual OIDC verifier and Git grants resolver; no HTTP registry/service composition.",
+    "Source metadata and lifecycle selection policies remain synthetic.",
+    "Two corpus phases separated by a synthetic source commit, not a SQL records write.",
+    "All emitted attempts counted; bootstrap is reported separately, not excluded.",
+    "Original 0299 evidence retained; no production performance improvement or C22 acceptance."
+  ]
+}

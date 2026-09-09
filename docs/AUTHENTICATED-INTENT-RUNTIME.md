@@ -71,6 +71,12 @@ queries, metadata and fresh-head/token traffic total 27 simulated attempts, with
 stand-in is not the full HTTP/OIDC/grants resolver. Large-document coverage uses
 63 attempts, so the representative result is not a general corpus-size guarantee.
 
+The [follow-up](../intent/0299/AUTHORIZATION.json) uses the actual OIDC verifier and
+Git grants resolver: 33 cold single-phase attempts (seven bootstrap plus 26 corpus),
+31 for a new warm-process request and 57 for two separate source phases. Membership/
+grant revocation and expiry deny. This is still test-only; source metadata authority,
+the HTTP registry, records and actual persistence boundaries are not integrated.
+
 No adapter, runtime profile, real records policy, credential, write authority or
 startup path is installed or changed. Full confirmation remains 7,637 attempts.
 The next feasibility step covers records/history, keys, policies and outer action

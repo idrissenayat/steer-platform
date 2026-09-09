@@ -6828,3 +6828,20 @@ user data changed. Fixtures remove only their owned disposable Git databases.
 User roadmap/outputs remain untouched. Progress: **68% (17/25; 8 remaining; +0)**.
 Final audit verifies 11 source hashes, four protected hashes, 420 relative links
 and the unchanged 25-checkpoint / 17-verified tracker.
+
+0299 follow-up closes the simplified-caller gap inside the experiment, using the
+actual OIDC signature verifier and native Git authorization resolver. Cold bootstrap
+seven plus a 26-attempt source phase totals 33; a new warm-process request totals
+31, and two independent source phases total 57 (five bootstrap + 26 + 26). Every
+bootstrap attempt is counted; grant bytes are reread on each new request. The
+two-phase test changes the native source head, not actual SQL confirmation state.
+Three checks pass, including native membership/tool-grant/subject revocation and
+token expiry, plus prototype/eight package types. See
+[authorization measurements](../intent/0299/AUTHORIZATION.json) and
+[expanded evidence](../intent/0299/EVIDENCE.md). Source metadata remains synthetic;
+HTTP/records/persistence-boundary integration and whole C22 are still open. The
+next portion remains records/history/key/policy and outer-boundary feasibility.
+No production change, model use or runtime authority is introduced. Progress stays
+**68% (17/25; 8 remaining; +0 percentage points)**; this is the same 0299 experiment.
+Follow-up audit: 18 recorded source-hash entries, four protected hashes, 426
+relative links, unchanged 17/25 tracker, 95 kit artifacts and workflow scopes pass.

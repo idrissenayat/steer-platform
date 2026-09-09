@@ -66,6 +66,13 @@ accept even the integrated corpus allocation, much less whole-action C22.
 The 30-document / 128 KiB size diagnostic preserves bytes but uses 63 attempts;
 it is not a representative-budget or universal-size performance pass.
 
+Follow-up [authorization evidence](../intent/0299/AUTHORIZATION.json) replaces the
+head-only caller with actual OIDC/Git grant verification: cold bootstrap seven plus
+one corpus phase 26 equals 33 attempts. The next request totals 31; two independent
+phases total 57 with a five-attempt warm-process bootstrap. All traffic is retained;
+26 is not the cold total. Three revocation/expiry/composition tests pass. Source
+metadata remains synthetic, and HTTP/records/effect-boundary acceptance is open.
+
 No production source changes; actual confirmation remains 7,637. Next complete
 the records/history/key/policy and outer-callback feasibility portion before
 integrating the coherent correction. See [results](../intent/0299/FEASIBILITY.json).

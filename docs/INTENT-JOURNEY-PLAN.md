@@ -18,8 +18,14 @@ fixture-consumer tests pass. Large 128 KiB documents remain byte-exact but requi
 63 attempts, explicitly outside the representative corpus allocation. See
 [evidence](../intent/0299/EVIDENCE.md) and [measured result](../intent/0299/FEASIBILITY.json).
 
-**Not an application optimization:** metadata policies are synthetic and the caller
-stand-in is not the full HTTP/OIDC/grants resolver. The integrated corpus budget,
+The follow-up replaces the caller stand-in with the actual OIDC signature verifier
+and native Git grants resolver: cold bootstrap is seven attempts, each complete
+corpus phase is 26, and the cold single-phase total is 33. A new request totals 31;
+two independent source phases in one warm-process request total 57. Revocation and
+token expiry deny. See [authorization evidence](../intent/0299/AUTHORIZATION.json).
+
+**Not an application optimization:** source metadata policies remain synthetic and
+the experiment is not the HTTP registry or records composition. The integrated corpus budget,
 records read graph and complete 200-attempt allocation remain unproven; actual
 confirmation remains 7,637 on the latest joined run. Next finish the records/history,
 key, policy and outer-callback feasibility experiment under the

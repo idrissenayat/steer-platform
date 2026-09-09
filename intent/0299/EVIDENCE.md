@@ -56,6 +56,45 @@ benchmark, browser, live model, runtime GitHub write or user acceptance is claim
 Each fixture cleans up only its own temporary native Git database. User drafts,
 untracked roadmap/outputs, signed sources and prior failure evidence are untouched.
 
+## Follow-up: actual OIDC and Git authorization resolver
+
+The same experiment now also runs through the actual RS256 OIDC verifier and
+Git authorization resolver over disposable native Git grant records. This replaces
+the simplified caller for this follow-up only; the original measurement above and
+its hashes remain intact. [AUTHORIZATION.json](AUTHORIZATION.json) records all counts.
+
+| Scenario | Authentication bootstrap | Corpus phase(s) | Complete experiment |
+| --- | ---: | ---: | ---: |
+| Cold single phase | 7 | 26 | 33 |
+| Next request, same reader/JWKS process | 5 | 26 | 31 |
+| Two independent phases, same request | 5 | 26 + 26 | 57 |
+
+The cold bootstrap includes JWKS retrieval, a read token, initial/final grant-head
+checks and the grant document's commit/tree/blob reads. The next request rereads
+the grant document; no authorization decision or grant bytes cross requests.
+Each corpus phase includes its own repository token and complete source read.
+The two-phase test changes the source head between phases and verifies different
+snapshot revisions; it does not simulate an actual SQL confirmation write.
+
+All bootstrap traffic remains in the total. A 26-attempt corpus phase plus seven
+bootstrap attempts is **33, not 26 or 30**. The existing proposed whole-request
+allocation includes a separate 20-attempt HTTP/token/retry reserve; these results
+help account for part of it but do not accept that whole allocation.
+
+Three follow-up tests pass (16,931.192 ms, zero failures/cancellations/skips), plus
+prototype and eight package typechecks (seven cached, 1.059 s). Native Git membership
+revocation, removed tool grant, changed subject, initial inactive membership and
+token expiry during a batch deny without later source dispatch. Actual signature
+and current-grant checks execute; no live issuer, key, provider or user data is used.
+
+Source metadata/lifecycle policies remain synthetic. HTTP registry integration,
+records/history/key costs, all action/effect boundaries, drain/admission and the
+full benchmark are still unproven. No production file or application behavior
+changes. This is a continuation of 0299, not another acceptance checkpoint.
+The follow-up audit verifies 18 recorded source-hash entries across both artifacts,
+four protected hashes, 426 relative links and the unchanged 17/25 tracker; kit and
+workflow-scope audits pass again.
+
 ## Next decision
 
 This removes a protocol feasibility unknown; it does not change the application.
@@ -73,6 +112,7 @@ documentation links and the unchanged 25-checkpoint / 17-verified tracker.
 
 ```sh
 node --test apps/api/test/corpus-batch-prototype.test.ts
+node --test apps/api/test/corpus-batch-authorization.test.ts
 node --test --test-concurrency=2 packages/adapters/test/candidate-bundle-reader.test.ts packages/adapters/test/candidate-scope-catalog.test.ts packages/adapters/test/gate-ancestry.test.ts packages/adapters/test/corpus-artifact-read.test.ts packages/adapters/test/github-brief-writer-factory.test.ts packages/adapters/test/github-brief-writer.test.ts packages/adapters/test/github-candidate-bundle-store.test.ts packages/adapters/test/intent-corpus-evidence.test.ts packages/adapters/test/github-brief-store.test.ts
 pnpm typecheck
 node scripts/validate-kit.mjs
