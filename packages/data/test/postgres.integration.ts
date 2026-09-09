@@ -80,7 +80,12 @@ try {
     await migrate(drizzle(admin), { migrationsFolder });
     assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 28);
   });
-  if(selection.mode==='journey-runtime-linked'){
+  if(selection.mode==='journey-runtime-amendment'){
+    console.log('FOCUSED authenticated first amendment through native corpus, recorded roles, confirmation and fixed save/reopen; NOT the full integration suite.');
+    await testAuthenticatedGeneration({admin,connect,check},'first-amendment');
+    assert.equal(passed,2);
+    console.log(`FOCUSED authenticated first amendment result: ${passed-1} joined check passed plus idempotent migration check; full suite NOT RUN.`);
+  }else if(selection.mode==='journey-runtime-linked'){
     console.log('FOCUSED authenticated new-linked candidate through native corpus, recorded roles, confirmation and fixed save/reopen; NOT the full integration suite.');
     await testAuthenticatedGeneration({admin,connect,check},'new-linked');
     assert.equal(passed,2);
@@ -349,6 +354,7 @@ try {
   await testAuthenticatedGeneration({ admin, connect, check });
   await testAuthenticatedGeneration({ admin, connect, check }, 'candidate-revision');
   await testAuthenticatedGeneration({ admin, connect, check }, 'new-linked');
+  await testAuthenticatedGeneration({ admin, connect, check }, 'first-amendment');
   await testDurableCandidateBundles({ admin, app, connect, check });
   console.log(`PostgreSQL integration: ${passed} checks passed; server ${(await admin.query('SHOW server_version')).rows[0].server_version}`);
   }

@@ -2,7 +2,7 @@
 
 Checklist version: 1. Established 2026-09-09 at the user's request.
 
-**Overall: 60% — 15 of 25 acceptance checkpoints verified.**
+**Overall: 64% — 16 of 25 acceptance checkpoints verified.**
 
 This measures completion of the fixed delivery checklist below, not elapsed time,
 remaining engineering effort, production readiness or the number of tests/commits.
@@ -42,7 +42,7 @@ it does not imply that no code exists.
 | C06 | I2 Disposition | Server-verified assessment and exact human direction reach both separate drafting roles; recorded integration verification. | Verified | [0248](../intent/0248/EVIDENCE.md), [0276](../intent/0276/EVIDENCE.md). |
 | C07 | I2 Disposition | Authenticated pre-pull candidate revision through confirmation, one native save and exact old/new reopen, preserving prior files. | Verified | [0280](../intent/0280/EVIDENCE.md): revision and default joined selections, 1,369 broad tests, types and build pass. Synthetic authority, not live GitHub/UI. |
 | C08 | I2 Disposition | Authenticated new-linked direction through confirmation, one native save and exact reopen with preserved relationship. | Verified | [0281](../intent/0281/EVIDENCE.md): linked/default joined selections, 1,371 broad tests, types and build pass. Linked source is unchanged; relationship stays pinned. Synthetic authority, not live GitHub/UI. |
-| C09 | I2 Disposition | Authenticated first amendment through confirmation, one native save and exact reopen without replacing canonical artifacts. | Pending | [0266](../intent/0266/EVIDENCE.md), [0268](../intent/0268/EVIDENCE.md) provide resolver/preview evidence. |
+| C09 | I2 Disposition | Authenticated first amendment through confirmation, one native save and exact reopen without replacing canonical artifacts. | Verified | [0282](../intent/0282/EVIDENCE.md): first-amendment/default joined selections, 1,372 broad tests, types and build pass. Existing canonical and hidden-context blobs stay unchanged; original proposal target survives exact reopen. Synthetic authority, not live GitHub/UI. |
 | C10 | I2 Disposition | Authenticated proposal continuation through confirmation, one native save and exact reopen with original target/parent checks. | Pending | [0267](../intent/0267/EVIDENCE.md), [0268](../intent/0268/EVIDENCE.md) provide resolver/preview evidence. |
 | C11 | I3 Drafting | Ordered Architect Brief/Spec and separate Test Agent Exam with full permitted source context; recorded workflow verification. | Verified | [0276](../intent/0276/EVIDENCE.md). Model responses remain synthetic. |
 | C12 | I3 Drafting | Focused clarification stops generation until answered and resumes with source/review invalidation; actual-component verification. | Verified | [0230](../intent/0230/EVIDENCE.md), [0238](../intent/0238/EVIDENCE.md). |
@@ -67,9 +67,10 @@ it does not imply that no code exists.
 | 2026-09-09 baseline through 0279 | 13/25 | 52% | Baseline, not a new capability | Evidence-backed component and joined synthetic results above; no live UI acceptance. |
 | 2026-09-09 / 0280 | 14/25 | 56% | +4 percentage points | C07: authenticated existing-candidate revision/save/reopen with prior-file preservation; both joined selections and final broad regression pass. |
 | 2026-09-09 / 0281 | 15/25 | 60% | +4 percentage points | C08: authenticated new-linked save/reopen with unchanged source and exact relationship; linked/default joined selections and final broad regression pass. |
+| 2026-09-09 / 0282 | 16/25 | 64% | +4 percentage points | C09: authenticated first-amendment save/reopen with unchanged canonical artifacts and preserved original target; amendment/default joined selections and final broad regression pass. |
 
-Next checkpoint: C09, the authenticated first-amendment save/reopen journey. Ten
-checkpoints remain in total, including amendment/continuation saves, performance,
+Next checkpoint: C10, the authenticated proposal-continuation save/reopen journey.
+Nine checkpoints remain in total, including continuation, performance,
 governed live activation, real model quality and signed-in human acceptance.
 
 The [delivery ledger](PHASE-1-DELIVERY.md) records individual increments. Updating

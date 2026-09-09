@@ -39,6 +39,12 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
     const cleanup: Array<() => void> = [];
     try {
     const native = nativeCandidateJourneyFixture({ after: run => cleanup.push(run) }, true);
+    // Seed only this disposable scenario before identity/corpus snapshots. The
+    // existing canonical Exam must survive, but must never enter either prompt.
+    if (direction === 'first-amendment') native.git.add([
+      { path: 'items/0003-existing/EXAM.md', content: '# Synthetic canonical Exam\nEXAM-MARKER-NOT-FOR-SCOPE\n' },
+      { path: 'items/0003-existing/.notes/preserved.md', content: 'Synthetic existing context; preserve exact bytes. فارسی 🌸\n' },
+    ]);
     const identityTraffic=createNativeRequestMeter(native.git.transport);
     const identity = await recordedRuntimeFixture({ after: run => cleanup.push(run) }, { source: {...native.git,transport:identityTraffic.transport},
       organizationId: `authenticated-generation-${randomUUID()}`,

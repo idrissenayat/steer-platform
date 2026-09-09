@@ -62,6 +62,29 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### First-amendment save — 0282
+
+The joined authenticated fixture now selects a canonical root Brief for an
+existing proposal-only item. Independent lifecycle authority remains mandatory;
+the source label does not grant amendment eligibility. The scenario's canonical
+Exam and hidden context are seeded before identity/corpus snapshots, and the Exam
+must not appear in either drafting prompt. A human Brief correction invalidates
+the old scope assessment before exact first-proposal confirmation.
+
+The save plan contains six create-only files: the three candidate documents,
+manifest, new proposal pointer and exact operation receipt. No existing source,
+root Brief/Spec/Exam or candidate pointer is written. Assertions compare every
+prior blob/mode/OID and the exact set of new item files. Reopen must preserve the
+reviewed original target even after a later simulated branch edit; this is not
+approval to continue a proposal against a changed target.
+
+The first-amendment joined check plus idempotent migrations and default three
+joined checks plus their migration check pass, along with six focused tests,
+1,372 broad tests, typechecks and build. See [0282 evidence](../intent/0282/EVIDENCE.md).
+This completes C09: 64% (16/25; +4 percentage points). C10 proposal continuation
+is next; performance, governed activation and real-user acceptance remain open.
+No live binding, permission, model call, gate or signed-in UI acceptance is added.
+
 ### Distinct linked-intent save — 0281
 
 The authenticated joined fixture now supports an explicit new-linked choice
@@ -84,8 +107,8 @@ native-destination checks, 1,371 broad tests, typechecks and build. See
 [0281 evidence](../intent/0281/EVIDENCE.md). This completes C08 in the fixed tracker:
 60% (15/25; +4 percentage points), not a live-readiness or time estimate.
 No production source, live grant, model call, runtime binding or signed-in UI
-acceptance is supplied. Amendment/continuation saves, request volume, governed
-activation and real-user acceptance remain open.
+acceptance is supplied. 0282 above adds first-amendment coverage; continuation
+saves, request volume, governed activation and real-user acceptance remain open.
 
 ### Existing pre-pull candidate revision — 0280
 
@@ -102,8 +125,8 @@ remain stable across lost acknowledgements, replay and runtime reconstruction.
 The revision's focused joined check and idempotent migration check pass, as do
 the default three joined checks plus their migration check, all 1,369 broad tests,
 prototype/eight-package typechecks and production build. See [0280 evidence](../intent/0280/EVIDENCE.md).
-This extends verification only, not production source or authority. 0281 above
-adds linked save/reopen coverage. First-amendment and proposal-continuation joined saves, request-volume reduction,
+This extends verification only, not production source or authority. 0281 and 0282
+above add linked and first-amendment save/reopen coverage. Proposal-continuation joined saves, request-volume reduction,
 governed startup and actual live/user acceptance remain open.
 
 ### Request-owned corpus verification — 0279

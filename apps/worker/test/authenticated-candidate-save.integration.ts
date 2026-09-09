@@ -88,12 +88,27 @@ export function authenticatedCandidateSave(f: Fixture, native: ReturnType<typeof
         const originals = createCandidateOriginalStore(f.pools.drafts, f.config, { ...records, verifyOriginal }); owned.push(originals);
         const request = await originals.read(target), plan = await planCandidateBundle(request.bundle, request.confirmation);
         assert.deepEqual(request.bundle.documents, input.documents); assert.equal(plan.inputDigest, target.inputDigest);
-        assert.equal(request.bundle.purpose, direction === 'candidate-revision' ? 'candidate-revision' : 'new-candidate');
-        assert.equal(plan.files.length, 7); assert.equal(plan.expectedHead, native.git.head());
+        assert.equal(request.bundle.purpose, direction === 'first-amendment' ? 'amendment' : direction === 'candidate-revision' ? 'candidate-revision' : 'new-candidate');
+        assert.equal(plan.files.length, direction === 'first-amendment' ? 6 : 7); assert.equal(plan.expectedHead, native.git.head());
         const root = `items/${request.bundle.itemId}`, sourceReader = native.reader(f.config.organizationId);
         const priorFiles = direction === 'candidate-revision' ? (await sourceReader.readDirectoryInventory(root, plan.expectedHead)).entries.filter(entry => entry.type === 'blob') : [];
         const priorPointer = direction === 'candidate-revision' ? JSON.parse((await sourceReader.readArtifact(`${root}/CANDIDATE.json`, plan.expectedHead)).content) : null;
         const linkedBefore = direction === 'new-linked' ? (await sourceReader.readDirectoryInventory('items/0002-existing', plan.expectedHead)).entries : null;
+        const amendmentBefore = direction === 'first-amendment' ? (await sourceReader.readDirectoryInventory(root, plan.expectedHead)).entries : null;
+        if (amendmentBefore) {
+          assert.equal(request.bundle.itemId, '0003-existing'); assert.equal(request.bundle.relationship, null);
+          assert.equal(request.bundle.previousBundleDigest, null); assert.equal(request.bundle.amendment!.parentProposalDigest, null);
+          assert.deepEqual(request.bundle.amendment!.target, { itemId: request.bundle.itemId, revision: plan.expectedHead });
+          for (const name of ['BRIEF.md', 'SPEC.md', 'EXAM.md', '.notes/preserved.md'])
+            assert.ok(amendmentBefore.some(entry => entry.path === `${root}/${name}` && entry.type === 'blob' && entry.mode === '100644'));
+          const plannedPaths = new Set(plan.files.map(file => file.path));
+          for (const entry of amendmentBefore) assert.equal(plannedPaths.has(entry.path), false, `Never overwrite existing source: ${entry.path}`);
+          assert.equal(plan.requiredLifecycle, 'existing-target-proposal-only'); assert.ok(plan.files.every(file => file.mode === 'create'));
+          assert.deepEqual([...plannedPaths].sort(), [
+            ...['BRIEF.md', 'SPEC.md', 'EXAM.md', 'MANIFEST.json'].map(name => `${root}/candidates/${request.bundle.bundleId}/${name}`),
+            `${root}/proposals/${request.bundle.amendment!.proposalId}.json`, `.steer/authoring/bundle-operations/${target.operationId}.json`,
+          ].sort());
+        }
         if (linkedBefore) {
           assert.ok(linkedBefore.length > 0); assert.equal(request.bundle.itemId, '0281-linked');
           assert.deepEqual(request.bundle.relationship, { itemId: '0002-existing', revision: plan.expectedHead });
@@ -152,6 +167,19 @@ export function authenticatedCandidateSave(f: Fixture, native: ReturnType<typeof
         assert.equal(receipt.outcome, 'committed'); if (receipt.outcome !== 'committed') throw new Error('Expected verified receipt');
         assert.equal(receipt.saveVerified, true); assert.equal(receipt.reference.revision, native.git.head());
         assert.equal(receipt.reference.manifestDigest, plan.manifestDigest); assert.equal(receipt.confirmationDigest, plan.confirmationDigest);
+        if (amendmentBefore) {
+          const after = (await sourceReader.readDirectoryInventory(root, receipt.reference.revision)).entries;
+          const priorBlobs = amendmentBefore.filter(entry => entry.type === 'blob');
+          for (const entry of priorBlobs) assert.deepEqual(after.find(file => file.path === entry.path), entry, `Preserve canonical source: ${entry.path}`);
+          const priorPaths = new Set(amendmentBefore.map(entry => entry.path));
+          assert.deepEqual(after.filter(entry => entry.type === 'blob' && !priorPaths.has(entry.path)).map(entry => entry.path).sort(),
+            plan.files.filter(file => file.path.startsWith(`${root}/`)).map(file => file.path).sort());
+          assert.equal(after.some(entry => entry.path === `${root}/CANDIDATE.json`), amendmentBefore.some(entry => entry.path === `${root}/CANDIDATE.json`));
+          const pointer = JSON.parse((await sourceReader.readArtifact(`${root}/proposals/${request.bundle.amendment!.proposalId}.json`, receipt.reference.revision)).content);
+          assert.equal(pointer.bundleId, request.bundle.bundleId); assert.equal(pointer.manifestDigest, plan.manifestDigest);
+          assert.deepEqual(pointer.proposalTarget, request.bundle.amendment!.target); assert.equal(pointer.parentProposalDigest, null);
+          assert.notEqual(pointer.proposalTarget.revision, receipt.reference.revision);
+        }
         if (linkedBefore) {
           assert.deepEqual((await sourceReader.readDirectoryInventory('items/0002-existing', receipt.reference.revision)).entries, linkedBefore,
             'Creating linked work must leave every linked source file and prior bundle unchanged.');
@@ -181,6 +209,12 @@ export function authenticatedCandidateSave(f: Fixture, native: ReturnType<typeof
         const reopened = await verifyCandidateBundleRead(receipt.reference, await read('intent.candidate.read', receipt.reference));
         assert.equal(reopened.verification, 'exact-commit-bytes'); assert.deepEqual(reopened.documents, input.documents);
         assert.equal(reopened.manifestContent, plan.files.find(file => file.path.endsWith('/MANIFEST.json'))!.content);
+        if (amendmentBefore) {
+          assert.equal(reopened.manifest.purpose, 'amendment'); assert.equal(reopened.manifest.previousBundleDigest, null);
+          assert.equal(reopened.manifest.relationship, null); assert.deepEqual(reopened.manifest.target, request.bundle.amendment!.target);
+          assert.equal(reopened.manifest.target!.revision, plan.expectedHead);
+          assert.doesNotMatch(reopened.documents.exam, /EXAM-MARKER-NOT-FOR-SCOPE/);
+        }
         if (linkedBefore) {
           assert.deepEqual(reopened.manifest.relationship, request.bundle.relationship);
           assert.equal(reopened.manifest.relationship!.revision, plan.expectedHead);

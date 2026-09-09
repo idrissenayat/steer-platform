@@ -130,6 +130,16 @@ export function authenticatedCandidateConfirmation(f: Fixture, native: ReturnTyp
           assert.notEqual(preview.manifest.itemId, preview.destination.relationship!.itemId);
           assert.match(choice.target.path, /\/candidates\/[a-f0-9-]+\/BRIEF\.md$/);
         }
+        if (direction === 'first-amendment') {
+          assert.ok('target' in choice); assert.equal(choice.action, 'extend-existing');
+          assert.equal(choice.target.path, 'items/0003-existing/BRIEF.md');
+          assert.equal(preview.destination.purpose, 'amendment'); assert.equal(preview.destination.previousBundleDigest, null);
+          assert.equal(preview.destination.relationship, null); assert.equal(preview.destination.lifecycle, 'existing-target-proposal-only');
+          assert.equal(preview.manifest.itemId, '0003-existing'); assert.equal(preview.destination.amendment!.parentProposalDigest, null);
+          assert.deepEqual(preview.destination.amendment!.target, { itemId: '0003-existing', revision: choice.target.revision });
+          assert.deepEqual(preview.manifest.target, preview.destination.amendment!.target);
+          assert.match(preview.destination.amendment!.proposalId, /^[a-f0-9]{8}-[a-f0-9]{4}-8[a-f0-9]{3}-a[a-f0-9]{3}-[a-f0-9]{12}$/);
+        }
         if (direction !== 'new-distinct') {
           assert.ok('target' in choice);
           native.state.sourceAllowed = false;

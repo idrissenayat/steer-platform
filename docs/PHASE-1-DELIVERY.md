@@ -6232,3 +6232,20 @@ The full SQL suite and revision selection were not rerun; no prior result is
 presented as new verification. Overall progress is now **60% (15/25; +4 points)**
 for completed C08. Next: first-amendment save/reopen, with continuation, performance
 and live activation/acceptance still open. No live authority changes.
+
+## 0282 — Authenticated first-amendment save/reopen
+
+Verified synthetic integration: the actual identity/factory joined test selects the canonical
+Brief of an existing proposal-only item. Its seeded canonical Exam stays out of
+both drafting prompts. Assertions cover fresh post-edit scope review, exact target
+binding, a six-file create-only proposal, unchanged existing canonical/hidden blobs,
+proposal-pointer lineage and exact reopen after a later branch edit. See
+[specification](../intent/0282/SPEC.md) and [evidence](../intent/0282/EVIDENCE.md).
+The first-amendment joined check plus idempotent migrations and default three joined
+checks plus their migration check pass. All six focused choice/selector tests,
+1,372 broad tests, prototype/eight-package typechecks, optimized build, protected
+hashes, 95-artifact kit and token-scope audit pass. The full SQL suite and prior
+revision/linked selections were not rerun. Overall is now **64% (16/25; +4 points)**
+for completed C09. Next: C10 proposal continuation; performance, governed activation,
+real model quality and actual UI acceptance remain open. No production source,
+live configuration or authority change.

@@ -1,11 +1,12 @@
 import { intentEvidenceInputSchema } from '@steer/tool-registry/intent-evidence-contracts';
 import type { CandidateSaveReviewInput } from '@steer/tool-registry/candidate-save-review-contracts';
 
-export type AuthenticatedJourneyDirection = 'new-distinct' | 'candidate-revision' | 'new-linked';
+export type AuthenticatedJourneyDirection = 'new-distinct' | 'candidate-revision' | 'new-linked' | 'first-amendment';
 export const authenticatedJourneyItem = (direction: AuthenticatedJourneyDirection) => {
   if (direction === 'new-distinct') return '0273-synthetic';
   if (direction === 'candidate-revision') return '0002-existing';
   if (direction === 'new-linked') return '0281-linked';
+  if (direction === 'first-amendment') return '0003-existing';
   throw new Error('Unsupported synthetic journey direction.');
 };
 /** Test input selection, not a verdict or authority. The real reviewer,
@@ -14,6 +15,13 @@ export function authenticatedJourneyChoice(direction: AuthenticatedJourneyDirect
   const evidence = intentEvidenceInputSchema.parse(rawEvidence);
   authenticatedJourneyItem(direction); // Reject unsupported directions without a creation fallback.
   if (direction === 'new-distinct') return { action: 'new-distinct', reason: 'Explicit synthetic final disposition after correcting the generated Brief.' };
+  if (direction === 'first-amendment') {
+    const targets = evidence.inventory.filter(source => source.targetId === 'items/0003-existing'
+      && source.status === 'canonical' && source.path === 'items/0003-existing/BRIEF.md');
+    if (targets.length !== 1) throw new Error('The exact synthetic canonical Brief must be present; no candidate or new-item fallback.');
+    return { action: 'extend-existing', reason: 'Explicit synthetic proposal to add scope to the canonical item; preserve its existing Brief, Spec and Exam.',
+      target: { path: targets[0]!.path, revision: evidence.head, contentDigest: targets[0]!.contentDigest } };
+  }
   // Both target-bearing scenarios deliberately select the same reviewed source;
   // only candidate-revision writes that item. New-linked writes a separate root.
   const matches = evidence.inventory.filter(source => source.targetId === 'items/0002-existing' && source.status === 'candidate'
