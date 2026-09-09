@@ -33,7 +33,16 @@ scope, choose what to do, answer only necessary questions, review and correct a
 Brief/Spec/Exam bundle, save it to the authorized repository and reopen it exactly.
 No separate local preview, synthetic success, silent merging or lost work counts.
 
-Latest checkpoint: **0254 connects read-only review of the final edited save scope**.
+Latest checkpoint: **0255 connects explicit historical scope inspection**.
+The actual editor can separately read retained assessments after execution expiry
+or draft changes, with original-source citations and current history/records/key
+authority. Historical results cannot satisfy current clearance or renew execution.
+See [the history guide](SCOPE-ASSESSMENT-HISTORY.md) and [0255 evidence](../intent/0255/EVIDENCE.md).
+Historical generation-original lineage remains next; do not treat this scope-only
+read as completed bundle lineage or permission to save. All-revision run discovery,
+save preparation/confirmation/start, real activation and I1–I6 acceptance remain.
+
+0254 connects read-only review of the final edited save scope.
 The actual conversation can review preserved Brief/Spec/Exam and human direction
 without regenerating or saving them. Current records, whole-source coverage,
 recorded assessment and all three document hashes are checked by the explicit
@@ -90,8 +99,8 @@ Production React is tested with synthetic HTTP, not live signed-in acceptance.
 Next prioritize historical recovery and actual human
 save/reopen alongside real authority and adjudicated semantic evaluation. Beyond-bound acquisition/context remains
 open; no source summaries or omissions can silently replace required evidence.
-Expired/superseded scope originals need
-separate historical display; current-only revalidation must not renew execution.
+0255 now supplies separate expired/superseded scope inspection; historical
+generation lineage remains open and current-only revalidation must not renew execution.
 Legacy generation gates are unchanged. Only the explicit context-bound assessed
 path spans their old document-count boundary; other record/request/wire, token and
 spending limits still apply. Findings or completion never grant saving or a gate.

@@ -5525,3 +5525,17 @@ authority/native-Git/SQL/React is not live human acceptance. Destination/lifecyc
 historical generation lineage, immutable preparation/confirmation/start and live
 authority remain open. No real migration, key inspection, model spend, runtime
 Git write, auth bypass, gate, deployment or release. The one-minute loop continues.
+
+## Development increment: 0255 — Historical scope assessment inspection
+
+A separate human-only historical query and actual editor view recover retained
+scope evidence without consulting old execution permission. Exact original source,
+SDK exchange, succeeded payload, identity, records/lifecycle and key checks remain
+mandatory. Historical output is incompatible with current assessment clearance;
+there is no checkpoint, dispatch, retry, generation, save or signature capability.
+The view labels original versus latest revisions and clears denied/stale content.
+
+See [0255 evidence](../intent/0255/EVIDENCE.md) and [the guide](SCOPE-ASSESSMENT-HISTORY.md).
+The backend remains uninstalled. Continue assessed generation-original historical
+lineage, final bundle preparation/confirmation/start and authorized human acceptance;
+do not mark live I1–I6 complete.

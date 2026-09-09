@@ -291,3 +291,77 @@ export function createScopeReviewOperationStore(pool: DatabasePool, rawConfigura
     if (result.rowCount !== 1) throw new Conflict();
   }
 }
+
+/** Retained metadata only. Current historical-read authority is independent of
+ * the old execution/budget grant. Never acquires ownership or returns a dispatch
+ * decision; callers still need current source, records, lifecycle and key checks
+ * before releasing encrypted observations. No execution method is exposed. */
+export function createScopeReviewHistoryOperationReader(pool: DatabasePool, originalConfiguration: unknown, dependencies: {
+  authorize: (context: Readonly<{ configuration: Configuration; request: Reference }>) => Promise<void>;
+}) {
+  const config = freeze(scopeReviewConfigurationSchema.parse(originalConfiguration)), configurationDigest = hash(config);
+  if (typeof dependencies.authorize !== 'function') throw new Unavailable();
+  let closed = false, active = false, pending = 0;
+  const bounded = async <T>(work: Promise<T>): Promise<T> => {
+    pending++; void work.finally(() => { pending--; }).catch(() => {});
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try { return await Promise.race([work, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Unavailable()), 5000); })]); }
+    finally { if (timer) clearTimeout(timer); }
+  };
+  return {
+    async inspectHistory(raw: unknown) {
+      if (closed || active || pending) throw new Unavailable(); active = true;
+      let client: PoolClient | undefined, finished = false, broken = false;
+      try {
+        const request = freeze(reference.parse(raw));
+        const authorize = async () => {
+          if (closed || await bounded(dependencies.authorize(freeze({ configuration: config, request }))) !== undefined || closed) throw new Unavailable();
+        };
+        await authorize();
+        client = await bounded(pool.connect().then(c => { if (finished || closed) { c.release(true); throw new Unavailable(); } return c; }));
+        if (!client) throw new Unavailable();
+        await applyRuntimeQueryLimits(client); await client.query(clearScope);
+        await client.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');
+        const role = (await client.query(`SELECT r.rolname,session_user AS login_role,r.rolsuper,r.rolbypassrls,
+          EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+            WHERE n.nspname IN ('steer_execution','steer_usage') AND c.relowner=r.oid) AS owns_objects
+          FROM pg_roles r WHERE r.rolname=current_user`)).rows[0];
+        if (!role || role.rolname !== 'steer_app' || role.login_role !== 'steer_app' || role.rolsuper || role.rolbypassrls || role.owns_objects) throw new Unavailable();
+        await client.query("SELECT set_config('steer.execution_organization',$1,true),set_config('steer.execution_subject',$2,true),set_config('steer.execution_product',$3,true)",
+          [config.organizationId, config.subject, config.productId]);
+        const row = (await client.query(`SELECT * FROM steer_execution.scope_review_runs
+          WHERE organization_id=$1 AND review_id=$2 AND subject=$3 AND product_id=$4`,
+          [config.organizationId, request.reviewId, config.subject, config.productId])).rows[0];
+        if (!row || row.configuration_digest !== configurationDigest || row.preparation_digest !== request.preparationDigest
+          || row.expires_at.getTime() !== Date.parse(config.expiresAt)) throw new Unavailable();
+        const manifest = scopeReviewManifestSchema.parse(row.manifest);
+        if (manifest.organizationId !== config.organizationId || manifest.productId !== config.productId || manifest.repository !== config.repository
+          || manifest.preparationDigest !== request.preparationDigest || manifest.profileDigest !== config.scopeTerms.profileDigest
+          || manifest.draftId !== row.draft_id || manifest.draftRevision !== Number(row.draft_revision)) throw new Unavailable();
+        const rows = (await client.query(`SELECT * FROM steer_execution.scope_review_batches
+          WHERE organization_id=$1 AND review_id=$2 AND subject=$3 AND product_id=$4`,
+          [config.organizationId, request.reviewId, config.subject, config.productId])).rows;
+        const batches: IntentStepRecord[] = [];
+        if (rows.length > manifest.batches.length || new Set(rows.map(r => r.batch_id)).size !== rows.length) throw new Unavailable();
+        for (const batch of manifest.batches) {
+          const stored = rows.find(r => r.batch_id === batch.batchId);
+          if (!stored) continue;
+          const record = recordSchema.parse(stored.record);
+          const expected = { organizationId: config.organizationId, operationId: request.reviewId, stepId: batch.batchId, subject: config.subject,
+            draftId: manifest.draftId, draftRevision: manifest.draftRevision, inputDigest: batch.inputDigest, configurationRevision: config.configurationRevision };
+          if (json(record.binding) !== json(expected) || stored.budget_id !== config.budget.budgetId || stored.reservation_id !== record.reservationId) throw new Unavailable();
+          batches.push(record);
+        }
+        if (batches.length !== rows.length || closed) throw new Unavailable();
+        await client.query('COMMIT'); await client.query(clearScope); client.release(); client = undefined;
+        // Release the SQL lease before checking present-day historical authority.
+        await authorize();
+        return freeze({ reviewId: request.reviewId, manifest, batches, historical: true as const, dispatchAllowed: false as const });
+      } catch {
+        if (client) try { await client.query('ROLLBACK'); await client.query(clearScope); } catch { broken = true; }
+        throw new Unavailable();
+      } finally { finished = true; client?.release(broken); active = false; }
+    },
+    close() { closed = true; },
+  };
+}

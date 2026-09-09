@@ -8,6 +8,8 @@ import { createIntentScopeStarter } from '@steer/data/intent-scope-starter';
 import { createIntentScopePreparer } from '@steer/data/intent-scope-preparer';
 import { scopeReviewConfigurationSchema } from '@steer/data/scope-review-operations';
 import { createScopeReviewReader } from '@steer/data/scope-review-reader';
+import { createScopeReviewHistoryReader } from '@steer/data/scope-review-history-reader';
+import { intentScopeHistoryInputSchema, type IntentScopeHistoryReader } from '@steer/tool-registry/intent-scope-history-contracts';
 import { intentScopeReadInputSchema, type IntentScopeReader } from '@steer/tool-registry/intent-scope-read-contracts';
 import { scopeReviewProfileSchema } from '@steer/tool-registry/intent-scope-review';
 import { createRecordedScopeMastraVerifier } from '@steer/agents/recorded-mastra';
@@ -111,6 +113,30 @@ export function createVerifiedScopeReviewReader(pools: Parameters<typeof createS
     if ((['organizationId', 'productId', 'repository'] as const).some(k => input[k] !== reader.scope[k])) throw new Error('Scope read is unavailable.');
     return reader.read({ reviewId: input.reviewId, preparationDigest: input.preparationDigest }, current);
   }, close: reader.close } satisfies IntentScopeReader & { close(): void };
+}
+/** Explicit historical read factory. The supplied profile is currently authorized
+ * for retained evidence verification, not for renewed execution. Never installed
+ * by an environment flag, and never substitutes history for current clearance. */
+export function createVerifiedScopeReviewHistoryReader(pools: Parameters<typeof createScopeReviewHistoryReader>[0], configuration: unknown,
+  dependencies: { records: Omit<Parameters<typeof createScopeReviewHistoryReader>[2], 'verifyObservation'>; profile: unknown }) {
+  const profile = scopeReviewProfileSchema.parse(dependencies.profile);
+  const reader = createScopeReviewHistoryReader(pools, configuration, { ...dependencies.records,
+    originals: { ...dependencies.records.originals, authorizeOriginal: async context => {
+      if (JSON.stringify(context.original.profile) !== JSON.stringify(profile)) throw new Error('Scope profile is unavailable.');
+      if (await dependencies.records.originals.authorizeOriginal(context) !== undefined) throw new Error('Scope source authority is unavailable.');
+    } },
+    verifyObservation: async ({ original, batchId, request, response }) => {
+      const verifier = await createRecordedScopeMastraVerifier({ scope: original.source.scope, evidence: original.evidence, profile });
+      const wire = { adapterRevision: request.adapterRevision, protocol: request.protocol, requestBody: request.requestBody };
+      verifier.verifyRequest(batchId, wire);
+      if (response) verifier.verify(batchId, wire, { responseBody: response.responseBody, providerRequestId: response.providerRequestId, usage: response.usage, result: response.result });
+    },
+  });
+  return { scope: reader.scope, async read(raw, current) {
+    const input = intentScopeHistoryInputSchema.parse(raw);
+    if ((['organizationId', 'productId', 'repository'] as const).some(k => input[k] !== reader.scope[k])) throw new Error('Scope read is unavailable.');
+    return reader.read({ reviewId: input.reviewId, preparationDigest: input.preparationDigest }, current);
+  }, close: reader.close } satisfies IntentScopeHistoryReader & { close(): void };
 }
 /** Connect actual repository enumeration to the existing review query. Trusted
  * product/lifecycle/read authorities remain mandatory; never installed by flags. */

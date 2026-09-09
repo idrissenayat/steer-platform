@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { IntentDevelopmentReviewOutput } from '@steer/tool-registry/intent-development-review-contracts';
 import type { IntentScopeReadOutput } from '@steer/tool-registry/intent-scope-read-contracts';
+import type { IntentScopeHistoryInput, IntentScopeHistoryOutput } from '@steer/tool-registry/intent-scope-history-contracts';
 import { createIntentScopeEditor, type ScopeEditorSource, type ScopeEditorView } from './intent-scope-editor';
 import { createIntentScopeTransport } from './intent-scope-transport';
 import { briefFragment } from './brief-location';
@@ -79,7 +80,7 @@ export default function IntentScopePanel({ source, review, subject, identity, ex
       {view.status === 'incomplete' && <p>Assessment is incomplete. Missing sources, pending work or insufficient evidence cannot establish that this intent is new.</p>}
       {view.status === 'attention-required' && <p>This assessment needs an operator decision. Uncertain or failed model work will not be automatically retried.</p>}
       {view.status === 'superseded' && <p>A newer saved revision exists. Review that revision; these earlier findings are not current.</p>}
-      {view.status === 'expired' && <p>This review expired. No retained finding content is shown and no execution window was renewed.</p>}
+      {view.status === 'expired' && <p>This review expired. Current-workflow findings are withheld. Historical inspection below does not renew its execution window.</p>}
       {view.sourceInvalidated && <p>Your scope changed. Earlier findings cannot approve the edited intent, and this request cannot be restarted from it.</p>}
       {view.message && <p>{view.message}</p>}
     </div>
@@ -88,6 +89,11 @@ export default function IntentScopePanel({ source, review, subject, identity, ex
     {view.operation && <><button type="button" className="access-secondary" disabled={busy}
       onClick={() => { void controller.current?.read(); }}>Check scope review progress</button>
       <p className="access-hint">Review reference: <code>{view.operation.reviewId}</code>. No documents saved to GitHub; no gate signed.</p></>}
+    {view.operation && view.source && <ScopeHistory input={{ organizationId: view.source.input.organizationId,
+      productId: view.source.input.productId, repository: view.source.input.repository,
+      reviewId: view.operation.reviewId, preparationDigest: view.operation.preparationDigest }}
+      subject={subject} identity={identity} expiresAt={expiresAt} contextKey={JSON.stringify([fingerprint, view.status, view.discoveryStatus, view.sourceInvalidated])}
+      draftId={view.source.input.draftId} revision={view.source.input.revision} revisionDigest={view.source.input.revisionDigest} />}
     {view.preparation?.coverage && !view.preparation.coverage.plannedComplete && <p>Only {view.preparation.coverage.plannedCount} of {view.preparation.coverage.inventoryCount} sources were planned. Coverage is incomplete.</p>}
     {shown && <div className="intent-scope-findings">
       <p>Captured {shown.results.length} of {shown.results.length + shown.pendingBatchIds.length} batches for {shown.coverage.plannedCount} planned source documents at commit <code>{snapshot}</code>.</p>
@@ -111,6 +117,69 @@ export default function IntentScopePanel({ source, review, subject, identity, ex
         </li>;
       }))}</ul>
       <p>No automatic merge, new intent, document generation or save follows these findings. Confirm your direction separately after reviewing the evidence.</p>
+    </div>}
+  </section>;
+}
+
+/** Separate, explicit read-only view. It never calls onAssessmentChange, adopts
+ * findings, polls, or sends a prepare/start request. Its inventory is the retained
+ * assessment inventory, never the current editor's source list. */
+export function ScopeHistory({ input, subject, identity, expiresAt, contextKey, draftId, revision, revisionDigest }: {
+  input: IntentScopeHistoryInput; subject: string; identity: string; expiresAt: string; contextKey: string;
+  draftId: string; revision: number; revisionDigest: string;
+}) {
+  const [result, setResult] = useState<IntentScopeHistoryOutput | null>(null), [state, setState] = useState('idle');
+  const owner = useRef<ReturnType<typeof createIntentScopeTransport> | null>(null), heading = useRef<HTMLHeadingElement>(null);
+  const inputKey = JSON.stringify(input), selectionKey = JSON.stringify([inputKey, subject, identity, expiresAt, contextKey, draftId, revision, revisionDigest]);
+  const activeKey = useRef(selectionKey); activeKey.current = selectionKey;
+  const [resultKey, setResultKey] = useState('');
+  useEffect(() => {
+    const transport = createIntentScopeTransport(window.location.origin); owner.current = transport;
+    let closed = false, last = Date.now();
+    const clear = () => { closed = true; transport.close(); if (owner.current === transport) owner.current = null;
+      setResult(null); setResultKey(''); setState('closed'); };
+    const check = () => { const now = Date.now(), expiry = Date.parse(expiresAt);
+      if (!closed && (document.hidden || !Number.isFinite(expiry) || now < last || now >= expiry)) clear(); last = now; };
+    setResult(null); setResultKey(''); setState('idle'); check();
+    const timer = setInterval(check, 1000); document.addEventListener('visibilitychange', check); window.addEventListener('pagehide', clear);
+    return () => { closed = true; transport.close(); if (owner.current === transport) owner.current = null;
+      clearInterval(timer); document.removeEventListener('visibilitychange', check); window.removeEventListener('pagehide', clear); };
+  }, [selectionKey, expiresAt]);
+  useEffect(() => { if (state === 'ready') heading.current?.focus(); }, [state]);
+  const read = async () => {
+    const transport = owner.current, key = selectionKey, startedAt = Date.now();
+    if (!transport || state === 'reading') return;
+    const current = () => owner.current === transport && activeKey.current === key && !document.hidden
+      && Date.now() >= startedAt && Date.now() < Date.parse(expiresAt);
+    setResult(null); setResultKey(''); setState('reading');
+    try {
+      const value = await transport.history(input);
+      if (!current()) return;
+      if (value.subject !== subject || value.source.draftId !== draftId || value.source.revision !== revision
+        || value.source.revisionDigest !== revisionDigest) throw new Error('Historical source mismatch');
+      setResult(value); setResultKey(key); setState('ready');
+    } catch { if (current()) { setResult(null); setResultKey(''); setState('unavailable'); } }
+  };
+  const shown = resultKey === selectionKey ? result : null;
+  return <section className="intent-scope-history" aria-label="Historical scope inspection">
+    <button type="button" className="access-secondary" disabled={state === 'closed' || state === 'reading'} onClick={() => { void read(); }}>Read historical findings</button>
+    <p>This reads retained evidence only. It cannot approve current scope, regenerate documents, retry an agent or save to GitHub.</p>
+    <div role="status" aria-live="polite">{state === 'reading' && <p>Verifying retained assessment evidence…</p>}
+      {state === 'unavailable' && <p>Historical findings are unavailable under current permissions. Your draft is unchanged.</p>}</div>
+    {shown && <div>
+      <h5 tabIndex={-1} ref={heading}>Historical findings — not current clearance</h5>
+      <p>Assessed draft revision {shown.source.revision}; latest preserved revision {shown.source.latestRevision}.
+        {shown.reviewExpired ? ' The execution window has expired.' : ' Historical viewing grants no execution permission.'}</p>
+      <p>Retained source commit: <code>{shown.head}</code>. Verified batches: {shown.review.results.length} of {shown.batches.length}.</p>
+      {!shown.review.structuralAssessmentComplete && <p>This historical assessment is incomplete. Missing or unresolved batches cannot establish uniqueness.</p>}
+      {shown.review.coverage.accessGapCount > 0 && <p>Some sources were inaccessible; their names are not disclosed.</p>}
+      <ul>{shown.review.results.flatMap(batch => batch.findings.map(finding => <li key={`${batch.batchId}:${finding.targetId}`}>
+        <p>{finding.targetId} · {relations[finding.relation]}</p><p>{finding.overlapExplanation}</p>
+        <p>Missing or distinct scope: {finding.missingScopeExplanation}</p>
+        {finding.citations.map((citation, index) => { const source = shown.inventory.find(s => s.sourceId === citation.sourceId)!;
+          return <details key={`${citation.sourceId}:${index}`}><summary>{source.path} · {source.status} · bytes {citation.startByte}–{citation.endByte}</summary>
+            <blockquote>{citation.quote}</blockquote><p>Source digest: <code>{source.contentDigest}</code></p></details>; })}
+      </li>))}</ul>
     </div>}
   </section>;
 }

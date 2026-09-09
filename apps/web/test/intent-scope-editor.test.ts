@@ -8,6 +8,7 @@ async function setup(count = 4) {
   const f = await scopeEditorFixture(count), calls: Array<{ kind: string; input: unknown }> = [];
   let source: ScopeEditorSource | null = f.source;
   const transport: IntentScopeTransport = { close() {},
+    history: async () => { throw new Error('Current workflow must never request historical clearance'); },
     discover: async input => { calls.push({ kind: 'discover', input }); return f.discovery; },
     prepare: async input => { calls.push({ kind: 'prepare', input }); return f.prepared; },
     start: async input => { calls.push({ kind: 'start', input }); return f.started; },

@@ -71,6 +71,23 @@ export async function testScopeObservations({admin,connect,check:checkBase}:{adm
     createScopeReviewOperationStore(pool,f.execution,{authorize:f.deps.authorizeReview,verifyCheckpoint:checkpointVerifier(f),...overrides});
   const checkpointInput=async(f:Awaited<ReturnType<typeof setup>>)=>({...f.reference,event:{type:'checkpoint' as const,...f.owner,resultDigest:(await f.row('response'))?.payload_digest??'f'.repeat(64)}});
   const reviewTarget=(f:Awaited<ReturnType<typeof setup>>)=>({reviewId:f.target.reviewId,preparationDigest:f.target.preparationDigest});
+  await check('explicit historical scope observations survive expiry with separate authority and no checkpoint capability',async()=>{
+    const f=await setup({ttl:7000});await f.exchange();assert.equal((await checkpointStore(f).transition(await checkpointInput(f))).outcome,'ok');
+    const before=await f.row('response');await delay(Math.max(0,Date.parse(f.execution.expiresAt)-Date.now()+50));let oldCalls=0;
+    const deps={authorize:async()=>{throw new Error('Current observation access denied');},authorizeHistoricalRead:async()=>{},authorizeHistoricalReview:async()=>{},
+      originals:{...f.deps,authorizeReview:async()=>{oldCalls++;throw new Error('Execution expired');}}};
+    await assert.rejects(f.make().readHistorical({...f.target,stage:'response'}));
+    for(const stage of ['request','response']){
+      const read=await f.make(deps).readHistorical({...f.target,stage});assert.equal(read.historical,true);assert.equal('checkpoint' in read,false);
+      assert.deepEqual(read.observation,stage==='request'?f.request():f.response());assert.equal(read.retryAuthorized,false);assert.equal(read.executionAuthorized,false);
+    }
+    await assert.rejects(f.make(deps).read({...f.target,stage:'response'}));assert.equal(oldCalls,0);assert.equal(f.calls(),1);assert.deepEqual(await f.row('response'),before);
+    for(const patch of [{authorizeHistoricalRead:async()=>true as any},{authorizeHistoricalReview:async()=>{throw new Error('History denied');}},
+      {verifyObservation:async()=>{throw new Error('SDK verification failed');}},{originals:{...deps.originals,keyForDraft:async()=>({...f.key,bytes:randomBytes(32)})}}])
+      await assert.rejects(f.make({...deps,...patch}).readHistorical({...f.target,stage:'response'}));
+    assert.equal((await f.lifecycle.hold({draftId:f.draftId,holdReference:randomUUID()})).outcome,'ok');
+    await assert.rejects(f.make(deps).readHistorical({...f.target,stage:'response'}));assert.equal(f.calls(),1);
+  });
   await check('scope SDK request/response acknowledgements survive restart with exact raw bytes, one reservation and no retry grant',async()=>{
     const f=await setup(),store=f.make(),result=await f.exchange(store);store.close();
     const request=await f.make().read({...f.target,stage:'request'}),response=await f.make().read({...f.target,stage:'response'});

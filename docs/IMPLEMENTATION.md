@@ -1,6 +1,16 @@
 # STEER platform implementation
 
-## Current checkpoint — 0254
+## Current checkpoint — 0255
+
+0255 connects explicit historical scope inspection to the actual editor and shared
+API. A separate current-authority path restores exact retained SDK evidence after
+expiry or draft changes, without returning checkpoint capability or current scope
+clearance. Original source citations and incomplete states remain visible; denied
+or invalidated UI content is cleared. See [the history guide](SCOPE-ASSESSMENT-HISTORY.md)
+and [0255 evidence](../intent/0255/EVIDENCE.md). Assessed generation lineage, final
+save preparation/confirmation/start and real activation/acceptance remain open.
+
+## Prior checkpoint — 0254
 
 0254 connects read-only final edited-bundle review to the shared API/MCP and
 actual conversation. Exact preserved Brief/Spec/Exam bytes and human direction

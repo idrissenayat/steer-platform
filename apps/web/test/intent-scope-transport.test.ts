@@ -3,6 +3,17 @@ import test from 'node:test';
 import { createIntentScopeTransport } from '../app/intent-scope-transport.ts';
 import { scopeEditorFixture } from './intent-scope.fixture.ts';
 
+test('historical transport uses only the history query and refuses current or changed evidence', async () => {
+  const f=await scopeEditorFixture();let calls=0;
+  const t=createIntentScopeTransport('https://steer.example',async(url,init)=>{
+    calls++;assert.ok(String(url).endsWith('/intent.scope.history'));assert.deepEqual(JSON.parse(String(init?.body)),f.readInput);
+    assert.equal(init?.credentials,'same-origin');return Response.json(f.history);
+  });
+  assert.deepEqual(await t.history(f.readInput),f.history);assert.equal(calls,1);t.close();await assert.rejects(t.history(f.readInput));
+  for(const output of [f.ready,{...f.history,reviewId:f.scope.draftId},{...f.history,inventory:[]},{...f.history,executionAuthorized:true}])
+    await assert.rejects(createIntentScopeTransport('https://steer.example',async()=>Response.json(output)).history(f.readInput));
+});
+
 test('scope transport sends exact metadata to fixed same-origin authenticated tools and verifies portable outputs', async () => {
   const f = await scopeEditorFixture(), calls: unknown[] = [];
   const transport = createIntentScopeTransport('https://steer.example', async (url, init) => {

@@ -4,6 +4,7 @@ import { prepareIntentScopeReview } from '@steer/tool-registry/intent-scope-revi
 import { validateIntentScopeBatchResults } from '@steer/tool-registry/intent-scope-batches';
 import type { ScopeEditorSource } from '../app/intent-scope-editor.ts';
 import type { IntentScopeReadOutput } from '@steer/tool-registry/intent-scope-read-contracts';
+import { verifyIntentScopeHistoryOutput } from '@steer/tool-registry/intent-scope-history-contracts';
 import { scopeDiscoveryFixture } from '../../../packages/tool-registry/test/intent-scope-discovery.fixture.ts';
 export async function scopeEditorFixture(count = 4, candidate = false) {
   const original = await scopeReviewFixture(count);
@@ -41,5 +42,8 @@ export async function scopeEditorFixture(count = 4, candidate = false) {
   const { configurationRevision: _configuration, sourceSnapshotDigest: _source, ...discoverySource } = input;
   const discoveryInput = { ...discoverySource, cursor: null };
   const discovery = { ...scopeDiscoveryFixture().output, ...discoveryInput, entries: [prepared.reference] };
-  return { ...f, source, input, prepared, startInput, started, readInput, discoveryInput, discovery, observation, pending: await observation(0), ready: await observation(p.batches.length) };
+  const { status: _status, ...recorded } = await observation(p.batches.length);
+  const history = await verifyIntentScopeHistoryOutput({ ...recorded, kind: 'steer-scope-review-history/v1', historical: true,
+    reviewExpired: true, head: evidence.head, sourceSnapshotDigest: p.sourceSnapshotDigest, inventory: evidence.inventory });
+  return { ...f, source, input, prepared, startInput, started, readInput, discoveryInput, discovery, observation, history, pending: await observation(0), ready: await observation(p.batches.length) };
 }

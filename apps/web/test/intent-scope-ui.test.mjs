@@ -10,6 +10,13 @@ import { scopeEditorFixture } from './intent-scope.fixture.ts';
 import { buildIntentDevelopmentContext } from '@steer/tool-registry/intent-development-context';
 import { buildIntentEvidenceEnvelope } from '@steer/tool-registry/intent-evidence-contracts';
 
+function accessibilityAudit() {
+  // axe captures the current DOM at load time. Each fixture owns a fresh JSDOM;
+  // do not reuse an auditor bound to a previously closed document.
+  const require=createRequire(import.meta.url),path=require.resolve('axe-core');delete require.cache[path];
+  return require('axe-core').run(document.getElementById('root'),{runOnly:{type:'tag',values:['wcag2a','wcag2aa']},rules:{'color-contrast':{enabled:false}}});
+}
+
 async function component() {
   const require = createRequire(import.meta.url), cache = new Map();
   async function compile(name) {
@@ -34,7 +41,7 @@ async function renderFixture(candidate = false) {
   const saved = Object.fromEntries(keys.map(k => [k, Object.getOwnPropertyDescriptor(globalThis, k)]));
   for (const [key, value] of Object.entries({ window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, IS_REACT_ACT_ENVIRONMENT: true })) Object.defineProperty(globalThis, key, { configurable: true, value });
   const { configurationRevision, sourceSnapshotDigest, ...input } = f.input;
-  const state = { lost: true, denied: false, allowDevelopment: false, output: f.pending, discovery: f.discovery, scopeCalls: [], allCalls: [] };
+  const state = { lost: true, denied: false, allowDevelopment: false, output: f.pending, history: f.history, historyWait: null, discovery: f.discovery, scopeCalls: [], allCalls: [] };
   const review = { ...input, kind: 'steer-development-review/v1', configurationRevision, sourceSnapshotDigest,
     evidence: f.evidence, scopeBatchPlan: f.source.plan, semanticReviewComplete: false, authoritativeClearance: false, executionAuthorized: false, savedToGit: false, gateSigned: false };
   globalThis.fetch = async (url, init) => {
@@ -44,6 +51,8 @@ async function renderFixture(candidate = false) {
     if (state.allowDevelopment && url.endsWith('intent.development.prepare')) throw new Error('Synthetic lost preparation response');
     assert.ok(url.includes('/intent.scope.'), 'Scope interactions must not trigger document generation or saving');
     state.scopeCalls.push({ url, input });
+    if (url.endsWith('.history')) { if (state.historyWait) await state.historyWait;
+      return state.denied ? Response.json({}, { status: 403 }) : Response.json(state.history); }
     if (url.endsWith('.discover')) return state.denied ? Response.json({}, { status: 403 }) : Response.json({ ...state.discovery, cursor: input.cursor });
     if (url.endsWith('.prepare')) return Response.json(f.prepared);
     if (url.endsWith('.start')) { if (state.lost) { state.lost = false; throw new Error('PRIVATE lost ACK'); } return Response.json(f.started); }
@@ -78,6 +87,45 @@ test('fresh actual editor discovers and reads a retained completed scope review 
     t.state.denied = true; await t.click('Find retained scope reviews'); await t.until(() => document.body.textContent.includes('discovery could not be verified'));
     assert.equal(document.querySelector('.intent-scope-discovery'), null); assert.equal(document.querySelector('.intent-scope-findings'), null);
   } finally { await t.cleanup(); }
+});
+
+test('actual editor explicitly inspects expired historical citations without granting current direction, generation or saving',async()=>{
+  const t=await renderFixture(true);
+  try {
+    t.state.output={...t.f.ready,status:'expired',batches:null,review:null};
+    await t.click('Review existing work for this draft');await t.render({enabled:false});await t.click('Find retained scope reviews');
+    await t.click('Read retained review '+t.f.prepared.reference.reviewId);
+    assert.equal(document.querySelector('.intent-scope-findings'),null);
+    assert.equal(t.state.scopeCalls.some(c=>c.url.endsWith('.history')),false);
+    await t.click('Read historical findings');await t.until(()=>document.body.textContent.includes('Historical findings — not current clearance'));
+    const panel=document.querySelector('.intent-scope-history');assert.match(panel.textContent,/execution window has expired/);
+    assert.match(panel.textContent,new RegExp(t.f.evidence.head));assert.ok(panel.querySelector('blockquote'));
+    assert.equal(document.activeElement.textContent,'Historical findings — not current clearance');
+    assert.equal(document.querySelector('.intent-scope-choice').disabled,true);
+    assert.equal(t.button('Confirm direction and develop this draft').disabled,true);
+    assert.deepEqual(t.state.scopeCalls.map(c=>c.url.split('.').at(-1)),['discover','read','history']);
+    assert.equal(window.localStorage.length,0);assert.equal(window.sessionStorage.length,0);
+    const audit=await accessibilityAudit();
+    assert.deepEqual(audit.violations,[]);
+    t.state.denied=true;await t.click('Read historical findings');await t.until(()=>panel.textContent.includes('unavailable under current permissions'));
+    assert.equal(panel.querySelector('blockquote'),null);
+  } finally {await t.cleanup();}
+});
+
+test('actual history clears on input changes and page exit and cannot repopulate from an ignored-abort response',async()=>{
+  const t=await renderFixture(true);
+  try {
+    t.state.output=t.f.ready;await t.click('Review existing work for this draft');await t.click('Find retained scope reviews');
+    await t.click('Read retained review '+t.f.prepared.reference.reviewId);await t.click('Read historical findings');
+    assert.ok(document.querySelector('.intent-scope-history blockquote'));
+    await t.render({source:{...t.props.source,content:{...t.props.source.content,originalText:'Human correction remains untouched'}}});
+    assert.equal(document.querySelector('.intent-scope-history blockquote'),null);
+    let release;t.state.historyWait=new Promise(r=>{release=r;});
+    await t.click('Read historical findings');
+    await act(async()=>{window.dispatchEvent(new window.Event('pagehide'));release();await new Promise(r=>setTimeout(r,30));});
+    assert.equal(document.querySelector('.intent-scope-history blockquote'),null);
+    assert.equal(t.state.allCalls.some(c=>/intent\.development\.(prepare|start)|intent\.candidate\.save/.test(c.url)),false);
+  } finally {await t.cleanup();}
 });
 
 test('actual editor carries all 34 assessed sources and permits an explicit linked direction to a Brief beyond the legacy context', async () => {
@@ -137,8 +185,7 @@ test('actual editor scope controls recover a lost start, show exact partial/full
     t.state.denied = true; await t.click('Check scope review progress'); await t.until(() => document.body.textContent.includes('not a no-match result'));
     assert.equal(document.querySelector('.intent-scope-findings'), null); assert.doesNotMatch(document.body.textContent, /PRIVATE lost ACK/);
     t.state.denied = false; await t.click('Check scope review progress'); await t.until(() => Boolean(document.querySelector('.intent-scope-findings')));
-    const axe = (await import('axe-core')).default;
-    const report = await axe.run(document.getElementById('root'), { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] }, rules: { 'color-contrast': { enabled: false } } });
+    const report = await accessibilityAudit();
     assert.deepEqual(report.violations.map(v => ({ id: v.id, description: v.description })), []);
     const count = t.state.allCalls.length;
     const changed = { ...t.props.source, content: { ...t.props.source.content, originalText: 'New unsaved human scope' } };

@@ -974,3 +974,20 @@ the server response. No browser storage, replacement, polling or save follows.
 The versioned review digest is not durable consent, authorship, a manifest or an
 admission reference. Future preparation must reconstruct current review and bind
 verified destination/lifecycle/lineage before exact human confirmation and start.
+
+## Retained assessment history is not current clearance — 0255
+
+`intent.scope.history` has its own current human query grant and a distinct
+`steer-scope-review-history/v1` output. It restores retained source inventory and
+verified succeeded SDK findings under separate historical operation/observation
+authority, exact profile, current records, lifecycle and historical-key checks.
+The old execution callback is not reused. Expired normal reads remain content-free.
+
+History exposes neither checkpoints nor mutation/dispatch capability; incomplete
+and uncertain batch states cannot be promoted. The real editor opens history
+explicitly, labels source revisions/expiry, preserves human text and never passes
+this output into current disposition/drafting/save admission. See [the guide](../SCOPE-ASSESSMENT-HISTORY.md)
+and [0255 specification](../../intent/0255/SPEC.md).
+
+Generation-original history and final-save lineage are still separate work. Do not
+loosen current-only scope selection or original admission to accept this read.
