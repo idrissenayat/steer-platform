@@ -2,6 +2,7 @@ import { intentDraftCreateInputSchema, intentDraftAppendInputSchema, intentDraft
   type IntentDraftService } from '@steer/tool-registry/intent-draft-contracts';
 import { createDraftLifecycleStore } from './draft-lifecycle.ts';
 import { createDraftRevisionStore, draftRecordsConfigurationSchema } from './draft-revisions.ts';
+import { createReadPolicyAuthority } from './read-policy-authority.ts';
 
 /** Explicit, uninstalled owner-bound API service. No key/grant/env fallback and
  * no adoption of records policy from a request or tool grant. Each request owns
@@ -21,20 +22,32 @@ export function createIntentDraftService(pool: Parameters<typeof createDraftRevi
   };
   async function run<T>(revalidate: () => Promise<void>, work: (stores: {
     lifecycle: ReturnType<typeof createDraftLifecycleStore>; revisions: ReturnType<typeof createDraftRevisionStore>;
-  }) => Promise<T>): Promise<T> {
+  }) => Promise<T>, readOnly = false): Promise<T> {
     guard(); if (running >= 4 || typeof revalidate !== 'function') throw new Error('Draft service unavailable.'); running++;
-    let finished = false, timer: ReturnType<typeof setTimeout> | undefined;
-    const current = async () => { guard(); if (finished || await revalidate() !== undefined || finished) throw new Error(); guard(); };
+    let finished = false, settled = false, inFlight = 0, released = false, timer: ReturnType<typeof setTimeout> | undefined;
+    const release = () => { if (settled && !inFlight && !released) { released = true; running--; } };
+    const live = () => { guard(); if (finished) throw new Error('Draft service unavailable.'); };
+    const track = async <V>(task: Promise<V>): Promise<V> => { inFlight++; try { return await task; } finally { inFlight--; release(); } };
+    const invoke = <V,>(call: () => Promise<V>) => track(Promise.resolve().then(() => { live(); return call(); }));
+    const current = async () => { live(); if (await invoke(revalidate) !== undefined) throw new Error(); live(); };
+    const readAuthority = createReadPolicyAuthority(current, track, live);
     const lifecycle = createDraftLifecycleStore(pool, config, { authorize: async context => {
-      await current(); if (await dependencies.lifecycle.authorize(context) !== undefined) throw new Error(); await current();
+      if (readOnly) throw new Error('Draft service unavailable.');
+      await current(); if (await invoke(() => dependencies.lifecycle.authorize(context)) !== undefined) throw new Error(); await current();
     } });
     const revisions = createDraftRevisionStore(pool, config, {
-      authorize: async context => { await current(); if (await dependencies.revisions.authorize(context) !== undefined) throw new Error(); await current(); },
-      keyForDraft: async (reference, keyId) => { await current(); const key = await dependencies.revisions.keyForDraft(reference, keyId); await current(); return key; },
+      authorize: async context => {
+        if (readOnly) return readAuthority(context.action, () => dependencies.revisions.authorize(context));
+        await current(); if (await invoke(() => dependencies.revisions.authorize(context)) !== undefined) throw new Error(); await current();
+      },
+      keyForDraft: async (reference, keyId) => {
+        if (readOnly && keyId === null) throw new Error('Draft service unavailable.');
+        await current(); const key = await invoke(() => dependencies.revisions.keyForDraft(reference, keyId)); await current(); return key;
+      },
     });
     children.add(lifecycle); children.add(revisions);
     const pending = Promise.resolve().then(async () => { await current(); const output = await work({ lifecycle, revisions }); await current(); return output; });
-    void pending.finally(() => { running--; }).catch(() => {});
+    void pending.finally(() => { settled = true; release(); }).catch(() => {});
     try {
       return await Promise.race([pending, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error()), 30000); })]);
     } catch { throw new Error('Draft service unavailable.'); }
@@ -72,7 +85,7 @@ export function createIntentDraftService(pool: Parameters<typeof createDraftRevi
       return run(revalidate, async ({ revisions }) => {
         const result = await revisions.read({ draftId: input.draftId, revision: input.revision });
         return { ...reference(result.reference, result.latestRevision), content: result.content };
-      });
+      }, true);
     },
     close() { closed = true; for (const child of children) child.close(); },
   } satisfies IntentDraftService & { close(): void };

@@ -6576,3 +6576,35 @@ Focused SQL verification additionally passes ten historical-development, four
 development-start and 82 scope-runtime checks, each with idempotent migrations.
 The full SQL suite and real signed-in UI were not run. All source hashes, raw
 measurement partitions, local document links and protected signed sources validate.
+
+## 0293 — Reduce canonical source traversal and preserve draft callback admission
+
+Canonical item roots with no candidate/proposal pointer now use the verified
+inventory directly for Brief/Spec reads. Explicit governed lifecycle selection,
+source grants, modes/hashes and final current-caller/head checks remain required;
+malformed or present pointers keep the full catalog path. Permission-only sweeps
+avoid redundant caller checks without caching permissions. Draft reads use the
+private read-policy helper; create/append retain their write checks. All draft
+callbacks keep their owner admission until actual pending work drains, including
+after an inner timeout.
+
+Source review falls from 317 to **232** requests, scope preparation from 1,250 to
+**932**, and first confirmation from 11,213 to **10,483**. Repository/body traffic
+is unchanged; these savings remove repeated identity validation. All **54 focused
+tests**, **17 preparation SQL checks**, **three authenticated joined checks**,
+idempotent migrations, **1,456 final broad tests**, types and production build pass.
+The initial broad parser failure and syntax-only correction remain documented;
+the native runtime JavaScript is identical before and after that correction.
+See [specification](../intent/0293/SPEC.md), [evidence](../intent/0293/EVIDENCE.md)
+and [raw measurements](../intent/0293/PERFORMANCE.json).
+
+Both delayed-prefix integrity checks pass, but source review still exceeds its
+200-request ceiling: HTTP 401 at 202 attempts / 200 dispatches in each direction,
+with no outstanding work at return. All warm/cold/concurrent draft-read groups
+pass. C22 and the complete performance protocol remain open. The earlier 0289
+recovery-unknown result remains retained and unexplained. Progress is still
+**68% (17/25; 8 remaining; +0 points)**. Next address remaining nested catalog
+checks and the larger repeated records/history validation path, preserving fresh
+checks at effects and final readback. No live spending, records/D1 activation,
+runtime GitHub grants/writes, signed source, gates, deployment, release or user
+data changed. Full SQL and actual signed-in UI acceptance are not claimed.

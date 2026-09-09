@@ -5,6 +5,42 @@ import { createIntentDraftService } from '../src/intent-draft-service.ts';
 const config = { organizationId: 'org', subject: 'human', productId: 'product', repository: 'github:52', branch: 'codex/synthetic',
   configurationRevision: 'r1', recordsPolicyDigest: 'a'.repeat(64) };
 const scope = { organizationId: config.organizationId, productId: config.productId, repository: config.repository };
+const turn = () => new Promise<void>(resolve => setImmediate(resolve));
+const readInput = () => ({ ...scope, draftId: randomUUID(), revision: 'latest' as const });
+const appendInput = () => ({ ...scope, draftId: randomUUID(), mutationId: randomUUID(), expectedRevision: 0, expectedDigest: null,
+  content: { originalText: 'Synthetic scope', clarificationTurns: [], documents: { brief: '', spec: '', exam: '' } } });
+
+for (const mode of ['read', 'create', 'append'] as const) {
+  test(`${mode}: read metadata orders policy before fresh caller; writes retain their before/after caller checks`, async () => {
+    const events: string[] = []; let allowed = true, io = 0;
+    const policy = async () => { events.push('policy'); allowed = false; };
+    const service = createIntentDraftService({ connect: async () => { io++; throw new Error('No SQL'); } }, config, {
+      lifecycle: { authorize: policy }, revisions: { authorize: policy, keyForDraft: async () => { io++; throw new Error('No keys'); } },
+    });
+    const current = async () => { events.push('current'); if (!allowed) throw new Error('revoked'); };
+    if (mode === 'read') await assert.rejects(service.read(readInput(), current));
+    else if (mode === 'create') await service.create({ ...scope, requestId: randomUUID() }, current);
+    else await service.append(appendInput(), current);
+    assert.equal(events.indexOf('policy'), mode === 'read' ? 1 : 2);
+    assert.equal(events[events.indexOf('policy') + 1], 'current'); assert.equal(io, 0); service.close();
+  });
+
+  test(`${mode}: inner five-second policy timeout retains owner admission until the actual callback drains`, async t => {
+    t.mock.timers.enable({ apis: ['setTimeout'] }); let release!: () => void, policies = 0, io = 0;
+    const held = new Promise<void>(resolve => { release = resolve; });
+    const policy = async () => { policies++; await held; };
+    const service = createIntentDraftService({ connect: async () => { io++; throw new Error('No SQL'); } }, config, {
+      lifecycle: { authorize: policy }, revisions: { authorize: policy, keyForDraft: async () => { io++; throw new Error('No key'); } },
+    });
+    const run = () => mode === 'read' ? service.read(readInput(), async () => {})
+      : mode === 'create' ? service.create({ ...scope, requestId: randomUUID() }, async () => {})
+        : service.append(appendInput(), async () => {});
+    const calls = Array.from({ length: 4 }, () => mode === 'read' ? assert.rejects(run()) : run());
+    await turn(); assert.equal(policies, 4); t.mock.timers.tick(5001); await Promise.all(calls);
+    if (mode === 'read') await assert.rejects(run()); else assert.equal((await run() as { outcome: string }).outcome, 'unknown');
+    assert.equal(policies, 4); service.close(); release(); await turn(); assert.equal(io, 0);
+  });
+}
 test('draft API service is lazy, owner-bound and cannot bypass denied records authority or a closed service', async () => {
   let connections = 0, keys = 0;
   const service = createIntentDraftService({ connect: async () => { connections++; throw new Error(); } }, config, {

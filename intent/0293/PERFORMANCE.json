@@ -1,0 +1,1572 @@
+{
+  "kind": "steer-intent-capture-performance-increment/v1",
+  "date": "2026-09-09",
+  "productionBase": "82a04de11d2e13964c1d86e050be0ecc3bb641ab",
+  "sourceAndHarnessSha256": {
+    "packages/adapters/src/code-host/intent-corpus-evidence.ts": "b9ee6aa0977c582d4273f21fe30b1ee565383be3e07ed8e2cb54058217d2f026",
+    "packages/adapters/test/intent-corpus-evidence.test.ts": "e948319ec95b3ef04a71988c8e1b7a25e854f05fffb657c0c8dd10ce3b46d6f9",
+    "packages/data/src/intent-draft-service.ts": "5b784dee408027f01a5e24ed3b54cbbe8da4a5097eb4b2da0387346a87aa9569",
+    "packages/data/test/intent-draft-service.test.ts": "363a9ba8742f7026f03b4b39e816902c129bcd317e23df97272ab0be76f18ed6",
+    "packages/data/src/read-policy-authority.ts": "82786ada3d221fef35d6cd72d89ac06d3efdcdcf1503a3723354ad4ce024d250",
+    "apps/api/test/authenticated-generation.integration.ts": "40feceee0c9f9515e9a3b32ae600db49cfda9984dc026b9790646d30449b73c6",
+    "apps/api/test/authenticated-performance-prefix.integration.ts": "5b36d98967df60c6a56697679b22d5ac9953d944c3d4305b718aa08eb662029e",
+    "apps/api/test/intent-performance-probe.ts": "39a14246f4ac25c6b298812815292402e57584df3cb8451d107d664966026a73",
+    "packages/data/test/postgres.integration.ts": "05b9acbfea9dc72b02557ceb8eda3501e291ae4cfa4fea6d0fc4f5ec8bc4b760"
+  },
+  "measuredSourceAndHarnessSha256": {
+    "packages/adapters/src/code-host/intent-corpus-evidence.ts": "b9ee6aa0977c582d4273f21fe30b1ee565383be3e07ed8e2cb54058217d2f026",
+    "packages/adapters/test/intent-corpus-evidence.test.ts": "e948319ec95b3ef04a71988c8e1b7a25e854f05fffb657c0c8dd10ce3b46d6f9",
+    "packages/data/src/intent-draft-service.ts": "f3127ebd565327536689f9b6f71334a2390b522900715cf784f69a99c4432496",
+    "packages/data/test/intent-draft-service.test.ts": "363a9ba8742f7026f03b4b39e816902c129bcd317e23df97272ab0be76f18ed6",
+    "packages/data/src/read-policy-authority.ts": "82786ada3d221fef35d6cd72d89ac06d3efdcdcf1503a3723354ad4ce024d250",
+    "apps/api/test/authenticated-generation.integration.ts": "40feceee0c9f9515e9a3b32ae600db49cfda9984dc026b9790646d30449b73c6",
+    "apps/api/test/authenticated-performance-prefix.integration.ts": "5b36d98967df60c6a56697679b22d5ac9953d944c3d4305b718aa08eb662029e",
+    "apps/api/test/intent-performance-probe.ts": "39a14246f4ac25c6b298812815292402e57584df3cb8451d107d664966026a73",
+    "packages/data/test/postgres.integration.ts": "05b9acbfea9dc72b02557ceb8eda3501e291ae4cfa4fea6d0fc4f5ec8bc4b760"
+  },
+  "environmentObservedAfterJoined": {
+    "node": "v24.19.0",
+    "os": "Darwin",
+    "release": "25.6.0",
+    "arch": "arm64",
+    "cpus": 12,
+    "model": "Apple M4 Pro",
+    "observedLoad": [
+      1.94970703125,
+      2.76708984375,
+      3.216796875
+    ]
+  },
+  "coverage": {
+    "fixture": "34 native sources, actual authenticated constructor graph, two scope batches, independent recorded roles, disposable encrypted PostgreSQL and Temporal.",
+    "providers": "Synthetic identity/grants/models, native disposable Git only. No live model, runtime GitHub write or signed-in UI.",
+    "undelayed": "Single new-distinct journey samples; not warmed p95 or complete C22.",
+    "startOriginsAvailable": false,
+    "measurementLoad": "Focused unit tests completed before corrected-package measurements; joined completed before delayed prefix. Broad/build/preparation SQL started only after prefix completion.",
+    "fullProtocol": "Full SQL, full continuation joined and complete later-stage performance protocol not run."
+  },
+  "verification": {
+    "initialFocused": {
+      "pass": 43,
+      "fail": 1
+    },
+    "expandedFocused": {
+      "pass": 34,
+      "fail": 1
+    },
+    "assertionCorrection": "Both failures were the same retained-freshness test expecting seven checks; changed to four and added exact before-head barrier positions. No production change to silence it.",
+    "finalFocused": {
+      "pass": 54,
+      "fail": 0,
+      "durationMs": 41902.779583
+    },
+    "typecheck": "Prototype and all eight packages pass initially (4.868 s) and after syntax correction (2.877 s).",
+    "joined": {
+      "checks": 3,
+      "idempotentMigrations": true,
+      "outcome": "pass"
+    },
+    "prefix": {
+      "integrityChecks": 2,
+      "idempotentMigrations": true,
+      "performancePassed": false
+    },
+    "preparationSql": {
+      "checks": 17,
+      "idempotentMigrations": true,
+      "outcome": "pass"
+    },
+    "build": "Next.js 16.3.4 optimized build passes.",
+    "initialBroad": {
+      "pass": 1455,
+      "fail": 1,
+      "durationMs": 152863.303542,
+      "reason": "Boundary checker parsed a generic arrow as JSX; syntax-only trailing comma added to its type parameter."
+    },
+    "syntaxOnlyCorrection": {
+      "path": "packages/data/src/intent-draft-service.ts",
+      "before": {
+        "source": "f3127ebd565327536689f9b6f71334a2390b522900715cf784f69a99c4432496",
+        "javascript": "f43f3a44848927354acfbfc1c281e8200566b8c28215e6573209837e8acccf2a"
+      },
+      "after": {
+        "source": "5b784dee408027f01a5e24ed3b54cbbe8da4a5097eb4b2da0387346a87aa9569",
+        "javascript": "f43f3a44848927354acfbfc1c281e8200566b8c28215e6573209837e8acccf2a"
+      },
+      "emitter": "Node v24.19.0 stripTypeScriptTypes with transform mode and no source map",
+      "runtimeJavaScriptIdentical": true,
+      "focusedAfter": {
+        "pass": 19,
+        "fail": 0,
+        "durationMs": 360.034625
+      }
+    },
+    "broad": {
+      "outcome": "pass",
+      "pass": 1456,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 151041.753458
+    }
+  },
+  "isolatedDiagnostic": {
+    "sourceCount": 34,
+    "before": {
+      "callerValidations": 222,
+      "repositoryRequests": 52
+    },
+    "after": {
+      "callerValidations": 141,
+      "repositoryRequests": 52
+    },
+    "identity": "Synthetic caller callback; not authenticated latency evidence."
+  },
+  "baseline": {
+    "path": "intent/0292/PERFORMANCE.json",
+    "commit": "82a04de11d2e13964c1d86e050be0ecc3bb641ab"
+  },
+  "final": {
+    "measurements": [
+      {
+        "tool": "intent.draft.read",
+        "ms": 61,
+        "nativeRequests": 19,
+        "requestKinds": {
+          "head": 16,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 16,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.development.review",
+        "ms": 691,
+        "nativeRequests": 232,
+        "requestKinds": {
+          "head": 183,
+          "commit": 2,
+          "tree": 2,
+          "blob": 44,
+          "token": 1,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 177,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 6,
+            "commit": 1,
+            "tree": 1,
+            "blob": 43,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.prepare",
+        "ms": 2705,
+        "nativeRequests": 932,
+        "requestKinds": {
+          "head": 749,
+          "commit": 5,
+          "tree": 5,
+          "blob": 173,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 729,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 20,
+            "commit": 4,
+            "tree": 4,
+            "blob": 172,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 733,
+        "nativeRequests": 596,
+        "requestKinds": {
+          "head": 593,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 593,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 770,
+        "nativeRequests": 676,
+        "requestKinds": {
+          "head": 673,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 673,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 795,
+        "nativeRequests": 676,
+        "requestKinds": {
+          "head": 673,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 673,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.read",
+        "ms": 468,
+        "nativeRequests": 227,
+        "requestKinds": {
+          "head": 224,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 224,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.review",
+        "ms": 2338,
+        "nativeRequests": 930,
+        "requestKinds": {
+          "head": 837,
+          "commit": 3,
+          "tree": 3,
+          "blob": 87,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 825,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 12,
+            "commit": 2,
+            "tree": 2,
+            "blob": 86,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.preview",
+        "ms": 9586,
+        "nativeRequests": 5145,
+        "requestKinds": {
+          "head": 4958,
+          "commit": 7,
+          "tree": 7,
+          "blob": 173,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 4928,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 30,
+            "commit": 6,
+            "tree": 6,
+            "blob": 172,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare (discarded reply)",
+        "ms": 19460,
+        "nativeRequests": 10483,
+        "requestKinds": {
+          "head": 10112,
+          "commit": 13,
+          "tree": 13,
+          "blob": 345,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 10052,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 60,
+            "commit": 12,
+            "tree": 12,
+            "blob": 344,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "ms": 19041,
+        "nativeRequests": 10455,
+        "requestKinds": {
+          "head": 10082,
+          "commit": 13,
+          "tree": 13,
+          "blob": 345,
+          "token": 2,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 10022,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 60,
+            "commit": 12,
+            "tree": 12,
+            "blob": 344,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "ms": 19161,
+        "nativeRequests": 10453,
+        "requestKinds": {
+          "head": 10082,
+          "commit": 13,
+          "tree": 13,
+          "blob": 345,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 10022,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 60,
+            "commit": 12,
+            "tree": 12,
+            "blob": 344,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      }
+    ],
+    "preparations": [
+      {
+        "tool": "intent.development.prepare",
+        "ms": 7812,
+        "nativeRequests": 4438,
+        "requestKinds": {
+          "head": 4255,
+          "commit": 5,
+          "tree": 5,
+          "blob": 173,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 4235,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 20,
+            "commit": 4,
+            "tree": 4,
+            "blob": 172,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.development.prepare",
+        "ms": 6925,
+        "nativeRequests": 3988,
+        "requestKinds": {
+          "head": 3805,
+          "commit": 5,
+          "tree": 5,
+          "blob": 173,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 3785,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 20,
+            "commit": 4,
+            "tree": 4,
+            "blob": 172,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      }
+    ],
+    "starts": [
+      {
+        "tool": "intent.scope.start",
+        "ms": 702,
+        "nativeRequests": 596
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 781,
+        "nativeRequests": 676
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 789,
+        "nativeRequests": 676
+      },
+      {
+        "tool": "intent.development.start",
+        "ms": 8597,
+        "nativeRequests": 7871
+      },
+      {
+        "tool": "intent.development.start",
+        "ms": 8904,
+        "nativeRequests": 8866
+      },
+      {
+        "tool": "intent.development.start",
+        "ms": 9252,
+        "nativeRequests": 8866
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 732,
+        "nativeRequests": 596
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 770,
+        "nativeRequests": 676
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 795,
+        "nativeRequests": 676
+      }
+    ],
+    "recovery": {
+      "outcome": "committed",
+      "ms": 204,
+      "nativeRequests": 17,
+      "database": {
+        "calls": 14,
+        "failures": 0,
+        "maxDurationMs": 1,
+        "counts": {
+          "connect": 1,
+          "commit": 1,
+          "rollback": 0,
+          "observation-write": 0,
+          "result-write": 0,
+          "execution-write": 0,
+          "query": 12
+        },
+        "events": [
+          {
+            "phase": "connect",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "commit",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          }
+        ],
+        "clock": {
+          "samples": 3,
+          "regressions": 0,
+          "maxBackwardMs": 0,
+          "invalidSamples": 0
+        }
+      }
+    }
+  },
+  "comparisons": [
+    {
+      "tool": "intent.draft.read",
+      "before": 21,
+      "after": 19,
+      "reductionPercent": 9.52
+    },
+    {
+      "tool": "intent.development.review",
+      "before": 317,
+      "after": 232,
+      "reductionPercent": 26.81
+    },
+    {
+      "tool": "intent.scope.prepare",
+      "before": 1250,
+      "after": 932,
+      "reductionPercent": 25.44
+    },
+    {
+      "tool": "intent.scope.start",
+      "before": 596,
+      "after": 596,
+      "reductionPercent": 0
+    },
+    {
+      "tool": "intent.scope.start",
+      "before": 676,
+      "after": 676,
+      "reductionPercent": 0
+    },
+    {
+      "tool": "intent.scope.start",
+      "before": 676,
+      "after": 676,
+      "reductionPercent": 0
+    },
+    {
+      "tool": "intent.scope.read",
+      "before": 227,
+      "after": 227,
+      "reductionPercent": 0
+    },
+    {
+      "tool": "intent.candidate.save.review",
+      "before": 1106,
+      "after": 930,
+      "reductionPercent": 15.91
+    },
+    {
+      "tool": "intent.candidate.save.preview",
+      "before": 5501,
+      "after": 5145,
+      "reductionPercent": 6.47
+    },
+    {
+      "tool": "intent.candidate.save.prepare (discarded reply)",
+      "before": 11213,
+      "after": 10483,
+      "reductionPercent": 6.51
+    },
+    {
+      "tool": "intent.candidate.save.prepare",
+      "before": 11183,
+      "after": 10455,
+      "reductionPercent": 6.51
+    },
+    {
+      "tool": "intent.candidate.save.prepare",
+      "before": 11181,
+      "after": 10453,
+      "reductionPercent": 6.51
+    }
+  ],
+  "delayedPrefix": [
+    {
+      "kind": "synthetic-authenticated-performance-prefix/v1",
+      "direction": "new-distinct",
+      "delayMs": 20,
+      "maxAttempts": 200,
+      "sourceCount": 34,
+      "primer": {
+        "ms": 574.3648329999996,
+        "attempts": 20,
+        "dispatched": 20,
+        "peakPending": 1,
+        "outstandingAtReturn": 0,
+        "limited": false,
+        "delayMs": 20,
+        "maxAttempts": 200,
+        "returned": true
+      },
+      "groups": {
+        "warm": {
+          "complete": true,
+          "healthy": true,
+          "p95Ms": 546.137917,
+          "maximumMs": 557.1503749999993,
+          "withinTarget": true,
+          "samples": [
+            {
+              "ms": 541.0671250000005,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 528.2057080000004,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 537.5167079999992,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 546.137917,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 531.9120830000011,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 530.2873340000006,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 543.7941660000015,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 532.5009169999994,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 540.9844580000008,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 540.0850410000003,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 540.6759160000001,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 533.5457909999986,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 532.7219580000001,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 531.4860000000008,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 535.6654999999992,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 529.3729590000003,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 557.1503749999993,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 539.8069169999999,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 527.0401249999995,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 518.2388329999994,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            }
+          ]
+        },
+        "cold": {
+          "complete": true,
+          "healthy": true,
+          "p95Ms": 565.8809590000019,
+          "maximumMs": 565.8809590000019,
+          "withinTarget": true,
+          "samples": [
+            {
+              "ms": 564.8012090000011,
+              "attempts": 20,
+              "dispatched": 20,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 565.8809590000019,
+              "attempts": 20,
+              "dispatched": 20,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 557.4313339999972,
+              "attempts": 20,
+              "dispatched": 20,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            }
+          ]
+        },
+        "concurrent": {
+          "complete": true,
+          "healthy": true,
+          "p95Ms": 588.5657080000019,
+          "maximumMs": 588.5657080000019,
+          "withinTarget": true,
+          "samples": [
+            {
+              "ms": 588.5657080000019,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 579.5112499999996,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 568.5406250000015,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 565.0918330000022,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            }
+          ]
+        }
+      },
+      "sourceReview": {
+        "status": 401,
+        "sample": {
+          "ms": 5708.364040999997,
+          "attempts": 202,
+          "dispatched": 200,
+          "peakPending": 1,
+          "outstandingAtReturn": 0,
+          "limited": true,
+          "delayMs": 20,
+          "maxAttempts": 200,
+          "returned": true
+        }
+      },
+      "boundary": "source-review-request-limit",
+      "prefixTargetsMet": false,
+      "completeBenchmark": false,
+      "modelCalls": 0,
+      "providerSaves": 0,
+      "liveAcceptance": false
+    },
+    {
+      "kind": "synthetic-authenticated-performance-prefix/v1",
+      "direction": "proposal-continuation",
+      "delayMs": 20,
+      "maxAttempts": 200,
+      "sourceCount": 34,
+      "primer": {
+        "ms": 554.9092079999973,
+        "attempts": 20,
+        "dispatched": 20,
+        "peakPending": 1,
+        "outstandingAtReturn": 0,
+        "limited": false,
+        "delayMs": 20,
+        "maxAttempts": 200,
+        "returned": true
+      },
+      "groups": {
+        "warm": {
+          "complete": true,
+          "healthy": true,
+          "p95Ms": 542.6535409999997,
+          "maximumMs": 544.8736669999998,
+          "withinTarget": true,
+          "samples": [
+            {
+              "ms": 506.64945799999987,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 542.6535409999997,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 525.093334000001,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 531.1316249999982,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 535.2862499999974,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 539.2918339999997,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 529.7056249999987,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 527.4646250000005,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 521.9903750000012,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 532.4906250000058,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 536.5143749999988,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 513.6824999999953,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 544.8736669999998,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 528.6685829999988,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 523.098957999995,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 516.494666999999,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 520.1581659999938,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 534.325499999999,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 541.3852079999997,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 534.8379170000044,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            }
+          ]
+        },
+        "cold": {
+          "complete": true,
+          "healthy": true,
+          "p95Ms": 558.4463749999995,
+          "maximumMs": 558.4463749999995,
+          "withinTarget": true,
+          "samples": [
+            {
+              "ms": 558.4463749999995,
+              "attempts": 20,
+              "dispatched": 20,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 545.7933340000018,
+              "attempts": 20,
+              "dispatched": 20,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 557.7327079999959,
+              "attempts": 20,
+              "dispatched": 20,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            }
+          ]
+        },
+        "concurrent": {
+          "complete": true,
+          "healthy": true,
+          "p95Ms": 576.965833000002,
+          "maximumMs": 576.965833000002,
+          "withinTarget": true,
+          "samples": [
+            {
+              "ms": 576.4170000000013,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 553.1291249999995,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 566.6697920000006,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            },
+            {
+              "ms": 576.965833000002,
+              "attempts": 19,
+              "dispatched": 19,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": false,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            }
+          ]
+        }
+      },
+      "sourceReview": {
+        "status": 401,
+        "sample": {
+          "ms": 5649.708375000002,
+          "attempts": 202,
+          "dispatched": 200,
+          "peakPending": 1,
+          "outstandingAtReturn": 0,
+          "limited": true,
+          "delayMs": 20,
+          "maxAttempts": 200,
+          "returned": true
+        }
+      },
+      "boundary": "source-review-request-limit",
+      "prefixTargetsMet": false,
+      "completeBenchmark": false,
+      "modelCalls": 0,
+      "providerSaves": 0,
+      "liveAcceptance": false
+    }
+  ],
+  "earlierRecoveryFailure": {
+    "path": "intent/0289/PERFORMANCE.json",
+    "sha256": "d0371c364bbfb103b70675faf911499bffb91afe8a5e6950718c87a171e9e302",
+    "status": "Retained and unexplained; passing recovery is not a root cause or fix."
+  },
+  "progress": {
+    "verified": 17,
+    "total": 25,
+    "remaining": 8,
+    "percent": 68,
+    "deltaPoints": 0,
+    "C22": "pending"
+  }
+}

@@ -57,7 +57,23 @@ do not exclude expensive identity traffic or weaken checks to meet the number.
 
 ## Current gap and next work
 
-Latest: [0292](../intent/0292/EVIDENCE.md) reduces nested records metadata-policy
+Latest: [0293](../intent/0293/EVIDENCE.md) reads explicitly canonical pointer-free
+items without redundant directory catalogs, consolidates metadata-only selection/
+freshness checks, and reduces draft-read policy traversal while preserving write
+and key barriers. Source review drops from 317 to **232** attempts (26.81%), scope
+preparation from 1,250 to **932** (25.44%), and first confirmation from 11,213 to
+**10,483** (6.51%). All source bodies and repository requests remain; savings are
+identity traffic. The authenticated synthetic save/recovery/reopen passes.
+
+Both delayed prefix integrity checks pass but report the C22 failure: source
+review returns HTTP 401 at 202 attempts / 200 dispatches with no late work. Warmed
+draft-read p95 is 546.138 / 542.654 ms; all three cold and four concurrent draft
+reads per direction meet their bounds. These draft results and the failed prefix
+are not complete performance acceptance. [Raw samples](../intent/0293/PERFORMANCE.json)
+retain every measurement. Next remove remaining catalog/read boundary duplication
+and address bulk records validation; do not change the request ceiling.
+
+[0292](../intent/0292/EVIDENCE.md) reduces nested records metadata-policy
 traversal, without caching permission or changing content/key/SDK/effect barriers.
 Compared with 0291, scope-result reads fall from 337 to 227 requests, save review
 from 1,326 to 1,106, preview from 7,309 to 5,501 and first confirmation from 14,829

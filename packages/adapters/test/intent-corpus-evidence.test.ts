@@ -6,6 +6,7 @@ import { createGitHubReader } from '../src/code-host/github.ts';
 import { verifyScopeInventory } from '../src/code-host/scope-inventory.ts';
 import { planCandidateBundle } from '@steer/tool-registry/candidate-bundle-contracts';
 import { fixture, binding, now } from './github-brief-fixture.ts';
+import { createCandidateScopeCatalog } from '../src/code-host/candidate-scope-catalog.ts';
 
 const scope = { organizationId: 'org', productId: 'product', repository: 'github:52', branch: binding.branch };
 const input = { ...scope, scopeInputDigest: 'a'.repeat(64) };
@@ -34,6 +35,50 @@ async function candidate(f: Awaited<ReturnType<typeof setup>>, purpose: 'new-can
     documents: { brief: '# Candidate\nNotification scope\n', spec: '# Scope\nEmail only. No SMS.\n', exam: '# Candidate Exam\nNOT RUN\n' } });
   f.git.add(plan.files.map(x => ({ path: x.path, content: x.content }))); return plan;
 }
+test('explicit pointer-free canonical items match full catalog bytes and retain every source grant', async t => {
+  const f = await setup(t), grants: string[] = [], authorize = f.authority.authorizeSource;
+  f.git.add([{ path: 'items/0002-canonical/EXAM.md', content: 'DO_NOT_READ_CANONICAL_EXAM' },
+    { path: 'items/0002-canonical/notes/context.md', content: 'Not a scope artifact' }]);
+  f.authority.authorizeSource = async ref => { grants.push(ref.path); await authorize(ref); };
+  const result = await f.service.collect(input, async () => {});
+  const catalog = createCandidateScopeCatalog(f.reader, { ...scope, itemIds: ['0002-canonical'] }, async () => {});
+  try {
+    const full = await catalog.collect({ ...scope, revision: result.evidence.head });
+    assert.deepEqual(result.evidence.inventory.filter(x => x.targetId === 'items/0002-canonical').map(x => ({ path: x.path, digest: x.contentDigest })),
+      full.documents.map(x => ({ path: x.path, digest: x.contentDigest })));
+    for (const source of full.documents) assert.ok(grants.filter(path => path === source.path).length >= 3);
+    assert.equal(result.evidence.inventoryComplete, true);
+    assert.ok(result.evidence.inventory.filter(x => x.targetId === 'items/0002-canonical').every(x => x.status === 'canonical'));
+    assert.doesNotMatch(JSON.stringify(result), /DO_NOT_READ_CANONICAL_EXAM|Not a scope artifact/);
+  } finally { catalog.close(); }
+});
+test('plain canonical missing or nonregular documents stay incomplete with one per-root source gap', async t => {
+  for (const mode of ['missing-both', 'nonregular'] as const) {
+    const f = await setup(t);
+    f.git.add(mode === 'missing-both' ? [
+      { path: 'items/0002-canonical/BRIEF.md', content: null }, { path: 'items/0002-canonical/SPEC.md', content: null },
+      { path: 'items/0002-canonical/notes.md', content: 'Preserve the item root' },
+    ] : [{ path: 'items/0002-canonical/BRIEF.md', content: 'target', mode: '120000' }]);
+    const result = await f.service.collect(input, async () => {});
+    assert.equal(result.evidence.inventoryComplete, false); assert.equal(result.coverage.sourceGapCount, 1);
+    assert.equal(result.evidence.inventory.filter(x => x.targetId === 'items/0002-canonical').length, mode === 'missing-both' ? 0 : 1);
+    assert.equal(result.envelope.coverage.complete, false);
+  }
+});
+test('candidate and malformed proposal markers cannot enter the plain canonical path', async t => {
+  for (const path of ['CANDIDATE.json', 'proposals/not-a-proposal.json']) {
+    const f = await setup(t); f.git.add([{ path: `items/0002-canonical/${path}`, content: '{malformed' }]);
+    const result = await f.service.collect(input, async () => {});
+    assert.equal(result.evidence.inventoryComplete, false); assert.ok(result.coverage.sourceGapCount > 0);
+    assert.equal(result.envelope.coverage.complete, false);
+  }
+});
+test('caller revocation during metadata selection prevents all following source IO', async t => {
+  const f = await setup(t), select = f.authority.select; let allowed = true;
+  f.authority.select = async context => { allowed = false; return select(context); };
+  await assert.rejects(f.service.collect(input, async () => { if (!allowed) throw new Error('PRIVATE revoked caller'); }));
+  assert.ok(f.git.calls.every(call => !call.path.includes('/git/blobs/')));
+});
 test('repository-wide inventory discovers both namespaces at one commit, not just configured items, without reading bodies', async t => {
   const f = await setup(t), inventory = verifyScopeInventory(await f.reader.readScopeInventory(f.git.head()));
   assert.deepEqual(inventory.roots.map(r => r.path), ['intent/0001', 'items/0002-canonical']);
@@ -305,16 +350,16 @@ test('fresh callbacks cannot return nonvoid, revoke the caller or run after the 
 
 test('retained evidence uses a bounded policy sweep without skipping any selection, source grant or repository head barrier', async t => {
   const f = await setup(t); let later = false, permissions = 0, heads = 0, bodies = 0;
-  const selections: string[] = [], grants: string[] = [], authorize = f.authority.authorize,
+  const selections: string[] = [], grants: string[] = [], headBarriers: number[] = [], authorize = f.authority.authorize,
     select = f.authority.select, source = f.authority.authorizeSource, head = f.reader.readHead, artifact = f.reader.readArtifact;
   f.authority.authorize = async () => { if (later) permissions++; return authorize(); };
   f.authority.select = async context => { if (later) selections.push(context.root); return select(context); };
   f.authority.authorizeSource = async ref => { if (later) grants.push(ref.path); return source(ref); };
-  f.reader.readHead = async () => { if (later) heads++; return head(); };
+  f.reader.readHead = async () => { if (later) { heads++; headBarriers.push(permissions); } return head(); };
   f.reader.readArtifact = async (...args) => { if (later) bodies++; return artifact(...args); };
   await f.service.withReadSession(input, async () => {}, async read => {
     const first = await read(); later = true; assert.strictEqual(await read(), first);
-    assert.equal(permissions, 7); assert.equal(heads, 2); assert.equal(bodies, 0);
+    assert.equal(permissions, 4); assert.deepEqual(headBarriers, [1, 3]); assert.equal(heads, 2); assert.equal(bodies, 0);
     assert.deepEqual(selections, ['intent/0001', 'items/0002-canonical']);
     assert.deepEqual(grants.sort(), first.evidence.inventory.map(source => source.path).sort());
     later = false; return first;

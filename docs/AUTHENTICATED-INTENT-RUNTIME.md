@@ -62,6 +62,32 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Canonical-source reads and draft callback ownership — 0293
+
+After explicit canonical selection, items with neither CANDIDATE.json nor a
+proposals entry read Brief/Spec from the verified global inventory without
+constructing another catalog over the same in-memory directory. All source
+grants, caller/byte/hash/mode checks and incomplete-source gaps remain. Every
+pointer/proposals case uses the full catalog path; layout never establishes
+lifecycle. Canonical Exam and unrelated context remain excluded.
+
+Selection is permission metadata, followed by fresh checks at actual IO. The
+final sweep still rechecks every selection and consumed-source grant. Retained
+evidence keeps both head reads with independent current/all-grants brackets;
+those adjacent brackets also cover the intervening metadata sweep, reducing
+seven checks to four without skipping any policy or head read.
+
+Only draft read permission metadata uses the private read-policy composition.
+Create/append and every key access retain full caller brackets. The private read
+mode cannot create lifecycle or obtain a new key. Actual pending identity/policy/
+key callbacks retain the draft owner's admission after an inner-store timeout;
+closing suppresses late continuation. No permission cache or public bypass exists.
+
+[0293 evidence](../intent/0293/EVIDENCE.md) and [raw samples](../intent/0293/PERFORMANCE.json)
+record source review at 232 requests and first confirmation at 10,483. The
+authenticated synthetic save/recovery/reopen passes, but delayed source review
+still fails the 200-attempt target. C22 and live activation remain pending.
+
 ### Deeper records metadata authorization — 0292
 
 Current/historical scope and development readers, plus the read-only portion of

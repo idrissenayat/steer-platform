@@ -83,9 +83,10 @@ export function createIntentCorpusEvidence(reader: CorpusRepositoryReader, rawCo
           if (!parsed.success || Object.keys(context).some(k => parsed.data[k as keyof CorpusSelectionContext] !== context[k as keyof CorpusSelectionContext])) return null;
           return freeze(parsed.data);
         };
-        const select = async (context: CorpusSelectionContext) => {
-          await check(); const value = await observeSelection(context); await check(); return value;
-        };
+        // Selection is permission metadata, not content IO. Initial inventory
+        // authentication has completed; every following source read independently
+        // rechecks the caller/all-grants revision. The final sweep rechecks every
+        // selection, including excluded roots, before anything escapes.
         const readSource = bracketRepositoryRead(check, async (path: string, revision: string): Promise<ArtifactSnapshot> => {
           if (++reads > 100) throw unavailable();
           const file = sourceSchema.parse(await readCorpusArtifact(reader, inventorySnapshot, path, revision)); guard(); const entry = entries.get(path)!;
@@ -111,7 +112,7 @@ export function createIntentCorpusEvidence(reader: CorpusRepositoryReader, rawCo
         };
         for (const root of tree.roots) {
           if (observations.length >= 250 || reads >= 98) { unresolvedCount++; continue; }
-          const context = freeze({ ...reference, root: root.path, treeSha: root.objectSha }), selected = await select(context);
+          const context = freeze({ ...reference, root: root.path, treeSha: root.objectSha }), selected = await observeSelection(context);
           observations.push({ context, selected });
           if (!selected || selected.selection === 'unresolved') { unresolvedCount++; continue; }
           if (selected.selection === 'inaccessible') { accessGapCount++; continue; }
@@ -119,6 +120,20 @@ export function createIntentCorpusEvidence(reader: CorpusRepositoryReader, rawCo
           if (root.path.startsWith('intent/')) {
             if (selected.selection !== 'canonical') { unresolvedCount++; continue; }
             for (const name of ['BRIEF', 'SPEC']) try { include(await readSource(`${root.path}/${name}.md`, head), 'canonical', root.path); } catch { sourceGapCount++; }
+          } else if (selected.selection === 'canonical' && !entries.has(`${root.path}/CANDIDATE.json`)
+            && !entries.has(`${root.path}/proposals`)) {
+            // The globally verified same-commit inventory already establishes
+            // topology/modes. A governed canonical item with no candidate or
+            // proposal pointer needs only its Brief/Spec, not another catalog
+            // construction over that same in-memory directory. Any pointer or
+            // proposals entry (including nonregular/malformed ones) stays on the
+            // full catalog path. Layout never supplies lifecycle authority.
+            let gap = false;
+            for (const name of ['BRIEF', 'SPEC']) {
+              try { include(await readSource(`${root.path}/${name}.md`, head), 'canonical', root.path); }
+              catch { gap = true; }
+            }
+            if (gap) sourceGapCount++;
           } else {
             const itemId = root.path.slice(6);
             const port: CorpusRepositoryReader = { ...reader, readArtifact: readSource,
@@ -151,7 +166,7 @@ export function createIntentCorpusEvidence(reader: CorpusRepositoryReader, rawCo
         // only Brief/Spec bodies are emitted for semantic scope assessment.
         for (const path of consumed) { guard(); if (await authority.authorizeSource(freeze({ ...reference, path })) !== undefined) throw unavailable(); guard(); }
         await check();
-        if (shape.head.parse(await io(() => reader.readHead())) !== head) throw unavailable(); await check();
+        if (shape.head.parse(await io(() => reader.readHead())) !== head) throw unavailable();
         const selectionDigest = hash(observations.map(o => o.selected));
         const evidence = intentEvidenceInputSchema.parse({ ...scope, head, scopeInputDigest: input.scopeInputDigest, permissionsRevision,
           retrievalConfigurationRevision: `${config.retrievalConfigurationRevision}:${selectionDigest}`, inventoryComplete: unresolvedCount === 0 && sourceGapCount === 0,
@@ -199,7 +214,6 @@ export function createIntentCorpusEvidence(reader: CorpusRepositoryReader, rawCo
         // Revalidate retained immutable evidence in one policy-only sweep. Its
         // outer all-grants revision must remain exact. Repository reads retain
         // their own fresh barriers; source grants and selections are not cached.
-        await check();
         for (const observation of p.observations) {
           guard(); const selected = selectionSchema.parse(await authority.select(observation.context)); guard();
           if (hash(selected) !== hash(observation.selected)) throw unavailable();
@@ -207,9 +221,10 @@ export function createIntentCorpusEvidence(reader: CorpusRepositoryReader, rawCo
         for (const path of p.consumed) {
           guard(); if (await authority.authorizeSource(freeze({ ...scope, revision: p.head, path })) !== undefined) throw unavailable(); guard();
         }
-        await check();
+        // checked() supplies the fresh boundary after the metadata sweep and
+        // before head IO, then again after it. Do not add duplicate checks with
+        // no intervening policy, IO or effect.
         if (shape.head.parse(await checked(() => reader.readHead())) !== p.head) throw unavailable();
-        await check();
       };
       const read = () => {
         if (reading) { failed = true; return Promise.reject(unavailable()); }

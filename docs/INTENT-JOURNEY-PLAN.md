@@ -9,7 +9,28 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0292 / partial C22 — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0293 / partial C22 — 68% (17/25; 8 remaining; +0 points)**.
+0293 reads explicitly canonical pointer-free items directly from the verified
+inventory, preserves full catalog handling for pointers, and removes redundant
+metadata-only selection/freshness traversal. Draft reads now use read-only policy
+composition, while writes/keys retain full checks and inner callback timeouts
+retain outer admission. The authenticated synthetic save/recovery/reopen passes.
+Source review falls from 317 to 232 requests, scope preparation from 1,250 to 932
+and first confirmation from 11,213 to 10,483. See [0293 evidence](../intent/0293/EVIDENCE.md).
+The delayed prefix still fails source review at the existing request ceiling;
+warm/cold/concurrent draft reads pass. Next remove the remaining catalog/read
+boundary duplication and address bulk records validation before the full C22
+protocol. Live records/model/GitHub/UI prerequisites remain separate.
+
+Next C22 targets are bounded: first inspect the bundle-facing port in
+`candidate-scope-catalog.ts`, which still brackets a read whose underlying corpus
+port already brackets the same caller. Any forwarding must preserve actual
+policy execution, owner guards/admission, argument-independent authority and a
+full fallback for unrecognized/replaced ports; never cache a grant. Then address
+the much larger repeated records/history validation path with coherent read
+snapshots, preserving lifecycle/key checks and final readback before effects.
+
+Prior delivery checkpoint: **0292 / partial C22**.
 0292 removes duplicate caller traversal around read-only records permission
 queries. Every policy still runs, followed by fresh identity before continuation;
 key/SDK checks, source readbacks, effect barriers and admission/drain remain.
