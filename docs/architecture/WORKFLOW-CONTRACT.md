@@ -1053,3 +1053,28 @@ visibility changes clear private data and invalidate delayed responses. All-revi
 discovery, immutable final save and actual human/provider acceptance remain open.
 See [the comparison guide](../GENERATION-HISTORY-COMPARISON.md) and
 [0258 specification](../../intent/0258/SPEC.md).
+
+## All-preserved-revision run discovery — 0259
+
+`intent.runs.discover` is a human-only current-metadata query, distinct from
+content/history permission, current scope clearance and workflow execution. It
+enumerates captured scope and drafting originals for one owner-bound draft across
+all preserved source revisions under the current records configuration.
+
+The draft-only restricted SQL role validates original and exact revision metadata
+and lifecycle in read-only snapshots. Metadata-authority callbacks run without SQL
+leases; the final page, latest revision and records deadline must remain unchanged.
+Twenty references plus a revision-bound continuation cursor are public. Ordering
+uses revision/type/ID, not invented generation timestamps; neither an empty page
+nor missing captured input proves there was no prior attempted work.
+
+The actual conversation can inspect references through the existing separately
+authorized historical readers. Selection never adopts output, rebases/replaces
+editor content or restarts generation. Context, access failure, page changes,
+visibility loss and session/records expiry clear references and selected content.
+No keys, source text, provider wire or execution pool enters the discovery port.
+
+Admissions without captured originals are outside this list. Uncaptured-admission
+diagnostics, immutable final save and actual signed-in/provider/repository acceptance
+remain separate. See [the discovery guide](../RETAINED-RUN-DISCOVERY.md) and
+[0259 specification](../../intent/0259/SPEC.md).

@@ -59,7 +59,8 @@ saved-repository acceptance. Current records adoption (D1), model-budget approva
 live authority and semantic quality remain unresolved; the existing credential
 decision is not reopened.
 
-All-revision/orphan run discovery is still needed to recover earlier references
-after navigation. Immutable final-save preparation, confirmation, authorized start
+0259 adds [all-preserved-revision discovery](RETAINED-RUN-DISCOVERY.md) for captured
+scope and drafting originals after navigation. Admissions without captured inputs
+are not enumerated. Immutable final-save preparation, confirmation, authorized start
 and the complete human acceptance matrix remain open. See [0258 evidence](../intent/0258/EVIDENCE.md)
 and [the journey plan](INTENT-JOURNEY-PLAN.md).

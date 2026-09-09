@@ -78,7 +78,14 @@ try {
     await migrate(drizzle(admin), { migrationsFolder });
     assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 28);
   });
-  if(selection.mode==='development-history'){
+  if(selection.mode==='run-discovery'){
+    console.log('FOCUSED retained run discovery plus composed SQL/SDK history; NOT the full integration suite.');
+    await testScopeStepRuntime({admin,connect,check:async(name,run)=>{
+      if(name.startsWith('retained run discovery ')||name.startsWith('historical development composes '))await check(name,run);
+    }});
+    assert.equal(passed,7);
+    console.log(`FOCUSED run discovery result: ${passed-1} checks passed plus idempotent migration check; full suite NOT RUN.`);
+  }else if(selection.mode==='development-history'){
     console.log('FOCUSED retained development history/SQL/recorded SDK checks; NOT the full integration suite.');
     const selectedCheck = async (name:string,run:()=>Promise<void>) => {if(name.startsWith('historical development ')) await check(name,run);};
     await testScopeStepRuntime({admin,connect,check:selectedCheck});

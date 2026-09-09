@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import IntentRunHistory from './intent-run-history';
 import { intentDraftContentSchema, type IntentDraftContent } from '@steer/tool-registry/intent-draft-content';
 import { createIntentDraftTransport } from './intent-draft-transport';
 import { createIntentDraftEditor, type DraftEditorView } from './intent-draft-editor';
@@ -19,6 +20,7 @@ export default function IntentDraftPanel({ organizationId, productId, repository
   const [reviewRequest, setReviewRequest] = useState<{ sequence: number; revisionDigest: string } | null>(null);
   const [discoveryPage, setDiscoveryPage] = useState<IntentDraftDiscoveryOutput | null>(null);
   const [discoveryBusy, setDiscoveryBusy] = useState(false), [discoveryError, setDiscoveryError] = useState('');
+  const [runDraftId, setRunDraftId] = useState<string | null>(null);
   const [discoveredDraft, setDiscoveredDraft] = useState<IntentDraftDiscoveryEntry | null>(null);
   const discovery = useRef<ReturnType<typeof createIntentDraftTransport> | null>(null), discovering = useRef(false);
   const editor = useRef<ReturnType<typeof createIntentDraftEditor> | null>(null);
@@ -28,7 +30,7 @@ export default function IntentDraftPanel({ organizationId, productId, repository
   useEffect(() => {
     let last = Date.now(), closed = false;
     const search = createIntentDraftTransport(window.location.origin); discovery.current = search; discovering.current = false;
-    setDiscoveryPage(null); setDiscoveryBusy(false); setDiscoveryError(''); setDiscoveredDraft(null);
+    setDiscoveryPage(null); setDiscoveryBusy(false); setDiscoveryError(''); setDiscoveredDraft(null); setRunDraftId(null);
     const current = createIntentDraftEditor({ organizationId, productId, repository }, createIntentDraftTransport(window.location.origin), next => {
       const now = Date.now(), expiry = Date.parse(expiresAt);
       if (closed || !Number.isFinite(expiry) || now < last || now >= expiry || document.visibilityState === 'hidden') { close(); return; }
@@ -99,11 +101,16 @@ export default function IntentDraftPanel({ organizationId, productId, repository
           <button className="access-secondary" type="button" disabled={locked || pending || view.retryAvailable || !entry.latest} onClick={() => {
             setDiscoveredDraft(entry); void editor.current?.load(entry.draftId);
           }}>Review this draft</button>
+          <button className="access-secondary" type="button" disabled={locked || pending || view.retryAvailable || !entry.latest}
+            onClick={() => setRunDraftId(entry.draftId)}>Browse agent run history</button>
         </li>)}</ul>
         {discoveryPage.nextCursor && <button className="access-secondary" type="button" disabled={discoveryBusy} onClick={() => { void findDrafts(discoveryPage.nextCursor); }}>Show older drafts</button>}
         {discoveryPage.cursor && <button className="access-secondary" type="button" disabled={discoveryBusy} onClick={() => { void findDrafts(); }}>Return to newest drafts</button>}
       </>}
     </section>
+    {runDraftId && <><IntentRunHistory scope={{ organizationId, productId, repository }} draftId={runDraftId} currentSource={developmentSource}
+      subject={subject} identity={JSON.stringify([organizationId, productId, repository, subject])} expiresAt={expiresAt} locked={locked || pending || view.retryAvailable} />
+      <button className="access-secondary" type="button" onClick={() => setRunDraftId(null)}>Close agent run history</button></>}
     <details><summary>Reopen a draft by reference</summary>
       <label htmlFor="intent-draft-reference">Draft reference</label>
       <input id="intent-draft-reference" type="text" autoComplete="off" maxLength={36} value={draftId} onChange={event => setDraftId(event.target.value)} />
@@ -112,6 +119,7 @@ export default function IntentDraftPanel({ organizationId, productId, repository
     </details>
     {view.restored && <div className="intent-restored-preview"><h4 tabIndex={-1} ref={previewHeading}>Stored revision {view.restored.revision} — {view.restoredMode === 'history' ? 'history only' : 'review before replacing'}</h4>
       <p>Snapshot at read time. Another edit can still cause a conflict on your next save. Stored text does not establish agent authorship or prior approval.</p>
+      <button type="button" className="access-secondary" disabled={locked || pending} onClick={() => setRunDraftId(view.restored!.draftId)}>Browse this draft’s agent run history</button>
       <nav aria-label="Stored draft revision history" className="intent-document-buttons">
         <button className="access-secondary" type="button" disabled={locked || pending || view.restored.revision <= 1}
           onClick={() => { void editor.current?.load(view.restored!.draftId, view.restored!.revision - 1); }}>Previous stored revision</button>

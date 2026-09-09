@@ -25,7 +25,8 @@ async function component() {
   const finalReview = await compile('candidate-save-review', { './candidate-save-review-client': local('candidate-save-review-client') });
   const history = await compile('intent-development-history', { './intent-development-history-transport': local('intent-development-history-transport'), './brief-markdown': markdown });
   const development = await compile('intent-development-panel', { './intent-development-history': history, './candidate-save-review': finalReview, './intent-scope-panel': scopePanel, './intent-development-editor': local('intent-development-editor'), './intent-development-transport': local('intent-development-transport'), './brief-markdown': markdown });
-  const panel = await compile('intent-draft-panel', { './intent-development-panel': development, './intent-draft-editor': local('intent-draft-editor'), './intent-draft-transport': local('intent-draft-transport'), './brief-markdown': markdown });
+  const runHistory = await compile('intent-run-history', { './intent-development-history': history, './intent-scope-panel': scopePanel, './intent-run-discovery-transport': local('intent-run-discovery-transport') });
+  const panel = await compile('intent-draft-panel', { './intent-run-history': runHistory, './intent-development-panel': development, './intent-draft-editor': local('intent-draft-editor'), './intent-draft-transport': local('intent-draft-transport'), './brief-markdown': markdown });
   return (await import(await compile('intent-conversation', { './agent-transport': local('agent-transport'), './intent-scope-review': scope, './intent-draft-panel': panel, './brief-markdown': markdown }))).default;
 }
 
@@ -99,6 +100,11 @@ test('actual editor graph preserves older ACKs, recovers exact lost writes and e
     assert.match(document.activeElement.textContent, /Stored revision 3/);
     assert.equal(document.getElementById('agent-intent').value, 'Third unsent edit');
     assert.equal(document.querySelector('script, img'), null);
+    const beforeRunBrowse = calls.length;
+    await click('Browse this draft’s agent run history');
+    assert.ok(button('Find retained agent runs')); assert.equal(calls.length, beforeRunBrowse);
+    assert.equal(document.getElementById('agent-intent').value, 'Third unsent edit');
+    await click('Close agent run history'); assert.equal(button('Find retained agent runs'), undefined);
     const readCount = calls.length;
     await click('Previous stored revision');
     assert.match(document.activeElement.textContent, /Stored revision 2 — history only/);

@@ -5616,3 +5616,30 @@ preparation/confirmation/start, real records/model authority and live signed-in
 saved-repository acceptance remain open. No credential inspection, paid call,
 runtime Git save, live migration, gate, auth bypass, release or deployment. The
 one-minute loop remains active; user-owned roadmap/outputs are untouched.
+
+## Development increment: 0259 — Recover agent work across draft revisions
+
+The new human-only `intent.runs.discover` query lists captured scope and drafting
+originals across preserved revisions, including references lost from the current
+editor or a preparation acknowledgement. Current metadata authority, exact source
+bindings, owner/tenant RLS, keyset cursors and unchanged page snapshots are checked
+without keys, content, execution leases or writes.
+
+The actual draft UI explicitly selects earlier runs and uses the existing history
+readers for findings or original Brief/Spec/Exam comparison. It cannot replace text,
+adopt findings, restart agents, retry or save through this view. Context/page/access
+changes and session/records expiry clear references and selected content.
+
+See [0259 evidence](../intent/0259/EVIDENCE.md) and [the discovery guide](RETAINED-RUN-DISCOVERY.md).
+Final **1,199/1,199 regression tests**, types, optimized Next build, kit and workflow
+token-scope audit pass. Six focused SQL/SDK checks plus idempotent migration and
+the full **356/356 PostgreSQL 16.14 checks** pass. All 230 local links across 12 checked
+documents resolve and protected hashes are unchanged. The explicit server factory
+remains uninstalled pending real records authority.
+The actual browser tab showed the sign-in screen, not live history acceptance.
+
+Uncaptured-admission diagnostics, immutable final-save preparation/confirmation/
+start, real records/model/provider authority and signed-in saved-repository
+acceptance remain open. No paid calls, credential inspection, real runtime Git
+write, live migration, gate, auth bypass, release or deployment. User-owned
+roadmap/outputs are untouched; the one-minute loop remains active.

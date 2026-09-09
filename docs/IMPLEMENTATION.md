@@ -1,6 +1,16 @@
 # STEER platform implementation
 
-## Current checkpoint — 0258
+## Current checkpoint — 0259
+
+0259 lists captured scope and drafting runs across all preserved revisions of an
+owner-bound draft, with current metadata authority, exact bindings and stable
+pagination. The actual conversation links explicit selections to historical
+findings and original-document comparison without replacing text or starting work.
+See [the discovery guide](RETAINED-RUN-DISCOVERY.md) and [0259 evidence](../intent/0259/EVIDENCE.md).
+Uncaptured-admission diagnostics, immutable save preparation/confirmation/start
+and real authority/signed-in acceptance remain open.
+
+## Prior checkpoint — 0258
 
 0258 connects a combined historical document projection to the shared authenticated
 HTTP/MCP query and actual editor. Both completed SDK roles, their predecessor link

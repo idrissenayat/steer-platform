@@ -9,7 +9,7 @@ import BriefMarkdown from './brief-markdown';
 /** Explicit read-only comparison, never adoption or generation. Identity,
  * selected run/source/editor, expiry and visibility changes clear private data. */
 export default function DevelopmentHistory({input,original,currentSource,identity,expiresAt}:{
-  input:IntentDevelopmentHistoryInput;original:DevelopmentEditorSource;currentSource:DevelopmentEditorSource|null;identity:string;expiresAt:string;
+  input:IntentDevelopmentHistoryInput;original:Pick<DevelopmentEditorSource,'input'>;currentSource:DevelopmentEditorSource|null;identity:string;expiresAt:string;
 }){
   const [result,setResult]=useState<IntentDevelopmentHistoryOutput|null>(null),[state,setState]=useState('idle'),[resultKey,setResultKey]=useState('');
   const owner=useRef<ReturnType<typeof createIntentDevelopmentHistoryTransport>|null>(null),heading=useRef<HTMLHeadingElement>(null);

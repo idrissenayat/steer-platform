@@ -4,6 +4,7 @@ import { createCandidateOriginalStore, candidateOriginalConfigurationSchema } fr
 import { createCandidateSaveStatusReader } from '@steer/adapters/candidate-save-status-reader';
 import { candidateBundleStoreConfigurationSchema } from '@steer/adapters/github-candidate-bundle-store';
 import { createIntentScopeDiscovery } from '@steer/data/intent-scope-discovery';
+import { createIntentRunDiscovery } from '@steer/data/intent-run-discovery';
 import { createIntentScopeStarter } from '@steer/data/intent-scope-starter';
 import { createIntentScopePreparer } from '@steer/data/intent-scope-preparer';
 import { scopeReviewConfigurationSchema } from '@steer/data/scope-review-operations';
@@ -154,6 +155,11 @@ export function createCorpusRecordedDevelopmentReviewer(reader: Parameters<typeo
 export function createRecordedScopeDiscovery(pool: Parameters<typeof createIntentScopeDiscovery>[0], configuration: unknown,
   dependencies: Parameters<typeof createIntentScopeDiscovery>[2]) {
   return createIntentScopeDiscovery(pool, configuration, dependencies);
+}
+/** Explicit all-revision metadata history; never installed without real records authority. */
+export function createRecordedRunDiscovery(pool: Parameters<typeof createIntentRunDiscovery>[0], configuration: unknown,
+  dependencies: Parameters<typeof createIntentRunDiscovery>[2]) {
+  return createIntentRunDiscovery(pool, configuration, dependencies);
 }
 /** Owner-bound discovery is metadata only and remains uninstalled by default. */
 export function createRecordedDraftDiscovery(pool: Parameters<typeof createIntentDraftDiscovery>[0], configuration: unknown,

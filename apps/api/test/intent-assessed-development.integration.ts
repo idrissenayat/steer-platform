@@ -15,6 +15,8 @@ import { RECORDED_MASTRA_REVISION } from '@steer/agents/recorded-mastra';
 import { createRecordedDevelopmentModel } from '../../worker/src/recorded-development-model.ts';
 import { createDevelopmentStepRuntime } from '../../worker/src/development-step-runtime.ts';
 import { createApi } from '../src/app.ts';
+import { createRecordedRunDiscovery } from '../src/runtime.ts';
+import { intentRunDiscoveryOutputSchema } from '@steer/tool-registry/intent-run-discovery-contracts';
 
 type Fixture = Awaited<ReturnType<typeof scopeStepIntegrationFixture>>;
 type Dependencies = Parameters<typeof createAssessedRecordedDevelopmentPreparer>[3];
@@ -76,6 +78,15 @@ export async function testAssessedDevelopment(setup: (count?: number, ttl?: numb
         }finally{runtime.close();model.close();}
       }
       await f.edit();const reservations=await f.reservations();
+      const discovery=createRecordedRunDiscovery(f.pools.drafts,f.config,{authorize:async()=>{},authorizeEntry:async()=>{}});
+      try {
+        const page=intentRunDiscoveryOutputSchema.parse(await discovery.discover({organizationId:f.config.organizationId,productId:f.config.productId,
+          repository:f.config.repository,draftId:f.draftId,cursor:null},async()=>{}));
+        assert.equal(page.latest.revision,2);assert.deepEqual(page.entries.map(e=>e.kind),['development','scope']);
+        assert.ok(page.entries.every(e=>e.source.revision===1));
+        assert.equal(page.entries[0]!.kind==='development'&&page.entries[0]!.operationId,prepared.reference.operationId);
+        assert.equal(page.entries[1]!.kind==='scope'&&page.entries[1]!.reviewId,f.target.reviewId);
+      } finally {discovery.close();}
       const historyRecords={...records,authorizeHistoricalRead:async()=>{},
         originals:{...records.originals,scopeHistory:history,authorizeHistoricalRead:async()=>{},authorizeOperation:async()=>{throw new Error('No execution');}},
         results:{...records.results,authorizeHistoricalResult:async()=>{},authorizeOperation:async()=>{throw new Error('No execution');}}};

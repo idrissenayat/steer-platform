@@ -17,6 +17,7 @@ export const developmentRecordsConfigurationSchema = configurationSchema;
 const targetSchema = z.strictObject({ operationId:uuid,inputDigest:digest });
 const metadataSchema = configurationSchema.pick({ organizationId:true,subject:true,productId:true }).extend({ operationId:uuid,inputDigest:digest,
   draftId:uuid,draftRevision:revision,draftRevisionDigest:digest,scopeInputDigest:digest,configurationDigest:digest,executionConfigurationDigest:digest });
+export const developmentOriginalMetadataSchema = metadataSchema;
 type Target = z.infer<typeof targetSchema>;
 type Metadata = z.infer<typeof metadataSchema>;
 type Stored = { metadata:Metadata; envelope:z.infer<typeof draftEnvelopeSchema> };
