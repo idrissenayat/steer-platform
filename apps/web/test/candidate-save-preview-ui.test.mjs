@@ -20,7 +20,10 @@ async function fixture(existing = false) {
     const output = await describeCandidateSaveReview({ ...f.input, choice }, f.scope.subject, f.scope.branch, f.content.documents, f.evidence, f.binding);
     const previewInput = { ...f.previewInput, choice, itemId, proposalId: randomUUID(), reviewDigest: output.reviewDigest };
     const destination = { ...f.destination, itemId, purpose: 'amendment', lifecycle: 'existing-target-proposal-only', previousBundleDigest: '1'.repeat(64),
-      amendment: { proposalId: previewInput.proposalId, target: { itemId, revision: choice.target.revision }, parentProposalDigest: '2'.repeat(64) } };
+      amendment: { proposalId: previewInput.proposalId, target: { itemId, revision: '3'.repeat(40) }, parentProposalDigest: '2'.repeat(64) },
+      proposalContinuity: { kind: 'steer-proposal-continuity/v1', proposalId: previewInput.proposalId, targetRevision: '3'.repeat(40), reviewedRevision: choice.target.revision,
+        targetRootTreeSha: '4'.repeat(40), reviewedRootTreeSha: '5'.repeat(40), targetSurfaceDigest: '6'.repeat(64), reviewedSurfaceDigest: '6'.repeat(64),
+        briefContentDigest: choice.target.contentDigest, pointerDigest: '2'.repeat(64), manifestDigest: '1'.repeat(64) } };
     f = { ...f, output, previewInput, destination, prepared: await describeCandidateSavePreview(previewInput, output, f.content.documents, f.lineage, destination, 'app:synthetic') };
   }
   let code = (await transformWithOxc(readFileSync(new URL('../app/candidate-save-preview.tsx', import.meta.url), 'utf8'), '/synthetic/candidate-save-preview.tsx', { jsx: { runtime: 'automatic' } })).code;
@@ -182,7 +185,7 @@ test('package UI conceals stale/denied proposals and drops late results after id
     assert.doesNotMatch(document.body.textContent, /Exact package preview — not saved/); assert.equal(t.button('Preview exact package').disabled, true);
   } finally { release?.(); await t.cleanup(); }
 });
-test('actual proposal chooser lists verified references, blocks target rebasing and preserves the selected parent through preview and confirmation', async () => {
+test('actual proposal chooser permits deliberate older-target inspection and preserves separate original/current revisions through confirmation', async () => {
   const t = await fixture(true);
   try {
     await t.choose();
@@ -190,11 +193,14 @@ test('actual proposal chooser lists verified references, blocks target rebasing 
     assert.equal(t.button('Preview exact package').disabled, true);
     await t.click('Find existing proposals'); await t.until(() => document.getElementById('candidate-existing-proposal'));
     const select = document.getElementById('candidate-existing-proposal');
-    assert.equal([...select.options].filter(o => o.disabled).length, 1);
-    assert.match(document.body.textContent, /different target revision; review required/);
+    assert.equal([...select.options].filter(o => o.disabled).length, 0);
+    assert.match(document.body.textContent, /original target/);
     await act(async () => { select.value = t.f.previewInput.proposalId; select.dispatchEvent(new t.dom.window.Event('change', { bubbles: true })); });
     await t.click('Preview exact package'); await t.until(() => t.button('Confirm this exact package'));
     assert.match(document.body.textContent, /no automatic rebasing/); assert.equal(t.state.commands.length, 0);
+    assert.match(document.body.textContent, /unchanged item content and current proposal eligibility/);
+    assert.ok(document.body.textContent.includes(t.f.destination.proposalContinuity.targetRevision));
+    assert.ok(document.body.textContent.includes(t.f.output.expectedHead));
     await t.click('Confirm this exact package'); await t.until(() => t.state.commands.length === 1);
     assert.equal(t.state.commands[0].preview.proposalId, t.f.previewInput.proposalId);
     assert.equal(document.querySelector('input[type=checkbox]').disabled, true);
@@ -221,7 +227,8 @@ test('a preview substituted away from the chosen proposal parent is withheld bef
     await t.click('Find existing proposals'); await t.until(() => document.getElementById('candidate-existing-proposal'));
     await act(async () => { const select = document.getElementById('candidate-existing-proposal'); select.value = t.f.previewInput.proposalId; select.dispatchEvent(new t.dom.window.Event('change', { bubbles: true })); });
     const substituted = await describeCandidateSavePreview(t.f.previewInput, t.f.output, t.f.content.documents, t.f.lineage,
-      { ...t.f.destination, amendment: { ...t.f.destination.amendment, parentProposalDigest: '9'.repeat(64) } }, 'app:synthetic');
+      { ...t.f.destination, amendment: { ...t.f.destination.amendment, parentProposalDigest: '9'.repeat(64) },
+        proposalContinuity: { ...t.f.destination.proposalContinuity, pointerDigest: '9'.repeat(64) } }, 'app:synthetic');
     t.state.output = substituted.output;
     await t.click('Preview exact package'); await t.until(() => document.body.textContent.includes('Package preview is unavailable or changed'));
     assert.equal(t.button('Confirm this exact package'), undefined); assert.equal(t.state.commands.length, 0);

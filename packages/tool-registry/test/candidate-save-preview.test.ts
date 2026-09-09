@@ -87,10 +87,19 @@ test('linked new work, pre-pull corrections and amendment proposals bind their e
   assert.equal(plan.files.length, 6);
   assert.equal(plan.files.some(file => [`items/${targetId}/BRIEF.md`, `items/${targetId}/SPEC.md`, `items/${targetId}/EXAM.md`].includes(file.path)), false);
   const patch = { purpose: 'amendment', lifecycle: 'existing-target-proposal-only', previousBundleDigest: '2'.repeat(64),
-    amendment: { ...amendment, parentProposalDigest: '3'.repeat(64) } };
+    amendment: { ...amendment, target: { ...amendment.target, revision: '4'.repeat(40) }, parentProposalDigest: '3'.repeat(64) },
+    proposalContinuity: { kind: 'steer-proposal-continuity/v1', proposalId, targetRevision: '4'.repeat(40), reviewedRevision: target.revision,
+      targetRootTreeSha: '5'.repeat(40), reviewedRootTreeSha: '6'.repeat(40), targetSurfaceDigest: '7'.repeat(64), reviewedSurfaceDigest: '7'.repeat(64),
+      briefContentDigest: target.contentDigest, pointerDigest: '3'.repeat(64), manifestDigest: '2'.repeat(64) } };
   await assert.rejects(create('extend-existing', patch));
   const revised = await create('extend-existing', patch, proposalId);
   assert.equal(revised.output.manifest.previousBundleDigest, '2'.repeat(64));
+  assert.equal(revised.output.manifest.target!.revision, '4'.repeat(40)); assert.equal(revised.output.review.expectedHead, target.revision);
+  assert.equal('proposalContinuity' in revised.submission.bundle, false);
+  await assert.rejects(create('extend-existing', { ...patch, proposalContinuity: undefined }, proposalId));
+  for (const change of [{ proposalId: randomUUID() }, { targetRevision: target.revision }, { reviewedRevision: '4'.repeat(40) },
+    { briefContentDigest: 'a'.repeat(64) }, { pointerDigest: 'b'.repeat(64) }, { manifestDigest: 'c'.repeat(64) }, { reviewedSurfaceDigest: 'd'.repeat(64) }])
+    await assert.rejects(create('extend-existing', { ...patch, proposalContinuity: { ...patch.proposalContinuity, ...change } }, proposalId));
   const legacy = await candidateSavePreviewFixture(2), source = legacy.evidence.inventory[0]!;
   const choice = { action: 'new-linked' as const, target: { path: source.path, revision: legacy.output.expectedHead, contentDigest: source.contentDigest }, reason: 'No implicit migration' };
   const review = await describeCandidateSaveReview({ ...legacy.input, choice }, legacy.scope.subject, legacy.scope.branch, legacy.content.documents, legacy.evidence, legacy.binding);

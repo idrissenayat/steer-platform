@@ -33,7 +33,18 @@ scope, choose what to do, answer only necessary questions, review and correct a
 Brief/Spec/Exam bundle, save it to the authorized repository and reopen it exactly.
 No separate local preview, synthetic success, silent merging or lost work counts.
 
-Latest checkpoint: **0266 resolves existing candidates and first amendments**.
+Latest checkpoint: **0267 preserves original amendment targets through continuation**.
+Current scope review remains pinned to the latest head; selected-proposal preview
+separately verifies the original target, unchanged item surface, both parent
+digests and additional current governed eligibility. The actual chooser displays
+both commits. Changed/unavailable targets cannot silently rebase or become a new
+proposal. See [continuation guide](EXISTING-CANDIDATE-DESTINATION.md) and
+[0267 evidence](../intent/0267/EVIDENCE.md). Factories remain uninstalled.
+Next compose verified destinations with encrypted SQL/recorded-SDK package history,
+then complete actual governed bindings. Records/model/provider authority and
+signed-in I1–I6 acceptance remain open; changed-target rebasing is not implemented.
+
+0266 resolves existing candidates and first amendments.
 Pre-pull revisions verify the exact prior bundle and Brief mirror; proposal-only
 items get a reproducible first amendment without canonical replacements. A shared
 router composes new/existing directions under separate mandatory current policy

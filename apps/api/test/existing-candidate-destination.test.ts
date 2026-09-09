@@ -8,6 +8,7 @@ import { candidateSaveReviewOutputSchema } from '@steer/tool-registry/candidate-
 import { describeCandidateSavePreview } from '@steer/tool-registry/candidate-save-preview-contracts';
 import { planCandidateBundle } from '@steer/tool-registry/candidate-bundle-contracts';
 import { createVerifiedExistingCandidateDestination, createVerifiedCandidateSaveDestination } from '../src/runtime.ts';
+import { createApi } from '../src/app.ts';
 import { candidateInput } from '../../../packages/tool-registry/test/candidate-read-fixture.ts';
 import { candidateSavePreviewFixture } from '../../../packages/tool-registry/test/candidate-save-preview.fixture.ts';
 import { fixture, binding, now } from '../../../packages/adapters/test/github-brief-fixture.ts';
@@ -92,17 +93,17 @@ test('lifecycle is independently supplied, never guessed from pointer presence o
     assert.equal(result.purpose, 'amendment'); assert.ok(canonical.state.sources.every(p => p.endsWith('/BRIEF.md')));
   } finally { port.close(); }
 });
-test('selected proposal, wrong action, legacy/foreign item and configuration mismatches fail before Git I/O', async t => {
+test('wrong action, legacy/foreign item and configuration mismatches fail before Git I/O', async t => {
   const f = await setup(t), port = f.make();
   try {
-    for (const patch of [{ proposalId: randomUUID() }, { itemId: '0999-foreign' }, { configurationRevision: 'stale' },
+    for (const patch of [{ itemId: '0999-foreign' }, { configurationRevision: 'stale' },
       { organizationId: 'foreign' }, { choice: { action: 'new-distinct', reason: 'Do not fall back.' } },
       { choice: { ...f.review.choice, target: { path: 'intent/0001/BRIEF.md', revision: f.git.head(), contentDigest: 'f'.repeat(64) } } }])
       await assert.rejects(port.resolve({ ...f.input, ...patch } as typeof f.input, f.review, async () => {}));
     assert.equal(f.git.calls.length, 0); assert.equal(f.state.proofs, 0);
   } finally { port.close(); }
 });
-test('real older-target amendment demonstrates current-review incompatibility without silent rebase or replacement', async t => {
+test('older-target amendment remains denied without independent continuation eligibility despite matching item surface', async t => {
   const f = await setup(t, 'existing-target-proposal-only'), targetRevision = f.git.head(), proposalId = randomUUID();
   const plan = await planCandidateBundle({ ...candidateInput, itemId: f.input.itemId, expectedHead: targetRevision,
     purpose: 'amendment', amendment: { proposalId, target: { itemId: f.input.itemId, revision: targetRevision }, parentProposalDigest: null } });
@@ -110,7 +111,7 @@ test('real older-target amendment demonstrates current-review incompatibility wi
   try {
     assert.notEqual(targetRevision, f.git.head());
     await assert.rejects(port.resolve({ ...selected.input, proposalId }, selected.review, async () => {}));
-    assert.equal(f.git.calls.length, 0); assert.equal(f.git.mutations(), 0);
+    assert.ok(f.git.calls.length > 0); assert.equal(f.git.mutations(), 0);
   } finally { port.close(); }
 });
 test('candidate pointer and bundle failures never degrade into first amendments or new candidates', async t => {
@@ -201,4 +202,112 @@ test('composed destination dispatches only the human direction and never falls b
     assert.equal(created.purpose, 'new-candidate'); assert.equal(newProofs, 2); assert.equal(f.state.proofs, 2);
   } finally { port.close(); }
   await assert.rejects(port.resolve(f.input, f.review, async () => {}));
+});
+
+async function amendmentFixture(t: { after(run: () => void): void }) {
+  const f = await setup(t, 'existing-target-proposal-only'), targetRevision = f.git.head(), proposalId = randomUUID();
+  const parent = await planCandidateBundle({ ...candidateInput, itemId: f.input.itemId, expectedHead: targetRevision,
+    purpose: 'amendment', amendment: { proposalId, target: { itemId: f.input.itemId, revision: targetRevision }, parentProposalDigest: null } });
+  f.git.add(parent.files.map(({ path, content }) => ({ path, content })));
+  const bind = () => { const selected = f.bind(); return { review: selected.review, input: { ...selected.input, proposalId } }; };
+  const verify: ExistingCandidateDestinationAuthority['verify'] = async (...args) => ({ ...await f.authority.verify(...args) as object,
+    ...(args[0].proposalContinuity ? { proposalContinuation: 'eligible-unchanged-target' } : {}) });
+  return { ...f, targetRevision, proposalId, parent, selected: bind(), select: bind, verify,
+    continue: (reader: CorpusRepositoryReader = f.native, overrides: Partial<ExistingCandidateDestinationAuthority> = {}) => f.make(reader, { verify, ...overrides }) };
+}
+test('native Git amendment continuation keeps original A, reviews current B and advances only the selected parent through C', async t => {
+  const f = await amendmentFixture(t), port = f.continue(), currentHead = f.git.head();
+  try {
+    const result = await port.resolve(f.selected.input, f.selected.review, async () => {});
+    assert.deepEqual(await port.resolve(f.selected.input, f.selected.review, async () => {}), result);
+    assert.equal(result.expectedHead, currentHead); assert.notEqual(currentHead, f.targetRevision);
+    assert.equal(result.amendment!.target.revision, f.targetRevision); assert.equal(result.amendment!.proposalId, f.proposalId);
+    assert.equal(result.previousBundleDigest, f.parent.manifestDigest); assert.equal(result.amendment!.parentProposalDigest, f.parent.pointerDigest);
+    assert.equal(result.proposalContinuity!.targetSurfaceDigest, result.proposalContinuity!.reviewedSurfaceDigest);
+    assert.notEqual(result.proposalContinuity!.targetRootTreeSha, result.proposalContinuity!.reviewedRootTreeSha);
+    const preview = await describeCandidateSavePreview(f.selected.input, f.selected.review, f.f.content.documents, f.f.lineage, result, 'app:synthetic');
+    const plan = await planCandidateBundle({ ...preview.submission.bundle, operationId: randomUUID() }, preview.submission.confirmation);
+    assert.equal(plan.files.length, 6); assert.equal(preview.output.manifest.target!.revision, f.targetRevision);
+    assert.ok(plan.files.every(v => ![`${f.root}/BRIEF.md`, `${f.root}/SPEC.md`, `${f.root}/EXAM.md`].includes(v.path)));
+    // Direct owned native fixture commit, not provider write authorization.
+    f.git.add(plan.files.map(({ path, content }) => ({ path, content })));
+    const next = f.select(), again = await port.resolve(next.input, next.review, async () => {});
+    assert.equal(again.amendment!.target.revision, f.targetRevision); assert.equal(again.previousBundleDigest, plan.manifestDigest);
+    assert.equal(again.amendment!.parentProposalDigest, plan.pointerDigest); assert.notEqual(again.expectedHead, currentHead);
+    assert.equal(f.git.git(['show', `${f.git.head()}:${f.root}/SPEC.md`]), 'Canonical Spec: keep unchanged');
+    assert.equal(f.git.mutations(), 0); assert.equal(f.git.approvals(), 0);
+  } finally { port.close(); }
+});
+test('native amendment continuation rejects changed Spec, Exam, gates and hidden item content even when Brief is identical', async t => {
+  for (const path of ['SPEC.md', 'EXAM.md', 'gates/GATE-1.md', '.policy']) {
+    const f = await amendmentFixture(t);
+    f.git.add([{ path: `${f.root}/${path}`, content: 'Changed target state' }]); const selected = f.select(), port = f.continue();
+    try { await assert.rejects(port.resolve(selected.input, selected.review, async () => {})); assert.equal(f.state.proofs, 0); assert.equal(f.git.mutations(), 0); }
+    finally { port.close(); }
+  }
+});
+test('proposal continuation denies nonregular and oversized comparison surfaces and missing historical inventory', async t => {
+  for (const mode of ['120000', '100755']) {
+    const f = await amendmentFixture(t); f.git.add([{ path: `${f.root}/policy.txt`, content: 'unsupported', mode }]);
+    const selected = f.select(), port = f.continue(); try { await assert.rejects(port.resolve(selected.input, selected.review, async () => {})); } finally { port.close(); }
+  }
+  const f = await amendmentFixture(t), unavailable = f.continue({ ...f.native, readScopeInventory: async revision => {
+    if (revision === f.targetRevision) throw new Error('PRIVATE historical inventory'); return f.native.readScopeInventory(revision);
+  } });
+  try { await assert.rejects(unavailable.resolve(f.selected.input, f.selected.review, async () => {}), error => { assert.doesNotMatch(String(error), /PRIVATE/); return true; }); } finally { unavailable.close(); }
+  f.git.add(Array.from({ length: 129 }, (_, i) => ({ path: `${f.root}/files/${i}.md`, content: 'bounded' })));
+  const selected = f.select(), huge = f.continue(); try { await assert.rejects(huge.resolve(selected.input, selected.review, async () => {})); } finally { huge.close(); }
+});
+test('original and current canonical source permissions are mandatory without reading their bodies into the preview', async t => {
+  const f = await amendmentFixture(t);
+  for (const revision of [f.targetRevision, f.git.head()]) {
+    const port = f.continue(f.native, { authorizeSource: async reference => {
+      if (reference.revision === revision && reference.path === `${f.root}/SPEC.md`) throw new Error('PRIVATE canonical scope denial');
+    } });
+    try { await assert.rejects(port.resolve(f.selected.input, f.selected.review, async () => {})); } finally { port.close(); }
+  }
+  const port = f.continue(); try {
+    const result = await port.resolve(f.selected.input, f.selected.review, async () => {});
+    assert.doesNotMatch(JSON.stringify(result), /Canonical Spec|Canonical Exam|Candidate Exam/);
+  } finally { port.close(); }
+});
+test('continuation needs its own current eligibility and exact continuity context in both policy samples', async t => {
+  const f = await amendmentFixture(t);
+  for (const patch of [{ lifecycle: 'candidate-not-pulled' }, { proposalContinuation: undefined }, { proposalContinuity: undefined },
+    { relationship: { itemId: '0002-related', revision: f.targetRevision } }]) {
+    const port = f.continue(f.native, { verify: async (...args) => ({ ...await f.verify(...args) as object, ...patch }) });
+    try { await assert.rejects(port.resolve(f.selected.input, f.selected.review, async () => {})); } finally { port.close(); }
+  }
+  let calls = 0;
+  const late = f.continue(f.native, { verify: async (...args) => ({ ...await f.verify(...args) as object,
+    ...(++calls === 2 ? { proposalContinuation: undefined } : {}) }) });
+  try { await assert.rejects(late.resolve(f.selected.input, f.selected.review, async () => {})); assert.equal(calls, 2); } finally { late.close(); }
+});
+test('current review and selected proposal remain bound while unrelated repository changes require a fresh review and policy', async t => {
+  const f = await amendmentFixture(t), port = f.continue();
+  try {
+    f.git.add([{ path: 'unrelated.md', content: 'Requires a new current scope review' }]);
+    await assert.rejects(port.resolve(f.selected.input, f.selected.review, async () => {}));
+    const selected = f.select(), result = await port.resolve(selected.input, selected.review, async () => {});
+    assert.equal(result.expectedHead, f.git.head()); assert.equal(result.amendment!.target.revision, f.targetRevision);
+    const denied = f.continue(f.native, { verify: async () => { throw new Error('Changed external policy invalidates target eligibility'); } });
+    try { await assert.rejects(denied.resolve(selected.input, selected.review, async () => {})); } finally { denied.close(); }
+  } finally { port.close(); }
+});
+test('human-only HTTP package preview composes native proposal continuity with a synthetic final review and lineage', async t => {
+  const f = await amendmentFixture(t), port = f.continue();
+  const principal = { organizationId: f.config.organizationId, subject: f.config.subject, type: 'human', hats: [],
+    toolGrants: ['intent.candidate.save.preview'], expiresAt: new Date(Date.now()+60000).toISOString() };
+  const app = createApi({ authenticate: async () => principal, services: { candidateSavePreviewer: { scope: port.scope,
+    preview: async (input, current) => (await describeCandidateSavePreview(input, f.selected.review, f.f.content.documents, f.f.lineage,
+      await port.resolve(input, f.selected.review, current), 'app:synthetic')).output } } });
+  const post = () => app.request('/v1/tools/intent.candidate.save.preview', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(f.selected.input) });
+  try {
+    const response = await post(); assert.equal(response.status, 200, await response.clone().text()); assert.equal(response.headers.get('cache-control'), 'no-store');
+    const result = await response.json(); assert.equal(result.destination.proposalContinuity.targetRevision, f.targetRevision);
+    assert.equal(result.review.expectedHead, f.git.head()); assert.equal(result.savedToGit, false); assert.equal(result.gateSigned, false);
+    principal.type = 'agent'; assert.equal((await post()).status, 403);
+    principal.type = 'human'; principal.toolGrants = []; assert.equal((await post()).status, 403);
+    assert.equal(f.git.mutations(), 0);
+  } finally { port.close(); }
 });

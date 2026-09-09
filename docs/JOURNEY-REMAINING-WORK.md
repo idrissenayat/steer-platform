@@ -22,9 +22,10 @@ dependency is trusted destination/lifecycle composition. 0265 implements the new
 distinct/linked repository branch under a mandatory current policy verifier; next
 is existing-item lifecycle/prior-pointer composition and actual policy binding.
 0266 now verifies pre-pull candidate parents and first amendment destinations and
-composes both direction ports. Existing-proposal continuation remains closed due
-to the immutable-target/current-review mismatch; resolve that contract next, then
-complete actual governed bindings. See [existing-item destination](EXISTING-CANDIDATE-DESTINATION.md)
+composes both direction ports. 0267 resolves unchanged-target existing-proposal
+continuation with separate current/original revisions and independent eligibility;
+changed targets still deny. Next compose native destination ports with the encrypted
+SQL/SDK package journey and complete actual governed bindings. See [existing-item destination](EXISTING-CANDIDATE-DESTINATION.md)
 and [new-candidate destination](NEW-CANDIDATE-DESTINATION.md). Actual records adoption,
 model/provider/write authority and signed-in I1–I6 acceptance remain separate and
 unresolved; these tested, uninstalled services do not complete the live journey.

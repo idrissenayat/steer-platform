@@ -1,6 +1,17 @@
 # STEER platform implementation
 
-## Current checkpoint — 0266
+## Current checkpoint — 0267
+
+0267 resolves unchanged-target amendment continuation. It keeps final scope review
+current while separately verifying the original target surface and selected
+pointer/bundle parents under additional current policy eligibility. The actual
+chooser displays original/current revisions and preserves deliberate selection.
+See [continuation guide](EXISTING-CANDIDATE-DESTINATION.md) and
+[0267 evidence](../intent/0267/EVIDENCE.md). Changed-target rebasing remains unsupported.
+Next compose native destinations into encrypted SQL/SDK package history and finish
+actual governed bindings; factories remain uninstalled and live I1–I6 acceptance open.
+
+## Prior checkpoint — 0266
 
 0266 adds exact prior-bundle candidate revision and first-amendment destination
 verification, plus a shared new/existing direction router. Lifecycle remains a

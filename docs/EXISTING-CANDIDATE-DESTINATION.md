@@ -5,6 +5,8 @@
 `createVerifiedExistingCandidateDestination` and `createVerifiedCandidateSaveDestination`.
 They implement the [package-preview](CANDIDATE-PACKAGE-PREVIEW.md) destination port,
 but remain uninstalled. They do not create another frontend or activate saving.
+0267 adds selected-proposal continuation with separate current-review/original-target
+bindings, conservative item-surface comparison and additional current policy eligibility.
 
 ## Supported directions
 
@@ -12,7 +14,8 @@ but remain uninstalled. They do not create another frontend or activate saving.
 |---|---|---|
 | Extend existing; candidate not pulled; no proposal selected | Current target Brief, exact candidate pointer, manifest, three documents and root Brief mirror | Candidate revision with the previous manifest digest and permitted existing relationship |
 | Extend existing; canonical/in-flight target is proposal-only; no proposal selected | Current target Brief and absent deterministic proposal path | First amendment, preserving the exact reviewed target; no prior bundle/parent |
-| Extend existing; existing proposal selected | Current-review and historical-target protocol is not yet resolved | Unavailable; no replacement proposal, silent rebase or new-item fallback |
+| Extend existing; existing proposal selected; independently eligible unchanged target | Exact selected pointer/bundle at current head, original target inventory/Brief, matching item surface at both commits and current continuation policy | Amendment correction with original target and both exact parent digests |
+| Selected proposal but changed/unavailable target, missing current policy or invalid parent | No equivalence, availability or eligibility may be inferred | Unavailable; no replacement proposal, silent rebase or new-item fallback |
 
 The shared router dispatches solely on the reviewed human direction. A failure in
 the existing-item branch never falls back to a new candidate. Lifecycle is not
@@ -22,8 +25,9 @@ supplied by the browser, guessed from filenames or established by an allowlist.
 
 1. Validate the exact preview reference, current human, fixed configuration and
    review digest. Require an allowed `items/<id>/BRIEF.md` target matching the
-   requested item. Legacy namespaces, new directions and selected proposal IDs
-   fail closed in the existing-item resolver before Git I/O.
+   requested item. Legacy namespaces and new directions fail closed in the
+   existing-item resolver before Git I/O. Selected proposals require the additional
+   verification below; selection is not continuation eligibility.
 2. Require the configured current branch head to equal the final review and target
    revision. Validate the bounded immutable inventory and regular item tree.
 3. Verify the target Brief's exact UTF-8 bytes, path, repository, commit, SHA-256
@@ -57,34 +61,63 @@ router retain their own four-slot limits (at most eight combined); a pending I/O
 keeps its originating slot until it drains even after timeout/close. No model,
 SQL, operation dispatch, write API or credential-storage port is added.
 
-## Existing-proposal revision mismatch: still open
+## Selected-proposal continuation — 0267
 
-This is an engineering contract gap, not a request to sign another gate. A first
+0266 identified an engineering contract gap, not a need to sign another gate. A first
 proposal targets commit A and is committed at B. Its original target must remain A.
-However, `describeCandidateSaveReview` currently requires the selected target
-revision to equal the current source-snapshot head, B. Pure package preview then
-requires the amendment target to equal that reviewed target. Thus simply asking
-for another current review cannot make this existing proposal compatible—even if
-the Brief text happens to be unchanged. The native fixture demonstrates A != B.
+`describeCandidateSaveReview` still requires the current source-snapshot head B.
+For a selected existing proposal only, package preview now separately requires a
+repository-verified `proposalContinuity` value. The final review remains current;
+the manifest retains original target A. A correction committed at C keeps A while
+advancing only the selected pointer/bundle parent. Native Git tests exercise all
+three different commits rather than a synthetic same-commit shortcut.
 
-The earlier selection guide's suggestion to re-review the original target is not
-an implemented recovery route. The resolver explicitly rejects a selected proposal
-before I/O; the user must not be nudged into clearing that selection as a retry.
-Independently choosing a new amendment remains a different human direction.
+The resolver reads and verifies the selected pointer, manifest and all candidate
+documents at B, then validates the complete bounded inventory at original target A.
+The Brief at both commits must have the reviewed content digest. More importantly,
+it fingerprints every entry under the item except the protocol-owned `candidates/`
+and `proposals/` directories. Root Spec/Exam, gates, hidden files, other nested
+directories, modes and native object IDs all participate. The two fingerprints
+must match exactly. Reserved roots must be directories; nonregular content or more
+than 128 comparison entries makes continuation unavailable. This is conservative
+physical equality, not semantic equivalence or proof of ancestor lineage.
 
-Next resolve the unsigned selected-proposal contract: bind the current repository
-review and immutable original proposal target separately, verify current target
-eligibility and relevant source changes, carry both exact parent digests, and
-require explicit human direction when scope changed. Do not relax current search,
-silently rebase, infer equivalence from Brief text alone or mutate signed artifacts.
-Then connect that contract to final review, package preview and proposal selection
-with native Git round-trip and API/UI regression coverage.
+Current source permission is required for every included regular file at both
+commits. Inventory object IDs establish exact unchanged bytes without loading
+canonical Spec/Exam bodies into the preview. Only the original/current Brief and
+the selected candidate bundle are read as content. Permission and lifetime checks
+surround I/O and result release. The existing 30-second/four-slot limit is retained.
+
+The trusted policy verifier must additionally establish original-target lineage,
+current proposal openness/eligibility and whether relevant changes outside the
+compared item invalidate that target. It must explicitly return
+`eligible-unchanged-target`, binding the complete continuity context in both stable
+proof samples. A matching fingerprint or configuration cannot grant this result;
+the actual governed service is still an uninstalled dependency. The resolver does
+not itself prove Git ancestry or determine cross-item semantic impact.
+
+Continuity metadata binds both revisions/root trees, equal surface digests, Brief
+digest, selected proposal ID and exact pointer/manifest parents. The shared pure
+preview verifies those bindings and retains original target A in the manifest.
+Missing continuity rejects existing-proposal previews, including older synthetic
+same-head fixtures; retained originals are not rewritten. The field is optional
+only for other directions and is never copied into the write-plan bundle.
+
+The actual package chooser permits deliberate selection of an older-target
+proposal and displays both commits. Preview verifies unchanged content and current
+eligibility before confirmation; listing is not that verification. Selected parent
+substitution, unavailable evidence or changed item content withholds confirmation.
+The UI does not clear the proposal to create another one. Changed-target rebasing
+is not implemented; separately choosing a new amendment requires fresh explicit
+human direction and current review. No signed artifact is changed by this contract.
 
 ## Evidence and activation boundary
 
-See [0266 specification](../intent/0266/SPEC.md) and [evidence](../intent/0266/EVIDENCE.md).
+See [0267 specification](../intent/0267/SPEC.md) and [evidence](../intent/0267/EVIDENCE.md).
 Native Git tests with synthetic transport, policy, review and lineage exercise
 the adapter and pure package planner. They do not demonstrate installation into
 the encrypted SQL/SDK preview or the real signed-in UI journey. Actual governed
 policy bindings, D1 records adoption, model/provider/write authority and I1–I6
-acceptance remain separate. No live activation or gate decision is made here.
+acceptance remain separate. Next compose these native destination ports with the
+encrypted SQL/recorded-SDK package journey and complete actual governed runtime
+bindings. No live activation or gate decision is made here.

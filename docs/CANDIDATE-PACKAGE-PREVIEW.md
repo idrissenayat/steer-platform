@@ -26,9 +26,9 @@ The explicit server factory composes:
    provides [repository-backed new-item resolution](NEW-CANDIDATE-DESTINATION.md)
    for distinct/linked work under a mandatory current policy verifier. 0266 adds
    [existing candidate/first-amendment resolution and shared routing](EXISTING-CANDIDATE-DESTINATION.md).
-   Existing-proposal continuation remains unavailable pending its immutable-target/
-   current-review contract correction. There is no default port or fixture fallback
-   in application startup.
+   0267 supports selected-proposal continuation only with exact original/current
+   target continuity and additional current policy eligibility. Changed targets
+   remain unavailable. There is no default port or fixture fallback in startup.
 4. Final history, original, source review, destination, draft and caller-authority
    rechecks. Changes invalidate the whole proposal. Four active requests and a
    60-second server deadline bound work; timed-out dependencies retain their
@@ -54,7 +54,10 @@ This is reproducibility, not authorization, a reservation or durable consent.
   its prior bundle binding and any authority-verified existing relationship.
 - In-flight work uses an amendment, never a canonical-document overwrite. A new
   proposal ID must be supplied reproducibly by the trusted destination port;
-  correcting an existing proposal requires its explicit ID and both prior digests.
+  correcting an existing proposal requires its explicit ID, both prior digests and
+  verified unchanged-target continuity under current policy. Current scope review
+  stays current; the amendment retains its original target commit. Missing or
+  changed target evidence is not permission to rebase or create another proposal.
 - Legacy `intent/` targets are rejected until an explicit publication mapping
   exists. No automatic migration or guessed `items/` identity is performed.
 

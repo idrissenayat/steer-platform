@@ -5833,3 +5833,29 @@ protected signed-file hashes and user-owned roadmap/outputs are unchanged.
 Factories remain uninstalled; no SQL migration or new SQL-suite result is introduced
 here. Actual records/model/provider/write activation remains closed under existing
 boundaries.
+
+## Development increment: 0267 — Unchanged-target amendment continuation
+
+Current scope review remains pinned to the latest head while selected-proposal
+destination verification separately binds the original target and both exact
+parents. All non-candidate/proposal item entries must match at original/current
+commits under current source access. Root Spec/Exam, gates and hidden content are
+included; Brief text alone is insufficient. Additional independent current policy
+must establish lineage, proposal eligibility and relevant outside-item impact.
+
+The actual package chooser displays original/current commits and permits deliberate
+older-target verification. Missing/changed source or eligibility withholds preview;
+selected parents cannot be substituted. The original target stays unchanged through
+the native A → B → C correction test. No implicit rebase or replacement is added.
+See [0267 evidence](../intent/0267/EVIDENCE.md) and
+[the continuation guide](EXISTING-CANDIDATE-DESTINATION.md).
+
+Verification: 1,287 regression tests; prototype/eight-package type checks; optimized
+Next build; kit and workflow-token audit; and the focused 40-check candidate-save
+SQL/Temporal/native-Git run plus idempotent migration check pass. The latter is not
+the full SQL suite or proof of continuity installation into encrypted SDK history.
+Protected signed hashes are unchanged; actual user acceptance remains open.
+
+Next compose native destinations into the encrypted SQL/recorded-SDK package
+journey and complete actual governed bindings. Factories remain uninstalled;
+records/model/provider/write activation stays closed under existing prerequisites.

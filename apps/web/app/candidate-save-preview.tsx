@@ -63,7 +63,7 @@ export default function CandidatePackagePreview({ review, source, identity, expi
   }
   const existing = review.choice.action === 'extend-existing' ? /^items\/([^/]+)\/BRIEF\.md$/.exec(review.choice.target.path)?.[1] : undefined;
   const chosenProposal = reviseProposal ? proposals?.entries.find(entry => entry.proposalId === proposal) : undefined;
-  const destinationReady = !reviseProposal || !!(chosenProposal && review.choice.action === 'extend-existing' && chosenProposal.target.revision === review.choice.target.revision);
+  const destinationReady = !reviseProposal || !!(chosenProposal && review.choice.action === 'extend-existing' && chosenProposal.target.itemId === existing);
   async function findProposals(cursor: string | null = null) {
     const session = owner.current;
     if (!session?.valid() || busy.current || !existing || !reviseProposal) return;
@@ -154,14 +154,16 @@ export default function CandidatePackagePreview({ review, source, identity, expi
         {proposals && <><label htmlFor="candidate-existing-proposal">Existing proposal at the reviewed commit</label>
           <select id="candidate-existing-proposal" value={proposal} disabled={working} onChange={event => { setProposal(event.target.value); setReceipt(null); }}>
             <option value="">Select a verified proposal</option>{proposals.entries.map(entry => <option key={entry.proposalId} value={entry.proposalId}
-              disabled={review.choice.action !== 'extend-existing' || entry.target.revision !== review.choice.target.revision}>
-              {entry.proposalId}{review.choice.action === 'extend-existing' && entry.target.revision !== review.choice.target.revision ? ' — different target revision; review required' : ''}</option>)}</select>
+              disabled={review.choice.action !== 'extend-existing' || entry.target.itemId !== existing}>
+              {entry.proposalId} — original target {entry.target.revision.slice(0, 12)}</option>)}</select>
           <p>{proposals.inventoryCount} proposal pointers at this commit. Listing does not establish that a proposal is open or editable.</p>
           {!proposals.entries.length && <p>No proposals on this page at the reviewed commit. This is not permission to create another intent.</p>}
           {proposals.nextCursor && <button type="button" disabled={working} onClick={() => { void findProposals(proposals.nextCursor); }}>More proposals</button>}
           {proposals.cursor && <button type="button" disabled={working} onClick={() => { void findProposals(); }}>First proposal page</button>}
         </>}
-        {chosenProposal && <p>Selected proposal: <code>{chosenProposal.proposalId}</code>. The preview must preserve this exact parent pointer and bundle; no automatic rebasing.</p>}
+        {chosenProposal && <><p>Selected proposal: <code>{chosenProposal.proposalId}</code>. The preview must preserve this exact parent pointer and bundle; no automatic rebasing.</p>
+          <p>Original target: <code>{chosenProposal.target.revision}</code>. Current review: <code>{review.expectedHead}</code>.</p>
+          <p>The server must verify unchanged item content and current proposal eligibility. A changed or unavailable target blocks continuation; it does not create another proposal.</p></>}
       </>}
     </>}
     <button type="button" className="access-secondary" disabled={working || state === 'closed' || !parsed.success || !destinationReady || (review.choice.action === 'extend-existing' && !existing)} onClick={() => { void preview(); }}>Preview exact package</button>
@@ -174,6 +176,8 @@ export default function CandidatePackagePreview({ review, source, identity, expi
       <p>Original generation: draft revision {result.generation.source.revision}. Preserved documents: revision {result.review.revision}.</p>
       <p>{result.manifest.lineage.editedDocuments.length ? `Changed from original output: ${result.manifest.lineage.editedDocuments.map(n => n.toUpperCase()).join(', ')}.` : 'All document bytes match the original agent output.'}</p>
       <p>Spec conformance: {result.manifest.specConformance.state}. Exam review: {result.manifest.examReview.state}. Neither is a gate signature.</p>
+      {result.destination.proposalContinuity && <p>Continuing the selected proposal without rebasing. Original target: <code>{result.destination.proposalContinuity.targetRevision}</code>.
+        {' '}Current review: <code>{result.destination.proposalContinuity.reviewedRevision}</code>. The unchanged item surface and current eligibility were checked for this preview.</p>}
       <details><summary>Exact package references</summary><p>Expected commit: <code>{result.destination.expectedHead}</code></p>
         <p>Manifest: <code>{result.manifestDigest}</code></p><p>Preview: <code>{result.previewDigest}</code></p></details>
       <p>Confirming preserves this exact package for a later authorized save. It does not start the save, commit to GitHub, or sign a gate.</p>

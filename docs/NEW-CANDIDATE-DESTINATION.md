@@ -67,8 +67,9 @@ The adapter has no model, SQL, write, operation-dispatch or credential-storage p
 
 0266 adds a separate [existing-item resolver and shared router](EXISTING-CANDIDATE-DESTINATION.md)
 for verified pre-pull candidate revisions and first amendments. This new-item
-resolver remains intentionally narrow. Existing-proposal continuation is still
-closed pending its historical-target/current-review contract correction.
+resolver remains intentionally narrow. 0267 adds existing-proposal continuation
+only for verified unchanged targets under additional current policy eligibility;
+it never silently rebases changed targets.
 
 This closes repository-backed resolution for the two new-candidate directions
 under supplied current policy verification. It does **not** implement the actual
@@ -78,5 +79,6 @@ access is added.
 
 See [0265 specification](../intent/0265/SPEC.md), [evidence](../intent/0265/EVIDENCE.md)
 and [current journey](INTENT-JOURNEY-PLAN.md). With 0266's partial existing-item
-composition in place, next resolve existing-proposal continuation, then complete
-governed runtime bindings and actual I1–I6 acceptance when prerequisites are satisfied.
+composition and 0267's unchanged-target continuation in place, next compose native
+destinations with encrypted SQL/SDK package history, then complete governed runtime
+bindings and actual I1–I6 acceptance when prerequisites are satisfied.

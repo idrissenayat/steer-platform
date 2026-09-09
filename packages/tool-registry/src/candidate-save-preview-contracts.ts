@@ -12,6 +12,15 @@ export const candidateSavePreviewInputSchema = candidateSaveReviewInputSchema.ex
   itemId: bundle.itemId,
   proposalId: bundle.amendment.unwrap().shape.proposalId.nullable(),
 });
+/** Repository-verified unchanged item surface plus independently established
+ * lifecycle eligibility. Structural validation alone is never that authority. */
+export const candidateProposalContinuitySchema = z.strictObject({
+  kind: z.literal('steer-proposal-continuity/v1'), proposalId: bundle.amendment.unwrap().shape.proposalId,
+  targetRevision: bundle.expectedHead, reviewedRevision: bundle.expectedHead,
+  targetRootTreeSha: bundle.expectedHead, reviewedRootTreeSha: bundle.expectedHead,
+  targetSurfaceDigest: digest, reviewedSurfaceDigest: digest, briefContentDigest: digest,
+  pointerDigest: digest, manifestDigest: digest,
+}).refine(v => v.targetSurfaceDigest === v.reviewedSurfaceDigest, 'The original target surface changed.');
 /** Supplied only by a current, trusted repository/lifecycle reader. File presence
  * alone cannot prove that an item has not been pulled or that a target is mutable. */
 export const candidateSaveDestinationSchema = z.strictObject({
@@ -20,6 +29,7 @@ export const candidateSaveDestinationSchema = z.strictObject({
   previousBundleDigest: bundle.previousBundleDigest, amendment: bundle.amendment, relationship: bundle.relationship,
   lifecycle: z.enum(['absent-item', 'candidate-not-pulled', 'existing-target-proposal-only']),
   authorityDigest: digest,
+  proposalContinuity: candidateProposalContinuitySchema.optional(),
 });
 const role = z.strictObject({ configurationRevision: bundle.architectConfigurationRevision, resultRef: z.uuid(), resultDigest: digest, outputDigest: digest });
 export const candidateGenerationLineageSchema = z.strictObject({
@@ -69,13 +79,19 @@ export async function describeCandidateSavePreview(raw: unknown, rawReview: unkn
     || destination.itemId !== itemId
     || (proposalId !== null && (destination.amendment?.proposalId !== proposalId
       || destination.purpose !== 'amendment' || !destination.amendment.parentProposalDigest || !destination.previousBundleDigest))
-    || (proposalId === null && destination.amendment?.parentProposalDigest)) throw fail();
+    || (proposalId === null && (destination.amendment?.parentProposalDigest || destination.proposalContinuity))) throw fail();
   const choice = input.choice;
   const target = 'target' in choice ? /^items\/([0-9]{4}-[a-z0-9]+(?:-[a-z0-9]+)*)\/BRIEF\.md$/.exec(choice.target.path)?.[1] : undefined;
   if ('target' in choice && !target) throw fail(); // Never invent a legacy-to-items mapping.
   if (choice.action === 'extend-existing') {
     if (itemId !== target || destination.purpose === 'new-candidate') throw fail();
-    if (destination.amendment && destination.amendment.target.revision !== choice.target.revision) throw fail();
+    if (proposalId !== null) {
+      const continuity = destination.proposalContinuity;
+      if (!continuity || continuity.proposalId !== proposalId || continuity.targetRevision !== destination.amendment?.target.revision
+        || continuity.reviewedRevision !== choice.target.revision || continuity.reviewedRevision !== review.expectedHead
+        || continuity.briefContentDigest !== choice.target.contentDigest || continuity.pointerDigest !== destination.amendment.parentProposalDigest
+        || continuity.manifestDigest !== destination.previousBundleDigest) throw fail();
+    } else if (destination.amendment && destination.amendment.target.revision !== choice.target.revision) throw fail();
   } else if (destination.purpose !== 'new-candidate') throw fail();
   if (choice.action === 'new-linked') {
     if (!destination.relationship || destination.relationship.itemId !== target || destination.relationship.revision !== choice.target.revision) throw fail();
@@ -83,7 +99,7 @@ export async function describeCandidateSavePreview(raw: unknown, rawReview: unkn
   const editedDocuments = (['brief', 'spec', 'exam'] as const).filter(name =>
     JSON.stringify(review.documents[name]) !== JSON.stringify(generation.originalDocuments[name]));
   const identity = await hash(['steer-candidate-preview-bundle/v1', input, review, generation, destination, serviceCommitter]);
-  const { authorityDigest: _authority, lifecycle: _lifecycle, ...destinationInput } = destination;
+  const { authorityDigest: _authority, lifecycle: _lifecycle, proposalContinuity: _continuity, ...destinationInput } = destination;
   const value = candidateBundleInputSchema.parse({ ...destinationInput,
     bundleId: uuidFromDigest(identity), operationId: placeholder, originatorSubject: review.subject, serviceCommitter,
     architectConfigurationRevision: generation.architect.configurationRevision, examConfigurationRevision: generation.testAgent.configurationRevision,

@@ -1232,3 +1232,27 @@ do not silently rebase or infer unchanged scope from Brief text alone.
 These explicit factories are uninstalled and do not implement actual governed
 policy services or live records/provider authority. See [existing-item guide](../EXISTING-CANDIDATE-DESTINATION.md),
 [0266 specification](../../intent/0266/SPEC.md) and [evidence](../../intent/0266/EVIDENCE.md).
+
+### Immutable amendment target versus current review — 0267
+
+Final scope review still binds the current repository head. For an explicitly
+selected existing proposal, destination verification additionally restores the
+exact pointer/bundle parent and original target commit. A bounded fingerprint of
+all item entries except protocol-owned candidate/proposal directories must match
+between original and current commits. Root Brief/Spec/Exam, gates, hidden files,
+nested directories and modes participate; unsupported or unavailable is not equal.
+Current source permission is required at both revisions.
+
+This equality does not prove original-target lineage, current proposal eligibility
+or the absence of outside-item semantic changes. The mandatory governed verifier
+must independently establish those facts and explicitly return current unchanged-
+target continuation eligibility in both stable proof samples. That service is
+still an uninstalled dependency; a schema or matching digest does not implement it.
+
+Pure preview binds the continuity descriptor, current review and exact parents,
+while preserving the immutable original amendment target. The actual chooser
+shows both commits, permits deliberate older-target verification and withholds
+confirmation after parent substitution or missing/changed evidence. It cannot
+silently rebase, clear selection or create another proposal. Changed-target rebasing
+remains unsupported. See [guide](../EXISTING-CANDIDATE-DESTINATION.md),
+[0267 specification](../../intent/0267/SPEC.md) and [evidence](../../intent/0267/EVIDENCE.md).
