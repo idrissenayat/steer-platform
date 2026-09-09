@@ -5808,3 +5808,28 @@ commit/tree verification are native Git.
 Next: existing-item lifecycle and prior candidate/proposal parent composition,
 then actual governed policy/runtime binding and the I1–I6 human acceptance path.
 Records/model/provider/write activation remains subject to the existing boundaries.
+
+## Development increment: 0266 — Existing-item destinations and direction routing
+
+The explicit existing-item resolver verifies current reviewed Git evidence and
+requires separate governed lifecycle policy. Pre-pull corrections bind the exact
+prior candidate pointer, manifest, three documents and root Brief mirror. Existing
+relationships must match current policy. Canonical/in-flight targets get a
+reproducible first amendment with an absent proposal path and no canonical rewrite.
+A shared router composes new/existing directions without fallback after failure.
+
+Existing-proposal continuation stays closed. Its original target A cannot equal
+the creating commit B, but current final review requires the current head; this
+contract mismatch is now explicitly documented rather than hidden behind a
+re-review suggestion. Next resolve separate current-review and immutable-target
+bindings, then complete actual governed services and signed-in I1–I6 acceptance.
+
+See [0266 evidence](../intent/0266/EVIDENCE.md) and
+[the existing-item process guide](EXISTING-CANDIDATE-DESTINATION.md).
+Verification: 1,280 regression tests including 14 new native-Git/routing checks,
+prototype/eight-package type checks, optimized Next build, kit validation and
+workflow token-scope audit pass. All 301 links across 12 changed documents resolve;
+protected signed-file hashes and user-owned roadmap/outputs are unchanged.
+Factories remain uninstalled; no SQL migration or new SQL-suite result is introduced
+here. Actual records/model/provider/write activation remains closed under existing
+boundaries.

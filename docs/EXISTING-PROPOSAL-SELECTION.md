@@ -12,9 +12,15 @@ replace it. It also does not change the editor's documents.
    proposals** or **First proposal page** to navigate without carrying a selection
    between pages. No proposal is selected automatically.
 4. A proposal whose target revision differs from the reviewed direction remains
-   visible but disabled. Re-review the exact original target or choose a separately
-   authorized new amendment; the system never silently rebases an existing proposal.
-5. **Preview exact package** checks that the selected proposal, parent pointer,
+   visible but disabled. **0266 clarification:** re-reviewing that historical
+   target is not currently an implemented recovery route: final review requires
+   the current head while a proposal retains its original target commit. The
+   [contract gap](EXISTING-CANDIDATE-DESTINATION.md) must be resolved before existing
+   proposal continuation works. The system never silently rebases or clears the
+   selection to create another proposal. A separately chosen new amendment is a
+   different human direction, not a retry.
+5. Once that missing destination contract is implemented, **Preview exact package**
+   must check that the selected proposal, parent pointer,
    previous bundle and target are unchanged. Then use the existing separate
    [confirmation](CANDIDATE-PACKAGE-CONFIRMATION.md) and
    [save-request](CANDIDATE-SAVE-START.md) actions. No listing or selection writes Git.

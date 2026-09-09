@@ -1,6 +1,17 @@
 # STEER platform implementation
 
-## Current checkpoint — 0265
+## Current checkpoint — 0266
+
+0266 adds exact prior-bundle candidate revision and first-amendment destination
+verification, plus a shared new/existing direction router. Lifecycle remains a
+mandatory current governed service, never an inference from files. Canonical
+documents are not replaced by amendments. See [existing-item guide](EXISTING-CANDIDATE-DESTINATION.md)
+and [0266 evidence](../intent/0266/EVIDENCE.md). The existing-proposal immutable-target
+versus current-review contract gap is now explicit and is next to resolve.
+Factories remain uninstalled; actual policy/records/model/provider bindings and
+signed-in I1–I6 acceptance remain open.
+
+## Prior checkpoint — 0265
 
 0265 adds repository-backed resolution for new distinct/linked candidate destinations
 at the exact reviewed Git head. Linked targets require exact regular Brief bytes;

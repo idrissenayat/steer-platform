@@ -561,3 +561,5 @@ export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unk
 export { createCandidateProposalReader as createVerifiedCandidateProposalReader } from '@steer/adapters/candidate-proposal-reader';
 export { createIntentAdmissionDiscovery as createRecordedAdmissionDiscovery } from '@steer/data/intent-admission-discovery';
 export { createNewCandidateSaveDestination as createVerifiedNewCandidateDestination } from '@steer/adapters/new-candidate-destination';
+export { createExistingCandidateSaveDestination as createVerifiedExistingCandidateDestination } from '@steer/adapters/existing-candidate-destination';
+export { createCandidateSaveDestination as createVerifiedCandidateSaveDestination } from '@steer/adapters/candidate-save-destination';

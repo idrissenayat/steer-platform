@@ -33,7 +33,17 @@ scope, choose what to do, answer only necessary questions, review and correct a
 Brief/Spec/Exam bundle, save it to the authorized repository and reopen it exactly.
 No separate local preview, synthetic success, silent merging or lost work counts.
 
-Latest checkpoint: **0265 adds repository-backed new-candidate destinations**.
+Latest checkpoint: **0266 resolves existing candidates and first amendments**.
+Pre-pull revisions verify the exact prior bundle and Brief mirror; proposal-only
+items get a reproducible first amendment without canonical replacements. A shared
+router composes new/existing directions under separate mandatory current policy
+services. See [existing-item guide](EXISTING-CANDIDATE-DESTINATION.md) and
+[0266 evidence](../intent/0266/EVIDENCE.md). Factories remain uninstalled.
+Next resolve the discovered existing-proposal target/current-review contract gap;
+selected proposals remain closed rather than rebased. Actual governed bindings,
+records/model/provider authority and signed-in I1–I6 acceptance remain open.
+
+0265 adds repository-backed new-candidate destinations.
 New distinct/linked work now has an explicit destination port that checks the
 reviewed Git head, absent item root and exact linked Brief, plus separate current
 policy evidence. Repeated valid reads reproduce the same package identity; absent

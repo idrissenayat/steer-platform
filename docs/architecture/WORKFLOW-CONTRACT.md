@@ -1212,3 +1212,23 @@ their lifecycle and prior-pointer implementation. The API export is uninstalled;
 the actual policy service, records/provider activation and signed-in acceptance
 are not supplied by the synthetic tests. See [guide](../NEW-CANDIDATE-DESTINATION.md),
 [0265 specification](../../intent/0265/SPEC.md) and [evidence](../../intent/0265/EVIDENCE.md).
+
+### Existing-item destinations and explicit routing — 0266
+
+The existing-item port requires the exact current reviewed Brief, immutable Git
+inventory and separate governed lifecycle evidence binding the item/repository
+trees and request. Pre-pull revisions verify the prior pointer, manifest, all
+documents and root Brief mirror, retaining the exact parent and permitted relation.
+Proposal-only targets produce an absent deterministic first-proposal path without
+canonical replacements. Both paths recheck policy, sources, branch and principal.
+
+The shared new/existing router cannot fall back after failure. A selected existing
+proposal remains unavailable: its original target A differs from the proposal
+commit B, while final review currently requires the current head and preview ties
+the amendment to that reviewed revision. Next bind current review and immutable
+target separately with current governed eligibility and exact parent verification;
+do not silently rebase or infer unchanged scope from Brief text alone.
+
+These explicit factories are uninstalled and do not implement actual governed
+policy services or live records/provider authority. See [existing-item guide](../EXISTING-CANDIDATE-DESTINATION.md),
+[0266 specification](../../intent/0266/SPEC.md) and [evidence](../../intent/0266/EVIDENCE.md).

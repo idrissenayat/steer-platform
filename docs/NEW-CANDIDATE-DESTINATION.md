@@ -65,13 +65,18 @@ The adapter has no model, SQL, write, operation-dispatch or credential-storage p
 
 ## What remains
 
+0266 adds a separate [existing-item resolver and shared router](EXISTING-CANDIDATE-DESTINATION.md)
+for verified pre-pull candidate revisions and first amendments. This new-item
+resolver remains intentionally narrow. Existing-proposal continuation is still
+closed pending its historical-target/current-review contract correction.
+
 This closes repository-backed resolution for the two new-candidate directions
 under supplied current policy verification. It does **not** implement the actual
-governed policy service, resolve existing-item lifecycle/proposal parents, activate
-records or prove the signed-in human journey. Those remain explicit dependencies.
-No default startup binding or live provider access is added.
+governed policy service, activate records or prove the signed-in human journey.
+Those remain explicit dependencies. No default startup binding or live provider
+access is added.
 
 See [0265 specification](../intent/0265/SPEC.md), [evidence](../intent/0265/EVIDENCE.md)
-and [current journey](INTENT-JOURNEY-PLAN.md). Next implement existing-item
-destination/parent composition, then the remaining governed runtime bindings and
-actual I1–I6 acceptance once their prerequisites are satisfied.
+and [current journey](INTENT-JOURNEY-PLAN.md). With 0266's partial existing-item
+composition in place, next resolve existing-proposal continuation, then complete
+governed runtime bindings and actual I1–I6 acceptance when prerequisites are satisfied.

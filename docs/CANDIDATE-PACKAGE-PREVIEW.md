@@ -22,11 +22,13 @@ The explicit server factory composes:
    predecessor chain. Partial, clarification-only and unavailable history fail.
 3. A mandatory current destination/lifecycle authority port. It must verify the
    exact repository/branch/head, item lifecycle, prior bundle/proposal and any
-  relationship. File existence alone cannot supply lifecycle evidence. 0265
-  provides [repository-backed new-item resolution](NEW-CANDIDATE-DESTINATION.md)
-  for distinct/linked work under a mandatory current policy verifier. Existing-item
-  lifecycle/prior-pointer resolution remains separate. There is no default port
-  or fixture fallback in application startup.
+   relationship. File existence alone cannot supply lifecycle evidence. 0265
+   provides [repository-backed new-item resolution](NEW-CANDIDATE-DESTINATION.md)
+   for distinct/linked work under a mandatory current policy verifier. 0266 adds
+   [existing candidate/first-amendment resolution and shared routing](EXISTING-CANDIDATE-DESTINATION.md).
+   Existing-proposal continuation remains unavailable pending its immutable-target/
+   current-review contract correction. There is no default port or fixture fallback
+   in application startup.
 4. Final history, original, source review, destination, draft and caller-authority
    rechecks. Changes invalidate the whole proposal. Four active requests and a
    60-second server deadline bound work; timed-out dependencies retain their
