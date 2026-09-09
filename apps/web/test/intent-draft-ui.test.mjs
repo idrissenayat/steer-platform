@@ -13,7 +13,7 @@ async function component() {
   const require = createRequire(import.meta.url);
   const compile = async (name, replacements = {}) => {
     let code = (await transformWithOxc(readFileSync(new URL(`../app/${name}.tsx`, import.meta.url), 'utf8'), `/synthetic/${name}.tsx`, { jsx: { runtime: 'automatic' } })).code;
-    for (const specifier of ['react', 'react/jsx-runtime', 'react-markdown', '@steer/tool-registry/candidate-save-review-contracts', '@steer/tool-registry/intent-scope-selection', '@steer/tool-registry/agent-contracts', '@steer/tool-registry/intent-draft-content', '@steer/tool-registry/intent-revision-contracts'])
+    for (const specifier of ['react', 'react/jsx-runtime', 'react-markdown', '@steer/tool-registry/candidate-save-preview-contracts', '@steer/tool-registry/candidate-save-review-contracts', '@steer/tool-registry/intent-scope-selection', '@steer/tool-registry/agent-contracts', '@steer/tool-registry/intent-draft-content', '@steer/tool-registry/intent-revision-contracts'])
       for (const quote of ['"', "'"]) code = code.replaceAll(`${quote}${specifier}${quote}`, JSON.stringify(pathToFileURL(require.resolve(specifier)).href));
     for (const [specifier, target] of Object.entries(replacements)) for (const quote of ['"', "'"]) code = code.replaceAll(`${quote}${specifier}${quote}`, JSON.stringify(target));
     return `data:text/javascript;base64,${Buffer.from(code).toString('base64')}`;
@@ -22,7 +22,8 @@ async function component() {
   const markdown = await compile('brief-markdown', { './brief-reading-order': local('brief-reading-order') });
   const scope = await compile('intent-scope-review', { './intent-scope-reader': local('intent-scope-reader'), './brief-location': local('brief-location') });
   const scopePanel = await compile('intent-scope-panel', { './intent-scope-editor': local('intent-scope-editor'), './intent-scope-transport': local('intent-scope-transport'), './brief-location': local('brief-location') });
-  const finalReview = await compile('candidate-save-review', { './candidate-save-review-client': local('candidate-save-review-client') });
+  const packagePreview = await compile('candidate-save-preview', { './candidate-save-preview-client': local('candidate-save-preview-client'), './intent-run-discovery-transport': local('intent-run-discovery-transport') });
+  const finalReview = await compile('candidate-save-review', { './candidate-save-preview': packagePreview, './candidate-save-review-client': local('candidate-save-review-client') });
   const history = await compile('intent-development-history', { './intent-development-history-transport': local('intent-development-history-transport'), './brief-markdown': markdown });
   const development = await compile('intent-development-panel', { './intent-development-history': history, './candidate-save-review': finalReview, './intent-scope-panel': scopePanel, './intent-development-editor': local('intent-development-editor'), './intent-development-transport': local('intent-development-transport'), './brief-markdown': markdown });
   const runHistory = await compile('intent-run-history', { './intent-development-history': history, './intent-scope-panel': scopePanel, './intent-run-discovery-transport': local('intent-run-discovery-transport') });

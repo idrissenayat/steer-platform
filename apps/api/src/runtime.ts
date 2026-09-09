@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { createCandidateSavePreviewer } from '@steer/data/candidate-save-previewer';
 import { createCandidateSaveReviewer } from '@steer/data/candidate-save-reviewer';
 import { createCandidateOriginalStore, candidateOriginalConfigurationSchema } from '@steer/data/candidate-originals';
 import { createCandidateSaveStatusReader } from '@steer/adapters/candidate-save-status-reader';
@@ -47,6 +48,12 @@ import { readProjection } from '@steer/data';
 import { createHeldGitBriefWriterFactory, heldGitBriefConfigurationSchema, type HeldBriefAssessment } from '@steer/adapters/held-brief-writer';
 
 const text = z.string().min(1);
+/** Explicit, uninstalled final-package preview. Trusted lifecycle evidence and
+ * verified historical SDK readers are required; never a save/grant fallback. */
+export function createRecordedCandidateSavePreviewer(pools: Parameters<typeof createCandidateSavePreviewer>[0],
+  configuration: unknown, dependencies: Parameters<typeof createCandidateSavePreviewer>[2]) {
+  return createCandidateSavePreviewer(pools, configuration, dependencies);
+}
 /** Final-draft review only. No default installation, confirmation or allocation.
  * The source reviewer and pinned recorded scope reader must be supplied by the
  * existing corpus/records factories; input contains references, never findings. */

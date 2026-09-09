@@ -1,4 +1,4 @@
-const tools = ['intent.candidate.save.review', 'intent.candidate.save.status', 'intent.candidate.read', 'intent.overlap.check', 'projection.snapshot.read', 'projection.changes.read', 'intent.brief.catalog', 'intent.brief.read', 'intent.brief.artifacts', 'intent.brief.decisions', 'intent.brief.decision.evidence', 'intent.brief.preview', 'intent.brief.destination', 'intent.brief.save.status'] as const;
+const tools = ['intent.candidate.save.preview', 'intent.candidate.save.review', 'intent.candidate.save.status', 'intent.candidate.read', 'intent.overlap.check', 'projection.snapshot.read', 'projection.changes.read', 'intent.brief.catalog', 'intent.brief.read', 'intent.brief.artifacts', 'intent.brief.decisions', 'intent.brief.decision.evidence', 'intent.brief.preview', 'intent.brief.destination', 'intent.brief.save.status'] as const;
 const TIMEOUT_MS = 10000;
 /** Fixed, read-only same-origin endpoints. Scope is input, never authority or a URL. */
 export function createReadTransport(origin: string, transport: typeof fetch = globalThis.fetch) {
@@ -14,7 +14,7 @@ export function createReadTransport(origin: string, transport: typeof fetch = gl
     const aborted = new Promise<never>((_, reject) => { rejectAbort = reject; });
     const abort = () => { rejectAbort(failure()); void reader?.cancel().catch(() => {}); };
     controller.signal.addEventListener('abort', abort, { once: true });
-    const timer = setTimeout(() => controller.abort(), name === 'intent.candidate.save.review' ? 70000 : TIMEOUT_MS);
+    const timer = setTimeout(() => controller.abort(), ['intent.candidate.save.review', 'intent.candidate.save.preview'].includes(name) ? 70000 : TIMEOUT_MS);
     const work = async () => {
       const body = JSON.stringify(input);
       if (new TextEncoder().encode(body).byteLength > 16384) throw failure();

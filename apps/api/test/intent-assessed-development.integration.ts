@@ -17,6 +17,7 @@ import { createDevelopmentStepRuntime } from '../../worker/src/development-step-
 import { createApi } from '../src/app.ts';
 import { createRecordedRunDiscovery } from '../src/runtime.ts';
 import { intentRunDiscoveryOutputSchema } from '@steer/tool-registry/intent-run-discovery-contracts';
+import { testCandidateSavePreviewWithHistory } from './candidate-save-preview.integration.ts';
 
 type Fixture = Awaited<ReturnType<typeof scopeStepIntegrationFixture>>;
 type Dependencies = Parameters<typeof createAssessedRecordedDevelopmentPreparer>[3];
@@ -77,6 +78,10 @@ export async function testAssessedDevelopment(setup: (count?: number, ttl?: numb
           assert.equal(outcome.outcome,'succeeded',JSON.stringify({role,calls,durationMs:Math.round(performance.now()-start),states,observations,phases}));
         }finally{runtime.close();model.close();}
       }
+      const previewHistoryRecords={...records,authorizeHistoricalRead:async()=>{},
+        originals:{...records.originals,scopeHistory:history,authorizeHistoricalRead:async()=>{},authorizeOperation:async()=>{throw new Error('No execution');}},
+        results:{...records.results,authorizeHistoricalResult:async()=>{},authorizeOperation:async()=>{throw new Error('No execution');}}};
+      await testCandidateSavePreviewWithHistory(f,prepared.reference,{profiles,records:previewHistoryRecords},current,admin);
       await f.edit();const reservations=await f.reservations();
       const discovery=createRecordedRunDiscovery(f.pools.drafts,f.config,{authorize:async()=>{},authorizeEntry:async()=>{}});
       try {

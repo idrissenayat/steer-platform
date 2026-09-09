@@ -8,6 +8,7 @@ import type { IntentScopeReadOutput } from '@steer/tool-registry/intent-scope-re
 import type { IntentDispositionChoice } from '@steer/tool-registry/intent-overlap-contracts';
 import type { DevelopmentEditorSource } from './intent-development-editor';
 import { createCandidateSaveReviewClient } from './candidate-save-review-client';
+import CandidatePackagePreview from './candidate-save-preview';
 
 export default function CandidateSaveReview({ source, review, assessment, choice, subject, identity, expiresAt, locked }: {
   source: DevelopmentEditorSource | null; review: IntentDevelopmentReviewOutput | null; assessment: IntentScopeReadOutput | null;
@@ -59,7 +60,8 @@ export default function CandidateSaveReview({ source, review, assessment, choice
         <dl className="candidate-metadata">{(['brief', 'spec', 'exam'] as const).map(name => <div key={name}>
           <dt>{name.toUpperCase()}.md · {result.documents[name].bytes.toLocaleString()} bytes</dt><dd><code>{result.documents[name].contentDigest}</code></dd></div>)}</dl>
         <p>Read-only review reference: <code>{result.reviewDigest}</code>.</p>
-        <p>No save confirmed, operation created or gate signed. Destination, generation lineage, lifecycle authority and exact human save confirmation still need verification before saving is available.</p></>}
+        <p>No save confirmed, operation created or gate signed. Continue to package preview to check generation lineage and the destination. Exact human save confirmation is a separate step.</p></>}
     </div>
+    {result && <CandidatePackagePreview review={result} source={source} identity={identity} expiresAt={expiresAt} />}
   </section>;
 }

@@ -69,9 +69,11 @@ receipt, execution permission, Spec conformance, independent Exam acceptance or 
 gate. A future save-preparation service must reconstruct this review under current
 authority; it must not trust a browser-returned digest as permission.
 
-Destination/lifecycle selection, historical generation lineage and assessment
-reuse, immutable bundle
-preparation, exact human confirmation, original admission and start remain open.
+0260 adds a separate [package preview](CANDIDATE-PACKAGE-PREVIEW.md) that reconstructs
+this review and joins it to retained generation lineage and trusted destination/
+lifecycle evidence. That preview is still not consent, admission or saving.
+Assessment reuse, durable immutable confirmation/original admission, existing-
+proposal selection and start remain open.
 Use [original save recovery](CANDIDATE-SAVE-RECOVERY.md) only after those services
 produce a real admitted original reference, and [exact reopening](SAVED-CANDIDATE-REOPEN.md)
 only after a verified save. D1 remains unsigned/inactive; the proposed model

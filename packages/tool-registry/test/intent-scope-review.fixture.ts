@@ -3,14 +3,15 @@ import { developmentFixture } from './intent-development.fixture.ts';
 import { fingerprintIntentScope } from '../src/intent-revision-contracts.ts';
 import { SCOPE_REVIEW_INSTRUCTIONS, SCOPE_REVIEW_PROFILE_REVISION, prepareIntentScopeReview, scopeReviewProfileSchema } from '../src/intent-scope-review.ts';
 
-export async function scopeReviewFixture(count = 4) {
+export async function scopeReviewFixture(count = 4, published = false) {
   const f = await developmentFixture();
   const scope = { ...f.scope, draftId: f.input.draftId, sourceRevision: 1, ...f.content,
     documents: { brief: '# Current corrected Brief\r\nPatient booking فارسی', spec: '# Current corrected Spec\nEmail only; never SMS.' } };
   const documents = Array.from({ length: count }, (_, n) => ({ sourceId: `source-${n}`,
     content: `# Existing ${n}\r\n## Out of scope\r\nDo not book patient appointments. فارسی ☕\r\n` }));
   const evidence = { ...f.evidence, ...(await fingerprintIntentScope(scope)),
-    inventory: documents.map((d, n) => { const targetId = `intent/${String(Math.floor(n / 2) + 1).padStart(4, '0')}`;
+    inventory: documents.map((d, n) => { const number = String(Math.floor(n / 2) + 1).padStart(4, '0');
+      const targetId = published ? `items/${number}-existing` : `intent/${number}`;
       return { sourceId: d.sourceId, targetId, path: `${targetId}/${n % 2 ? 'SPEC' : 'BRIEF'}.md`, status: 'canonical' as const,
         contentDigest: createHash('sha256').update(d.content).digest('hex'), blobOid: createHash('sha1').update(`blob ${Buffer.byteLength(d.content)}\0${d.content}`).digest('hex') };
     }), documents };

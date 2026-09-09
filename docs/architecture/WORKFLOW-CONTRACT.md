@@ -1078,3 +1078,25 @@ Admissions without captured originals are outside this list. Uncaptured-admissio
 diagnostics, immutable final save and actual signed-in/provider/repository acceptance
 remain separate. See [the discovery guide](../RETAINED-RUN-DISCOVERY.md) and
 [0259 specification](../../intent/0259/SPEC.md).
+
+### Reproducible final package before confirmation
+
+0260 adds human-only `intent.candidate.save.preview`. The server reconstructs the
+current final review and exact preserved documents, verifies the selected retained
+generation original and both recorded SDK outputs, and obtains current repository/
+lifecycle evidence through a mandatory trusted port. It rechecks original/history,
+source review, destination, draft and caller access before releasing the proposal.
+
+Pinned profile revisions and byte comparisons derive edit lineage. Spec and Exam
+states remain unreviewed/stale. The whole verified proposal deterministically
+derives a UUIDv8 bundle identity, the existing candidate manifest/pointer and a
+proposed confirmation binding. These are not an item reservation, durable consent,
+an admitted original, a provider grant, a save receipt or a gate. No placeholder
+operation/receipt or private source/prompts/wire output is disclosed.
+
+The actual UI explicitly discovers/selects a retained drafting run and previews
+the package. Its backend remains uninstalled; human confirmation, immutable
+original admission/readback and workflow start must be composed next. Existing
+amendment correction selection and explicit legacy publication mapping remain
+separate. See [the package guide](../CANDIDATE-PACKAGE-PREVIEW.md) and
+[0260 specification](../../intent/0260/SPEC.md).

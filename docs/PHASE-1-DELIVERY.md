@@ -5643,3 +5643,30 @@ start, real records/model/provider authority and signed-in saved-repository
 acceptance remain open. No paid calls, credential inspection, real runtime Git
 write, live migration, gate, auth bypass, release or deployment. User-owned
 roadmap/outputs are untouched; the one-minute loop remains active.
+
+## Development increment: 0260 — Exact package preview before confirmation
+
+The actual final-review UI now discovers/selects a retained drafting run and
+previews the exact proposed repository package. The human-only HTTP/MCP query
+joins latest draft bytes and current final scope to the encrypted generation
+original, both verified recorded-SDK roles and a mandatory trusted destination/
+lifecycle reader. Profile/edit lineage is server-derived; review states stay
+unreviewed/stale. Final authority/source/record checks reject changing proposals.
+
+The same verified inputs reproduce one bundle UUID, manifest, pointer and proposed
+confirmation binding without minting an operation or storing a consent record.
+No generation, adoption, Git write or gate follows from preview. See
+[0260 evidence](../intent/0260/EVIDENCE.md) and [the package guide](CANDIDATE-PACKAGE-PREVIEW.md).
+
+Final **1,209/1,209 regressions**, **356/356 PostgreSQL 16.14 checks**, nine focused
+history/SDK checks plus idempotent migration, types, optimized Next build, kit and
+workflow token-scope audit pass. All 195 local links across eight checked documents
+resolve, and protected document hashes are unchanged. Live browser
+inspection was unavailable because the Mac was locked. This is not signed-in
+visual or live-provider acceptance. The server factory remains uninstalled.
+
+Next: exact human confirmation, immutable original admission/readback and
+reference-only workflow start. Existing-proposal selection, uncaptured-admission
+diagnostics and real records/model/provider authority remain open. No paid call,
+credential inspection, live migration, runtime Git save, auth bypass, gate,
+release or deployment; user-owned roadmap/outputs remain untouched.
