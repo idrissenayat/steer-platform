@@ -58,16 +58,17 @@ export function nativeCandidateJourneyFixture(t:{after(run:()=>void):void}, save
       assert.equal(collected.evidence.head,git.head());return collected.evidence;
     } finally {collector.close();}
   }
-  function destination(config:{organizationId:string;subject:string;productId:string;repository:string;branch:string;configurationRevision:string}) {
-    const {organizationId,subject,productId,repository,branch,configurationRevision}=config;
-    return createVerifiedCandidateSaveDestination(reader(organizationId),{organizationId,subject,productId,repository,branch,configurationRevision,
-      itemIds:['0260-booking','0001-existing','0002-existing','0003-existing']}, {
+  const destinationAuthority: Parameters<typeof createVerifiedCandidateSaveDestination>[2] = {
       newItem:{authorize:check,authorizeSource:sourceCheck,verify:async context=>({...context,...policy(),kind:'steer-new-candidate-destination-authority/v1',lifecycle:'absent-item'})},
       existingItem:{authorize:check,authorizeSource:sourceCheck,verify:async context=>({...context,...policy(),
         kind:'steer-existing-candidate-destination-authority/v1',lifecycle:context.itemId==='0002-existing'?'candidate-not-pulled':'existing-target-proposal-only',relationship:null,
         ...(context.proposalContinuity&&state.continuationAllowed?{proposalContinuation:'eligible-unchanged-target'}:{})})},
-    });
+  };
+  function destination(config:{organizationId:string;subject:string;productId:string;repository:string;branch:string;configurationRevision:string}) {
+    const {organizationId,subject,productId,repository,branch,configurationRevision}=config;
+    return createVerifiedCandidateSaveDestination(reader(organizationId),{organizationId,subject,productId,repository,branch,configurationRevision,
+      itemIds:['0260-booking','0001-existing','0002-existing','0003-existing']}, destinationAuthority);
   }
-  return {git,state,repositoryEvidence,destination,reader,corpusAuthority,branch:binding.branch,proposalId,
+  return {git,state,repositoryEvidence,destination,destinationAuthority,reader,corpusAuthority,branch:binding.branch,proposalId,
     parents:()=>({originalTarget,priorManifest,proposalManifest,pointerDigest})};
 }

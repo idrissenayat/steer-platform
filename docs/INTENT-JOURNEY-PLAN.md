@@ -33,17 +33,35 @@ scope, choose what to do, answer only necessary questions, review and correct a
 Brief/Spec/Exam bundle, save it to the authorized repository and reopen it exactly.
 No separate local preview, synthetic success, silent merging or lost work counts.
 
-Latest checkpoint: **0273 joins authenticated recorded generation and recovery**.
-The complete factory now has joined signed-identity/native-Git/SQL coverage for
+Latest checkpoint: **0274 confirms the corrected package through identity**. The
+same authenticated journey rejects the old assessment after a Brief correction,
+reassesses its exact revision and previews original/edited lineage. Explicit
+confirmation, discarded acknowledgement and runtime reconstruction recover one
+unchanged encrypted original and receipt. A private full-read/final-full-read
+historical-scope window removes repeated lineage traversal while preserving
+current caller checks and final authoritative evidence/records revalidation.
+See [0274 investigation](../intent/0274/INVESTIGATION.md) and
+[evidence](../intent/0274/EVIDENCE.md).
+All 1,341 broad tests, prototype/eight-package types, production build and the
+focused authenticated-journey, history and Temporal save/reopen SQL selections pass.
+
+Confirmation now completes in 47–50 seconds under its unchanged 90-second bound,
+with about 69% fewer synthetic native-provider requests. That is still not smooth
+human UX or acceptable live-provider performance evidence: further bounded read
+composition is required before remote/UI acceptance. Next connect fixed save/reopen
+and owned scheduling through this root and address the remaining request volume.
+These are engineering tasks, not requests for more authority; no live profile changes.
+
+Prior checkpoint: **0273 joins authenticated recorded generation and recovery**.
+The complete factory has joined signed-identity/native-Git/SQL coverage for
 34-source review, two scope batches, assessed Brief/Spec plus separate Exam
 generation, exact restart, human correction and retained lineage. The integration
 exposed a 30-second timeout from repeated immutable authorization-document reads;
-request-local exact-commit byte reuse fixes that repetition while every lookup still reads fresh
-Git head and reevaluates token/grant validity. See [0273 evidence](../intent/0273/EVIDENCE.md).
-Workers execute directly against synthetic SDK responses, not through Temporal
-or a real provider. Next extend confirmation, fixed save/reopen and owned worker
-scheduling through this identity/factory root. Live policy/clock/D1/model/write
-authority, remote-provider load/latency and signed-in I1–I6 remain open.
+request-local exact-commit byte reuse fixes that repetition while every lookup still
+reads fresh Git head and reevaluates token/grant validity. See
+[0273 evidence](../intent/0273/EVIDENCE.md). Workers execute directly against
+synthetic SDK responses, not through Temporal or a real provider. Live
+policy/clock/D1/model/write authority and signed-in I1–I6 remain open.
 
 Prior checkpoint: **0272 assembles the concrete authenticated journey services**.
 The API composition root constructs all 21 actual services plus internal publication
@@ -316,6 +334,9 @@ and cancellation checks during scope/Temporal composition and live acceptance.
 | I5 Save and reopen | Recheck scope and duplicate-review revisions immediately before an atomic, idempotent bundle write. Concurrent new intents/changes cause re-review, not two creations. Use actual granted GitHub paths and expected-head checks; uncertain saves require status/readback. Reopen exact saved versions in the application. | Disabled planner/reader, collector, bundle store, durable dispatch, candidate-save Temporal, receipt reconciliation and encrypted immutable originals implemented (0205–0213); exact-reference read query/API/MCP and actual UI developed under synthetic authority (0252); original save-status API/MCP/UI and receipt-to-exact-reopen link (0253); final preserved-bundle review without generation or admission (0254); reproducible package preview with retained lineage and trusted destination/lifecycle evidence (0260); exact human confirmation, shared API/worker admission and immutable encrypted-original preservation/readback with same-command recovery in the actual UI (0261); explicit human reference-only save-start API/MCP/UI with fixed Temporal scheduling and original recovery (0262); exact-commit proposal discovery and explicit parent-bound selection in the actual package panel (0263). Native new/existing destination composition (0265–0268), joined new-distinct SQL/SDK/Temporal save and exact reopen (0269), and explicit verified-publication/retention connection with lost-ACK recovery (0270) are tested under synthetic authority. Governed startup, actual clock/records/lifecycle/full-corpus authority, constrained late recovery, quarantined-outcome resolution and live human acceptance remain incomplete |
 | I6 Human acceptance | In the real signed-in UI demonstrate new, exact duplicate, paraphrased duplicate, partial overlap, related-but-distinct, empty/failed/stale search, corrections, permission loss, cost exhaustion, uncertain save, concurrent creation, refresh/reopen and keyboard/narrow-screen behavior. Record real source and saved commit. | Pending |
 
+0274 extends the same authenticated case into I5's corrected-package confirmation
+and exact original recovery, without enabling scheduling or Git writes. Its bounded
+timeout repair does not close the remaining provider-request/latency problem.
 0273 joins I1–I4 source/preparation/generation/history through the real identity
 root under synthetic authority, and removes redundant immutable identity-source
 fetches. It does not close live acceptance or prove provider request/latency budgets.

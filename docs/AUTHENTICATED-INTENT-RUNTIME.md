@@ -58,6 +58,39 @@ records transition and its recovery path.
 
 ## Evidence and remaining work
 
+### Corrected-package confirmation — 0274
+
+The joined identity/factory test now extends the human correction through stale
+assessment rejection, two recorded reassessment batches and candidate preview.
+Only the Brief is marked edited; older generation and separate Exam lineage remain
+intact and their review/conformance states remain stale. Explicit confirmation,
+discarded HTTP acknowledgement and exact original recovery after reconstruction
+now pass the joined SQL case; see [0274 evidence](../intent/0274/EVIDENCE.md).
+
+Composed historical-scope checks exposed a second amplification bottleneck: one
+preview made 129,330 synthetic native-provider requests and confirmation timed out
+at its unchanged 90-second limit. Generation history now brackets its private,
+read-only projection with two full authoritative historical-scope reads. Identical
+intermediate lineage checks reuse detached immutable evidence, still invoking
+present caller/source authorization every time. A fresh final scope read must
+revalidate keys, records/lifecycle, profiles, original and batch observations and
+agree before any projection can return. Target, reader binding and methods are
+pinned; changed evidence, current authority loss, cancellation and late results
+deny. Each request gets a new window; this is not current-assessment clearance,
+a permission cache or an atomic snapshot across services. Ordinary scope reads,
+admission, generation, confirmation deadlines and outer role/source readbacks are
+unchanged. See [the investigation](../intent/0274/INVESTIGATION.md).
+
+The corrected preview uses 39,550 synthetic native requests; confirmation uses
+about 79,500 and completes in 47–50 seconds. These are roughly 69% fewer requests,
+but remain too many/too slow for remote-provider or smooth-UX acceptance. The
+timeout repair is a bounded reliability checkpoint, not performance completion.
+
+These are synthetic HTTP/SQL/SDK checks, not remote-provider performance or a
+signed-in browser demonstration. Fixed save/reopen and owned scheduling through
+this identity root remain next; live records/model/provider/write authority is
+still closed.
+
 ### Recorded generation through identity — 0273
 
 The three-check focused SQL runner preserves both 0271/0272 cases and now adds

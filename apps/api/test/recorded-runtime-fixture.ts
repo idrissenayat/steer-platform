@@ -26,9 +26,14 @@ export async function recordedRuntimeFixture(t: { after(run: () => void): void }
     content: JSON.stringify({ version: 'steer-authorization/v1', organizationId: binding.organizationId, records: [value] }) }]);
   publish();
   const jwk = { ...await exportJWK(keys.publicKey), kid: 'synthetic-recorded', alg: 'RS256' };
-  const token = provider ? await provider.issueBearer() : await new SignJWT({ typ: 'Bearer', azp: 'steer-web', steer_org: grant.organizationId, steer_kind: grant.type, steer_hats: [] })
-    .setProtectedHeader({ alg: 'RS256', kid: jwk.kid, typ: 'JWT' }).setSubject(grant.subject).setIssuer(issuer).setAudience('steer-api')
-    .setIssuedAt(epoch).setExpirationTime(epoch + 180).sign(keys.privateKey);
+  const issueBearer = async () => {
+    if (provider) return provider.issueBearer();
+    const issued = Math.floor(Date.now() / 1000);
+    return new SignJWT({ typ: 'Bearer', azp: 'steer-web', steer_org: grant.organizationId, steer_kind: grant.type, steer_hats: [] })
+      .setProtectedHeader({ alg: 'RS256', kid: jwk.kid, typ: 'JWT' }).setSubject(grant.subject).setIssuer(issuer).setAudience('steer-api')
+      .setIssuedAt(issued).setExpirationTime(issued + 180).sign(keys.privateKey);
+  };
+  const token = await issueBearer();
   const selection = options?.selection ?? { itemId: 'items/0176-recorded', idempotencyKey: '17600000-0000-4000-8000-000000000001' };
   const input = { organizationId: grant.organizationId, repository: `github:${binding.repositoryId}`, ...selection };
   const target = { scope: { organizationId: input.organizationId, repository: input.repository, itemId: input.itemId }, idempotencyKey: input.idempotencyKey };
@@ -59,5 +64,5 @@ export async function recordedRuntimeFixture(t: { after(run: () => void): void }
   const request = (name: 'start' | 'status' | 'recover' | 'recovery.status', body: unknown = input, bearer = token) => new Request(`https://steer.example/v1/tools/workflow.recorded-brief.${name}`, {
     method: 'POST', headers: { authorization: `Bearer ${bearer}`, 'content-type': 'application/json' }, body: JSON.stringify(body),
   });
-  return { source, grant, publish, profile, secrets, ports, input, target, workflowId, request, token, counts: () => ({ jwks, assertions }) };
+  return { source, grant, publish, profile, secrets, ports, input, target, workflowId, request, token, issueBearer, counts: () => ({ jwks, assertions }) };
 }

@@ -6052,3 +6052,33 @@ and owned scheduling through the authenticated factory. Live remote latency/load
 clock/D1/model/provider/write authority and signed-in I1–I6 remain open. No real
 profile, credential, records activation, paid model call, Git save, deployment or
 gate change; protected sources and user-owned roadmap/outputs remain untouched.
+
+## Development increment: 0274 — Corrected-package confirmation
+
+The extended authenticated test now completes freshly reassessed human correction,
+exact package preview, explicit confirmation and recovery of one unchanged
+encrypted original after a discarded HTTP response and runtime reconstruction.
+The identical repeated confirmation returns the same receipt; no extra reservation,
+scheduling, publication or Git mutation occurs. Older generation/Exam lineage is
+preserved and only the Brief is marked edited, with review/conformance still stale.
+
+The original run timed out at 90 seconds after 257,195 native-provider requests.
+A private read-only historical-scope verification window now retains exact
+immutable lineage between two full authoritative reads, without retaining grants,
+skipping current caller/source checks or changing deadlines. Target/reader/evidence
+changes, final records loss, cancellation and late work deny. The corrected joined
+test reduces preview requests to 39,550 and confirmation to about 79,500 (about 69%
+fewer); confirmation and both reconfirmations complete in 47–50 seconds. All three
+managed journey SQL cases plus idempotent migration pass. The separate history
+selection passes 10 checks; the independent candidate/Temporal selection passes
+its joined check, each with migration verification. All 1,341 broad regressions,
+prototype/eight-package types and the optimized Next build pass. The 95-artifact
+kit, read-only workflow scope audit, 210 local links and protected source hashes
+also pass. This is not a full SQL-suite or signed-in UI result.
+
+Remaining request volume and latency are still too high for smooth human use or
+live-provider acceptance. Further bounded read composition and fixed save/reopen
+plus owned scheduling through this identity root remain engineering work.
+See [0274 investigation](../intent/0274/INVESTIGATION.md) and
+[evidence](../intent/0274/EVIDENCE.md). No real credentials, authority, deployment,
+protected sources or user-owned roadmap/outputs change.

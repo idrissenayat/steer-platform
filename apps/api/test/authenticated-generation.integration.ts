@@ -19,6 +19,7 @@ import { intentDevelopmentHistoryOutputSchema } from '@steer/tool-registry/inten
 import { createScopeStepRuntime } from '../../worker/src/scope-step-runtime.ts';
 import { createRecordedDevelopmentModel } from '../../worker/src/recorded-development-model.ts';
 import { createDevelopmentStepRuntime } from '../../worker/src/development-step-runtime.ts';
+import { authenticatedCandidateConfirmation } from './authenticated-candidate-confirmation.integration.ts';
 
 /** Signed synthetic JWT + native Git grants, real API constructor graph, SQL and
  * recorded SDK roles. No real issuer, model transport, live migration or Git save.
@@ -36,6 +37,7 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
       actor: { type: 'human', subject: 'synthetic-human', authorizationPath: 'access/generation.json', toolGrants: [
         'intent.draft.read', 'intent.draft.append', 'intent.development.review', 'intent.scope.prepare', 'intent.scope.read',
         'intent.development.prepare', 'intent.development.read', 'intent.development.history',
+        'intent.candidate.save.review', 'intent.candidate.save.preview', 'intent.candidate.save.prepare',
       ] } });
     const pools: Pool[] = [], runtimes: Awaited<ReturnType<typeof createIdentityRuntime>>[] = [];
     const connection = (role: string) => { const pool = connect(role); pools.push(pool); return pool; };
@@ -57,6 +59,7 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
     delete (fixture.config.development as Partial<typeof f.execution>).scopeTerms;
     fixture.config.candidate = { ...f.config, action: 'candidate-save', expiresAt: f.execution.expiresAt, budget: null };
     fixture.config.retrievalConfigurationRevision = 'synthetic-native-corpus-r1';
+    const candidate = authenticatedCandidateConfirmation(f, native, authority, scopeRecords);
     const profiles = fixture.config.developmentProfiles;
     const { recordedScheduling: _unused, ...base } = identity.profile;
     const profile = { ...base, intentJourney: expected };
@@ -77,13 +80,15 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
           deps.development.records = { originals: originalRecords, results, authorize: authority };
           deps.development.history = { originals: originalRecords, results, authorize: authority, authorizeHistoricalRead: authority };
           deps.development.authorizeReview = authority; deps.development.authorizePreparation = executionAuthority;
+          candidate.configure(deps);
           owned = await createOwnedIntentJourney(expected, fixture.config, deps); return owned;
         } });
       runtimes.push(runtime); return runtime;
     };
     let runtime: Awaited<ReturnType<typeof createIdentityRuntime>>;
-    const post = (name: string, input: unknown) => runtime.fetch(new Request(`https://steer.example/v1/tools/${name}`, {
-      method: 'POST', headers: { authorization: `Bearer ${identity.token}`, 'content-type': 'application/json' }, body: JSON.stringify(input),
+    let freshCandidateIdentity = false;
+    const post = async (name: string, input: unknown) => runtime.fetch(new Request(`https://steer.example/v1/tools/${name}`, {
+      method: 'POST', headers: { authorization: `Bearer ${freshCandidateIdentity ? await identity.issueBearer() : identity.token}`, 'content-type': 'application/json' }, body: JSON.stringify(input),
     }));
     const read = async (name: string, input: unknown) => { const start = performance.now(), before = native.git.calls.length;
       const response = await post(name, input);
@@ -171,8 +176,17 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
       assert.doesNotMatch(await denied.text(), /PRIVATE|Synthetic generated|Human correction/); allowed = true;
       identity.publish({ ...identity.grant, toolGrants: [] }); assert.equal((await post('intent.development.history', target)).status, 403);
       assert.deepEqual(await snapshot(), complete); assert.equal(modelCalls, 4); assert.equal(native.git.mutations(), 0);
-      await runtime.shutdown(); assert.equal(constructions, 2); assert.equal(closures, 2);
       console.log('PASS authenticated concrete factory: 34 native sources, two recorded scope batches, separate Brief/Spec and Exam roles, exact result restart, editable durable draft and historical lineage after correction; four synthetic calls/reservations, no Git save');
+      // A long synthetic integration is not one perpetual session. Renew only
+      // fixture membership before capturing the final Git snapshot and issue a
+      // fresh short-lived signed bearer for each subsequent HTTP action.
+      identity.publish({ ...identity.grant, expiresAt: new Date(Date.now() + 1200000).toISOString() });
+      freshCandidateIdentity = true; executionAllowed = true;
+      await candidate.run({ admin, post, read, generation: reference,
+        previousScope: { ...scopePrepared.reference!, resultsDigest: scopeOutput.review!.resultsDigest }, modelCall: () => { modelCalls++; },
+        restart: async () => { await runtime.shutdown(); runtime = await make(); } });
+      assert.equal(modelCalls, 6); assert.equal(native.git.mutations(), 0);
+      await runtime.shutdown(); assert.equal(constructions, 3); assert.equal(closures, 3);
     } finally {
       try { await Promise.all(runtimes.map(value => value.shutdown())); }
       finally { f.drafts.close(); f.lifecycle.close(); f.key.bytes.fill(0); await Promise.all(pools.filter(pool => !pool.ending).map(pool => pool.end())); }

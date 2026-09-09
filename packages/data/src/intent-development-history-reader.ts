@@ -4,6 +4,7 @@ import { createDevelopmentOriginalStore,developmentRecordsConfigurationSchema } 
 import { createDevelopmentObservationStore } from './development-observations.ts';
 import { createHistoricalDevelopmentOperationReader } from './intent-operations.ts';
 import { developmentOriginalHash as hash,freezeOriginal as freeze } from './development-original-contracts.ts';
+import { withHistoricalScopeReadWindow } from './historical-scope-read-window.ts';
 
 type Records=Parameters<typeof createDevelopmentObservationStore>[2];
 const unavailable=()=>new Error('Development history is unavailable.');
@@ -34,9 +35,11 @@ export function createIntentDevelopmentHistoryReader(pools:Parameters<typeof cre
       const authority=async(action:string,work:()=>Promise<void>)=>{if(action!=='read'||await checked(work)!==undefined)throw unavailable();};
       const denied=async()=>{throw unavailable();};
       // Memoize only exact deterministic SDK verification within this one read.
-      // Current identity, records, profile/source and key authorities are never
-      // cached. The final readback rechecks both roles after all SDK callbacks.
+      // The final readback rechecks both roles after all SDK callbacks. Scope
+      // lineage is composed inside a private full-read/final-full-read window;
+      // intermediate reuse never escapes it or replaces caller authorization.
       const verified=new Map<string,string>();
+      let scopeHistory=r.originals.scopeHistory;
       const secure:Records={
         authorize:denied,
         authorizeHistoricalRead:context=>authority('read',()=>r.authorizeHistoricalRead!(context)),
@@ -52,7 +55,7 @@ export function createIntentDevelopmentHistoryReader(pools:Parameters<typeof cre
           authorizeDraft:context=>authority(context.action,()=>r.originals.authorizeDraft(context)),
           keyForDraft:(ref,keyId)=>{if(keyId===null)throw unavailable();return checked(()=>r.originals.keyForDraft(ref,keyId));},
           ...(r.originals.scopeHistory?{scopeHistory:{scope:r.originals.scopeHistory.scope,
-            read:(input,recheck)=>checked(()=>r.originals.scopeHistory!.read(input,()=>authority('read',recheck)))}}:{}),
+            read:(input,recheck)=>checked(()=>scopeHistory!.read(input,()=>authority('read',recheck)))}}:{}),
         },
         results:{
           authorizeOperation:denied,authorizeResult:denied,
@@ -65,7 +68,8 @@ export function createIntentDevelopmentHistoryReader(pools:Parameters<typeof cre
       const own=<T extends{close():void}>(store:T):T=>{owned.push(store);children.add(store);return store;};
       const authorizeRoles=async()=>{for(const stepId of ['architect','test-agent'] as const)
         await secure.authorizeHistoricalRead!({configuration:config,target:{...target,stepId}});};
-      const work=Promise.resolve().then(async()=>{
+      const work=withHistoricalScopeReadWindow(r.originals.scopeHistory,current,async window=>{
+        scopeHistory=window;
         await current();await authorizeRoles();
         const originals=own(createDevelopmentOriginalStore(scopedPools,config,secure.originals));
         const original=await originals.readHistorical(target);guard();const source=original.original.source;
