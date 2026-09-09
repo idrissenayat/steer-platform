@@ -1096,7 +1096,7 @@ operation/receipt or private source/prompts/wire output is disclosed.
 
 The actual UI explicitly discovers/selects a retained drafting run and previews
 the package. Its backend remains uninstalled; 0261 now composes human confirmation
-and immutable original admission/readback. Workflow start remains next. Existing
+and immutable original admission/readback; 0262 adds the explicit workflow start. Existing
 amendment correction selection and explicit legacy publication mapping remain
 separate. See [the package guide](../CANDIDATE-PACKAGE-PREVIEW.md) and
 [0260 specification](../../intent/0260/SPEC.md).
@@ -1125,6 +1125,28 @@ Possible admission followed by failure is unknown. The UI retains the identical
 recovery command and known original status link, never automatically retries or
 silently substitutes a new package. Current authority and identical configuration
 are required even for recovery. Pending work keeps its bounded admission until
-drain. Reference-only save start and real authority/acceptance remain separate;
+drain. Reference-only save start is a separate command in 0262; real authority/acceptance remain open;
 the factory is uninstalled. See [the confirmation guide](../CANDIDATE-PACKAGE-CONFIRMATION.md)
 and [0261 specification](../../intent/0261/SPEC.md).
+
+### Explicit preserved-candidate save request — 0262
+
+Only a separate human `intent.candidate.save.start` command requests scheduling.
+It carries the existing operation/reference and `save: true`, never source bytes,
+routing, expiry or authority. The uninstalled server composition restores the
+encrypted immutable original, verifies shared admission, latest draft revision,
+scope digest and exact documents, and rechecks independent current start authority.
+Source, key, lifecycle and admission validation repeat after external authorization.
+
+The scheduler binds a fixed namespace/queue and the existing operation workflow ID.
+It validates retention and the retained first event before acknowledging an exact
+start. Reject-duplicate/reject-conflict policies, a five-minute workflow and the
+existing one-attempt activity preserve the durable dispatch fence. Unknown receipts
+do not permit another Git send or a new operation. Completed workflow state never
+substitutes for independent provider receipt verification and exact document reopen.
+
+The real package panel requires a separate save click after preservation and keeps
+the original status link during uncertainty. There is no automatic start/retry or
+browser storage of original bytes. The service remains uninstalled pending adopted
+runtime authority. See [the save-start guide](../CANDIDATE-SAVE-START.md),
+[0262 specification](../../intent/0262/SPEC.md) and [evidence](../../intent/0262/EVIDENCE.md).

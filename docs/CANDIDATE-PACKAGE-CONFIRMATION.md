@@ -87,8 +87,10 @@ authority at actual dispatch. Preserving an original does not authorize dispatch
 ## Remaining acceptance
 
 D1 adoption, an approved model-test budget, real destination/source/lifecycle/
-human-consent/provider authority, reference-only save start, existing-proposal
+human-consent/provider authority, existing-proposal
 selection, missing-original diagnostics and signed-in I1–I6 acceptance remain open.
+Reference-only save start is now implemented separately in
+[0262](CANDIDATE-SAVE-START.md); confirmation alone still never schedules it.
 Production React, SQL and recorded-SDK fixtures demonstrate software behavior,
 not live human acceptance or authority. See [0261 evidence](../intent/0261/EVIDENCE.md)
 and [the current plan](INTENT-JOURNEY-PLAN.md).

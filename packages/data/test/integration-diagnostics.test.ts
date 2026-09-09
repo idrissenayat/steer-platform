@@ -8,6 +8,10 @@ test('integration focus is explicit, bounded and distinct from the full suite',(
   assert.deepEqual(parseIntegrationSelection(['--scope-runtime']),{mode:'scope-runtime'});
   assert.deepEqual(parseIntegrationSelection(['--development-history']),{mode:'development-history'});
   assert.deepEqual(parseIntegrationSelection(['--run-discovery']),{mode:'run-discovery'});
+  assert.deepEqual(parseIntegrationSelection(['--candidate-save']),{mode:'candidate-save'});
+  assert.deepEqual(parseIntegrationSelection(['--candidate-start']),{mode:'candidate-start'});
+  assert.throws(()=>parseIntegrationSelection(['--candidate-start','extra']));
+  assert.throws(()=>parseIntegrationSelection(['--candidate-save','extra']));
   assert.throws(()=>parseIntegrationSelection(['--run-discovery','extra']));
   assert.throws(()=>parseIntegrationSelection(['--development-history','extra']));
   for(const args of [['--scope-runtime','extra'],['--scope-runtime','--query-delay-ms','1']])assert.throws(()=>parseIntegrationSelection(args));

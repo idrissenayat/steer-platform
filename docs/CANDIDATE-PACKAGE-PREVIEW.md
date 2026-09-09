@@ -73,7 +73,8 @@ not start a workflow. Browser checks establish response/byte equality, not autho
 0261 [connects explicit human confirmation](CANDIDATE-PACKAGE-CONFIRMATION.md) to
 reconstitution of this exact proposal, digest/binding comparison, one durable
 admission and encrypted original capture/readback. This is a separate command;
-preview stays read-only. Reference-only save start remains next. A lost
+preview stays read-only. [0262](CANDIDATE-SAVE-START.md) adds a separate explicit
+reference-only save request after preservation. A lost
 acknowledgement must recover the original operation, not produce another save.
 Dispatch independently rechecks current authority.
 

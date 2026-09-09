@@ -6,6 +6,9 @@ import type { DatabasePool } from '@steer/data/runtime-pool';
 import { createCandidateOriginalStore } from '@steer/data/candidate-originals';
 import { createDraftLifecycleStore } from '@steer/data/draft-lifecycle';
 import { createDraftRevisionStore } from '@steer/data/draft-revisions';
+import { createIntentDraftService } from '@steer/data/intent-draft-service';
+import { createRecordedCandidateSaveStarter } from '../../api/src/runtime.ts';
+import type { CandidateSaveScheduler } from '@steer/tool-registry/candidate-save-start-contracts';
 import { createDurableCandidateBundleStore } from '../src/candidate-bundle-runtime.ts';
 import { planCandidateBundle } from '@steer/tool-registry/candidate-bundle-contracts';
 import { createGitHubReader } from '@steer/adapters/github';
@@ -265,14 +268,17 @@ export async function testDurableCandidateBundles({ app, admin, connect, check }
       const f = await setup(), key = { keyId: `synthetic-${randomUUID()}`, bytes: randomBytes(32) };
       const { organizationId, subject, productId, repository, branch, configurationRevision, recordsPolicyDigest } = f.execution;
       const config = { organizationId, subject, productId, repository, branch, configurationRevision, recordsPolicyDigest };
-      const lifecycles = () => createDraftLifecycleStore(connect('steer_draft_runtime'), config, { authorize: async () => {}, verifyHold: async () => {} });
+      // Revalidation repeatedly recreates stores, not database pools. One bounded
+      // pool per fixture avoids leaking a connection for every lifecycle read.
+      const draftPool = connect('steer_draft_runtime');
+      const lifecycles = () => createDraftLifecycleStore(draftPool, config, { authorize: async () => {}, verifyHold: async () => {} });
       const creator = lifecycles();
       try {
         const created = await creator.create({ requestId: randomUUID() }); assert.equal(created.outcome, 'ok');
         if (created.outcome !== 'ok') throw new Error('Synthetic draft creation unavailable');
         f.confirmation.draftId = created.value.draftId;
       } finally { creator.close(); }
-      const revisions = () => createDraftRevisionStore(connect('steer_draft_runtime'), config, {
+      const revisions = () => createDraftRevisionStore(draftPool, config, {
         authorize: async () => {}, keyForDraft: async (_ref, keyId) => { assert.ok(keyId === null || keyId === key.keyId); return key; },
       });
       const sourceWriter = revisions();
@@ -285,12 +291,31 @@ export async function testDurableCandidateBundles({ app, admin, connect, check }
         f.confirmation.scopeInputDigest = preserved.reference.scopeInputDigest;
         f.confirmation.bundleManifestDigest = (await planCandidateBundle({ ...f.bundle, operationId: randomUUID() })).manifestDigest;
       } finally { sourceWriter.close(); }
-      const originals = () => createCandidateOriginalStore(connect('steer_draft_runtime'), config, {
+      const originals = () => createCandidateOriginalStore(draftPool, config, {
         authorize: async () => {}, verifyOriginal: request => f.make().verifyOriginal(request),
         lifecycle: async ref => { const store = lifecycles(); try { return await store.lifecycle(ref); } finally { store.close(); } },
         keyForDraft: async (_ref, keyId) => { assert.ok(keyId === null || keyId === key.keyId); return key; },
       });
-      return { ...f, prepare: async () => {
+      return { ...f,
+        starter: (scheduler: CandidateSaveScheduler, authorizeStart: Parameters<typeof createRecordedCandidateSaveStarter>[4]['authorizeStart']) => {
+          const draftService = createIntentDraftService(draftPool, config, {
+            lifecycle: { authorize: async () => {} }, revisions: { authorize: async () => {}, keyForDraft: async () => key } });
+          const service = createRecordedCandidateSaveStarter({ execution: app, drafts: draftPool }, binding,
+            { records: config, execution: f.execution }, f.publication, { drafts: draftService, scheduler, authorizeStart,
+              authorizeOperation: async () => {}, records: {
+                authorize: async () => {}, lifecycle: async ref => { const store = lifecycles(); try { return await store.lifecycle(ref); } finally { store.close(); } },
+                keyForDraft: async (_ref, keyId) => { assert.equal(keyId, key.keyId); return key; },
+              } });
+          return { ...service, close() { service.close(); draftService.close(); } };
+        },
+        advanceDraft: async () => {
+          const store = revisions(); try {
+            const previous = await store.read({ draftId: f.confirmation.draftId, revision: 1 });
+            const changed = await store.append({ draftId: f.confirmation.draftId, mutationId: randomUUID(), expectedRevision: 1,
+              expectedDigest: previous.reference.revisionDigest, content: { ...previous.content, originalText: previous.content.originalText + ' A newer human correction.' } });
+            assert.equal(changed.outcome, 'acknowledged');
+          } finally { store.close(); }
+        }, prepare: async () => {
         const reader = revisions();
         try {
           const restored = await reader.read({ draftId: f.confirmation.draftId, revision: f.confirmation.draftRevision });

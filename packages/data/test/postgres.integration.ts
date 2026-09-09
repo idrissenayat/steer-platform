@@ -78,7 +78,19 @@ try {
     await migrate(drizzle(admin), { migrationsFolder });
     assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 28);
   });
-  if(selection.mode==='run-discovery'){
+  if(selection.mode==='candidate-start'){
+    console.log('FOCUSED candidate HTTP start to SQL/Temporal/native-Git; NOT the full integration suite.');
+    await testDurableCandidateBundles({app:connect('steer_app'),admin,connect,check:async(name,run)=>{
+      if(name.includes('candidate HTTP'))await check(name,run);
+    }});
+    assert.equal(passed,4);
+    console.log(`FOCUSED candidate start result: ${passed-1} checks passed plus idempotent migration check; full suite NOT RUN.`);
+  }else if(selection.mode==='candidate-save'){
+    console.log('FOCUSED candidate save admission/originals/HTTP/Temporal/native-Git; NOT the full integration suite.');
+    await testDurableCandidateBundles({app:connect('steer_app'),admin,connect,check});
+    assert.ok(passed>1,'No candidate save checks selected');
+    console.log(`FOCUSED candidate save result: ${passed-1} checks passed plus idempotent migration check; full suite NOT RUN.`);
+  }else if(selection.mode==='run-discovery'){
     console.log('FOCUSED retained run discovery plus composed SQL/SDK history; NOT the full integration suite.');
     await testScopeStepRuntime({admin,connect,check:async(name,run)=>{
       if(name.startsWith('retained run discovery ')||name.startsWith('historical development composes '))await check(name,run);

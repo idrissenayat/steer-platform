@@ -8,12 +8,18 @@ import type { createDurableCandidateBundleStore } from '../src/candidate-bundle-
 import { createCandidateSaveActivities } from '../src/candidate-save-activity.ts';
 import { parseCandidateSaveTarget, candidateSaveWorkflowId } from '../src/candidate-save-contracts.ts';
 import { createCandidateSaveWorker } from '../src/worker.ts';
-import { startCandidateBundleSave } from '../src/client.ts';
+import { startCandidateBundleSave, createCandidateSaveSchedulerClient } from '../src/client.ts';
+import { createApi } from '../../api/src/app.ts';
+import type { createRecordedCandidateSaveStarter } from '../../api/src/runtime.ts';
+import { verifyCandidateSaveStart, type CandidateSaveScheduler } from '@steer/tool-registry/candidate-save-start-contracts';
+import type { Client } from '@temporalio/client';
 import { createIsolatedTemporalHarness } from './isolated-temporal-harness.ts';
 
 type Fixture = { prepare(): Promise<CandidateBundleSaveRequest>; make(): ReturnType<typeof createDurableCandidateBundleStore>;
   loadOriginal(target: unknown): Promise<unknown>;
   holdDraft(): Promise<void>;
+  advanceDraft(): Promise<void>;
+  starter(scheduler: CandidateSaveScheduler, authorizeStart: Parameters<typeof createRecordedCandidateSaveStarter>[4]['authorizeStart']): ReturnType<typeof createRecordedCandidateSaveStarter>;
   git: { mutations(): number; head(): string; loseAck(): void }; state(operationId: string): Promise<unknown> };
 const historyText = (v: unknown): string => v instanceof Uint8Array ? Buffer.from(v).toString('utf8')
   : v && typeof v === 'object' ? Object.values(v).map(historyText).join('\n') : typeof v === 'string' ? v : '';
@@ -35,10 +41,41 @@ export async function testCandidateSaveWorkflow(setup: () => Promise<Fixture>, c
     worker = await createCandidateSaveWorker({ connection: env.nativeConnection, namespace: 'default', taskQueue: t.queue, workflowBundle: harness.bundle }, activities);
     running = worker.run();
   };
+  const http = async (t: Awaited<ReturnType<typeof fresh>>, scheduler: CandidateSaveScheduler,
+    authorizeStart: Parameters<typeof createRecordedCandidateSaveStarter>[4]['authorizeStart'] = async () => {},
+    permissions = { allowed: true }) => {
+    const service = t.f.starter(scheduler, authorizeStart), input = { ...t.target, productId: t.request.bundle.productId,
+      repository: t.request.bundle.repository, branch: t.request.bundle.branch, draftId: t.request.confirmation.draftId,
+      draftRevision: t.request.confirmation.draftRevision, save: true };
+    const app = createApi({ authenticate: async () => ({ organizationId: t.target.organizationId,
+      subject: t.request.bundle.originatorSubject, type: 'human', hats: [], toolGrants: permissions.allowed ? ['intent.candidate.save.start'] : [],
+      expiresAt: new Date(Date.now() + 600000).toISOString() }), services: { candidateSaveStarter: service } });
+    try {
+      const response = await app.request('/v1/tools/intent.candidate.save.start', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input) });
+      const body = await response.json();
+      return { status: response.status, body, output: response.status === 200 ? verifyCandidateSaveStart(input, body) : null };
+    } finally { service.close(); }
+  };
   try {
-    await check('actual Temporal reloads encrypted SQL originals, commits once and replays after worker recreation without another Git send', async () => {
+    await check('actual candidate HTTP recovers lost SQL-to-Temporal start acknowledgement, then encrypted originals commit once and replay without another Git send', async () => {
       const t = await fresh();
-      const handle = await startCandidateBundleSave(env.client, t.queue, t.target);
+      let starts = 0;
+      const lostClient = new Proxy(env.client, { get(object, key) {
+        if (key === 'workflow') return new Proxy(object.workflow, { get(workflow, method) {
+          if (method === 'start') return async (...args: Parameters<typeof workflow.start>) => {
+            starts++; await workflow.start(...args); throw new Error('PRIVATE lost schedule acknowledgement');
+          };
+          const value = Reflect.get(workflow, method); return typeof value === 'function' ? value.bind(workflow) : value;
+        } });
+        const value = Reflect.get(object, key); return typeof value === 'function' ? value.bind(object) : value;
+      } }) as Client;
+      const scheduler = createCandidateSaveSchedulerClient(lostClient, { namespace: 'default', taskQueue: t.queue });
+      try {
+        const first = await http(t, scheduler); assert.equal(first.status, 200); assert.equal(first.output!.receipt.outcome, 'unknown');
+        const recovered = await http(t, scheduler); assert.equal(recovered.status, 200); assert.equal(recovered.output!.receipt.outcome, 'acknowledged');
+        assert.equal(recovered.output!.savedToGit, false); assert.equal(starts, 1);
+      } finally { scheduler.close(); }
+      const handle = env.client.workflow.getHandle(candidateSaveWorkflowId(t.target));
       await assert.rejects(startCandidateBundleSave(env.client, t.queue, t.target));
       await runWorker(t);
       assert.deepEqual(await handle.result(), { operationId: t.target.operationId, inputDigest: t.target.inputDigest, outcome: 'committed', revision: t.f.git.head() });
@@ -53,7 +90,40 @@ export async function testCandidateSaveWorkflow(setup: () => Promise<Fixture>, c
       await Worker.runReplayHistory({ workflowBundle: harness.bundle }, history, candidateSaveWorkflowId(t.target));
       await handle.result(); assert.equal(t.f.git.mutations(), 1);
       await assert.rejects(startCandidateBundleSave(env.client, t.queue, { ...t.target, inputDigest: 'f'.repeat(64) }));
+      assert.deepEqual(await t.f.loadOriginal(t.target), t.request, 'The committed original must remain independently readable');
+      const probe = await http(t, { start: async () => ({ outcome: 'unknown' }) });
+      assert.equal(probe.status, 200, 'Current original/draft authority must remain valid after commit');
+      const again = createCandidateSaveSchedulerClient(env.client, { namespace: 'default', taskQueue: t.queue });
+      try {
+        assert.equal((await again.start({ ...t.target, expiresAt: new Date(Date.now() + 60000).toISOString() }, async () => {})).outcome, 'acknowledged', 'Completed scheduler reference is independently valid');
+        const observed = await http(t, again); assert.equal(observed.status, 200);
+        assert.equal(observed.output!.receipt.outcome, 'acknowledged'); assert.equal(observed.output!.savedToGit, false);
+      } finally { again.close(); }
       await stop();
+    });
+    await check('candidate HTTP rejects changed drafts, preexisting holds and holds during start authority before scheduling or Git dispatch', async () => {
+      for (const mode of ['changed', 'held', 'late-held', 'denied']) {
+        const t = await fresh(); let starts = 0;
+        if (mode === 'changed') await t.f.advanceDraft(); if (mode === 'held') await t.f.holdDraft();
+        const response = await http(t, { start: async () => { starts++; throw new Error('Must not schedule'); } }, async () => {
+          if (mode === 'late-held') await t.f.holdDraft(); if (mode === 'denied') throw new Error('PRIVATE missing publication authority');
+        });
+        assert.equal(response.status, 503); assert.doesNotMatch(JSON.stringify(response.body), /PRIVATE|Synthetic Brief|workflowId/);
+        assert.equal(starts, 0); assert.equal(t.f.git.mutations(), 0); assert.equal(await t.f.state(t.target.operationId), undefined);
+      }
+    });
+    await check('candidate HTTP conceals a scheduled workflow after grant loss without undoing it or starting a replacement', async () => {
+      const t = await fresh(), permissions = { allowed: true };
+      const scheduler = createCandidateSaveSchedulerClient(env.client, { namespace: 'default', taskQueue: t.queue });
+      try {
+        const response = await http(t, { start: async (input, current) => {
+          const receipt = await scheduler.start(input, current); assert.equal(receipt.outcome, 'acknowledged'); permissions.allowed = false; return receipt;
+        } }, async () => {}, permissions);
+        assert.equal(response.status, 403); assert.equal((await env.client.workflow.getHandle(candidateSaveWorkflowId(t.target)).describe()).status.name, 'RUNNING');
+        assert.equal(t.f.git.mutations(), 0); permissions.allowed = true;
+        assert.equal((await http(t, scheduler, async () => {}, permissions)).output!.receipt.outcome, 'acknowledged');
+        assert.equal(t.f.git.mutations(), 0);
+      } finally { scheduler.close(); }
     });
     await check('Temporal retains an unknown Git outcome without retrying or equating workflow completion with a saved bundle', async () => {
       const t = await fresh(); t.f.git.loseAck(); await runWorker(t);

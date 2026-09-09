@@ -8,6 +8,8 @@ import type { DevelopmentEditorSource } from './intent-development-editor';
 import { createCandidateSavePreviewClient } from './candidate-save-preview-client';
 import { createIntentRunDiscoveryTransport } from './intent-run-discovery-transport';
 import { createCandidateSavePrepareClient } from './candidate-save-prepare-client';
+import { createCandidateSaveStartClient } from './candidate-save-start-client';
+import type { CandidateSaveStartOutput } from '@steer/tool-registry/candidate-save-start-contracts';
 import { candidateSaveStatusFragment } from './candidate-save-status-client';
 import { candidateSavePrepareInputSchema, type CandidateSavePrepareInput, type CandidateSavePrepareOutput } from '@steer/tool-registry/candidate-save-prepare-contracts';
 
@@ -17,26 +19,29 @@ export default function CandidatePackagePreview({ review, source, identity, expi
   const [page, setPage] = useState<IntentRunDiscoveryOutput | null>(null), [selected, setSelected] = useState('');
   const [item, setItem] = useState(''), [state, setState] = useState('idle'), [receipt, setReceipt] = useState<{ key: string; output: CandidateSavePreviewOutput } | null>(null);
   const [confirmation, setConfirmation] = useState<{ key: string; input: CandidateSavePrepareInput; output: CandidateSavePrepareOutput | null; reference: CandidateSavePrepareOutput['reference']; busy: boolean } | null>(null);
+  const [saveRequest, setSaveRequest] = useState<{ key: string; output: CandidateSaveStartOutput | null; busy: boolean } | null>(null);
   const contextKey = JSON.stringify([review, source, identity, expiresAt]), selectionKey = JSON.stringify([contextKey, selected, item]);
   const active = useRef(selectionKey); active.current = selectionKey;
-  const owner = useRef<{ prepare: ReturnType<typeof createCandidateSavePrepareClient>; preview: ReturnType<typeof createCandidateSavePreviewClient>; discovery: ReturnType<typeof createIntentRunDiscoveryTransport>; valid(): boolean } | null>(null);
+  const owner = useRef<{ start: ReturnType<typeof createCandidateSaveStartClient>; prepare: ReturnType<typeof createCandidateSavePrepareClient>; preview: ReturnType<typeof createCandidateSavePreviewClient>; discovery: ReturnType<typeof createIntentRunDiscoveryTransport>; valid(): boolean } | null>(null);
   const busy = useRef(false), recordsExpiry = useRef(0), heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     const preview = createCandidateSavePreviewClient(window.location.origin), discovery = createIntentRunDiscoveryTransport(window.location.origin), prepare = createCandidateSavePrepareClient(window.location.origin);
+    const start = createCandidateSaveStartClient(window.location.origin);
     let closed = false, last = Date.now(); recordsExpiry.current = 0; busy.current = false;
     const valid = () => { const now = Date.now(), expiry = Date.parse(expiresAt);
       const result = !closed && !document.hidden && Number.isFinite(expiry) && now >= last && now < expiry && (!recordsExpiry.current || now < recordsExpiry.current);
       last = now; return result; };
-    const session = { prepare, preview, discovery, valid }; owner.current = session;
-    const clear = () => { closed = true; prepare.close(); preview.close(); discovery.close(); setPage(null); setSelected(''); setReceipt(null); setConfirmation(null); setState('closed'); };
+    const session = { start, prepare, preview, discovery, valid }; owner.current = session;
+    const clear = () => { closed = true; start.close(); prepare.close(); preview.close(); discovery.close(); setPage(null); setSelected(''); setReceipt(null); setConfirmation(null); setSaveRequest(null); setState('closed'); };
     const check = () => { if (!valid()) clear(); };
-    setPage(null); setSelected(''); setItem(''); setReceipt(null); setConfirmation(null); setState('idle'); check();
+    setPage(null); setSelected(''); setItem(''); setReceipt(null); setConfirmation(null); setSaveRequest(null); setState('idle'); check();
     const timer = setInterval(check, 1000); document.addEventListener('visibilitychange', check); window.addEventListener('pagehide', clear);
-    return () => { closed = true; prepare.close(); preview.close(); discovery.close(); if (owner.current === session) owner.current = null; clearInterval(timer);
+    return () => { closed = true; start.close(); prepare.close(); preview.close(); discovery.close(); if (owner.current === session) owner.current = null; clearInterval(timer);
       document.removeEventListener('visibilitychange', check); window.removeEventListener('pagehide', clear); };
   }, [contextKey, expiresAt]);
   const result = receipt?.key === selectionKey ? receipt.output : null;
   const confirmed = confirmation?.key === selectionKey ? confirmation : null;
+  const saving = saveRequest?.key === selectionKey ? saveRequest : null;
   useEffect(() => { if (result) heading.current?.focus(); }, [result]);
   async function find(cursor: IntentRunDiscoveryOutput['cursor'] = null) {
     const session = owner.current;
@@ -87,6 +92,18 @@ export default function CandidatePackagePreview({ review, source, identity, expi
     } catch { if (owner.current === session && session.valid() && active.current === key) setConfirmation({ key, input, output: null, reference, busy: false }); }
     finally { if (owner.current === session) busy.current = false; }
   }
+  async function startSave() {
+    const session = owner.current, key = selectionKey;
+    if (!session?.valid() || busy.current || confirmed?.output?.outcome !== 'prepared' || !confirmed.reference
+      || saving?.output?.receipt.outcome === 'acknowledged') return;
+    busy.current = true; setSaveRequest({ key, output: null, busy: true });
+    try {
+      const output = await session.start.start({ ...confirmed.reference, save: true });
+      if (owner.current !== session || !session.valid() || active.current !== key) return;
+      setSaveRequest({ key, output, busy: false });
+    } catch { if (owner.current === session && session.valid() && active.current === key) setSaveRequest({ key, output: null, busy: false }); }
+    finally { if (owner.current === session) busy.current = false; }
+  }
   // An uncertain acknowledgement keeps the same command. The package controls
   // cannot silently turn a recovery click into a new confirmation.
   const working = state === 'finding' || state === 'previewing' || !!confirmed;
@@ -120,13 +137,22 @@ export default function CandidatePackagePreview({ review, source, identity, expi
       {!confirmed && <button type="button" className="access-primary" onClick={() => { void confirm(); }}>Confirm this exact package</button>}
       <div role="status" aria-live="polite">{confirmed?.busy && <p>Rechecking your confirmation and preserving the exact original…</p>}
         {confirmed && !confirmed.busy && (confirmed.output?.outcome === 'prepared'
-          ? <p>Exact original preserved and read back. Not saved to GitHub. The authorized save-start step is not connected yet.</p>
+          ? <p>Exact original preserved and read back. Not saved to GitHub. Saving requires a separate request and current server authorization.</p>
           : confirmed.output?.outcome === 'conflict'
             ? <p>The package changed before admission. Review the current draft and destination again; no save was started.</p>
             : <p>Confirmation acknowledgement is unavailable or uncertain. Do not create another submission. Recovery rechecks this same confirmation; it cannot start a save.</p>)}</div>
       {confirmed && !confirmed.busy && confirmed.output?.outcome !== 'prepared' && confirmed.output?.outcome !== 'conflict'
         && <button type="button" className="access-secondary" onClick={() => { void confirm(); }}>Recover this exact confirmation</button>}
       {confirmed?.output?.outcome === 'conflict' && <button type="button" className="access-secondary" onClick={() => { setConfirmation(null); setReceipt(null); }}>Return to package review</button>}
+      {confirmed?.output?.outcome === 'prepared' && <>
+        <p>Request saving of this exact package to the repository shown above. The server rechecks current permissions and the original draft before starting the same save operation.</p>
+        {saving?.output?.receipt.outcome !== 'acknowledged' && <button type="button" className="access-primary" disabled={!!saving?.busy}
+          onClick={() => { void startSave(); }}>{saving ? 'Recover this same save request' : 'Save this exact package to GitHub'}</button>}
+        <div role="status" aria-live="polite">{saving?.busy ? <p>Rechecking authority and requesting the original save workflow…</p>
+          : saving?.output?.receipt.outcome === 'acknowledged'
+            ? <p>Save workflow acknowledged: {saving.output.receipt.state}. This does not verify a GitHub commit. Check the original save operation below for the saved documents.</p>
+            : saving && <p>Save acknowledgement is unavailable or uncertain. Check the original save status first. Recovery uses the same operation and may start it if it was never accepted; it does not create a replacement submission.</p>}</div>
+      </>}
       {confirmed?.reference && <a className="access-secondary" href={candidateSaveStatusFragment(confirmed.reference)}>Check this original save operation</a>}
     </div>}
   </section>;

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { createCandidateSavePreviewer } from '@steer/data/candidate-save-previewer';
 import { createCandidateSavePreparer } from '@steer/data/candidate-save-preparer';
+import { createCandidateSaveStarter } from '@steer/data/candidate-save-starter';
 import { describeCandidatePublication } from '@steer/adapters/github-candidate-bundle-store';
 import { createCandidateSaveReviewer } from '@steer/data/candidate-save-reviewer';
 import { createCandidateOriginalStore, candidateOriginalConfigurationSchema } from '@steer/data/candidate-originals';
@@ -50,6 +51,17 @@ import { readProjection } from '@steer/data';
 import { createHeldGitBriefWriterFactory, heldGitBriefConfigurationSchema, type HeldBriefAssessment } from '@steer/adapters/held-brief-writer';
 
 const text = z.string().min(1);
+/** Explicit, uninstalled reference-only start. No provider client is created;
+ * the runtime owner must supply adopted current authority and fixed scheduler. */
+export function createRecordedCandidateSaveStarter(pools: Parameters<typeof createCandidateSaveStarter>[0],
+  binding: Parameters<typeof describeCandidatePublication>[0], configuration: unknown, publication: unknown,
+  dependencies: Parameters<typeof createCandidateSaveStarter>[3]) {
+  const config = z.strictObject({ records: candidateOriginalConfigurationSchema, execution: intentOperationConfigurationSchema }).parse(configuration);
+  const bound = describeCandidatePublication(binding, publication);
+  for (const key of ['organizationId', 'productId', 'repository', 'branch'] as const)
+    if (bound.configuration[key] !== config.execution[key]) throw new Error('Candidate start scope mismatch.');
+  return createCandidateSaveStarter(pools, config, bound.options, dependencies);
+}
 /** Explicit and uninstalled. Shares admission identity with the durable worker,
  * but neither creates a provider client nor starts a workflow. */
 export function createRecordedCandidateSavePreparer(pools: Parameters<typeof createCandidateSavePreparer>[0],

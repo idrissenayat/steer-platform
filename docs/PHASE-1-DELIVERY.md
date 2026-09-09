@@ -5701,3 +5701,31 @@ See [0261 evidence](../intent/0261/EVIDENCE.md) and
 limitations. Runtime factories remain uninstalled. Next is reference-only save
 start; existing-proposal selection, uncaptured-admission diagnostics, real adopted
 records and provider authority, and signed-in I1–I6 acceptance remain open.
+
+## Development increment: 0262 — Request the preserved candidate save
+
+The actual package panel now offers a separate explicit save action after original
+preservation. Its human-only HTTP/MCP command restores that encrypted original,
+verifies shared API/worker admission and current draft revision/scope/documents,
+rechecks independent start authority, and schedules only the existing operation.
+No new original, operation, expiry, step claim or model reservation is created.
+
+The configured candidate scheduler validates namespace retention and the exact
+retained first event before acknowledging a fixed workflow. Lost acknowledgements
+remain unknown; explicit recovery cannot substitute a new operation or resend a
+dispatched Git step. The existing single-attempt activity performs separate dispatch
+checks. Workflow completion is not a verified Git save or gate signature.
+
+The UI retains its original status link, never automatically starts/retries, and
+conceals late results after identity/visibility/context loss. API/data/scheduler
+factories remain uninstalled. See [0262 evidence](../intent/0262/EVIDENCE.md) and
+[the save-start guide](CANDIDATE-SAVE-START.md) for measured verification and limits.
+
+Verification: 1,233 regression tests, 359 full PostgreSQL integration checks,
+prototype/eight-package type checks and the optimized Next build pass. The full
+integration rerun includes corrected bounded fixture-pool reuse, lost start
+acknowledgement recovery, one native-Git commit and late-authority denial. These
+synthetic results do not establish live records adoption or signed-in acceptance.
+
+Next: existing-proposal selection and missing-original diagnostics. Real records/
+model/provider authority and signed-in I1–I6 saved-repository acceptance remain open.

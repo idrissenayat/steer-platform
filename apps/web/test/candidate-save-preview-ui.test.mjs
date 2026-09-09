@@ -26,13 +26,21 @@ async function fixture() {
     entries: [{ kind: 'development', source: latest, ...f.previewInput.generation }], nextCursor: null,
     scope: 'current-owner-records-configuration-all-preserved-revisions', order: 'revision-type-id-descending-not-chronological',
     contentLoaded: false, executionAuthorized: false, savedToGit: false, gateSigned: false };
-  const state = { calls: [], commands: [], output: f.prepared.output, page, denied: false, wait: null, confirmation: 'prepared' };
+  const state = { calls: [], commands: [], starts: [], output: f.prepared.output, page, denied: false, wait: null, confirmation: 'prepared', start: 'acknowledged' };
   const saveReference = { organizationId: f.scope.organizationId, productId: f.scope.productId, repository: f.scope.repository, branch: f.scope.branch,
     draftId: f.input.draftId, draftRevision: 1, operationId: randomUUID(), inputDigest: 'a'.repeat(64) };
   globalThis.fetch = async (url, init) => {
     state.calls.push(String(url)); assert.equal(init.credentials, 'same-origin'); assert.equal(init.cache, 'no-store');
     assert.doesNotMatch(init.body, /Human-edited Exam|Current corrected Brief|serviceCommitter|savedToGit|saveConfirmed/);
     if (String(url).endsWith('/intent.runs.discover')) return Response.json(state.page);
+    if (String(url).endsWith('/intent.candidate.save.start')) {
+      const input = JSON.parse(init.body); state.starts.push(input); assert.deepEqual(input, { ...saveReference, save: true });
+      if (state.wait) await state.wait;
+      if (state.start === 'lost') throw new Error('PRIVATE lost save acknowledgement');
+      return Response.json({ ...input, kind: 'steer-candidate-save-start/v1', receipt: state.start === 'acknowledged'
+        ? { outcome: 'acknowledged', workflowId: `steer-candidate-save/v1/${encodeURIComponent(input.organizationId)}/${input.operationId}`, runId: randomUUID(), state: 'COMPLETED' }
+        : { outcome: state.start }, savedToGit: false, executionAuthorized: false, retryAuthorized: false, gateSigned: false });
+    }
     if (String(url).endsWith('/intent.candidate.save.prepare')) {
       const input = JSON.parse(init.body); state.commands.push(input);
       assert.deepEqual(input, { organizationId: f.scope.organizationId, preview: f.previewInput,
@@ -102,6 +110,36 @@ test('a late confirmation acknowledgement cannot survive identity change or beco
     await t.render({ identity: 'other-human' }); await act(async () => { release(); await new Promise(r => setTimeout(r, 30)); });
     assert.equal(document.querySelector('a'), null); assert.doesNotMatch(document.body.textContent, /Exact original preserved/);
   } finally { release?.(); await t.cleanup(); }
+});
+test('actual package UI requests a save only on a separate click and recovers the identical reference without claiming Git completion', async () => {
+  const t = await fixture();
+  try {
+    await t.choose(); await t.click('Preview exact package'); await t.until(() => t.button('Confirm this exact package'));
+    await t.click('Confirm this exact package'); await t.until(() => t.button('Save this exact package to GitHub'));
+    assert.equal(t.state.starts.length, 0); const href = document.querySelector('a').href;
+    t.state.start = 'lost'; await t.click('Save this exact package to GitHub'); await t.until(() => t.button('Recover this same save request')?.disabled === false);
+    assert.match(document.body.textContent, /Check the original save status first/); assert.equal(document.querySelector('a').href, href);
+    assert.equal(t.button('Preview exact package').disabled, true);
+    t.state.start = 'acknowledged'; await t.click('Recover this same save request'); await t.until(() => document.body.textContent.includes('Save workflow acknowledged: COMPLETED'));
+    assert.match(document.body.textContent, /This does not verify a GitHub commit/); assert.equal(t.state.starts.length, 2);
+    assert.deepEqual(t.state.starts[0], t.state.starts[1]); assert.equal(t.button('Recover this same save request'), undefined);
+    assert.equal(document.querySelector('a').href, href); assert.equal(t.state.commands.length, 1);
+  } finally { await t.cleanup(); }
+});
+test('identity or visibility loss aborts the in-flight save command and conceals late acknowledgements', async () => {
+  for (const mode of ['identity', 'visibility']) {
+    const t = await fixture(); let release;
+    try {
+      await t.choose(); await t.click('Preview exact package'); await t.until(() => t.button('Confirm this exact package'));
+      await t.click('Confirm this exact package'); await t.until(() => t.button('Save this exact package to GitHub'));
+      t.state.wait = new Promise(r => { release = r; }); await t.click('Save this exact package to GitHub');
+      if (mode === 'identity') await t.render({ identity: 'other-human' });
+      else await act(async () => { Object.defineProperty(document, 'hidden', { configurable: true, value: true }); document.dispatchEvent(new t.dom.window.Event('visibilitychange')); });
+      await act(async () => { release(); await new Promise(r => setTimeout(r, 30)); });
+      assert.equal(document.querySelector('a'), null); assert.doesNotMatch(document.body.textContent, /workflow acknowledged|Save this exact package/);
+      assert.equal(t.state.starts.length, 1);
+    } finally { release?.(); await t.cleanup(); }
+  }
 });
 test('package UI conceals stale/denied proposals and drops late results after identity or visibility changes', async () => {
   const t = await fixture(); let release;
