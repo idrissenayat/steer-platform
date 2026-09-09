@@ -62,6 +62,22 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Proven catalog forwarding and parent callback ownership — 0294
+
+The candidate catalog forwards only an exact privately proven source read, which
+still executes current authority and both source grants. Unknown ports keep the
+full policy path; a replaced proven source method rejects. Forwarding adds owner
+guards and bounded read accounting, not a permission cache. The bundle reader's
+optional parent enter/leave callbacks track actual pending work, including final
+policy queries after cancellation; these callbacks do not grant authority.
+
+The authenticated synthetic journey still saves once and reopens the exact old
+commit through lost acknowledgements and restart. Source review is 210 requests,
+preview 5,057 and first confirmation 10,307. Full C22 and live acceptance are not
+complete. The next priority is a coherent read-only records/history read set with
+fresh lifecycle/key/current-authority checks and final readback before effects.
+See [0294 evidence](../intent/0294/EVIDENCE.md) and [raw samples](../intent/0294/PERFORMANCE.json).
+
 ### Canonical-source reads and draft callback ownership — 0293
 
 After explicit canonical selection, items with neither CANDIDATE.json nor a

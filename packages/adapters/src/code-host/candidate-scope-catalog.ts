@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { candidateBundleReferenceSchema, candidatePointerReferenceSchema } from '@steer/tool-registry/candidate-bundle-contracts';
 import { createCandidateBundleReader } from './candidate-bundle-reader.ts';
 import type { DirectoryRepositoryReader, ArtifactSnapshot } from './github.ts';
-import { bracketRepositoryRead, repositoryReadCovers } from './repository-read-authority.ts';
+import { bracketRepositoryRead, repositoryReadCovers, retainRepositoryRead } from './repository-read-authority.ts';
 
 const referenceSchema = candidateBundleReferenceSchema.omit({ itemId: true, bundleId: true, manifestDigest: true });
 const configurationSchema = referenceSchema.omit({ revision: true }).extend({
@@ -83,15 +83,28 @@ export function createCandidateScopeCatalog(reader: DirectoryRepositoryReader, r
         const method = reader.readArtifact;
         return read(() => Reflect.apply(method, reader, [path, revision]), repositoryReadCovers(method, authorize));
       };
-      // Keep the bundle-facing read genuinely bracketed by check, even when its
-      // underlying corpus read covers authorize. Do not transfer a proof across
-      // a callback that was skipped. Catalog bounds/admission remain independent.
-      const port = { ...reader, readArtifact: bracketRepositoryRead(check, async (path: string, revision: string) => {
+      const sourceMethod = reader.readArtifact;
+      const coveredSource = repositoryReadCovers(sourceMethod, authorize);
+      // Only a proven argument-independent corpus authorizer can be forwarded.
+      // The original read executes it; guards/counts/admission still belong to
+      // this catalog. A replaced proven method rejects instead of inheriting its
+      // proof. Unrecognized methods retain the full original policy path.
+      const port = { ...reader, readArtifact: coveredSource ? retainRepositoryRead(sourceMethod, reader, {
+        guard() { signal.throwIfAborted(); if (finished || reader.readArtifact !== sourceMethod) throw new CandidateCatalogError(); },
+        start() {
+          if (readCount >= 100) { readLimitReached = true; throw new CandidateCatalogError(); }
+          readCount++; pending++;
+        },
+        settled() { pending--; release(); },
+      }) : bracketRepositoryRead(check, async (path: string, revision: string) => {
         if (readCount >= 100) { readLimitReached = true; throw new CandidateCatalogError(); }
         readCount++; const method = reader.readArtifact;
         return bounded(() => Reflect.apply(method, reader, [path, revision]));
       }, () => signal.throwIfAborted()) };
-      bundles = createCandidateBundleReader(port, config, check);
+      bundles = createCandidateBundleReader(port, config, coveredSource ? authorize : check, {
+        enter() { signal.throwIfAborted(); if (finished) throw new CandidateCatalogError(); pending++; },
+        leave() { pending--; release(); },
+      });
       const documents = new Map<string, ArtifactSnapshot>();
       const groups: Array<{ itemId: string; kind: Kind; pointerPath: string | null; manifestDigest: string | null; documentPaths: string[] }> = [];
       const gaps: Gap[] = []; const inventories: Array<{ itemId: string; treeSha: string; entries: unknown[] }> = [];

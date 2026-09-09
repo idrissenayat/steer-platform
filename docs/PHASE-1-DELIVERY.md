@@ -6608,3 +6608,32 @@ checks and the larger repeated records/history validation path, preserving fresh
 checks at effects and final readback. No live spending, records/D1 activation,
 runtime GitHub grants/writes, signed source, gates, deployment, release or user
 data changed. Full SQL and actual signed-in UI acceptance are not claimed.
+
+## 0294 — Forward proven source reads while retaining parent admission
+
+Catalog bundle reads now forward only the exact privately proven corpus method,
+which still executes source grants and current authority. Unknown ports keep full
+checks, and replacing a proven method rejects. Captured method/receiver/arguments,
+byte validation, coverage gaps, guards and read caps remain. Optional parent
+bookkeeping in the bundle reader retains actual pending callbacks through
+cancellation; it is not permission evidence or a public request option.
+
+All **73 focused tests**, **three authenticated joined checks plus migrations**,
+**1,462 broad tests**, types and the production build pass. The joined journey
+preserves distinct drafting roles, human correction, exact confirmation, one
+native commit, lost acknowledgements, restart, exact older-commit reopen and
+current policy/Git denial. Source review falls from 232 to **210** requests,
+scope preparation from 932 to **844**, preview from 5,145 to **5,057** and first
+confirmation from 10,483 to **10,307**. Repository/body requests are unchanged.
+See [specification](../intent/0294/SPEC.md), [evidence](../intent/0294/EVIDENCE.md)
+and [raw measurements](../intent/0294/PERFORMANCE.json).
+
+These remain single undelayed samples, not complete C22 or live acceptance. The
+delayed prefix, full continuation and full SQL suites were not rerun. Recovery
+returns committed with 17 requests and no clock reversal, but the retained 0289
+failure remains unexplained. Overall is **68% (17/25; 8 remaining; +0 points)**.
+Prioritize coherent whole-path records/history reads, preserving current lifecycle,
+key checks and final readback before effects, then complete the full performance
+protocol and separately authorized live acceptance. No credentials, spending,
+records/D1 activation, runtime GitHub writes, gates, deployment, release or user
+data changed.

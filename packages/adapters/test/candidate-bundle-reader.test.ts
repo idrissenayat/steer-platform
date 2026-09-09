@@ -240,3 +240,24 @@ test('method replacement during a covered read cannot inherit the captured metho
   await assert.rejects(f.make(authorize, port).reopen(f.reference));
   assert.equal(checks, 3); assert.equal(originalReads, 1); assert.equal(replacementReads, 0);
 });
+
+test('parent admission follows a held final policy after reader closure, not the returned timeout race', async t => {
+  const f = await setup(t); let checks = 0, active = 0, reads = 0, entered!: () => void, release!: () => void;
+  const begun = new Promise<void>(r => { entered = r; }), held = new Promise<void>(r => { release = r; });
+  const authorize = async () => { if (++checks === 9) { entered(); await held; } };
+  const port = { ...f.reader, readArtifact: bracketRepositoryRead(authorize, async (path: string, revision: string) => {
+    reads++; return f.reader.readArtifact(path, revision);
+  }, () => {}) };
+  const reader = createCandidateBundleReader(port, config, authorize, { enter() { active++; }, leave() { active--; } });
+  const result = assert.rejects(reader.reopen(f.reference)); await begun; assert.equal(reads, 4); assert.equal(active, 1);
+  reader.close(); await result; assert.equal(active, 1);
+  release(); await new Promise<void>(r => setImmediate(r)); assert.equal(active, 0); assert.equal(reads, 4);
+});
+
+test('closed parent bookkeeping rejects before policy and source dispatch', async t => {
+  const f = await setup(t); let checks = 0, leaves = 0;
+  const reader = createCandidateBundleReader(f.reader, config, async () => { checks++; }, {
+    enter() { throw new Error('parent closed'); }, leave() { leaves++; },
+  });
+  await assert.rejects(reader.reopen(f.reference)); assert.equal(checks, 0); assert.equal(leaves, 0); assert.equal(f.git.calls.length, 0);
+});

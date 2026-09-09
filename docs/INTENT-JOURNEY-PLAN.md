@@ -9,7 +9,28 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0293 / partial C22 — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0294 / partial C22 — 68% (17/25; 8 remaining; +0 points)**.
+0294 forwards exact proven corpus reads through the catalog without another
+caller pair. Original policies execute; unknown ports keep full checks and
+replaced proven methods reject. Parent admission follows actual bundle callback
+settlement, including final permission queries after cancellation. The joined
+authenticated synthetic save/recovery/reopen passes. Source review falls from
+232 to **210**, scope preparation from 932 to **844**, preview from 5,145 to
+**5,057** and first confirmation from 10,483 to **10,307** requests. These still
+fail C22; there is no new delayed/warmed or real UI acceptance claim. See
+[0294 evidence](../intent/0294/EVIDENCE.md) and [raw samples](../intent/0294/PERFORMANCE.json).
+
+Next priority is the **whole save path's repeated records/history validation**,
+not more source-only micro-increments. Consolidate the read-only portion around
+one coherent, invocation-owned read set: exact immutable originals/results,
+current lifecycle/hold/expiry and key checks, with final metadata/content identity
+readback and fresh authority before effects. Unknown/replaced ports keep a full
+fallback or deny. No request-provided proof, permission cache, cross-request lease,
+write-spanning snapshot or skipped final check is allowed. Verify old/new and lost-
+acknowledgement recovery, then finish the remaining source-review gap and run the
+full C22 protocol. Live records/model/GitHub/UI prerequisites remain separate.
+
+Prior delivery checkpoint: **0293 / partial C22**.
 0293 reads explicitly canonical pointer-free items directly from the verified
 inventory, preserves full catalog handling for pointers, and removes redundant
 metadata-only selection/freshness traversal. Draft reads now use read-only policy
@@ -22,13 +43,8 @@ warm/cold/concurrent draft reads pass. Next remove the remaining catalog/read
 boundary duplication and address bulk records validation before the full C22
 protocol. Live records/model/GitHub/UI prerequisites remain separate.
 
-Next C22 targets are bounded: first inspect the bundle-facing port in
-`candidate-scope-catalog.ts`, which still brackets a read whose underlying corpus
-port already brackets the same caller. Any forwarding must preserve actual
-policy execution, owner guards/admission, argument-independent authority and a
-full fallback for unrecognized/replaced ports; never cache a grant. Then address
-the much larger repeated records/history validation path with coherent read
-snapshots, preserving lifecycle/key checks and final readback before effects.
+The catalog forwarding target above is now addressed by 0294. The larger records/
+history consolidation and complete performance acceptance remain open.
 
 Prior delivery checkpoint: **0292 / partial C22**.
 0292 removes duplicate caller traversal around read-only records permission

@@ -33,9 +33,11 @@ export class CandidateBundleReadError extends Error {
  * No latest-head fallback, writes, cache, draft persistence or gate assertions.
  */
 export function createCandidateBundleReader(reader: ArtifactReader, rawConfiguration: unknown,
-  authorize: (reference: Readonly<z.infer<typeof candidatePointerReferenceSchema> | CandidateBundleReference>) => Promise<void>) {
+  authorize: (reference: Readonly<z.infer<typeof candidatePointerReferenceSchema> | CandidateBundleReference>) => Promise<void>,
+  owner?: { enter(): void; leave(): void }) {
   const config = configuration.safeParse(rawConfiguration);
   if (!config.success || typeof authorize !== 'function' || typeof reader.readArtifact !== 'function'
+    || (owner && (typeof owner.enter !== 'function' || typeof owner.leave !== 'function'))
     || reader.binding.organizationId !== config.data.organizationId || reader.binding.branch !== config.data.branch
     || `github:${reader.binding.repositoryId}` !== config.data.repository) throw new CandidateBundleReadError();
   const settings = freeze(config.data), repositoryId = reader.binding.repositoryId;
@@ -54,11 +56,14 @@ export function createCandidateBundleReader(reader: ArtifactReader, rawConfigura
     const signal = AbortSignal.any([lifetime.signal, AbortSignal.timeout(15000)]);
     async function bounded<T>(work: () => Promise<T>): Promise<T> {
       signal.throwIfAborted();
+      // Optional parent bookkeeping is not policy or permission evidence. Track
+      // the actual callback, never just this timeout race's returned promise.
+      owner?.enter();
       let listener: () => void = () => {};
       pending++;
       const task = Promise.resolve().then(() => { signal.throwIfAborted(); return work(); });
       // A timed-out dependency retains its admission slot until it actually ends.
-      void task.finally(() => { pending--; release(); }).catch(() => {});
+      void task.finally(() => { pending--; release(); owner?.leave(); }).catch(() => {});
       try {
         return await Promise.race([task, new Promise<never>((_, reject) => {
           listener = () => reject(new CandidateBundleReadError()); signal.addEventListener('abort', listener, { once: true });

@@ -57,7 +57,19 @@ do not exclude expensive identity traffic or weaken checks to meet the number.
 
 ## Current gap and next work
 
-Latest: [0293](../intent/0293/EVIDENCE.md) reads explicitly canonical pointer-free
+Latest: [0294](../intent/0294/EVIDENCE.md) forwards privately proven source reads
+through the catalog while retaining actual parent callback admission. Source
+review is **210** requests, scope preparation **844**, save preview **5,057**,
+first confirmation **10,307** and drafting preparation **4,350 / 3,900**. Every
+repository/body request remains. The authenticated synthetic journey passes;
+all counts are still single undelayed samples, not warmed p95. The delayed prefix
+was not rerun because even source review remains above the unchanged 200-attempt
+ceiling. Prior delayed failures remain retained, not counted as current passes.
+[Raw measurements](../intent/0294/PERFORMANCE.json) include all action, preparation,
+start and recovery samples. Prioritize bulk records/history read consolidation
+across the entire save path; source-only reductions cannot finish this checkpoint.
+
+[0293](../intent/0293/EVIDENCE.md) reads explicitly canonical pointer-free
 items without redundant directory catalogs, consolidates metadata-only selection/
 freshness checks, and reduces draft-read policy traversal while preserving write
 and key barriers. Source review drops from 317 to **232** attempts (26.81%), scope

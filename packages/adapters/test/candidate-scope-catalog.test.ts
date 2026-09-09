@@ -159,6 +159,14 @@ test('read cap leaves explicit unprocessed-item gaps and never issues more than 
   assert.equal(calls, 100); assert.equal(result.coverage.readLimitReached, true);
   assert.equal(result.coverage.sourceCoverageComplete, false); assert.equal(result.coverage.inventoryComplete, false);
   assert.ok(result.coverage.gaps.some(gap => gap.reason === 'read-limit'));
+  calls = 0;
+  const authorize = async () => {};
+  const proven = { ...port,
+    readArtifact: bracketRepositoryRead(authorize, port.readArtifact, () => {}),
+    readDirectoryInventory: bracketRepositoryRead(authorize, port.readDirectoryInventory, () => {}),
+  };
+  const covered = await createCandidateScopeCatalog(proven, { ...configuration, itemIds }, authorize).collect(f.reference);
+  assert.deepEqual(covered, result); assert.equal(calls, 100);
 });
 
 test('directory bounds, non-directory roots and malformed revisions fail without invented empty inventory', async t => {
@@ -193,7 +201,7 @@ test('catalog root reads omit only privately covered exact policy pairs and pres
     readDirectoryInventory: (...args: [string, string]) => port.readDirectoryInventory(...args) };
   assert.deepEqual(await f.make(authorize, unknown).collect(f.reference), result);
   assert.equal(result.coverage.sourceCoverageComplete, true);
-  assert.equal(reads, coveredReads); assert.equal(checks - coveredChecks, 4);
+  assert.equal(reads, coveredReads); assert.equal(checks - coveredChecks, 2 * coveredReads);
 });
 
 test('catalog rejects nonvoid policy and unrelated policy denial even with privately bracketed read methods', async t => {
@@ -205,4 +213,20 @@ test('catalog rejects nonvoid policy and unrelated policy denial even with priva
   await assert.rejects(f.make(async () => { throw new Error('PRIVATE'); }, port).collect(f.reference));
   await assert.rejects(f.make(async () => false as unknown as void, port).collect(f.reference));
   assert.equal(reads, 0); assert.equal(f.git.calls.length, 0);
+});
+
+test('catalog forwarding rejects replaced proven methods without using their former authority proof', async t => {
+  const f = await setup(t); let replacementReads = 0;
+  const authorize = async () => {};
+  const replacement: DirectoryRepositoryReader['readArtifact'] = async (path, revision) => {
+    replacementReads++; return f.reader.readArtifact(path, revision);
+  };
+  const port = { ...f.reader, readArtifact: bracketRepositoryRead(authorize, async (path: string, revision: string) => {
+    const result = await f.reader.readArtifact(path, revision);
+    if (path.endsWith('/CANDIDATE.json')) port.readArtifact = replacement;
+    return result;
+  }, () => {}) };
+  const result = await f.make(authorize, port).collect(f.reference);
+  assert.equal(result.coverage.sourceCoverageComplete, false); assert.equal(replacementReads, 0);
+  assert.ok(result.coverage.gaps.some(gap => gap.reason === 'pointer-unverified'));
 });

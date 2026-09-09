@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { bracketRepositoryRead, repositoryReadCovers } from '../src/code-host/repository-read-authority.ts';
+import { bracketRepositoryRead, repositoryReadCovers, retainRepositoryRead } from '../src/code-host/repository-read-authority.ts';
 
 test('private repository-read proof covers only exact constructed function and current callback identities', async () => {
   const events: string[] = [], value = Object.freeze({ bytes: 'source' });
@@ -103,4 +103,40 @@ test('held source policy keeps its read pending and cannot dispatch after owner 
   const read = bracketRepositoryRead(async () => {}, async () => { reads++; return 'PRIVATE'; },
     () => { if (closed) throw new Error('closed'); }, { before: async () => { entered(); await held; }, after: async () => {} });
   const pending = assert.rejects(read()); await begun; closed = true; release(); await pending; assert.equal(reads, 0);
+});
+
+test('retained reads preserve exact authority, receiver, arguments and result without another policy pair', async () => {
+  const receiver = {}, value = Object.freeze({ content: 'exact' }); let checks = 0, active = 0, reads = 0;
+  const current = async () => { checks++; };
+  const source = bracketRepositoryRead(current, async function (this: unknown, path: string, revision: string) {
+    assert.strictEqual(this, receiver); assert.deepEqual([path, revision], ['path', 'revision']); reads++; return value;
+  }, () => {});
+  const owner = { guard() {}, start() { active++; }, settled() { active--; } };
+  const retained = retainRepositoryRead(source, receiver, owner);
+  assert.equal(repositoryReadCovers(retained, current), true); assert.ok(Object.isFrozen(retained));
+  for (let i = 0; i < 2; i++) assert.strictEqual(await retained('path', 'revision'), value);
+  assert.equal(checks, 4); assert.equal(reads, 2); assert.equal(active, 0);
+  for (const unproven of [source.bind(receiver), async (...args: [string, string]) => source(...args)])
+    assert.throws(() => retainRepositoryRead(unproven, receiver, owner));
+});
+
+test('retained reads reject revoked policy or closed owner and release admission exactly once', async () => {
+  for (const phase of ['before', 'after'] as const) for (const mode of ['policy', 'owner'] as const) {
+    let active = 0, starts = 0, stops = 0, reads = 0, valid = phase !== 'before', closed = phase === 'before' && mode === 'owner';
+    const current = async () => { if (mode === 'policy' && !valid) throw new Error('revoked'); };
+    const source = bracketRepositoryRead(current, async () => { reads++; valid = false; if (mode === 'owner') closed = true; return 'PRIVATE'; }, () => {});
+    const retained = retainRepositoryRead(source, {}, { guard() { if (closed) throw new Error('closed'); },
+      start() { active++; starts++; }, settled() { active--; stops++; } });
+    await assert.rejects(retained()); assert.equal(active, 0); assert.equal(starts, stops); assert.equal(reads, phase === 'before' ? 0 : 1);
+  }
+});
+
+test('retained held read keeps owner admission until actual drain and never returns bytes after closure', async () => {
+  let release!: () => void, entered!: () => void, active = 0, closed = false;
+  const held = new Promise<void>(r => { release = r; }), begun = new Promise<void>(r => { entered = r; });
+  const source = bracketRepositoryRead(async () => {}, async () => { entered(); await held; return 'PRIVATE'; }, () => {});
+  const retained = retainRepositoryRead(source, {}, { guard() { if (closed) throw new Error('closed'); },
+    start() { active++; }, settled() { active--; } });
+  const result = assert.rejects(retained()); await begun; closed = true; await Promise.resolve(); assert.equal(active, 1);
+  release(); await result; assert.equal(active, 0); await assert.rejects(retained()); assert.equal(active, 0);
 });

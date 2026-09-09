@@ -43,3 +43,23 @@ export function bracketRepositoryRead<A extends unknown[], T>(current: Current,
 export function repositoryReadCovers(read: Function, current: Function): boolean {
   return authorities.has(read) && authorities.get(read) === current;
 }
+
+/** Forward an already-proven read, not an arbitrary wrapper or authorizer.
+ * The captured method still executes every policy/current check itself. The
+ * callbacks are synchronous owner bookkeeping only; actual completion (including
+ * a held dependency after an outer timeout) owns the admission release. */
+export function retainRepositoryRead<A extends unknown[], T>(method: (...args: A) => Promise<T>, receiver: unknown,
+  owner: { guard(): void; start(): void; settled(): void }) {
+  const current = authorities.get(method);
+  if (!current) throw new Error('Repository read authority unavailable.');
+  const read = async (...args: A): Promise<T> => {
+    owner.guard(); owner.start();
+    try {
+      owner.guard();
+      const value = await Reflect.apply(method, receiver, [...args]);
+      owner.guard(); return value;
+    } finally { owner.settled(); }
+  };
+  authorities.set(read, current);
+  return Object.freeze(read);
+}
