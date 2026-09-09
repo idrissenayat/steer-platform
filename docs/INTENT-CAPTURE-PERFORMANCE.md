@@ -57,7 +57,21 @@ do not exclude expensive identity traffic or weaken checks to meet the number.
 
 ## Current gap and next work
 
-Latest: [0298](../intent/0298/EVIDENCE.md) completes a diagnostic/plan increment,
+Latest: [0299](../intent/0299/EVIDENCE.md) verifies a test-only corpus batch protocol:
+42 distinct files, the same 34 semantic sources, five dependency queries and 27
+simulated provider attempts, including separate identity and repository tokens.
+All 126 per-source policy calls execute. Metadata authorities are synthetic and
+the caller stand-in is not the complete authenticated resolver, so this does not
+accept even the integrated corpus allocation, much less whole-action C22.
+The 30-document / 128 KiB size diagnostic preserves bytes but uses 63 attempts;
+it is not a representative-budget or universal-size performance pass.
+
+No production source changes; actual confirmation remains 7,637. Next complete
+the records/history/key/policy and outer-callback feasibility portion before
+integrating the coherent correction. See [results](../intent/0299/FEASIBILITY.json).
+The ceiling, full benchmark and prior failed samples below remain unchanged.
+
+Prior: [0298](../intent/0298/EVIDENCE.md) completes a diagnostic/plan increment,
 not a production optimization. All 45 HTTP invocations in each synthetic run are
 retained; identity vectors match exactly (81,500 attempts each), with no origin
 capture errors or overflow. Confirmation stays 7,637 attempts: 7,491 identity

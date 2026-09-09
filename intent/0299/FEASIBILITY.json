@@ -1,0 +1,340 @@
+{
+  "kind": "steer-corpus-batch-feasibility/v1",
+  "baselineCommit": "8fc1b93d93a10ad31f2e484a2a82cfdc12cdaa13",
+  "status": "standalone-corpus-protocol-only",
+  "node": "v24.19.0",
+  "sourceHashes": {
+    "apps/api/test/corpus-batch-prototype.ts": "1ff6a31e25daab8f34ebb54744106732385d92ded63074eb37cec0ea9b2c5a56",
+    "apps/api/test/corpus-batch-prototype.fixture.ts": "7e46a9a7fe54ccf75f8dc2e0857a2c7aa7667d7c65c4980355aa7266d9f46c11",
+    "apps/api/test/corpus-batch-prototype.test.ts": "353a6fb35d827a52c66e911b49b190f32988ed687031e18ff27206e1b51d3ef1",
+    "packages/adapters/test/github-brief-fixture.ts": "7f1d9c181cdced72b5f97eb876f81315815f3ddc8ebebeee2fe90f4bd5331fa9",
+    "apps/api/test/native-candidate-journey.fixture.ts": "3c34a180df249076e795e9e88cc42a15619431b83ed9fc81fb789f5b2bb177fe",
+    "packages/adapters/src/code-host/github.ts": "31923e09e518496fe607a18bcbe0fa709696a1df8f5ff5f159499bc01dfa74f9",
+    "packages/adapters/src/code-host/intent-corpus-evidence.ts": "b9ee6aa0977c582d4273f21fe30b1ee565383be3e07ed8e2cb54058217d2f026",
+    "packages/adapters/src/code-host/scope-inventory.ts": "9b0df36f435b4179f474c5d86aff2fe59a70833cf1426088b466e05283884c12",
+    "packages/adapters/src/code-host/candidate-scope-catalog.ts": "5e8ab772e3a07e7a8e50768ea3a44ea053be3c1e78845ef12e0f2f471151d827",
+    "packages/adapters/src/code-host/candidate-bundle-reader.ts": "f64ce7d4c68f9b4e7d0d6d12d2fb636381bd66939329fc74643bb6ba480bcc18",
+    "packages/tool-registry/src/candidate-bundle-contracts.ts": "725b02a43e06b761e4ad733867d0daa49bca1340f306e74cf722110c414bec37"
+  },
+  "representative": {
+    "physicalUnique": 42,
+    "priorPhysicalReads": 43,
+    "semanticSources": 34,
+    "totalProviderAttempts": 27,
+    "counts": {
+      "identity": {
+        "token": 1,
+        "head": 16
+      },
+      "repository": {
+        "token": 1,
+        "head": 2,
+        "commit": 1,
+        "tree": 1,
+        "graphql-read": 5
+      }
+    },
+    "sourcePolicyQueries": 126,
+    "waves": [
+      {
+        "name": "roots-and-pointers",
+        "files": 34,
+        "batches": 3,
+        "bytes": 3415
+      },
+      {
+        "name": "manifests",
+        "files": 2,
+        "batches": 1,
+        "bytes": 3273
+      },
+      {
+        "name": "bundle-documents",
+        "files": 6,
+        "batches": 1,
+        "bytes": 370
+      }
+    ],
+    "consumed": [
+      {
+        "path": "items/0001-existing/BRIEF.md",
+        "bytes": 81,
+        "sha256": "a8b28faa45d7df8a99521758264b15fa82134810d64012dacf82f44d07c956c0"
+      },
+      {
+        "path": "items/0001-existing/SPEC.md",
+        "bytes": 81,
+        "sha256": "8cfa6e2ab79b1a3cef69ff5c459492b50794ab07b404048a625c2f442b4fcf4e"
+      },
+      {
+        "path": "items/0002-existing/BRIEF.md",
+        "bytes": 81,
+        "sha256": "8770f400f07f6eefd571bf47bc843a9a1eed44f9528cbeb5a5b96da31f8a60ce"
+      },
+      {
+        "path": "items/0002-existing/SPEC.md",
+        "bytes": 81,
+        "sha256": "5d9926cda4dd3fba1ecc0e91b66793984f184c8baf96f0028ff575a2f2025d25"
+      },
+      {
+        "path": "items/0003-existing/BRIEF.md",
+        "bytes": 81,
+        "sha256": "d98a292d5ed55f5b25b964b2d2183db03d3d6307a616f621c7ff44027d7574a8"
+      },
+      {
+        "path": "items/0003-existing/SPEC.md",
+        "bytes": 81,
+        "sha256": "f79df176bdd7c89038dbd1a223eb1521880083ef9e869bd0fae303db9c7b9ab6"
+      },
+      {
+        "path": "items/0004-existing/BRIEF.md",
+        "bytes": 81,
+        "sha256": "a69908ed5e189d8991a84555396fc8aadef0f28245ad31f75138e07093ce9534"
+      },
+      {
+        "path": "items/0004-existing/SPEC.md",
+        "bytes": 81,
+        "sha256": "6d734764f708e01dad5258f0450a26e82b0efac162afcdef8083c739e24b44e5"
+      },
+      {
+        "path": "items/0005-existing/BRIEF.md",
+        "bytes": 81,
+        "sha256": "696122ca98399f14e6571bbf3ff70f40df5c1617a5490ff046b71afb4687063a"
+      },
+      {
+        "path": "items/0005-existing/SPEC.md",
+        "bytes": 81,
+        "sha256": "3e6a1f0fd707ff5c4f738efc8da9f2b58f1de98a4316d667add7b7bcae252e7c"
+      },
+      {
+        "path": "items/0006-existing/BRIEF.md",
+        "bytes": 82,
+        "sha256": "0501e8c9a6258056183987dd3f976e23d5c3f92619816709084fe9c6a12735b4"
+      },
+      {
+        "path": "items/0006-existing/SPEC.md",
+        "bytes": 82,
+        "sha256": "c670e4c6324849a0632550a98ee3edcdedc23bd9bb759d566c2df371cbe897df"
+      },
+      {
+        "path": "items/0007-existing/BRIEF.md",
+        "bytes": 82,
+        "sha256": "08f99e13ded0f0e33eb456ec16b9e6b91dea1e208d78cd80f9edbe7b0cd397dd"
+      },
+      {
+        "path": "items/0007-existing/SPEC.md",
+        "bytes": 82,
+        "sha256": "fa3c46c37daaa645131c8d49c9db0cbeabbbb5eb459434256fc6bd8881a260d1"
+      },
+      {
+        "path": "items/0008-existing/BRIEF.md",
+        "bytes": 82,
+        "sha256": "de7dddb7951387e04e051a0aa83a3781af4d0e25d36c30b6cdde6330b2a14b43"
+      },
+      {
+        "path": "items/0008-existing/SPEC.md",
+        "bytes": 82,
+        "sha256": "a67af63939e0c6a51057ff8d69b7e5d24f711ca8b358f02d3cb2fa43b7904331"
+      },
+      {
+        "path": "items/0009-existing/BRIEF.md",
+        "bytes": 82,
+        "sha256": "57e4cccd4fc66dd87e127edcf0944c1a263b17a3a836c57082ce75e62116f311"
+      },
+      {
+        "path": "items/0009-existing/SPEC.md",
+        "bytes": 82,
+        "sha256": "b82fdf6a02603b3b1279ead4615926e9756cd1a931369b500f8826755c4ab82f"
+      },
+      {
+        "path": "items/0010-existing/BRIEF.md",
+        "bytes": 82,
+        "sha256": "84cbcab8742c297a01c5b16cd3ac9f3d22ee2506ccba2380eee12bfa704dc8a8"
+      },
+      {
+        "path": "items/0010-existing/SPEC.md",
+        "bytes": 82,
+        "sha256": "611cbbfe932d4c5e4b5a9c9a5d7f4dc949868e3b2e7e436c63b2f36ed8757f69"
+      },
+      {
+        "path": "items/0011-existing/BRIEF.md",
+        "bytes": 82,
+        "sha256": "99b720578274222da56e63e3b7caa5098a61a2ae03ecdd6af475fd891e4f9e1d"
+      },
+      {
+        "path": "items/0011-existing/SPEC.md",
+        "bytes": 82,
+        "sha256": "d957569c785926b9563dbd39afefe41da7780477954cc4fb62da76dd2f07ec3b"
+      },
+      {
+        "path": "items/0012-existing/BRIEF.md",
+        "bytes": 82,
+        "sha256": "2a7c925bbd5669a576d1cf387416476df115f2d9d3724c50a5f3c41acf90d866"
+      },
+      {
+        "path": "items/0012-existing/SPEC.md",
+        "bytes": 82,
+        "sha256": "0196d0b967353ff24fabcf0a0c65f9348c98e5711590118c8f4a4dc5aac70055"
+      },
+      {
+        "path": "items/0013-existing/BRIEF.md",
+        "bytes": 82,
+        "sha256": "3744f94e30cef77332c434c8a4c049278a36996d825b7d0ff4638f677ad69c40"
+      },
+      {
+        "path": "items/0013-existing/SPEC.md",
+        "bytes": 82,
+        "sha256": "2da65e6a03b12a759ee48b75a64a16b1490fa115598f41bc7c1f5fe0d35f3a26"
+      },
+      {
+        "path": "items/0014-existing/BRIEF.md",
+        "bytes": 82,
+        "sha256": "6726727f0c6aa7ef1b9b88b6804258a3db70ceb4fbc8bb024bd90bb84d731379"
+      },
+      {
+        "path": "items/0014-existing/SPEC.md",
+        "bytes": 82,
+        "sha256": "892fefbab2bfdc1375707584eaac16b1307521824e80a562486e32d15257cd96"
+      },
+      {
+        "path": "items/0015-existing/BRIEF.md",
+        "bytes": 82,
+        "sha256": "3cfc293a7cf460e39afeca306be1617e7f91ce3f7e44374c02c41e2dcc0e2c64"
+      },
+      {
+        "path": "items/0015-existing/SPEC.md",
+        "bytes": 82,
+        "sha256": "b9649964d22f886a683ebf97bc508cbade695f2e7ca686d88de4bfee31d2ac08"
+      },
+      {
+        "path": "items/0016-existing/BRIEF.md",
+        "bytes": 82,
+        "sha256": "769e116dad2475a83f401cb6107aecb9851121afd1570ed3e92c0c202a934977"
+      },
+      {
+        "path": "items/0016-existing/SPEC.md",
+        "bytes": 82,
+        "sha256": "53e011777d085950aa22dcfa68298771406d048a8684475ab3d1326e45c9f6e4"
+      },
+      {
+        "path": "items/0001-existing/proposals/fb7d0d78-5d2f-4fcd-9e23-d597dc839964.json",
+        "bytes": 446,
+        "sha256": "c2a74cb59dbbb922bed3872d31670b248f5b6745205388323d5087afe38f3841"
+      },
+      {
+        "path": "items/0002-existing/CANDIDATE.json",
+        "bytes": 355,
+        "sha256": "adb4ecbb9cb2aab29fae1fac3557f094b1cece65919980e1dce74bd0a036273c"
+      },
+      {
+        "path": "items/0001-existing/candidates/82965d1a-94d0-481b-ac5a-e6ee1efa4eba/MANIFEST.json",
+        "bytes": 1680,
+        "sha256": "927a1274821caf41685cf7ffc8d82d486c6d13c3a505c10e19293266d45f745f"
+      },
+      {
+        "path": "items/0002-existing/candidates/57762718-d38a-4926-b96d-7a1c40fdd6f7/MANIFEST.json",
+        "bytes": 1593,
+        "sha256": "1b3243245dc64d5c5e1658c4dd20a78e4d9196aaa57e16fb53253abe953129ea"
+      },
+      {
+        "path": "items/0001-existing/candidates/82965d1a-94d0-481b-ac5a-e6ee1efa4eba/BRIEF.md",
+        "bytes": 29,
+        "sha256": "0033799ef655b0f5a90f10dbc83c4d848d809afbd9c3a9686f774eb4744f4505"
+      },
+      {
+        "path": "items/0001-existing/candidates/82965d1a-94d0-481b-ac5a-e6ee1efa4eba/SPEC.md",
+        "bytes": 19,
+        "sha256": "e795aa1c35b99173cd6ee0986f6c29daad2f0e53e2fb34212078071035457bf1"
+      },
+      {
+        "path": "items/0001-existing/candidates/82965d1a-94d0-481b-ac5a-e6ee1efa4eba/EXAM.md",
+        "bytes": 120,
+        "sha256": "198320f45b78c48369e5aeac4b95c3316efcfebacee2f0761b01517982916218"
+      },
+      {
+        "path": "items/0002-existing/candidates/57762718-d38a-4926-b96d-7a1c40fdd6f7/BRIEF.md",
+        "bytes": 81,
+        "sha256": "8770f400f07f6eefd571bf47bc843a9a1eed44f9528cbeb5a5b96da31f8a60ce"
+      },
+      {
+        "path": "items/0002-existing/candidates/57762718-d38a-4926-b96d-7a1c40fdd6f7/SPEC.md",
+        "bytes": 81,
+        "sha256": "5d9926cda4dd3fba1ecc0e91b66793984f184c8baf96f0028ff575a2f2025d25"
+      },
+      {
+        "path": "items/0002-existing/candidates/57762718-d38a-4926-b96d-7a1c40fdd6f7/EXAM.md",
+        "bytes": 40,
+        "sha256": "3d2b09c5517ddb7c980d24514975cea9e427b696cfc87beb8892e207e9db062d"
+      }
+    ],
+    "metadataAuthoritySynthetic": true,
+    "currentCallerStandIn": "native Git head lookup, not the HTTP/OIDC/GitAuthorizationResolver composition",
+    "integratedCorpusBudgetAccepted": false,
+    "wholeJourneyPerformanceAccepted": false,
+    "productionInstalled": false
+  },
+  "largeDocumentDiagnostic": {
+    "canonicalDocuments": 30,
+    "bytesEach": 131072,
+    "totalProviderAttempts": 63,
+    "queries": [
+      4,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      4,
+      2,
+      6
+    ],
+    "representativeBudgetAccepted": false
+  },
+  "verification": {
+    "focused": {
+      "tests": 8,
+      "pass": 8,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 37635.767583
+    },
+    "sharedFixtureConsumers": {
+      "files": 9,
+      "tests": 130,
+      "pass": 130,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 82679.669292
+    },
+    "typecheck": {
+      "prototype": "pass",
+      "packages": 8,
+      "successful": 8,
+      "cacheHits": 7,
+      "durationMs": 1005
+    },
+    "kitRequiredArtifacts": 95,
+    "workflowScopeAudit": "pass"
+  },
+  "boundaries": {
+    "modelCalls": 0,
+    "liveRuntimeGitHubMutations": 0,
+    "productionChanged": false,
+    "fullRecordsReadGraphProven": false,
+    "integratedCorpusBudgetAccepted": false,
+    "wholeJourneyPerformanceAccepted": false,
+    "actualConfirmationAttemptsLastJoined": 7637,
+    "protectedRecoveryObservation": "intent/0289/PERFORMANCE.json remains unexplained"
+  },
+  "next": "Enumerate and execute the records/history/key/policy boundary plan and all outer action costs before production integration."
+}

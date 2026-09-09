@@ -62,6 +62,21 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Corpus protocol experiment, no runtime installation — 0299
+
+The [test-only experiment](../intent/0299/EVIDENCE.md) collects all 42 distinct
+physical files and preserves the existing 34-source semantic result. Five bounded
+queries, metadata and fresh-head/token traffic total 27 simulated attempts, with
+126 independent source-policy calls. Metadata policies are synthetic; the caller
+stand-in is not the full HTTP/OIDC/grants resolver. Large-document coverage uses
+63 attempts, so the representative result is not a general corpus-size guarantee.
+
+No adapter, runtime profile, real records policy, credential, write authority or
+startup path is installed or changed. Full confirmation remains 7,637 attempts.
+The next feasibility step covers records/history, keys, policies and outer action
+boundaries; only then may the coherent production correction be integrated and
+the unchanged full performance protocol run. Progress stays 68% (17/25; +0).
+
 ### Diagnosed request-cost correction, no runtime change — 0298
 
 Two synthetic diagnostic runs preserve 45 HTTP invocations and identical request

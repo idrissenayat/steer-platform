@@ -6794,3 +6794,37 @@ test containers/tmpfs are cleaned up by their owners. The user's untracked
 roadmap and outputs remain untouched. Progress: **68% (17/25; 8 remaining; +0)**.
 Final delivery audit verifies 48 recorded source/harness hashes, four protected
 hashes, 414 relative documentation links and the unchanged contiguous 17/25 tracker.
+
+## 0299 — Bounded corpus protocol feasibility, no production change
+
+The first portion of the 0298 feasibility experiment now executes over the existing
+native Git fixture topology. It consumes 42 distinct files (the prior collector
+performs 43 body reads with one duplicate), preserves all 34 semantic sources and
+verifies the non-semantic Exam/manifest/pointer evidence. Dependency waves contain
+34 root/pointer files, two manifests and six bundle documents. Five bounded queries
+plus current-head, metadata and both token paths total 27 simulated provider attempts.
+All 126 independent source-policy callbacks execute; bindings, source grants, head,
+all-grants revision, response bytes and final selection remain checked.
+
+This is a test-only protocol, not an installed adapter or an integrated corpus
+budget pass: metadata policies are synthetic and the current-caller stand-in is a
+native head-reader call, not the full HTTP/OIDC/Git grants resolver. Policy/records
+integration cannot be assumed free. The 30-document, 128 KiB Unicode diagnostic
+preserves exact trailing bytes but requires 17 queries / 63 attempts. No broader
+corpus-size performance claim is made. Actual confirmation remains 7,637 attempts.
+
+See [specification](../intent/0299/SPEC.md), [evidence](../intent/0299/EVIDENCE.md)
+and [measured results and source hashes](../intent/0299/FEASIBILITY.json). Final
+verification: eight focused tests, 130 tests across all nine shared fixture
+consumers, prototype plus all eight package types (seven cache hits), 95 required
+kit artifacts and workflow scopes pass. Tests overlap; durations are not UI p95.
+No broad/full SQL/joined rerun, delayed benchmark, model, live save or UI acceptance.
+
+Next complete the records/history/key/policy read-set and outer-callback feasibility
+experiment before integrating the coherent correction and running full C22. The
+unexplained 0289 recovery observation remains. No production code, signed source,
+credential, runtime authority, records adoption, spending, deployment, release or
+user data changed. Fixtures remove only their owned disposable Git databases.
+User roadmap/outputs remain untouched. Progress: **68% (17/25; 8 remaining; +0)**.
+Final audit verifies 11 source hashes, four protected hashes, 420 relative links
+and the unchanged 25-checkpoint / 17-verified tracker.

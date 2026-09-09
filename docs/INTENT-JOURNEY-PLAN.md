@@ -9,7 +9,25 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0298 / diagnosed C22 correction — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0299 / corpus protocol experiment — 68% (17/25; 8 remaining; +0 points)**.
+The test-only batch experiment consumes all 42 distinct physical files and returns
+the same 34 semantic sources as the existing collector. Five bounded dependency
+queries plus metadata, head and token reads produce 27 simulated provider attempts;
+all 126 individual source-policy calls execute. Eight focused tests and 130 shared
+fixture-consumer tests pass. Large 128 KiB documents remain byte-exact but require
+63 attempts, explicitly outside the representative corpus allocation. See
+[evidence](../intent/0299/EVIDENCE.md) and [measured result](../intent/0299/FEASIBILITY.json).
+
+**Not an application optimization:** metadata policies are synthetic and the caller
+stand-in is not the full HTTP/OIDC/grants resolver. The integrated corpus budget,
+records read graph and complete 200-attempt allocation remain unproven; actual
+confirmation remains 7,637 on the latest joined run. Next finish the records/history,
+key, policy and outer-callback feasibility experiment under the
+[0298 correction sequence](../intent/0298/REQUEST-BUDGET-PLAN.md), then integrate one
+coherent correction and run the unchanged full benchmark. No more isolated corpus
+optimizations, production activation, new ETA or checklist credit follows from 0299.
+
+Prior delivery checkpoint: **0298 / diagnosed C22 correction**.
 The user challenged the estimate and prolonged micro-optimization loop. Two
 authenticated synthetic diagnostic runs preserve all 45 HTTP requests and exact
 identity count vectors (81,500 each). Confirmation remains 7,637 total attempts;

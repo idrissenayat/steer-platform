@@ -36,6 +36,10 @@ export function fixture(t: { after(run: () => void): void }, mutationProfile: 'b
     return { sha: revision, tree: { sha: raw.match(/^tree ([a-f0-9]{40})/m)![1]! },
       parents: [...raw.matchAll(/^parent ([a-f0-9]{40})/gm)].map((match) => ({ sha: match[1]! })) };
   };
+  const readBlob = (sha: string) => {
+    assert.match(sha, /^[a-f0-9]{40}$/);
+    return execFileSync('git', ['-C', directory, 'cat-file', 'blob', sha], { stdio: ['pipe', 'pipe', 'pipe'] });
+  };
   const add = (changes: { path: string; content: string | null; mode?: string }[], parent = head) => {
     git(['read-tree', parent]);
     for (const change of changes) {
@@ -99,7 +103,7 @@ export function fixture(t: { after(run: () => void): void }, mutationProfile: 'b
           const [mode, type, entrySha, path] = line.split(/[\t ]/); return { mode, type, sha: entrySha, path };
         }) };
       } else if (route.startsWith('/git/blobs/')) {
-        const sha = route.slice('/git/blobs/'.length), bytes = execFileSync('git', ['-C', directory, 'cat-file', 'blob', sha], { stdio: ['pipe', 'pipe', 'pipe'] });
+        const sha = route.slice('/git/blobs/'.length), bytes = readBlob(sha);
         result = { sha, encoding: 'base64', size: bytes.length, content: bytes.toString('base64') };
       } else if (route === '/commits') {
         assert.equal(url.searchParams.get('per_page'), '2');
@@ -119,7 +123,7 @@ export function fixture(t: { after(run: () => void): void }, mutationProfile: 'b
       platformRevision: config.platformRevision, gate2DecisionDigest: config.gate2DecisionDigest,
       evaluatedAt: now.toISOString(), validThrough: new Date(now.getTime() + 5000).toISOString() }); };
   const make = () => createGitHubBriefStore(binding, config, { fetch: transport, appJwt: async () => 'synthetic-app-jwt', now: () => now, verifyAuthority });
-  return { request, make, transport, verifyAuthority, add, git, commit, calls, head: () => head, mutations: () => mutations, approvals: () => approvals,
+  return { request, make, transport, verifyAuthority, add, git, commit, readBlob, calls, head: () => head, mutations: () => mutations, approvals: () => approvals,
     recordSyntheticApproval: () => { approvals++; },
     override: (value: Override) => { override = value; }, proof: (value: (v: unknown) => unknown) => { changeProof = value; },
     loseAck: () => { lostAck = true; }, deny: () => { deny = true; }, race: () => { advanceAtDispatch = true; } };
