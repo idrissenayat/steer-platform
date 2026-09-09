@@ -9,7 +9,8 @@ import { createIntentDraftService } from '@steer/data/intent-draft-service';
 import { createDevelopmentOriginalStore } from '@steer/data/development-originals';
 import { describeDevelopmentOriginal, type DevelopmentOriginal } from '@steer/data/development-original-contracts';
 import { originalFixture } from '../../../packages/data/test/development-original.fixture.ts';
-import { createRecordedDevelopmentPreparer, createRecordedDevelopmentReviewer, createRecordedDraftDiscovery } from '../src/runtime.ts';
+import { createRecordedDevelopmentPreparer, createRecordedDevelopmentReviewer, createRecordedDraftDiscovery, createRecordedCandidateSaveReviewer } from '../src/runtime.ts';
+import { verifyCandidateSaveReview } from '@steer/tool-registry/candidate-save-review-contracts';
 import { intentDraftDiscoveryOutputSchema } from '@steer/tool-registry/intent-draft-discovery-contracts';
 import { verifyDevelopmentReview } from '@steer/tool-registry/intent-development-review-contracts';
 import { createApi } from '../src/app.ts';
@@ -30,7 +31,7 @@ function reviewApi(pools: Pools, original: DevelopmentOriginal, records: Depende
   const post = (override = {}) => app.fetch(new Request('https://steer.example/v1/tools/intent.development.review', {
     method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...input, ...override }),
   }));
-  return { input, post, state, close() { reviewer.close(); drafts.close(); } };
+  return { input, post, state, reviewer, drafts, close() { reviewer.close(); drafts.close(); } };
 }
 function api(pools: Pools, original: DevelopmentOriginal, records: Dependencies['records'], patch: Partial<Dependencies> = {}) {
   const c = original.configuration, s = original.source;
@@ -103,6 +104,31 @@ export async function testDevelopmentPreparation({ admin, connect, check }: {
       body: JSON.stringify({ organizationId: config.organizationId, productId: config.productId, repository: config.repository, cursor: null, ...patch }) }));
     return { service, state, post };
   };
+  await check('final save-review HTTP restores exact encrypted SQL documents and rechecks current scope without admission, generation or writes', async () => {
+    const f = await setup(), evidence = { ...f.original.evidence, inventory: [], documents: [], inventoryComplete: true, accessGapCount: 0 };
+    const before = await f.snapshot();
+    for (let pass = 0; pass < 2; pass++) {
+      const pools = { ...f.pools, drafts: connect('steer_draft_runtime') };
+      let keyAllowed = true;
+      const source = reviewApi(pools, f.original, { ...f.records, keyForDraft: async (...args) => {
+        if (!keyAllowed) throw new Error('PRIVATE revoked key'); return f.records.keyForDraft(...args);
+      } }, { evidenceFor: async () => evidence });
+      const service = createRecordedCandidateSaveReviewer(f.config, { drafts: source.drafts, sources: source.reviewer, authorizeReview: async () => {} });
+      const app = createApi({ authenticate: async () => ({ ...source.state.principal, toolGrants: ['intent.candidate.save.review'] }), services: { candidateSaveReviewer: service } });
+      try {
+        const reviewed = await (await source.post()).json();
+        const input = { ...source.input, configurationRevision: f.config.configurationRevision, sourceSnapshotDigest: reviewed.sourceSnapshotDigest,
+          scopeReview: { kind: 'empty-corpus', planDigest: reviewed.scopeBatchPlan.planDigest }, choice: { action: 'new-distinct', reason: 'Human selected new scope after reviewing an explicitly empty inventory.' } };
+        const post = () => app.request('/v1/tools/intent.candidate.save.review', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input) });
+        const response = await post(); assert.equal(response.status, 200);
+        const result = await verifyCandidateSaveReview(input, await response.json(), f.content.documents);
+        assert.equal(result.saveConfirmed, false); assert.equal(result.operationCreated, false); assert.equal(result.savedToGit, false);
+        assert.doesNotMatch(JSON.stringify(result), /Human Brief|Human Spec|Human Exam/); assert.deepEqual(await f.snapshot(), before);
+        keyAllowed = false; const denied = await post(); assert.equal(denied.status, 503); assert.doesNotMatch(await denied.text(), /PRIVATE|reviewDigest/);
+        assert.deepEqual(await f.snapshot(), before);
+      } finally { service.close(); source.close(); }
+    }
+  });
   await check('actual discovery HTTP reads latest owner-bound draft and retained run metadata without plaintext, reservations or writes', async () => {
     const f = await setup(), ref = await prepareRecordedFixture(f.pools, f.original, f.records), app = discover(f);
     try {

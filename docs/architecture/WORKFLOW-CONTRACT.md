@@ -958,3 +958,19 @@ exact bundle opening. It never replaces the draft, polls automatically or stores
 private browser state. Hide/navigation/expiry/denial/closure clear results and
 links; late responses cannot restore them. Preparation/confirmation/start still
 must supply original recovery references under real authority and human acceptance.
+
+0254 adds human-only `intent.candidate.save.review`: exact final draft/revision and
+selected recorded-scope references plus explicit direction in, inert review and
+document digests out. The request cannot supply source prose, findings, authorship,
+operation/item allocation, profile or authority. The read service recomputes the
+preserved Brief/Spec scope, checks all three nonempty documents and current whole
+source context, validates selected target/assessment, then rechecks draft/source/
+assessment and records/key/lifecycle before release. See [0254 contract](../../intent/0254/SPEC.md).
+
+The actual conversation exposes final review independently from generation.
+Source/choice changes immediately invalidate the displayed result; denial,
+hide/expiry/closure clears it. Exact editor bytes and selected evidence must match
+the server response. No browser storage, replacement, polling or save follows.
+The versioned review digest is not durable consent, authorship, a manifest or an
+admission reference. Future preparation must reconstruct current review and bind
+verified destination/lifecycle/lineage before exact human confirmation and start.

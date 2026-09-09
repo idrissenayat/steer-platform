@@ -13,7 +13,7 @@ async function component() {
   const require = createRequire(import.meta.url);
   const compile = async (name, replacements = {}) => {
     let code = (await transformWithOxc(readFileSync(new URL(`../app/${name}.tsx`, import.meta.url), 'utf8'), `/synthetic/${name}.tsx`, { jsx: { runtime: 'automatic' } })).code;
-    for (const specifier of ['react', 'react/jsx-runtime', 'react-markdown', '@steer/tool-registry/agent-contracts', '@steer/tool-registry/intent-draft-content', '@steer/tool-registry/intent-revision-contracts'])
+    for (const specifier of ['react', 'react/jsx-runtime', 'react-markdown', '@steer/tool-registry/candidate-save-review-contracts', '@steer/tool-registry/intent-scope-selection', '@steer/tool-registry/agent-contracts', '@steer/tool-registry/intent-draft-content', '@steer/tool-registry/intent-revision-contracts'])
       for (const quote of ['"', "'"]) code = code.replaceAll(`${quote}${specifier}${quote}`, JSON.stringify(pathToFileURL(require.resolve(specifier)).href));
     for (const [specifier, target] of Object.entries(replacements)) for (const quote of ['"', "'"]) code = code.replaceAll(`${quote}${specifier}${quote}`, JSON.stringify(target));
     return `data:text/javascript;base64,${Buffer.from(code).toString('base64')}`;
@@ -22,7 +22,8 @@ async function component() {
   const markdown = await compile('brief-markdown', { './brief-reading-order': local('brief-reading-order') });
   const scope = await compile('intent-scope-review', { './intent-scope-reader': local('intent-scope-reader'), './brief-location': local('brief-location') });
   const scopePanel = await compile('intent-scope-panel', { './intent-scope-editor': local('intent-scope-editor'), './intent-scope-transport': local('intent-scope-transport'), './brief-location': local('brief-location') });
-  const development = await compile('intent-development-panel', { './intent-scope-panel': scopePanel, './intent-development-editor': local('intent-development-editor'), './intent-development-transport': local('intent-development-transport'), './brief-markdown': markdown });
+  const finalReview = await compile('candidate-save-review', { './candidate-save-review-client': local('candidate-save-review-client') });
+  const development = await compile('intent-development-panel', { './candidate-save-review': finalReview, './intent-scope-panel': scopePanel, './intent-development-editor': local('intent-development-editor'), './intent-development-transport': local('intent-development-transport'), './brief-markdown': markdown });
   const panel = await compile('intent-draft-panel', { './intent-development-panel': development, './intent-draft-editor': local('intent-draft-editor'), './intent-draft-transport': local('intent-draft-transport'), './brief-markdown': markdown });
   return (await import(await compile('intent-conversation', { './agent-transport': local('agent-transport'), './intent-scope-review': scope, './intent-draft-panel': panel, './brief-markdown': markdown }))).default;
 }

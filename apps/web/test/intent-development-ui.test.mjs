@@ -7,13 +7,14 @@ import { randomUUID } from 'node:crypto';
 import { transformWithOxc } from 'vite';
 import { createElement, act } from 'react';
 import { JSDOM } from 'jsdom';
-import { fingerprintIntentScope } from '@steer/tool-registry/intent-revision-contracts';
+import { describeIntentDraftRevision } from '@steer/tool-registry/intent-draft-content';
 import { buildIntentEvidenceEnvelope } from '@steer/tool-registry/intent-evidence-contracts';
 import { planIntentScopeBatches, validateIntentScopeBatchResults } from '@steer/tool-registry/intent-scope-batches';
 import { prepareIntentScopeReview } from '@steer/tool-registry/intent-scope-review';
 import { scopeReviewFixture } from '../../../packages/tool-registry/test/intent-scope-review.fixture.ts';
 import { scopeEditorFixture } from './intent-scope.fixture.ts';
 import { developmentFixture } from '../../../packages/tool-registry/test/intent-development.fixture.ts';
+import { describeCandidateSaveReview } from '@steer/tool-registry/candidate-save-review-contracts';
 
 // Entire production React graph and transports, only HTTP/provider inputs synthetic.
 async function conversation() {
@@ -42,7 +43,9 @@ test('actual editor preserves, reviews, clarifies, recovers a lost start and exp
   const keys = ['window', 'document', 'HTMLElement', 'IS_REACT_ACT_ENVIRONMENT', 'fetch'];
   const saved = Object.fromEntries(keys.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
   for (const [key, value] of Object.entries({ window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, IS_REACT_ACT_ENVIRONMENT: true })) Object.defineProperty(globalThis, key, { configurable: true, value });
-  const calls = [], operations = new Map(); let reference = null, content = null, lost = false, incomplete = true, discoveryDenied = false, scopePrepared = null, scopeReady = null;
+  const calls = [], operations = new Map(); let reference = null, content = null, lost = false, incomplete = true, discoveryDenied = false, scopePrepared = null, scopeReady = null, finalEmpty = false, finalDenied = false, finalDeferred = false, releaseFinal;
+  const reviewEvidence = () => ({ ...f.evidence, scopeInputDigest: reference.scopeInputDigest, inventoryComplete: !incomplete,
+    ...(finalEmpty ? { inventory: [], documents: [] } : {}) });
   globalThis.fetch = async (url, init) => {
     const input = JSON.parse(init.body); calls.push({ url, input });
     if (url.endsWith('intent.draft.discover')) {
@@ -57,17 +60,24 @@ test('actual editor preserves, reviews, clarifies, recovers a lost start and exp
     if (url.endsWith('intent.draft.create')) return Response.json({ outcome: 'created', requestId: input.requestId, draftId: f.input.draftId,
       createdAt: '2026-09-08T00:00:00.000Z', useUntil: '2026-09-09T00:00:00.000Z', retentionDeadline: '2026-09-10T00:00:00.000Z', contentPreserved: false, savedToGit: false });
     if (url.endsWith('intent.draft.append')) {
+      const scope = await describeIntentDraftRevision({ ...f.scope, draftId: f.input.draftId }, input.content,
+        reference ? { content, sourceRevision: reference.sourceRevision } : null);
       content = input.content; const revision = input.expectedRevision + 1;
-      const scope = await fingerprintIntentScope({ ...f.scope, draftId: f.input.draftId, sourceRevision: revision, ...content });
-      reference = { draftId: f.input.draftId, revision, latestRevision: revision, sourceRevision: revision,
+      reference = { draftId: f.input.draftId, revision, latestRevision: revision, sourceRevision: scope.sourceRevision,
         revisionDigest: String(revision).repeat(64), scopeInputDigest: scope.scopeInputDigest, savedToGit: false };
       return Response.json({ ...reference, outcome: 'acknowledged', mutationId: input.mutationId });
     }
     if (url.endsWith('intent.development.review')) {
       assert.equal(input.revisionDigest, reference.revisionDigest);
-      const evidence = { ...f.evidence, scopeInputDigest: reference.scopeInputDigest, inventoryComplete: !incomplete };
+      const evidence = reviewEvidence();
       return Response.json({ ...f.review, ...input, evidence, scopeBatchPlan: (await planIntentScopeBatches(evidence)).summary,
         sourceSnapshotDigest: (await buildIntentEvidenceEnvelope(evidence)).sourceSnapshotDigest });
+    }
+    if (url.endsWith('intent.candidate.save.review')) {
+      assert.equal(input.revisionDigest, reference.revisionDigest); assert.equal('documents' in input, false);
+      if (finalDenied) return Response.json({ error: 'PRIVATE authority detail' }, { status: 403 });
+      const output = await describeCandidateSaveReview(input, 'human', f.evidence.branch, content.documents, reviewEvidence(), input.scopeReview);
+      return finalDeferred ? new Promise(resolve => { releaseFinal = () => resolve(Response.json(output)); }) : Response.json(output);
     }
     if (url.endsWith('intent.scope.prepare')) {
       const evidence = { ...f.evidence, scopeInputDigest: reference.scopeInputDigest, inventoryComplete: !incomplete };
@@ -169,9 +179,27 @@ test('actual editor preserves, reviews, clarifies, recovers a lost start and exp
     discoveryDenied = true; await click('Find my drafts');
     assert.match(document.body.textContent, /This is not an empty result/); assert.equal(document.querySelector('[data-draft-reference]'), null);
     assert.ok(document.querySelector('.intent-documents')); // Search failure does not erase the editor.
+    // Final-draft review remains a read-only path even while generation is disabled.
+    // Explicitly complete empty inventory needs no model scope call.
+    finalEmpty = true; await click('Preserve draft');
+    await click('Review existing work for this draft'); await direction();
+    assert.equal(button('Confirm direction and develop this draft').disabled, true);
+    const beforeFinal = calls.length; await click('Review final draft for saving');
+    assert.deepEqual(calls.slice(beforeFinal).map(c => c.url.split('/').at(-1)), ['intent.candidate.save.review']);
+    assert.equal(document.activeElement.id, 'candidate-save-review-title');
+    assert.match(document.body.textContent, /No save confirmed, operation created or gate signed/);
+    assert.equal(document.querySelectorAll('.candidate-metadata dt').length, 3);
+    finalDenied = true; await click('Review final draft for saving');
+    assert.doesNotMatch(document.body.textContent, /Read-only review reference|PRIVATE authority detail/);
+    assert.ok(document.querySelector('.intent-documents')); finalDenied = false; await click('Review final draft for saving');
+    await set('development-reason', 'A revised human direction'); assert.doesNotMatch(document.body.textContent, /Read-only review reference/);
+    assert.equal(operations.size, 2); assert.equal(calls.filter(c => c.url.endsWith('intent.development.prepare')).length, 2);
     const axe = (await import('axe-core')).default;
     const accessibility = await axe.run(document.getElementById('root'), { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] }, rules: { 'color-contrast': { enabled: false } } });
     assert.deepEqual(accessibility.violations.map(v => ({ id: v.id, description: v.description })), []);
+    finalDeferred = true; await click('Review final draft for saving'); assert.ok(releaseFinal);
+    await act(async () => { window.dispatchEvent(new window.Event('pagehide')); releaseFinal(); await tick(); });
+    assert.doesNotMatch(document.body.textContent, /Read-only review reference|Exact preserved revision/);
     await act(async () => root.render(createElement(Component, { ...props, subject: 'other-human' })));
     assert.equal(document.querySelector('.intent-documents'), null); assert.doesNotMatch(document.body.textContent, /Human Exam correction|Existing billing/);
     assert.equal(document.querySelector('[data-draft-reference]'), null);

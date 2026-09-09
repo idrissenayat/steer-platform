@@ -9,6 +9,7 @@ import { createIntentDevelopmentEditor, type DevelopmentEditorSource, type Devel
 import { createIntentDevelopmentTransport } from './intent-development-transport';
 import BriefMarkdown from './brief-markdown';
 import IntentScopePanel from './intent-scope-panel';
+import CandidateSaveReview from './candidate-save-review';
 
 export default function IntentDevelopmentPanel({ source, enabled, subject, identity, expiresAt, onResult, reviewRequest = null, discoveredDraft = null }: {
   source: DevelopmentEditorSource | null; enabled: boolean; subject: string; identity: string; expiresAt: string;
@@ -74,11 +75,15 @@ export default function IntentDevelopmentPanel({ source, enabled, subject, ident
   const exam = view.observation?.results.find(r => r.result.role === 'test-agent')?.result;
   const candidates = architect?.role === 'architect' && architect.output.brief !== null && architect.output.spec !== null && exam?.role === 'test-agent'
     ? { brief: architect.output.brief, spec: architect.output.spec, exam: exam.output.exam } : null;
-  function develop() {
-    if (scopeLocked || !enabled || !assessed || !action || !reason.trim() || !review) return;
+  function chosenDirection(): IntentDispositionChoice | null {
+    if (!action || !reason.trim() || !review) return null;
     const target = review.evidence.find(s => s.path === path && s.path.endsWith('/BRIEF.md'));
-    const choice: IntentDispositionChoice | null = action === 'new-distinct' ? { action, reason }
+    return action === 'new-distinct' ? { action, reason }
       : target ? { action, reason, target: { path: target.path, revision: review.snapshot.head, contentDigest: target.contentDigest } } : null;
+  }
+  function develop() {
+    if (scopeLocked || !enabled || !assessed) return;
+    const choice = chosenDirection();
     if (choice) { polls.current = 0; startedAt.current = Date.now(); setPaused(false); void controller.current?.develop(choice, scopeAssessment, subject); }
   }
   function useResult() {
@@ -136,6 +141,9 @@ export default function IntentDevelopmentPanel({ source, enabled, subject, ident
         <button className="access-primary" type="button" disabled={scopeLocked || !enabled || !assessed || !action || !reason.trim() || (action !== 'new-distinct' && !review.evidence.some(s => s.path === path && s.path.endsWith('/BRIEF.md')))}
           onClick={develop}>Confirm direction and develop this draft</button>
       </fieldset>
+      <CandidateSaveReview source={matches ? source : null} review={view.review?.output ?? null} assessment={scopeAssessment}
+        choice={chosenDirection()} subject={subject} identity={identity} expiresAt={expiresAt}
+        locked={scopeLocked || busy || recovering || !assessed || view.status !== 'reviewed'} />
     </div>}
     <div role="status" aria-live="polite" aria-atomic="true">
       {view.status === 'preparing' && <p>Preserving the exact reviewed source for this run… No model has been dispatched by preparation.</p>}

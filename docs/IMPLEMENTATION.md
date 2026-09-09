@@ -1,6 +1,17 @@
 # STEER platform implementation
 
-## Current checkpoint — 0253
+## Current checkpoint — 0254
+
+0254 connects read-only final edited-bundle review to the shared API/MCP and
+actual conversation. Exact preserved Brief/Spec/Exam bytes and human direction
+are rechecked against current source evidence and recorded scope results, without
+rerunning generation or creating a save operation. The UI clears stale/denied
+results and preserves current text. See [the final-review guide](FINAL-CANDIDATE-SAVE-REVIEW.md)
+and [0254 evidence](../intent/0254/EVIDENCE.md). This is not durable consent or an
+enabled save: destination, lineage, lifecycle, preparation/confirmation/start and
+live records/provider authority still remain open.
+
+## Prior checkpoint — 0253
 
 0253 adds original candidate-save status through the shared API/MCP and actual
 signed-in UI. The records-backed composition restores the immutable original,

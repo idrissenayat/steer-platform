@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { createCandidateSaveReviewer } from '@steer/data/candidate-save-reviewer';
 import { createCandidateOriginalStore, candidateOriginalConfigurationSchema } from '@steer/data/candidate-originals';
 import { createCandidateSaveStatusReader } from '@steer/adapters/candidate-save-status-reader';
 import { candidateBundleStoreConfigurationSchema } from '@steer/adapters/github-candidate-bundle-store';
@@ -41,6 +42,12 @@ import { readProjection } from '@steer/data';
 import { createHeldGitBriefWriterFactory, heldGitBriefConfigurationSchema, type HeldBriefAssessment } from '@steer/adapters/held-brief-writer';
 
 const text = z.string().min(1);
+/** Final-draft review only. No default installation, confirmation or allocation.
+ * The source reviewer and pinned recorded scope reader must be supplied by the
+ * existing corpus/records factories; input contains references, never findings. */
+export function createRecordedCandidateSaveReviewer(configuration: unknown, dependencies: Parameters<typeof createCandidateSaveReviewer>[1]) {
+  return createCandidateSaveReviewer(configuration, dependencies);
+}
 /** Read-only recovery from adopted, encrypted originals and verified native Git
  * receipts. Explicit factory only: no records activation, workflow or dispatch.
  */

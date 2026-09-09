@@ -12,7 +12,7 @@ test('real conversation component sends free text, follows up and displays three
   const require = createRequire(import.meta.url);
   const compile = async (name, replacements) => {
     let code = (await transformWithOxc(readFileSync(new URL(`../app/${name}.tsx`, import.meta.url), 'utf8'), `/synthetic/${name}.tsx`, { jsx: { runtime: 'automatic' } })).code;
-    for (const specifier of ['react', 'react/jsx-runtime', 'react-markdown', '@steer/tool-registry/agent-contracts', '@steer/tool-registry/intent-revision-contracts']) for (const quote of ['"', "'"]) code = code.replaceAll(`${quote}${specifier}${quote}`, JSON.stringify(pathToFileURL(require.resolve(specifier)).href));
+    for (const specifier of ['react', 'react/jsx-runtime', 'react-markdown', '@steer/tool-registry/candidate-save-review-contracts', '@steer/tool-registry/intent-scope-selection', '@steer/tool-registry/agent-contracts', '@steer/tool-registry/intent-revision-contracts']) for (const quote of ['"', "'"]) code = code.replaceAll(`${quote}${specifier}${quote}`, JSON.stringify(pathToFileURL(require.resolve(specifier)).href));
     for (const [specifier, target] of Object.entries(replacements)) for (const quote of ['"', "'"]) code = code.replaceAll(`${quote}${specifier}${quote}`, JSON.stringify(target));
     return `data:text/javascript;base64,${Buffer.from(code).toString('base64')}`;
   };
@@ -20,7 +20,8 @@ test('real conversation component sends free text, follows up and displays three
   const scopeReview = await compile('intent-scope-review', { './intent-scope-reader': new URL('../app/intent-scope-reader.ts', import.meta.url).href, './brief-location': new URL('../app/brief-location.ts', import.meta.url).href });
   const scopePanel = await compile('intent-scope-panel', { './intent-scope-editor': new URL('../app/intent-scope-editor.ts', import.meta.url).href,
     './intent-scope-transport': new URL('../app/intent-scope-transport.ts', import.meta.url).href, './brief-location': new URL('../app/brief-location.ts', import.meta.url).href });
-  const development = await compile('intent-development-panel', { './intent-scope-panel': scopePanel, './intent-development-editor': new URL('../app/intent-development-editor.ts', import.meta.url).href,
+  const finalReview = await compile('candidate-save-review', { './candidate-save-review-client': new URL('../app/candidate-save-review-client.ts', import.meta.url).href });
+  const development = await compile('intent-development-panel', { './candidate-save-review': finalReview, './intent-scope-panel': scopePanel, './intent-development-editor': new URL('../app/intent-development-editor.ts', import.meta.url).href,
     './intent-development-transport': new URL('../app/intent-development-transport.ts', import.meta.url).href, './brief-markdown': markdown });
   const panel = await compile('intent-draft-panel', { './intent-development-panel': development, '@steer/tool-registry/intent-draft-content': pathToFileURL(require.resolve('@steer/tool-registry/intent-draft-content')).href,
     './intent-draft-editor': new URL('../app/intent-draft-editor.ts', import.meta.url).href, './intent-draft-transport': new URL('../app/intent-draft-transport.ts', import.meta.url).href, './brief-markdown': markdown });

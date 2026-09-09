@@ -5507,3 +5507,21 @@ activation and signed-in human acceptance remain pending. Preparation/confirmati
 start must still produce the original recovery reference. No real migration,
 credential inspection, model spend, runtime Git write, gate, auth bypass,
 deployment or release. The one-minute loop remains active.
+
+## Development increment: 0254 — Final edited candidate save review
+
+The actual conversation now offers a final-review action for preserved Brief,
+Spec and Exam, separate from generation and saving. The shared human-only query
+restores current owner-bound records, rechecks complete source context and the
+recorded assessment, validates explicit direction, and binds every document's
+hash/byte count. It creates no operation, confirmation or lineage claim. UI
+results clear on changed selection, access loss, hide/expiry and late closure.
+See [0254 evidence](../intent/0254/EVIDENCE.md) and [the guide](FINAL-CANDIDATE-SAVE-REVIEW.md).
+
+Final **1,156/1,156 regressions**, **337/337 PostgreSQL 16.14 checks**, types,
+optimized Next build, kit and token-scope audit pass. All 190 local document links
+resolve; protected hashes are unchanged. Synthetic
+authority/native-Git/SQL/React is not live human acceptance. Destination/lifecycle,
+historical generation lineage, immutable preparation/confirmation/start and live
+authority remain open. No real migration, key inspection, model spend, runtime
+Git write, auth bypass, gate, deployment or release. The one-minute loop continues.
