@@ -6393,3 +6393,42 @@ not demonstrated. Next reduce remaining duplicated current-policy traversal and
 unchanged drafting/history admission without carrying read proofs across effects.
 No live configuration, credential, spending, records adoption, runtime write/grant,
 signature, deployment or release changed.
+
+## 0288 — Proven current-scope caller barriers for drafting start
+
+Drafting start's read-only original policy now has private immutable construction
+proof that it checks the exact current caller before and after independent work.
+Current-only original verification forwards that proof through the actual policy,
+original receiver/arguments, guards and bounded pending work. The current-scope
+window omits only its duplicate outer caller pair. Historical, unknown, copied,
+bound and different-caller callbacks keep the full path. Both full current scope
+reads and exact result/source, records/keys/profile/expiry/final-grant checks remain.
+Separate read-only windows never enclose scheduling or span its effects.
+
+Intrinsic callback/reader invocation ignores overridden `call`/`apply` without
+dropping the receiver. Nonvoid policy returns remain denial. See
+[specification](../intent/0288/SPEC.md), [evidence](../intent/0288/EVIDENCE.md) and
+[raw measurements](../intent/0288/PERFORMANCE.json).
+
+The authenticated 34-source journey drops initial drafting start from 41,768 to
+23,064 requests (44.78%) and receipt recovery/repeated starts from 47,350 to 25,974
+(45.14%). Single local times are 10,887 / 12,027 / 12,123 ms, not warmed p95 or a
+reliable latency speedup. Start counts have no origin partition yet. All twelve
+corrected-package counts/partitions remain unchanged, including source review
+2,634, scope preparation 9,598 and first confirmation 45,716 requests.
+
+All 25 focused tests, four HTTP/encrypted-SQL start checks, three default managed
+authenticated joined checks plus idempotent migrations, **1,415 broad regressions**,
+prototype/eight-package types and optimized build pass. Kit/audit, links, twelve
+source/harness hashes, measured partitions/deltas, private exports, protected hashes
+and whitespace are checked. The full joined path retains six synthetic model
+calls/reservations, one confirmation original, one fixed Temporal/native save,
+lost-response/restart recovery and exact older-commit reopen with current denial.
+Other full dispositions, historical/full SQL and delayed prefix were not rerun;
+the unchanged prefix fails before the modified drafting-start boundary.
+
+Overall stays **68% (17/25; 8 remaining; +0 points)**. No C22, signed-in UI or real
+provider acceptance is claimed. Next reduce remaining current-policy and
+preparation/final-package traversal, preserving independent grants, effect
+separation and recovery. No live configuration, credentials, spending, runtime
+grant/write, records adoption, signature, deployment or release changed.

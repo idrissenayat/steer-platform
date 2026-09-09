@@ -4,6 +4,8 @@ import { scopeReviewFixture } from '../../tool-registry/test/intent-scope-review
 import { validateIntentScopeBatchResults } from '@steer/tool-registry/intent-scope-batches';
 import { verifyIntentScopeReadOutput, type IntentScopeReader } from '@steer/tool-registry/intent-scope-read-contracts';
 import { withCurrentScopeReadWindow as window } from '../src/current-scope-read-window.ts';
+import { bracketCurrentReadAuthority as bracket, forwardCurrentReadAuthority as forward } from '../src/current-read-authority.ts';
+import { bracketHistoricalReadAuthority as historical } from '../src/historical-read-authority.ts';
 
 async function fixture() {
   const f = await scopeReviewFixture(), input = { organizationId: f.scope.organizationId, productId: f.scope.productId,
@@ -120,4 +122,46 @@ test('failed private work closes the port and absent/unused scope does not inven
   await assert.rejects(retained!.read(f.input, f.source)); assert.equal(f.state.reads, 1);
   await window(undefined, f.current, async port => assert.equal(port, undefined));
   await window(f.reader, f.current, async () => {}); assert.equal(f.state.reads, 1);
+});
+
+test('constructed identical caller barriers remove only the redundant pair with two full current reads', async () => {
+  const measured = async (kind: 'recognized' | 'wrapped' | 'different' | 'historical') => {
+    const f = await fixture(), track = <T>(pending: Promise<T>) => pending, guard = () => {};
+    let independent = 0;
+    const caller = kind === 'different' ? async () => { independent++; } : f.current;
+    const made = kind === 'historical' ? historical(caller, f.source, track, guard) : bracket(caller, f.source, track, guard);
+    const source = forward(kind === 'wrapped' ? async () => made() : made, [], track, guard);
+    await window(f.reader, f.current, async port => { for (let i = 0; i < 6; i++) assert.deepEqual(await port!.read(f.input, source), f.output); });
+    assert.equal(f.state.reads, 2); return { ...f.state, independent };
+  };
+  const fast = await measured('recognized'), full = await measured('wrapped'), other = await measured('different'), old = await measured('historical');
+  assert.equal(fast.source, full.source); assert.equal(fast.source, old.source); assert.equal(fast.source, other.source);
+  assert.equal(full.caller - fast.caller, 2 * fast.source); assert.equal(old.caller, full.caller);
+  assert.equal(other.independent, 2 * fast.source); assert.equal(other.caller, fast.caller);
+});
+
+test('recognized current barriers still deny final revocation, changed records and expired scope before effects', async () => {
+  for (const failure of ['caller', 'source', 'records', 'expired', 'changed', 'nonvoid']) {
+    const f = await fixture(); let effects = 0, invalid = false;
+    const source = bracket(f.current, async () => { await f.source(); if (invalid) return true; }, p => p, () => {});
+    await assert.rejects((async () => {
+      await window(f.reader, f.current, async port => {
+        await port!.read(f.input, source);
+        if (failure === 'caller') f.state.permitted = false;
+        else if (failure === 'source') f.state.sourcePermitted = false;
+        else if (failure === 'records') f.state.recordsPermitted = false;
+        else if (failure === 'expired') f.state.output = { ...f.output, status: 'expired', batches: null, review: null };
+        else if (failure === 'changed') f.output.source.revisionDigest = 'f'.repeat(64);
+        else invalid = true;
+      }); effects++;
+    })()); assert.equal(effects, 0, failure);
+  }
+});
+
+test('current scope reader invocation preserves its receiver and ignores a replaced call property', async () => {
+  const f = await fixture(), read = f.reader.read;
+  f.reader.read = async function (input, callback) { assert.equal(this, f.reader); return read(input, callback); };
+  Object.defineProperty(f.reader.read, 'call', { value: async () => assert.fail('overridden call') });
+  await window(f.reader, f.current, async port => { assert.deepEqual(await port!.read(f.input, f.source), f.output); });
+  assert.equal(f.state.reads, 2);
 });

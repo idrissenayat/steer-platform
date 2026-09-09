@@ -1,6 +1,7 @@
 import { intentScopeReadInputSchema, verifyIntentScopeReadOutput,
   type IntentScopeReader, type IntentScopeReadInput, type IntentScopeReadOutput } from '@steer/tool-registry/intent-scope-read-contracts';
 import { developmentOriginalHash as hash, freezeOriginal as freeze } from './development-original-contracts.ts';
+import { currentReadAuthorityCovers } from './current-read-authority.ts';
 
 const unavailable = () => new Error('Current scope validation is unavailable.');
 /** ONE private, read-only pre-effect validation. A full current read brackets
@@ -15,10 +16,15 @@ export async function withCurrentScopeReadWindow<T>(reader: IntentScopeReader | 
   let target: IntentScopeReadInput | undefined, captured: IntentScopeReadOutput | undefined, sourceCurrent: (() => Promise<void>) | undefined;
   const guard = () => { if (closed || failed || (reader && (reader.scope !== scope || hash(reader.scope) !== pinned || reader.read !== read))) throw unavailable(); };
   const check = async (callback: () => Promise<void>) => { guard(); if (typeof callback !== 'function' || await callback() !== undefined) throw unavailable(); guard(); };
-  const present = async (callback: () => Promise<void>) => { await check(current); await check(callback); await check(current); };
+  const present = async (callback: () => Promise<void>) => {
+    // Only this exact constructed callback already performs both caller checks.
+    // All independent/unknown policies retain the complete outer barrier.
+    if (currentReadAuthorityCovers(callback, current)) await check(callback);
+    else { await check(current); await check(callback); await check(current); }
+  };
   const inspect = async (input: IntentScopeReadInput, callback: () => Promise<void>) => {
     await present(callback);
-    const value = await verifyIntentScopeReadOutput(await read!.call(reader, input, () => present(callback)));
+    const value = await verifyIntentScopeReadOutput(await Reflect.apply(read!, reader, [input, () => present(callback)]));
     await present(callback);
     if (value.subject !== scope!.subject || value.status !== 'review-available' || value.source.latestRevision !== value.source.revision
       || (['organizationId', 'productId', 'repository', 'reviewId', 'preparationDigest'] as const).some(k => value[k] !== input[k])) throw unavailable();

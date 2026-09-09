@@ -62,6 +62,26 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Proven current-scope caller barriers — 0288
+
+Drafting start constructs a private immutable read-only original authorizer that
+checks its exact caller before and after the independent policy. Current-only
+original verification forwards its construction identity only through the actual
+callback, original receiver/arguments, owner guards and pending-work bounds.
+The current scope window can then omit only its redundant outer caller pair.
+Historical proofs are separate; unknown/copied/bound/different-caller callbacks
+retain the full checks. Nothing is exposed through public package/tool exports.
+
+Both full current scope reads, exact source/result equality, records/keys/profile/
+expiry checks, final grants and separate per-scheduler-revalidation windows remain.
+No proof crosses an effect. Intrinsic invocation ignores overridden `call`/`apply`
+properties without dropping the receiver. Nonvoid authorization is still denial.
+See [0288 evidence](../intent/0288/EVIDENCE.md): initial drafting start drops from
+41,768 to 23,064 requests; receipt recovery/repeated starts from 47,350 to 25,974.
+The full authenticated synthetic save/reopen journey passes, but these counts are
+still over budget and actual UI/live-provider acceptance remains open. Overall
+stays **68% (17/25; +0 points)**; no live configuration/authority is changed.
+
 ### Separate scope-preparation read windows — 0287
 
 The actual corpus/preparer factory now installs a trusted private evidence hook.

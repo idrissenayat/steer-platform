@@ -84,8 +84,19 @@ partitions. The delayed prefix was not rerun because it stops before this change
 boundary. Its prior source-review failure and the full later-stage protocol remain
 open. No new latency or C22 acceptance is claimed.
 
+[0288](../intent/0288/EVIDENCE.md) removes only privately proven duplicate caller
+barriers in read-only current-scope validation. Drafting start drops from 41,768
+to 23,064 requests (44.78%); receipt recovery/repeated starts drop from 47,350 to
+25,974 (45.14%). The single local samples are 10,887 / 12,027 / 12,123 ms, not
+warmed p95. Start logs do not yet partition those counts by origin. The twelve
+corrected-package counts and their recorded origin partitions stay unchanged;
+see [raw measurements](../intent/0288/PERFORMANCE.json). Both full current scope
+reads and all independent policies remain. The complete synthetic save/reopen
+regression passes, but no delayed prefix or complete performance acceptance is
+claimed; the earliest source-review limit remains open.
+
 Next reduce the remaining repeated current-policy traversal, including the
-unchanged drafting/history admission path, then extend the prefix to later stages
+remaining preparation/final-package verification path, then extend the prefix to later stages
 and the full measurement protocol. Preserve every independent policy and fresh
 revocation boundary. No permission cache, longer deadline, hidden background write
 or substituted preview is an acceptable shortcut.

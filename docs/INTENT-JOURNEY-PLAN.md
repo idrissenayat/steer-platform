@@ -9,15 +9,17 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0287 / partial C22 — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0288 / partial C22 — 68% (17/25; 8 remaining; +0 points)**.
 0283 completed C10. 0284 and 0286 reduce privately proven duplicate checks; 0285
 introduced the [performance benchmark prefix](INTENT-CAPTURE-PERFORMANCE.md).
-0287 reduces scope-preparation requests by 15.55% using separate private read-only
-validation windows, never across admission or persistence. Scope-runtime and final
-authenticated recovery/save/reopen checks pass; see [0287 evidence](../intent/0287/EVIDENCE.md)
-for all verification. The previous delayed prefix still fails before this changed
-boundary, and the new 9,598-request preparation remains far over its target: C22
-is failed/incomplete. Next reduce remaining policy/evidence traversal without weakening
+0287 reduces scope-preparation requests by 15.55%. 0288 removes privately proven
+duplicate caller barriers from current-scope validation: drafting-start requests
+fall 44.78%, from 41,768 to 23,064. Receipt recovery/repeated starts fall 45.14%.
+Full current reads and separate scheduler revalidation windows remain. See
+[0288 evidence](../intent/0288/EVIDENCE.md) for focused/start-SQL and authenticated
+recovery/save/reopen verification. Source review, preparation and confirmation
+counts remain unchanged; the previous delayed prefix fails before this boundary.
+C22 is failed/incomplete. Next reduce remaining policy/evidence traversal without weakening
 authority/recovery guarantees. This is synthetic
 integration progress; live activation, real model quality and signed-in UI acceptance
 remain open and retain their specific prerequisites.
@@ -179,6 +181,17 @@ remain enforced. The 34-source preparation drops from 11,365 to 9,598 requests
 and full authenticated joined verification. Overall stays **68% (17/25; +0 points)**.
 The unchanged source-review prefix and later-stage performance protocol remain
 incomplete; no signed-in UI or real-provider acceptance is implied.
+
+0288 privately proves the identical current caller is already checked on both
+sides of a read-only original policy. Current-only original verification forwards
+that proof through actual guarded work; historical/unrecognized/different callers
+keep the full path. Current-scope validation still performs full initial/final
+reads and cannot span scheduling. Drafting starts drop to 23,064 / 25,974 / 25,974
+requests; source review, preparation, preview and confirmation remain unchanged.
+See [0288 evidence](../intent/0288/EVIDENCE.md) for verification and limitations.
+Overall remains **68% (17/25; 8 remaining; +0 points)**. Continue remaining
+current-policy and preparation/final-package traversal work without weakening
+authority, effect separation or recovery. Actual live acceptance remains open.
 
 Prior checkpoint: **0275 saves and reopens the confirmed package through identity**.
 The same authenticated journey now reaches one fixed Temporal/native Git save,

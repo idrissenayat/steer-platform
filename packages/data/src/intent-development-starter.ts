@@ -4,6 +4,7 @@ import { createDevelopmentOriginalStore, developmentRecordsConfigurationSchema }
 import { createIntentOperationStore } from './intent-operations.ts';
 import { developmentOriginalHash as hash, freezeOriginal as freeze, type DevelopmentOriginal } from './development-original-contracts.ts';
 import { withCurrentScopeReadWindow } from './current-scope-read-window.ts';
+import { bracketCurrentReadAuthority } from './current-read-authority.ts';
 
 type Records = Parameters<typeof createDevelopmentOriginalStore>[2];
 const unavailable = () => new Error('Development start is unavailable.');
@@ -38,7 +39,9 @@ export function createIntentDevelopmentStarter(pools: Parameters<typeof createDe
       const secured: Records = {
         ...(sourceScope ? { scopeReview: { scope: sourceScope.scope, read: (input, current) => scopeReader!.read(input, current) } } : {}),
         authorize: c => authority(c.action, () => r.authorize(c)),
-        authorizeOriginal: c => authority(c.action, () => r.authorizeOriginal(c)),
+        authorizeOriginal: bracketCurrentReadAuthority(current, async (c: Parameters<Records['authorizeOriginal']>[0]) => {
+          if (c.action !== 'read') throw unavailable(); return r.authorizeOriginal(c);
+        }, track, guard),
         authorizeDraft: c => authority(c.action, () => r.authorizeDraft(c)),
         authorizeOperation: async c => { if (hash(c.request) !== hash(target)) throw unavailable(); await authority('read', () => r.authorizeOperation(c)); },
         keyForDraft: (ref, keyId) => { if (keyId === null) throw unavailable(); return checked(() => r.keyForDraft(ref, keyId)); },

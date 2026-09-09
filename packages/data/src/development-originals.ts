@@ -3,6 +3,7 @@ import type { IntentScopeReader } from '@steer/tool-registry/intent-scope-read-c
 import type { IntentScopeHistoryReader } from '@steer/tool-registry/intent-scope-history-contracts';
 import { revalidateDevelopmentScopeReview, verifyHistoricalDevelopmentScopeReview } from './development-scope-review.ts';
 import { forwardHistoricalReadAuthority } from './historical-read-authority.ts';
+import { forwardCurrentReadAuthority } from './current-read-authority.ts';
 import { z } from 'zod';
 import { createIntentOperationStore } from './intent-operations.ts';
 import { createDraftRevisionStore } from './draft-revisions.ts';
@@ -66,7 +67,8 @@ export function createDevelopmentOriginalStore(pools:{ drafts:DatabasePool; exec
   const verify=async (original:DevelopmentOriginal,action:'put'|'read',historical=false) => {
     if (closed || await bounded(dependencies.authorizeOriginal(freeze({ original,action })))!==undefined || closed) throw new DraftStorageError();
     const authorizer=dependencies.authorizeOriginal;
-    const current=forwardHistoricalReadAuthority(authorizer,[freeze({original,action})],bounded,()=>{
+    const forward=historical?forwardHistoricalReadAuthority:forwardCurrentReadAuthority;
+    const current=forward(authorizer,[freeze({original,action})],bounded,()=>{
       if(closed || dependencies.authorizeOriginal!==authorizer)throw new DraftStorageError();
     },dependencies);
     await bounded(historical ? verifyHistoricalDevelopmentScopeReview(original,dependencies.scopeHistory,current)

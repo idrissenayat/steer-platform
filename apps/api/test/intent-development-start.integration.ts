@@ -52,15 +52,18 @@ export async function testDevelopmentStart(setup: () => Promise<Fixture>, check:
   await check('missing start grant, denied records/execution authority and stale source never reach development scheduling', async () => {
     const f = await setup(); let calls = 0; const scheduler = { start: async () => { calls++; return { outcome: 'unknown' }; } };
     const denied = createDevelopmentStartHarness(f, scheduler, { authorizeStart: async () => { throw new Error('private-budget-denial'); } });
+    const nonvoid = createDevelopmentStartHarness(f, scheduler, { records: { ...f.deps.originals,
+      authorizeOriginal: async () => true as unknown as void } });
     const normal = createDevelopmentStartHarness(f, scheduler);
     try {
       assert.equal((await denied.post()).status, 503);
+      assert.equal((await nonvoid.post()).status, 503);
       normal.state.principal.toolGrants = []; assert.equal((await normal.post()).status, 403); normal.state.principal.toolGrants = ['intent.development.start'];
       assert.equal((await normal.post({ revisionDigest: 'f'.repeat(64) })).status, 503);
       assert.equal((await f.drafts.append({ draftId: f.draftId, mutationId: randomUUID(), expectedRevision: 1, expectedDigest: f.saved.reference.revisionDigest,
         content: { ...f.content, originalText: 'Newer human correction' } })).outcome, 'acknowledged');
       assert.equal((await normal.post()).status, 503); assert.equal(calls, 0);
-    } finally { denied.service.close(); normal.service.close(); }
+    } finally { denied.service.close(); nonvoid.service.close(); normal.service.close(); }
   });
   await check('draft hold or source change during last start authority check blocks the scheduler callback', async () => {
     for (const hold of [false, true]) {
