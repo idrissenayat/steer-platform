@@ -80,7 +80,12 @@ try {
     await migrate(drizzle(admin), { migrationsFolder });
     assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 28);
   });
-  if(selection.mode==='journey-runtime'){
+  if(selection.mode==='journey-runtime-revision'){
+    console.log('FOCUSED authenticated existing pre-pull candidate revision through native corpus, recorded roles, confirmation and fixed save/reopen; NOT the full integration suite.');
+    await testAuthenticatedGeneration({admin,connect,check},'candidate-revision');
+    assert.equal(passed,2);
+    console.log(`FOCUSED authenticated candidate revision result: ${passed-1} joined check passed plus idempotent migration check; full suite NOT RUN.`);
+  }else if(selection.mode==='journey-runtime'){
     console.log('FOCUSED managed identity runtime with native authorization, encrypted SQL drafts and recorded generation; NOT the full integration suite.');
     await testManagedIntentJourneyRuntime({admin,connect,check});
     await testAuthenticatedGeneration({admin,connect,check});
@@ -337,6 +342,7 @@ try {
   await testIntentDraftApi({ admin, connect, check });
   await testManagedIntentJourneyRuntime({ admin, connect, check });
   await testAuthenticatedGeneration({ admin, connect, check });
+  await testAuthenticatedGeneration({ admin, connect, check }, 'candidate-revision');
   await testDurableCandidateBundles({ admin, app, connect, check });
   console.log(`PostgreSQL integration: ${passed} checks passed; server ${(await admin.query('SHOW server_version')).rows[0].server_version}`);
   }

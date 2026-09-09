@@ -58,6 +58,29 @@ records transition and its recovery path.
 
 ## Evidence and remaining work
 
+The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verified
+component/joined checks from live startup and signed-in human acceptance. Report
+its overall percentage after each verified completion; test count is not progress.
+
+### Existing pre-pull candidate revision — 0280
+
+The full authenticated synthetic journey also accepts an explicit existing
+versioned candidate Brief. Both drafting roles receive the reviewed choice.
+After a human correction, the old scope assessment is rejected and a fresh exact
+review precedes confirmation. Wrong target digests and lost source grants deny.
+The fixed save preserves prior bundle files and unrelated sources, changes only
+the pointer/Brief mirror plus its new versioned bundle, and reopens both old and
+new packages through the actual authenticated reader. No canonical Spec/Exam is
+created or overwritten. Six synthetic model reservations and one native commit
+remain stable across lost acknowledgements, replay and runtime reconstruction.
+
+The revision's focused joined check and idempotent migration check pass, as do
+the default three joined checks plus their migration check, all 1,369 broad tests,
+prototype/eight-package typechecks and production build. See [0280 evidence](../intent/0280/EVIDENCE.md).
+This extends verification only, not production source or authority. New-linked,
+first-amendment and proposal-continuation joined saves, request-volume reduction,
+governed startup and actual live/user acceptance remain open.
+
 ### Request-owned corpus verification — 0279
 
 The actual corpus-backed development source reviewer now installs a private

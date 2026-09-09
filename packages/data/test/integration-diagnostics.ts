@@ -14,9 +14,10 @@ export function parseIntegrationSelection(args:readonly string[]) {
   if(args.length===1&&args[0]==='--candidate-start')return {mode:'candidate-start' as const};
   if(args.length===1&&args[0]==='--candidate-journey')return {mode:'candidate-journey' as const};
   if(args.length===1&&args[0]==='--journey-runtime')return {mode:'journey-runtime' as const};
+  if(args.length===1&&args[0]==='--journey-runtime-revision')return {mode:'journey-runtime-revision' as const};
   if(![2,4].includes(args.length)||args[0]!=='--clarification-repro'||!/^([1-9]|1[0-9]|20)$/.test(args[1]!)
     ||(args.length===4&&(args[2]!=='--query-delay-ms'||! /^[0-5]$/.test(args[3]!))))
-    throw new Error('Use no arguments for the full suite, --scope-runtime, --development-history, --development-start, --run-discovery, --admission-discovery, --candidate-save, --candidate-start, --candidate-journey, --journey-runtime, or --clarification-repro 1-20 [--query-delay-ms 0-5].');
+    throw new Error('Use no arguments for the full suite, --scope-runtime, --development-history, --development-start, --run-discovery, --admission-discovery, --candidate-save, --candidate-start, --candidate-journey, --journey-runtime, --journey-runtime-revision, or --clarification-repro 1-20 [--query-delay-ms 0-5].');
   return {mode:'clarification-repro' as const,iterations:Number(args[1]),queryDelayMs:args.length===4?Number(args[3]):0};
 }
 type Phase='connect'|'commit'|'rollback'|'observation-write'|'result-write'|'execution-write'|'query';

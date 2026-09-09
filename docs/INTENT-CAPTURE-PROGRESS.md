@@ -1,0 +1,75 @@
+# Intent capture delivery progress
+
+Checklist version: 1. Established 2026-09-09 at the user's request.
+
+**Overall: 56% — 14 of 25 acceptance checkpoints verified.**
+
+This measures completion of the fixed delivery checklist below, not elapsed time,
+remaining engineering effort, production readiness or the number of tests/commits.
+Each checkpoint contributes four percentage points. Component and synthetic
+integration verification are explicitly distinguished from real-user acceptance;
+the latter remains pending. The actual authenticated application journey in
+[the intent journey plan](INTENT-JOURNEY-PLAN.md) is still the completion target.
+
+## Reporting contract
+
+After every verified completed increment, report:
+
+> Intent capture: **X% (N/25 checkpoints; +Y percentage points)**. Completed:
+> [capability and verification level]. Next: [next incomplete capability].
+
+If an increment improves part of an incomplete checkpoint, report the same overall
+percentage and a zero-point change. Extra tests, documentation, refactors and
+performance improvements do not independently earn points. Work in progress does
+not count. Regressions reopen the affected checkpoint and can reduce the percentage.
+Keep this denominator fixed; a genuine scope change needs a documented version,
+reason and rebased comparison, not a silent increase or new optimistic estimate.
+Do not claim 100% until all real signed-in UI and saved-repository checks pass.
+
+## Fixed acceptance checklist
+
+“Verified” means the evidence satisfies the specific level stated in that row.
+“Pending” includes partial implementation and missing activation or acceptance;
+it does not imply that no code exists.
+
+| ID | Plan area | Acceptance checkpoint and required verification level | Status | Evidence / remaining work |
+| --- | --- | --- | --- | --- |
+| C01 | I1 Capture/review | Actual application's free-text capture and conversational components preserve the user's source; component verification. | Verified | [0198](../intent/0198/EVIDENCE.md), [0230](../intent/0230/EVIDENCE.md). Not a browser acceptance claim. |
+| C02 | I1 Capture/review | Permitted repository corpus, exact provenance and incomplete-search safeguards; native integration verification. | Verified | [0232](../intent/0232/EVIDENCE.md), [0279](../intent/0279/EVIDENCE.md). |
+| C03 | I1 Capture/review | Multi-batch scope review, exact citations and retained combined assessment; recorded integration verification. | Verified | [0242](../intent/0242/EVIDENCE.md), [0276](../intent/0276/EVIDENCE.md). |
+| C04 | I1 Capture/review | Representative, independently adjudicated duplicate, paraphrase, partial-overlap and related-intent quality evaluation with an authorized real model. | Pending | [0250](../intent/0250/EVIDENCE.md) is a synthetic evaluator, not model-quality evidence. |
+| C05 | I2 Disposition | Explicit human direction, reason and exact target in the actual editor, with stale-choice invalidation; component/API verification. | Verified | [0201](../intent/0201/EVIDENCE.md), [0230](../intent/0230/EVIDENCE.md). No automatic merge/create. |
+| C06 | I2 Disposition | Server-verified assessment and exact human direction reach both separate drafting roles; recorded integration verification. | Verified | [0248](../intent/0248/EVIDENCE.md), [0276](../intent/0276/EVIDENCE.md). |
+| C07 | I2 Disposition | Authenticated pre-pull candidate revision through confirmation, one native save and exact old/new reopen, preserving prior files. | Verified | [0280](../intent/0280/EVIDENCE.md): revision and default joined selections, 1,369 broad tests, types and build pass. Synthetic authority, not live GitHub/UI. |
+| C08 | I2 Disposition | Authenticated new-linked direction through confirmation, one native save and exact reopen with preserved relationship. | Pending | [0268](../intent/0268/EVIDENCE.md) joins preview, not this full save journey. |
+| C09 | I2 Disposition | Authenticated first amendment through confirmation, one native save and exact reopen without replacing canonical artifacts. | Pending | [0266](../intent/0266/EVIDENCE.md), [0268](../intent/0268/EVIDENCE.md) provide resolver/preview evidence. |
+| C10 | I2 Disposition | Authenticated proposal continuation through confirmation, one native save and exact reopen with original target/parent checks. | Pending | [0267](../intent/0267/EVIDENCE.md), [0268](../intent/0268/EVIDENCE.md) provide resolver/preview evidence. |
+| C11 | I3 Drafting | Ordered Architect Brief/Spec and separate Test Agent Exam with full permitted source context; recorded workflow verification. | Verified | [0276](../intent/0276/EVIDENCE.md). Model responses remain synthetic. |
+| C12 | I3 Drafting | Focused clarification stops generation until answered and resumes with source/review invalidation; actual-component verification. | Verified | [0230](../intent/0230/EVIDENCE.md), [0238](../intent/0238/EVIDENCE.md). |
+| C13 | I3 Drafting | Durable run/cost reservation, refusal handling and retry/replay without duplicate model dispatch; synthetic integration verification. | Verified | [0198](../intent/0198/EVIDENCE.md), [0235](../intent/0235/EVIDENCE.md), [0276](../intent/0276/EVIDENCE.md). No spending approval is implied. |
+| C14 | I3 Drafting | Approved capped live-model run produces source-faithful useful Brief, Spec and independent Exam, with content-quality acceptance. | Pending | Model budget/activation and real output evaluation remain open. |
+| C15 | I4 Review/recovery | Actual editor supports all three documents, human corrections, source linkage and downstream invalidation; component/API verification. | Verified | [0204](../intent/0204/EVIDENCE.md), [0230](../intent/0230/EVIDENCE.md), [0275](../intent/0275/EVIDENCE.md). |
+| C16 | I4 Review/recovery | Encrypted draft/history, retained originals and restart/lost-acknowledgement recovery; joined synthetic integration verification. | Verified | [0251](../intent/0251/EVIDENCE.md), [0258](../intent/0258/EVIDENCE.md), [0275](../intent/0275/EVIDENCE.md). |
+| C17 | I4 Review/recovery | Current records/source/key/hold restrictions suppress unsafe reads and preserve immutable originals; synthetic integration verification. | Verified | [0270](../intent/0270/EVIDENCE.md), [0279](../intent/0279/EVIDENCE.md). Does not include operational records adoption or late-recovery resolution. |
+| C18 | I4 Review/recovery | Governed real records/D1/lifecycle/clock adoption and constrained late/quarantined-outcome recovery, with runtime ownership and recovery acceptance. | Pending | [Runtime guide](AUTHENTICATED-INTENT-RUNTIME.md). D1 remains unsigned/inactive; clock and late recovery are incomplete. |
+| C19 | I5 Save/reopen | Authenticated new-distinct exact confirmation and atomic idempotent native save, with current scope/authority checks. | Verified | [0275](../intent/0275/EVIDENCE.md), [0276](../intent/0276/EVIDENCE.md). Synthetic authority, not live GitHub. |
+| C20 | I5 Save/reopen | Uncertain save, scheduler/provider lost replies and restart reconcile without resend; exact older-commit reopen through authenticated services. | Verified | [0275](../intent/0275/EVIDENCE.md), [0276](../intent/0276/EVIDENCE.md). |
+| C21 | I5 Save/reopen | Governed actual startup, current runtime GitHub write authority and a verified real repository save/reopen. | Pending | Source-code pushes are not application saves or runtime-write authorization. |
+| C22 | I5 Save/reopen | Measured provider request load and end-to-end latency satisfy documented human-UX acceptance thresholds on the representative journey. | Pending | [0279](../intent/0279/EVIDENCE.md): about 60,000 local confirmation requests and 36 seconds remain unacceptable; establish and verify practical bounds. |
+| C23 | I6 Human acceptance | Actual signed-in UI happy path, open-existing, exact/paraphrased duplicate, partial overlap and related-but-distinct scenarios; real sources and saved commits. | Pending | No preview, fixture or component-only result substitutes for this demonstration. |
+| C24 | I6 Human acceptance | Actual UI handles empty/failed/stale search, corrections, permission loss, exhausted budget, concurrent creation, uncertain save and refresh/reopen without lost work. | Pending | Component/negative tests inform but do not complete this real journey. |
+| C25 | I6 Human acceptance | Actual end-to-end keyboard, narrow-screen and accessibility verification, followed by the user's usable-journey acceptance. | Pending | Component axe checks do not establish browser/visual or human acceptance. |
+
+## Progress history
+
+| Date / checkpoint | Verified | Overall | Change | Basis |
+| --- | --- | --- | --- | --- |
+| 2026-09-09 baseline through 0279 | 13/25 | 52% | Baseline, not a new capability | Evidence-backed component and joined synthetic results above; no live UI acceptance. |
+| 2026-09-09 / 0280 | 14/25 | 56% | +4 percentage points | C07: authenticated existing-candidate revision/save/reopen with prior-file preservation; both joined selections and final broad regression pass. |
+
+Next checkpoint: C08, the authenticated new-linked save/reopen journey. Eleven
+checkpoints remain in total, including amendment/continuation saves, performance,
+governed live activation, real model quality and signed-in human acceptance.
+
+The [delivery ledger](PHASE-1-DELIVERY.md) records individual increments. Updating
+this reporting document itself earns no completion points.

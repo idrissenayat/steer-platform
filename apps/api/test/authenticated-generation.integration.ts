@@ -23,6 +23,7 @@ import { authenticatedCandidateConfirmation } from './authenticated-candidate-co
 import { authenticatedCandidateSave } from '../../worker/test/authenticated-candidate-save.integration.ts';
 import { authenticatedModelWorkflows } from '../../worker/test/authenticated-model-workflows.integration.ts';
 import { createNativeRequestMeter } from './native-request-metrics.ts';
+import { authenticatedJourneyChoice, authenticatedJourneyItem, type AuthenticatedJourneyDirection } from './authenticated-journey-direction.fixture.ts';
 
 /** Signed synthetic JWT + native Git grants, real API constructor graph, SQL and
  * recorded SDK roles. No real issuer, model transport, live migration or external Git write.
@@ -30,15 +31,18 @@ import { createNativeRequestMeter } from './native-request-metrics.ts';
  * This check does not claim real provider authority or signed-in UI acceptance. */
 export async function testAuthenticatedGeneration({ admin, connect, check }: {
   admin: Pool; connect(role: string): Pool; check(name: string, run: () => Promise<void>): Promise<void>;
-}) {
-  await check('concrete authenticated journey binds native multi-batch scope, both SDK roles, corrected confirmation and fixed save/reopen through restart', async () => {
+}, direction: AuthenticatedJourneyDirection = 'new-distinct') {
+  const itemId = authenticatedJourneyItem(direction);
+  const name = direction === 'new-distinct' ? 'concrete authenticated journey binds native multi-batch scope, both SDK roles, corrected confirmation and fixed save/reopen through restart'
+    : 'concrete authenticated candidate-revision journey binds native multi-batch scope, both SDK roles, corrected confirmation and fixed save/reopen through restart';
+  await check(name, async () => {
     const cleanup: Array<() => void> = [];
     try {
     const native = nativeCandidateJourneyFixture({ after: run => cleanup.push(run) }, true);
     const identityTraffic=createNativeRequestMeter(native.git.transport);
     const identity = await recordedRuntimeFixture({ after: run => cleanup.push(run) }, { source: {...native.git,transport:identityTraffic.transport},
       organizationId: `authenticated-generation-${randomUUID()}`,
-      selection: { itemId: 'items/0273-synthetic', idempotencyKey: randomUUID() },
+      selection: { itemId: `items/${itemId}`, idempotencyKey: randomUUID() },
       actor: { type: 'human', subject: 'synthetic-human', authorizationPath: 'access/generation.json', toolGrants: [
         'intent.draft.read', 'intent.draft.append', 'intent.development.review', 'intent.scope.prepare', 'intent.scope.read',
         'intent.development.prepare', 'intent.development.read', 'intent.development.history',
@@ -62,7 +66,7 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
       authorizeDraft: authority, authorizeHistoricalRead: authority, keyForDraft: f.deps.keyForDraft };
     const results = { authorizeOperation: executionAuthority, authorizeDraft: authority, authorizeResult: authority,
       authorizeHistoricalResult: authority, keyForDraft: f.deps.keyForDraft };
-    const expected = { ...f.config, itemIds: ['0273-synthetic'] }, fixture = intentJourneyFactoryFixture(expected);
+    const expected = { ...f.config, itemIds: [itemId] }, fixture = intentJourneyFactoryFixture(expected);
     fixture.config.scope = f.execution; fixture.config.scopeProfile = f.described.original.profile;
     fixture.config.development = { ...f.execution, action: 'develop' };
     // scopeTerms belong only to the scope execution schema.
@@ -70,8 +74,8 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
     fixture.config.candidate = { ...f.config, action: 'candidate-save', expiresAt: f.execution.expiresAt, budget: null };
     fixture.config.retrievalConfigurationRevision = 'synthetic-native-corpus-r1';
     const workflows = authenticatedModelWorkflows(executionAuthority);
-    const candidate = authenticatedCandidateConfirmation(f, native, authority, scopeRecords, workflows,identityTraffic);
-    const save = authenticatedCandidateSave(f, native, fixture.config, authority);
+    const candidate = authenticatedCandidateConfirmation(f, native, authority, scopeRecords, workflows,identityTraffic,direction);
+    const save = authenticatedCandidateSave(f, native, fixture.config, authority,direction);
     const profiles = fixture.config.developmentProfiles;
     const { recordedScheduling: _unused, ...base } = identity.profile;
     const profile = { ...base, intentJourney: expected };
@@ -148,7 +152,9 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
       }
       const scopeOutput = await verifyIntentScopeReadOutput(await read('intent.scope.read', { ...scope, ...scopePrepared.reference! }));
       assert.equal(scopeOutput.status, 'review-available'); assert.equal(scopeOutput.semanticQualityVerified, false);
-      const developmentInput = { ...prepareInput, choice: { action: 'new-distinct', reason: 'Explicit synthetic disposition; not a novelty verdict.' },
+      const developmentInput = { ...prepareInput, choice: direction === 'new-distinct'
+        ? { action: 'new-distinct' as const, reason: 'Explicit synthetic disposition; not a novelty verdict.' }
+        : authenticatedJourneyChoice(direction, reviewed.output.evidence),
         scopeReview: { kind: 'recorded', ...scopePrepared.reference!, resultsDigest: scopeOutput.review!.resultsDigest },
         draftingContextDigest: (await buildIntentDevelopmentContext(reviewed.output.evidence)).contextDigest };
       const generated = intentDevelopmentPrepareOutputSchema.parse(await read('intent.development.prepare', developmentInput));
@@ -163,6 +169,7 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
             const role = wire.messages[0].content === profiles.architect.instructions ? 'architect' : 'test-agent';
             assert.equal(wire.messages[0].content, role === 'architect' ? profiles.architect.instructions : profiles.testAgent.instructions);
             assert.equal(input.scopeEvidence.evidence.length, 34); assert.doesNotMatch(wire.messages[1].content, /EXAM-MARKER-NOT-FOR-SCOPE/);
+            assert.deepEqual(input.direction.choice, developmentInput.choice);
             if (role === 'test-agent') { assert.equal(input.brief, documents.brief); assert.equal(input.spec, documents.spec);
               assert.doesNotMatch(wire.messages[1].content, /Drafted from the recorded source|Synthetic generated Exam/); }
             return Response.json({ id: 'synthetic-authenticated-development', object: 'chat.completion', model: 'synthetic-only', choices: [{ index: 0,

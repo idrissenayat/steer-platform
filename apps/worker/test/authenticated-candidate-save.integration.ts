@@ -19,6 +19,7 @@ import { createCandidateSaveActivities } from '../src/candidate-save-activity.ts
 import { createCandidateSaveWorker } from '../src/worker.ts';
 import { createCandidateSaveSchedulerClient } from '../src/client.ts';
 import { candidateSaveWorkflowId, parseCandidateSaveTarget } from '../src/candidate-save-contracts.ts';
+import type { AuthenticatedJourneyDirection } from '../../api/test/authenticated-journey-direction.fixture.ts';
 
 type Fixture = Awaited<ReturnType<typeof scopeDraftIntegrationFixture>>;
 const historyText = (value: unknown): string => value instanceof Uint8Array ? Buffer.from(value).toString('utf8')
@@ -29,7 +30,7 @@ const historyText = (value: unknown): string => value instanceof Uint8Array ? Bu
  * injection, substituted journey services, real credential or external Git write.
  */
 export function authenticatedCandidateSave(f: Fixture, native: ReturnType<typeof nativeCandidateJourneyFixture>,
-  config: ReturnType<typeof intentJourneyFactoryFixture>['config'], authority: () => Promise<void>) {
+  config: ReturnType<typeof intentJourneyFactoryFixture>['config'], authority: () => Promise<void>, direction: AuthenticatedJourneyDirection = 'new-distinct') {
   const binding = { ...syntheticBinding, organizationId: f.config.organizationId, branch: f.config.branch };
   const publication = config.publication, execution = config.candidate;
   let enabled = false, startAllowed = false, readAllowed = true, expectedRevision: string | undefined;
@@ -87,7 +88,17 @@ export function authenticatedCandidateSave(f: Fixture, native: ReturnType<typeof
         const originals = createCandidateOriginalStore(f.pools.drafts, f.config, { ...records, verifyOriginal }); owned.push(originals);
         const request = await originals.read(target), plan = await planCandidateBundle(request.bundle, request.confirmation);
         assert.deepEqual(request.bundle.documents, input.documents); assert.equal(plan.inputDigest, target.inputDigest);
-        assert.equal(request.bundle.purpose, 'new-candidate'); assert.equal(plan.files.length, 7); assert.equal(plan.expectedHead, native.git.head());
+        assert.equal(request.bundle.purpose, direction === 'candidate-revision' ? 'candidate-revision' : 'new-candidate');
+        assert.equal(plan.files.length, 7); assert.equal(plan.expectedHead, native.git.head());
+        const root = `items/${request.bundle.itemId}`, sourceReader = native.reader(f.config.organizationId);
+        const priorFiles = direction === 'candidate-revision' ? (await sourceReader.readDirectoryInventory(root, plan.expectedHead)).entries.filter(entry => entry.type === 'blob') : [];
+        const priorPointer = direction === 'candidate-revision' ? JSON.parse((await sourceReader.readArtifact(`${root}/CANDIDATE.json`, plan.expectedHead)).content) : null;
+        if (priorPointer) {
+          assert.equal(request.bundle.previousBundleDigest, native.parents().priorManifest); assert.equal(priorPointer.manifestDigest, request.bundle.previousBundleDigest);
+          assert.notEqual(priorPointer.bundleId, request.bundle.bundleId);
+          assert.deepEqual(plan.files.filter(file => file.mode === 'compare-and-swap').map(file => file.path).sort(), [`${root}/BRIEF.md`, `${root}/CANDIDATE.json`]);
+          assert.ok(plan.files.every(file => file.path !== `${root}/SPEC.md` && file.path !== `${root}/EXAM.md`));
+        }
         const before = await snapshot(), encrypted = await rows();
         assert.equal(before.operations, '2'); assert.equal(before.originals, '1'); assert.equal(before.reservations, '6');
         assert.equal(await step(), undefined); assert.equal(native.git.mutations(), 0);
@@ -132,6 +143,19 @@ export function authenticatedCandidateSave(f: Fixture, native: ReturnType<typeof
         assert.equal(receipt.outcome, 'committed'); if (receipt.outcome !== 'committed') throw new Error('Expected verified receipt');
         assert.equal(receipt.saveVerified, true); assert.equal(receipt.reference.revision, native.git.head());
         assert.equal(receipt.reference.manifestDigest, plan.manifestDigest); assert.equal(receipt.confirmationDigest, plan.confirmationDigest);
+        if (priorPointer) {
+          const after = (await sourceReader.readDirectoryInventory(root, receipt.reference.revision)).entries, changed = new Set(plan.files.map(file => file.path));
+          for (const file of priorFiles.filter(file => !changed.has(file.path)))
+            assert.deepEqual(after.find(entry => entry.path === file.path), file, `Preserve existing source: ${file.path}`);
+          assert.equal(after.some(entry => entry.path === `${root}/EXAM.md`), priorFiles.some(entry => entry.path === `${root}/EXAM.md`));
+          const pointer = JSON.parse((await sourceReader.readArtifact(`${root}/CANDIDATE.json`, receipt.reference.revision)).content);
+          assert.equal(pointer.bundleId, request.bundle.bundleId); assert.equal(pointer.manifestDigest, plan.manifestDigest);
+          assert.equal((await sourceReader.readArtifact(`${root}/BRIEF.md`, receipt.reference.revision)).content, input.documents.brief);
+          const previous = await verifyCandidateBundleRead({ ...receipt.reference, bundleId: priorPointer.bundleId, manifestDigest: priorPointer.manifestDigest },
+            await read('intent.candidate.read', { ...receipt.reference, bundleId: priorPointer.bundleId, manifestDigest: priorPointer.manifestDigest }));
+          assert.equal(previous.reference.manifestDigest, priorPointer.manifestDigest); assert.equal(previous.manifest.purpose, 'new-candidate');
+          assert.notDeepEqual(previous.documents, input.documents);
+        }
         assert.equal(await step(), 'dispatch-committed', 'HTTP status is read-only and cannot checkpoint or retry');
         const reconciler = make(); assert.equal((await reconciler.compareAndWrite(request)).outcome, 'committed');
         assert.equal((await reconciler.reconcile(request)).outcome, 'recorded'); assert.equal(await step(), 'succeeded');
@@ -149,7 +173,7 @@ export function authenticatedCandidateSave(f: Fixture, native: ReturnType<typeof
         input.revokeReadGrant(); assert.equal((await post('intent.candidate.read', receipt.reference)).status, 403);
         assert.deepEqual(await rows(), encrypted); assert.deepEqual(await snapshot(), before); assert.deepEqual(await originals.read(target), request);
         assert.equal(native.git.mutations(), 1); assert.equal(starts, 1);
-        console.log('PASS authenticated factory confirmed save: denied start, lost scheduler acknowledgement, one fixed Temporal activity/native commit, replay without resend, identity/factory restart, read-only HTTP receipt recovery, separate reconciliation, exact older-commit reopen and current policy/Git-grant denial; no added originals or model reservations');
+        console.log(`PASS authenticated factory ${direction} confirmed save: denied start, lost scheduler acknowledgement, one fixed Temporal activity/native commit, replay without resend, identity/factory restart, read-only HTTP receipt recovery, separate reconciliation, exact older-commit reopen and current policy/Git-grant denial; prior bundle and unrelated source preservation checked for revisions; no added originals or model reservations`);
       } finally {
         try { await stop(); } finally { for (const item of owned.reverse()) item.close(); await harness?.close(); enabled = false; scheduler = undefined; verifier = undefined; }
       }

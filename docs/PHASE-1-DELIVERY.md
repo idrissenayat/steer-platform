@@ -6188,3 +6188,29 @@ to cover all consumed supporting-file grants. Confirmation still makes about
 No full SQL-suite, real-provider-load, live activation or signed-in UI acceptance
 claim is made. D1, model spending, real runtime writes and protected/user files
 remain unchanged.
+
+## 0280 — Authenticated existing-candidate revision
+
+The joined authenticated fixture now exercises an explicit versioned pre-pull
+candidate through the same actual identity/factory, recorded scope and separate
+drafting roles, human correction, exact confirmation, fixed Temporal/native save
+and old/new exact reopen. The revision selection passes its joined check plus
+idempotent migrations. Prior bundles and unrelated files remain unchanged; only
+the candidate pointer and pre-pull Brief mirror use compare-and-swap. Wrong target,
+current source/read-policy/Git-grant denial, lost replies, replay and restart do not
+permit another original, reservation or commit. Production source is unchanged.
+See [specification](../intent/0280/SPEC.md) and [evidence](../intent/0280/EVIDENCE.md).
+The default three joined checks and their migration check also pass after the
+shared-helper changes. All 1,369 broad tests, prototype/eight-package typechecks,
+production build, protected hashes, 95-artifact kit and scope audit pass. Neither
+focused SQL selection is the full suite; live load/UI acceptance is not claimed.
+
+The user's completion-percentage request is now part of the active one-minute
+loop. The [fixed delivery checklist](INTENT-CAPTURE-PROGRESS.md) establishes a
+13/25 (52%) baseline through 0279 and requires the percentage, count and delta
+after every verified increment. C07 now advances the tracker to **14/25 (56%),
+up four percentage points**. New tests/documents do not earn points on their
+own, and real signed-in UI/repository acceptance remains in the denominator.
+No spending, D1 adoption, live runtime authority or gate changes are inferred.
+Next complete the new-linked authenticated save/reopen checkpoint, with remaining
+amendment/continuation saves, provider-load reduction and live acceptance still open.

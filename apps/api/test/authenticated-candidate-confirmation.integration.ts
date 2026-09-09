@@ -15,6 +15,7 @@ import { scopeReviewFixture } from '../../../packages/tool-registry/test/intent-
 import { createScopeStepRuntime } from '../../worker/src/scope-step-runtime.ts';
 import type { authenticatedModelWorkflows } from '../../worker/test/authenticated-model-workflows.integration.ts';
 import { summarizeNativeRequests,subtractNativeRequests,type createNativeRequestMeter } from './native-request-metrics.ts';
+import { authenticatedJourneyChoice, authenticatedJourneyItem, type AuthenticatedJourneyDirection } from './authenticated-journey-direction.fixture.ts';
 
 type Fixture = Awaited<ReturnType<typeof scopeDraftIntegrationFixture>>;
 /** Continue the SAME signed-identity/SQL/recorded-generation test after correction.
@@ -23,7 +24,7 @@ type Fixture = Awaited<ReturnType<typeof scopeDraftIntegrationFixture>>;
  * Candidate-save scheduling, Git writing and publication remain unavailable. */
 export function authenticatedCandidateConfirmation(f: Fixture, native: ReturnType<typeof nativeCandidateJourneyFixture>,
   authority: () => Promise<void>, scopeRecords: IntentJourneyFactoryDependencies['scope']['records']['originals'],
-  workflows: ReturnType<typeof authenticatedModelWorkflows>,identityTraffic:ReturnType<typeof createNativeRequestMeter>) {
+  workflows: ReturnType<typeof authenticatedModelWorkflows>,identityTraffic:ReturnType<typeof createNativeRequestMeter>, direction: AuthenticatedJourneyDirection = 'new-distinct') {
   let enabled = false;
   const current = async () => { await authority(); if (!enabled) throw new Error('PRIVATE candidate confirmation policy denied'); };
   const records = { authorize: current, lifecycle: f.lifecycle.lifecycle, keyForDraft: f.deps.keyForDraft };
@@ -69,7 +70,7 @@ export function authenticatedCandidateConfirmation(f: Fixture, native: ReturnTyp
         assert.equal(draft.revision, 2); assert.ok(draft.content.documents);
         const source = { ...scope, draftId: f.draftId, revision: draft.revision, revisionDigest: draft.revisionDigest, scopeInputDigest: draft.scopeInputDigest };
         const { output: review } = await verifyDevelopmentReview(source, await read('intent.development.review', source));
-        const choice = { action: 'new-distinct' as const, reason: 'Explicit synthetic final disposition after correcting the generated Brief.' };
+        const choice = authenticatedJourneyChoice(direction, review.evidence);
         const preparation = { ...source, configurationRevision: f.config.configurationRevision, sourceSnapshotDigest: review.sourceSnapshotDigest };
         const stale = { ...preparation, choice, scopeReview: { kind: 'recorded', ...input.previousScope } };
         const denied = await post('intent.candidate.save.review', stale); assert.equal(denied.status, 503);
@@ -108,12 +109,23 @@ export function authenticatedCandidateConfirmation(f: Fixture, native: ReturnTyp
         assert.equal(assessed.semanticQualityVerified, false); assert.ok(assessed.review);
         const finalInput = { ...preparation, choice, scopeReview: { kind: 'recorded' as const, ...admitted.reference, resultsDigest: assessed.review.resultsDigest } };
         const finalReview = await verifyCandidateSaveReview(finalInput, await read('intent.candidate.save.review', finalInput), draft.content.documents);
-        const previewInput = { ...finalInput, reviewDigest: finalReview.reviewDigest, generation: input.generation, itemId: '0273-synthetic', proposalId: null };
+        const previewInput = { ...finalInput, reviewDigest: finalReview.reviewDigest, generation: input.generation, itemId: authenticatedJourneyItem(direction), proposalId: null };
         const preview = await verifyCandidateSavePreview(previewInput, await read('intent.candidate.save.preview', previewInput), draft.content.documents);
         assert.equal(preview.generation.source.revision, 1); assert.equal(preview.generation.source.latestRevision, 2);
         assert.deepEqual(preview.manifest.lineage.editedDocuments, ['brief']);
         assert.equal(preview.manifest.specConformance.state, 'stale'); assert.equal(preview.manifest.examReview.state, 'stale');
         assert.equal(preview.saveConfirmed, false); assert.equal(preview.savedToGit, false);
+        if (direction === 'candidate-revision') {
+          assert.equal(preview.destination.purpose, 'candidate-revision'); assert.equal(preview.destination.previousBundleDigest, native.parents().priorManifest);
+          assert.equal(preview.destination.amendment, null); assert.equal(preview.destination.relationship, null);
+          assert.ok('target' in choice); assert.match(choice.target.path, /\/candidates\/[a-f0-9-]+\/BRIEF\.md$/);
+          assert.equal(preview.manifest.itemId, '0002-existing');
+          native.state.sourceAllowed = false;
+          try { assert.equal((await post('intent.candidate.save.preview', previewInput)).status, 503); }
+          finally { native.state.sourceAllowed = true; }
+          const wrongTarget = { ...finalInput, choice: { ...choice, target: { ...choice.target, contentDigest: '0'.repeat(64) } } };
+          assert.equal((await post('intent.candidate.save.review', wrongTarget)).status, 503);
+        }
         const checked = await snapshot(); assert.equal(checked.reservations, '6'); assert.equal(checked.scopes, '2');
         assert.equal(checked.operations, '1'); assert.equal(checked.originals, '0');
         const confirmation = { organizationId: scope.organizationId, preview: previewInput, previewDigest: preview.previewDigest,
@@ -138,7 +150,7 @@ export function authenticatedCandidateConfirmation(f: Fixture, native: ReturnTyp
         const unavailable = await post('intent.candidate.save.preview', previewInput); assert.equal(unavailable.status, 503);
         assert.doesNotMatch(await unavailable.text(), /PRIVATE|Human correction|Synthetic generated/);
         assert.deepEqual(await rows(), encrypted); assert.deepEqual(await snapshot(), stored);
-      console.log('PASS authenticated corrected package: stale assessment denied, two fresh recorded scope batches, exact edited-document lineage, human confirmation, discarded HTTP acknowledgement and reconstructed idempotent original recovery; six synthetic model calls/reservations, no candidate-save scheduling or Git save');
+      console.log(`PASS authenticated ${direction} corrected package: stale assessment denied, two fresh recorded scope batches, exact edited-document lineage, human confirmation, discarded HTTP acknowledgement and reconstructed idempotent original recovery; six synthetic model calls/reservations, no candidate-save scheduling or Git save`);
         console.log('Synthetic authenticated corrected-package request measurements: ' + JSON.stringify(measurements));
         return { reference: recovered.reference, documents: draft.content.documents };
       } finally { enabled = false; }
