@@ -11,6 +11,7 @@ import type { nativeCandidateJourneyFixture } from './native-candidate-journey.f
 import type { CandidateSaveReviewInput } from '@steer/tool-registry/candidate-save-review-contracts';
 import { candidateSavePreviewInputSchema, type CandidateSavePreviewInput } from '@steer/tool-registry/candidate-save-preview-contracts';
 import { testConfirmedNativeCandidateSave } from '../../worker/test/native-candidate-save.integration.ts';
+import { testCandidatePublication } from './candidate-publication.integration.ts';
 
 type Fixture = Awaited<ReturnType<typeof scopeStepIntegrationFixture>>;
 /** Composed inside the actual SQL + 34-source SDK journey. All authorities and
@@ -105,12 +106,14 @@ export async function testCandidateSavePreviewWithHistory(f: Fixture,
     // a fresh test identity for this independent race; do not relax API expiry.
     principal.expiresAt=new Date(Date.now()+300000).toISOString();
     if(save){
-      await testConfirmedNativeCandidateSave(f,drafts,confirmedOriginal,native,admin);
+      const receipt=await testConfirmedNativeCandidateSave(f,drafts,confirmedOriginal,native,admin);
       principal.expiresAt=new Date(Date.now()+300000).toISOString();
       const saved=await snapshot();assert.equal((await post()).status,503);
       assert.deepEqual(await snapshot(),saved);assert.equal(await f.reservations(),reservations);
       assert.equal(native.git.mutations(),1);
-      return;
+      // Retention is a separate records action. Defer until the enclosing
+      // scenario has checked retained history after human edits.
+      return () => testCandidatePublication(f,confirmedOriginal,native,receipt,admin);
     }
     const confirmed=await snapshot();native.state.moveAtProof=native.state.proofs+2;
     assert.equal((await post()).status,503);assert.notEqual(native.git.head(),output.review.expectedHead);

@@ -180,6 +180,7 @@ export async function testConfirmedNativeCandidateSave(f: Awaited<ReturnType<typ
     assert.deepEqual((await admin.query('SELECT * FROM steer_drafts.candidate_originals WHERE organization_id=$1', [target.organizationId])).rows, encrypted);
     assert.equal(native.git.mutations(), 1); assert.equal(starts, 1);
     console.log('PASS joined native-corpus/recorded-SDK original: explicit HTTP start, lost scheduler/Git acknowledgements, one Temporal activity and native save, read-only receipt recovery, separate checkpoint, replay without resend, exact older-commit HTTP reopen and read denial');
+    return { input: statusInput, receipt };
   } finally {
     try { await stop(); } finally { for (const item of owned.reverse()) item.close(); await harness?.close(); }
   }

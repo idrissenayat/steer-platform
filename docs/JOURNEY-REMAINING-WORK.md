@@ -28,17 +28,21 @@ changed targets still deny. 0268 joins native corpus/destination ports with encr
 SQL/SDK package history and confirmation, fixing BOM citation fidelity and exact
 versioned candidate direction/current-pointer binding. 0269 now joins the same
 confirmed original to fixed HTTP/Temporal save, native receipt recovery and exact
-HTTP reopen, including lost acknowledgements without a second send. Next complete
-governed startup composition and activation checks. See [0269 evidence](../intent/0269/EVIDENCE.md),
+HTTP reopen, including lost acknowledgements without a second send. 0270 adds the
+explicit publication-to-lifecycle recorder with mandatory stable clock and records
+authority. Next complete governed startup composition and activation checks.
+See [0270 evidence](../intent/0270/EVIDENCE.md), [0269 evidence](../intent/0269/EVIDENCE.md),
 [0268 evidence](../intent/0268/EVIDENCE.md), [existing-item destination](EXISTING-CANDIDATE-DESTINATION.md)
 and [new-candidate destination](NEW-CANDIDATE-DESTINATION.md). Actual records adoption,
 model/provider/write authority and signed-in I1–I6 acceptance remain separate and
 unresolved; these tested, uninstalled services do not complete the live journey.
 
-Governed composition must include verified-publication synchronization with the
-existing draft-lifecycle port and its trusted clock, in addition to service wiring,
-current source/consent/lifecycle policy, records adoption and runtime authority.
-The joined save test does not complete that retention transition.
+The [publication recorder](CANDIDATE-PUBLICATION-RECORDS.md) supplies the explicit
+transition seam, not its real clock authority or D1 adoption. Governed composition
+must establish the stable time source and constrained recovery when originals are
+held/expired, alongside service wiring, current source/consent/lifecycle policy,
+records adoption and runtime authority. Physical erasure/backup obligations and
+signed-in acceptance remain separate from synthetic transition coverage.
 
 ### Current UX priority (2026-09-07)
 

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { createCandidateSavePreviewer } from '@steer/data/candidate-save-previewer';
 import { createCandidateSavePreparer } from '@steer/data/candidate-save-preparer';
 import { createCandidateSaveStarter } from '@steer/data/candidate-save-starter';
+import { createCandidatePublicationRecorder } from '@steer/data/candidate-publication-recorder';
 import { describeCandidatePublication } from '@steer/adapters/github-candidate-bundle-store';
 import { createCandidateSaveReviewer } from '@steer/data/candidate-save-reviewer';
 import { createCandidateOriginalStore, candidateOriginalConfigurationSchema } from '@steer/data/candidate-originals';
@@ -100,6 +101,21 @@ export function createRecordedCandidateSaveStatusReader(pool: Parameters<typeof 
       { ...dependencies.provider, loadOriginal: target => originals.read(target) });
     return { scope: reader.scope, read: reader.read, close() { reader.close(); originals.close(); } };
   } catch (error) { originals.close(); throw error; }
+}
+/** Explicit internal records action, never mounted by an environment flag or a
+ * status read. Its clock/records authorities must be separately adopted. The
+ * original-bound Git reader is owned here; no caller-supplied success receipt. */
+export function createRecordedCandidatePublicationRecorder(pool: Parameters<typeof createCandidateOriginalStore>[0],
+  binding: Parameters<typeof createCandidateSaveStatusReader>[1], recordsConfiguration: unknown, publicationConfiguration: unknown,
+  dependencies: Parameters<typeof createRecordedCandidateSaveStatusReader>[4]
+    & Omit<Parameters<typeof createCandidatePublicationRecorder>[2], 'status'>) {
+  const status = createRecordedCandidateSaveStatusReader(pool, binding, recordsConfiguration, publicationConfiguration, dependencies);
+  try {
+    const recorder = createCandidatePublicationRecorder(pool, recordsConfiguration, {
+      status, authorizeRecord: dependencies.authorizeRecord, verifyPublicationClock: dependencies.verifyPublicationClock,
+    });
+    return { scope: recorder.scope, record: recorder.record, close() { recorder.close(); status.close(); } };
+  } catch (error) { status.close(); throw error; }
 }
 /** Start/recover only retained scope references under current authority. No
  * default installation, source admission or direct model dispatch capability. */

@@ -47,6 +47,12 @@ checkpoint execution, reconcile or clear quarantine. The original store's existi
 monotone lifecycle-denial synchronization remains; reads cannot release a hold,
 extend retention or delete records.
 
+0270 adds a [separate publication-records action](CANDIDATE-PUBLICATION-RECORDS.md).
+It re-verifies the original-bound committed receipt and an independently governed
+stable clock before changing lifecycle metadata. The status query does not invoke
+it. A lost records acknowledgement is not a reason to resend Git or renew a draft;
+held/expired original access remains denied. The factory stays uninstalled.
+
 ## Remaining journey
 
 0261–0262 now provide the original recovery reference through exact confirmation

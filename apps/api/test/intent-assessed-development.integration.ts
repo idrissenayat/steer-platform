@@ -93,7 +93,7 @@ export async function testAssessedDevelopment(setup: (count?: number, ttl?: numb
       const previewHistoryRecords={...records,authorizeHistoricalRead:async()=>{},
         originals:{...records.originals,scopeHistory:history,authorizeHistoricalRead:async()=>{},authorizeOperation:async()=>{throw new Error('No execution');}},
         results:{...records.results,authorizeHistoricalResult:async()=>{},authorizeOperation:async()=>{throw new Error('No execution');}}};
-      await testCandidateSavePreviewWithHistory(f,prepared.reference,{profiles,records:previewHistoryRecords},current,admin,native,save);
+      const recordPublication=await testCandidateSavePreviewWithHistory(f,prepared.reference,{profiles,records:previewHistoryRecords},current,admin,native,save);
       await f.edit();const reservations=await f.reservations();
       const discovery=createRecordedRunDiscovery(f.pools.drafts,f.config,{authorize:async()=>{},authorizeEntry:async()=>{}});
       try {
@@ -120,6 +120,7 @@ export async function testAssessedDevelopment(setup: (count?: number, ttl?: numb
         assert.doesNotMatch(JSON.stringify(result),/requestBody|responseBody|scopeEvidence|EXAM-MARKER-NOT-FOR-SCOPE/);
       }finally{combined.close();}
       assert.equal(calls,2);assert.equal(f.state.calls,2);assert.equal(reservations,4);assert.equal(await f.reservations(),reservations);
+      await recordPublication?.();
     }finally{current.close();history.close();a.service.close();}
     }finally{cleanup.forEach(run=>run());}
   });

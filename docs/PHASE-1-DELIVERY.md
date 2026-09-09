@@ -5926,3 +5926,30 @@ deployment or release occurs. Signed artifacts and user-owned work are preserved
 The next binding also must connect trusted publication evidence/time to the
 existing draft-lifecycle `recordPublication` transition; receipt verification and
 execution checkpointing do not themselves complete that records-policy step.
+
+## Development increment: 0270 — Verified publication to private-draft retention
+
+An explicit uninstalled records action now connects original-bound committed Git
+receipts to the existing draft lifecycle under separate current records authority
+and a stable trusted clock. Two matching receipt/clock observations precede SQL.
+The API factory owns and closes both record and original/status services, with no
+public command, default installation or environment activation. Status stays
+read-only; publication recording cannot retry Git, renew retention or release holds.
+
+The joined native-corpus/SQL/recorded-SDK/Temporal test continues after exact reopen
+and retained history to exercise lost publication acknowledgement, reconstruction,
+clock-conflict rejection, unchanged encrypted payload and sticky hold denial.
+See [0270 specification](../intent/0270/SPEC.md), [evidence](../intent/0270/EVIDENCE.md)
+and [records guide](CANDIDATE-PUBLICATION-RECORDS.md) for the actual verification record.
+
+Verification passes 1,305 broad regressions, eleven focused recorder tests,
+prototype/eight-package types, the optimized Next build, 95-artifact kit validation,
+workflow token-scope audit and 324 local Markdown links. Focused SQL journey
+evidence and the final proof-freshness recheck are recorded in the evidence file;
+neither isolated test coverage nor the build is signed-in acceptance.
+
+Actual trusted-clock semantics/provenance, constrained late recovery for unavailable
+originals, governed startup/service ownership and current policy bindings remain
+next. D1 and model/provider/write authority remain unresolved. This increment does
+not activate records, prove physical erasure, sign a gate or demonstrate real-user
+I1–I6 acceptance. Protected signed artifacts and user-owned work remain untouched.

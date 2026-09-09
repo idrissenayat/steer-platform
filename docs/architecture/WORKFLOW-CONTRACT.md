@@ -1298,3 +1298,24 @@ engines, while all identities/provider bodies/policy/dispatch proofs are synthet
 Factories remain uninstalled. See [0269 specification](../../intent/0269/SPEC.md)
 and [evidence](../../intent/0269/EVIDENCE.md). Live records/model/provider authority,
 signed-in I1–I6, gates, deployment and release are not supplied by this test.
+
+### Verified publication to private-draft lifecycle — 0270
+
+Publication retention is a separate internal records action, not an implicit
+effect of status, exact reopen or an execution checkpoint. An owned composition
+loads the original-bound Git receipt and a separately governed stable publication
+clock twice. Configuration/owner/policy, input, saved reference and confirmation
+must match before a fresh invocation-bound proof reaches the existing lifecycle
+store. Slow provider reads occur before SQL, not inside its verifier/transaction.
+
+The lifecycle keeps forced RLS, immutable publication identity/time, the earliest
+deadline and sticky holds. Lost acknowledgements require current re-verification
+of the same evidence; they do not permit another Git write or a later clock.
+No public tool, default startup or environment switch installs this factory.
+Normal access to held/expired originals remains unavailable; governed constrained
+late recovery and actual clock provenance/adoption remain activation requirements.
+
+See [records guide](../CANDIDATE-PUBLICATION-RECORDS.md),
+[0270 specification](../../intent/0270/SPEC.md) and [evidence](../../intent/0270/EVIDENCE.md).
+The joined disposable integration uses synthetic clock/records/provider authority.
+It does not activate D1, prove deletion/key destruction, or complete signed-in use.

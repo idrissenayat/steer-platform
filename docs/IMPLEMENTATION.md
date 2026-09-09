@@ -1,6 +1,18 @@
 # STEER platform implementation
 
-## Current checkpoint — 0269
+## Current checkpoint — 0270
+
+0270 adds an explicit publication-recording factory that joins verified original-
+bound Git receipts to draft retention through a mandatory independent stable clock
+and current records authority. It checks evidence before SQL, keeps status read-only
+and preserves immutable deadlines through lost-acknowledgement recovery. It cannot
+publish, release holds, delete records or activate policy.
+See [records guide](CANDIDATE-PUBLICATION-RECORDS.md) and
+[0270 evidence](../intent/0270/EVIDENCE.md). The factory remains uninstalled; actual
+clock semantics/provenance, constrained late recovery, governed startup bindings,
+records/model/provider authority and signed-in I1–I6 acceptance remain open.
+
+## Prior checkpoint — 0269
 
 0269 extends the same native-corpus/encrypted-SQL/recorded-SDK package through
 explicit HTTP save start, the fixed Temporal activity, one new-distinct native Git save,
