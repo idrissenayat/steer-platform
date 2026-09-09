@@ -17,13 +17,17 @@ export function createOidcApi(configuration: OidcConfiguration, dependencies: Id
 /** Remote-agent transport uses the existing OIDC verifier and fixed Git authority, never caller grants. */
 export function createGitBackedMcpEndpoint(publicOrigin: string, configuration: OidcConfiguration,
   dependencies: Pick<IdentityDependencies, 'fetch' | 'now'> & { reader: ArtifactReader; authorizationPath: string; services?: ToolServices; createBriefWriter?: SessionBriefWriterFactory }) {
+  const authorization = createGitAuthorizationResolver(dependencies.reader, dependencies.authorizationPath);
   const authenticateContext = createOidcContextAuthenticator(configuration, {
-      resolveAuthorization: createGitAuthorizationResolver(dependencies.reader, dependencies.authorizationPath),
+      resolveAuthorization: authorization,
       ...(dependencies.fetch ? { fetch: dependencies.fetch } : {}), ...(dependencies.now ? { now: dependencies.now } : {}),
     });
-  return createMcpEndpoint(publicOrigin, {
+  const endpoint = createMcpEndpoint(publicOrigin, {
     authenticate: async (request) => (await authenticateContext(request))?.principal ?? null,
     ...(dependencies.createBriefWriter ? { createBriefWriter: (request: Request) => dependencies.createBriefWriter!(() => authenticateContext(request)) } : {}),
     ...(dependencies.services ? { services: dependencies.services } : {}), ...(dependencies.now ? { now: dependencies.now } : {}),
   });
+  let stopped: Promise<void> | undefined;
+  return { ...endpoint, fetch: (request: Request) => authorization.withinRequest(() => endpoint.fetch(request)),
+    shutdown: () => stopped ??= endpoint.shutdown().finally(authorization.close) };
 }

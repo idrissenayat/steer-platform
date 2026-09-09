@@ -34,11 +34,15 @@ authority. 0271 adds the strict managed inventory/ownership boundary to the actu
 identity root and joins authenticated encrypted draft recovery through it.
 0272 now assembles all actual service constructors through that boundary and joins
 four SQL discovery services/native current source review to authenticated recovery.
-Next extend the joined recorded scope/drafting/Temporal package, confirmation,
-save and exact reopen through this concrete authenticated factory. The full API
+0273 extends authenticated review/preparation through actual recorded scope and
+both drafting SDK roles, restart and retained history after a human correction.
+It also fixes repeated immutable identity-source fetches within a request without caching authority
+decisions or skipping fresh Git head. Direct worker invocation is not scheduling.
+Next extend confirmation, fixed Temporal save and exact reopen through this
+concrete authenticated factory, with owned scheduler/worker bindings. The full API
 constructor graph exists; governed worker/resource/policy bindings and signed-in
 UI acceptance/live activation remain outstanding.
-See [runtime guide](AUTHENTICATED-INTENT-RUNTIME.md), [0272 evidence](../intent/0272/EVIDENCE.md), [0271 evidence](../intent/0271/EVIDENCE.md),
+See [runtime guide](AUTHENTICATED-INTENT-RUNTIME.md), [0273 evidence](../intent/0273/EVIDENCE.md), [0272 evidence](../intent/0272/EVIDENCE.md), [0271 evidence](../intent/0271/EVIDENCE.md),
 [0270 evidence](../intent/0270/EVIDENCE.md), [0269 evidence](../intent/0269/EVIDENCE.md),
 [0268 evidence](../intent/0268/EVIDENCE.md), [existing-item destination](EXISTING-CANDIDATE-DESTINATION.md)
 and [new-candidate destination](NEW-CANDIDATE-DESTINATION.md). Actual records adoption,

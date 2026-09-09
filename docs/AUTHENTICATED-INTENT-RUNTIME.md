@@ -58,6 +58,39 @@ records transition and its recovery path.
 
 ## Evidence and remaining work
 
+### Recorded generation through identity — 0273
+
+The three-check focused SQL runner preserves both 0271/0272 cases and now adds
+authenticated current native review and admission over 34 Brief/Spec sources.
+Two scope batches and both existing recorded drafting SDK roles execute directly
+under synthetic authority/transport. HTTP returns exact generated Brief/Spec/Exam,
+recovers the same results after runtime reconstruction, saves a human correction
+to the draft and verifies retained predecessor lineage with current execution
+denied. Foreign products, records denial and native Git grant revocation deny.
+Only four synthetic model calls/reservations occur; there is no Git save.
+
+This integration exposed 4,048 native provider requests before source review's
+30-second deadline. The Git authorization resolver now retains one verified
+document at one exact commit within each explicit HTTP/MCP request, not a principal
+or authorization decision. New requests re-fetch the artifact; unscoped resolver
+use stays full read-through. Completion/failure clears the request snapshot and
+late work from an ended request denies. Concurrent requests never share it. Every
+lookup still reads current Git head. An exact-commit hit performs only synchronous
+record selection/cloning afterward; a changed head re-fetches/validates the
+artifact and rechecks head stability. Failed reads or source binding/method changes
+clear retained bytes and deny. OIDC expiry, active membership, hats and tool grants
+are still checked every time; no TTL, stale head or database fallback exists.
+After admitted requests drain, identity/MCP shutdown closes the resolver, clears
+all remaining snapshots and disables its async-context storage. New and late
+authorization attempts then deny without touching the provider.
+
+See [0273 evidence](../intent/0273/EVIDENCE.md). This resolves the observed local
+immutable-read bottleneck, not remote provider load/latency acceptance. Direct
+worker execution is not owned Temporal scheduling. The next composition covers
+confirmation, fixed save and exact reopen through this identity/factory root.
+Actual policy/clock/D1 adoption, provider/budget/write authority and UI acceptance
+remain open; no real-user configuration is changed.
+
 ### Concrete constructor graph — 0272
 
 The existing API composition root now exports `createOwnedIntentJourney`. The
@@ -110,9 +143,9 @@ scope/authority failures and resource drainage. These results do not demonstrate
 the complete constructor bundle, cookie-login UI, real provider/model behavior,
 semantic quality, all destination save cases or signed-in I1–I6 acceptance.
 
-0272 assembles the constructor graph described above. Next extend the already
-joined recorded package/worker journey through this concrete authenticated
-composition and complete its governed bindings. Actual clock provenance and late
+0272 assembles the constructor graph and 0273 joins recorded generation/recovery
+through identity. Next extend confirmation/save/reopen and owned worker scheduling
+through that composition and complete its governed bindings. Actual clock provenance and late
 recovery, D1 adoption, model spending, runtime GitHub write authority and real-user
 acceptance remain separate prerequisites. No real profile, secrets or grants are
 changed by this increment.

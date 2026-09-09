@@ -13,9 +13,10 @@ export async function recordedRuntimeFixture(t: { after(run: () => void): void }
   source?: ReturnType<typeof fixture>; selection: { itemId: string; idempotencyKey: string };
   actor?: { subject: string; toolGrants: string[]; authorizationPath: string; type?: 'agent' | 'human' };
   identity?: DisposableRecordedIdentity;
+  organizationId?: string;
 }) {
   const source = options?.source ?? fixture(t), keys = await generateKeyPair('RS256'), app = await generateKeyPair('RS256', { extractable: true });
-  const provider = options?.identity, binding = { ...fixtureBinding, organizationId: provider?.organizationId ?? fixtureBinding.organizationId };
+  const provider = options?.identity, binding = { ...fixtureBinding, organizationId: provider?.organizationId ?? options?.organizationId ?? fixtureBinding.organizationId };
   const issuer = provider?.issuer ?? 'https://recorded.identity.invalid', jwksUri = provider ? `${issuer}/protocol/openid-connect/certs` : `${issuer}/jwks`, epoch = Math.floor(Date.now() / 1000);
   const grant = { issuer, subject: provider?.subject ?? options?.actor?.subject ?? 'synthetic-recorded-dispatcher', organizationId: binding.organizationId, type: options?.actor?.type ?? 'agent', hats: [] as string[],
     toolGrants: options?.actor?.toolGrants ?? ['workflow.recorded-brief.start', 'workflow.recorded-brief.status'], active: true,

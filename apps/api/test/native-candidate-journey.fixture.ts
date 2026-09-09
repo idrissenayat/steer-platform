@@ -26,6 +26,10 @@ export function nativeCandidateJourneyFixture(t:{after(run:()=>void):void}, save
     return {permissionsRevision:state.policyRevision,evidenceDigest:hash(state.policyRevision),
       evaluatedAt:new Date().toISOString(),validThrough:new Date(Date.now()+60000).toISOString()};
   };
+  const corpusAuthority:Parameters<typeof createIntentCorpusEvidence>[2]={
+    authorize:async()=>({permissionsRevision:'synthetic-corpus-grants-r1'}),authorizeSource:async()=>{},
+    select:async context=>({...context,selection:context.root==='items/0002-existing'?'pre-pull-candidate':'canonical',authorityDigest:'e'.repeat(64)}),
+  };
   async function repositoryEvidence(raw:ReturnType<typeof intentEvidenceInputSchema.parse>) {
     assert.equal(originalTarget,'','A fixture may seed immutable history only once');
     const input=intentEvidenceInputSchema.parse(raw);
@@ -44,10 +48,7 @@ export function nativeCandidateJourneyFixture(t:{after(run:()=>void):void}, save
     git.add(proposal.files.map(({path,content})=>({path,content})));proposalManifest=proposal.manifestDigest;
     pointerDigest=hash(proposal.files.find(f=>f.path===`items/0001-existing/proposals/${proposalId}.json`)!.content);
     const scope={organizationId:input.organizationId,productId:input.productId,repository:input.repository,branch:binding.branch};
-    const collector=createIntentCorpusEvidence(reader(input.organizationId),{...scope,retrievalConfigurationRevision:'synthetic-native-corpus-r1'}, {
-      authorize:async()=>({permissionsRevision:'synthetic-corpus-grants-r1'}),authorizeSource:async()=>{},
-      select:async context=>({...context,selection:context.root==='items/0002-existing'?'pre-pull-candidate':'canonical',authorityDigest:'e'.repeat(64)}),
-    });
+    const collector=createIntentCorpusEvidence(reader(input.organizationId),{...scope,retrievalConfigurationRevision:'synthetic-native-corpus-r1'},corpusAuthority);
     try {
       const collected=await collector.collect({...scope,scopeInputDigest:input.scopeInputDigest},async()=>{});
       assert.equal(collected.evidence.inventoryComplete,true);assert.equal(collected.coverage.unresolvedCount,0);
@@ -67,6 +68,6 @@ export function nativeCandidateJourneyFixture(t:{after(run:()=>void):void}, save
         ...(context.proposalContinuity&&state.continuationAllowed?{proposalContinuation:'eligible-unchanged-target'}:{})})},
     });
   }
-  return {git,state,repositoryEvidence,destination,branch:binding.branch,proposalId,
+  return {git,state,repositoryEvidence,destination,reader,corpusAuthority,branch:binding.branch,proposalId,
     parents:()=>({originalTarget,priorManifest,proposalManifest,pointerDigest})};
 }

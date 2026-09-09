@@ -1,6 +1,20 @@
 # STEER platform implementation
 
-## Current checkpoint — 0272
+## Current checkpoint — 0273
+
+0273 joins native 34-source review, recorded scope assessment, separate Brief/Spec
+and Exam generation, exact restart and corrected-draft history through the actual
+identity root and complete 0272 factory. Repeated immutable authorization-document
+fetches caused a 30-second source-review timeout; one exact-commit document is now
+retained only within a request while each lookup still verifies fresh Git head
+and current token/grants. New requests and unscoped calls fetch the source again.
+See [0273 evidence](../intent/0273/EVIDENCE.md) and
+[runtime guide](AUTHENTICATED-INTENT-RUNTIME.md). Direct worker execution and
+synthetic SDK responses are not Temporal scheduling, live semantic quality or UI
+acceptance. Next join confirmation/save/reopen and owned scheduling through this
+root, then governed adoption/provider use and actual human acceptance.
+
+## Prior checkpoint — 0272
 
 0272 constructs all 21 journey services and internal publication recording in the
 existing API composition root, with exact records/publication scope, shared scope/

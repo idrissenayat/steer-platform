@@ -44,6 +44,15 @@ business authority or gate-signing permission.
 read-through resolver itself for both cookie and bearer authentication. Extra
 dependency fields cannot override that resolver. Invalid paths fail construction.
 Requests/token claims must never choose the source binding or artifact path.
+0273 retains one validated authorization document only at its exact immutable
+commit within one explicitly scoped HTTP/MCP request. New requests fetch the source
+again; unscoped resolver calls remain full read-through. Ended request snapshots
+are cleared, and late work cannot restore them. Every lookup still reads the current Git head; changed heads re-fetch the
+document and check head stability, while failures/source replacement deny and
+discard retained bytes. Returned records are cloned. No principal, expiry result,
+tool decision, stale-head TTL or database fallback is cached. OIDC and tool guards
+still validate current token/grant time and membership on every call. See
+[authenticated runtime evidence](../intent/0273/EVIDENCE.md) for scope and limits.
 Configure trusted
 canonical HTTPS ingress, same-origin POST login/logout, callback-query/cookie
 redaction, request deadlines/rate limits, an approved database role/key provider

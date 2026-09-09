@@ -13,12 +13,12 @@ import type { DatabasePool } from '../src/runtime-pool.ts';
 import { intentEvidenceInputSchema } from '../../tool-registry/src/intent-evidence-contracts.ts';
 
 type Dependencies=Parameters<typeof createScopeReviewOriginalStore>[2];
-export type ScopeFixtureOptions={sourceCount?:number;inventoryComplete?:boolean;accessGapCount?:number;branch?:string;
+export type ScopeFixtureOptions={sourceCount?:number;inventoryComplete?:boolean;accessGapCount?:number;branch?:string;organizationId?:string;
   repositoryEvidence?:(input:ReturnType<typeof intentEvidenceInputSchema.parse>)=>Promise<ReturnType<typeof intentEvidenceInputSchema.parse>>};
 export async function scopeDraftIntegrationFixture({admin,connect}:{admin:Pool;connect(role:string):Pool},large=false,ttl=3600000,
   options:ScopeFixtureOptions={}) {
   const f=await scopeReviewFixture(options.sourceCount??(large?40:4));
-  const config={organizationId:`scope-original-${randomUUID()}`,subject:'synthetic-human',productId:f.scope.productId,repository:f.scope.repository,
+  const config={organizationId:options.organizationId??`scope-original-${randomUUID()}`,subject:'synthetic-human',productId:f.scope.productId,repository:f.scope.repository,
     branch:options.branch??f.evidence.branch,configurationRevision:'scope-original-r1',recordsPolicyDigest:'a'.repeat(64)};
   const budget={organizationId:config.organizationId,subject:config.subject,configurationRevision:config.configurationRevision,budgetId:randomUUID(),
     approvalDigest:'b'.repeat(64),capMicrousd:30,architectMicrousd:3,testAgentMicrousd:2};

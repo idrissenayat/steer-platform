@@ -1374,3 +1374,36 @@ and real pool closure. Signed identities and policy/source-selection authority a
 synthetic; source review explicitly remains non-semantic. See [0272 evidence](../../intent/0272/EVIDENCE.md)
 and [runtime guide](../AUTHENTICATED-INTENT-RUNTIME.md). Full recorded generation/
 save/reopen through this factory, real bindings and signed-in I1–I6 remain open.
+
+### Authenticated recorded generation and exact-commit identity reads — 0273
+
+Native Git grants precede immutable corpus capture. Actual identity/factory HTTP
+calls collect 34 Brief/Spec sources, prepare scope, prepare assessed development,
+read separately recorded Architect/Test Agent output, survive runtime restart and
+preserve lineage after a human draft correction. Worker/SDK execution is direct
+and synthetic; neither Temporal scheduling nor actual provider quality is inferred.
+
+The composed path exposed repeated commit/tree/blob reads of the same identity
+document, exhausting source review's existing deadline. The resolver now retains
+only the last validated immutable document under its exact commit and pinned
+reader binding/methods, within one explicit HTTP/MCP request. Each new request
+re-fetches the source; unscoped lookups remain full read-through. Ending a request
+clears its snapshot and late work cannot revive it. Concurrent requests have
+separate snapshots. Each lookup must still read current Git head. An exact
+match selects/clones the record without additional asynchronous work; a changed
+head discards the old entry, reads the artifact, validates its provenance/schema
+and rechecks head stability. Any failure discards retained bytes; there is no TTL
+or database fallback. OIDC signature/time/membership and tool-grant decisions
+remain current per call. This does not cache historical content/key/source grants.
+The Node LTS `AsyncLocalStorage` primitive is restricted by the architecture
+detector to `packages/adapters/src/identity/authorization.ts`; core, browser, API
+and other adapter files still cannot import it. This adds no provider, package
+dependency or stack change. Async isolation is needed so concurrent requests and
+late callbacks cannot share a global authorization snapshot.
+
+Regression coverage includes caller mutation, fresh-head/source failures,
+changed/moving commits, source replacement and actual native grant revocation.
+Remote provider latency/request budgets remain an acceptance task, not a result
+of local fixture performance. See [0273 evidence](../../intent/0273/EVIDENCE.md).
+Next join confirmation, fixed save/reopen and owned scheduling through this root.
+All live authority/adoption and signed-in I1–I6 boundaries remain unchanged.

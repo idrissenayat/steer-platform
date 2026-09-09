@@ -14,14 +14,16 @@ export function createGitBackedBrowserApi(configuration: BrowserSessionConfigura
     reader: ArtifactReader; authorizationPath: string; store: BrowserSessionStore; services?: ToolServices; createBriefWriter?: SessionBriefWriterFactory;
   }) {
   // Explicit fields prevent even an untyped caller from overriding the authority resolver.
+  const authorization = createGitAuthorizationResolver(dependencies.reader, dependencies.authorizationPath);
   const browser = createBrowserApi(configuration, {
     store: dependencies.store,
-    resolveAuthorization: createGitAuthorizationResolver(dependencies.reader, dependencies.authorizationPath),
+    resolveAuthorization: authorization,
     ...(dependencies.services ? { services: dependencies.services } : {}),
     ...(dependencies.createBriefWriter ? { createBriefWriter: dependencies.createBriefWriter } : {}),
     ...(dependencies.fetch ? { fetch: dependencies.fetch } : {}),
     ...(dependencies.now ? { now: dependencies.now } : {}),
   });
   const boundary = createRequestBoundary((request) => browser.fetch(request));
-  return new Hono().all('*', (context) => boundary(context.req.raw));
+  return Object.assign(new Hono().all('*', (context) => authorization.withinRequest(() => boundary(context.req.raw))),
+    { close: authorization.close });
 }

@@ -33,7 +33,19 @@ scope, choose what to do, answer only necessary questions, review and correct a
 Brief/Spec/Exam bundle, save it to the authorized repository and reopen it exactly.
 No separate local preview, synthetic success, silent merging or lost work counts.
 
-Latest checkpoint: **0272 assembles the concrete authenticated journey services**.
+Latest checkpoint: **0273 joins authenticated recorded generation and recovery**.
+The complete factory now has joined signed-identity/native-Git/SQL coverage for
+34-source review, two scope batches, assessed Brief/Spec plus separate Exam
+generation, exact restart, human correction and retained lineage. The integration
+exposed a 30-second timeout from repeated immutable authorization-document reads;
+request-local exact-commit byte reuse fixes that repetition while every lookup still reads fresh
+Git head and reevaluates token/grant validity. See [0273 evidence](../intent/0273/EVIDENCE.md).
+Workers execute directly against synthetic SDK responses, not through Temporal
+or a real provider. Next extend confirmation, fixed save/reopen and owned worker
+scheduling through this identity/factory root. Live policy/clock/D1/model/write
+authority, remote-provider load/latency and signed-in I1–I6 remain open.
+
+Prior checkpoint: **0272 assembles the concrete authenticated journey services**.
 The API composition root constructs all 21 actual services plus internal publication
 recording, with shared scope/drafting budget, pinned profiles, native destination
 and internally wired current/historical verification. The joined authenticated
@@ -304,6 +316,9 @@ and cancellation checks during scope/Temporal composition and live acceptance.
 | I5 Save and reopen | Recheck scope and duplicate-review revisions immediately before an atomic, idempotent bundle write. Concurrent new intents/changes cause re-review, not two creations. Use actual granted GitHub paths and expected-head checks; uncertain saves require status/readback. Reopen exact saved versions in the application. | Disabled planner/reader, collector, bundle store, durable dispatch, candidate-save Temporal, receipt reconciliation and encrypted immutable originals implemented (0205–0213); exact-reference read query/API/MCP and actual UI developed under synthetic authority (0252); original save-status API/MCP/UI and receipt-to-exact-reopen link (0253); final preserved-bundle review without generation or admission (0254); reproducible package preview with retained lineage and trusted destination/lifecycle evidence (0260); exact human confirmation, shared API/worker admission and immutable encrypted-original preservation/readback with same-command recovery in the actual UI (0261); explicit human reference-only save-start API/MCP/UI with fixed Temporal scheduling and original recovery (0262); exact-commit proposal discovery and explicit parent-bound selection in the actual package panel (0263). Native new/existing destination composition (0265–0268), joined new-distinct SQL/SDK/Temporal save and exact reopen (0269), and explicit verified-publication/retention connection with lost-ACK recovery (0270) are tested under synthetic authority. Governed startup, actual clock/records/lifecycle/full-corpus authority, constrained late recovery, quarantined-outcome resolution and live human acceptance remain incomplete |
 | I6 Human acceptance | In the real signed-in UI demonstrate new, exact duplicate, paraphrased duplicate, partial overlap, related-but-distinct, empty/failed/stale search, corrections, permission loss, cost exhaustion, uncertain save, concurrent creation, refresh/reopen and keyboard/narrow-screen behavior. Record real source and saved commit. | Pending |
 
+0273 joins I1–I4 source/preparation/generation/history through the real identity
+root under synthetic authority, and removes redundant immutable identity-source
+fetches. It does not close live acceptance or prove provider request/latency budgets.
 0272 supplies the concrete constructor graph for I1–I5 and authenticated SQL
 discovery/native source-review coverage. Full recorded generation/save composition
 through this root and all real-user acceptance cases remain incomplete.

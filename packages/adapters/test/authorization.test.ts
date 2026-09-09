@@ -57,3 +57,95 @@ test('a later source read failure cannot fall back to an earlier accepted grant'
   };
   assert.equal(await createGitAuthorizationResolver(failing, path)(lookup), null);
 });
+
+function currentFixture() {
+  const state = { head: revision, heads: 0, artifacts: 0, failHead: false, failArtifact: false,
+    changeDuringRead: false, value: structuredClone(document) };
+  const reader: ArtifactReader = {
+    binding: { organizationId: 'org-a', installationId: 1, repositoryId: 2, owner: 'example', repository: 'operating', branch: 'main' },
+    readHead: async () => { state.heads++; if (state.failHead) throw new Error('PRIVATE head failure'); return state.head; },
+    readArtifact: async (_path, head) => {
+      state.artifacts++; if (state.failArtifact) throw new Error('PRIVATE artifact failure');
+      const content = JSON.stringify(state.value);
+      if (state.changeDuringRead) state.head = 'c'.repeat(40);
+      return { organizationId: 'org-a', repositoryId: 2, revision: head, path, content,
+        contentDigest: createHash('sha256').update(content).digest('hex'), blobSha: 'c'.repeat(40) };
+    },
+  };
+  return { state, reader, resolve: createGitAuthorizationResolver(reader, path) };
+}
+
+test('same-commit document reuse still reads fresh head per lookup and cannot be poisoned by returned records', async () => {
+  const f = currentFixture(); await f.resolve.withinRequest(async () => {
+  const first = await f.resolve(lookup); assert.ok(first);
+  first.toolGrants.push('unauthorized'); first.hats.length = 0; first.active = false;
+  for (let i = 0; i < 9; i++) assert.deepEqual(await f.resolve(lookup), record);
+  assert.equal(f.state.artifacts, 1); assert.equal(f.state.heads, 11);
+  assert.equal(await f.resolve({ ...lookup, subject: 'foreign' }), null);
+  assert.equal(f.state.heads, 12); assert.equal(f.state.artifacts, 1);
+  });
+});
+
+test('changed head rereads revocation, discards the prior commit and never caches failed or moving sources', async () => {
+  const f = currentFixture(); await f.resolve.withinRequest(async () => {
+  assert.ok(await f.resolve(lookup));
+  f.state.head = 'b'.repeat(40); f.state.value.records[0]!.active = false;
+  assert.equal((await f.resolve(lookup))!.active, false); assert.equal(f.state.artifacts, 2);
+  f.state.head = revision; f.state.value = structuredClone(document); f.state.failArtifact = true;
+  assert.equal(await f.resolve(lookup), null); assert.equal(f.state.artifacts, 3);
+  f.state.failArtifact = false; f.state.changeDuringRead = true;
+  assert.equal(await f.resolve(lookup), null); assert.equal(f.state.artifacts, 4);
+  f.state.changeDuringRead = false; assert.ok(await f.resolve(lookup)); assert.equal(f.state.artifacts, 5);
+  });
+});
+
+test('fresh-head failure clears retained bytes, and binding or reader replacement denies even at the old head', async () => {
+  const f = currentFixture(); await f.resolve.withinRequest(async () => {
+  assert.ok(await f.resolve(lookup)); f.state.failHead = true;
+  assert.equal(await f.resolve(lookup), null); f.state.failHead = false; f.state.failArtifact = true;
+  assert.equal(await f.resolve(lookup), null); assert.equal(f.state.artifacts, 2);
+  });
+  for (const change of ['binding', 'head', 'artifact'] as const) {
+    const f = currentFixture(); assert.ok(await f.resolve(lookup));
+    if (change === 'binding') (f.reader.binding as { branch: string }).branch = 'foreign';
+    if (change === 'head') f.reader.readHead = async () => revision;
+    if (change === 'artifact') f.reader.readArtifact = async () => { throw new Error('PRIVATE replaced'); };
+    assert.equal(await f.resolve(lookup), null);
+  }
+});
+
+test('request snapshots never survive completion or cross concurrent requests; unscoped lookups remain read-through', async () => {
+  const f = currentFixture();
+  for (let i = 0; i < 2; i++) await f.resolve.withinRequest(async () => {
+    assert.ok(await f.resolve(lookup)); assert.ok(await f.resolve(lookup));
+  });
+  assert.equal(f.state.artifacts, 2);
+  f.state.failArtifact = true;
+  assert.equal(await f.resolve.withinRequest(() => f.resolve(lookup)), null);
+  f.state.failArtifact = false;
+  await Promise.all([f.resolve.withinRequest(() => f.resolve(lookup)), f.resolve.withinRequest(() => f.resolve(lookup))]);
+  assert.equal(f.state.artifacts, 5);
+  await f.resolve(lookup); await f.resolve(lookup); assert.equal(f.state.artifacts, 7);
+});
+
+test('late work from a completed request cannot revive its snapshot or authorize through a new request', async () => {
+  const f = currentFixture(); let release!: () => void, late!: Promise<unknown>;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  await f.resolve.withinRequest(async () => {
+    assert.ok(await f.resolve(lookup));
+    late = held.then(() => f.resolve(lookup));
+  });
+  await f.resolve.withinRequest(async () => { assert.ok(await f.resolve(lookup)); release(); assert.equal(await late, null); });
+  assert.equal(f.state.artifacts, 2);
+});
+
+test('resolver closure disables async context and denies unscoped, new and late authorization without provider access', async () => {
+  const f = currentFixture(); let release!: () => void, entered!: () => void;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  const observed = new Promise<void>(resolve => { entered = resolve; });
+  const pending = f.resolve.withinRequest(async () => { assert.ok(await f.resolve(lookup)); entered(); await held; return f.resolve(lookup); });
+  await observed; f.resolve.close(); f.resolve.close();
+  const calls = f.state.heads; release(); assert.equal(await pending, null);
+  assert.equal(await f.resolve(lookup), null); assert.equal(f.state.heads, calls);
+  await assert.rejects(f.resolve.withinRequest(() => f.resolve(lookup)), /closed/);
+});

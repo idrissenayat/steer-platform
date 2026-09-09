@@ -12,8 +12,9 @@ const rules = {
   'packages/agents': { folders: ['src'], packages: ['@steer/tool-registry', '@mastra/core', '@ai-sdk/openai-compatible', 'zod'], builtins: ['node:util'],
     builtinEntryOnly: { 'node:util': 'src/recorded-mastra.ts' },
     entryOnly: { '@mastra/core': ['src/mastra.ts', 'src/recorded-mastra.ts'], '@ai-sdk/openai-compatible': ['src/mastra.ts', 'src/recorded-mastra.ts'] } },
-  'packages/adapters': { folders: ['src'], packages: ['@steer/tool-registry', 'jose', 'zod'], builtins: ['node:crypto', 'node:fs', 'node:fs/promises', 'node:path'],
-    builtinEntryOnly: { 'node:fs': 'src/secrets/file.ts', 'node:fs/promises': 'src/secrets/file.ts', 'node:path': 'src/secrets/file.ts' } },
+  'packages/adapters': { folders: ['src'], packages: ['@steer/tool-registry', 'jose', 'zod'], builtins: ['node:crypto', 'node:fs', 'node:fs/promises', 'node:path', 'node:async_hooks'],
+    builtinEntryOnly: { 'node:fs': 'src/secrets/file.ts', 'node:fs/promises': 'src/secrets/file.ts', 'node:path': 'src/secrets/file.ts',
+      'node:async_hooks': 'src/identity/authorization.ts' } },
   'packages/data': { folders: ['src'], packages: ['@steer/domain', '@steer/tool-registry', 'drizzle-orm', 'pg', 'zod'], builtins: ['node:crypto'],
     entryOnly: { '@steer/domain': ['src/intent-operations.ts', 'src/scope-review-operations.ts'] }, specifiersOnly: { '@steer/domain': ['@steer/domain/intent-step'] } },
   'apps/api': { folders: ['src'], packages: ['@steer/agents', '@steer/adapters', '@steer/data', '@steer/tool-registry', '@hono/node-server', '@modelcontextprotocol/server', 'hono', 'zod'], builtins: ['node:https'],
@@ -94,6 +95,16 @@ test('every production package declares and imports only its permitted architect
     }
   }
   assert.deepEqual(violations, []);
+});
+
+test('async request-local identity state is restricted to its Node adapter and never core, browser or another adapter', () => {
+  const adapter = resolve(root, 'packages/adapters');
+  assert.equal(allowed('node:async_hooks', resolve(adapter, 'src/identity/authorization.ts'), adapter, rules['packages/adapters']), true);
+  assert.equal(allowed('node:async_hooks', resolve(adapter, 'src/code-host/github.ts'), adapter, rules['packages/adapters']), false);
+  for (const name of ['packages/domain', 'packages/tool-registry', 'apps/api', 'apps/web']) {
+    const base = resolve(root, name);
+    assert.equal(allowed('node:async_hooks', resolve(base, 'src/identity/authorization.ts'), base, rules[name]), false);
+  }
 });
 
 test('boundary detector rejects vendor-in-core, relative prototype escape and nonliteral import forms', () => {

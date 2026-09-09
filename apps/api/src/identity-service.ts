@@ -75,6 +75,7 @@ export function createIdentityService(configuration: BrowserSessionConfiguration
       const resources = drainBeforeResources
         ? Promise.allSettled([requests, transport]).then(stopResources) : Promise.resolve().then(stopResources);
       shutdown = Promise.allSettled([requests, transport, resources]).then((results) => {
+        app.close();
         drained = undefined;
         if (results.some((result) => result.status === 'rejected')) {
           state = 'failed'; throw new Error('Identity service shutdown failed.');

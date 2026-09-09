@@ -6016,3 +6016,39 @@ tests use synthetic identity, records and lifecycle authorities, not live approv
 D1, actual clock provenance/late recovery, model/provider/write authority and
 signed-in I1–I6 remain open. Signed sources, user data/roadmap/outputs, credentials
 and real runtime configuration remain unchanged. No deployment, deletion or gate.
+
+## Development increment: 0273 — Authenticated recorded generation
+
+The joined SQL runner now continues actual identity/factory HTTP source review and
+preparation through two recorded scope batches and separate Brief/Spec and Exam
+SDK roles. All 34 native sources are retained. Exact generated results survive a
+runtime restart without new model calls/reservations. An authenticated human
+correction remains durable while historical predecessor lineage can be verified
+with current execution denied. Product/records/grant denials withhold results.
+
+This integration exposed a 30-second source-review timeout from repeated immutable
+identity-document reads (4,048 native requests in the diagnostic failed attempt).
+One validated exact-commit document is now retained within each HTTP/MCP request,
+never across requests, with fresh Git-head access
+on every lookup, full re-read/stability checks for changed heads and fail-closed
+cache invalidation. No principal/authority decision, TTL or stale-head fallback
+is cached; caller records are cloned and source bindings/methods are pinned.
+New requests fetch the source again. Completion/failure clears the snapshot;
+late work from an ended request denies, and unscoped use stays full read-through.
+The existing deadline and 34-source corpus remain unchanged.
+
+Final verification passes all 1,332 broad regressions, 38 focused tests,
+prototype/eight-package types and the optimized Next build. The authenticated
+runtime SQL selection passes three joined checks plus idempotent migration
+verification; the separate native candidate/Temporal selection passes its joined
+check plus migration verification. These are focused SQL selections, not a full
+SQL-suite result. The 95-artifact kit, read-only workflow scope audit, 351 local
+documentation links and protected source hashes also pass.
+
+See [0273 specification](../intent/0273/SPEC.md), [evidence](../intent/0273/EVIDENCE.md)
+and [runtime guide](AUTHENTICATED-INTENT-RUNTIME.md). Workers execute directly and
+provider/policy responses are synthetic. Next join confirmation, fixed save/reopen
+and owned scheduling through the authenticated factory. Live remote latency/load,
+clock/D1/model/provider/write authority and signed-in I1–I6 remain open. No real
+profile, credential, records activation, paid model call, Git save, deployment or
+gate change; protected sources and user-owned roadmap/outputs remain untouched.
