@@ -20,14 +20,16 @@ import { createScopeStepRuntime } from '../../worker/src/scope-step-runtime.ts';
 import { createRecordedDevelopmentModel } from '../../worker/src/recorded-development-model.ts';
 import { createDevelopmentStepRuntime } from '../../worker/src/development-step-runtime.ts';
 import { authenticatedCandidateConfirmation } from './authenticated-candidate-confirmation.integration.ts';
+import { authenticatedCandidateSave } from '../../worker/test/authenticated-candidate-save.integration.ts';
 
 /** Signed synthetic JWT + native Git grants, real API constructor graph, SQL and
- * recorded SDK roles. No real issuer, model transport, live migration or Git save.
- * Workers run directly: this check does not claim Temporal scheduling or UI QA. */
+ * recorded SDK roles. No real issuer, model transport, live migration or external Git write.
+ * Model workers run directly; the confirmed save has one fixed Temporal activity.
+ * This check does not claim real provider authority or signed-in UI acceptance. */
 export async function testAuthenticatedGeneration({ admin, connect, check }: {
   admin: Pool; connect(role: string): Pool; check(name: string, run: () => Promise<void>): Promise<void>;
 }) {
-  await check('concrete authenticated generation binds native multi-batch scope and both recorded SDK roles through restart and retained history', async () => {
+  await check('concrete authenticated journey binds native multi-batch scope, both SDK roles, corrected confirmation and fixed save/reopen through restart', async () => {
     const cleanup: Array<() => void> = [];
     try {
     const native = nativeCandidateJourneyFixture({ after: run => cleanup.push(run) }, true);
@@ -38,6 +40,7 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
         'intent.draft.read', 'intent.draft.append', 'intent.development.review', 'intent.scope.prepare', 'intent.scope.read',
         'intent.development.prepare', 'intent.development.read', 'intent.development.history',
         'intent.candidate.save.review', 'intent.candidate.save.preview', 'intent.candidate.save.prepare',
+        'intent.candidate.save.start', 'intent.candidate.save.status', 'intent.candidate.read',
       ] } });
     const pools: Pool[] = [], runtimes: Awaited<ReturnType<typeof createIdentityRuntime>>[] = [];
     const connection = (role: string) => { const pool = connect(role); pools.push(pool); return pool; };
@@ -60,6 +63,7 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
     fixture.config.candidate = { ...f.config, action: 'candidate-save', expiresAt: f.execution.expiresAt, budget: null };
     fixture.config.retrievalConfigurationRevision = 'synthetic-native-corpus-r1';
     const candidate = authenticatedCandidateConfirmation(f, native, authority, scopeRecords);
+    const save = authenticatedCandidateSave(f, native, fixture.config, authority);
     const profiles = fixture.config.developmentProfiles;
     const { recordedScheduling: _unused, ...base } = identity.profile;
     const profile = { ...base, intentJourney: expected };
@@ -81,6 +85,7 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
           deps.development.history = { originals: originalRecords, results, authorize: authority, authorizeHistoricalRead: authority };
           deps.development.authorizeReview = authority; deps.development.authorizePreparation = executionAuthority;
           candidate.configure(deps);
+          save.configure(deps);
           owned = await createOwnedIntentJourney(expected, fixture.config, deps); return owned;
         } });
       runtimes.push(runtime); return runtime;
@@ -182,11 +187,16 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
       // fresh short-lived signed bearer for each subsequent HTTP action.
       identity.publish({ ...identity.grant, expiresAt: new Date(Date.now() + 1200000).toISOString() });
       freshCandidateIdentity = true; executionAllowed = true;
-      await candidate.run({ admin, post, read, generation: reference,
+      const confirmed = await candidate.run({ admin, post, read, generation: reference,
         previousScope: { ...scopePrepared.reference!, resultsDigest: scopeOutput.review!.resultsDigest }, modelCall: () => { modelCalls++; },
         restart: async () => { await runtime.shutdown(); runtime = await make(); } });
       assert.equal(modelCalls, 6); assert.equal(native.git.mutations(), 0);
-      await runtime.shutdown(); assert.equal(constructions, 3); assert.equal(closures, 3);
+      await save.run({ admin, post, read, ...confirmed,
+        restart: async () => { await runtime.shutdown(); runtime = await make(); },
+        revokeReadGrant: () => identity.publish({ ...identity.grant, expiresAt: new Date(Date.now() + 1200000).toISOString(),
+          toolGrants: identity.grant.toolGrants.filter(tool => tool !== 'intent.candidate.read') }) });
+      assert.equal(modelCalls, 6); assert.equal(native.git.mutations(), 1);
+      await runtime.shutdown(); assert.equal(constructions, 4); assert.equal(closures, 4);
     } finally {
       try { await Promise.all(runtimes.map(value => value.shutdown())); }
       finally { f.drafts.close(); f.lifecycle.close(); f.key.bytes.fill(0); await Promise.all(pools.filter(pool => !pool.ending).map(pool => pool.end())); }

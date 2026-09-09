@@ -33,7 +33,18 @@ scope, choose what to do, answer only necessary questions, review and correct a
 Brief/Spec/Exam bundle, save it to the authorized repository and reopen it exactly.
 No separate local preview, synthetic success, silent merging or lost work counts.
 
-Latest checkpoint: **0274 confirms the corrected package through identity**. The
+Latest checkpoint: **0275 saves and reopens the confirmed package through identity**.
+The same authenticated journey now reaches one fixed Temporal/native Git save,
+lost scheduler/provider acknowledgement recovery, actual identity/factory restart
+and exact older-commit reopen. Current read-policy and Git-grant revocation deny;
+records and six synthetic model reservations remain unchanged. All three joined
+SQL cases plus migration verification, 1,341 broad tests, typechecks and production
+build pass. See [0275 evidence](../intent/0275/EVIDENCE.md).
+This is `new-distinct` under synthetic authority, not live GitHub or UI acceptance.
+Next reduce excessive read volume/latency, connect governed scope/drafting worker
+scheduling and complete the remaining dispositions and adopted runtime bindings.
+
+Prior checkpoint: **0274 confirms the corrected package through identity**. The
 same authenticated journey rejects the old assessment after a Brief correction,
 reassesses its exact revision and previews original/edited lineage. Explicit
 confirmation, discarded acknowledgement and runtime reconstruction recover one
@@ -48,8 +59,8 @@ focused authenticated-journey, history and Temporal save/reopen SQL selections p
 Confirmation now completes in 47–50 seconds under its unchanged 90-second bound,
 with about 69% fewer synthetic native-provider requests. That is still not smooth
 human UX or acceptable live-provider performance evidence: further bounded read
-composition is required before remote/UI acceptance. Next connect fixed save/reopen
-and owned scheduling through this root and address the remaining request volume.
+composition is required before remote/UI acceptance. 0275 joins fixed save/reopen;
+owned scope/drafting scheduling and the remaining request volume still need work.
 These are engineering tasks, not requests for more authority; no live profile changes.
 
 Prior checkpoint: **0273 joins authenticated recorded generation and recovery**.
@@ -334,6 +345,10 @@ and cancellation checks during scope/Temporal composition and live acceptance.
 | I5 Save and reopen | Recheck scope and duplicate-review revisions immediately before an atomic, idempotent bundle write. Concurrent new intents/changes cause re-review, not two creations. Use actual granted GitHub paths and expected-head checks; uncertain saves require status/readback. Reopen exact saved versions in the application. | Disabled planner/reader, collector, bundle store, durable dispatch, candidate-save Temporal, receipt reconciliation and encrypted immutable originals implemented (0205–0213); exact-reference read query/API/MCP and actual UI developed under synthetic authority (0252); original save-status API/MCP/UI and receipt-to-exact-reopen link (0253); final preserved-bundle review without generation or admission (0254); reproducible package preview with retained lineage and trusted destination/lifecycle evidence (0260); exact human confirmation, shared API/worker admission and immutable encrypted-original preservation/readback with same-command recovery in the actual UI (0261); explicit human reference-only save-start API/MCP/UI with fixed Temporal scheduling and original recovery (0262); exact-commit proposal discovery and explicit parent-bound selection in the actual package panel (0263). Native new/existing destination composition (0265–0268), joined new-distinct SQL/SDK/Temporal save and exact reopen (0269), and explicit verified-publication/retention connection with lost-ACK recovery (0270) are tested under synthetic authority. Governed startup, actual clock/records/lifecycle/full-corpus authority, constrained late recovery, quarantined-outcome resolution and live human acceptance remain incomplete |
 | I6 Human acceptance | In the real signed-in UI demonstrate new, exact duplicate, paraphrased duplicate, partial overlap, related-but-distinct, empty/failed/stale search, corrections, permission loss, cost exhaustion, uncertain save, concurrent creation, refresh/reopen and keyboard/narrow-screen behavior. Record real source and saved commit. | Pending |
 
+0275 extends that same I5 package into authenticated fixed save, reconstructed
+receipt recovery and exact old-commit reopen for `new-distinct`, using disposable
+native Git/Temporal. No row closes: live authority, other dispositions, performance,
+model-worker startup and actual signed-in acceptance still need completion.
 0274 extends the same authenticated case into I5's corrected-package confirmation
 and exact original recovery, without enabling scheduling or Git writes. Its bounded
 timeout repair does not close the remaining provider-request/latency problem.

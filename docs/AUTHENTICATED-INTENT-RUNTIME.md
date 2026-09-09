@@ -58,6 +58,32 @@ records transition and its recovery path.
 
 ## Evidence and remaining work
 
+### Confirmed save and exact reopen through identity — 0275
+
+The same authenticated 34-source generation/correction/reassessment/confirmation
+case now continues its exact original through the concrete factory's save-start,
+status and exact-reader services. No principal or journey service is substituted.
+Synthetic tool grants exist before the final reviewed Git head; distinct save
+authority stays closed throughout confirmation. Denied start has no scheduling,
+step, original, reservation or native mutation effect.
+
+The joined test passes one fixed Temporal activity/native commit with lost
+scheduler and provider acknowledgements. Workflow history is reference-only and
+replay cannot resend. Reconstructing the actual identity/factory recovers an exact
+HTTP receipt; read-only status cannot checkpoint, while separate reconciliation
+can record completion. A later root edit does not redirect exact reopen: the
+confirmed Brief/Spec/Exam and manifest bytes, including the human correction,
+come from the older receipt commit. Current read-policy and Git-grant denial
+withhold access. One encrypted original, two operations and six synthetic model
+reservations remain unchanged; all four API runtimes and owned worker resources
+close. See [0275 evidence](../intent/0275/EVIDENCE.md) for verification scope.
+
+Only `new-distinct` is joined through this save root; scope/drafting workers still
+execute directly in the fixture. This is not current authority adoption, a real
+provider write, signed-in UI acceptance, publication retention or acceptable
+live-provider performance. Confirmation still takes approximately 47–50 seconds;
+further bounded read composition and governed model-worker scheduling remain next.
+
 ### Corrected-package confirmation — 0274
 
 The joined identity/factory test now extends the human correction through stale
@@ -87,9 +113,9 @@ but remain too many/too slow for remote-provider or smooth-UX acceptance. The
 timeout repair is a bounded reliability checkpoint, not performance completion.
 
 These are synthetic HTTP/SQL/SDK checks, not remote-provider performance or a
-signed-in browser demonstration. Fixed save/reopen and owned scheduling through
-this identity root remain next; live records/model/provider/write authority is
-still closed.
+signed-in browser demonstration. 0275 subsequently joins fixed save/reopen through
+this identity root; governed scope/drafting scheduling and live records/model/
+provider/write authority remain open.
 
 ### Recorded generation through identity — 0273
 
@@ -176,9 +202,10 @@ scope/authority failures and resource drainage. These results do not demonstrate
 the complete constructor bundle, cookie-login UI, real provider/model behavior,
 semantic quality, all destination save cases or signed-in I1–I6 acceptance.
 
-0272 assembles the constructor graph and 0273 joins recorded generation/recovery
-through identity. Next extend confirmation/save/reopen and owned worker scheduling
-through that composition and complete its governed bindings. Actual clock provenance and late
-recovery, D1 adoption, model spending, runtime GitHub write authority and real-user
+0272 assembles the constructor graph, 0273 joins recorded generation/recovery and
+0274–0275 join corrected confirmation/fixed save/exact reopen through identity.
+Next complete bounded read performance, owned scope/drafting worker scheduling and
+governed bindings. Actual clock provenance and late recovery, D1 adoption, model
+spending, runtime GitHub write authority and real-user
 acceptance remain separate prerequisites. No real profile, secrets or grants are
 changed by this increment.

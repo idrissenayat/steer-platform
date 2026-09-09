@@ -6082,3 +6082,26 @@ plus owned scheduling through this identity root remain engineering work.
 See [0274 investigation](../intent/0274/INVESTIGATION.md) and
 [evidence](../intent/0274/EVIDENCE.md). No real credentials, authority, deployment,
 protected sources or user-owned roadmap/outputs change.
+
+## Development increment: 0275 — Authenticated confirmed save/reopen
+
+The joined test now continues the exact corrected/confirmed original through the
+real identity/factory start, status and exact-reader services, using disposable
+Temporal/native Git and synthetic authority. Denied start, lost scheduler/Git
+acknowledgements, one fixed activity/commit, replay without resend, reconstructed
+HTTP receipt recovery, separate reconciliation and exact old-commit reopen all
+pass. Current read policy and Git tool-grant revocation withhold access. One
+encrypted original stays unchanged; two operations and six model reservations
+remain; all four owned API runtimes and worker/harness resources close.
+
+The focused runner passes three joined checks plus idempotent migration, not the
+full SQL suite. All 1,341 broad regressions, prototype/eight-package types and the
+optimized Next build pass. The 95-artifact kit, read-only workflow scope audit,
+206 local documentation links and protected source hashes also pass. Temporal
+dependencies remain under worker test ownership, not the API package. See
+[0275 specification](../intent/0275/SPEC.md) and [evidence](../intent/0275/EVIDENCE.md).
+This joins existing production components through authenticated services; it does
+not install live bindings or demonstrate signed-in UI acceptance. Other save
+directions, high request volume/latency, owned scope/drafting scheduling and current
+records/model/provider/write authority remain open. No publication-retention action,
+real credential/profile, protected document or user-owned roadmap/output changes.
