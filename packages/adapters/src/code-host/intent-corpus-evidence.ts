@@ -5,6 +5,7 @@ import { createCandidateScopeCatalog } from './candidate-scope-catalog.ts';
 import { verifyScopeInventory, scopeRoot } from './scope-inventory.ts';
 import type { ArtifactSnapshot, CorpusRepositoryReader } from './github.ts';
 import { bracketRepositoryRead } from './repository-read-authority.ts';
+import { readCorpusArtifact } from './corpus-artifact-read.ts';
 
 const shape = intentEvidenceInputSchema.shape;
 const scopeSchema = intentEvidenceInputSchema.pick({ organizationId: true, productId: true, repository: true, branch: true });
@@ -29,6 +30,9 @@ export type CorpusSelectionContext = z.infer<typeof selectionContextSchema>;
  * per-source read grants and lifecycle selection. Their returned evidence is not
  * verified merely by this schema. These are NOT browser-provided callbacks. */
 export interface IntentCorpusAuthority {
+  // These are read-only policy metadata queries. They must not fetch source
+  // content, dispatch operations or publish results. The collector freshly
+  // checks its caller after policy queries and before every repository read.
   // Revision must cover the current identity and all relevant inventory/source
   // grants. A constant label or configuration string is not authority evidence.
   authorize(scope: Readonly<z.infer<typeof scopeSchema>>): Promise<{ permissionsRevision: string }>;
@@ -57,7 +61,7 @@ export function createIntentCorpusEvidence(reader: CorpusRepositoryReader, rawCo
       const guard = () => { if (closed || finished || performance.now() >= deadline || hash(reader.binding) !== hash(binding)) throw unavailable(); };
       let permissionsRevision: string | null = null;
       const check = async () => {
-        guard(); if (await revalidate() !== undefined) throw unavailable(); guard();
+        guard();
         const p = z.strictObject({ permissionsRevision: shape.permissionsRevision }).parse(await authority.authorize(freeze({ ...scope })));
         guard(); if (permissionsRevision !== null && permissionsRevision !== p.permissionsRevision) throw unavailable(); permissionsRevision = p.permissionsRevision;
         if (await revalidate() !== undefined) throw unavailable(); guard();
@@ -65,28 +69,40 @@ export function createIntentCorpusEvidence(reader: CorpusRepositoryReader, rawCo
       const io = async <T>(work: () => Promise<T>) => { await check(); if (++reads > 100) throw unavailable(); const value = await work(); guard(); await check(); return value; };
       const work = Promise.resolve().then(async () => {
         const head = shape.head.parse(await io(() => reader.readHead())), reference = freeze({ ...scope, revision: head });
-        const tree = freeze(verifyScopeInventory(await io(() => reader.readScopeInventory(head))));
+        const inventorySnapshot = await io(() => reader.readScopeInventory(head));
+        const tree = freeze(verifyScopeInventory(inventorySnapshot));
         if (tree.organizationId !== scope.organizationId || tree.repositoryId !== binding.repositoryId || tree.revision !== head) throw unavailable();
         const entries = new Map(tree.entries.map(e => [e.path, e]));
         const inventory: z.infer<typeof shape.inventory> = [], documents: z.infer<typeof shape.documents> = [];
         const observations: Observation[] = [], consumed = new Set<string>();
         let accessGapCount = 0, unresolvedCount = tree.unsupportedRootCount, excludedCount = 0, sourceGapCount = 0;
-        const select = async (context: CorpusSelectionContext) => {
-          await check(); let value: unknown;
+        const observeSelection = async (context: CorpusSelectionContext) => {
+          guard(); let value: unknown;
           try { value = await authority.select(context); } catch { value = null; }
-          guard(); await check(); const parsed = selectionSchema.safeParse(value);
+          guard(); const parsed = selectionSchema.safeParse(value);
           if (!parsed.success || Object.keys(context).some(k => parsed.data[k as keyof CorpusSelectionContext] !== context[k as keyof CorpusSelectionContext])) return null;
           return freeze(parsed.data);
         };
+        const select = async (context: CorpusSelectionContext) => {
+          await check(); const value = await observeSelection(context); await check(); return value;
+        };
         const readSource = bracketRepositoryRead(check, async (path: string, revision: string): Promise<ArtifactSnapshot> => {
-          if (revision !== head || !entries.has(path) || reads >= 98) throw unavailable();
-          if (await authority.authorizeSource(freeze({ ...reference, path })) !== undefined) throw unavailable(); guard();
-          const file = sourceSchema.parse(await io(() => reader.readArtifact(path, revision))); const entry = entries.get(path)!;
+          if (++reads > 100) throw unavailable();
+          const file = sourceSchema.parse(await readCorpusArtifact(reader, inventorySnapshot, path, revision)); guard(); const entry = entries.get(path)!;
           if (file.organizationId !== scope.organizationId || file.repositoryId !== binding.repositoryId || file.revision !== head || file.path !== path
             || entry.type !== 'blob' || entry.mode !== '100644' || entry.objectSha !== file.blobSha || digest(file.content) !== file.contentDigest
             || blob(file.content) !== file.blobSha || Buffer.byteLength(file.content) > 131072 || !file.content.trim()) throw unavailable();
-          if (await authority.authorizeSource(freeze({ ...reference, path })) !== undefined) throw unavailable(); guard(); consumed.add(path); return file;
-        }, guard);
+          return file;
+        }, guard, {
+          async before(path, revision) {
+            if (revision !== head || !entries.has(path) || reads >= 98) throw unavailable();
+            if (await authority.authorizeSource(freeze({ ...reference, path })) !== undefined) throw unavailable();
+          },
+          async after(path) {
+            if (await authority.authorizeSource(freeze({ ...reference, path })) !== undefined) throw unavailable();
+            consumed.add(path);
+          },
+        });
         const include = (file: ArtifactSnapshot, status: 'canonical' | 'candidate' | 'amendment', targetId: string) => {
           if (inventory.length >= 1000 || inventory.some(i => i.path === file.path)) throw unavailable();
           const sourceId = `source:${digest(file.path)}`;
@@ -125,10 +141,16 @@ export function createIntentCorpusEvidence(reader: CorpusRepositoryReader, rawCo
             finally { catalog.close(); }
           }
         }
-        for (const observed of observations) if (hash(await select(observed.context)) !== hash(observed.selected)) throw unavailable();
+        // This is a read-only policy sweep, not source IO. Bracket the entire
+        // sweep with fresh caller/inventory authority and its all-grants revision;
+        // still evaluate EVERY selection and consumed-source grant. No artifact
+        // read, cached permission, result publication or effect occurs inside it.
+        await check();
+        for (const observed of observations) if (hash(await observeSelection(observed.context)) !== hash(observed.selected)) throw unavailable();
         // Pointer, manifest and Exam bytes are consumed evidence too, even when
         // only Brief/Spec bodies are emitted for semantic scope assessment.
-        for (const path of consumed) { await check(); if (await authority.authorizeSource(freeze({ ...reference, path })) !== undefined) throw unavailable(); guard(); }
+        for (const path of consumed) { guard(); if (await authority.authorizeSource(freeze({ ...reference, path })) !== undefined) throw unavailable(); guard(); }
+        await check();
         if (shape.head.parse(await io(() => reader.readHead())) !== head) throw unavailable(); await check();
         const selectionDigest = hash(observations.map(o => o.selected));
         const evidence = intentEvidenceInputSchema.parse({ ...scope, head, scopeInputDigest: input.scopeInputDigest, permissionsRevision,
@@ -168,18 +190,24 @@ export function createIntentCorpusEvidence(reader: CorpusRepositoryReader, rawCo
       const current = async () => { guard(); if (await revalidate() !== undefined) throw unavailable(); guard(); };
       const fresh = async (p: Proof) => {
         const check = async () => {
-          await current();
+          guard();
           const permission = z.strictObject({ permissionsRevision: shape.permissionsRevision }).parse(await authority.authorize(scope));
           await current(); if (permission.permissionsRevision !== p.permissionsRevision) throw unavailable();
         };
         const checked = async <V>(read: () => Promise<V>) => { await check(); const value = await read(); await check(); return value; };
         if (shape.head.parse(await checked(() => reader.readHead())) !== p.head) throw unavailable();
+        // Revalidate retained immutable evidence in one policy-only sweep. Its
+        // outer all-grants revision must remain exact. Repository reads retain
+        // their own fresh barriers; source grants and selections are not cached.
+        await check();
         for (const observation of p.observations) {
-          const selected = selectionSchema.parse(await checked(() => authority.select(observation.context)));
+          guard(); const selected = selectionSchema.parse(await authority.select(observation.context)); guard();
           if (hash(selected) !== hash(observation.selected)) throw unavailable();
         }
-        for (const path of p.consumed)
-          if (await checked(() => authority.authorizeSource(freeze({ ...scope, revision: p.head, path }))) !== undefined) throw unavailable();
+        for (const path of p.consumed) {
+          guard(); if (await authority.authorizeSource(freeze({ ...scope, revision: p.head, path })) !== undefined) throw unavailable(); guard();
+        }
+        await check();
         if (shape.head.parse(await checked(() => reader.readHead())) !== p.head) throw unavailable();
         await check();
       };

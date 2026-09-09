@@ -46,7 +46,8 @@ const sameConfiguration = (value: unknown, expected: IntentJourneyConfiguration)
 
 /** Pin methods/scope and retain bounded calls until actual work drains. This
  * wrapper never grants a tool, fabricates records adoption or supplies a provider.
- * The permission callback is additional current bundle-use authority; every
+ * The permission callback is a read-only, scope-bound bundle-use query: no source
+ * content reads, operation effects or input-dependent work belong in it. Every
  * existing service still owns its full action-time authorization contracts. */
 export function manageIntentJourney(expected: IntentJourneyConfiguration, owned: ManagedRuntimeIntentJourney, authorize: () => Promise<void>) {
   expected = Object.freeze({ ...expected, itemIds: Object.freeze([...expected.itemIds]) });
@@ -85,10 +86,19 @@ export function manageIntentJourney(expected: IntentJourneyConfiguration, owned:
           } finally { if (timeout) clearTimeout(timeout); }
         };
         const current = async () => {
-          if (await tracked(revalidate, 5000) !== undefined || await tracked(authorize, 5000) !== undefined) throw fail();
+          // Check independent use permission, then freshly verify the caller.
+          // The latter must finish AFTER the policy query and BEFORE the service
+          // may read/write/acknowledge. Repeating it before this metadata-only
+          // query at every nested callback multiplies IO without protecting an
+          // additional source read or effect. Nothing is cached or skipped later.
+          if (await tracked(authorize, 5000) !== undefined) throw fail();
           if (await tracked(revalidate, 5000) !== undefined) throw fail();
         };
-        const work = Promise.resolve().then(async () => { await current(); const result = await tracked(() => invoke.call(source, input, current)); await current(); return result; });
+        const work = Promise.resolve().then(async () => {
+          // Preserve initial authentication before even querying bundle policy.
+          if (await tracked(revalidate, 5000) !== undefined) throw fail();
+          await current(); const result = await tracked(() => Reflect.apply(invoke, source, [input, current])); await current(); return result;
+        });
         void work.finally(() => { settled = true; release(); }).catch(() => {});
         try { return await Promise.race([work, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(fail()), 120000); })]); }
         catch { throw fail(); }

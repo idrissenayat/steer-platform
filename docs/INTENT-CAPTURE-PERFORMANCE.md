@@ -122,6 +122,30 @@ failure remains recorded, and its cause was not established by these repetitions
 The new content-free trace separates leases/resets/late completions and is
 available when the full joined recovery assertion is next exercised.
 
+[0291](../intent/0291/EVIDENCE.md) consolidates metadata-only permission queries,
+preserving every independent policy and fresh caller checks before content
+IO/effects and before results escape. Retained-source sweeps use exact current
+all-grants revisions, not permission caches. Native readers reuse only their own
+exact frozen commit/tree membership; all 43 source/marker bodies are still fetched
+and verified in source review. Unknown readers retain their full original path.
+
+The final authenticated undelayed source review uses **317 attempts** (265 identity,
+52 repository), versus 2,634. Scope preparation uses **1,250** versus 9,598; first
+confirmation uses **14,829** versus 45,716. Initial/repeated drafting preparation
+uses 6,516 / 5,846; initial drafting start uses 11,537. The complete synthetic
+save/recovery/reopen selection passes. These reductions do not establish warmed
+p95 or C22; even source review remains above 200. [Raw measurements](../intent/0291/PERFORMANCE.json)
+preserve source hashes, preliminary/final samples and request-origin partitions.
+The earlier 0289 recovery uncertainty remains recorded and unexplained.
+
+The final 0291 delayed prefix retains all 20 warmed, three reconstructed and four
+concurrent draft reads per direction; draft-read warmed p95 is 601.545 / 592.283 ms
+and all draft groups meet their bounds. Source review still fails closed in both
+directions at 202 attempts / 200 dispatches (HTTP 401, 5,509.654 / 5,480.445 ms),
+with no late work at return. Two prefix integrity checks passing does not make
+those performance failures a C22 pass. An initial truncated tool-output capture
+was repeated separately on unchanged code; the final raw reports are complete.
+
 Next retain diagnostics for any recovery-unknown recurrence and reduce remaining
 repeated identity-policy traversal, including source review and final-package
 verification, then extend the prefix to later stages

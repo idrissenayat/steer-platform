@@ -38,7 +38,7 @@ test('pinned explicit methods recheck both identity and current bundle use, but 
   const managed = manageIntentJourney(f.configuration, f.owned, async () => { authorizations++; });
   const input = { organizationId: 'synthetic', productId: 'product', repository: 'github:1', draftId: 'test-reference', revision: 'latest' as const };
   assert.deepEqual(await managed.services.intentDrafts.read(input, async () => { identities++; }), { syntheticReference: 'test-reference' });
-  assert.equal(authorizations, 3); assert.equal(identities, 6);
+  assert.equal(authorizations, 3); assert.equal(identities, 4);
   assert.equal('briefWriter' in managed.services, false); assert.equal('publicationRecords' in managed.services, false);
   assert.equal(Object.isFrozen(managed.services.intentDrafts.scope), true);
   const stop = managed.shutdown(); assert.equal(stop, managed.shutdown()); await stop; assert.equal(f.state.closed, 1);
@@ -93,4 +93,33 @@ test('timed-out service work cannot restore acknowledgement or bypass the final 
   const read = assert.rejects(managed.services.intentDrafts.read({} as any, current)); await started;
   t.mock.timers.tick(120001); await read; const stop = managed.shutdown(); await Promise.resolve(); assert.equal(f.state.closed, 0);
   release(); await stop; assert.equal(late, 0); assert.equal(f.state.closed, 1);
+});
+
+test('initial identity denial prevents policy queries and each internal boundary checks fresh identity after the independent policy', async () => {
+  const input = {} as any;
+  {
+    const f = intentJourneyFixture(); let policies = 0;
+    const managed = manageIntentJourney(f.configuration, f.owned, async () => { policies++; });
+    await assert.rejects(managed.services.intentDrafts.read(input, async () => { throw new Error('PRIVATE invalid identity'); }));
+    assert.equal(policies, 0); assert.deepEqual(f.state.calls, []); await managed.shutdown();
+  }
+  for (const phase of ['initial', 'internal', 'final'] as const) for (const mode of ['deny', 'nonvoid'] as const) {
+    const f = intentJourneyFixture(); let policies = 0, effects = 0, valid = true;
+    f.services.intentDrafts.create = async (_input, check) => { await check(); effects++; return { outcome: 'created' }; };
+    const managed = manageIntentJourney(f.configuration, f.owned, async () => {
+      policies++; if (policies === ({ initial: 1, internal: 2, final: 3 })[phase]) valid = false;
+    });
+    await assert.rejects(managed.services.intentDrafts.create(input, async () => {
+      if (!valid && mode === 'deny') throw new Error('PRIVATE revoked while policy query ran');
+      if (!valid) return false as unknown as void;
+    }), error => { assert.doesNotMatch(String(error), /PRIVATE/); return true; });
+    assert.equal(effects, phase === 'final' ? 1 : 0); await managed.shutdown();
+  }
+});
+
+test('pinned service dispatch uses the captured method rather than a substituted call property', async () => {
+  const f = intentJourneyFixture(); let reads = 0;
+  f.services.intentDrafts.read = Object.assign(async () => { reads++; return 'exact'; }, { call: async () => 'forged' }) as any;
+  const managed = manageIntentJourney(f.configuration, f.owned, current);
+  assert.equal(await managed.services.intentDrafts.read({} as any, current), 'exact'); assert.equal(reads, 1); await managed.shutdown();
 });

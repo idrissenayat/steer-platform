@@ -67,3 +67,40 @@ test('read construction invokes the captured work, not an overridable apply prop
   const work = Object.assign(async () => { calls++; return 'exact'; }, { apply: async () => 'forged' });
   assert.equal(await bracketRepositoryRead(async () => {}, work, () => {})(), 'exact'); assert.equal(calls, 1);
 });
+
+test('independent source policies run on both sides, with fresh caller checks immediately before IO and return', async () => {
+  const events: string[] = [], current = async () => { events.push('caller'); };
+  const policy = {
+    async before(path: string) { assert.equal(path, 'source'); assert.strictEqual(this, policy); events.push('source-before'); },
+    async after(path: string) { assert.equal(path, 'source'); assert.strictEqual(this, policy); events.push('source-after'); },
+  };
+  const read = bracketRepositoryRead(current, async (path: string) => { assert.equal(path, 'source'); events.push('IO'); return 'exact'; }, () => {}, policy);
+  assert.equal(repositoryReadCovers(read, current), true);
+  for (let i = 0; i < 2; i++) assert.equal(await read('source'), 'exact');
+  assert.deepEqual(events, Array(2).fill(['source-before', 'caller', 'IO', 'source-after', 'caller']).flat());
+});
+
+test('caller revocation or owner closure during either independent policy never releases source bytes', async () => {
+  for (const phase of ['before', 'after'] as const) for (const failure of ['caller', 'owner', 'nonvoid', 'denied'] as const) {
+    let valid = true, closed = false, reads = 0;
+    const query = async (at: string) => {
+      if (at !== phase) return;
+      if (failure === 'caller') valid = false;
+      if (failure === 'owner') closed = true;
+      if (failure === 'nonvoid') return false as unknown as void;
+      if (failure === 'denied') throw new Error('PRIVATE');
+    };
+    const read = bracketRepositoryRead(async () => { if (!valid) throw new Error('revoked'); },
+      async () => { reads++; return 'PRIVATE source'; }, () => { if (closed) throw new Error('closed'); },
+      { before: () => query('before'), after: () => query('after') });
+    await assert.rejects(read()); assert.equal(reads, phase === 'before' ? 0 : 1);
+  }
+});
+
+test('held source policy keeps its read pending and cannot dispatch after owner closure', async () => {
+  let release!: () => void, entered!: () => void, closed = false, reads = 0;
+  const held = new Promise<void>(resolve => { release = resolve; }), begun = new Promise<void>(resolve => { entered = resolve; });
+  const read = bracketRepositoryRead(async () => {}, async () => { reads++; return 'PRIVATE'; },
+    () => { if (closed) throw new Error('closed'); }, { before: async () => { entered(); await held; }, after: async () => {} });
+  const pending = assert.rejects(read()); await begun; closed = true; release(); await pending; assert.equal(reads, 0);
+});

@@ -2,6 +2,7 @@ import { createHash, createPrivateKey } from 'node:crypto';
 import { SignJWT } from 'jose';
 import { z } from 'zod';
 import { verifyScopeInventory, type ScopeInventory } from './scope-inventory.ts';
+import { registerCorpusArtifactRead } from './corpus-artifact-read.ts';
 
 const sha = z.string().length(40).regex(/^[a-f0-9]{40}$/);
 const bindingSchema = z.strictObject({
@@ -143,7 +144,20 @@ export function createGitHubReader(rawBinding: GitHubBinding, dependencies: {
   const safely = async <T>(operation: () => Promise<T>): Promise<T> => {
     try { return await operation(); } catch { cached = undefined; throw new CodeHostError(); }
   };
-  return {
+  const inventories = new WeakMap<object, { revision: string; entries: Map<string, { objectSha: string; mode: string; type: string }> }>();
+  const readBlob = async (path: string, revision: string, blobSha: string, credential: string): Promise<ArtifactSnapshot> => {
+    const blob = z.object({ sha, encoding: z.literal('base64'), size: z.number().int().min(0).max(maxArtifactBytes), content: z.string().max(maxArtifactBytes * 2) }).parse(
+      await request(`${repoPath}/git/blobs/${blobSha}`, credential));
+    const encoded = blob.content.replace(/\n/g, '');
+    if (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(encoded)) throw new CodeHostError();
+    const bytes = Buffer.from(encoded, 'base64');
+    const gitDigest = createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
+    if (bytes.length !== blob.size || bytes.length > maxArtifactBytes || bytes.toString('base64') !== encoded || gitDigest !== blobSha || blob.sha !== blobSha) throw new CodeHostError();
+    return { organizationId: binding.organizationId, repositoryId: binding.repositoryId, revision, path,
+      content: new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes),
+      contentDigest: createHash('sha256').update(bytes).digest('hex'), blobSha: gitDigest };
+  };
+  const reader: CorpusRepositoryReader = {
     binding,
     readScopeInventory: revision => safely(async () => {
       sha.parse(revision); const credential = await token();
@@ -155,6 +169,10 @@ export function createGitHubReader(rawBinding: GitHubBinding, dependencies: {
       const { roots: _roots, unsupportedRootCount: _unsupported, ...inventory } = verifyScopeInventory({ organizationId: binding.organizationId, repositoryId: binding.repositoryId,
         revision, treeSha: tree.sha, entries: tree.tree.filter(e => ['intent', 'items'].includes(e.path.split('/')[0]!))
           .map(e => ({ path: e.path, objectSha: e.sha, mode: e.mode, type: e.type })) });
+      // The collector may reuse this exact immutable commit/tree membership, not
+      // permission or source bodies. Copies/foreign snapshots have no proof.
+      inventory.entries.forEach(Object.freeze); Object.freeze(inventory.entries); Object.freeze(inventory);
+      inventories.set(inventory, { revision, entries: new Map(inventory.entries.map(entry => [entry.path, { ...entry }])) });
       return inventory;
     }),
     readCommit: (revision: string) => safely(async () => {
@@ -231,16 +249,15 @@ export function createGitHubReader(rawBinding: GitHubBinding, dependencies: {
       const matches = tree.tree.filter((entry) => entry.path === path);
       const entry = matches[0];
       if (matches.length !== 1 || !entry || entry.type !== 'blob' || entry.mode !== '100644') throw new CodeHostError();
-      const blob = z.object({ sha, encoding: z.literal('base64'), size: z.number().int().min(0).max(maxArtifactBytes), content: z.string().max(maxArtifactBytes * 2) }).parse(
-        await request(`${repoPath}/git/blobs/${entry.sha}`, credential));
-      const encoded = blob.content.replace(/\n/g, '');
-      if (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(encoded)) throw new CodeHostError();
-      const bytes = Buffer.from(encoded, 'base64');
-      const gitDigest = createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
-      if (bytes.length !== blob.size || bytes.length > maxArtifactBytes || bytes.toString('base64') !== encoded || gitDigest !== entry.sha || blob.sha !== entry.sha) throw new CodeHostError();
-      return { organizationId: binding.organizationId, repositoryId: binding.repositoryId, revision, path,
-        content: new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes),
-        contentDigest: createHash('sha256').update(bytes).digest('hex'), blobSha: gitDigest };
+      return readBlob(path, revision, entry.sha, credential);
     }),
   };
+  registerCorpusArtifactRead(reader, (inventory, path, revision) => safely(async () => {
+    pathSchema.parse(path); sha.parse(revision);
+    const verified = inventory && typeof inventory === 'object' ? inventories.get(inventory) : undefined;
+    const entry = verified?.entries.get(path);
+    if (!verified || verified.revision !== revision || !entry || entry.type !== 'blob' || entry.mode !== '100644') throw new CodeHostError();
+    return readBlob(path, revision, entry.objectSha, await token());
+  }));
+  return reader;
 }

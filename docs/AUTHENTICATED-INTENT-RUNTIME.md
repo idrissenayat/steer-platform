@@ -62,6 +62,30 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Read-only policy traversal and immutable membership — 0291
+
+The managed journey now authenticates before the first policy query, then runs
+each independent scope-bound bundle-use query followed by fresh caller validation
+before service continuation. Installed policy callbacks must be metadata-only:
+no source content reads, effects or publication belong in them. All original
+action-time authorities, four-call admission, five-second dependency limits and
+drain-before-disposal behavior remain. No permission/identity decision is cached.
+
+Corpus selection/source revalidation uses one guarded policy-only sweep with
+exact all-grants revision and caller barriers. Every policy still runs. Actual
+source IO is bracketed by current caller/inventory checks and independent source
+grants; no policy sweep contains a content read or effect. Native byte reads may
+use that reader's exact frozen commit/tree inventory, but fetch and verify each
+body again. Copies, foreign snapshots and mismatched paths/revisions deny;
+unknown/wrapped ports keep the full original path.
+
+[0291 evidence](../intent/0291/EVIDENCE.md) records the authenticated synthetic
+journey and [raw measurements](../intent/0291/PERFORMANCE.json). Source review
+drops from 2,634 to 317 requests; scope preparation from 9,598 to 1,250; first
+confirmation from 45,716 to 14,829. These are not live UI or C22 acceptance.
+The remaining 200-attempt/latency target is still unmet. Records adoption,
+model spending and runtime GitHub authority retain their separate prerequisites.
+
 ### Bounded saved-operation recovery diagnosis — 0290
 
 `node packages/data/test/postgres.integration.ts --candidate-recovery-repro 20`

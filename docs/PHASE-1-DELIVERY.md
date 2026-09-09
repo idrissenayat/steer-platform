@@ -6502,3 +6502,43 @@ available on future joined runs, rather than repeating the narrow test indefinit
 Overall remains **68% (17/25; 8 remaining; +0 points)**. Only owned disposable test
 data was removed; no user data, credentials, live policies/records/D1, spending,
 runtime writes/grants, gate/signature, deployment or release changed.
+
+## 0291 — Consolidate policy traversal and exact Git membership reads
+
+The manager authenticates before its initial metadata-only bundle-use lookup;
+each later boundary independently checks bundle policy and then fresh identity
+before service continuation. The corpus similarly rechecks current caller after
+inventory policy, groups final metadata-only selection/source sweeps, and keeps
+fresh caller/inventory checks immediately before content IO and before release.
+Every source grant and selection remains independently evaluated. No policy result,
+caller identity, permission lease or branch head is cached. Admission/deadline,
+owner, stale-scope, uncertainty and no-resend protections remain.
+
+Native readers privately recognize only their own exact frozen scope inventory
+at the exact commit and regular-file path. Every body is fetched and verified
+again; immutable commit/tree membership need not be downloaded for every body.
+Copied/foreign/forged snapshots deny, while wrapped/replaced ports retain the
+full original path. No new public DTO, profile flag or activation setting exists.
+
+The final authenticated 34-source native Git/PostgreSQL/Temporal journey passes
+through separate drafting roles, corrected scope review, exact confirmation, one
+save, lost acknowledgements, restart, current-authority denial and exact reopen.
+**1,430 broad tests**, prototype/eight-package types and the Next production build
+pass. Source review drops from 2,634 to **317** requests (87.97%), scope preparation
+from 9,598 to **1,250** (86.98%), and first confirmation from 45,716 to **14,829**
+(67.56%). Those actions still exceed the 200-attempt target. Timings are not warmed
+p95 or real-provider/UI acceptance. See [specification](../intent/0291/SPEC.md),
+[evidence](../intent/0291/EVIDENCE.md) and [raw measurements](../intent/0291/PERFORMANCE.json).
+
+The final recovery diagnostic reports committed, 14 SQL phases, three valid clock
+samples and no SQL failure/reversal. The older 0289 unknown observation remains
+unexplained and retained. Overall remains **68% (17/25; 8 remaining; +0 points)**.
+Next finish remaining source-review and durable records-validation request
+reduction, then the complete performance protocol and separately authorized live
+acceptance. No credential, model spending, real records/D1, runtime GitHub grant
+or write, signature, deployment, release or user-data deletion changed.
+
+The final delayed prefix passes both integrity checks but reports the actual C22
+failure: source review returns HTTP 401 after 202 attempts / 200 dispatches in
+both directions, without late work at return. Draft-read warm/cold/concurrent
+groups pass; this is not the later-stage or complete performance protocol.

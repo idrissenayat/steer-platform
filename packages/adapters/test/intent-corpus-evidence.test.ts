@@ -302,3 +302,42 @@ test('fresh callbacks cannot return nonvoid, revoke the caller or run after the 
     })); t.mock.restoreAll();
   }
 });
+
+test('retained evidence uses a bounded policy sweep without skipping any selection, source grant or repository head barrier', async t => {
+  const f = await setup(t); let later = false, permissions = 0, heads = 0, bodies = 0;
+  const selections: string[] = [], grants: string[] = [], authorize = f.authority.authorize,
+    select = f.authority.select, source = f.authority.authorizeSource, head = f.reader.readHead, artifact = f.reader.readArtifact;
+  f.authority.authorize = async () => { if (later) permissions++; return authorize(); };
+  f.authority.select = async context => { if (later) selections.push(context.root); return select(context); };
+  f.authority.authorizeSource = async ref => { if (later) grants.push(ref.path); return source(ref); };
+  f.reader.readHead = async () => { if (later) heads++; return head(); };
+  f.reader.readArtifact = async (...args) => { if (later) bodies++; return artifact(...args); };
+  await f.service.withReadSession(input, async () => {}, async read => {
+    const first = await read(); later = true; assert.strictEqual(await read(), first);
+    assert.equal(permissions, 7); assert.equal(heads, 2); assert.equal(bodies, 0);
+    assert.deepEqual(selections, ['intent/0001', 'items/0002-canonical']);
+    assert.deepEqual(grants.sort(), first.evidence.inventory.map(source => source.path).sort());
+    later = false; return first;
+  });
+});
+
+test('a policy sweep rejects mid-sweep identity/all-grants changes before another repository read or retained result', async t => {
+  for (const mode of ['caller', 'permission', 'head', 'port', 'source', 'selection'] as const) {
+    const f = await setup(t); let later = false, valid = true, heads = 0, grants = 0;
+    const source = f.authority.authorizeSource, head = f.reader.readHead;
+    f.reader.readHead = async () => { if (later) heads++; return head(); };
+    f.authority.authorizeSource = async ref => {
+      await source(ref); if (!later || ++grants !== 2) return;
+      if (mode === 'caller') valid = false;
+      if (mode === 'permission') f.permissions('p2');
+      if (mode === 'head') f.git.add([{ path: 'other.md', content: 'Changed during sweep' }]);
+      if (mode === 'port') f.authority.select = async c => ({ ...c, selection: 'inaccessible', authorityDigest });
+      if (mode === 'source') f.denied.add('items/0002-canonical/SPEC.md');
+      if (mode === 'selection') { f.selections.set('intent/0001', 'inaccessible'); f.permissions('p2'); }
+    };
+    await assert.rejects(f.service.withReadSession(input, async () => { if (!valid) throw new Error('PRIVATE caller'); }, async read => {
+      await read(); later = true; return read();
+    }));
+    assert.equal(heads, mode === 'head' ? 2 : 1, mode); assert.equal(f.git.mutations(), 0);
+  }
+});

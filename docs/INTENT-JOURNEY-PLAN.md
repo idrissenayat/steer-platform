@@ -9,7 +9,20 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0290 / recovery diagnostics — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0291 / partial C22 — 68% (17/25; 8 remaining; +0 points)**.
+0291 consolidates metadata-only policy traversal while keeping fresh checks around
+content IO/effects and result release, and reuses exact immutable Git membership
+without caching grants or bodies. Authenticated source review falls from 2,634
+to 317 requests, scope preparation from 9,598 to 1,250 and first confirmation from
+45,716 to 14,829. The final synthetic joined journey passes through one save,
+lost-response recovery, restart and exact reopen. See [0291 evidence](../intent/0291/EVIDENCE.md).
+The source-review ceiling and later-stage performance still fail their targets;
+do not equate a large reduction or synthetic acceptance with completed C22/live UI.
+Next reduce remaining source-review and durable records/read-validation traversal,
+then exercise the full warmed/cold/concurrent acceptance protocol. All live
+activation/model-quality/UI prerequisites remain separate.
+
+Prior delivery checkpoint: **0290 / recovery diagnostics**.
 0290 adds an explicit bounded already-sent recovery reproduction and content-free
 SQL-clock diagnostics. Final ordinary/delayed selections pass 20 cases each;
 920 clock observations show no reversal or database failure. Forty candidate-save

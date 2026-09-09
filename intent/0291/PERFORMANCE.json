@@ -1,0 +1,2768 @@
+{
+  "kind": "steer-intent-capture-performance-increment/v1",
+  "date": "2026-09-09",
+  "productionBase": "db1d61ee9494831c22f09a9cc04d5714a700fa6b",
+  "sourceAndHarnessSha256": {
+    "apps/api/src/intent-journey-services.ts": "6e1ffe15f255e3850f00d73709b057c95615d0ff31c370c41b0e50538b9d8c76",
+    "packages/adapters/src/code-host/intent-corpus-evidence.ts": "891b1f76a83981912f6a9ff716a4aefcc3225a65ce4601540b7f2700fbccae45",
+    "packages/adapters/src/code-host/repository-read-authority.ts": "2a0bb8a57f5976bcdc0653af5be46de6ca426f9df2bb57a94dd2fe17e2ccbbd8",
+    "packages/adapters/src/code-host/github.ts": "31923e09e518496fe607a18bcbe0fa709696a1df8f5ff5f159499bc01dfa74f9",
+    "packages/adapters/src/code-host/corpus-artifact-read.ts": "6382211499772db9d3f6d7b88ceb127ee2ed542c4483b5b4691eafd6e5818ebf",
+    "apps/api/test/intent-journey-services.test.ts": "ac765861d24a199e089fff0780e6d33327c76f69d64c69ec00df84c0854edf10",
+    "packages/adapters/test/repository-read-authority.test.ts": "87c765ba46c8c66116334b1e34676d19c80bad4af7ff90e631e8561c20b00a4e",
+    "packages/adapters/test/intent-corpus-evidence.test.ts": "f8bf8a2908f27da18377561cf923e4939bf6599128ca3cfe13cf70c58354896c",
+    "packages/adapters/test/corpus-artifact-read.test.ts": "6d5ae3883621a2bfa3ef3ac9424b8ca2d2af37128c1b2e333f1a815e95d5f67b",
+    "apps/api/test/authenticated-generation.integration.ts": "40feceee0c9f9515e9a3b32ae600db49cfda9984dc026b9790646d30449b73c6",
+    "apps/api/test/authenticated-candidate-confirmation.integration.ts": "b69bf9e7e83d95acd81413af090bec8c381b181b327894f93ee871797073de05",
+    "apps/worker/test/authenticated-candidate-save.integration.ts": "1e945b07533e78a081649d1e9908d721d0f6eebd2bb5d8454cf83403a3b88db5",
+    "apps/api/test/authenticated-performance-prefix.integration.ts": "5b36d98967df60c6a56697679b22d5ac9953d944c3d4305b718aa08eb662029e",
+    "apps/api/test/intent-performance-probe.ts": "39a14246f4ac25c6b298812815292402e57584df3cb8451d107d664966026a73",
+    "packages/data/test/postgres.integration.ts": "05b9acbfea9dc72b02557ceb8eda3501e291ae4cfa4fea6d0fc4f5ec8bc4b760",
+    "packages/data/test/integration-diagnostics.ts": "df08ab454bb00cc409f90b6f6566ed5ab6a5f68af964dde1d7516ac0eb7563cc",
+    "apps/api/test/native-candidate-journey.fixture.ts": "3c34a180df249076e795e9e88cc42a15619431b83ed9fc81fb789f5b2bb177fe",
+    "apps/api/test/native-request-metrics.ts": "352c8643583b5356bcaf994fdd0fc10fe2e02f0d32c2f35c3187e603dc069814"
+  },
+  "environment": {
+    "node": "25.9.0",
+    "platform": "darwin",
+    "release": "25.6.0",
+    "arch": "arm64",
+    "cpu": "Apple M4 Pro",
+    "logicalCpus": 12,
+    "memoryBytes": 25769803776,
+    "measurement": "Single undelayed authenticated synthetic native Git/PostgreSQL/Temporal journey; not warmed p95 or live acceptance.",
+    "load": "No broad suite or build overlapped the final joined measurements; four native reader tests overlapped early setup only. No claim of isolated-hardware latency."
+  },
+  "coverage": {
+    "direction": "new-distinct",
+    "sourceCount": 34,
+    "modelCalls": 6,
+    "modelReservations": 6,
+    "confirmationOriginals": 1,
+    "nativeSaves": 1,
+    "realModelCalls": 0,
+    "realGitHubSaves": 0,
+    "completePerformanceBenchmark": false,
+    "actualUiAcceptance": false
+  },
+  "verification": {
+    "joined": "3 passed plus idempotent migration check",
+    "types": "prototype and 8 packages passed, 1.818 seconds",
+    "build": "Next.js 16.3.4 optimized build passed",
+    "broad": {
+      "tests": 1430,
+      "passed": 1430,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "durationMs": 150452.340584
+    },
+    "delayedPrefix": {
+      "status": "2 integrity checks and idempotent migration passed; C22 failed at source review in both directions.",
+      "firstRunCapture": "Tool output was truncated; both integrity checks passed, not a performance acceptance pass. Final repeat below retains all samples with unchanged production source.",
+      "final": [
+        {
+          "kind": "synthetic-authenticated-performance-prefix/v1",
+          "direction": "new-distinct",
+          "delayMs": 20,
+          "maxAttempts": 200,
+          "sourceCount": 34,
+          "primer": {
+            "ms": 645.8294589999996,
+            "attempts": 22,
+            "dispatched": 22,
+            "peakPending": 1,
+            "outstandingAtReturn": 0,
+            "limited": false,
+            "delayMs": 20,
+            "maxAttempts": 200,
+            "returned": true
+          },
+          "groups": {
+            "warm": {
+              "complete": true,
+              "healthy": true,
+              "p95Ms": 601.5448340000003,
+              "maximumMs": 606.919582999999,
+              "withinTarget": true,
+              "samples": [
+                {
+                  "ms": 589.9867919999997,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 596.2724579999995,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 601.5448340000003,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 593.8620000000001,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 590.9779999999992,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 583.991833,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 593.6958329999998,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 606.919582999999,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 593.5794999999998,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 583.355125,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 585.8666670000002,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 579.7829590000001,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 572.8179999999993,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 588.1760840000006,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 578.4812080000011,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 580.3732499999987,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 589.4876249999998,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 571.8955419999984,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 568.0758339999993,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 580.5733749999999,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                }
+              ]
+            },
+            "cold": {
+              "complete": true,
+              "healthy": true,
+              "p95Ms": 612.4137919999994,
+              "maximumMs": 612.4137919999994,
+              "withinTarget": true,
+              "samples": [
+                {
+                  "ms": 612.4137919999994,
+                  "attempts": 22,
+                  "dispatched": 22,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 608.6747079999986,
+                  "attempts": 22,
+                  "dispatched": 22,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 607.1752500000002,
+                  "attempts": 22,
+                  "dispatched": 22,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                }
+              ]
+            },
+            "concurrent": {
+              "complete": true,
+              "healthy": true,
+              "p95Ms": 630.5851660000008,
+              "maximumMs": 630.5851660000008,
+              "withinTarget": true,
+              "samples": [
+                {
+                  "ms": 630.5851660000008,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 625.765209000001,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 606.0514589999984,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 624.7725829999981,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                }
+              ]
+            }
+          },
+          "sourceReview": {
+            "status": 401,
+            "sample": {
+              "ms": 5509.654124999997,
+              "attempts": 202,
+              "dispatched": 200,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": true,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            }
+          },
+          "boundary": "source-review-request-limit",
+          "prefixTargetsMet": false,
+          "completeBenchmark": false,
+          "modelCalls": 0,
+          "providerSaves": 0,
+          "liveAcceptance": false
+        },
+        {
+          "kind": "synthetic-authenticated-performance-prefix/v1",
+          "direction": "proposal-continuation",
+          "delayMs": 20,
+          "maxAttempts": 200,
+          "sourceCount": 34,
+          "primer": {
+            "ms": 600.9332499999982,
+            "attempts": 22,
+            "dispatched": 22,
+            "peakPending": 1,
+            "outstandingAtReturn": 0,
+            "limited": false,
+            "delayMs": 20,
+            "maxAttempts": 200,
+            "returned": true
+          },
+          "groups": {
+            "warm": {
+              "complete": true,
+              "healthy": true,
+              "p95Ms": 592.283417000006,
+              "maximumMs": 594.1902499999997,
+              "withinTarget": true,
+              "samples": [
+                {
+                  "ms": 576.3430000000008,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 582.7140839999993,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 570.6964159999989,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 575.5380409999998,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 588.7665000000015,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 573.7945840000029,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 569.4815830000007,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 574.1927499999947,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 577.4432920000036,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 588.4069999999992,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 589.4279590000006,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 564.5951669999995,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 574.9586670000062,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 592.283417000006,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 594.1902499999997,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 584.0007079999996,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 553.6805410000015,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 557.4654999999984,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 567.3932080000013,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 564.3175829999964,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                }
+              ]
+            },
+            "cold": {
+              "complete": true,
+              "healthy": true,
+              "p95Ms": 594.7021249999962,
+              "maximumMs": 594.7021249999962,
+              "withinTarget": true,
+              "samples": [
+                {
+                  "ms": 594.7021249999962,
+                  "attempts": 22,
+                  "dispatched": 22,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 585.7518750000017,
+                  "attempts": 22,
+                  "dispatched": 22,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 576.9695000000065,
+                  "attempts": 22,
+                  "dispatched": 22,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                }
+              ]
+            },
+            "concurrent": {
+              "complete": true,
+              "healthy": true,
+              "p95Ms": 616.9295830000046,
+              "maximumMs": 616.9295830000046,
+              "withinTarget": true,
+              "samples": [
+                {
+                  "ms": 609.3011660000047,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 592.8770420000001,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 611.4538339999999,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                },
+                {
+                  "ms": 616.9295830000046,
+                  "attempts": 21,
+                  "dispatched": 21,
+                  "peakPending": 1,
+                  "outstandingAtReturn": 0,
+                  "limited": false,
+                  "delayMs": 20,
+                  "maxAttempts": 200,
+                  "returned": true
+                }
+              ]
+            }
+          },
+          "sourceReview": {
+            "status": 401,
+            "sample": {
+              "ms": 5480.444624999996,
+              "attempts": 202,
+              "dispatched": 200,
+              "peakPending": 1,
+              "outstandingAtReturn": 0,
+              "limited": true,
+              "delayMs": 20,
+              "maxAttempts": 200,
+              "returned": true
+            }
+          },
+          "boundary": "source-review-request-limit",
+          "prefixTargetsMet": false,
+          "completeBenchmark": false,
+          "modelCalls": 0,
+          "providerSaves": 0,
+          "liveAcceptance": false
+        }
+      ]
+    },
+    "focused": "44 checks passed after final production changes; four new native reader checks initially failed because of a wrong synthetic fixture JWT string, then passed after that test-only correction (3365.115 ms)."
+  },
+  "baseline": {
+    "source": "intent/0289/PERFORMANCE.json",
+    "joined": {
+      "direction": "new-distinct",
+      "sourceCount": 34,
+      "modelCalls": 6,
+      "modelReservations": 6,
+      "confirmationOriginals": 1,
+      "providerSaves": 1,
+      "realModelCalls": 0,
+      "realGitHubSaves": 0,
+      "draftingPreparations": [
+        {
+          "tool": "intent.development.prepare",
+          "ms": 14868,
+          "nativeRequests": 20130,
+          "requestKinds": {
+            "head": 19603,
+            "commit": 177,
+            "tree": 177,
+            "blob": 173,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 19583,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 20,
+              "commit": 176,
+              "tree": 176,
+              "blob": 172,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.development.prepare",
+          "ms": 13562,
+          "nativeRequests": 18790,
+          "requestKinds": {
+            "head": 18263,
+            "commit": 177,
+            "tree": 177,
+            "blob": 173,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 18243,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 20,
+              "commit": 176,
+              "tree": 176,
+              "blob": 172,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        }
+      ],
+      "measurements": [
+        {
+          "tool": "intent.draft.read",
+          "ms": 66,
+          "nativeRequests": 32,
+          "requestKinds": {
+            "head": 29,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 29,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 0,
+              "commit": 0,
+              "tree": 0,
+              "blob": 0,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.development.review",
+          "ms": 2209,
+          "nativeRequests": 2634,
+          "requestKinds": {
+            "head": 2499,
+            "commit": 45,
+            "tree": 45,
+            "blob": 44,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 2493,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 6,
+              "commit": 44,
+              "tree": 44,
+              "blob": 43,
+              "token": 1,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.scope.prepare",
+          "ms": 8147,
+          "nativeRequests": 9598,
+          "requestKinds": {
+            "head": 9071,
+            "commit": 177,
+            "tree": 177,
+            "blob": 173,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 9051,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 20,
+              "commit": 176,
+              "tree": 176,
+              "blob": 172,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.scope.start",
+          "ms": 854,
+          "nativeRequests": 1182,
+          "requestKinds": {
+            "head": 1179,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 1179,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 0,
+              "commit": 0,
+              "tree": 0,
+              "blob": 0,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.scope.start",
+          "ms": 936,
+          "nativeRequests": 1342,
+          "requestKinds": {
+            "head": 1339,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 1339,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 0,
+              "commit": 0,
+              "tree": 0,
+              "blob": 0,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.scope.start",
+          "ms": 905,
+          "nativeRequests": 1342,
+          "requestKinds": {
+            "head": 1339,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 1339,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 0,
+              "commit": 0,
+              "tree": 0,
+              "blob": 0,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.scope.read",
+          "ms": 520,
+          "nativeRequests": 664,
+          "requestKinds": {
+            "head": 661,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 661,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 0,
+              "commit": 0,
+              "tree": 0,
+              "blob": 0,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.candidate.save.review",
+          "ms": 5439,
+          "nativeRequests": 6664,
+          "requestKinds": {
+            "head": 6399,
+            "commit": 89,
+            "tree": 89,
+            "blob": 87,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 6387,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 12,
+              "commit": 88,
+              "tree": 88,
+              "blob": 86,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.candidate.save.preview",
+          "ms": 17085,
+          "nativeRequests": 22642,
+          "requestKinds": {
+            "head": 22111,
+            "commit": 179,
+            "tree": 179,
+            "blob": 173,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 22081,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 30,
+              "commit": 178,
+              "tree": 178,
+              "blob": 172,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.candidate.save.prepare (discarded reply)",
+          "ms": 35002,
+          "nativeRequests": 45716,
+          "requestKinds": {
+            "head": 44657,
+            "commit": 357,
+            "tree": 357,
+            "blob": 345,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 44597,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 60,
+              "commit": 356,
+              "tree": 356,
+              "blob": 344,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.candidate.save.prepare",
+          "ms": 34561,
+          "nativeRequests": 45654,
+          "requestKinds": {
+            "head": 44593,
+            "commit": 357,
+            "tree": 357,
+            "blob": 345,
+            "token": 2,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 44533,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 1,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 60,
+              "commit": 356,
+              "tree": 356,
+              "blob": 344,
+              "token": 1,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.candidate.save.prepare",
+          "ms": 34360,
+          "nativeRequests": 45652,
+          "requestKinds": {
+            "head": 44593,
+            "commit": 357,
+            "tree": 357,
+            "blob": 345,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 44533,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 60,
+              "commit": 356,
+              "tree": 356,
+              "blob": 344,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        }
+      ],
+      "workflowStarts": [
+        {
+          "tool": "intent.scope.start",
+          "ms": 787,
+          "nativeRequests": 1182
+        },
+        {
+          "tool": "intent.scope.start",
+          "ms": 839,
+          "nativeRequests": 1342
+        },
+        {
+          "tool": "intent.scope.start",
+          "ms": 808,
+          "nativeRequests": 1342
+        },
+        {
+          "tool": "intent.development.start",
+          "ms": 10563,
+          "nativeRequests": 23064
+        },
+        {
+          "tool": "intent.development.start",
+          "ms": 11792,
+          "nativeRequests": 25974
+        },
+        {
+          "tool": "intent.development.start",
+          "ms": 11726,
+          "nativeRequests": 25974
+        },
+        {
+          "tool": "intent.scope.start",
+          "ms": 853,
+          "nativeRequests": 1182
+        },
+        {
+          "tool": "intent.scope.start",
+          "ms": 935,
+          "nativeRequests": 1342
+        },
+        {
+          "tool": "intent.scope.start",
+          "ms": 905,
+          "nativeRequests": 1342
+        }
+      ],
+      "savedOperationRecovery": {
+        "outcome": "committed",
+        "ms": 220,
+        "nativeRequests": 17,
+        "database": {
+          "calls": 14,
+          "failures": 0,
+          "maxDurationMs": 1,
+          "counts": {
+            "connect": 1,
+            "commit": 1,
+            "rollback": 0,
+            "observation-write": 0,
+            "result-write": 0,
+            "execution-write": 0,
+            "query": 12
+          },
+          "events": [
+            {
+              "phase": "connect",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "query",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "query",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "query",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "query",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "query",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "query",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "query",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "query",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "query",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "query",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "commit",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "query",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "query",
+              "durationMs": 1,
+              "code": null
+            }
+          ]
+        }
+      }
+    }
+  },
+  "preliminary": {
+    "status": "3 joined checks plus migration passed; before manager/corpus flattening and inventory optimization. Not final production evidence.",
+    "productionHashes": {
+      "packages/adapters/src/code-host/intent-corpus-evidence.ts": "b139856f5021ebb864cadee193168da1698d6f4f5d970e6936ffda6e61be435a",
+      "packages/adapters/src/code-host/repository-read-authority.ts": "2a0bb8a57f5976bcdc0653af5be46de6ca426f9df2bb57a94dd2fe17e2ccbbd8",
+      "apps/api/src/intent-journey-services.ts": "9497173c764d393485a73496ef5bb530b2944fda351dc7217a14f171b6319835"
+    },
+    "measurements": [
+      {
+        "tool": "intent.draft.read",
+        "ms": 62,
+        "nativeRequests": 32,
+        "requestKinds": {
+          "head": 29,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 29,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.development.review",
+        "ms": 1986,
+        "nativeRequests": 1090,
+        "requestKinds": {
+          "head": 955,
+          "commit": 45,
+          "tree": 45,
+          "blob": 44,
+          "token": 1,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 949,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 6,
+            "commit": 44,
+            "tree": 44,
+            "blob": 43,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.prepare",
+        "ms": 8381,
+        "nativeRequests": 4334,
+        "requestKinds": {
+          "head": 3807,
+          "commit": 177,
+          "tree": 177,
+          "blob": 173,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 3787,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 20,
+            "commit": 176,
+            "tree": 176,
+            "blob": 172,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 977,
+        "nativeRequests": 1182,
+        "requestKinds": {
+          "head": 1179,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 1179,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 966,
+        "nativeRequests": 1342,
+        "requestKinds": {
+          "head": 1339,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 1339,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 965,
+        "nativeRequests": 1342,
+        "requestKinds": {
+          "head": 1339,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 1339,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.read",
+        "ms": 554,
+        "nativeRequests": 664,
+        "requestKinds": {
+          "head": 661,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 661,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.review",
+        "ms": 5099,
+        "nativeRequests": 3576,
+        "requestKinds": {
+          "head": 3311,
+          "commit": 89,
+          "tree": 89,
+          "blob": 87,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 3299,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 12,
+            "commit": 88,
+            "tree": 88,
+            "blob": 86,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.preview",
+        "ms": 16330,
+        "nativeRequests": 16466,
+        "requestKinds": {
+          "head": 15935,
+          "commit": 179,
+          "tree": 179,
+          "blob": 173,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 15905,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 30,
+            "commit": 178,
+            "tree": 178,
+            "blob": 172,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare (discarded reply)",
+        "ms": 32412,
+        "nativeRequests": 33364,
+        "requestKinds": {
+          "head": 32305,
+          "commit": 357,
+          "tree": 357,
+          "blob": 345,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 32245,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 60,
+            "commit": 356,
+            "tree": 356,
+            "blob": 344,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "ms": 31897,
+        "nativeRequests": 33302,
+        "requestKinds": {
+          "head": 32241,
+          "commit": 357,
+          "tree": 357,
+          "blob": 345,
+          "token": 2,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 32181,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 60,
+            "commit": 356,
+            "tree": 356,
+            "blob": 344,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "ms": 31745,
+        "nativeRequests": 33300,
+        "requestKinds": {
+          "head": 32241,
+          "commit": 357,
+          "tree": 357,
+          "blob": 345,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 32181,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 60,
+            "commit": 356,
+            "tree": 356,
+            "blob": 344,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      }
+    ],
+    "preparations": [
+      {
+        "tool": "intent.development.prepare",
+        "ms": 13400,
+        "nativeRequests": 14866,
+        "requestKinds": {
+          "head": 14339,
+          "commit": 177,
+          "tree": 177,
+          "blob": 173,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 14319,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 20,
+            "commit": 176,
+            "tree": 176,
+            "blob": 172,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.development.prepare",
+        "ms": 13350,
+        "nativeRequests": 13526,
+        "requestKinds": {
+          "head": 12999,
+          "commit": 177,
+          "tree": 177,
+          "blob": 173,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 12979,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 20,
+            "commit": 176,
+            "tree": 176,
+            "blob": 172,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      }
+    ],
+    "starts": [
+      {
+        "tool": "intent.scope.start",
+        "ms": 783,
+        "nativeRequests": 1182
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 846,
+        "nativeRequests": 1342
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 853,
+        "nativeRequests": 1342
+      },
+      {
+        "tool": "intent.development.start",
+        "ms": 11486,
+        "nativeRequests": 23064
+      },
+      {
+        "tool": "intent.development.start",
+        "ms": 12201,
+        "nativeRequests": 25974
+      },
+      {
+        "tool": "intent.development.start",
+        "ms": 11842,
+        "nativeRequests": 25974
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 977,
+        "nativeRequests": 1182
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 965,
+        "nativeRequests": 1342
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 965,
+        "nativeRequests": 1342
+      }
+    ],
+    "recovery": {
+      "outcome": "committed",
+      "ms": 223,
+      "nativeRequests": 17,
+      "database": {
+        "calls": 14,
+        "failures": 0,
+        "maxDurationMs": 1,
+        "counts": {
+          "connect": 1,
+          "commit": 1,
+          "rollback": 0,
+          "observation-write": 0,
+          "result-write": 0,
+          "execution-write": 0,
+          "query": 12
+        },
+        "events": [
+          {
+            "phase": "connect",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "commit",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          }
+        ],
+        "clock": {
+          "samples": 3,
+          "regressions": 0,
+          "maxBackwardMs": 0,
+          "invalidSamples": 0
+        }
+      }
+    }
+  },
+  "final": {
+    "measurements": [
+      {
+        "tool": "intent.draft.read",
+        "ms": 74,
+        "nativeRequests": 21,
+        "requestKinds": {
+          "head": 18,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 18,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.development.review",
+        "ms": 682,
+        "nativeRequests": 317,
+        "requestKinds": {
+          "head": 268,
+          "commit": 2,
+          "tree": 2,
+          "blob": 44,
+          "token": 1,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 262,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 6,
+            "commit": 1,
+            "tree": 1,
+            "blob": 43,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.prepare",
+        "ms": 2627,
+        "nativeRequests": 1250,
+        "requestKinds": {
+          "head": 1067,
+          "commit": 5,
+          "tree": 5,
+          "blob": 173,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 1047,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 20,
+            "commit": 4,
+            "tree": 4,
+            "blob": 172,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 740,
+        "nativeRequests": 596,
+        "requestKinds": {
+          "head": 593,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 593,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 785,
+        "nativeRequests": 676,
+        "requestKinds": {
+          "head": 673,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 673,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 788,
+        "nativeRequests": 676,
+        "requestKinds": {
+          "head": 673,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 673,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.read",
+        "ms": 470,
+        "nativeRequests": 337,
+        "requestKinds": {
+          "head": 334,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 334,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.review",
+        "ms": 2388,
+        "nativeRequests": 1326,
+        "requestKinds": {
+          "head": 1233,
+          "commit": 3,
+          "tree": 3,
+          "blob": 87,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 1221,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 12,
+            "commit": 2,
+            "tree": 2,
+            "blob": 86,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.preview",
+        "ms": 10579,
+        "nativeRequests": 7309,
+        "requestKinds": {
+          "head": 7122,
+          "commit": 7,
+          "tree": 7,
+          "blob": 173,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 7092,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 30,
+            "commit": 6,
+            "tree": 6,
+            "blob": 172,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare (discarded reply)",
+        "ms": 22701,
+        "nativeRequests": 14829,
+        "requestKinds": {
+          "head": 14458,
+          "commit": 13,
+          "tree": 13,
+          "blob": 345,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 14398,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 60,
+            "commit": 12,
+            "tree": 12,
+            "blob": 344,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "ms": 22207,
+        "nativeRequests": 14799,
+        "requestKinds": {
+          "head": 14426,
+          "commit": 13,
+          "tree": 13,
+          "blob": 345,
+          "token": 2,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 14366,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 60,
+            "commit": 12,
+            "tree": 12,
+            "blob": 344,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "ms": 21625,
+        "nativeRequests": 14797,
+        "requestKinds": {
+          "head": 14426,
+          "commit": 13,
+          "tree": 13,
+          "blob": 345,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 14366,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 60,
+            "commit": 12,
+            "tree": 12,
+            "blob": 344,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      }
+    ],
+    "preparations": [
+      {
+        "tool": "intent.development.prepare",
+        "ms": 7881,
+        "nativeRequests": 6516,
+        "requestKinds": {
+          "head": 6333,
+          "commit": 5,
+          "tree": 5,
+          "blob": 173,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 6313,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 20,
+            "commit": 4,
+            "tree": 4,
+            "blob": 172,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.development.prepare",
+        "ms": 7231,
+        "nativeRequests": 5846,
+        "requestKinds": {
+          "head": 5663,
+          "commit": 5,
+          "tree": 5,
+          "blob": 173,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 5643,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 20,
+            "commit": 4,
+            "tree": 4,
+            "blob": 172,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      }
+    ],
+    "starts": [
+      {
+        "tool": "intent.scope.start",
+        "ms": 746,
+        "nativeRequests": 596
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 756,
+        "nativeRequests": 676
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 762,
+        "nativeRequests": 676
+      },
+      {
+        "tool": "intent.development.start",
+        "ms": 9124,
+        "nativeRequests": 11537
+      },
+      {
+        "tool": "intent.development.start",
+        "ms": 10098,
+        "nativeRequests": 12992
+      },
+      {
+        "tool": "intent.development.start",
+        "ms": 10118,
+        "nativeRequests": 12992
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 740,
+        "nativeRequests": 596
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 784,
+        "nativeRequests": 676
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 788,
+        "nativeRequests": 676
+      }
+    ],
+    "recovery": {
+      "outcome": "committed",
+      "ms": 217,
+      "nativeRequests": 17,
+      "database": {
+        "calls": 14,
+        "failures": 0,
+        "maxDurationMs": 1,
+        "counts": {
+          "connect": 1,
+          "commit": 1,
+          "rollback": 0,
+          "observation-write": 0,
+          "result-write": 0,
+          "execution-write": 0,
+          "query": 12
+        },
+        "events": [
+          {
+            "phase": "connect",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "commit",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          },
+          {
+            "phase": "query",
+            "durationMs": 1,
+            "code": null
+          }
+        ],
+        "clock": {
+          "samples": 3,
+          "regressions": 0,
+          "maxBackwardMs": 0,
+          "invalidSamples": 0
+        }
+      }
+    }
+  },
+  "comparisons": [
+    {
+      "tool": "intent.draft.read",
+      "before": 32,
+      "after": 21,
+      "reductionPercent": 34.38
+    },
+    {
+      "tool": "intent.development.review",
+      "before": 2634,
+      "after": 317,
+      "reductionPercent": 87.97
+    },
+    {
+      "tool": "intent.scope.prepare",
+      "before": 9598,
+      "after": 1250,
+      "reductionPercent": 86.98
+    },
+    {
+      "tool": "intent.scope.start",
+      "before": 1182,
+      "after": 596,
+      "reductionPercent": 49.58
+    },
+    {
+      "tool": "intent.scope.start",
+      "before": 1342,
+      "after": 676,
+      "reductionPercent": 49.63
+    },
+    {
+      "tool": "intent.scope.start",
+      "before": 1342,
+      "after": 676,
+      "reductionPercent": 49.63
+    },
+    {
+      "tool": "intent.scope.read",
+      "before": 664,
+      "after": 337,
+      "reductionPercent": 49.25
+    },
+    {
+      "tool": "intent.candidate.save.review",
+      "before": 6664,
+      "after": 1326,
+      "reductionPercent": 80.1
+    },
+    {
+      "tool": "intent.candidate.save.preview",
+      "before": 22642,
+      "after": 7309,
+      "reductionPercent": 67.72
+    },
+    {
+      "tool": "intent.candidate.save.prepare (discarded reply)",
+      "before": 45716,
+      "after": 14829,
+      "reductionPercent": 67.56
+    },
+    {
+      "tool": "intent.candidate.save.prepare",
+      "before": 45654,
+      "after": 14799,
+      "reductionPercent": 67.58
+    },
+    {
+      "tool": "intent.candidate.save.prepare",
+      "before": 45652,
+      "after": 14797,
+      "reductionPercent": 67.59
+    }
+  ],
+  "earlierRecoveryFailure": "The 0289 already-sent unknown outcome remains unexplained and retained; neither passing run proves its cause or a fix.",
+  "progress": {
+    "percent": 68,
+    "verified": 17,
+    "total": 25,
+    "remaining": 8,
+    "changePoints": 0
+  }
+}
