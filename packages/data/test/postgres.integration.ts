@@ -82,8 +82,8 @@ try {
   if(selection.mode==='journey-runtime'){
     console.log('FOCUSED managed identity runtime with native authorization and encrypted SQL drafts; NOT the full integration suite.');
     await testManagedIntentJourneyRuntime({admin,connect,check});
-    assert.equal(passed,2);
-    console.log(`FOCUSED journey runtime result: ${passed-1} joined check passed plus idempotent migration check; full suite NOT RUN.`);
+    assert.equal(passed,3);
+    console.log(`FOCUSED journey runtime result: ${passed-1} joined checks passed plus idempotent migration check; full suite NOT RUN.`);
   }else if(selection.mode==='candidate-start'){
     console.log('FOCUSED candidate HTTP start to SQL/Temporal/native-Git; NOT the full integration suite.');
     await testDurableCandidateBundles({app:connect('steer_app'),admin,connect,check:async(name,run)=>{

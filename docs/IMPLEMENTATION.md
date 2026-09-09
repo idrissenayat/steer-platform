@@ -1,6 +1,19 @@
 # STEER platform implementation
 
-## Current checkpoint — 0271
+## Current checkpoint — 0272
+
+0272 constructs all 21 journey services and internal publication recording in the
+existing API composition root, with exact records/publication scope, shared scope/
+drafting budget, derived recorded profiles, current/history verification and owned
+cleanup. The actual authenticated SQL test covers exact draft recovery, all four
+discovery services and native current Brief/Spec review with permission denial.
+See [runtime guide](AUTHENTICATED-INTENT-RUNTIME.md) and
+[0272 evidence](../intent/0272/EVIDENCE.md). Next join the recorded scope/drafting/
+Temporal save and exact reopen through this concrete factory. Real bindings,
+policy/clock adoption, model/provider/write authority and signed-in I1–I6 remain
+open; no live profile, model call or source-write authority is installed.
+
+## Prior checkpoint — 0271
 
 0271 connects a strict managed journey inventory to the existing authenticated
 identity runtime. The explicit factory and independent current activation/use

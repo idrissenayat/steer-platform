@@ -5982,3 +5982,37 @@ destination, history and save construction through this factory is next. Actual
 clock/records adoption, constrained late recovery, model/provider/write authority
 and signed-in I1–I6 acceptance remain open. No live runtime profile, credentials,
 signed documents, user-owned roadmap/outputs, deployment, deletion or gates change.
+
+## Development increment: 0272 — Concrete authenticated journey assembly
+
+The existing API composition root now constructs all 21 real journey services and
+internal publication recording. One records scope, shared scope/drafting budget,
+scope-profile digest, derived recorded-role profiles and publication item binding
+are validated. Current/historical scope and role verification, native corpus
+collection, new/existing destinations and draft/preview/confirmation dependencies
+are wired internally rather than supplied as an arbitrary service inventory.
+
+Fixed schedulers, pool/read-transport ownership and current policies remain explicit
+trusted ports. Initialization starts no workflow, model call, budget provision or
+Git write. Reverse-order cleanup and pinned resource shutdown are awaited once,
+including on construction failure. Existing architecture import boundaries remain
+unchanged; the corpus-review factory also closes its collector if child creation fails.
+
+The focused authenticated SQL runner preserves the inventory-only regression and
+adds the concrete factory. Exact encrypted draft recovery survives an unknown append
+acknowledgement and reconstruction; all four metadata discovery services read actual
+SQL. Native current Brief/Spec review verifies source bytes and denies after corpus
+permission loss. Four concrete-owned SQL pools close across the two instances.
+Final verification passes 34 focused tests, both joined SQL checks plus idempotent
+migration verification, all 1,325 broad regressions, prototype/eight-package types
+and the optimized Next build. The 95-artifact kit, read-only workflow scope audit,
+341 local documentation links and protected source hashes also pass.
+See [0272 specification](../intent/0272/SPEC.md), [evidence](../intent/0272/EVIDENCE.md)
+and [runtime guide](AUTHENTICATED-INTENT-RUNTIME.md) for final verification and limits.
+
+Next extend the recorded scope/drafting/Temporal package through this concrete
+authenticated factory, including confirmation, fixed save and exact reopen. These
+tests use synthetic identity, records and lifecycle authorities, not live approval.
+D1, actual clock provenance/late recovery, model/provider/write authority and
+signed-in I1–I6 remain open. Signed sources, user data/roadmap/outputs, credentials
+and real runtime configuration remain unchanged. No deployment, deletion or gate.

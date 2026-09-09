@@ -33,7 +33,19 @@ scope, choose what to do, answer only necessary questions, review and correct a
 Brief/Spec/Exam bundle, save it to the authorized repository and reopen it exactly.
 No separate local preview, synthetic success, silent merging or lost work counts.
 
-Latest checkpoint: **0271 adds managed journey ownership in the authenticated runtime**.
+Latest checkpoint: **0272 assembles the concrete authenticated journey services**.
+The API composition root constructs all 21 actual services plus internal publication
+recording, with shared scope/drafting budget, pinned profiles, native destination
+and internally wired current/historical verification. The joined authenticated
+SQL test adds four discovery services, native current Brief/Spec review and owned
+pool closure to exact draft recovery. See [runtime guide](AUTHENTICATED-INTENT-RUNTIME.md)
+and [0272 evidence](../intent/0272/EVIDENCE.md). Next extend the recorded
+scope/SDK/Temporal package through this concrete factory and identity root, including
+confirmation, fixed save and exact reopen. Current policies, clock/late recovery,
+D1, model/provider/write authority and signed-in I1–I6 remain open; no live profile
+is installed and source review is not a semantic verdict.
+
+0271 adds managed journey ownership in the authenticated runtime.
 The existing identity root now accepts a strict, explicitly authorized inventory
 of all 21 journey services, with pinned scopes, shared HTTP/MCP authorization and
 drain-before-close ownership. Encrypted draft create/append/read, lost-acknowledgement
@@ -292,6 +304,9 @@ and cancellation checks during scope/Temporal composition and live acceptance.
 | I5 Save and reopen | Recheck scope and duplicate-review revisions immediately before an atomic, idempotent bundle write. Concurrent new intents/changes cause re-review, not two creations. Use actual granted GitHub paths and expected-head checks; uncertain saves require status/readback. Reopen exact saved versions in the application. | Disabled planner/reader, collector, bundle store, durable dispatch, candidate-save Temporal, receipt reconciliation and encrypted immutable originals implemented (0205–0213); exact-reference read query/API/MCP and actual UI developed under synthetic authority (0252); original save-status API/MCP/UI and receipt-to-exact-reopen link (0253); final preserved-bundle review without generation or admission (0254); reproducible package preview with retained lineage and trusted destination/lifecycle evidence (0260); exact human confirmation, shared API/worker admission and immutable encrypted-original preservation/readback with same-command recovery in the actual UI (0261); explicit human reference-only save-start API/MCP/UI with fixed Temporal scheduling and original recovery (0262); exact-commit proposal discovery and explicit parent-bound selection in the actual package panel (0263). Native new/existing destination composition (0265–0268), joined new-distinct SQL/SDK/Temporal save and exact reopen (0269), and explicit verified-publication/retention connection with lost-ACK recovery (0270) are tested under synthetic authority. Governed startup, actual clock/records/lifecycle/full-corpus authority, constrained late recovery, quarantined-outcome resolution and live human acceptance remain incomplete |
 | I6 Human acceptance | In the real signed-in UI demonstrate new, exact duplicate, paraphrased duplicate, partial overlap, related-but-distinct, empty/failed/stale search, corrections, permission loss, cost exhaustion, uncertain save, concurrent creation, refresh/reopen and keyboard/narrow-screen behavior. Record real source and saved commit. | Pending |
 
+0272 supplies the concrete constructor graph for I1–I5 and authenticated SQL
+discovery/native source-review coverage. Full recorded generation/save composition
+through this root and all real-user acceptance cases remain incomplete.
 0271 advances the shared runtime dependency for I1–I5 and joins I4's encrypted
 draft recovery through authenticated identity/Git authorization. It does not close
 any row: complete concrete service construction and the signed-in acceptance

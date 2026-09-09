@@ -1344,3 +1344,33 @@ See [runtime guide](../AUTHENTICATED-INTENT-RUNTIME.md),
 [0271 specification](../../intent/0271/SPEC.md) and [evidence](../../intent/0271/EVIDENCE.md).
 The focused authenticated SQL test exercises only drafts; the complete concrete
 constructor bundle, actual policy/clock bindings and signed-in I1–I6 remain open.
+
+### Concrete authenticated service assembly — 0272
+
+The existing API composition root now constructs the entire 21-service inventory
+and internal publication recorder. All execution configurations share the exact
+records home; scope and drafting share one budget binding. The scope-profile digest
+and publication item scope are checked. Preserved architect/Test Agent profiles
+derive from the recorded SDK profiles used by current/historical verification.
+
+SQL drafts feed native corpus review and final package review. Repository evidence
+is collected internally for scope/assessed drafting preparation, never supplied
+as a constructor result. Current scope verification is wired into drafting and
+save review; retained scope verification feeds historical role lineage. Native
+new/existing destination composition feeds the previewer, which feeds confirmation.
+Fixed save start and original-bound status/reopen keep their separate authority.
+Publication recording remains internal and is not triggered by constructing or
+reading the bundle. No budget row, workflow, model call or Git save starts here.
+
+The authorized binding supplies owned pools/read transports and fixed scheduler
+ports plus current policy services. Cleanup is pinned, closes services in reverse
+order and awaits actual resource closure once, including on initialization failure.
+Real resource leases/I/O and worker lifetimes remain the supplied owner's duty.
+The managed identity root continues to drain requests before invoking this cleanup.
+
+The two-check focused SQL runner preserves 0271's inventory regression and adds
+the concrete factory, four discovery reads, native current Brief/Spec source review
+and real pool closure. Signed identities and policy/source-selection authority are
+synthetic; source review explicitly remains non-semantic. See [0272 evidence](../../intent/0272/EVIDENCE.md)
+and [runtime guide](../AUTHENTICATED-INTENT-RUNTIME.md). Full recorded generation/
+save/reopen through this factory, real bindings and signed-in I1–I6 remain open.

@@ -1,4 +1,11 @@
 import { z } from 'zod';
+import { createIntentDraftService } from '@steer/data/intent-draft-service';
+import { createIntentAdmissionDiscovery } from '@steer/data/intent-admission-discovery';
+import { developmentOriginalSchema, developmentOriginalHash as hash, freezeOriginal as freeze } from '@steer/data/development-original-contracts';
+import { createCandidateSaveDestination } from '@steer/adapters/candidate-save-destination';
+import { createCandidateProposalReader } from '@steer/adapters/candidate-proposal-reader';
+import { RECORDED_MASTRA_REVISION, recordedRoleRequestSchema } from '@steer/agents/recorded-mastra';
+import { createVerifiedCandidateBundleReader } from './candidate-reader.ts';
 import { manageIntentJourney, type ManagedRuntimeIntentJourney, type IntentJourneyConfiguration } from './intent-journey-services.ts';
 import { candidateSaveStatusScopeSchema } from '@steer/tool-registry/candidate-save-status-contracts';
 import { createCandidateSavePreviewer } from '@steer/data/candidate-save-previewer';
@@ -197,9 +204,11 @@ export function createCorpusRecordedDevelopmentReviewer(reader: Parameters<typeo
   retrievalConfigurationRevision: string, dependencies: Omit<Parameters<typeof createIntentDevelopmentReviewer>[1], 'evidenceFor'> & { authority: IntentCorpusAuthority }) {
   const config = draftRecordsConfigurationSchema.parse(configuration), { organizationId, productId, repository, branch } = config;
   const corpus = createIntentCorpusEvidence(reader, { organizationId, productId, repository, branch, retrievalConfigurationRevision }, dependencies.authority);
-  const reviewer = createIntentDevelopmentReviewer(config, { drafts: dependencies.drafts, authorizeReview: dependencies.authorizeReview,
-    evidenceFor: async (input, current) => (await corpus.collect({ organizationId, productId, repository, branch, scopeInputDigest: input.scopeInputDigest }, current)).evidence });
-  return { scope: reviewer.scope, review: reviewer.review, close() { reviewer.close(); corpus.close(); } };
+  try {
+    const reviewer = createIntentDevelopmentReviewer(config, { drafts: dependencies.drafts, authorizeReview: dependencies.authorizeReview,
+      evidenceFor: async (input, current) => (await corpus.collect({ organizationId, productId, repository, branch, scopeInputDigest: input.scopeInputDigest }, current)).evidence });
+    return { scope: reviewer.scope, review: reviewer.review, close() { reviewer.close(); corpus.close(); } };
+  } catch (error) { corpus.close(); throw error; }
 }
 /** Owner-bound discovery is metadata only and remains uninstalled by default. */
 export function createRecordedScopeDiscovery(pool: Parameters<typeof createIntentScopeDiscovery>[0], configuration: unknown,
@@ -613,3 +622,177 @@ export { createIntentAdmissionDiscovery as createRecordedAdmissionDiscovery } fr
 export { createNewCandidateSaveDestination as createVerifiedNewCandidateDestination } from '@steer/adapters/new-candidate-destination';
 export { createExistingCandidateSaveDestination as createVerifiedExistingCandidateDestination } from '@steer/adapters/existing-candidate-destination';
 export { createCandidateSaveDestination as createVerifiedCandidateSaveDestination } from '@steer/adapters/candidate-save-destination';
+
+const roleProfile = recordedRoleRequestSchema.omit({ runtimeRevision: true, source: true, outputContract: true }).extend({
+  allowedResponseModels: z.array(recordedRoleRequestSchema.shape.modelRoute).min(1).max(20).refine(v => new Set(v).size === v.length),
+});
+export const intentJourneyFactoryConfigurationSchema = z.strictObject({
+  scope: scopeReviewConfigurationSchema,
+  development: intentOperationConfigurationSchema,
+  candidate: intentOperationConfigurationSchema,
+  scopeProfile: scopeReviewProfileSchema,
+  developmentProfiles: z.strictObject({ architect: roleProfile, testAgent: roleProfile }),
+  retrievalConfigurationRevision: z.string().min(1).max(100),
+  publication: candidateBundleStoreConfigurationSchema,
+});
+type ScopeRecords = Parameters<typeof createVerifiedScopeReviewReader>[2]['records'];
+type ScopeHistory = Parameters<typeof createVerifiedScopeReviewHistoryReader>[2]['records'];
+type DevelopmentRecords = Parameters<typeof createVerifiedDevelopmentReader>[2]['records'];
+type DevelopmentOriginals = Omit<DevelopmentRecords['originals'], 'scopeReview' | 'scopeHistory'>;
+type DevelopmentHistory = Parameters<typeof createVerifiedDevelopmentHistoryReader>[2]['records'];
+
+/** Owned transports/pools are created by the authorized runtime binding, not by
+ * browser input. shutdown must drain their actual leases and pending I/O. This
+ * factory takes ownership on entry when a valid shutdown method is present. */
+export interface IntentJourneyFactoryDependencies {
+  resources: {
+    pools: Parameters<typeof createRecordedScopeStarter>[0];
+    reader: Parameters<typeof createCandidateSaveDestination>[0] & Parameters<typeof createCandidateProposalReader>[0];
+    shutdown(): Promise<void>;
+  };
+  drafts: Parameters<typeof createIntentDraftService>[2];
+  discovery: {
+    drafts: Parameters<typeof createRecordedDraftDiscovery>[2];
+    runs: Parameters<typeof createRecordedRunDiscovery>[2];
+    scopes: Parameters<typeof createRecordedScopeDiscovery>[2];
+    admissions: Parameters<typeof createIntentAdmissionDiscovery>[2];
+  };
+  corpus: Parameters<typeof createIntentCorpusEvidence>[2];
+  scope: {
+    records: ScopeRecords;
+    history: ScopeHistory;
+    authorizePreparation: Parameters<typeof createCorpusRecordedScopePreparer>[5]['authorizePreparation'];
+    scheduler: Parameters<typeof createRecordedScopeStarter>[2]['scheduler'];
+    authorizeStart: Parameters<typeof createRecordedScopeStarter>[2]['authorizeStart'];
+  };
+  development: {
+    records: Omit<DevelopmentRecords, 'originals'> & { originals: DevelopmentOriginals };
+    history: Omit<DevelopmentHistory, 'originals'> & { originals: DevelopmentOriginals };
+    authorizeReview: Parameters<typeof createCorpusRecordedDevelopmentReviewer>[3]['authorizeReview'];
+    authorizePreparation: Parameters<typeof createAssessedRecordedDevelopmentPreparer>[3]['authorizePreparation'];
+    scheduler: Parameters<typeof createRecordedDevelopmentStarter>[2]['scheduler'];
+    authorizeStart: Parameters<typeof createRecordedDevelopmentStarter>[2]['authorizeStart'];
+  };
+  candidate: {
+    destination: Parameters<typeof createCandidateSaveDestination>[2];
+    authorizeReview: Parameters<typeof createRecordedCandidateSaveReviewer>[1]['authorizeReview'];
+    authorizePreview: Parameters<typeof createRecordedCandidateSavePreviewer>[2]['authorizePreview'];
+    confirmation: Omit<Parameters<typeof createRecordedCandidateSavePreparer>[4], 'drafts' | 'previewer'>;
+    start: Omit<Parameters<typeof createRecordedCandidateSaveStarter>[4], 'drafts'>;
+    status: Parameters<typeof createRecordedCandidateSaveStatusReader>[4];
+    publication: Pick<Parameters<typeof createRecordedCandidatePublicationRecorder>[4], 'authorizeRecord' | 'verifyPublicationClock'>;
+    authorizeRead: Parameters<typeof createVerifiedCandidateBundleReader>[2];
+    authorizeProposals: Parameters<typeof createCandidateProposalReader>[2];
+  };
+}
+const fail = () => new Error('Intent journey construction is unavailable.');
+
+/** Concrete constructor graph for the governed identity runtime. No mock service
+ * inventory, caller-supplied evidence/results, model transport, migration, budget
+ * provision, Git writer or environment fallback. All policies remain required. */
+export async function createOwnedIntentJourney(expected: IntentJourneyConfiguration, raw: unknown,
+  deps: IntentJourneyFactoryDependencies): Promise<ManagedRuntimeIntentJourney> {
+  if (typeof deps.resources?.shutdown !== 'function') throw fail();
+  const resources = deps.resources, owned: Array<{ close(): void }> = [];
+  const stopResources = resources.shutdown.bind(resources);
+  let stopped: Promise<void> | undefined;
+  const shutdown = () => stopped ??= (async () => {
+    let failed = false;
+    for (const service of [...owned].reverse()) try { service.close(); } catch { failed = true; }
+    try { await stopResources(); } catch { failed = true; }
+    if (failed) throw new Error('Intent journey construction cleanup failed.');
+  })();
+  const own = <T extends { close(): void }>(service: T): T => { owned.push(service); return service; };
+  try {
+    if ([resources.pools?.drafts?.connect, resources.pools?.execution?.connect, resources.reader?.readHead,
+      resources.reader?.readArtifact, resources.reader?.readInventory, resources.reader?.readScopeInventory,
+      resources.reader?.readDirectoryInventory].some(v => typeof v !== 'function')
+      || resources.pools.drafts === resources.pools.execution) throw fail();
+    const { itemIds, ...rawRecords } = expected;
+    const records = freeze(draftRecordsConfigurationSchema.parse(rawRecords));
+    const config = freeze(intentJourneyFactoryConfigurationSchema.parse(raw));
+    const binding = resources.reader.binding;
+    const publication = describeCandidatePublication(binding, config.publication);
+    for (const execution of [config.scope, config.development, config.candidate])
+      if ((Object.keys(records) as Array<keyof typeof records>).some(k => execution[k] !== records[k])) throw fail();
+    if (config.development.action !== 'develop' || config.candidate.action !== 'candidate-save' || config.candidate.budget !== null
+      || hash(config.scope.budget) !== hash(config.development.budget)
+      || config.scope.scopeTerms.profileDigest !== hash(['steer-scope-review-profile/v1', config.scopeProfile])
+      || (['organizationId', 'productId', 'repository', 'branch'] as const).some(k => publication.configuration[k] !== records[k])
+      || !Array.isArray(itemIds) || new Set(itemIds).size !== itemIds.length
+      || itemIds.length !== config.publication.itemIds.length || itemIds.some(id => !config.publication.itemIds.includes(id))) throw fail();
+    const configuration = freeze({ ...records, itemIds: [...itemIds] });
+    const pools = resources.pools, { organizationId, subject, productId, repository, branch } = records;
+    const candidateScope = { organizationId, subject, productId, repository, branch, itemIds: [...itemIds] };
+    const scopeBindings = { records: deps.scope.records, profile: config.scopeProfile };
+    const scopeReader = own(createVerifiedScopeReviewReader(pools, records, scopeBindings));
+    const scopeHistory = own(createVerifiedScopeReviewHistoryReader(pools, records, { records: deps.scope.history, profile: config.scopeProfile }));
+    const originalRecords = { ...deps.development.records.originals, scopeReview: scopeReader, scopeHistory };
+    const historicalOriginals = { ...deps.development.history.originals, scopeReview: scopeReader, scopeHistory };
+    const developmentRecords = { ...deps.development.records, originals: originalRecords };
+    const historyRecords = { ...deps.development.history, originals: historicalOriginals };
+    const drafts = own(createIntentDraftService(pools.drafts, records, deps.drafts));
+    const sourceReview = own(createCorpusRecordedDevelopmentReviewer(resources.reader, records, config.retrievalConfigurationRevision,
+      { drafts, authority: deps.corpus, authorizeReview: deps.development.authorizeReview }));
+    const corpus = own(createIntentCorpusEvidence(resources.reader, { organizationId, productId, repository, branch,
+      retrievalConfigurationRevision: config.retrievalConfigurationRevision }, deps.corpus));
+    // Derive preserved role profiles from the same allowlisted SDK profiles used
+    // by current and historical readers. There is no independently mutable copy.
+    const sourceProfile = (profile: z.infer<typeof roleProfile>) => ({ configurationRevision: profile.profileRevision,
+      runtimeRevision: RECORDED_MASTRA_REVISION, modelRoute: profile.modelRoute, maxOutputTokens: profile.maxOutputTokens, instructions: profile.instructions });
+    const profiles = developmentOriginalSchema.shape.profiles.parse({ architect: sourceProfile(config.developmentProfiles.architect),
+      testAgent: sourceProfile(config.developmentProfiles.testAgent) });
+    const developmentHistory = own(createVerifiedDevelopmentHistoryReader(pools, records,
+      { records: historyRecords, profiles: config.developmentProfiles }));
+    const review = own(createRecordedCandidateSaveReviewer(records, { drafts, sources: sourceReview,
+      scopeReview: scopeReader, authorizeReview: deps.candidate.authorizeReview }));
+    const destination = own(createCandidateSaveDestination(resources.reader,
+      { ...candidateScope, configurationRevision: records.configurationRevision }, deps.candidate.destination));
+    const previewer = own(createRecordedCandidateSavePreviewer(pools, { ...records, serviceCommitter: config.publication.serviceCommitter },
+      { drafts, review, history: developmentHistory, originals: historicalOriginals, destination, authorizePreview: deps.candidate.authorizePreview }));
+    const candidateConfiguration = { records, execution: config.candidate };
+    const services = {
+      intentDrafts: drafts,
+      intentDraftDiscovery: own(createRecordedDraftDiscovery(pools.drafts, records, deps.discovery.drafts)),
+      intentRunDiscovery: own(createRecordedRunDiscovery(pools.drafts, records, deps.discovery.runs)),
+      intentAdmissionDiscovery: own(createIntentAdmissionDiscovery(pools, { records, executions: [
+        { kind: 'scope', configuration: config.scope }, { kind: 'development', configuration: config.development },
+      ] }, deps.discovery.admissions)),
+      intentScopeDiscovery: own(createRecordedScopeDiscovery(pools.drafts, records, deps.discovery.scopes)),
+      intentScopePreparer: own(createCorpusRecordedScopePreparer(resources.reader, pools, config.scope, config.scopeProfile,
+        config.retrievalConfigurationRevision, { records: deps.scope.records.originals, authority: deps.corpus,
+          authorizePreparation: deps.scope.authorizePreparation })),
+      intentScopeStarter: own(createRecordedScopeStarter(pools, records, { records: deps.scope.records.originals,
+        scheduler: deps.scope.scheduler, authorizeStart: deps.scope.authorizeStart })),
+      intentScopeReader: scopeReader, intentScopeHistoryReader: scopeHistory,
+      intentDevelopmentReviewReader: sourceReview,
+      intentDevelopmentPreparer: own(createAssessedRecordedDevelopmentPreparer(pools, config.development, profiles, {
+        records: originalRecords, scope: scopeBindings, authorizePreparation: deps.development.authorizePreparation,
+        evidenceFor: async (input, current) => (await corpus.collect({ organizationId, productId, repository, branch,
+          scopeInputDigest: input.scopeInputDigest }, current)).evidence,
+      })),
+      intentDevelopmentStarter: own(createRecordedDevelopmentStarter(pools, records, { records: originalRecords,
+        scheduler: deps.development.scheduler, authorizeStart: deps.development.authorizeStart })),
+      intentDevelopmentReader: own(createVerifiedDevelopmentReader(pools, records, { records: developmentRecords, profiles: config.developmentProfiles })),
+      intentDevelopmentHistoryReader: developmentHistory,
+      candidateSaveReviewer: review, candidateSavePreviewer: previewer,
+      candidateSavePreparer: own(createRecordedCandidateSavePreparer(pools, binding, candidateConfiguration, config.publication,
+        { ...deps.candidate.confirmation, drafts, previewer })),
+      candidateSaveStarter: own(createRecordedCandidateSaveStarter(pools, binding, candidateConfiguration, config.publication,
+        { ...deps.candidate.start, drafts })),
+      candidateSaveStatusReader: own(createRecordedCandidateSaveStatusReader(pools.drafts, binding, records, config.publication, deps.candidate.status)),
+      candidateBundleReader: own(createVerifiedCandidateBundleReader(resources.reader, candidateScope, deps.candidate.authorizeRead)),
+      candidateProposalReader: own(createCandidateProposalReader(resources.reader, candidateScope, deps.candidate.authorizeProposals)),
+    };
+    const publicationRecords = own(createRecordedCandidatePublicationRecorder(pools.drafts, binding, records, config.publication,
+      { ...deps.candidate.status, ...deps.candidate.publication }));
+    const result = { configuration, services, publicationRecords, shutdown } satisfies ManagedRuntimeIntentJourney;
+    // Validate the concrete inventory before transferring it. No wrapper method
+    // is invoked here; the identity root supplies actual activate/use authority.
+    manageIntentJourney(configuration, result, async () => { throw fail(); });
+    return result;
+  } catch {
+    try { await shutdown(); } catch { throw new Error('Intent journey construction cleanup failed.'); }
+    throw fail();
+  }
+}

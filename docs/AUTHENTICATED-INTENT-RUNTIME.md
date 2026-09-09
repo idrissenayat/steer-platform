@@ -58,6 +58,46 @@ records transition and its recovery path.
 
 ## Evidence and remaining work
 
+### Concrete constructor graph — 0272
+
+The existing API composition root now exports `createOwnedIntentJourney`. The
+authorized identity binding can call it from `createIntentJourney`; it does not
+register itself or change the real runtime profile. Unlike a caller-built service
+inventory, this factory constructs all 21 production implementations and internal
+publication recording. Storage/SDK/configuration imports stay confined to the
+existing composition root; no architecture exception is added.
+
+Its fixed configuration includes scope/development/candidate execution bindings,
+scope and recorded-role profiles, retrieval revision and publication binding.
+Every records coordinate must match. Scope and drafting share one exact budget;
+the scope-profile digest, candidate action/null budget, publication home and item
+allowlist must agree. Preserved architect/Test Agent profiles derive from the same
+SDK profiles used by current and historical verification. No budget is provisioned.
+
+Owned SQL drafts feed current source review and save. Native corpus collection
+feeds scope and assessed drafting preparation. Current scope verification feeds
+assessed drafting and final edited-package review; historical scope verification
+feeds retained role lineage. Package preview uses those actual history readers and
+native new/existing destination resolvers. Confirmation, start, status and internal
+records share publication configuration; exact bundle/proposal readers are owned.
+Caller-supplied service, evidence, lineage and destination result overrides are
+not factory inputs. This wiring cannot substitute for current policy evidence.
+
+The operator supplies owned read transport, separate execution/draft pools and
+fixed scheduler ports plus all required policies. With valid cleanup present,
+their resource ownership transfers on factory entry, including failure. Services
+close in reverse dependency order and the pinned resource cleanup is awaited once;
+that owner must drain actual leases/I/O and own scheduler lifetimes. The identity
+manager drains requests before invoking this cleanup. No worker starts at creation.
+
+See [0272 evidence](../intent/0272/EVIDENCE.md). The concrete-factory SQL test adds
+all four metadata discovery reads, native current Brief/Spec review and real pool
+closure to authenticated lost-acknowledgement draft recovery. Unexercised policy
+ports deny. This is not semantic model quality, the complete generation/save
+journey, actual OIDC-provider acceptance or a signed-in UI result.
+
+### Earlier inventory-boundary evidence — 0271
+
 See [0271 evidence](../intent/0271/EVIDENCE.md). The focused integration joins
 signed synthetic human JWTs, current native Git authorization commits and actual
 encrypted PostgreSQL draft create/append/read through the production identity
@@ -70,9 +110,9 @@ scope/authority failures and resource drainage. These results do not demonstrate
 the complete constructor bundle, cookie-login UI, real provider/model behavior,
 semantic quality, all destination save cases or signed-in I1–I6 acceptance.
 
-Next assemble the remaining real constructors and owned worker/history/destination
-dependencies through this factory, then extend the already joined recorded package
-journey through the authenticated composition. Actual clock provenance and late
+0272 assembles the constructor graph described above. Next extend the already
+joined recorded package/worker journey through this concrete authenticated
+composition and complete its governed bindings. Actual clock provenance and late
 recovery, D1 adoption, model spending, runtime GitHub write authority and real-user
 acceptance remain separate prerequisites. No real profile, secrets or grants are
 changed by this increment.

@@ -32,11 +32,13 @@ HTTP reopen, including lost acknowledgements without a second send. 0270 adds th
 explicit publication-to-lifecycle recorder with mandatory stable clock and records
 authority. 0271 adds the strict managed inventory/ownership boundary to the actual
 identity root and joins authenticated encrypted draft recovery through it.
-Next assemble the remaining concrete scope, recorded drafting, destination,
-history and save constructors through that boundary, then extend the joined
-package journey through the authenticated runtime. This is not yet the full
-factory, signed-in UI acceptance or live activation.
-See [runtime guide](AUTHENTICATED-INTENT-RUNTIME.md), [0271 evidence](../intent/0271/EVIDENCE.md),
+0272 now assembles all actual service constructors through that boundary and joins
+four SQL discovery services/native current source review to authenticated recovery.
+Next extend the joined recorded scope/drafting/Temporal package, confirmation,
+save and exact reopen through this concrete authenticated factory. The full API
+constructor graph exists; governed worker/resource/policy bindings and signed-in
+UI acceptance/live activation remain outstanding.
+See [runtime guide](AUTHENTICATED-INTENT-RUNTIME.md), [0272 evidence](../intent/0272/EVIDENCE.md), [0271 evidence](../intent/0271/EVIDENCE.md),
 [0270 evidence](../intent/0270/EVIDENCE.md), [0269 evidence](../intent/0269/EVIDENCE.md),
 [0268 evidence](../intent/0268/EVIDENCE.md), [existing-item destination](EXISTING-CANDIDATE-DESTINATION.md)
 and [new-candidate destination](NEW-CANDIDATE-DESTINATION.md). Actual records adoption,
