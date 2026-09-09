@@ -5590,3 +5590,29 @@ saved-repository acceptance remain open. No backend activation, live migration,
 credential inspection, paid calls, runtime Git write, gate, auth bypass, deployment
 or release. User-owned roadmap/outputs remain untouched; the one-minute loop stays
 active.
+
+## Development increment: 0258 — Original agent documents beside human edits
+
+The combined history reader verifies both completed recorded-SDK roles, their
+exact predecessor linkage and unchanged source/operation snapshots under present
+identity, records, source and key authority. Final readback rechecks earlier roles
+after the last SDK verifier; deterministic verification memoization is local to
+one read and never caches an authority decision.
+
+The new human-only `intent.development.history` query is shared by HTTP/MCP and
+the actual Next editor. The explicit read-only panel shows original Brief/Spec/
+Exam alongside a selected preserved editor snapshot, labels missing/expired/
+uncertain work, and clears private output on context loss. It has no replacement,
+generation, retry or save action. No raw prompts/transcripts enter its public DTO.
+
+See [0258 evidence](../intent/0258/EVIDENCE.md) and [the comparison guide](GENERATION-HISTORY-COMPARISON.md).
+Final **1,185/1,185 regressions** and **351/351 PostgreSQL 16.14 checks** pass.
+Nine focused history SQL/SDK checks plus idempotent migration, types, optimized
+Next build, kit and workflow token-scope audit pass. All 226 checked local document
+links resolve and protected hashes are unchanged. Actual browser inspection timed
+out before returning UI state; synthetic UI tests do not claim live visual or
+signed-in acceptance. All-revision/orphan discovery, immutable save
+preparation/confirmation/start, real records/model authority and live signed-in
+saved-repository acceptance remain open. No credential inspection, paid call,
+runtime Git save, live migration, gate, auth bypass, release or deployment. The
+one-minute loop remains active; user-owned roadmap/outputs are untouched.

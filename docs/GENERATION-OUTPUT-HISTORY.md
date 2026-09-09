@@ -63,15 +63,15 @@ now completes both recorded roles and recovers their assessed outputs after edit
 
 ## Remaining journey
 
-This is per-role verification. A combined human-facing lineage service still
-needs to verify every required role and its exact predecessor relationship under
-one coherent snapshot; a lone Test Agent read is not proof of a complete bundle's
-provenance. Actual provider provenance and semantic/Exam acceptance are separate
+0258 now adds [combined human-facing history](GENERATION-HISTORY-COMPARISON.md),
+verifying every completed role and its exact predecessor under one unchanged
+source/operation snapshot. A lone Test Agent read remains insufficient proof of a
+complete bundle's provenance. Actual provider provenance and semantic/Exam acceptance are separate
 from verifying a retained SDK transcript. Later human edits are not agent-authored
 merely because an original exists.
 
-Next compose bounded, owner-authorized output projection, safe historical/current
-comparison in the actual editor and all-revision discovery. Then bind that lineage
+The bounded projection and read-only actual-editor comparison are implemented;
+all-revision/orphan discovery remains. Then bind that lineage
 into immutable final-save preparation, human confirmation, authorized start and
 exact reopen. D1, live authority/model spending and I1–I6 acceptance remain open.
 

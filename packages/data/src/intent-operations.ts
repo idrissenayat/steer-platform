@@ -372,3 +372,54 @@ export function createHistoricalDevelopmentStepReader(pool: DatabasePool, origin
   const reader = createDevelopmentStepHistoryReader(pool, originalConfiguration, dependencies, false);
   return { async inspectHistorical(raw: unknown) { return freeze({ ...await reader.inspect(raw), historical: true as const }); }, close: reader.close };
 }
+
+/** One read-only snapshot of all retained roles, including absent/pending roles.
+ * Separate present history authority is required; no old execution grant, SQL
+ * write, ownership or continuation method is available. */
+export function createHistoricalDevelopmentOperationReader(pool:DatabasePool,originalConfiguration:unknown,dependencies:{
+  authorize:(context:Readonly<{configuration:Configuration;request:z.infer<typeof reference>}>)=>Promise<void>;
+}){
+  const config=freeze(configuration.parse(originalConfiguration)),configurationDigest=createHash('sha256').update(json(config)).digest('hex');
+  if(config.action!=='develop'||typeof dependencies.authorize!=='function')throw new Unavailable();
+  let closed=false,active=false,pending=0;
+  const bounded=async<T>(work:Promise<T>):Promise<T>=>{
+    pending++;void work.finally(()=>{pending--;}).catch(()=>{});let timer:ReturnType<typeof setTimeout>|undefined;
+    try{return await Promise.race([work,new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(new Unavailable()),5000);})]);}
+    finally{if(timer)clearTimeout(timer);}
+  };
+  return{
+    async inspectHistory(raw:unknown){
+      if(closed||active||pending)throw new Unavailable();active=true;
+      let client:PoolClient|undefined,finished=false,broken=false;
+      try{
+        const request=freeze(reference.parse(raw));
+        const authorize=async()=>{if(closed||await bounded(dependencies.authorize(freeze({configuration:config,request})))!==undefined||closed)throw new Unavailable();};
+        await authorize();client=await bounded(pool.connect().then(c=>{if(finished||closed){c.release(true);throw new Unavailable();}return c;}));
+        if(!client)throw new Unavailable();
+        await applyRuntimeQueryLimits(client);await client.query(clearScope);await client.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');
+        const role=(await client.query(`SELECT r.rolname,session_user AS login_role,r.rolsuper,r.rolbypassrls,
+          EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+            WHERE n.nspname IN ('steer_execution','steer_usage') AND c.relowner=r.oid) AS owns_objects
+          FROM pg_roles r WHERE r.rolname=current_user`)).rows[0];
+        if(!role||role.rolname!=='steer_app'||role.login_role!=='steer_app'||role.rolsuper||role.rolbypassrls||role.owns_objects)throw new Unavailable();
+        await client.query("SELECT set_config('steer.execution_organization',$1,true),set_config('steer.execution_subject',$2,true)",[config.organizationId,config.subject]);
+        const row=(await client.query(`SELECT *,floor(extract(epoch FROM clock_timestamp())*1000)::bigint AS clock_ms
+          FROM steer_execution.intent_operations WHERE organization_id=$1 AND operation_id=$2 AND subject=$3`,[config.organizationId,request.operationId,config.subject])).rows[0];
+        if(!row||row.action!=='develop'||row.configuration_revision!==config.configurationRevision||row.expires_at.getTime()!==Date.parse(config.expiresAt))throw new Unavailable();
+        const binding=operationBinding.parse(row.binding);
+        if(binding.configurationDigest!==configurationDigest||binding.inputDigest!==request.inputDigest||binding.draftId!==row.draft_id||binding.draftRevision!==Number(row.draft_revision))throw new Unavailable();
+        const operation={...binding,operationId:request.operationId};
+        const rows=(await client.query('SELECT * FROM steer_execution.intent_steps WHERE organization_id=$1 AND operation_id=$2 AND subject=$3',[config.organizationId,request.operationId,config.subject])).rows;
+        if(rows.length>2||new Set(rows.map(r=>r.step_id)).size!==rows.length||rows.some(r=>!['architect','test-agent'].includes(r.step_id)))throw new Unavailable();
+        const steps:Step[]=[];
+        for(const role of ['architect','test-agent'] as const){const row=rows.find(r=>r.step_id===role);if(row){const step=storedStep(row,config,operation,role);if(!step)throw new Unavailable();steps.push(step);}}
+        if(closed)throw new Unavailable();await client.query('COMMIT');await client.query(clearScope);client.release();client=undefined;
+        await authorize();return freeze({operation,steps,operationExpired:Number(row.clock_ms)>=row.expires_at.getTime(),historical:true as const,dispatchAllowed:false as const});
+      }catch{
+        if(client)try{await client.query('ROLLBACK');await client.query(clearScope);}catch{broken=true;}
+        throw new Unavailable();
+      }finally{finished=true;client?.release(broken);active=false;}
+    },
+    close(){closed=true;},
+  };
+}

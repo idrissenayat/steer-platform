@@ -1,11 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createExpiredDevelopmentStepReader, createHistoricalDevelopmentStepReader } from '../src/intent-operations.ts';
+import { createExpiredDevelopmentStepReader, createHistoricalDevelopmentStepReader,createHistoricalDevelopmentOperationReader } from '../src/intent-operations.ts';
 const config={ organizationId:'org',subject:'human',productId:'product',repository:'github:52',branch:'codex/synthetic',action:'develop',
   configurationRevision:'r1',recordsPolicyDigest:'a'.repeat(64),expiresAt:'2026-09-08T00:00:00.000Z',
   budget:{ organizationId:'org',subject:'human',configurationRevision:'r1',budgetId:'00000000-0000-4000-8000-000000000218',
     approvalDigest:'b'.repeat(64),capMicrousd:5,architectMicrousd:3,testAgentMicrousd:2 } };
 const target={ operationId:'00000000-0000-4000-8000-000000000219',inputDigest:'c'.repeat(64),stepId:'architect' };
+test('combined historical metadata exposes one inspect-only snapshot and rejects caller roles and nonvoid authority before SQL',async()=>{
+  let sql=0,calls=0;const reader=createHistoricalDevelopmentOperationReader({connect:async()=>{sql++;throw new Error('No SQL');}},config,{authorize:async()=>{calls++;return true as any;}});
+  assert.deepEqual(Object.keys(reader),['inspectHistory','close']);await assert.rejects(reader.inspectHistory(target));assert.equal(calls,0);
+  const {stepId:_role,...input}=target;await assert.rejects(reader.inspectHistory(input));assert.equal(calls,1);assert.equal(sql,0);reader.close();
+});
 test('retained step history has a separate inspect-only surface with current authority and strict target validation',async()=>{
   let connections=0,calls=0;const reader=createHistoricalDevelopmentStepReader({connect:async()=>{connections++;throw new Error('Private SQL');}},config,
     {authorize:async()=>{calls++;return true as any;}});

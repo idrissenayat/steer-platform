@@ -1031,3 +1031,25 @@ verified source context without recursive source-graph reconstruction. Both requ
 key checks, read permission, ciphertext/lifecycle checks and caller final context
 revalidation remain. Deadlines are unchanged. See [the guide](../GENERATION-OUTPUT-HISTORY.md)
 and [0257 specification](../../intent/0257/SPEC.md).
+
+## Combined historical documents and read-only human comparison — 0258
+
+`intent.development.history` is a separate current-human query, not a current
+development result, candidate-save preparation or execution grant. Every completed
+role's recorded SDK exchange and exact predecessor result must be verified. One
+read-only operation snapshot and final source/latest-revision and role snapshots
+prevent mixing states while work completes or a person edits.
+
+Final readback verifies both roles' current records/source/key permissions after
+all SDK callbacks. Only exact deterministic SDK verification is memoized within
+one read; authorization and content are never cached across calls. Unknown,
+failed or missing roles remain explicit and cannot provide a completed pair.
+
+The public projection contains parsed document output and inert digests, never raw
+SDK bodies, source/profile packets, keys or continuation checkpoints. The actual
+editor can compare original documents with its selected preserved snapshot but
+cannot adopt, generate, retry or save through this view. Context/identity/expiry/
+visibility changes clear private data and invalidate delayed responses. All-revision
+discovery, immutable final save and actual human/provider acceptance remain open.
+See [the comparison guide](../GENERATION-HISTORY-COMPARISON.md) and
+[0258 specification](../../intent/0258/SPEC.md).

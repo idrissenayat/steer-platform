@@ -3,7 +3,10 @@ import {randomUUID} from 'node:crypto';
 import {setTimeout as delay} from 'node:timers/promises';
 import type {Pool} from 'pg';
 import type {DevelopmentReadFixture as Fixture} from './intent-development-read.integration.ts';
-import {createVerifiedDevelopmentHistoryExchangeReader} from '../src/runtime.ts';
+import {createVerifiedDevelopmentHistoryExchangeReader,createVerifiedDevelopmentHistoryReader} from '../src/runtime.ts';
+import {createApi} from '../src/app.ts';
+import {createIntentDevelopmentHistoryReader} from '@steer/data/intent-development-history-reader';
+import {createRecordedMastraVerifier,type RecordedRequest,type RecordedResponse} from '@steer/agents/recorded-mastra';
 import {createDevelopmentStepRuntime} from '../../worker/src/development-step-runtime.ts';
 import {createDevelopmentObservationStore} from '@steer/data/development-observations';
 import {createDevelopmentOriginalStore} from '@steer/data/development-originals';
@@ -86,5 +89,62 @@ export async function testDevelopmentHistory(setup:(ttl?:number)=>Promise<Fixtur
       try{await assert.rejects(store.readHistoricalExchange({...f.target,stepId:'architect'}),{message:'Draft storage is unavailable.'});}finally{store.close();}
     }
     assert.deepEqual(await snapshot(f),before);
+  });
+  const historyApi=(f:Fixture,records=historyRecords(f))=>{
+    const reader=createVerifiedDevelopmentHistoryReader(f.pools,f.config,{records,profiles:f.gatewayProfiles});
+    const principal={subject:f.config.subject,organizationId:f.config.organizationId,type:'human',hats:[],toolGrants:['intent.development.history'],expiresAt:new Date(Date.now()+300000).toISOString()};
+    const app=createApi({authenticate:async()=>principal,services:{intentDevelopmentHistoryReader:reader}});
+    const input={organizationId:f.config.organizationId,productId:f.config.productId,repository:f.config.repository,...f.target};
+    return{reader,principal,post:(patch={})=>app.request('/v1/tools/intent.development.history',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...input,...patch})})};
+  };
+  await check('historical development combined HTTP projects pending, partial and linked complete documents without private wire or SQL effects',async()=>{
+    const f=await setup(30000),api=historyApi(f);
+    try{
+      for(const [role,status] of [[null,'pending'],['architect','partial'],['test-agent','complete']] as const){
+        if(role)assert.equal((await run(f,role)).outcome,'succeeded');const before=await snapshot(f),response=await api.post();
+        assert.equal(response.status,200);assert.equal(response.headers.get('cache-control'),'no-store');const result=await response.json();
+        assert.equal(result.status,status);assert.deepEqual(await snapshot(f),before);
+        assert.equal(result.historical,true);assert.equal(result.executionAuthorized,false);assert.equal(result.semanticQualityVerified,false);
+        for(const marker of ['requestBody','responseBody','rendered','modelRoute','instructions','fencingToken','checkpoint','originalText'])assert.equal(JSON.stringify(result).includes(marker),false,marker);
+      }
+      assert.equal((await f.drafts.append({draftId:f.draftId,mutationId:randomUUID(),expectedRevision:1,expectedDigest:f.saved.reference.revisionDigest,
+        content:{...f.content,originalText:'Later human correction',documents:{brief:'Human Brief',spec:'Human Spec',exam:'Human Exam'}}})).outcome,'acknowledged');
+      await delay(Math.max(0,Date.parse(f.execution.expiresAt)-Date.now()+50));
+      const before=await snapshot(f),response=await api.post();assert.equal(response.status,200);const result=await response.json();
+      assert.equal(result.operationExpired,true);assert.equal(result.source.latestRevision,2);assert.equal(result.status,'complete');
+      assert.deepEqual(result.results.map((r:any)=>r.result),[{role:'architect',output:captured.architect},{role:'test-agent',output:captured.testAgent}]);
+      assert.equal(result.results[1].predecessorResultDigest,result.results[0].resultDigest);assert.deepEqual(await snapshot(f),before);
+      for(const patch of [{productId:'foreign'},{operationId:randomUUID()},{requestBody:'PRIVATE'}])assert.notEqual((await api.post(patch)).status,200);
+      api.principal.toolGrants=['intent.development.read'];assert.equal((await api.post()).status,403);
+    }finally{api.reader.close();}
+  });
+  await check('historical development combined HTTP refuses a changing role snapshot and late identity loss without silently retrying',async()=>{
+    const f=await setup();assert.equal((await run(f,'architect')).outcome,'succeeded');const records=historyRecords(f);let changed=false;
+    const api=historyApi(f,{...records,results:{...records.results,authorizeHistoricalResult:async context=>{
+      if(!changed&&context.target.stepId==='architect'){changed=true;assert.equal((await run(f,'test-agent')).outcome,'succeeded');}
+    }}});
+    try{assert.equal((await api.post()).status,503);assert.equal(changed,true);assert.equal((await api.post()).status,200);}finally{api.reader.close();}
+    let calls=0;const late=historyApi(f,{...records,authorizeHistoricalRead:async()=>{if(++calls===3)late.principal.toolGrants=[];}});
+    try{assert.equal((await late.post()).status,403);}finally{late.reader.close();}
+    const held=historyApi(f);try{assert.equal((await f.lifecycle.hold({draftId:f.draftId,holdReference:randomUUID()})).outcome,'ok');assert.equal((await held.post()).status,503);}finally{held.reader.close();}
+  });
+  await check('historical development combined projection rechecks earlier role authority and source after all SDK verifiers complete',async()=>{
+    for(const failure of ['none','result-authority','source-edit']){
+      const f=await setup();for(const role of ['architect','test-agent'] as const)assert.equal((await run(f,role)).outcome,'succeeded');
+      const records=historyRecords(f),codec=createRecordedMastraVerifier(f.gatewayProfiles);let revoke=false,verified=0;
+      const reader=createIntentDevelopmentHistoryReader(f.pools,f.config,{...records,
+        results:{...records.results,authorizeHistoricalResult:async context=>{if(revoke&&context.target.stepId==='architect')throw new Error('Earlier role access revoked');}},
+        verifyHistoricalExchange:async({role,request,response})=>{
+          codec.verify(role,(request.rendered as any).request,request as RecordedRequest,response as RecordedResponse);verified++;
+          if(role==='test-agent'&&failure==='result-authority')revoke=true;
+          if(role==='test-agent'&&failure==='source-edit')assert.equal((await f.drafts.append({draftId:f.draftId,mutationId:randomUUID(),expectedRevision:1,
+            expectedDigest:f.saved.reference.revisionDigest,content:{...f.content,originalText:'A correction during history read'}})).outcome,'acknowledged');
+        }});
+      try{
+        const pending=reader.read({organizationId:f.config.organizationId,productId:f.config.productId,repository:f.config.repository,...f.target},async()=>{});
+        if(failure==='none')assert.equal((await pending).status,'complete');else await assert.rejects(pending,{message:'Development history is unavailable.'});
+        assert.equal(verified,2,'Exact SDK verification is local to the read; current authorities are rechecked, never cached.');
+      }finally{reader.close();}
+    }
   });
 }

@@ -22,6 +22,7 @@ import { createIntentDevelopment, type DevelopmentPermit } from '@steer/agents';
 import { createMastraDevelopmentRuntime } from '@steer/agents/mastra';
 import { createRecordedMastraVerifier, type RecordedRequest, type RecordedResponse } from '@steer/agents/recorded-mastra';
 import { createIntentDevelopmentReader } from '@steer/data/intent-development-reader';
+import { createIntentDevelopmentHistoryReader } from '@steer/data/intent-development-history-reader';
 import { createDevelopmentObservationStore } from '@steer/data/development-observations';
 import { createIntentDevelopmentStarter } from '@steer/data/intent-development-starter';
 import { createIntentDevelopmentPreparer } from '@steer/data/intent-development-preparer';
@@ -215,6 +216,18 @@ export function createVerifiedDevelopmentHistoryExchangeReader(pools: Parameters
     },
   });
   return {read:reader.readHistoricalExchange,close:reader.close};
+}
+/** Explicit, uninstalled human history projection. Raw SDK exchanges stay inside
+ * the records reader; the public service returns parsed documents and lineage. */
+export function createVerifiedDevelopmentHistoryReader(pools:Parameters<typeof createIntentDevelopmentHistoryReader>[0],configuration:unknown,
+  dependencies:Parameters<typeof createVerifiedDevelopmentHistoryExchangeReader>[2]){
+  const verifier=createRecordedMastraVerifier(dependencies.profiles);
+  return createIntentDevelopmentHistoryReader(pools,configuration,{...dependencies.records,
+    verifyHistoricalExchange:async({role,request,response})=>{
+      const rendered=z.object({request:z.unknown()}).parse(request.rendered);
+      verifier.verify(role,rendered.request,request as RecordedRequest,response as RecordedResponse);
+    },
+  });
 }
 const databaseSchema = z.strictObject({ host: text, port: z.number(), database: text,
   transport: z.discriminatedUnion('kind', [z.strictObject({ kind: z.literal('tls'), ca: text }),

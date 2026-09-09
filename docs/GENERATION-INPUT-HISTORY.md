@@ -39,8 +39,8 @@ or provider call and cannot extend execution or retention.
 
 The returned original is private server data: it contains source content and
 configured prompts. Do not serialize it wholesale through HTTP/MCP or into browser
-state. A future human-facing lineage view needs its own bounded, explicitly
-authorized projection and invalidation rules.
+state. 0258's [human-facing comparison](GENERATION-HISTORY-COMPARISON.md) uses a
+separate bounded, explicitly authorized projection and invalidation rules.
 
 ## What remains separate
 
@@ -51,9 +51,9 @@ contain a dispatch or checkpoint capability.
 
 Input recovery does not prove that a role generated any output, that a later human
 edit was agent-authored, or that an Exam is accepted. 0257 adds [per-role retained
-request/response verification](GENERATION-OUTPUT-HISTORY.md). Next, compose the
-complete role snapshot and output lineage, then expose safe human comparison
-and bind that lineage into immutable save preparation/confirmation/start. All-revision
+request/response verification](GENERATION-OUTPUT-HISTORY.md), and 0258 composes the
+role snapshot and safe human comparison. Next bind that lineage into immutable
+save preparation/confirmation/start. All-revision
 run discovery and the real signed-in save/reopen acceptance remain outstanding.
 
 No runtime binding, migration or dependency is added. D1 is still unsigned/inactive;

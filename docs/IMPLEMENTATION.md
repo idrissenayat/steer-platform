@@ -1,6 +1,16 @@
 # STEER platform implementation
 
-## Current checkpoint — 0257
+## Current checkpoint — 0258
+
+0258 connects a combined historical document projection to the shared authenticated
+HTTP/MCP query and actual editor. Both completed SDK roles, their predecessor link
+and unchanged source/operation snapshots are verified. Original Brief/Spec/Exam
+can be compared with a preserved editor snapshot without replacing text or
+starting work. See [the comparison guide](GENERATION-HISTORY-COMPARISON.md) and
+[0258 evidence](../intent/0258/EVIDENCE.md). All-revision/orphan discovery, immutable
+save preparation/confirmation/start and real authority/acceptance remain open.
+
+## Prior checkpoint — 0257
 
 0257 verifies exact retained role exchanges under separate current historical
 authority and a pinned SDK verifier. Existing expired-only ports are preserved;
@@ -8,8 +18,8 @@ the new per-role factory is server-only and has no execution capability. The
 composed 34-source journey exposed duplicate source reconstruction in response
 acknowledgement, now removed without raising deadlines or dropping final checks.
 See [the output-history guide](GENERATION-OUTPUT-HISTORY.md) and [0257 evidence](../intent/0257/EVIDENCE.md).
-Combined lineage projection, human comparison, final-save admission/start and live
-activation/acceptance remain open.
+0258 adds combined lineage projection and human comparison. Final-save admission/
+start and live activation/acceptance remain open.
 
 ## Prior checkpoint — 0256
 

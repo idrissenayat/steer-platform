@@ -21,7 +21,8 @@ test('real conversation component sends free text, follows up and displays three
   const scopePanel = await compile('intent-scope-panel', { './intent-scope-editor': new URL('../app/intent-scope-editor.ts', import.meta.url).href,
     './intent-scope-transport': new URL('../app/intent-scope-transport.ts', import.meta.url).href, './brief-location': new URL('../app/brief-location.ts', import.meta.url).href });
   const finalReview = await compile('candidate-save-review', { './candidate-save-review-client': new URL('../app/candidate-save-review-client.ts', import.meta.url).href });
-  const development = await compile('intent-development-panel', { './candidate-save-review': finalReview, './intent-scope-panel': scopePanel, './intent-development-editor': new URL('../app/intent-development-editor.ts', import.meta.url).href,
+  const history = await compile('intent-development-history', { './intent-development-history-transport': new URL('../app/intent-development-history-transport.ts', import.meta.url).href, './brief-markdown': markdown });
+  const development = await compile('intent-development-panel', { './intent-development-history': history, './candidate-save-review': finalReview, './intent-scope-panel': scopePanel, './intent-development-editor': new URL('../app/intent-development-editor.ts', import.meta.url).href,
     './intent-development-transport': new URL('../app/intent-development-transport.ts', import.meta.url).href, './brief-markdown': markdown });
   const panel = await compile('intent-draft-panel', { './intent-development-panel': development, '@steer/tool-registry/intent-draft-content': pathToFileURL(require.resolve('@steer/tool-registry/intent-draft-content')).href,
     './intent-draft-editor': new URL('../app/intent-draft-editor.ts', import.meta.url).href, './intent-draft-transport': new URL('../app/intent-draft-transport.ts', import.meta.url).href, './brief-markdown': markdown });

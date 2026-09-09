@@ -10,7 +10,7 @@ import { createDevelopmentOriginalStore } from '@steer/data/development-original
 import { describeDevelopmentOriginal } from '@steer/data/development-original-contracts';
 import { renderDevelopmentRequest, createDevelopmentRequestReader } from '@steer/data/development-requests';
 import { originalFixture } from '../../../packages/data/test/development-original.fixture.ts';
-import { createAssessedRecordedDevelopmentPreparer, createVerifiedScopeReviewReader, createVerifiedScopeReviewHistoryReader, createRecordedDevelopmentStarter, createVerifiedDevelopmentHistoryExchangeReader } from '../src/runtime.ts';
+import { createAssessedRecordedDevelopmentPreparer, createVerifiedScopeReviewReader, createVerifiedScopeReviewHistoryReader, createRecordedDevelopmentStarter, createVerifiedDevelopmentHistoryExchangeReader, createVerifiedDevelopmentHistoryReader } from '../src/runtime.ts';
 import { RECORDED_MASTRA_REVISION } from '@steer/agents/recorded-mastra';
 import { createRecordedDevelopmentModel } from '../../worker/src/recorded-development-model.ts';
 import { createDevelopmentStepRuntime } from '../../worker/src/development-step-runtime.ts';
@@ -76,13 +76,21 @@ export async function testAssessedDevelopment(setup: (count?: number, ttl?: numb
         }finally{runtime.close();model.close();}
       }
       await f.edit();const reservations=await f.reservations();
-      const retained=createVerifiedDevelopmentHistoryExchangeReader(f.pools,f.config,{profiles,records:{...records,authorizeHistoricalRead:async()=>{},
+      const historyRecords={...records,authorizeHistoricalRead:async()=>{},
         originals:{...records.originals,scopeHistory:history,authorizeHistoricalRead:async()=>{},authorizeOperation:async()=>{throw new Error('No execution');}},
-        results:{...records.results,authorizeHistoricalResult:async()=>{},authorizeOperation:async()=>{throw new Error('No execution');}}}});
+        results:{...records.results,authorizeHistoricalResult:async()=>{},authorizeOperation:async()=>{throw new Error('No execution');}}};
+      const retained=createVerifiedDevelopmentHistoryExchangeReader(f.pools,f.config,{profiles,records:historyRecords});
       try {for(const role of ['architect','test-agent'] as const){const result=await retained.read({...prepared.reference,stepId:role});assert.equal(result.historical,true);
         assert.equal(result.response.result.role,role);assert.ok(result.resultReference);const source=JSON.parse((result.request.rendered as any).request.source);
         assert.equal(source.scopeEvidence.evidence.length,34);assert.equal(source.direction.scopeReview.kind,'recorded');assert.equal(result.executionAuthorized,false);
       }}finally{retained.close();}
+      const combined=createVerifiedDevelopmentHistoryReader(f.pools,f.config,{profiles,records:historyRecords});
+      try{
+        const result=await combined.read({organizationId:f.config.organizationId,productId:f.config.productId,repository:f.config.repository,...prepared.reference},async()=>{});
+        assert.equal(result.status,'complete');assert.equal(result.source.latestRevision,2);assert.equal(result.results.length,2);
+        assert.equal(result.results[1]!.predecessorResultDigest,result.results[0]!.resultDigest);
+        assert.doesNotMatch(JSON.stringify(result),/requestBody|responseBody|scopeEvidence|EXAM-MARKER-NOT-FOR-SCOPE/);
+      }finally{combined.close();}
       assert.equal(calls,2);assert.equal(f.state.calls,2);assert.equal(reservations,4);assert.equal(await f.reservations(),reservations);
     }finally{current.close();history.close();a.service.close();}
   });

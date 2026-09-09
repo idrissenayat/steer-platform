@@ -10,6 +10,7 @@ import { createIntentDevelopmentTransport } from './intent-development-transport
 import BriefMarkdown from './brief-markdown';
 import IntentScopePanel from './intent-scope-panel';
 import CandidateSaveReview from './candidate-save-review';
+import DevelopmentHistory from './intent-development-history';
 
 export default function IntentDevelopmentPanel({ source, enabled, subject, identity, expiresAt, onResult, reviewRequest = null, discoveredDraft = null }: {
   source: DevelopmentEditorSource | null; enabled: boolean; subject: string; identity: string; expiresAt: string;
@@ -152,7 +153,7 @@ export default function IntentDevelopmentPanel({ source, enabled, subject, ident
       {view.status === 'reading' && <p>Reading verified progress from the same recorded run…</p>}
       {view.status === 'attention-required' && <p>This run needs recovery or an operator decision. An uncertain model outcome must not be retried as a new paid request.</p>}
       {view.status === 'superseded' && <p>A newer stored revision exists. These results cannot be applied to the current draft.</p>}
-      {view.status === 'expired' && <p>This run has expired. No retained document content is released.</p>}
+      {view.status === 'expired' && <p>This run has expired. Current progress cannot release documents; original output requires a separate authorized history read.</p>}
       {view.message && <p>{view.message}</p>}
     </div>
     {view.operation && <p className="access-hint">Recorded operation: <code>{view.operation.operationId}</code>. Not saved to GitHub; no gate signed.</p>}
@@ -160,6 +161,10 @@ export default function IntentDevelopmentPanel({ source, enabled, subject, ident
       onClick={() => { void controller.current?.retry(); }}>Recover the same request</button>}
     {view.operation && <button type="button" className="access-secondary" disabled={busy}
       onClick={() => { void controller.current?.read(); }}>Check this run’s progress</button>}
+    {view.operation && view.source && <DevelopmentHistory
+      input={{organizationId:view.operation.organizationId,productId:view.operation.productId,repository:view.operation.repository,
+        operationId:view.operation.operationId,inputDigest:view.operation.inputDigest}}
+      original={view.source} currentSource={source} identity={identity} expiresAt={expiresAt} />}
     {architect?.role === 'architect' && !['expired', 'superseded'].includes(view.status) && <div className="intent-agent-reply">
       <h4>STEER agent</h4><p>{architect.output.message}</p>
       {architect.output.questions.length > 0 && <><ul>{architect.output.questions.map((q, index) => <li key={index}>{q}</li>)}</ul>
