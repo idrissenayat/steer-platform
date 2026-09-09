@@ -5753,3 +5753,33 @@ unchanged. The focused SQL run is not reported as a new full-suite result.
 The reader remains uninstalled; trusted destination/lifecycle composition,
 missing-original diagnostics, real records/model/provider authority and signed-in
 I1–I6 saved-repository acceptance remain open. No live save or deployment is enabled.
+
+## Development increment: 0264 — Diagnose missing original input
+
+The separately granted `intent.admissions.discover` HTTP/MCP query reads configured
+scope-review and development admissions, including those whose original metadata
+was not captured. Separate restricted execution/draft pools use read-only snapshots;
+per-entry authorization holds no SQL leases. Changed source, original presence,
+lifecycle, records deadline or authority withholds the page. No keys, ciphertext,
+step/result status, dispatch, reservation or writes are used by the reader.
+
+The actual run-history panel now offers explicit diagnostic discovery and pages,
+with missing/present metadata and execution-expiry wording. Empty limited coverage
+never proves no prior attempt; unavailable is not empty. Diagnostics clear older
+selected content and cannot start, retry, adopt, save or sign. See
+[0264 evidence](../intent/0264/EVIDENCE.md) and
+[the process guide](PREPARATION-DIAGNOSTICS.md).
+
+Verification: 1,257 regression tests, six focused preparation SQL/HTTP checks plus
+idempotent migration verification, prototype/eight-package type checks, optimized
+Next build, 95-artifact kit validation and workflow token-scope audit pass. These
+are synthetic results, not real signed-in or provider acceptance. No new full SQL
+suite result is claimed; the prior 359-check baseline belongs to 0262.
+
+The separate existing recovery-path SQL/recorded-SDK run passes six checks plus
+idempotent migration verification. All 270 links across ten changed documents
+resolve; protected signed-file hashes and user-owned roadmap/outputs are unchanged.
+
+Next: trusted destination/lifecycle composition, then authorized runtime integration
+and I1–I6 human save/reopen acceptance. The diagnostic factory remains uninstalled;
+records adoption, model spending, provider writes and deployment stay closed.

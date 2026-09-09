@@ -14,6 +14,14 @@ architecture, signed-scope reduction or gate decision. It supersedes historical
 
 ## Integrated development capability
 
+Latest development delta: 0260–0263 connect immutable package preview, exact
+confirmation/original preservation, save-start recovery and existing-proposal
+selection. 0264 adds [preparation diagnostics](PREPARATION-DIAGNOSTICS.md) for
+recorded scope/development admissions with missing originals. The next engineering
+dependency is trusted destination/lifecycle composition. Actual records adoption,
+model/provider/write authority and signed-in I1–I6 acceptance remain separate and
+unresolved; these tested, uninstalled services do not complete the live journey.
+
 ### Current UX priority (2026-09-07)
 
 The user deferred further authentication work to focus on functionality and UX.

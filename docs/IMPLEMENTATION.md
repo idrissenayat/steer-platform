@@ -1,6 +1,22 @@
 # STEER platform implementation
 
-## Current checkpoint — 0259
+## Current checkpoint — 0264
+
+0264 adds explicit preparation diagnostics to actual draft run history: recorded
+scope/development admissions can be discovered even when original-input metadata
+was not captured. Limited configured coverage, source/authority changes and expiry
+are explicit; metadata never means verified content, execution success or retry
+permission. See [the diagnostics guide](PREPARATION-DIAGNOSTICS.md) and
+[0264 evidence](../intent/0264/EVIDENCE.md).
+
+0260–0263 added reproducible final-package preview, exact human confirmation and
+original preservation, reference-only save start and verified existing-proposal
+selection. See [save start](CANDIDATE-SAVE-START.md) and
+[proposal selection](EXISTING-PROPOSAL-SELECTION.md). Factories remain uninstalled;
+trusted destination/lifecycle composition, real records/model/provider authority
+and the signed-in I1–I6 save/reopen acceptance are still open.
+
+## Prior checkpoint — 0259
 
 0259 lists captured scope and drafting runs across all preserved revisions of an
 owner-bound draft, with current metadata authority, exact bindings and stable

@@ -33,14 +33,23 @@ scope, choose what to do, answer only necessary questions, review and correct a
 Brief/Spec/Exam bundle, save it to the authorized repository and reopen it exactly.
 No separate local preview, synthetic success, silent merging or lost work counts.
 
-Latest checkpoint: **0263 adds verified existing-proposal selection**.
+Latest checkpoint: **0264 adds missing-original preparation diagnostics**.
+The actual run-history panel distinguishes configured recorded preparation from
+retained original metadata, verified content and execution outcome. Explicit pages
+never authorize retry or imply complete history; source/access/lifecycle changes
+withhold stale results. See [the diagnostics guide](PREPARATION-DIAGNOSTICS.md) and
+[0264 evidence](../intent/0264/EVIDENCE.md). The reader remains uninstalled. Trusted
+destination/lifecycle composition, real authority and signed-in saved-repository
+acceptance remain open.
+
+0263 adds verified existing-proposal selection.
 The actual package panel now lists exact-commit proposal references, supports
 pagination and deliberate selection, and binds the next preview/confirmation to
 the selected parent pointer and bundle. Different target revisions cannot be
 silently rebased; incomplete/unavailable evidence cannot become an empty-list claim.
 See [the proposal selection guide](EXISTING-PROPOSAL-SELECTION.md) and
 [0263 evidence](../intent/0263/EVIDENCE.md). The reader remains uninstalled; trusted
-destination/lifecycle composition, missing-original diagnostics, real authority
+destination/lifecycle composition, real authority
 and signed-in saved-repository acceptance remain open.
 
 0262 connects the explicit preserved-package save request.
@@ -244,7 +253,7 @@ changes direction. The app must be running and able to resume scheduled work.
   fabricated approval or overwrite the canonical protected Exam.
 - No deployment, release, deletion, subscription or infrastructure spend authorized.
 
-## Current checkpoint
+## Historical checkpoints — latest status is above
 
 Plan and existing heartbeat updated. I1's bounded lexical candidate query is
 implemented as `intent.overlap.check` with source evidence, permission checks,

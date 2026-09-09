@@ -26,7 +26,7 @@ async function component() {
   const finalReview = await compile('candidate-save-review', { './candidate-save-preview': packagePreview, './candidate-save-review-client': local('candidate-save-review-client') });
   const history = await compile('intent-development-history', { './intent-development-history-transport': local('intent-development-history-transport'), './brief-markdown': markdown });
   const development = await compile('intent-development-panel', { './intent-development-history': history, './candidate-save-review': finalReview, './intent-scope-panel': scopePanel, './intent-development-editor': local('intent-development-editor'), './intent-development-transport': local('intent-development-transport'), './brief-markdown': markdown });
-  const runHistory = await compile('intent-run-history', { './intent-development-history': history, './intent-scope-panel': scopePanel, './intent-run-discovery-transport': local('intent-run-discovery-transport') });
+  const runHistory = await compile('intent-run-history', { './intent-admission-discovery-transport': local('intent-admission-discovery-transport'), './intent-development-history': history, './intent-scope-panel': scopePanel, './intent-run-discovery-transport': local('intent-run-discovery-transport') });
   const panel = await compile('intent-draft-panel', { './intent-run-history': runHistory, './intent-development-panel': development, './intent-draft-editor': local('intent-draft-editor'), './intent-draft-transport': local('intent-draft-transport'), './brief-markdown': markdown });
   return (await import(await compile('intent-conversation', { './agent-transport': local('agent-transport'), './intent-scope-review': scope, './intent-draft-panel': panel, './brief-markdown': markdown }))).default;
 }

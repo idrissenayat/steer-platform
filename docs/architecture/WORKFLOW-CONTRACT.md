@@ -1074,9 +1074,9 @@ editor content or restarts generation. Context, access failure, page changes,
 visibility loss and session/records expiry clear references and selected content.
 No keys, source text, provider wire or execution pool enters the discovery port.
 
-Admissions without captured originals are outside this list. Uncaptured-admission
-diagnostics, immutable final save and actual signed-in/provider/repository acceptance
-remain separate. See [the discovery guide](../RETAINED-RUN-DISCOVERY.md) and
+Admissions without captured originals are outside this list. The bounded 0264
+[preparation diagnostics](../PREPARATION-DIAGNOSTICS.md), immutable final save and
+actual signed-in/provider/repository acceptance remain separate. See [the discovery guide](../RETAINED-RUN-DISCOVERY.md) and
 [0259 specification](../../intent/0259/SPEC.md).
 
 ### Reproducible final package before confirmation
@@ -1170,3 +1170,26 @@ The adapter remains uninstalled. Trusted current destination/lifecycle compositi
 records adoption, provider/grant evidence and real UI acceptance remain required.
 See [the selection guide](../EXISTING-PROPOSAL-SELECTION.md),
 [0263 specification](../../intent/0263/SPEC.md) and [evidence](../../intent/0263/EVIDENCE.md).
+
+### Preparation without retained original metadata — 0264
+
+`intent.admissions.discover` is a separate current-human query over explicitly
+configured scope/development admission bindings. It combines read-only admission
+metadata from `steer_app` with lifecycle/revision/original metadata from the separate
+`steer_draft_runtime` role. No grants are widened and no ciphertext/key, execution
+step/result, reservation or write capability enters this reader.
+
+Two sampled passes must agree around per-entry metadata authorization performed
+outside SQL leases. This is not an atomic cross-pool snapshot. Pages contain at
+most ten references plus checked continuation, ordered by source revision/type/ID;
+cursors bind latest revision and normalized execution-binding set.
+
+Original metadata is either present or not observed. Neither state asserts
+verified content, execution outcome, non-dispatch or retry permission. Other
+configurations and candidate-save admissions remain outside coverage; empty or
+unavailable pages cannot establish no prior attempt. The actual run-history UI
+offers explicit diagnostics with these limits and no start/retry/adopt callback.
+Source, identity, visibility and records/session expiry invalidate late output.
+
+The factory remains uninstalled. See [process guide](../PREPARATION-DIAGNOSTICS.md),
+[0264 specification](../../intent/0264/SPEC.md) and [evidence](../../intent/0264/EVIDENCE.md).

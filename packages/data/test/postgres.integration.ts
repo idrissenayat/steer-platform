@@ -90,6 +90,13 @@ try {
     await testDurableCandidateBundles({app:connect('steer_app'),admin,connect,check});
     assert.ok(passed>1,'No candidate save checks selected');
     console.log(`FOCUSED candidate save result: ${passed-1} checks passed plus idempotent migration check; full suite NOT RUN.`);
+  }else if(selection.mode==='admission-discovery'){
+    console.log('FOCUSED preparation diagnostics HTTP/SQL; NOT the full integration suite.');
+    await testScopeStepRuntime({admin,connect,check:async(name,run)=>{
+      if(name.startsWith('preparation diagnostics '))await check(name,run);
+    }});
+    assert.equal(passed,7);
+    console.log(`FOCUSED preparation diagnostics result: ${passed-1} checks passed plus idempotent migration check; full suite NOT RUN.`);
   }else if(selection.mode==='run-discovery'){
     console.log('FOCUSED retained run discovery plus composed SQL/SDK history; NOT the full integration suite.');
     await testScopeStepRuntime({admin,connect,check:async(name,run)=>{

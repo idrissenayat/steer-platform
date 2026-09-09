@@ -51,8 +51,10 @@ Captured originals can now be rediscovered even when their preparation response
 was lost or their editor context is gone. This does **not** enumerate an admission
 whose original was never captured, unavailable configurations or inaccessible
 records. A pointer proves neither that an agent started nor that it finished.
-Uncaptured admission diagnostics remain separate from content recovery; absence
-must never authorize a replacement paid run.
+0264 adds separate [preparation diagnostics](PREPARATION-DIAGNOSTICS.md) for
+explicitly configured scope/development admissions, including missing-original
+observations. This is not content recovery; absence never authorizes a replacement
+paid run, and other configurations/candidate saves are not searched.
 
 ## Acceptance status
 
@@ -63,6 +65,7 @@ credential decision stays resolved; D1 and the proposed $5 model budget remain
 inactive/unapproved. No auth bypass or alternate preview was created.
 
 See [0259 evidence](../intent/0259/EVIDENCE.md) and
-[the remaining journey](INTENT-JOURNEY-PLAN.md). Next priority is immutable final
-save preparation, confirmation and authorized start, followed by the real human
-acceptance matrix once its authority prerequisites are resolved.
+[the remaining journey](INTENT-JOURNEY-PLAN.md). Final save preview, confirmation,
+original preservation, start and proposal selection were developed in 0260–0263.
+Next is trusted destination/lifecycle composition and the real human acceptance
+matrix once its authority prerequisites are resolved.

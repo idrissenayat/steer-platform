@@ -12,6 +12,7 @@ import {testScopeWorkflow} from './scope-workflow.integration.ts';
 import {testScopeStart} from '../../api/test/intent-scope-start.integration.ts';
 import {testScopeDiscovery} from '../../api/test/intent-scope-discovery.integration.ts';
 import {testRunDiscovery} from '../../api/test/intent-run-discovery.integration.ts';
+import {testAdmissionDiscovery} from '../../api/test/intent-admission-discovery.integration.ts';
 import {testAssessedDevelopment} from '../../api/test/intent-assessed-development.integration.ts';
 type Dependencies=Parameters<typeof createScopeStepRuntime>[3];
 const gate=()=>{let release!:()=>void;const promise=new Promise<void>(r=>{release=r;});return{promise,release};};
@@ -55,6 +56,7 @@ export async function testScopeStepRuntime({admin,connect,check:checkBase}:{admi
   await testScopeStart(setup,check,admin);
   await testScopeDiscovery(setup,check,admin);
   await testRunDiscovery(setup,check,admin);
+  await testAdmissionDiscovery(setup,check,admin);
   await testAssessedDevelopment(setup,check,admin);
   await check('scope runner executes actual recorded SDK batches once and reconstructed SQL readback recovers combined review without dispatch credentials',async()=>{
     const f=await setup(34);assert.equal(f.prepared.batches.length,2);assert.equal((await f.read()).status,'pending');
