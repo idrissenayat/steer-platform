@@ -9,7 +9,28 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0296 / partial C22 — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0297 / partial C22 — 68% (17/25; 8 remaining; +0 points)**.
+One read-only package preview now shares exact immutable corpus evidence across
+its repeated source/final reviews. Current grants, head, draft, provenance,
+history, scope and destination checks remain. Confirmation opens independent
+sessions before and after persistence; nothing is shared across a write/request.
+Repository-body downloads drop 75%: preview **172 → 43**, confirmation **344 → 86**.
+Total attempts fall **4,017 → 3,722** and **8,227 → 7,637** respectively (about 7%).
+The authenticated synthetic save/recovery/reopen, 46 focused tests, 40 native
+save checks, 1,381 package/application tests, 88 prototype tests, types and build
+pass. See [0297 evidence](../intent/0297/EVIDENCE.md) and
+[raw samples](../intent/0297/PERFORMANCE.json). C22 is still not passed.
+
+Next: consolidate the **whole records/result/observation and current-identity
+validation read set within each read-only phase**. First confirmation still has
+7,488 identity-head checks; body fetching is no longer its dominant cost. Preserve
+every independent policy and fresh authority before content, effects and release,
+with full final readback and no cross-effect/request reuse. Complete that change,
+close the source-review gap, then execute the unchanged full C22 protocol—not
+another series of body-only reductions. Live records/model/GitHub/UI prerequisites
+remain separate; the prior 0289 recovery-unknown remains unexplained.
+
+Prior delivery checkpoint: **0296 / partial C22**.
 0296 consolidates the redundant leading identity check around explicitly proven
 historical source-permission metadata queries. Initial authentication, every
 source policy, fresh caller checks before data/continuation, and both full final

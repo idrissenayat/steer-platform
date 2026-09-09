@@ -8,6 +8,7 @@ import { verifyIntentDevelopmentHistoryOutput, type IntentDevelopmentHistoryRead
 import { createDevelopmentOriginalStore } from './development-originals.ts';
 import { draftRecordsConfigurationSchema } from './draft-revisions.ts';
 import { describeDevelopmentOriginal, freezeOriginal as freeze } from './development-original-contracts.ts';
+import { withReviewReadSession } from './review-read-session.ts';
 
 const configurationSchema = draftRecordsConfigurationSchema.extend({ serviceCommitter: z.string().min(1).max(200) });
 const fail = () => new Error('Candidate package preview is unavailable; nothing was confirmed or saved.');
@@ -66,10 +67,12 @@ export function createCandidateSavePreviewer(pools: Parameters<typeof createDeve
         await current(); return freeze(draft);
       };
       try {
+        let output: Awaited<ReturnType<typeof describeCandidateSavePreview>>['output'] | undefined;
+        await withReviewReadSession(deps.review, reviewInput, current, async readReviewed => {
         await authorize();
         originals = createDevelopmentOriginalStore(pools, recordsConfig, deps.originals);
         const draft = await readDraft();
-        const readReview = async () => verifyCandidateSaveReview(reviewInput, await bounded(() => deps.review.review(reviewInput, current)), draft.content.documents);
+        const readReview = async () => verifyCandidateSaveReview(reviewInput, await bounded(() => readReviewed(current)), draft.content.documents);
         const review = await readReview();
         if (review.subject !== scope.subject || review.branch !== scope.branch || review.reviewDigest !== input.reviewDigest) throw fail();
         const retained = await bounded(() => originals!.readHistorical(target));
@@ -103,7 +106,9 @@ export function createCandidateSavePreviewer(pools: Parameters<typeof createDeve
         if (JSON.stringify(finalOriginal.original) !== JSON.stringify(original) || finalOriginal.latestDraftRevision !== input.revision
           || JSON.stringify(await readReview()) !== JSON.stringify(review) || JSON.stringify(await readDestination()) !== JSON.stringify(destination)
           || JSON.stringify(await readDraft()) !== JSON.stringify(draft)) throw fail();
-        await authorize(); return prepared.output;
+        await authorize(); output = prepared.output;
+        }, task => bounded(() => task), guard);
+        await current(); if (!output) throw fail(); return output;
       } catch { throw fail(); }
       finally { finished = true; originals?.close(); release(); }
     },

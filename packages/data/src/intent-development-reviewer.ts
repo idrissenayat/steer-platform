@@ -5,6 +5,7 @@ import { intentEvidenceInputSchema } from '@steer/tool-registry/intent-evidence-
 import { planIntentScopeBatches } from '@steer/tool-registry/intent-scope-batches';
 import { developmentRecordsConfigurationSchema } from './development-originals.ts';
 import { developmentOriginalHash as hash, freezeOriginal as freeze } from './development-original-contracts.ts';
+import { registerReviewReadSession } from './review-read-session.ts';
 
 const unavailable = () => new Error('Current source review is unavailable; this does not establish new intent.');
 /** Read-only composition over the existing owner-bound SQL draft service and a
@@ -23,9 +24,16 @@ export function createIntentDevelopmentReviewer(rawConfiguration: unknown, deps:
   if (typeof deps.drafts?.read !== 'function' || typeof deps.evidenceFor !== 'function' || typeof deps.authorizeReview !== 'function') throw unavailable();
   if (deps.withEvidenceRead !== undefined && typeof deps.withEvidenceRead !== 'function') throw unavailable();
   let closed = false, active = 0;
-  return {
-    scope,
-    async review(raw, revalidate) {
+  const readDraft = async (input: IntentDevelopmentReviewInput, current: () => Promise<void>) => {
+    await current();
+    const draft = intentDraftReadOutputSchema.parse(await deps.drafts.read({ organizationId, productId, repository,
+      draftId: input.draftId, revision: input.revision }, current));
+    await current();
+    if (draft.draftId !== input.draftId || draft.revision !== input.revision || draft.latestRevision !== input.revision
+      || draft.revisionDigest !== input.revisionDigest || draft.scopeInputDigest !== input.scopeInputDigest) throw unavailable();
+    return draft;
+  };
+  async function review(raw: unknown, revalidate: () => Promise<void>, withEvidenceRead = deps.withEvidenceRead) {
       const input = freeze(intentDevelopmentReviewInputSchema.parse(raw));
       if (closed || active >= 4 || typeof revalidate !== 'function') throw unavailable();
       active++; let finished = false, timer: ReturnType<typeof setTimeout> | undefined;
@@ -34,15 +42,7 @@ export function createIntentDevelopmentReviewer(rawConfiguration: unknown, deps:
           || (['organizationId', 'subject', 'productId', 'repository'] as const).some(k => deps.drafts.scope[k] !== scope[k])) throw unavailable();
       };
       const current = async () => { guard(); if (await revalidate() !== undefined) throw unavailable(); guard(); };
-      const read = async () => {
-        await current();
-        const draft = intentDraftReadOutputSchema.parse(await deps.drafts.read({ organizationId, productId, repository,
-          draftId: input.draftId, revision: input.revision }, current));
-        await current();
-        if (draft.draftId !== input.draftId || draft.revision !== input.revision || draft.latestRevision !== input.revision
-          || draft.revisionDigest !== input.revisionDigest || draft.scopeInputDigest !== input.scopeInputDigest) throw unavailable();
-        return draft;
-      };
+      const read = () => readDraft(input, current);
       const evidence = async (evidenceFor: () => Promise<unknown>) => {
         await current(); const value = freeze(intentEvidenceInputSchema.parse(await evidenceFor())); await current();
         if ((['organizationId', 'productId', 'repository', 'branch'] as const).some(k => value[k] !== config[k]) || value.scopeInputDigest !== input.scopeInputDigest) throw unavailable();
@@ -57,7 +57,7 @@ export function createIntentDevelopmentReviewer(rawConfiguration: unknown, deps:
         await current(); return freeze(output);
       };
       const work = Promise.resolve().then(async () => {
-        const result = deps.withEvidenceRead ? await deps.withEvidenceRead(input, current, run) : await run(() => deps.evidenceFor(input, current));
+        const result = withEvidenceRead ? await withEvidenceRead(input, current, run) : await run(() => deps.evidenceFor(input, current));
         await current(); return result;
       });
       // A timed-out dependency still owns its admission slot until it settles.
@@ -65,7 +65,45 @@ export function createIntentDevelopmentReviewer(rawConfiguration: unknown, deps:
       try { return await Promise.race([work, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(unavailable()), 30000); })]); }
       catch { throw unavailable(); }
       finally { finished = true; if (timer) clearTimeout(timer); }
-    },
-    close() { closed = true; },
-  } satisfies IntentDevelopmentReviewReader & { close(): void };
+  }
+  const service = { scope, review: (raw, current) => review(raw, current), close() { closed = true; } } satisfies IntentDevelopmentReviewReader & { close(): void };
+  registerReviewReadSession(service.review, scope, async (raw, outerCurrent, work) => {
+    const input = freeze(intentDevelopmentReviewInputSchema.parse(raw)), window = deps.withEvidenceRead;
+    if (!window) { await work(current => review(input, current)); return; }
+    const ports = [deps.drafts, deps.drafts.read, deps.authorizeReview, deps.evidenceFor, window];
+    let ended = false, failed = false, invoked = false, completed = false, childCurrent: (() => Promise<void>) | undefined;
+    const pending = new Set<Promise<unknown>>(), windows = new Set<Promise<unknown>>();
+    const guard = () => { if (closed || ended || failed || [deps.drafts, deps.drafts.read, deps.authorizeReview, deps.evidenceFor, deps.withEvidenceRead]
+      .some((port, i) => port !== ports[i])) throw unavailable(); };
+    const current = async () => {
+      guard(); if (await outerCurrent() !== undefined) throw unavailable(); guard();
+      if (childCurrent && await childCurrent() !== undefined) throw unavailable(); guard();
+    };
+    try {
+      await current();
+      const result = await window(input, current, readEvidence => {
+        if (invoked || typeof readEvidence !== 'function') { failed = true; const rejected = Promise.reject(unavailable()); void rejected.catch(() => {}); return rejected; } invoked = true;
+        const task = Promise.resolve().then(async () => {
+        guard();
+        const shared: NonNullable<typeof window> = async (requested, present, run) => {
+          guard(); if (childCurrent || hash(requested) !== hash(input)) { failed = true; throw unavailable(); }
+          childCurrent = present;
+          const task = Promise.resolve().then(() => run(readEvidence)).catch(error => { failed = true; throw error; })
+            .finally(() => { childCurrent = undefined; });
+          pending.add(task); void task.finally(() => pending.delete(task)).catch(() => {}); return task;
+        };
+        try { await work(present => review(input, present, shared)); completed = true; }
+        catch (error) { failed = true; throw error; }
+        finally { await Promise.allSettled([...pending]); }
+        });
+        windows.add(task); void task.finally(() => windows.delete(task)).catch(() => {}); return task;
+      });
+      guard(); if (result !== undefined || !invoked || !completed || pending.size || childCurrent) throw unavailable();
+      // The enclosing corpus performs a final freshness check after all reviews.
+      // Re-open the exact draft after that callback too: a late edit, hold or key
+      // loss cannot leave the shared preview tied to stale draft metadata.
+      await readDraft(input, current); await current();
+    } finally { ended = true; await Promise.allSettled([...windows]); }
+  });
+  return service;
 }

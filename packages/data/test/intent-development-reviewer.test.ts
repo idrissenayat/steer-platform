@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createIntentDevelopmentReviewer } from '../src/intent-development-reviewer.ts';
 import { developmentFixture } from '../../tool-registry/test/intent-development.fixture.ts';
+import { withReviewReadSession } from '../src/review-read-session.ts';
 
 async function setup() {
   const f = await developmentFixture(), state = { reads: 0, evidenceReads: 0, authorizations: 0 };
@@ -70,4 +71,67 @@ test('session path preserves exact draft, evidence, authority and late-caller re
     };
     await assert.rejects(service.review(f.input, async () => { if (!valid) throw new Error('PRIVATE'); }), error => { assert.doesNotMatch(String(error), /PRIVATE/); return true; }); service.close();
   }
+});
+test('constructed read session shares one evidence window across full reviews and reopens the final exact draft', async () => {
+  const { f, state, service, deps } = await setup(); let windows = 0;
+  deps.withEvidenceRead = async (_input, current, work) => {
+    windows++; await current(); const value = await work(async () => { state.evidenceReads++; await current(); return f.evidence; });
+    await current(); return value;
+  };
+  for (let i = 0; i < 2; i++) await withReviewReadSession(service, f.input, async () => {}, async read => {
+    assert.deepEqual(await read(async () => {}), f.review); assert.deepEqual(await read(async () => {}), f.review);
+  }, pending => pending, () => {});
+  assert.equal(windows, 2);
+  assert.deepEqual(state, { reads: 10, evidenceReads: 8, authorizations: 8 }); service.close();
+});
+test('final corpus callback cannot hide a changed draft, key loss, hold, swapped port or revoked caller', async () => {
+  for (const mode of ['draft', 'key', 'hold', 'draft-port', 'authority-port', 'hook', 'caller', 'closed']) {
+    const { f, deps, service } = await setup(); let ended = false, valid = true;
+    const read = deps.drafts.read;
+    deps.drafts.read = async (...args) => {
+      if (ended && (mode === 'key' || mode === 'hold')) throw new Error('PRIVATE');
+      return { ...await read(...args) as object, latestRevision: ended && mode === 'draft' ? 2 : 1 };
+    };
+    deps.withEvidenceRead = async (_input, current, work) => {
+      const result = await work(async () => f.evidence); ended = true;
+      if (mode === 'draft-port') deps.drafts = { ...deps.drafts };
+      if (mode === 'authority-port') deps.authorizeReview = async () => {};
+      if (mode === 'hook') deps.withEvidenceRead = async (_i, _c, w) => w(async () => f.evidence);
+      if (mode === 'caller') valid = false;
+      if (mode === 'closed') service.close();
+      await current(); return result;
+    };
+    await assert.rejects(withReviewReadSession(service, f.input, async () => { if (!valid) throw new Error('PRIVATE'); },
+      async read => { await read(async () => {}); }, pending => pending, () => {})); service.close();
+  }
+});
+test('constructed source sessions deny malformed evidence windows and swallowed child failure', async () => {
+  for (const mode of ['skip', 'replay', 'early', 'nonvoid', 'swallowed']) {
+    const { f, deps, service } = await setup(); let later: Promise<unknown> | undefined;
+    deps.withEvidenceRead = async (_input, _current, work) => {
+      if (mode === 'skip') return undefined as never;
+      if (mode === 'early') { later = work(async () => f.evidence); return undefined as never; }
+      const value = await work(async () => { if (mode === 'swallowed') throw new Error('PRIVATE'); return f.evidence; });
+      if (mode === 'replay') await work(async () => f.evidence).catch(() => {});
+      return mode === 'nonvoid' ? 'forged' as never : value;
+    };
+    await assert.rejects(withReviewReadSession(service, f.input, async () => {}, async read => {
+      await read(async () => {}).catch(error => { if (mode !== 'swallowed') throw error; });
+    }, pending => pending, () => {}));
+    if (later) await later.catch(() => {}); service.close();
+  }
+});
+test('a closed shared session retains actual held child work and source admission until drainage', async () => {
+  const { f, deps, service } = await setup(); const releases: Array<() => void> = [];
+  deps.withEvidenceRead = async (_input, _current, work) => work(async () => {
+    await new Promise<void>(resolve => releases.push(resolve)); return f.evidence;
+  });
+  const sessions = Array.from({ length: 4 }, () => withReviewReadSession(service, f.input, async () => {},
+    async read => { await read(async () => {}); }, pending => pending, () => {}));
+  for (const session of sessions) void session.catch(() => {});
+  for (let i = 0; i < 30 && releases.length < 4; i++) await new Promise(resolve => setTimeout(resolve, 1));
+  assert.equal(releases.length, 4);
+  await assert.rejects(service.review(f.input, async () => {}));
+  service.close(); releases.forEach(release => release());
+  await Promise.all(sessions.map(session => assert.rejects(session)));
 });

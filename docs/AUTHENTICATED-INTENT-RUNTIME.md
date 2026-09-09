@@ -62,6 +62,26 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Whole-preview immutable corpus session — 0297
+
+Private construction proof keyed by the exact review method/scope allows the
+actual source-review, final-review and preview owners to share one complete
+immutable corpus per read-only preview. Genuine API forwarding retains proof;
+copied/bound/unregistered methods keep ordinary reads. No public input, package
+export, profile or activation change exists. Current source grants, product/
+lifecycle selection, head, draft, provenance and all other preview verification
+remain. The final corpus callback is followed by an exact draft reopen, catching
+late edits, holds and key loss. Invalid windows and changed ports deny; owners
+retain actual held work until drainage, not merely until a tracker returns.
+
+Confirmation admission/persistence is unchanged. Its two previews open separate
+sessions, never sharing bytes/proof across a write or request. Native source tests
+and the authenticated synthetic save/recovery/reopen pass. Repository bodies fall
+75% (preview 172 → 43; confirmation 344 → 86), while total requests fall only about
+7% (3,722 / 7,637). Identity/records validation remains the dominant bottleneck;
+this is not C22 or live acceptance. Overall stays 68% (17/25; +0 points). See
+[0297 evidence](../intent/0297/EVIDENCE.md) and [raw samples](../intent/0297/PERFORMANCE.json).
+
 ### Explicit historical source-policy query composition — 0296
 
 The generation-history owner explicitly marks its read-only source-permission

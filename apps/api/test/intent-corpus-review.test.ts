@@ -6,6 +6,7 @@ import { createGitHubReader } from '@steer/adapters/github';
 import { verifyDevelopmentReview } from '@steer/tool-registry/intent-development-review-contracts';
 import { developmentFixture } from '../../../packages/tool-registry/test/intent-development.fixture.ts';
 import { fixture, binding, now } from '../../../packages/adapters/test/github-brief-fixture.ts';
+import { withReviewReadSession } from '../../../packages/data/src/review-read-session.ts';
 
 async function setup(t: { after(run: () => void): void }) {
   const f = await developmentFixture(), git = fixture(t);
@@ -25,7 +26,7 @@ async function setup(t: { after(run: () => void): void }) {
     toolGrants: ['intent.development.review'], expiresAt: new Date(Date.now() + 300000).toISOString() }), services: { intentDevelopmentReviewReader: reviewer } });
   t.after(() => reviewer.close());
   const post = () => app.fetch(new Request('https://steer.example/v1/tools/intent.development.review', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(f.input) }));
-  return { f, git, reader, post, revoke: () => { authorized = false; } };
+  return { f, git, reader, reviewer, post, revoke: () => { authorized = false; } };
 }
 test('actual review HTTP consumes repository-enumerated native Git evidence through the existing recorded review composition', async t => {
   const f = await setup(t), response = await f.post(); assert.equal(response.status, 200);
@@ -42,4 +43,28 @@ test('actual corpus review denies missing authority and changed Git head between
   const f = await setup(t), read = f.reader.readHead; let heads = 0;
   f.reader.readHead = async () => { if (++heads === 3) f.git.add([{ path: 'intent/0001/SPEC.md', content: '# Changed scope\nBooking included\n' }]); return read(); };
   const changed = await f.post(); assert.notEqual(changed.status, 200); assert.equal(f.git.mutations(), 0);
+});
+test('actual constructed review shares native Git bodies only within each complete read-only session', async t => {
+  const f = await setup(t), bodies = () => f.git.calls.filter(call => call.method === 'GET' && call.path.includes('/git/blobs/')).length;
+  let expected: unknown;
+  for (let i = 0; i < 2; i++) {
+    await withReviewReadSession(f.reviewer, f.f.input, async () => {}, async read => {
+      const first = await read(async () => {}), second = await read(async () => {});
+      assert.deepEqual(first, second); if (expected) assert.deepEqual(first, expected); expected = first;
+    }, pending => pending, () => {});
+    assert.equal(bodies(), (i + 1) * 2, 'two bodies are freshly fetched in each window, not in each repeated review');
+  }
+  assert.equal(f.git.mutations(), 0);
+});
+test('shared native corpus rejects a revoked grant, changed head or caller after earlier successful reviews', async t => {
+  for (const mode of ['grant', 'head', 'caller']) {
+    const f = await setup(t); let valid = true;
+    await assert.rejects(withReviewReadSession(f.reviewer, f.f.input, async () => { if (!valid) throw new Error('revoked'); }, async read => {
+      await read(async () => {}); await read(async () => {});
+      if (mode === 'grant') f.revoke();
+      if (mode === 'head') f.git.add([{ path: 'intent/0001/SPEC.md', content: '# Changed scope\nBooking included\n' }]);
+      if (mode === 'caller') valid = false;
+    }, pending => pending, () => {}));
+    assert.equal(f.git.mutations(), 0);
+  }
 });

@@ -57,7 +57,29 @@ do not exclude expensive identity traffic or weaken checks to meet the number.
 
 ## Current gap and next work
 
-Latest: [0296](../intent/0296/EVIDENCE.md) removes only redundant leading identity
+Latest: [0297](../intent/0297/EVIDENCE.md) shares exact immutable source evidence
+through every repeated review within one read-only preview. Confirmation's two
+previews retain independent sessions separated by persistence. All current grants,
+head/draft/provenance/history/scope/destination checks and final readback remain.
+
+Repository-body downloads drop **75%**: preview **172 → 43**, confirmation
+**344 → 86**. Total attempts fall **4,017 → 3,722** (7.34%) and **8,227 → 7,637**
+(7.17%). Reconstructed/repeated confirmation use 7,609 / 7,607. Standalone save
+review falls only 886 → 871: new session/final-draft guards add 32 identity-head
+checks even as body reads halve. All traffic is retained in
+[raw samples](../intent/0297/PERFORMANCE.json), not hidden behind the body metric.
+
+The authenticated synthetic save/recovery/reopen and final regression pass. This
+is still partial C22: first confirmation performs 7,488 identity-head checks;
+source review stays 210. Next consolidate whole records/result/observation and
+current-identity validation within each read-only phase, keeping independent
+policies and fresh authority at content/effect/release boundaries. Body-only
+improvements cannot meet the unchanged 200-attempt ceiling. Finish the remaining
+source gap, then run the complete protocol above. Other checks overlap portions
+of the single undelayed diagnostic; its timings are not warmed p95 or a speedup
+claim. Prior failed evidence, live prerequisites and the fixed 17/25 tracker remain.
+
+Prior: [0296](../intent/0296/EVIDENCE.md) removes only redundant leading identity
 checks around explicitly proven metadata-only historical source queries. Preview
 falls from 4,957 to **4,017** requests (18.96%); first confirmation from 10,107 to
 **8,227** (18.60%). Every source policy still runs, followed by fresh caller checks

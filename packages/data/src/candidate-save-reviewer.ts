@@ -6,6 +6,7 @@ import type { IntentScopeReader } from '@steer/tool-registry/intent-scope-read-c
 import { draftRecordsConfigurationSchema } from './draft-revisions.ts';
 import { resolveDevelopmentScopeReview } from './development-scope-review.ts';
 import { freezeOriginal as freeze } from './development-original-contracts.ts';
+import { registerReviewReadSession, withReviewReadSession } from './review-read-session.ts';
 
 const fail = () => new Error('Final save review is unavailable; nothing was saved or confirmed.');
 /** Read-only final review. No original/operation allocation, profile or authorship
@@ -19,8 +20,7 @@ export function createCandidateSaveReviewer(configuration: unknown, deps: {
   const scope = freeze({ organizationId, subject, productId, repository, branch, configurationRevision });
   if ([deps.drafts?.read, deps.sources?.review, deps.authorizeReview].some(v => typeof v !== 'function')) throw fail();
   const lifetime = new AbortController(); let active = 0;
-  return { scope,
-    async review(raw, revalidate) {
+  async function review(raw: unknown, revalidate: () => Promise<void>, sharedSources?: (current: () => Promise<void>) => Promise<unknown>) {
       const input = freeze(candidateSaveReviewInputSchema.parse(raw));
       if (active >= 4 || lifetime.signal.aborted || typeof revalidate !== 'function') throw fail();
       active++; let pending = 0, finished = false, released = false;
@@ -50,10 +50,11 @@ export function createCandidateSaveReviewer(configuration: unknown, deps: {
           ...draft.content, documents: { brief: draft.content.documents.brief, spec: draft.content.documents.spec } });
         if (fingerprint.scopeInputDigest !== input.scopeInputDigest) throw fail(); return freeze(draft);
       };
-      const readState = async () => {
-        const draft = await readDraft(), sourceInput = intentDevelopmentReviewInputSchema.parse({ organizationId, productId, repository,
-          draftId: input.draftId, revision: input.revision, revisionDigest: input.revisionDigest, scopeInputDigest: input.scopeInputDigest });
-        const { output: sources } = await verifyDevelopmentReview(sourceInput, await bounded(() => deps.sources.review(sourceInput, current)));
+      const sourceInput = intentDevelopmentReviewInputSchema.parse({ organizationId, productId, repository,
+        draftId: input.draftId, revision: input.revision, revisionDigest: input.revisionDigest, scopeInputDigest: input.scopeInputDigest });
+      const readState = async (readSource: (current: () => Promise<void>) => Promise<unknown>) => {
+        const draft = await readDraft();
+        const { output: sources } = await verifyDevelopmentReview(sourceInput, await bounded(() => readSource(current)));
         await current();
         if (sources.configurationRevision !== configurationRevision || sources.sourceSnapshotDigest !== input.sourceSnapshotDigest) throw fail();
         const binding = await bounded(() => resolveDevelopmentScopeReview(input.scopeReview, sources.evidence, { ...sourceInput, subject }, deps.scopeReview, current));
@@ -61,14 +62,28 @@ export function createCandidateSaveReviewer(configuration: unknown, deps: {
         await current(); return { draft, sources, binding, output };
       };
       try {
-        await authorized(); const initial = await readState();
-        await authorized(); const latest = await readState();
-        if (JSON.stringify(initial) !== JSON.stringify(latest)) throw fail();
-        await authorized(); if (JSON.stringify(await readDraft()) !== JSON.stringify(initial.draft)) throw fail();
-        await current(); return initial.output;
+        let output: Awaited<ReturnType<typeof describeCandidateSaveReview>> | undefined;
+        const run = async (readSource: (current: () => Promise<void>) => Promise<unknown>) => {
+          await authorized(); const initial = await readState(readSource);
+          await authorized(); const latest = await readState(readSource);
+          if (JSON.stringify(initial) !== JSON.stringify(latest)) throw fail();
+          await authorized(); if (JSON.stringify(await readDraft()) !== JSON.stringify(initial.draft)) throw fail();
+          await current(); output = initial.output;
+        };
+        if (sharedSources) await run(sharedSources);
+        else await withReviewReadSession(deps.sources, sourceInput, current, run, task => bounded(() => task), guard);
+        await current(); if (!output) throw fail(); return output;
       } catch { throw fail(); }
       finally { finished = true; release(); }
-    },
-    close() { lifetime.abort(); },
-  } satisfies CandidateSaveReviewer & { close(): void };
+  }
+  const service = { scope, review: (raw, current) => review(raw, current), close() { lifetime.abort(); } } satisfies CandidateSaveReviewer & { close(): void };
+  registerReviewReadSession(service.review, scope, async (raw, current, work) => {
+    const input = freeze(candidateSaveReviewInputSchema.parse(raw));
+    const sourceInput = intentDevelopmentReviewInputSchema.parse({ organizationId, productId, repository,
+      draftId: input.draftId, revision: input.revision, revisionDigest: input.revisionDigest, scopeInputDigest: input.scopeInputDigest });
+    await withReviewReadSession(deps.sources, sourceInput, current,
+      async readSource => work(present => review(input, present, readSource)), pending => pending,
+      () => { lifetime.signal.throwIfAborted(); });
+  });
+  return service;
 }

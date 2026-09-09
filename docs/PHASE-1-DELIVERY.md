@@ -6714,3 +6714,43 @@ and identity/records validation within each read-only phase, with exact commit
 identity, fresh grants/head checks, and no reuse across effects or requests. No
 credentials, model spend, records/D1 adoption, runtime GitHub grant/write, signed
 source, gate, deployment, release or user data changed.
+
+## 0297 — Share immutable corpus evidence across each read-only package preview
+
+Private exact-method/scope construction proof now connects existing source and
+final reviewers to one complete-corpus session per read-only preview. Genuine API
+forwarding preserves proof; copied/bound/unregistered methods retain full ordinary
+reviews. Every source grant, product/lifecycle selection, current head, draft and
+provenance check remains, as do all history/original/scope/destination comparisons.
+After the corpus's final freshness callback, the exact draft is reopened to catch
+late edits, holds or key loss. Invalid/changed/abandoned windows deny and actual
+pending work retains owner admission until drainage. Confirmation's first and
+second previews use independent sessions separated by persistence; no write or
+request can reuse earlier source bytes/proof.
+
+Final Node 24 verification passes 46 focused tests, 40 native candidate-save
+checks plus migrations, **1,381 package/application tests**, 88 prototype tests,
+all types and the Next optimized build. The broad selection includes domain/
+worker/web but not 0296's expanded root controls; counts are not comparable as
+progress. Three authenticated joined checks plus migrations pass through both
+recorded roles, correction, exact confirmation, one native save, lost responses,
+restart and exact reopen. See [specification](../intent/0297/SPEC.md),
+[evidence](../intent/0297/EVIDENCE.md) and [raw samples](../intent/0297/PERFORMANCE.json).
+
+Repository-body downloads fall 75%: preview **172 → 43**, confirmation **344 → 86**.
+Total requests fall **4,017 → 3,722** (7.34%) and **8,227 → 7,637** (7.17%).
+Reconstructed/repeated confirmation use 7,609 / 7,607, retaining both token
+refreshes. Standalone save review falls only 886 → 871; source review and all
+preparation/start counts are unchanged. Final recovery is committed in 209 ms /
+17 requests, with 14 SQL phases and no clock reversal; 0289 remains unexplained.
+
+Other verification overlaps portions of this single undelayed diagnostic. No
+warmed p95, timing speedup, full SQL, other full dispositions, full C22 or live
+acceptance is claimed. Progress remains **68% (17/25; 8 remaining; +0 points)**.
+Next consolidate records/result/observation and current-identity validation across
+each read-only phase: first confirmation still performs 7,488 identity-head
+checks. Preserve independent policies, fresh content/effect/release barriers and
+final readback, then close the remaining source gap and run the full unchanged
+performance protocol. No credentials, live model spending, records/D1 activation,
+runtime GitHub authority/write, signed source, gate, deployment, release or user
+data changed.
