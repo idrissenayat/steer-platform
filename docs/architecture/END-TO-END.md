@@ -260,8 +260,16 @@ them complete or add Redis, another vector database, or a new agent framework.
 
 ## 5. What is actually ready
 
-This is a code/document audit with the 0205 contract/editor checkpoint, not a new
-live acceptance run.
+The table below preserves the **0205–0206 design-audit snapshot**, not current
+delivery status or a live acceptance run. Later work through 0276 joins actual
+identity/factory, SQL drafts, native corpus, fixed scope/drafting/save workflows,
+correction, confirmation, restart and exact reopen under synthetic authority.
+Use the [current delivery plan](../INTENT-JOURNEY-PLAN.md),
+[runtime guide](../AUTHENTICATED-INTENT-RUNTIME.md) and
+[read-composition contract](WORKFLOW-CONTRACT.md)
+for subsequent implementation evidence and remaining limits. Real records/model/
+write authority, semantic quality, other dispositions, provider-load/latency and
+signed-in UI acceptance are still separate requirements.
 
 | Journey capability | Verified implementation boundary | Still needed |
 | --- | --- | --- |

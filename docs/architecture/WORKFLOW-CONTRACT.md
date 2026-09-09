@@ -1407,3 +1407,29 @@ Remote provider latency/request budgets remain an acceptance task, not a result
 of local fixture performance. See [0273 evidence](../../intent/0273/EVIDENCE.md).
 Next join confirmation, fixed save/reopen and owned scheduling through this root.
 All live authority/adoption and signed-in I1–I6 boundaries remain unchanged.
+
+### Read-only verification composition and owned workflows — 0274–0277
+
+0274–0276 subsequently join corrected-package confirmation, fixed save/reopen and
+scope/drafting Temporal starts through the actual identity/factory. The joined
+34-source test uses separate synthetic authority, recorded model responses and
+owned disposable workers. It verifies lost acknowledgements, ordered independent
+roles, replay, restart and exact reopen with six model reservations and one native
+Git commit; it does not adopt live worker profiles or pass signed-in I1–I6.
+
+Two private read-only windows bound repeated immutable scope-lineage verification.
+Historical role projection uses full historical scope reads before and after its
+private work; each development-start revalidation uses full **current** scope reads
+before any scheduler RPC. These ports are not interchangeable: history cannot
+satisfy current assessment, and expired/superseded current evidence must deny.
+Exact target, reader identity, source/result and latest-revision comparisons remain.
+No write/dispatch occurs inside a window or before its final validation succeeds.
+
+Each intermediate use still checks the current caller before and after the
+original/source callback. 0277 removes duplicate copies of those same wrappers at
+the known private history-port caller, retaining pending-work tracking and no raw
+reader fallback. It does not alter the window, skip a distinct authority service,
+cache permission or reduce Git-head freshness. Existing key/lifecycle/records,
+predecessor/SDK and final readback checks remain. See [0277 evidence](../../intent/0277/EVIDENCE.md)
+for the measured result and regression status; low live-provider load and usable
+latency must not be inferred from synthetic completion.

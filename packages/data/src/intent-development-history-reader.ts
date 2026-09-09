@@ -39,7 +39,11 @@ export function createIntentDevelopmentHistoryReader(pools:Parameters<typeof cre
       // lineage is composed inside a private full-read/final-full-read window;
       // intermediate reuse never escapes it or replaces caller authorization.
       const verified=new Map<string,string>();
-      let scopeHistory=r.originals.scopeHistory;
+      // Only the private window may supply this port. It already brackets every
+      // original/source callback with current(), including nonvoid/late denial.
+      // Adding checked()/authority() around it repeats the same barrier at every
+      // nested scope read without introducing another IO or policy boundary.
+      let scopeHistory:Records['originals']['scopeHistory'];
       const secure:Records={
         authorize:denied,
         authorizeHistoricalRead:context=>authority('read',()=>r.authorizeHistoricalRead!(context)),
@@ -55,7 +59,10 @@ export function createIntentDevelopmentHistoryReader(pools:Parameters<typeof cre
           authorizeDraft:context=>authority(context.action,()=>r.originals.authorizeDraft(context)),
           keyForDraft:(ref,keyId)=>{if(keyId===null)throw unavailable();return checked(()=>r.originals.keyForDraft(ref,keyId));},
           ...(r.originals.scopeHistory?{scopeHistory:{scope:r.originals.scopeHistory.scope,
-            read:(input,recheck)=>checked(()=>scopeHistory!.read(input,()=>authority('read',recheck)))}}:{}),
+            read:(input,recheck)=>{
+              guard();if(!scopeHistory)throw unavailable();
+              return track(scopeHistory.read(input,recheck));
+            }}}:{}),
         },
         results:{
           authorizeOperation:denied,authorizeResult:denied,

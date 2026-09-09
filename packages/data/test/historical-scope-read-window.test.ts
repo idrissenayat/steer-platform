@@ -39,6 +39,39 @@ test('one private history projection does two full reads, rechecks every reuse, 
   await window(f.reader, f.current, async port => port!.read(f.input, f.source)); assert.equal(f.state.calls, 4);
 });
 
+test('the private port itself brackets every direct source callback with current caller checks, including final IO', async () => {
+  const f = await fixture(), events:string[]=[];
+  const current=async()=>{events.push('current');await f.current();};
+  const source=async()=>{events.push('source-start');await f.source();events.push('source-end');};
+  await window(f.reader,current,async port=>{
+    await port!.read(f.input,source);
+    await port!.read(f.input,source);
+  });
+  assert.equal(f.state.calls,2);assert.ok(f.state.source>2);
+  for(let i=0;i<events.length;i++){
+    if(events[i]==='source-start')assert.equal(events[i-1],'current');
+    if(events[i]==='source-end')assert.equal(events[i+1],'current');
+  }
+});
+
+test('a direct source callback cannot revoke the outer caller then return private evidence', async () => {
+  for(const final of [false,true]){
+    const f=await fixture();let delivered=false;
+    await assert.rejects((async()=>{
+      await window(f.reader,f.current,async port=>port!.read(f.input,async()=>{
+        await f.source();if(f.state.calls===(final?2:1))f.state.allowed=false;
+      }));delivered=true;
+    })(),{message:'Historical scope read is unavailable.'});
+    assert.equal(delivered,false);assert.equal(f.state.calls,final?2:1);
+  }
+});
+
+test('the private history port rejects a missing direct callback without invoking its source', async () => {
+  const f=await fixture();
+  await assert.rejects(window(f.reader,f.current,async port=>port!.read(f.input,undefined as any)));
+  assert.equal(f.state.calls,0);
+});
+
 test('changed target, scope, binding or reader method poisons the entire read even when intermediate failure is caught', async () => {
   for (const failure of ['input', 'subject', 'scope-object', 'method', 'malformed']) {
     const f = await fixture();

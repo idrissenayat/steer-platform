@@ -14,12 +14,13 @@ import { verifyCandidateSavePrepare } from '@steer/tool-registry/candidate-save-
 import { scopeReviewFixture } from '../../../packages/tool-registry/test/intent-scope-review.fixture.ts';
 import { createScopeStepRuntime } from '../../worker/src/scope-step-runtime.ts';
 import type { authenticatedModelWorkflows } from '../../worker/test/authenticated-model-workflows.integration.ts';
+import { summarizeNativeRequests } from './native-request-metrics.ts';
 
 type Fixture = Awaited<ReturnType<typeof scopeDraftIntegrationFixture>>;
 /** Continue the SAME signed-identity/SQL/recorded-generation test after correction.
  * Only synthetic candidate review/confirmation policies are enabled. The complete
  * production factory still constructs the services; no service result is injected.
- * Scheduling, Git writing and publication policies remain unavailable. */
+ * Candidate-save scheduling, Git writing and publication remain unavailable. */
 export function authenticatedCandidateConfirmation(f: Fixture, native: ReturnType<typeof nativeCandidateJourneyFixture>,
   authority: () => Promise<void>, scopeRecords: IntentJourneyFactoryDependencies['scope']['records']['originals'],
   workflows: ReturnType<typeof authenticatedModelWorkflows>) {
@@ -37,11 +38,13 @@ export function authenticatedCandidateConfirmation(f: Fixture, native: ReturnTyp
       restart(): Promise<void>; generation: { operationId: string; inputDigest: string };
       previousScope: { reviewId: string; preparationDigest: string; resultsDigest: string }; modelCall(): void; modelCalls(): number;
     }) {
-      const { admin, post } = input, measurements: Array<{ tool: string; ms: number; nativeRequests: number }> = [];
+      const { admin, post } = input, measurements: Array<{ tool: string; ms: number; nativeRequests: number;
+        requestKinds:ReturnType<typeof summarizeNativeRequests> }> = [];
       const read = async (tool: string, body: unknown) => {
         const start = performance.now(), before = native.git.calls.length;
         const result = await input.read(tool, body);
-        const measurement = { tool, ms: Math.round(performance.now() - start), nativeRequests: native.git.calls.length - before };
+        const measurement = { tool, ms: Math.round(performance.now() - start), nativeRequests: native.git.calls.length - before,
+          requestKinds:summarizeNativeRequests(native.git.calls,before) };
         measurements.push(measurement);
         console.log('Synthetic authenticated corrected-package request: ' + JSON.stringify(measurement));
         return result;
@@ -113,7 +116,8 @@ export function authenticatedCandidateConfirmation(f: Fixture, native: ReturnTyp
         // rebuild the owned identity/factory and recover the same exact command.
         const started = performance.now(), requestsBefore = native.git.calls.length;
         const lost = await post('intent.candidate.save.prepare', confirmation); assert.equal(lost.status, 200); await lost.body?.cancel();
-        measurements.push({ tool: 'intent.candidate.save.prepare (discarded reply)', ms: Math.round(performance.now() - started), nativeRequests: native.git.calls.length - requestsBefore });
+        measurements.push({ tool: 'intent.candidate.save.prepare (discarded reply)', ms: Math.round(performance.now() - started), nativeRequests: native.git.calls.length - requestsBefore,
+          requestKinds:summarizeNativeRequests(native.git.calls,requestsBefore) });
         console.log('Synthetic discarded confirmation request: ' + JSON.stringify(measurements.at(-1)));
         const stored = await snapshot(); assert.equal(stored.operations, '2'); assert.equal(stored.originals, '1');
         assert.equal(stored.reservations, '6');

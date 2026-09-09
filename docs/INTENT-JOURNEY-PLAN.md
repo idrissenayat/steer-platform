@@ -48,6 +48,18 @@ synthetic run. Request volume/performance, other dispositions, governed startup
 and adopted runtime authority remain open; this is not live or signed-in UI
 acceptance. Continue safe engineering without installing unapproved bindings.
 
+0277 removes duplicate caller wrappers around the already guarded private
+historical-scope port while preserving distinct authority/source checks. Ten
+focused historical SQL checks and all three joined workflow checks pass. Preview
+and confirmation requests fall about 15%, but confirmation still takes 50–53
+seconds; about 97% of its remaining requests are head lookups. See
+[0277 evidence](../intent/0277/EVIDENCE.md) for exact measurements: all 1,353 broad
+tests, typechecks and production build pass. Next map duplicate caller barriers
+at read/return/effect boundaries;
+first distinguish identity-reader traffic from corpus/destination transport calls,
+then change only demonstrably duplicated checks. Do not skip independent policy
+checks or adopt a stale permission cache.
+
 Prior checkpoint: **0275 saves and reopens the confirmed package through identity**.
 The same authenticated journey now reaches one fixed Temporal/native Git save,
 lost scheduler/provider acknowledgement recovery, actual identity/factory restart

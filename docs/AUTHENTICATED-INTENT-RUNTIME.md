@@ -58,6 +58,23 @@ records transition and its recovery path.
 
 ## Evidence and remaining work
 
+### Historical caller-barrier reduction — 0277
+
+The history projection's known private scope port now relies on the window's own
+before/after caller checks around every original/source callback, without wrapping
+them in additional copies of the same checks. The port starts unavailable and has
+no raw-reader fallback; pending-operation/lifetime tracking remains. Full initial/
+final scope, exact lineage, original/key/records/lifecycle and independent role
+verification are unchanged. No Git authorization decision or head is cached by
+this change. See [0277 evidence](../intent/0277/EVIDENCE.md).
+
+The same joined synthetic journey passes with 14.8% fewer preview requests and
+about 14.7% fewer confirmation requests. Confirmation still takes 50–53 seconds;
+65,713 of its first 67,820 requests are Git-head lookups. Category counts do not
+identify which caller produced each head lookup. Further caller/transport mapping
+and duplicate-barrier reduction remain necessary before live-load or UI acceptance.
+This is not an adopted runtime policy, deadline extension or new live permission.
+
 ### Scope and drafting through fixed workflows — 0276
 
 The authenticated joined case now starts both scope reviews and the two drafting

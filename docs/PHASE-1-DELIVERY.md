@@ -6130,3 +6130,23 @@ Drafting starts still take 13–15 seconds and confirmation 52–56 seconds with
 high synthetic native-provider volume. Reduce that volume and complete the other
 dispositions and governed startup/bindings next. D1, model spending, real runtime
 GitHub writes, signatures, release and deletion remain unapproved/unchanged.
+
+## 0277 — Historical caller-barrier composition
+
+The generation-history projection now passes original callbacks directly into its
+already guarded private scope window, retaining pending-operation/lifetime checks
+without duplicating the window's current-caller wrappers. The internal port is
+unavailable before installation; full first/final reads and every distinct policy,
+source, key and role check remain. All ten focused historical SQL checks and three
+authenticated joined workflow checks plus their migration checks pass. Preview
+requests fall from 39,550 to 33,694; confirmation/recovery each remove 11,712
+requests (about 15%). The diagnostic emits only bounded category counts, not paths
+or provider data. All 1,353 broad tests, prototype/eight-package typechecks,
+production build, protected hashes, the 95-artifact kit, read-only scope audit and
+336 links in eight changed/new documents pass; see
+[0277 evidence](../intent/0277/EVIDENCE.md).
+
+The first confirmation still makes 65,713 head lookups among 67,820 total requests
+and takes about 50 seconds; repeated recovery takes up to 53 seconds. This is not
+live-load or usable-UI acceptance. Continue mapping duplicate caller barriers at
+read/return/effect boundaries while preserving distinct current authorization.
