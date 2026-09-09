@@ -5,6 +5,7 @@ import { candidateBundleReferenceSchema, candidatePointerReferenceSchema,
 } from '@steer/tool-registry/candidate-bundle-contracts';
 import { intentDocumentDraftsSchema } from '@steer/tool-registry/intent-revision-contracts';
 import type { ArtifactReader } from './github.ts';
+import { repositoryReadCovers } from './repository-read-authority.ts';
 
 const configuration = candidateBundleReferenceSchema.pick({ organizationId: true, productId: true, repository: true, branch: true }).extend({
   itemIds: z.array(candidateBundleReferenceSchema.shape.itemId).min(1).max(100).refine(values => new Set(values).size === values.length),
@@ -72,9 +73,13 @@ export function createCandidateBundleReader(reader: ArtifactReader, rawConfigura
       signal.throwIfAborted();
     };
     const read = async (path: string, expectedDigest?: string) => {
-      await check();
-      const result = artifact.parse(await bounded(() => reader.readArtifact(path, ref.revision)));
-      await check();
+      // A privately constructed catalog read already invokes this exact bound
+      // authorizer. An independent current caller always keeps the full path.
+      const method = reader.readArtifact, covered = !current && repositoryReadCovers(method, authorize);
+      if (!covered) await check();
+      const result = artifact.parse(await bounded(() => Reflect.apply(method, reader, [path, ref.revision])));
+      signal.throwIfAborted();
+      if (!covered) await check();
       const bytes = Buffer.from(result.content, 'utf8');
       const blobSha = createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
       if (result.organizationId !== ref.organizationId || result.repositoryId !== repositoryId

@@ -6321,3 +6321,35 @@ other full-disposition/historical selections were not rerun this increment.
 Overall stays **68% (17/25; +0 points)**. Next reduce repeated identity/corpus
 traversal in source review. No live configuration, spend, records/D1 adoption,
 runtime grant/write, gate, deployment or release changed.
+
+## 0286 — Private proof for duplicate nested repository-read checks
+
+An immutable private read callback now proves it actually invokes the exact bound
+policy on both sides of successful work. Catalog root/inventory and nested bundle
+readers omit only identical outer pairs. Unknown wrappers, replacements, different
+policies and independent current callers retain the complete checks. Intrinsic
+invocation preserves the captured method/receiver; no permission, principal, head
+or result cache is added. Independent source grants, final consumed-path checks,
+exact bytes, deadlines and read/admission bounds remain. See
+[specification](../intent/0286/SPEC.md), [evidence](../intent/0286/EVIDENCE.md) and
+[raw measurements](../intent/0286/PERFORMANCE.json).
+
+The final default authenticated journey lowers source review from 3,042 to 2,634
+requests (13.41%), scope preparation from 14,221 to 11,365 (20.08%), and first
+confirmation from 48,980 to 45,716 (6.66%). Content traffic is unchanged; the
+reductions are identity-head lookups. Local confirmation still takes about
+33 seconds without added network delay. The final delayed prefix still fails
+source review at the 200-attempt target, so C22 remains incomplete.
+
+All 58 focused tests, final default three joined checks plus migrations, both
+prefix integrity checks, 1,399 broad tests, types and optimized build pass. The
+joined path retains six synthetic model calls/reservations, one original, one
+Temporal/native Git save, lost-response/restart recovery and exact older-commit
+reopen with current denial. Raw hashes/statistics, kit/audit, protected hashes,
+links and whitespace are checked. Other full-disposition/historical/full SQL
+selections were not rerun; no actual UI or live GitHub acceptance is claimed.
+
+Overall stays **68% (17/25; +0 points)**. Next reduce remaining repeated current
+policy/evidence traversal and unchanged drafting/history admission without
+extending read-only proofs across writes. No live configuration, spending,
+records/D1 adoption, runtime grant/write, gate, deployment or release changed.

@@ -4,6 +4,7 @@ import { intentEvidenceInputSchema, buildIntentEvidenceEnvelope } from '@steer/t
 import { createCandidateScopeCatalog } from './candidate-scope-catalog.ts';
 import { verifyScopeInventory, scopeRoot } from './scope-inventory.ts';
 import type { ArtifactSnapshot, CorpusRepositoryReader } from './github.ts';
+import { bracketRepositoryRead } from './repository-read-authority.ts';
 
 const shape = intentEvidenceInputSchema.shape;
 const scopeSchema = intentEvidenceInputSchema.pick({ organizationId: true, productId: true, repository: true, branch: true });
@@ -77,15 +78,15 @@ export function createIntentCorpusEvidence(reader: CorpusRepositoryReader, rawCo
           if (!parsed.success || Object.keys(context).some(k => parsed.data[k as keyof CorpusSelectionContext] !== context[k as keyof CorpusSelectionContext])) return null;
           return freeze(parsed.data);
         };
-        const readSource = async (path: string, revision: string): Promise<ArtifactSnapshot> => {
-          if (revision !== head || !entries.has(path) || reads >= 98) throw unavailable(); await check();
+        const readSource = bracketRepositoryRead(check, async (path: string, revision: string): Promise<ArtifactSnapshot> => {
+          if (revision !== head || !entries.has(path) || reads >= 98) throw unavailable();
           if (await authority.authorizeSource(freeze({ ...reference, path })) !== undefined) throw unavailable(); guard();
           const file = sourceSchema.parse(await io(() => reader.readArtifact(path, revision))); const entry = entries.get(path)!;
           if (file.organizationId !== scope.organizationId || file.repositoryId !== binding.repositoryId || file.revision !== head || file.path !== path
             || entry.type !== 'blob' || entry.mode !== '100644' || entry.objectSha !== file.blobSha || digest(file.content) !== file.contentDigest
             || blob(file.content) !== file.blobSha || Buffer.byteLength(file.content) > 131072 || !file.content.trim()) throw unavailable();
-          if (await authority.authorizeSource(freeze({ ...reference, path })) !== undefined) throw unavailable(); guard(); await check(); consumed.add(path); return file;
-        };
+          if (await authority.authorizeSource(freeze({ ...reference, path })) !== undefined) throw unavailable(); guard(); consumed.add(path); return file;
+        }, guard);
         const include = (file: ArtifactSnapshot, status: 'canonical' | 'candidate' | 'amendment', targetId: string) => {
           if (inventory.length >= 1000 || inventory.some(i => i.path === file.path)) throw unavailable();
           const sourceId = `source:${digest(file.path)}`;
@@ -105,12 +106,12 @@ export function createIntentCorpusEvidence(reader: CorpusRepositoryReader, rawCo
           } else {
             const itemId = root.path.slice(6);
             const port: CorpusRepositoryReader = { ...reader, readArtifact: readSource,
-              readDirectoryInventory: async (path, revision) => {
-                if (path !== root.path || revision !== head) throw unavailable(); await check();
+              readDirectoryInventory: bracketRepositoryRead(check, async (path: string, revision: string) => {
+                if (path !== root.path || revision !== head) throw unavailable();
                 return { organizationId: tree.organizationId, repositoryId: tree.repositoryId, revision: head, treeSha: tree.treeSha, root: path,
                   entries: tree.entries.filter(e => e.path === path || e.path.startsWith(`${path}/`)) };
-              } };
-            const catalog = createCandidateScopeCatalog(port, { ...scope, itemIds: [itemId] }, async () => check()); catalogs.push(catalog);
+              }, guard) };
+            const catalog = createCandidateScopeCatalog(port, { ...scope, itemIds: [itemId] }, check); catalogs.push(catalog);
             try {
               const collected = await catalog.collect(reference), candidate = collected.groups.filter(g => g.kind === 'candidate');
               if (!collected.coverage.inventoryComplete || !collected.coverage.sourceCoverageComplete) sourceGapCount++;

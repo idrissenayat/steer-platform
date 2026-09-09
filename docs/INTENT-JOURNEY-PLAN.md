@@ -9,12 +9,13 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0285 / partial C22 — 68% (17/25; +0 points)**.
-0283 completed C10; 0284 reduced duplicate historical caller checks. 0285 adds the
-first executable [performance benchmark prefix](INTENT-CAPTURE-PERFORMANCE.md).
-Draft reads meet its limited targets, but source review exceeds the request ceiling;
-the benchmark is failed/incomplete. Its integrity checks and final regression pass. Next unblocked
-engineering work remains C22's repeated identity/corpus traversal, without weakening
+Current delivery checkpoint: **0286 / partial C22 — 68% (17/25; +0 points)**.
+0283 completed C10. 0284 and 0286 reduce privately proven duplicate checks; 0285
+introduced the [performance benchmark prefix](INTENT-CAPTURE-PERFORMANCE.md).
+0286 reduces source-review requests by 13.41% and confirmation requests by 6.66%,
+with final joined recovery/save/reopen and 1,399 broad tests passing. Draft reads
+meet the prefix targets, but source review still exceeds the ceiling: C22 remains
+failed/incomplete. Next reduce remaining policy/evidence traversal without weakening
 authority/recovery guarantees. This is synthetic
 integration progress; live activation, real model quality and signed-in UI acceptance
 remain open and retain their specific prerequisites.
@@ -153,6 +154,18 @@ checks, default three joined checks, idempotent migrations, seven focused tests,
 application optimization or C22 completion: **68% (17/25; +0 points)**. Next reduce
 repeated identity/corpus traversal in source review before extending the benchmark
 to later stages, issuer latency, origin partitions and the full failure protocol.
+
+0286 removes duplicate nested repository-read policy pairs only through private,
+immutable construction identity. Unknown wrappers and independent current callers
+retain full checks; no permission or result cache is added. Source review drops
+from 3,042 to 2,634 requests, scope preparation from 14,221 to 11,365, and first
+confirmation from 48,980 to 45,716. Final authenticated save/reopen and lost-response
+regression, both prefix integrity checks, 58 focused tests, 1,399 broad tests,
+types and build pass. The delayed prefix still fails source review at its cap;
+see [0286 evidence](../intent/0286/EVIDENCE.md) for exact counts and limits.
+Overall stays **68% (17/25; +0 points)**. Next investigate remaining repeated
+policy/evidence traversal and unchanged drafting/history admission, preserving
+read-only proof boundaries. Live activation and actual UI acceptance remain open.
 
 Prior checkpoint: **0275 saves and reopens the confirmed package through identity**.
 The same authenticated journey now reaches one fixed Temporal/native Git save,

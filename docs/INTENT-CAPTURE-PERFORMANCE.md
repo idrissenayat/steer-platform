@@ -66,7 +66,15 @@ probe. Draft reads meet their prefix targets; source review exceeds the request
 ceiling and fails closed. [Raw samples](../intent/0285/PERFORMANCE.json) retain the
 negative result. Later stages, full repeated/concurrent failure protocol, origin
 partitions and issuer/JWKS latency remain unimplemented or unverified.
-Next reduce duplicate authority traversal at explicit
-read/policy boundaries, preserve fresh revocation checks, then implement this
-measurement protocol. No permission cache, longer deadline, hidden background
-write or substituted preview is an acceptable shortcut.
+[0286](../intent/0286/EVIDENCE.md) removes another class of privately proven
+duplicate nested repository-read policy checks. The observed undelayed source
+review now uses 2,634 rather than 3,042 requests; confirmation uses 45,716 rather
+than 48,980. Both are still far above the 200-attempt target, and the delayed prefix
+still fails closed. Counts and single-run local latency are separate evidence;
+the latter is not a warmed p95 or a reliable speedup claim.
+
+Next reduce the remaining repeated current-policy traversal, including the
+unchanged drafting/history admission path, then extend the prefix to later stages
+and the full measurement protocol. Preserve every independent policy and fresh
+revocation boundary. No permission cache, longer deadline, hidden background write
+or substituted preview is an acceptable shortcut.

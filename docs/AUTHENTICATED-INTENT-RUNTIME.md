@@ -62,6 +62,25 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Private nested repository-read proof — 0286
+
+The adapter now constructs an immutable, private read callback that invokes its
+exact bound policy before and after each successful read. A WeakMap records
+construction identity, not permissions or cached results. Catalog root/inventory
+reads can omit only the identical outer pair; the bundle-facing catalog port
+still genuinely runs its own check, so the bundle reader can omit its duplicate
+pair without forwarding a claim across a skipped policy. A separate current caller
+always retains the full bundle path. Unknown wrappers, replacements and other
+authorizers cannot inherit this proof; intrinsic invocation preserves the captured
+method and receiver even if another function has an overridden `call`/`apply`.
+
+Independent source policies, initial/final corpus validation, all consumed-path
+rechecks, exact immutable bytes, timeouts and read/admission limits remain.
+Catalog policy callbacks must return void; truthy or false results are not grants.
+See [0286 evidence](../intent/0286/EVIDENCE.md) for verification and request counts.
+This is a partial C22 optimization, not permission caching, live activation or
+actual signed-in acceptance. Progress remains **68% (17/25; +0 points)**.
+
 ### Executable performance prefix — 0285
 
 An explicit test-only `--journey-performance` selection reuses the actual

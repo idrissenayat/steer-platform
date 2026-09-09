@@ -5,6 +5,7 @@ import { planCandidateBundle } from '@steer/tool-registry/candidate-bundle-contr
 import { createCandidateBundleReader } from '../src/code-host/candidate-bundle-reader.ts';
 import { createGitHubReader, type ArtifactReader } from '../src/code-host/github.ts';
 import { fixture, binding, now } from './github-brief-fixture.ts';
+import { bracketRepositoryRead } from '../src/code-host/repository-read-authority.ts';
 
 const input = {
   organizationId: 'org', productId: 'product', repository: 'github:52', branch: binding.branch, itemId: '0007-booking',
@@ -179,4 +180,63 @@ test('settled operations release admission and the reader does not cache returne
   const reader = f.make(async () => {}, port);
   for (let i = 0; i < 6; i++) assert.deepEqual((await reader.reopen(f.reference)).documents, input.documents);
   assert.equal(calls, 24); reader.close();
+});
+
+test('private exact authorizer proof removes only the duplicate bundle pair, retaining final checks and receiver', async t => {
+  const f = await setup(t); let checks = 0, reads = 0;
+  const authorize = async () => { checks++; };
+  const port: ArtifactReader = { ...f.reader, readArtifact: bracketRepositoryRead(authorize, async function (this: unknown, path: string, revision: string) {
+    assert.strictEqual(this, port); reads++; return f.reader.readArtifact(path, revision);
+  }, () => {}) };
+  assert.deepEqual((await f.make(authorize, port).readPointer(f.pointer)).documents, input.documents);
+  assert.equal(reads, 6); assert.equal(checks, 14); // Six before/after pairs plus bundle and pointer final checks.
+  checks = 0; reads = 0;
+  assert.deepEqual((await f.make(authorize, { ...port, readArtifact: (...args) => port.readArtifact(...args) }).readPointer(f.pointer)).documents, input.documents);
+  assert.equal(reads, 6); assert.equal(checks, 26); // Unknown wrapper takes the complete original path.
+});
+
+test('different bundle policy or independent current caller never inherits another read authority', async t => {
+  const f = await setup(t); let reads = 0, checks = 0;
+  const authorize = async () => { checks++; };
+  const port = { ...f.reader, readArtifact: bracketRepositoryRead(authorize, async (path: string, revision: string) => {
+    reads++; return f.reader.readArtifact(path, revision);
+  }, () => {}) };
+  await assert.rejects(f.make(async () => { throw new Error('other policy denied'); }, port).reopen(f.reference));
+  assert.equal(reads, 0); assert.equal(checks, 0);
+  await assert.rejects(f.make(authorize, port).reopen(f.reference, async () => { throw new Error('caller revoked'); }));
+  assert.equal(reads, 0); assert.equal(checks, 0);
+  let currentChecks = 0;
+  assert.deepEqual((await f.make(authorize, port).reopen(f.reference, async () => { currentChecks++; })).documents, input.documents);
+  assert.equal(reads, 4); assert.equal(currentChecks, 18); assert.equal(checks, 17);
+});
+
+test('covered read still suppresses late source revocation and close, without further blob dispatch', async t => {
+  for (const mode of ['revocation', 'close'] as const) {
+    const f = await setup(t); let reads = 0, revoked = false;
+    const authorize = async () => { if (revoked) throw new Error('PRIVATE'); };
+    const port = { ...f.reader, readArtifact: bracketRepositoryRead(authorize, async (path: string, revision: string) => {
+      reads++; const result = await f.reader.readArtifact(path, revision);
+      if (mode === 'revocation') revoked = true; else reader.close();
+      return result;
+    }, () => {}) };
+    const reader = f.make(authorize, port);
+    await assert.rejects(reader.reopen(f.reference), error => { assert.doesNotMatch(String(error), /PRIVATE/); return true; });
+    assert.equal(reads, 1);
+  }
+});
+
+test('method replacement during a covered read cannot inherit the captured method proof on the next blob', async t => {
+  const f = await setup(t); let checks = 0, originalReads = 0, replacementReads = 0;
+  const authorize = async () => {
+    if (++checks === 1) port.readArtifact = replacement;
+    if (checks >= 3) throw new Error('denied');
+  };
+  const replacement: ArtifactReader['readArtifact'] = async (path, revision) => {
+    replacementReads++; return f.reader.readArtifact(path, revision);
+  };
+  const port: ArtifactReader = { ...f.reader, readArtifact: bracketRepositoryRead(authorize, async (path: string, revision: string) => {
+    originalReads++; return f.reader.readArtifact(path, revision);
+  }, () => {}) };
+  await assert.rejects(f.make(authorize, port).reopen(f.reference));
+  assert.equal(checks, 3); assert.equal(originalReads, 1); assert.equal(replacementReads, 0);
 });

@@ -5,6 +5,7 @@ import { planCandidateBundle } from '@steer/tool-registry/candidate-bundle-contr
 import { createCandidateScopeCatalog } from '../src/code-host/candidate-scope-catalog.ts';
 import { createGitHubReader, type DirectoryRepositoryReader } from '../src/code-host/github.ts';
 import { fixture, binding, now } from './github-brief-fixture.ts';
+import { bracketRepositoryRead } from '../src/code-host/repository-read-authority.ts';
 
 const input = {
   organizationId: 'org', productId: 'product', repository: 'github:52', branch: binding.branch, itemId: '0007-booking',
@@ -173,4 +174,35 @@ test('directory bounds, non-directory roots and malformed revisions fail without
       mode: '100644', type: 'blob', sha: 'a'.repeat(40) }))] };
   });
   await assert.rejects(f.reader.readDirectoryInventory('items/0007-booking', revision));
+});
+
+test('catalog root reads omit only privately covered exact policy pairs and preserve identical catalog bytes', async t => {
+  const f = await setup(t); let checks = 0, reads = 0;
+  const authorize = async () => { checks++; };
+  const port = { ...f.reader,
+    readArtifact: bracketRepositoryRead(authorize, async (path: string, revision: string) => {
+      reads++; return f.reader.readArtifact(path, revision);
+    }, () => {}),
+    readDirectoryInventory: bracketRepositoryRead(authorize, async (root: string, revision: string) => {
+      reads++; return f.reader.readDirectoryInventory(root, revision);
+    }, () => {}),
+  };
+  const result = await f.make(authorize, port).collect(f.reference), coveredChecks = checks, coveredReads = reads;
+  checks = 0; reads = 0;
+  const unknown = { ...port, readArtifact: (...args: [string, string]) => port.readArtifact(...args),
+    readDirectoryInventory: (...args: [string, string]) => port.readDirectoryInventory(...args) };
+  assert.deepEqual(await f.make(authorize, unknown).collect(f.reference), result);
+  assert.equal(result.coverage.sourceCoverageComplete, true);
+  assert.equal(reads, coveredReads); assert.equal(checks - coveredChecks, 4);
+});
+
+test('catalog rejects nonvoid policy and unrelated policy denial even with privately bracketed read methods', async t => {
+  const f = await setup(t); let reads = 0;
+  const current = async () => {};
+  const port = { ...f.reader, readDirectoryInventory: bracketRepositoryRead(current, async (root: string, revision: string) => {
+    reads++; return f.reader.readDirectoryInventory(root, revision);
+  }, () => {}) };
+  await assert.rejects(f.make(async () => { throw new Error('PRIVATE'); }, port).collect(f.reference));
+  await assert.rejects(f.make(async () => false as unknown as void, port).collect(f.reference));
+  assert.equal(reads, 0); assert.equal(f.git.calls.length, 0);
 });

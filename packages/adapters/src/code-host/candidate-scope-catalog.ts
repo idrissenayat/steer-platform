@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { candidateBundleReferenceSchema, candidatePointerReferenceSchema } from '@steer/tool-registry/candidate-bundle-contracts';
 import { createCandidateBundleReader } from './candidate-bundle-reader.ts';
 import type { DirectoryRepositoryReader, ArtifactSnapshot } from './github.ts';
+import { bracketRepositoryRead, repositoryReadCovers } from './repository-read-authority.ts';
 
 const referenceSchema = candidateBundleReferenceSchema.omit({ itemId: true, bundleId: true, manifestDigest: true });
 const configurationSchema = referenceSchema.omit({ revision: true }).extend({
@@ -69,13 +70,28 @@ export function createCandidateScopeCatalog(reader: DirectoryRepositoryReader, r
           if (signal.aborted) listener();
         })]); } finally { signal.removeEventListener('abort', listener); }
       }
-      const check = async () => { await bounded(() => authorize(ref)); signal.throwIfAborted(); };
-      const read = async <T>(work: () => Promise<T>) => {
-        if (readCount >= 100) { readLimitReached = true; throw new CandidateCatalogError(); }
-        readCount++; await check(); const result = await bounded(work); await check(); return result;
+      const check = async () => {
+        if (await bounded(() => authorize(ref)) !== undefined) throw new CandidateCatalogError();
+        signal.throwIfAborted();
       };
-      const port = { ...reader, readArtifact: (path: string, revision: string) => read(() => reader.readArtifact(path, revision)) };
-      bundles = createCandidateBundleReader(port, config, async () => check());
+      const read = async <T>(work: () => Promise<T>, covered = false) => {
+        if (readCount >= 100) { readLimitReached = true; throw new CandidateCatalogError(); }
+        readCount++; if (!covered) await check(); const result = await bounded(work);
+        signal.throwIfAborted(); if (!covered) await check(); return result;
+      };
+      const readArtifact = (path: string, revision: string) => {
+        const method = reader.readArtifact;
+        return read(() => Reflect.apply(method, reader, [path, revision]), repositoryReadCovers(method, authorize));
+      };
+      // Keep the bundle-facing read genuinely bracketed by check, even when its
+      // underlying corpus read covers authorize. Do not transfer a proof across
+      // a callback that was skipped. Catalog bounds/admission remain independent.
+      const port = { ...reader, readArtifact: bracketRepositoryRead(check, async (path: string, revision: string) => {
+        if (readCount >= 100) { readLimitReached = true; throw new CandidateCatalogError(); }
+        readCount++; const method = reader.readArtifact;
+        return bounded(() => Reflect.apply(method, reader, [path, revision]));
+      }, () => signal.throwIfAborted()) };
+      bundles = createCandidateBundleReader(port, config, check);
       const documents = new Map<string, ArtifactSnapshot>();
       const groups: Array<{ itemId: string; kind: Kind; pointerPath: string | null; manifestDigest: string | null; documentPaths: string[] }> = [];
       const gaps: Gap[] = []; const inventories: Array<{ itemId: string; treeSha: string; entries: unknown[] }> = [];
@@ -94,7 +110,8 @@ export function createCandidateScopeCatalog(reader: DirectoryRepositoryReader, r
         if (readCount >= 100) { readLimitReached = true; gaps.push({ itemId, path: root, reason: 'read-limit' }); continue; }
         let directory: z.infer<typeof directorySchema>;
         try {
-          directory = directorySchema.parse(await read(() => reader.readDirectoryInventory(root, ref.revision)));
+          const method = reader.readDirectoryInventory;
+          directory = directorySchema.parse(await read(() => Reflect.apply(method, reader, [root, ref.revision]), repositoryReadCovers(method, authorize)));
           if (directory.organizationId !== ref.organizationId || directory.repositoryId !== reader.binding.repositoryId
             || directory.revision !== ref.revision || directory.root !== root
             || new Set(directory.entries.map(entry => entry.path)).size !== directory.entries.length
@@ -124,7 +141,7 @@ export function createCandidateScopeCatalog(reader: DirectoryRepositoryReader, r
           }
           try {
             if (entry.mode !== '100644' || entry.type !== 'blob') throw new CandidateCatalogError();
-            const source = validateSource(await port.readArtifact(path, ref.revision), path, entry.objectSha);
+            const source = validateSource(await readArtifact(path, ref.revision), path, entry.objectSha);
             documents.set(path, source); rootPaths.push(path);
           } catch { gaps.push({ itemId, path, reason: 'source-unavailable' }); }
         }
