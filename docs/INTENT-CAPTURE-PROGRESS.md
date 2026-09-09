@@ -55,7 +55,7 @@ it does not imply that no code exists.
 | C19 | I5 Save/reopen | Authenticated new-distinct exact confirmation and atomic idempotent native save, with current scope/authority checks. | Verified | [0275](../intent/0275/EVIDENCE.md), [0276](../intent/0276/EVIDENCE.md). Synthetic authority, not live GitHub. |
 | C20 | I5 Save/reopen | Uncertain save, scheduler/provider lost replies and restart reconcile without resend; exact older-commit reopen through authenticated services. | Verified | [0275](../intent/0275/EVIDENCE.md), [0276](../intent/0276/EVIDENCE.md). |
 | C21 | I5 Save/reopen | Governed actual startup, current runtime GitHub write authority and a verified real repository save/reopen. | Pending | Source-code pushes are not application saves or runtime-write authorization. |
-| C22 | I5 Save/reopen | Measured provider request load and end-to-end latency satisfy documented human-UX acceptance thresholds on the representative journey. | Pending | [0279](../intent/0279/EVIDENCE.md), [0283](../intent/0283/EVIDENCE.md): about 60,000–61,000 local confirmation requests and 36–41 seconds remain unacceptable; establish and verify practical bounds. |
+| C22 | I5 Save/reopen | Measured provider request load and end-to-end latency satisfy documented human-UX acceptance thresholds on the representative journey. | Pending | [0284](../intent/0284/EVIDENCE.md) verifies a partial request reduction at the stated test levels. The [engineering benchmark](INTENT-CAPTURE-PERFORMANCE.md) defines the pass bar; repeatable delay-bearing/concurrent measurements have not passed. Roughly 49,000–50,000 requests and 36–41-second confirmations remain unacceptable. |
 | C23 | I6 Human acceptance | Actual signed-in UI happy path, open-existing, exact/paraphrased duplicate, partial overlap and related-but-distinct scenarios; real sources and saved commits. | Pending | No preview, fixture or component-only result substitutes for this demonstration. |
 | C24 | I6 Human acceptance | Actual UI handles empty/failed/stale search, corrections, permission loss, exhausted budget, concurrent creation, uncertain save and refresh/reopen without lost work. | Pending | Component/negative tests inform but do not complete this real journey. |
 | C25 | I6 Human acceptance | Actual end-to-end keyboard, narrow-screen and accessibility verification, followed by the user's usable-journey acceptance. | Pending | Component axe checks do not establish browser/visual or human acceptance. |
@@ -69,9 +69,10 @@ it does not imply that no code exists.
 | 2026-09-09 / 0281 | 15/25 | 60% | +4 percentage points | C08: authenticated new-linked save/reopen with unchanged source and exact relationship; linked/default joined selections and final broad regression pass. |
 | 2026-09-09 / 0282 | 16/25 | 64% | +4 percentage points | C09: authenticated first-amendment save/reopen with unchanged canonical artifacts and preserved original target; amendment/default joined selections and final broad regression pass. |
 | 2026-09-09 / 0283 | 17/25 | 68% | +4 percentage points | C10: authenticated proposal-continuation save/reopen with exact parent advancement and original target/canonical/prior-file preservation; continuation/default joined selections and final broad regression pass. |
+| 2026-09-09 / 0284 | 17/25 | 68% | +0 percentage points | Partial C22: private identical-caller proof removes about 19% of preview/confirmation requests; default/continuation and historical SQL selections pass, followed by final receiver-compatibility, 1,382 broad tests, types and build. Exact verification timing is recorded; latency-bearing acceptance remains open. |
 
-Next unblocked engineering checkpoint: C22, establish and meet practical request-load
-and latency bounds without weakening current authority or recovery guarantees.
+Next unblocked engineering checkpoint: C22, meet the documented request-load and
+latency bounds without weakening current authority or recovery guarantees.
 Eight checkpoints remain in total: performance, governed records/runtime activation,
 real model quality and signed-in human acceptance. Live model/activation work still
 requires its specific prerequisites; it is not authorized by this progress update.

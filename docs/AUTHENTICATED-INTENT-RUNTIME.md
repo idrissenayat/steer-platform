@@ -62,6 +62,29 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Private historical caller-barrier proof — 0284
+
+The data layer now records a private function-identity proof for a source-policy
+callback constructed as current caller → policy → current caller. Only forwarding
+that preserves the original callback, argument list, receiver and owner tracking
+can carry that proof. A historical scope window may omit its duplicate identical
+outer caller pair; unknown, copied, differently scoped or arbitrary wrappers keep
+the full checks. No principal, permission, head or policy outcome is cached.
+
+Both full scope reads, each independent source policy, fresh OIDC/Git lookups,
+immutable original/SDK lineage, owner closure and pending-work limits remain.
+The same default and continuation joined fixtures remove 5,696 identity head
+reads per preview and 11,392 per confirmation (about 19% of total requests).
+Repository traffic is unchanged. Confirmations still take about 36–41 seconds;
+single-run timings do not establish a reliable latency improvement.
+
+See [0284 evidence](../intent/0284/EVIDENCE.md) for exact counts and verification
+timing, including the final callback-receiver compatibility correction after the
+SQL selections were launched. The [performance benchmark](INTENT-CAPTURE-PERFORMANCE.md)
+sets an engineering pass bar and repeatable measurement protocol; its harness and
+passing results remain open. This is partial C22 work: **68% (17/25; +0 points)**,
+not live activation, real model quality or signed-in human acceptance.
+
 ### Proposal-continuation save — 0283
 
 The joined authenticated fixture now selects the canonical target Brief and an

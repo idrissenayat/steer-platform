@@ -9,9 +9,11 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0283 / C10 verified — 68% (17/25; +4 points)**.
-Next unblocked engineering work: C22, establish and meet practical provider-request
-and latency bounds without weakening authority/recovery guarantees. This is synthetic
+Current delivery checkpoint: **0284 / partial C22 — 68% (17/25; +0 points)**.
+0283 completed C10. 0284 verifies a private proof that removes only duplicated
+identical caller barriers. The [performance acceptance benchmark](INTENT-CAPTURE-PERFORMANCE.md)
+now defines the request/latency pass bar; it is not yet passed. Next unblocked
+engineering work remains C22, without weakening authority/recovery guarantees. This is synthetic
 integration progress; live activation, real model quality and signed-in UI acceptance
 remain open and retain their specific prerequisites.
 
@@ -126,6 +128,17 @@ canonical blobs. See [0283 evidence](../intent/0283/EVIDENCE.md). Continuation/d
 joined selections, 31 focused tests, 1,373 broad tests, typechecks and build pass.
 C10 advances the tracker to **68% (17/25; +4 points)**. Next is C22's request-load
 and latency work; no live model, runtime GitHub or signed-in UI acceptance is implied.
+
+0284 removes privately proven duplicate caller barriers from historical scope
+reads, preserving independent policies and full initial/final evidence checks.
+The same default/continuation fixtures remove about 19% of preview/confirmation
+requests; confirmations still take about 36–41 seconds locally. See
+[0284 evidence](../intent/0284/EVIDENCE.md) for exact counts, the three SQL selections
+and their timing relative to the final callback-receiver correction. All 24 final
+focused tests, 1,382 broad tests, typechecks and build pass. The engineering
+benchmark is documented but not passed. C22 remains pending: **68% (17/25; +0 points)**.
+Next reduce remaining repeated reads and implement delay-bearing, cold/warm and
+concurrent measurements; no live authority or human acceptance is inferred.
 
 Prior checkpoint: **0275 saves and reopens the confirmed package through identity**.
 The same authenticated journey now reaches one fixed Temporal/native Git save,

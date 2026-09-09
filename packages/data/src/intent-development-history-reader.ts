@@ -5,6 +5,7 @@ import { createDevelopmentObservationStore } from './development-observations.ts
 import { createHistoricalDevelopmentOperationReader } from './intent-operations.ts';
 import { developmentOriginalHash as hash,freezeOriginal as freeze } from './development-original-contracts.ts';
 import { withHistoricalScopeReadWindow } from './historical-scope-read-window.ts';
+import { bracketHistoricalReadAuthority } from './historical-read-authority.ts';
 
 type Records=Parameters<typeof createDevelopmentObservationStore>[2];
 const unavailable=()=>new Error('Development history is unavailable.');
@@ -55,7 +56,10 @@ export function createIntentDevelopmentHistoryReader(pools:Parameters<typeof cre
         originals:{
           authorize:denied,authorizeOperation:denied,
           authorizeHistoricalRead:context=>authority('read',()=>r.originals.authorizeHistoricalRead!(context)),
-          authorizeOriginal:context=>authority(context.action,()=>r.originals.authorizeOriginal(context)),
+          authorizeOriginal:bracketHistoricalReadAuthority(current,async (context: Parameters<typeof r.originals.authorizeOriginal>[0])=>{
+            if(context.action!=='read')throw unavailable();
+            return r.originals.authorizeOriginal(context);
+          },track,guard),
           authorizeDraft:context=>authority(context.action,()=>r.originals.authorizeDraft(context)),
           keyForDraft:(ref,keyId)=>{if(keyId===null)throw unavailable();return checked(()=>r.originals.keyForDraft(ref,keyId));},
           ...(r.originals.scopeHistory?{scopeHistory:{scope:r.originals.scopeHistory.scope,

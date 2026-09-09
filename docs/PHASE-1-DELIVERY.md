@@ -6267,3 +6267,29 @@ Overall is now **68% (17/25; +4 points)** for completed C10. Next unblocked work
 C22 request-load/latency bounds and reduction. Real model quality, records/runtime
 activation and actual UI acceptance remain open. No production source, live
 configuration, model spending or authority change.
+
+## 0284 — Private proof for duplicated historical caller barriers
+
+Partial C22 optimization: helper-constructed source callbacks prove they execute
+the exact same current caller before and after their policy. Trusted forwarding
+preserves the callback, arguments, receiver and owner guards/tracking; unknown,
+copied or wrong-caller callbacks retain the complete outer checks. Historical
+scope still performs two full authoritative reads and current source/records/key/
+profile/identity checks. No permission cache or wider authority was introduced.
+See [specification](../intent/0284/SPEC.md) and [evidence](../intent/0284/EVIDENCE.md).
+
+The unchanged default and continuation joined meters show about 19% fewer requests:
+5,696 identity head reads removed per preview and 11,392 per confirmation.
+Confirmation remains about 36–41 seconds locally, so C22 is not complete. The
+[engineering acceptance benchmark](INTENT-CAPTURE-PERFORMANCE.md) now defines
+five-second/200-attempt targets for its fixed 34-source fixture and the required
+delay-bearing, cold/warm and concurrent measurements. These are targets, not passes.
+
+The default three joined checks, continuation joined check and historical ten
+checks pass, each with idempotent migrations. The evidence distinguishes those
+SQL launches from the final callback-receiver correction and subsequent focused,
+type and build verification. All 1,382 final broad tests pass with no failures,
+as do the 24 focused tests, types, build, links, kit/audit and protected hashes. No full SQL suite,
+live model/GitHub/UI acceptance, records/D1 adoption or deployment is claimed.
+Overall stays **68% (17/25; +0 points)**. Continue reducing repeated reads and
+implement the performance benchmark without weakening recovery or permission checks.

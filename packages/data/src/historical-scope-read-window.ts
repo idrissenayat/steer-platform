@@ -1,6 +1,7 @@
 import { intentScopeHistoryInputSchema, verifyIntentScopeHistoryOutput,
   type IntentScopeHistoryReader, type IntentScopeHistoryInput, type IntentScopeHistoryOutput } from '@steer/tool-registry/intent-scope-history-contracts';
 import { developmentOriginalHash as hash, freezeOriginal as freeze } from './development-original-contracts.ts';
+import { historicalReadAuthorityCovers } from './historical-read-authority.ts';
 
 const unavailable = () => new Error('Historical scope read is unavailable.');
 /** Private composition boundary for ONE read-only generation-history projection.
@@ -22,7 +23,13 @@ export async function withHistoricalScopeReadWindow<T>(reader: IntentScopeHistor
   const check = async (callback: () => Promise<void>) => {
     guard(); if (typeof callback !== 'function' || await callback() !== undefined) throw unavailable(); guard();
   };
-  const present = async (callback: () => Promise<void>) => { await check(current); await check(callback); await check(current); };
+  const present = async (callback: () => Promise<void>) => {
+    // A privately constructed callback already brackets its exact source policy
+    // with this SAME caller check. Do not repeat that barrier without another IO
+    // or policy boundary. Unknown/copied/differently scoped callbacks stay full.
+    if (historicalReadAuthorityCovers(callback, current)) await check(callback);
+    else { await check(current); await check(callback); await check(current); }
+  };
   const inspect = async (input: IntentScopeHistoryInput, callback: () => Promise<void>) => {
     await present(callback);
     const value = await verifyIntentScopeHistoryOutput(await read!.call(reader, input, () => present(callback)));

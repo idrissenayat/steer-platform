@@ -3,6 +3,7 @@ import { verifyIntentScopeHistoryOutput, type IntentScopeHistoryReader } from '@
 import { bindRecordedIntentScope, verifyBoundIntentScope, intentScopeSelectionSchema, intentScopeSelectionFor,
   type IntentScopeSelection, type IntentScopeBinding, type ScopeSelectionSource } from '@steer/tool-registry/intent-scope-selection';
 import type { DevelopmentOriginal } from './development-original-contracts.ts';
+import { forwardHistoricalReadAuthority } from './historical-read-authority.ts';
 
 /** No cached authority: the same pinned read port is required again when a bound
  * original is restored for start, worker requests or result consumption. */
@@ -34,7 +35,7 @@ export async function revalidateDevelopmentScopeReview(original: DevelopmentOrig
 export async function verifyHistoricalDevelopmentScopeReview(original: DevelopmentOriginal,
   reader: IntentScopeHistoryReader | undefined, current: () => Promise<void>): Promise<void> {
   const unavailable = () => new Error('Historical generation scope is unavailable.');
-  const present = async () => { if (await current() !== undefined) throw unavailable(); };
+  const present = forwardHistoricalReadAuthority(current, [], pending => pending, () => {});
   await present();
   const bound = original.direction.scopeReview;
   if (!bound) return; // Legacy originals have no assessment; never invent one.
