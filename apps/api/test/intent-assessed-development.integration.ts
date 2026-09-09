@@ -10,19 +10,24 @@ import { createDevelopmentOriginalStore } from '@steer/data/development-original
 import { describeDevelopmentOriginal } from '@steer/data/development-original-contracts';
 import { renderDevelopmentRequest, createDevelopmentRequestReader } from '@steer/data/development-requests';
 import { originalFixture } from '../../../packages/data/test/development-original.fixture.ts';
-import { createAssessedRecordedDevelopmentPreparer, createVerifiedScopeReviewReader, createVerifiedScopeReviewHistoryReader, createRecordedDevelopmentStarter } from '../src/runtime.ts';
+import { createAssessedRecordedDevelopmentPreparer, createVerifiedScopeReviewReader, createVerifiedScopeReviewHistoryReader, createRecordedDevelopmentStarter, createVerifiedDevelopmentHistoryExchangeReader } from '../src/runtime.ts';
+import { RECORDED_MASTRA_REVISION } from '@steer/agents/recorded-mastra';
+import { createRecordedDevelopmentModel } from '../../worker/src/recorded-development-model.ts';
+import { createDevelopmentStepRuntime } from '../../worker/src/development-step-runtime.ts';
 import { createApi } from '../src/app.ts';
 
 type Fixture = Awaited<ReturnType<typeof scopeStepIntegrationFixture>>;
 type Dependencies = Parameters<typeof createAssessedRecordedDevelopmentPreparer>[3];
-async function assessedApi(f: Fixture, evidence = f.described.original.evidence, patch: Partial<Dependencies> = {}) {
+async function assessedApi(f: Fixture, evidence = f.described.original.evidence, patch: Partial<Dependencies> = {}, recorded = false) {
   const execution = { ...f.config, action: 'develop', expiresAt: f.execution.expiresAt, budget: f.execution.budget };
   const baseline = await originalFixture(execution, { draftId: f.draftId, revision: 1, sourceRevision: 1,
     revisionDigest: f.saved.reference.revisionDigest, content: f.content });
   const records: Dependencies['records'] = { authorize: async () => {}, authorizeOriginal: async () => {}, authorizeOperation: async () => {},
     authorizeDraft: f.deps.records.originals.authorizeDraft, keyForDraft: f.deps.records.originals.keyForDraft };
   const scope = { records: f.deps.records, profile: f.deps.profile };
-  const service = createAssessedRecordedDevelopmentPreparer(f.pools, execution, baseline.original.profiles, {
+  const profiles = recorded ? {architect:{...baseline.original.profiles.architect,runtimeRevision:RECORDED_MASTRA_REVISION},
+    testAgent:{...baseline.original.profiles.testAgent,runtimeRevision:RECORDED_MASTRA_REVISION}} : baseline.original.profiles;
+  const service = createAssessedRecordedDevelopmentPreparer(f.pools, execution, profiles, {
     records, scope, evidenceFor: async () => evidence, authorizePreparation: async () => {}, ...patch });
   const principal = { organizationId: f.config.organizationId, subject: f.config.subject, type: 'human', hats: [],
     toolGrants: ['intent.development.prepare'], expiresAt: new Date(Date.now() + 300000).toISOString() };
@@ -33,12 +38,54 @@ async function assessedApi(f: Fixture, evidence = f.described.original.evidence,
     choice: baseline.original.direction.choice, draftingContextDigest: (await buildIntentDevelopmentContext(evidence)).contextDigest };
   const post = (scopeReview?: unknown, patch = {}) => app.fetch(new Request('https://steer.example/v1/tools/intent.development.prepare', {
     method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...input, ...patch, ...(scopeReview ? { scopeReview } : {}) }) }));
-  return { service, post, records, scope, input, baseline };
+  return { service, post, records, scope, input, baseline, profiles };
 }
 const selection = (f: Fixture, review: Awaited<ReturnType<Fixture['read']>>) => ({ kind: 'recorded', ...f.target, resultsDigest: review.review!.resultsDigest });
 
 export async function testAssessedDevelopment(setup: (count?: number, ttl?: number, large?: boolean) => Promise<Fixture>,
   check: (name: string, run: () => Promise<void>) => Promise<void>, admin: Pool) {
+  await check('historical development composes full assessed multi-batch inputs with both actual SDK roles and retained output verification after human edits',async()=>{
+    const f=await setup(34);assert.equal((await f.run(0)).outcome,'succeeded');assert.equal((await f.run(1)).outcome,'succeeded');
+    const a=await assessedApi(f,f.described.original.evidence,{},true),review=await f.read();
+    const current=createVerifiedScopeReviewReader(f.pools,f.config,a.scope),history=createVerifiedScopeReviewHistoryReader(f.pools,f.config,
+      {...a.scope,records:{...a.scope.records,authorizeHistoricalRead:async()=>{},authorizeHistoricalReview:async()=>{}}});
+    const records={originals:{...a.records,scopeReview:current},results:{authorizeOperation:a.records.authorizeOperation,
+      authorizeDraft:a.records.authorizeDraft,keyForDraft:a.records.keyForDraft,authorizeResult:async()=>{}},authorize:async()=>{}};
+    const profiles=Object.fromEntries(Object.entries(a.profiles).map(([role,p])=>[role,{profileRevision:p.configurationRevision,
+      instructions:p.instructions,modelRoute:p.modelRoute,maxOutputTokens:p.maxOutputTokens,allowedResponseModels:['synthetic-provider-model']}])) as Parameters<typeof createRecordedDevelopmentModel>[3]['gateway']['profiles'];
+    let calls=0;
+    try {
+      const prepared=await (await a.post(selection(f,review))).json();assert.equal(prepared.outcome,'prepared');
+      for(const role of ['architect','test-agent'] as const){
+        const model=createRecordedDevelopmentModel(f.pools,f.config,prepared.reference,{records,authorize:async()=>{},gateway:{
+          gatewayUrl:'http://127.0.0.1:4000/v1',gatewayKey:'synthetic-unused',profiles,transport:async(_url,init)=>{
+            calls++;const wire=JSON.parse(String(init?.body)),source=JSON.parse(wire.messages[1].content);assert.equal(source.scopeEvidence.evidence.length,34);
+            assert.doesNotMatch(wire.messages[1].content,/EXAM-MARKER-NOT-FOR-SCOPE/);
+            return Response.json({id:'synthetic-assessed-history',object:'chat.completion',model:'synthetic-provider-model',choices:[{index:0,
+              message:{role:'assistant',content:JSON.stringify(role==='architect'?{message:'Drafted',questions:[],brief:'# Assessed Brief',spec:'# Assessed Spec'}:{exam:'# Assessed Exam\nNOT RUN'})},finish_reason:'stop'}],
+              usage:{prompt_tokens:2,completion_tokens:1,total_tokens:3}});
+          }}});
+        const phases:Array<{phase:string;ms:number;ok:boolean}>=[];
+        const traced={execute:async(...args:Parameters<typeof model.execute>)=>{const start=performance.now();let ok=false;try{const value=await model.execute(...args);ok=true;return value;}finally{phases.push({phase:'execute',ms:Math.round(performance.now()-start),ok});}},
+          verify:async(...args:Parameters<typeof model.verify>)=>{const start=performance.now();let ok=false;try{await model.verify(...args);ok=true;}finally{phases.push({phase:'verify',ms:Math.round(performance.now()-start),ok});}}};
+        const runtime=createDevelopmentStepRuntime(f.pools,f.config,prepared.reference,{reader:{originals:records.originals,results:records.results,authorizeRequest:async()=>{}},model:traced,authorize:async()=>{}});
+        try {const start=performance.now(),outcome=await runtime.run(role,new AbortController().signal);
+          const states=(await admin.query('SELECT step_id,record->>\'state\' AS state FROM steer_execution.intent_steps WHERE operation_id=$1',[prepared.reference.operationId])).rows;
+          const observations=(await admin.query('SELECT stage FROM steer_drafts.development_observations WHERE operation_id=$1',[prepared.reference.operationId])).rows;
+          assert.equal(outcome.outcome,'succeeded',JSON.stringify({role,calls,durationMs:Math.round(performance.now()-start),states,observations,phases}));
+        }finally{runtime.close();model.close();}
+      }
+      await f.edit();const reservations=await f.reservations();
+      const retained=createVerifiedDevelopmentHistoryExchangeReader(f.pools,f.config,{profiles,records:{...records,authorizeHistoricalRead:async()=>{},
+        originals:{...records.originals,scopeHistory:history,authorizeHistoricalRead:async()=>{},authorizeOperation:async()=>{throw new Error('No execution');}},
+        results:{...records.results,authorizeHistoricalResult:async()=>{},authorizeOperation:async()=>{throw new Error('No execution');}}}});
+      try {for(const role of ['architect','test-agent'] as const){const result=await retained.read({...prepared.reference,stepId:role});assert.equal(result.historical,true);
+        assert.equal(result.response.result.role,role);assert.ok(result.resultReference);const source=JSON.parse((result.request.rendered as any).request.source);
+        assert.equal(source.scopeEvidence.evidence.length,34);assert.equal(source.direction.scopeReview.kind,'recorded');assert.equal(result.executionAuthorized,false);
+      }}finally{retained.close();}
+      assert.equal(calls,2);assert.equal(f.state.calls,2);assert.equal(reservations,4);assert.equal(await f.reservations(),reservations);
+    }finally{current.close();history.close();a.service.close();}
+  });
   await check('assessed generation input history restores exact multi-batch lineage after source edits and expiry without current execution or new records',async()=>{
     const f=await setup(34,15000);assert.equal((await f.run(0)).outcome,'succeeded');assert.equal((await f.run(1)).outcome,'succeeded');
     const a=await assessedApi(f),review=await f.read(),current=createVerifiedScopeReviewReader(f.pools,f.config,a.scope);

@@ -4,7 +4,7 @@ import { intentRoleResultSchema } from '@steer/tool-registry/intent-role-result'
 import { createDevelopmentOriginalStore, developmentRecordsConfigurationSchema } from './development-originals.ts';
 import { createDevelopmentResultStore } from './development-results.ts';
 import { renderDevelopmentRequest } from './development-requests.ts';
-import { createIntentOperationStore } from './intent-operations.ts';
+import { createIntentOperationStore, createHistoricalDevelopmentStepReader } from './intent-operations.ts';
 import { developmentOriginalHash as hash, freezeOriginal as freeze } from './development-original-contracts.ts';
 import { draftEnvelopeSchema, sealDraft, openDraft, DraftStorageError } from './draft-envelope.ts';
 import { applyRuntimeQueryLimits, DatabaseCommitOutcomeUnknownError } from './runtime-pool.ts';
@@ -43,6 +43,9 @@ export function createDevelopmentObservationStore(pools: Parameters<typeof creat
   originals: Parameters<typeof createDevelopmentOriginalStore>[2];
   results: Parameters<typeof createDevelopmentResultStore>[2];
   authorize: (context: Readonly<{ configuration: z.infer<typeof developmentRecordsConfigurationSchema>; target: Target; action: 'put' | 'read' }>) => Promise<void>;
+  authorizeHistoricalRead?: (context: Readonly<{ configuration: z.infer<typeof developmentRecordsConfigurationSchema>; target: Target }>) => Promise<void>;
+  verifyHistoricalExchange?: (context: Readonly<{ original: Awaited<ReturnType<ReturnType<typeof createDevelopmentOriginalStore>['readHistorical']>>['original'];
+    role: Target['stepId']; request: Extract<Payload,{stage:'request'}>; response: Extract<Payload,{stage:'response'}> }>) => Promise<void>;
 }) {
   const config = freeze(developmentRecordsConfigurationSchema.parse(rawConfiguration)), configurationDigest = hash(config);
   if (typeof dependencies.authorize !== 'function') throw new DraftStorageError();
@@ -56,8 +59,12 @@ export function createDevelopmentObservationStore(pools: Parameters<typeof creat
     try { return await Promise.race([work, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new DraftStorageError()), 5000); })]); }
     finally { if (timer) clearTimeout(timer); }
   };
-  const authorize = async (target: Target, action: 'put' | 'read') => {
-    guard(); if (await bounded(dependencies.authorize(freeze({ configuration: config, target, action }))) !== undefined) throw new DraftStorageError(); guard();
+  const authorize = async (target: Target, action: 'put' | 'read', historical = false) => {
+    guard();
+    if (historical && (action !== 'read' || typeof dependencies.authorizeHistoricalRead !== 'function'
+      || typeof dependencies.verifyHistoricalExchange !== 'function')) throw new DraftStorageError();
+    if (await bounded(historical ? dependencies.authorizeHistoricalRead!(freeze({configuration:config,target}))
+      : dependencies.authorize(freeze({ configuration: config, target, action }))) !== undefined) throw new DraftStorageError(); guard();
   };
   async function transaction<T>(work: (c: PoolClient) => Promise<T>): Promise<T> {
     let c: PoolClient | undefined, finished = false, committing = false, broken = false;
@@ -94,7 +101,38 @@ export function createDevelopmentObservationStore(pools: Parameters<typeof creat
       || m.draftRevision !== Number(row.draft_revision) || m.payloadDigest !== row.payload_digest) throw new Conflict();
     return { metadata: m, envelope: draftEnvelopeSchema.parse(row.encrypted_value) };
   }
-  async function context(t: Target) {
+  async function retainedContext(t: Target) {
+    guard(); const restored = await bounded(originals.readHistorical({operationId:t.operationId,inputDigest:t.inputDigest})); guard();
+    const original = restored.original;
+    const operations = createHistoricalDevelopmentStepReader(pools.execution, original.configuration, {
+      authorize: async ({request}) => authorize({...t,stepId:request.stepId},'read',true),
+    });
+    const results = createDevelopmentResultStore(pools, original.configuration, dependencies.results); children.add(operations); children.add(results);
+    try {
+      const observed = await bounded(operations.inspectHistorical(t)); guard(); const own = observed.step;
+      if (own.record.state !== 'succeeded' || observed.operation.draftId !== original.source.draftId
+        || observed.operation.draftRevision !== original.source.revision) throw new DraftStorageError();
+      const saved = await bounded(results.readRetainedHistorical(t)); guard();
+      if (saved.reference.resultRef !== own.resultRef || saved.reference.resultDigest !== own.record.resultDigest
+        || saved.sourceDraftRevision !== original.source.revision || saved.sourceRevisionDigest !== original.source.revisionDigest) throw new Conflict();
+      let predecessor = null;
+      if (t.stepId === 'test-agent') {
+        const prior = await bounded(operations.inspectHistorical({...t,stepId:'architect'})); guard();
+        if (prior.step.record.state !== 'succeeded') throw new DraftStorageError();
+        const previous = await bounded(results.readRetainedHistorical({...t,stepId:'architect'})); guard();
+        if (previous.reference.resultRef !== prior.step.resultRef || previous.reference.resultDigest !== prior.step.record.resultDigest) throw new Conflict();
+        // Internal renderer input only. No historical checkpoint leaves this path.
+        predecessor = { checkpoint: {binding:prior.step.record.binding,resultRef:previous.reference.resultRef,
+          resultDigest:previous.reference.resultDigest,recordsPolicyDigest:config.recordsPolicyDigest},result:previous.result};
+      }
+      const prepared = await renderDevelopmentRequest({original,operationId:t.operationId,role:t.stepId,predecessor}); guard();
+      if (own.record.binding.inputDigest !== prepared.stepReference.stepInputDigest
+        || own.predecessorResultDigest !== prepared.stepReference.predecessorResultDigest) throw new Conflict();
+      return {original,prepared,record:own.record,completedOutputDigest:hash(saved.result),resultReference:saved.reference};
+    } finally {for (const child of [operations,results]) {child.close();children.delete(child);}}
+  }
+  async function context(t: Target, historical = false) {
+    if (historical) return retainedContext(t);
     guard(); const restored = await bounded(originals.read({ operationId: t.operationId, inputDigest: t.inputDigest })); guard();
     if (restored.operationExpired) throw new DraftStorageError();
     const original = restored.original;
@@ -121,7 +159,7 @@ export function createDevelopmentObservationStore(pools: Parameters<typeof creat
       }
       const prepared = await renderDevelopmentRequest({ original, operationId: t.operationId, role: t.stepId, predecessor }); guard();
       if (own.record.binding.inputDigest !== prepared.stepReference.stepInputDigest || own.predecessorResultDigest !== prepared.stepReference.predecessorResultDigest) throw new Conflict();
-      return { original, prepared, record: own.record, completedOutputDigest };
+      return { original, prepared, record: own.record, completedOutputDigest, resultReference:null };
     } finally { for (const child of [operations, results]) { child.close(); children.delete(child); } }
   }
   function metadata(t: Target, payload: Payload, current: Awaited<ReturnType<typeof context>>) {
@@ -130,6 +168,31 @@ export function createDevelopmentObservationStore(pools: Parameters<typeof creat
       owner: current.record.owner, fencingToken: current.record.fencingToken, reservationId: current.record.reservationId,
       stepInputDigest: current.prepared.stepReference.stepInputDigest, payloadDigest: hash(payload),
       requestDigest: payload.stage === 'response' ? payload.requestDigest : null, outputDigest: payload.stage === 'response' ? hash(payload.result) : null });
+  }
+  /** Validate the predecessor request within this response's already verified
+   * source/step context. The caller rechecks that context before write/release.
+   * No cross-call cache: retain both request-key checks, current read permission,
+   * exact ciphertext/metadata and lifecycle checks without recursively rebuilding
+   * the entire multi-batch source graph twice inside each response validation. */
+  async function verifyStoredRequest(t: Target, row: Stored, current: Awaited<ReturnType<typeof context>>) {
+    await authorize(t,'read');
+    await transaction(async c => {await lifecycle(c,row.metadata);if(hash(await select(c,t,'request'))!==hash(row))throw new Conflict();});
+    const ref=freeze({...config,draftId:row.metadata.draftId});
+    const key=await bounded(dependencies.originals.keyForDraft(ref,row.envelope.keyId));guard();
+    if(!(key.bytes instanceof Uint8Array)||key.bytes.byteLength!==32)throw new DraftStorageError();
+    const lease={keyId:key.keyId,bytes:Buffer.from(key.bytes)};
+    try {
+      const request=developmentObservationSchema.parse(openDraft(row.envelope,aad(row.metadata),lease));
+      if(request.stage!=='request'||Buffer.byteLength(JSON.stringify(request))>786432
+        ||hash(metadata(t,request,current))!==hash(row.metadata)||hash(request.rendered)!==hash(current.prepared.rendered))throw new Conflict();
+      const fresh=await bounded(dependencies.originals.keyForDraft(ref,row.envelope.keyId));guard();
+      if(!(fresh.bytes instanceof Uint8Array)||fresh.bytes.byteLength!==32)throw new DraftStorageError();
+      const bytes=Buffer.from(fresh.bytes);
+      try {if(fresh.keyId!==lease.keyId||!bytes.equals(lease.bytes))throw new DraftStorageError();}finally{bytes.fill(0);}
+      await authorize(t,'read');
+      const final=await transaction(async c=>({expiry:await lifecycle(c,row.metadata),row:await select(c,t,'request')}));
+      guard();if(performance.now()>=final.expiry||hash(final.row)!==hash(row))throw new DraftStorageError();
+    }finally{lease.bytes.fill(0);}
   }
   async function validate(t: Target, payload: Payload, current: Awaited<ReturnType<typeof context>>) {
     if (Buffer.byteLength(JSON.stringify(payload)) > 786432) throw new DraftStorageError();
@@ -140,7 +203,7 @@ export function createDevelopmentObservationStore(pools: Parameters<typeof creat
       if (current.completedOutputDigest !== null && current.completedOutputDigest !== hash(payload.result)) throw new Conflict();
       const prior = await transaction(c => select(c, t, 'request'));
       if (!prior || prior.metadata.payloadDigest !== payload.requestDigest) throw new Conflict();
-      await restore(t, prior, 'read');
+      await verifyStoredRequest(t, prior, current);
       const u = payload.usage;
       if (u.inputTokens !== null && u.outputTokens !== null && u.totalTokens !== null && u.inputTokens + u.outputTokens !== u.totalTokens) throw new Conflict();
     }
@@ -206,14 +269,17 @@ export function createDevelopmentObservationStore(pools: Parameters<typeof creat
           executionAuthorized: false as const, retryAuthorized: false as const, gateSigned: false as const });
       } catch { throw new DraftStorageError(); } finally { active = false; }
     },
-    /** Verify an immutable pair under one current authority/source context and
-     * its final recheck. No cache crosses calls or replaces current policy/key
-     * checks. Both stages must share every execution/source/owner binding. */
-    async readExchange(raw: unknown) {
+    readExchange(raw: unknown) {return readExchange(raw,false);},
+    async readHistoricalExchange(raw: unknown) {return freeze({...await readExchange(raw,true),historical:true as const});},
+    close() { closed = true; originals.close(); for (const child of children) child.close(); },
+  };
+  /** One immutable pair with current authority/source and final rechecks. History
+   * additionally requires exact SDK verification and succeeded result lineage. */
+  async function readExchange(raw: unknown, historical: boolean) {
       if (closed || active || pending) throw new DraftStorageError(); active = true;
       const leases: Array<{keyId:string;bytes:Buffer;draftId:string}> = [];
       try {
-        const t=freeze(targetSchema.parse(raw)); await authorize(t,'read');
+        const t=freeze(targetSchema.parse(raw)); await authorize(t,'read',historical);
         const rows=await transaction(async c=>{
           const request=await select(c,t,'request'),response=await select(c,t,'response');
           if(!request||!response)throw new DraftStorageError();
@@ -221,7 +287,7 @@ export function createDevelopmentObservationStore(pools: Parameters<typeof creat
           if(hash(common(request.metadata))!==hash(common(response.metadata))||response.metadata.requestDigest!==request.metadata.payloadDigest)throw new Conflict();
           await lifecycle(c,response.metadata);return {request,response};
         });
-        const current=await context(t);
+        const current=await context(t,historical);
         const decode=async(row:Stored)=>{
           if(row.metadata.draftId!==current.original.source.draftId||row.metadata.draftRevision!==current.original.source.revision)throw new Conflict();
           const key=await bounded(dependencies.originals.keyForDraft(freeze({...config,draftId:row.metadata.draftId}),row.envelope.keyId));guard();
@@ -235,21 +301,29 @@ export function createDevelopmentObservationStore(pools: Parameters<typeof creat
         if(request.stage!=='request'||response.stage!=='response'||hash(request.rendered)!==hash(current.prepared.rendered)
           ||response.result.role!==t.stepId||response.requestDigest!==rows.request.metadata.payloadDigest)throw new Conflict();
         const u=response.usage;if(u.inputTokens!==null&&u.outputTokens!==null&&u.totalTokens!==null&&u.inputTokens+u.outputTokens!==u.totalTokens)throw new Conflict();
+        const verify = async (ctx:Awaited<ReturnType<typeof context>>) => {
+          if (!historical) return;
+          guard(); if (!ctx.resultReference || await bounded(dependencies.verifyHistoricalExchange!(freeze({original:ctx.original,
+            role:t.stepId,request,response}))) !== undefined) throw new DraftStorageError(); guard();
+        };
+        await verify(current);
         for(const lease of leases){
           const fresh=await bounded(dependencies.originals.keyForDraft(freeze({...config,draftId:lease.draftId}),lease.keyId));guard();
           if(!(fresh.bytes instanceof Uint8Array)||fresh.bytes.byteLength!==32)throw new DraftStorageError();
           const bytes=Buffer.from(fresh.bytes);try{if(fresh.keyId!==lease.keyId||!bytes.equals(lease.bytes))throw new DraftStorageError();}finally{bytes.fill(0);}
         }
-        await authorize(t,'read');const finalContext=await context(t);
+        await authorize(t,'read',historical);const finalContext=await context(t,historical);
         if(hash(metadata(t,request,finalContext))!==hash(rows.request.metadata)||hash(metadata(t,response,finalContext))!==hash(rows.response.metadata)
           ||(finalContext.completedOutputDigest!==null&&finalContext.completedOutputDigest!==hash(response.result)))throw new Conflict();
+        if (historical && (hash(current.record)!==hash(finalContext.record)
+          ||hash(current.resultReference)!==hash(finalContext.resultReference))) throw new Conflict();
+        if (historical) await authorize(t,'read',true);
         const final=await transaction(async c=>({expiry:await lifecycle(c,rows.response.metadata),request:await select(c,t,'request'),response:await select(c,t,'response')}));
         guard();if(performance.now()>=final.expiry||hash(final.request)!==hash(rows.request)||hash(final.response)!==hash(rows.response))throw new DraftStorageError();
         return freeze({request,response,requestDigest:rows.request.metadata.payloadDigest,responseDigest:rows.response.metadata.payloadDigest,
           stepInputDigest:rows.response.metadata.stepInputDigest,outputDigest:rows.response.metadata.outputDigest,recordsPolicyDigest:config.recordsPolicyDigest,
+          ...(historical?{resultReference:finalContext.resultReference}:{}),
           executionAuthorized:false as const,retryAuthorized:false as const,gateSigned:false as const});
       }catch{throw new DraftStorageError();}finally{for(const lease of leases)lease.bytes.fill(0);active=false;}
-    },
-    close() { closed = true; originals.close(); for (const child of children) child.close(); },
-  };
+  }
 }

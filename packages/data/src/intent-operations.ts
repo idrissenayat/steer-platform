@@ -296,13 +296,13 @@ export function createIntentOperationStore(pool: DatabasePool, rawConfiguration:
 }
 
 const expiredStepTarget = reference.extend({ stepId: z.enum(['architect','test-agent']) });
-/** Separate, explicit historical metadata read. Never used by claim/transition.
- * Current history/policy authority is mandatory; the old configuration only binds
- * an expired record. It supplies no current execution, budget or retry permission.
+/** Shared read-only implementation, never used by claim/transition. Current
+ * history/policy authority is mandatory; the old configuration binds the record.
+ * Only the compatibility port requires expiry. Neither port grants execution.
  */
-export function createExpiredDevelopmentStepReader(pool: DatabasePool, originalConfiguration: unknown, dependencies: {
+function createDevelopmentStepHistoryReader(pool: DatabasePool, originalConfiguration: unknown, dependencies: {
   authorize: (context: Readonly<{ configuration: Configuration; request: z.infer<typeof expiredStepTarget> }>) => Promise<void>;
-}) {
+}, expiredOnly: boolean) {
   const config = freeze(configuration.parse(originalConfiguration)), configurationDigest = createHash('sha256').update(json(config)).digest('hex');
   if (config.action !== 'develop' || typeof dependencies.authorize !== 'function') throw new Unavailable();
   let closed = false, active = false, pending = 0;
@@ -313,7 +313,7 @@ export function createExpiredDevelopmentStepReader(pool: DatabasePool, originalC
     finally { if (timer) clearTimeout(timer); }
   };
   return {
-    async inspectExpired(raw: unknown): Promise<{ operation: Operation; step: Step; dispatchAllowed: false }> {
+    async inspect(raw: unknown): Promise<{ operation: Operation; step: Step; operationExpired: boolean; dispatchAllowed: false }> {
       if (closed || active || pending) throw new Unavailable(); active = true;
       let client: PoolClient | undefined, finished = false, broken = false;
       try {
@@ -336,7 +336,8 @@ export function createExpiredDevelopmentStepReader(pool: DatabasePool, originalC
           FROM steer_execution.intent_operations WHERE organization_id=$1 AND operation_id=$2 AND subject=$3`,
           [config.organizationId,request.operationId,config.subject])).rows[0];
         if (!row || row.action !== 'develop' || row.configuration_revision !== config.configurationRevision
-          || row.expires_at.getTime() !== Date.parse(config.expiresAt) || Number(row.clock_ms) < row.expires_at.getTime()) throw new Unavailable();
+          || row.expires_at.getTime() !== Date.parse(config.expiresAt)
+          || (expiredOnly && Number(row.clock_ms) < row.expires_at.getTime())) throw new Unavailable();
         const binding = operationBinding.parse(row.binding);
         if (binding.configurationDigest !== configurationDigest || binding.inputDigest !== request.inputDigest
           || binding.draftId !== row.draft_id || binding.draftRevision !== Number(row.draft_revision)) throw new Unavailable();
@@ -347,7 +348,7 @@ export function createExpiredDevelopmentStepReader(pool: DatabasePool, originalC
         if (!step || closed) throw new Unavailable();
         await client.query('COMMIT'); await client.query(clearScope); client.release(); client = undefined;
         // No lease spans a current historical-authority lookup either.
-        await authorize(); return freeze({ operation, step, dispatchAllowed: false as const });
+        await authorize(); return freeze({ operation, step, operationExpired: Number(row.clock_ms) >= row.expires_at.getTime(), dispatchAllowed: false as const });
       } catch {
         if (client) try { await client.query('ROLLBACK'); await client.query(clearScope); } catch { broken = true; }
         throw new Unavailable();
@@ -355,4 +356,19 @@ export function createExpiredDevelopmentStepReader(pool: DatabasePool, originalC
     },
     close() { closed = true; },
   };
+}
+
+/** Compatibility port: retains its strict expired-only contract. */
+export function createExpiredDevelopmentStepReader(pool: DatabasePool, originalConfiguration: unknown,
+  dependencies: Parameters<typeof createDevelopmentStepHistoryReader>[2]) {
+  const reader = createDevelopmentStepHistoryReader(pool, originalConfiguration, dependencies, true);
+  return { async inspectExpired(raw: unknown) { const { operationExpired: _expiry, ...record } = await reader.inspect(raw); return freeze(record); }, close: reader.close };
+}
+
+/** Explicit present-authority history, including superseded work before expiry.
+ * Read-only SQL; no claim, checkpoint, execution grant or expiry renewal. */
+export function createHistoricalDevelopmentStepReader(pool: DatabasePool, originalConfiguration: unknown,
+  dependencies: Parameters<typeof createDevelopmentStepHistoryReader>[2]) {
+  const reader = createDevelopmentStepHistoryReader(pool, originalConfiguration, dependencies, false);
+  return { async inspectHistorical(raw: unknown) { return freeze({ ...await reader.inspect(raw), historical: true as const }); }, close: reader.close };
 }

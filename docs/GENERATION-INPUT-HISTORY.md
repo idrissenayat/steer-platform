@@ -50,8 +50,9 @@ is labeled historical and carries false execution/retry/gate flags; it does not
 contain a dispatch or checkpoint capability.
 
 Input recovery does not prove that a role generated any output, that a later human
-edit was agent-authored, or that an Exam is accepted. Next, compose historical role
-request/response verification and output lineage, then expose safe human comparison
+edit was agent-authored, or that an Exam is accepted. 0257 adds [per-role retained
+request/response verification](GENERATION-OUTPUT-HISTORY.md). Next, compose the
+complete role snapshot and output lineage, then expose safe human comparison
 and bind that lineage into immutable save preparation/confirmation/start. All-revision
 run discovery and the real signed-in save/reopen acceptance remain outstanding.
 

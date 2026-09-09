@@ -6,6 +6,8 @@ import {createIntegrationDatabaseTrace,parseIntegrationSelection} from './integr
 test('integration focus is explicit, bounded and distinct from the full suite',()=>{
   assert.deepEqual(parseIntegrationSelection([]),{mode:'full'});
   assert.deepEqual(parseIntegrationSelection(['--scope-runtime']),{mode:'scope-runtime'});
+  assert.deepEqual(parseIntegrationSelection(['--development-history']),{mode:'development-history'});
+  assert.throws(()=>parseIntegrationSelection(['--development-history','extra']));
   for(const args of [['--scope-runtime','extra'],['--scope-runtime','--query-delay-ms','1']])assert.throws(()=>parseIntegrationSelection(args));
   for(const n of ['1','10','20'])assert.deepEqual(parseIntegrationSelection(['--clarification-repro',n]),{mode:'clarification-repro',iterations:Number(n),queryDelayMs:0});
   assert.deepEqual(parseIntegrationSelection(['--clarification-repro','1','--query-delay-ms','2']),{mode:'clarification-repro',iterations:1,queryDelayMs:2});

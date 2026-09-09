@@ -11,6 +11,7 @@ import {createScopeReviewOperationStore} from '../src/scope-review-operations.ts
 import {createScopeReviewCheckpointVerifier} from '../src/scope-review-checkpoints.ts';
 import {scopeOriginalHash as hash} from '../src/scope-original-contracts.ts';
 import type {DatabasePool} from '../src/runtime-pool.ts';
+import {createIntegrationDatabaseTrace} from './integration-diagnostics.ts';
 
 type Dependencies=Parameters<typeof createScopeReviewObservationStore>[2];
 type Observation=Parameters<Dependencies['verifyObservation']>[0];
@@ -272,13 +273,20 @@ export async function testScopeObservations({admin,connect,check:checkBase}:{adm
     await f.exchange();assert.equal((await checkpointStore(f,{},contaminated).transition(await checkpointInput(f))).outcome,'ok');assert.equal(f.calls(),1);
   });
   await check('scope checkpoint refuses a concurrent lifecycle lock rather than deadlocking while holding batch ownership',async()=>{
-    const f=await setup();await f.exchange();const verify=checkpointVerifier(f);let lease:PoolClient|undefined;
+    const f=await setup();await f.exchange();const verify=checkpointVerifier(f),trace=createIntegrationDatabaseTrace();let lease:PoolClient|undefined;
     try{
       const result=await checkpointStore(f,{verifyCheckpoint:async ref=>{await verify(ref);lease=await admin.connect();await lease.query('BEGIN');
-        await lease.query('SELECT * FROM steer_drafts.draft_lifecycles WHERE organization_id=$1 AND draft_id=$2 FOR UPDATE',[f.config.organizationId,f.draftId]);}}).transition(await checkpointInput(f));
-      assert.notEqual(result.outcome,'ok');assert.equal(result.dispatchAllowed,false);
+        await lease.query('SELECT * FROM steer_drafts.draft_lifecycles WHERE organization_id=$1 AND draft_id=$2 FOR UPDATE',[f.config.organizationId,f.draftId]);}},trace.wrap(f.pools.execution)).transition(await checkpointInput(f));
+      assert.equal(result.outcome,'unknown');assert.equal(result.dispatchAllowed,false);
+      assert.equal(trace.summary().failures,1);assert.ok(trace.summary().events.some(e=>e.code==='55P03'));
     }finally{if(lease){await lease.query('ROLLBACK');lease.release();}}
     const state=await f.reviews.inspect(reviewTarget(f));assert.equal(state.outcome,'ok');if(state.outcome==='ok')assert.equal(state.value.batches[0]!.state,'dispatch-committed');assert.equal(f.calls(),1);
+    // Only re-verify the retained checkpoint after releasing the lock. This does
+    // not rerun the model, reserve again or erase quarantine/known failure.
+    const recovered=await checkpointStore(f).transition(await checkpointInput(f));
+    assert.equal(recovered.outcome,'ok');assert.equal(recovered.dispatchAllowed,false);
+    if(recovered.outcome==='ok')assert.equal(recovered.value.state,'succeeded');assert.equal(f.calls(),1);
+    assert.equal((await admin.query('SELECT count(*)::int AS n FROM steer_usage.model_reservations WHERE budget_id=$1',[f.execution.budget.budgetId])).rows[0].n,1);
   });
   await check('timed-out scope checkpoint readback retains bounded admission until drainage and close prevents late success',async()=>{
     const f=await setup();await f.exchange();let release!:()=>void;const held=new Promise<void>(r=>{release=r;}),input=await checkpointInput(f);
@@ -289,8 +297,24 @@ export async function testScopeObservations({admin,connect,check:checkBase}:{adm
   });
   await check('parallel scope checkpoint acknowledgements converge on one immutable completion',async()=>{
     const f=await setup();await f.exchange();const input=await checkpointInput(f);
-    const results=await Promise.all(Array.from({length:3},()=>checkpointStore(f).transition(input)));
-    assert.ok(results.every(r=>r.outcome==='ok'&&!r.dispatchAllowed),JSON.stringify(results.map(r=>r.outcome)));
+    const attempts=await Promise.all(Array.from({length:3},async()=>{
+      const trace=createIntegrationDatabaseTrace();
+      return {result:await checkpointStore(f,{},trace.wrap(f.pools.execution)).transition(input),database:trace.summary()};
+    }));
+    // A sibling's verified readback can still hold the lifecycle row when the
+    // SQL NOWAIT guard runs. This intentional lock refusal is not a model retry
+    // grant. Once all attempts drain, one exact checkpoint readback converges.
+    assert.ok(attempts.some(a=>a.result.outcome==='ok'),JSON.stringify(attempts));
+    const results=[];
+    for(const attempt of attempts){
+      assert.equal(attempt.result.dispatchAllowed,false);
+      if(attempt.result.outcome==='ok'){assert.equal(attempt.database.failures,0);results.push(attempt.result);continue;}
+      assert.equal(attempt.result.outcome,'unknown',JSON.stringify(attempt));
+      assert.equal(attempt.database.failures,1,JSON.stringify(attempt));
+      assert.ok(attempt.database.events.some(e=>e.code==='55P03'),JSON.stringify(attempt));
+      const recovered=await checkpointStore(f).transition(input);
+      assert.equal(recovered.outcome,'ok');assert.equal(recovered.dispatchAllowed,false);results.push(recovered);
+    }
     const first=results[0]!;if(first.outcome!=='ok')throw new Error('Missing concurrent completion');
     for(const result of results)if(result.outcome==='ok')assert.deepEqual(result.value,first.value);
     assert.equal(first.value.state,'succeeded');assert.equal(f.calls(),1);assert.deepEqual((await f.make().read({...f.target,stage:'response'})).observation,f.response());

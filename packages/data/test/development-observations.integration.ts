@@ -15,6 +15,7 @@ import { createRecordedDevelopmentModel } from '../../../apps/worker/src/recorde
 import { RECORDED_MASTRA_REVISION } from '../../agents/src/recorded-mastra.ts';
 import { testDevelopmentWorkflow } from '../../../apps/worker/test/development-workflow.integration.ts';
 import { testIntentDevelopmentRead } from '../../../apps/api/test/intent-development-read.integration.ts';
+import { testDevelopmentHistory } from '../../../apps/api/test/development-history.integration.ts';
 import { testDevelopmentStart, createDevelopmentStartHarness } from '../../../apps/api/test/intent-development-start.integration.ts';
 import { prepareRecordedFixture } from '../../../apps/api/test/intent-development-prepare.integration.ts';
 import { buildIntentEvidenceEnvelope } from '@steer/tool-registry/intent-evidence-contracts';
@@ -99,6 +100,23 @@ export async function testDevelopmentObservations({admin,connect,check}:{admin:P
     await assert.rejects(f.make({}, {drafts:admin,execution:f.pools.execution}).read({...f.ref,stage:'request'}));
     for(const patch of [{subject:'other-human'},{organizationId:'other-org'},{productId:'other-product'}])await assert.rejects(f.make({},f.pools,patch).read({...f.ref,stage:'request'}));
     assert.equal(await f.count(),1);
+  });
+  await check('historical development prerequisites keep request-key, hold and quarantine checks during response acknowledgement',async()=>{
+    for(const failure of ['key','hold','quarantine']){
+      const f=await setup();assert.equal((await f.put(f.request)).outcome,'stored');let checkingRequest=false,keys=0;
+      const store=f.make({authorize:async ({action})=>{if(action==='read')checkingRequest=true;},originals:{...f.deps.originals,
+        keyForDraft:async(...args)=>{
+          if(checkingRequest&&++keys===2){
+            if(failure==='key')throw new Error('Request key revoked at recheck');
+            if(failure==='hold')assert.equal((await f.lifecycle.hold({draftId:f.draftId,holdReference:randomUUID()})).outcome,'ok');
+            if(failure==='quarantine')assert.equal((await f.operations.transition({...f.prepared.stepReference,event:{type:'outcome-unknown',fencingToken:1}})).outcome,'ok');
+          }
+          return f.deps.originals.keyForDraft(...args);
+        }}});
+      try {assert.notEqual((await store.put({...f.ref,owner:f.owner,fencingToken:1,observation:f.response})).outcome,'stored');}
+      finally{store.close();}
+      assert.equal(await f.count(),1);assert.ok(keys>=2);
+    }
   });
   await check('holds, late observation revocation and damaged ciphertext deny restoration without deleting recorded bytes',async()=>{
     const held=await setup();assert.equal((await held.put(held.request)).outcome,'stored');
@@ -304,6 +322,7 @@ export async function testDevelopmentObservations({admin,connect,check}:{admin:P
     await assert.rejects(revoked.readExchange(f.ref));revoked.close();assert.equal(responseKeys,2);
     assert.deepEqual(f.key.bytes,originalBytes);assert.deepEqual(rotated.bytes,rotatedBytes);assert.equal(await f.count(),2);
   });
+  await testDevelopmentHistory(ttl => setup(false,false,true,ttl), check, admin);
   await testIntentDevelopmentRead(ttl => setup(false,false,true,ttl), check, admin);
   await testDevelopmentStart(() => setup(false,false,true), check, admin);
   await testDevelopmentWorkflow(async()=>{

@@ -1006,6 +1006,28 @@ checkpoint or execution capability. Complete empty inventory and legacy missing
 assessments cannot become invented model evidence.
 
 Raw originals contain private source/profile material and remain server-side.
-Historical role/SDK output verification, a safe human-facing lineage projection
-and immutable save preparation are separate remaining work. See [the input-history
+0257 adds per-role SDK output verification; a combined human-facing lineage projection
+and immutable save preparation remain separate work. See [the input-history
 guide](../GENERATION-INPUT-HISTORY.md) and [0256 specification](../../intent/0256/SPEC.md).
+
+## Retained role exchanges are not a new execution or accepted bundle — 0257
+
+Separate retained-step/result ports cover historical records before or after
+execution expiry under present history authority. Existing expired-only ports
+remain expired-only. The historical exchange reader requires a succeeded role,
+exact encrypted original/result/request/response bindings and the pinned SDK
+verifier. Test Agent input is reconstructed from the exact retained succeeded
+Architect result, not current human edits or a prior Exam.
+
+Current historical observation/input/result, source, key and lifecycle checks
+remain mandatory. Row and result-reference rechecks prevent mixed snapshots;
+unresolved roles never become successful history. Raw per-role exchanges remain
+private server material with inert provenance references and no checkpoint or
+dispatch. A combined bundle view must verify all required roles and their exact
+relationship; per-role readback is not independent provider or semantic acceptance.
+
+Response acknowledgement now validates its predecessor request within the same
+verified source context without recursive source-graph reconstruction. Both request
+key checks, read permission, ciphertext/lifecycle checks and caller final context
+revalidation remain. Deadlines are unchanged. See [the guide](../GENERATION-OUTPUT-HISTORY.md)
+and [0257 specification](../../intent/0257/SPEC.md).

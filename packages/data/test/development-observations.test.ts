@@ -5,6 +5,24 @@ const config={organizationId:'org',subject:'human',productId:'product',repositor
 const target={operationId:'00000000-0000-4000-8000-000000000222',inputDigest:'b'.repeat(64),stepId:'architect',stage:'request'};
 const base={authorizeOperation:async()=>{},authorizeDraft:async()=>{},keyForDraft:async()=>{throw new Error('must not read keys');}};
 const deps={originals:{...base,authorize:async()=>{},authorizeOriginal:async()=>{}},results:{...base,authorizeResult:async()=>{}},authorize:async()=>{}};
+test('historical exchange access requires separate authority and verification before SQL and rejects caller wire bodies',async()=>{
+  let connects=0;const pool={connect:async()=>{connects++;throw new Error('Private SQL');}};
+  const ref={operationId:target.operationId,inputDigest:target.inputDigest,stepId:target.stepId};
+  for(const patch of [{},{authorizeHistoricalRead:async()=>{}},{verifyHistoricalExchange:async()=>{}},
+    {authorizeHistoricalRead:async()=>true as any,verifyHistoricalExchange:async()=>{}}]){
+    const store=createDevelopmentObservationStore({drafts:pool,execution:pool},config,{...deps,...patch});
+    await assert.rejects(store.readHistoricalExchange(ref));await assert.rejects(store.readHistoricalExchange({...ref,requestBody:'private'}));store.close();
+  }
+  assert.equal(connects,0);
+});
+test('timed-out historical exchange authority retains admission until drain and cannot access late SQL after close',async()=>{
+  let release!:()=>void,calls=0,connects=0;const held=new Promise<void>(r=>{release=r;});
+  const pool={connect:async()=>{connects++;throw new Error('Private SQL');}},store=createDevelopmentObservationStore({drafts:pool,execution:pool},config,
+    {...deps,authorizeHistoricalRead:async()=>{calls++;await held;},verifyHistoricalExchange:async()=>{}});
+  const ref={operationId:target.operationId,inputDigest:target.inputDigest,stepId:target.stepId};
+  await assert.rejects(store.readHistoricalExchange(ref));await assert.rejects(store.readHistoricalExchange(ref));assert.equal(calls,1);store.close();release();
+  await new Promise(r=>setImmediate(r));assert.equal(connects,0);
+});
 test('observation schemas preserve exact body text and unknown usage without accepting headers or authority flags',()=>{
   const value={stage:'request',adapterRevision:'fixture-v1',protocol:'synthetic',rendered:{},requestBody:' Exact body 🌸\r\n'};
   assert.equal(developmentObservationSchema.parse(value).stage,'request');
@@ -19,7 +37,7 @@ test('observation schemas preserve exact body text and unknown usage without acc
 test('observation journal is lazy, strictly scoped and sanitizes denial before private reads',async()=>{
   let connects=0;const pool={connect:async()=>{connects++;throw new Error('private-pool');}};
   const store=createDevelopmentObservationStore({execution:pool,drafts:pool},config,{...deps,authorize:async()=>{throw new Error('private-denial');}});
-  assert.deepEqual(Object.keys(store),['put','read','readExchange','close']);
+  assert.deepEqual(Object.keys(store),['put','read','readExchange','readHistoricalExchange','close']);
   await assert.rejects(store.read(target),{message:'Draft storage is unavailable.'});
   await assert.rejects(store.read({...target,approved:true}));assert.equal(connects,0);store.close();
 });

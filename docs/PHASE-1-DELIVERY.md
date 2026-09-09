@@ -5562,3 +5562,31 @@ No records activation, live migration, credential
 inspection, model spending, runtime Git write, auth bypass, gate, deployment or
 release. User-owned roadmap/outputs remain untouched. The one-minute loop remains
 active and unchanged.
+
+## Development increment: 0257 — Retained role exchanges and response acknowledgement
+
+A private read/close factory now verifies exact retained SDK exchanges and their
+completed role/result/input bindings after expiry or human edits. Separate history
+permissions, original inputs, predecessor result, recorded profile/model/output/
+usage, keys and lifecycle are verified without old execution authority. Expired-only
+compatibility remains unchanged; incomplete or uncertain roles are not promoted.
+
+The composed 34-source/two-batch assessed drafting test exposed repeated source
+reconstruction inside response acknowledgement. Request and response persisted,
+but acknowledgement failed and the step remained outcome-unknown. Validation now
+checks the predecessor request against the already verified response context while
+retaining its authority, keys, ciphertext and lifecycle checks plus caller final
+source/step validation. No deadline is increased. Both roles and their historical
+readback now pass the composed test.
+
+See [0257 evidence](../intent/0257/EVIDENCE.md) and [the guide](GENERATION-OUTPUT-HISTORY.md).
+Final **1,174/1,174 regressions** and **348/348 PostgreSQL 16.14 checks** pass,
+including explicit checkpoint lock-refusal/readback recovery. Six focused history
+SQL/SDK checks plus idempotent migration, types, optimized Next build, kit and
+workflow token-scope audit pass. All 214 local document links resolve and protected
+hashes are unchanged. Combined lineage projection, human comparison,
+save preparation/confirmation/start, real records/model authority and signed-in
+saved-repository acceptance remain open. No backend activation, live migration,
+credential inspection, paid calls, runtime Git write, gate, auth bypass, deployment
+or release. User-owned roadmap/outputs remain untouched; the one-minute loop stays
+active.

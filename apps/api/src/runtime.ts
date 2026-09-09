@@ -22,6 +22,7 @@ import { createIntentDevelopment, type DevelopmentPermit } from '@steer/agents';
 import { createMastraDevelopmentRuntime } from '@steer/agents/mastra';
 import { createRecordedMastraVerifier, type RecordedRequest, type RecordedResponse } from '@steer/agents/recorded-mastra';
 import { createIntentDevelopmentReader } from '@steer/data/intent-development-reader';
+import { createDevelopmentObservationStore } from '@steer/data/development-observations';
 import { createIntentDevelopmentStarter } from '@steer/data/intent-development-starter';
 import { createIntentDevelopmentPreparer } from '@steer/data/intent-development-preparer';
 import { intentOperationConfigurationSchema } from '@steer/data/intent-operations';
@@ -199,6 +200,21 @@ export function createVerifiedDevelopmentReader(pools: Parameters<typeof createI
     exchange: { verify: async input => verifier.verify(input.role, input.request,
       input.requestObservation as RecordedRequest, input.responseObservation as RecordedResponse).result },
   });
+}
+/** Server-only retained exchange verification. The returned wire/source content
+ * is private lineage input, not an HTTP response. No transport/key configuration,
+ * execution methods or default runtime binding are exposed. */
+export function createVerifiedDevelopmentHistoryExchangeReader(pools: Parameters<typeof createDevelopmentObservationStore>[0], configuration: unknown,
+  dependencies: {records: Omit<Parameters<typeof createDevelopmentObservationStore>[2],'verifyHistoricalExchange'>;
+    profiles: Parameters<typeof createRecordedMastraVerifier>[0]}) {
+  const verifier = createRecordedMastraVerifier(dependencies.profiles);
+  const reader = createDevelopmentObservationStore(pools,configuration,{...dependencies.records,
+    verifyHistoricalExchange:async ({role,request,response}) => {
+      const rendered = z.object({request:z.unknown()}).parse(request.rendered);
+      verifier.verify(role,rendered.request,request as RecordedRequest,response as RecordedResponse);
+    },
+  });
+  return {read:reader.readHistoricalExchange,close:reader.close};
 }
 const databaseSchema = z.strictObject({ host: text, port: z.number(), database: text,
   transport: z.discriminatedUnion('kind', [z.strictObject({ kind: z.literal('tls'), ca: text }),

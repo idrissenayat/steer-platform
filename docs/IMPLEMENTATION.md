@@ -1,6 +1,17 @@
 # STEER platform implementation
 
-## Current checkpoint — 0256
+## Current checkpoint — 0257
+
+0257 verifies exact retained role exchanges under separate current historical
+authority and a pinned SDK verifier. Existing expired-only ports are preserved;
+the new per-role factory is server-only and has no execution capability. The
+composed 34-source journey exposed duplicate source reconstruction in response
+acknowledgement, now removed without raising deadlines or dropping final checks.
+See [the output-history guide](GENERATION-OUTPUT-HISTORY.md) and [0257 evidence](../intent/0257/EVIDENCE.md).
+Combined lineage projection, human comparison, final-save admission/start and live
+activation/acceptance remain open.
+
+## Prior checkpoint — 0256
 
 0256 adds explicit server-side historical generation-input recovery. Exact captured
 scope findings, source revisions and repository evidence can be verified after

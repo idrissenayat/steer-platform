@@ -2,7 +2,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import type { PoolClient } from 'pg';
 import { z } from 'zod';
 import { intentRoleResultSchema } from '@steer/tool-registry/intent-role-result';
-import { createIntentOperationStore, createExpiredDevelopmentStepReader, intentOperationConfigurationSchema, type IntentCheckpointReference } from './intent-operations.ts';
+import { createIntentOperationStore, createExpiredDevelopmentStepReader, createHistoricalDevelopmentStepReader, intentOperationConfigurationSchema, type IntentCheckpointReference } from './intent-operations.ts';
 import { createDraftRevisionStore } from './draft-revisions.ts';
 import { draftEnvelopeSchema, DraftStorageError, openDraft, sealDraft } from './draft-envelope.ts';
 import { applyRuntimeQueryLimits, DatabaseCommitOutcomeUnknownError, type DatabasePool } from './runtime-pool.ts';
@@ -41,8 +41,8 @@ export function createDevelopmentResultStore(pools: { execution: DatabasePool; d
   authorizeOperation: Parameters<typeof createIntentOperationStore>[2]['authorize'];
   authorizeDraft: DraftDependencies['authorize']; keyForDraft: DraftDependencies['keyForDraft'];
   authorizeResult: (context: ResultAuthorityContext) => Promise<void>;
-  /** Current historical-read/policy authority, never the expired execution grant.
-   * Optional and disabled by default. Only readHistorical can use this port. */
+  /** Current historical-read/policy authority, never the old execution grant.
+   * Optional and disabled by default. Only explicit historical reads use it. */
   authorizeHistoricalResult?: (context: ResultAuthorityContext) => Promise<void>;
 }) {
   const config = freeze(intentOperationConfigurationSchema.parse(rawConfiguration)), configurationDigest = hash(config);
@@ -69,6 +69,9 @@ export function createDevelopmentResultStore(pools: { execution: DatabasePool; d
       target: { operationId: target.operationId, stepId: target.stepId }, action }))) !== undefined || closed) throw new DraftStorageError();
   };
   const history = dependencies.authorizeHistoricalResult ? createExpiredDevelopmentStepReader(pools.execution, config, {
+    authorize: async context => authorize(context.request, 'read', true),
+  }) : null;
+  const retainedHistory = dependencies.authorizeHistoricalResult ? createHistoricalDevelopmentStepReader(pools.execution, config, {
     authorize: async context => authorize(context.request, 'read', true),
   }) : null;
   const key = (draftId: string, keyId: string | null) => bounded(dependencies.keyForDraft(freeze({ ...draftConfig, draftId }), keyId));
@@ -116,10 +119,11 @@ export function createDevelopmentResultStore(pools: { execution: DatabasePool; d
       || resultHash(m) !== resultDigest) throw new Conflict();
     return { metadata: m, resultDigest, envelope: draftEnvelopeSchema.parse(row.encrypted_value) };
   }
-  async function execution(t: Target, historical = false) {
+  async function execution(t: Target, historical: boolean | 'retained' = false) {
     if (historical) {
       if (!history) throw new DraftStorageError();
-      const observed = await history.inspectExpired({ operationId:t.operationId,inputDigest:t.inputDigest,stepId:t.stepId });
+      const ref = { operationId:t.operationId,inputDigest:t.inputDigest,stepId:t.stepId };
+      const observed = historical === 'retained' ? await retainedHistory!.inspectHistorical(ref) : await history.inspectExpired(ref);
       if (closed || !['dispatch-committed','succeeded'].includes(observed.step.record.state)) throw new DraftStorageError();
       return { op: observed.operation, step: observed.step };
     }
@@ -135,15 +139,15 @@ export function createDevelopmentResultStore(pools: { execution: DatabasePool; d
       draftId: m.draftId, draftRevision: m.draftRevision, inputDigest: m.stepInputDigest, configurationRevision: config.configurationRevision },
       resultRef: m.resultRef, resultDigest: row.resultDigest, recordsPolicyDigest: config.recordsPolicyDigest });
   }
-  async function verifyExecution(row: Stored, historical = false) {
+  async function verifyExecution(row: Stored, historical: boolean | 'retained' = false) {
     const m = row.metadata, { op, step } = await execution(m, historical), r = step.record;
     if (op.draftId !== m.draftId || op.draftRevision !== m.draftRevision || r.binding.inputDigest !== m.stepInputDigest
       || r.owner !== m.owner || r.fencingToken !== m.fencingToken || r.reservationId !== m.reservationId
       || step.predecessorResultDigest !== m.predecessorResultDigest
       || (r.state === 'succeeded' && (r.resultDigest !== row.resultDigest || step.resultRef !== m.resultRef))) throw new Conflict();
   }
-  async function restore(row: Stored, action: 'put' | 'read', historical = false) {
-    const m = row.metadata; await authorize(m, action, historical); await verifyExecution(row, historical);
+  async function restore(row: Stored, action: 'put' | 'read', historical: boolean | 'retained' = false) {
+    const m = row.metadata; await authorize(m, action, Boolean(historical)); await verifyExecution(row, historical);
     await transaction(c => currentSource(c, m));
     const source = await drafts.read({ draftId: m.draftId, revision: m.draftRevision });
     if (source.reference.revisionDigest !== m.draftRevisionDigest || source.reference.scopeInputDigest !== m.scopeInputDigest) throw new Conflict();
@@ -159,7 +163,7 @@ export function createDevelopmentResultStore(pools: { execution: DatabasePool; d
       try { if (currentKey.keyId !== lease.keyId || !current.equals(lease.bytes)) throw new DraftStorageError(); } finally { current.fill(0); }
       if (await bounded(dependencies.authorizeDraft(freeze({ configuration:draftConfig,draftId:m.draftId,action:'read' }))) !== undefined || closed)
         throw new DraftStorageError();
-      await authorize(m, action, historical); await verifyExecution(row, historical);
+      await authorize(m, action, Boolean(historical)); await verifyExecution(row, historical);
       const final = await transaction(async c => ({ expiry: await currentSource(c, m), row: await select(c, m),
         latestRevision: Number((await c.query('SELECT max(revision) AS revision FROM steer_drafts.draft_revisions WHERE organization_id=$1 AND draft_id=$2',
           [config.organizationId, m.draftId])).rows[0]?.revision) }));
@@ -221,6 +225,18 @@ export function createDevelopmentResultStore(pools: { execution: DatabasePool; d
         return freeze({ ...original, historical: true as const });
       } catch { throw new DraftStorageError(); } finally { active = false; }
     },
+    /** Distinct retained-result port, also usable before execution expiry. The
+     * result reference is inert provenance, not a continuation checkpoint. */
+    async readRetainedHistorical(raw: unknown) {
+      if (closed || active || pending || !retainedHistory) throw new DraftStorageError(); active = true;
+      try {
+        const t = targetSchema.parse(raw); await authorize(t, 'read', true);
+        const row = await transaction(c => select(c, t)); if (!row || row.metadata.inputDigest !== t.inputDigest) throw new Conflict();
+        const { checkpoint: _notAContinuationReference, ...original } = await restore(row, 'read', 'retained');
+        return freeze({ ...original, historical: true as const, reference: { resultRef: row.metadata.resultRef, resultDigest: row.resultDigest,
+          stepInputDigest: row.metadata.stepInputDigest, predecessorResultDigest: row.metadata.predecessorResultDigest } });
+      } catch { throw new DraftStorageError(); } finally { active = false; }
+    },
     async verifyCheckpoint(raw: IntentCheckpointReference): Promise<void> {
       if (closed || active || pending) throw new DraftStorageError(); active = true;
       try {
@@ -232,6 +248,6 @@ export function createDevelopmentResultStore(pools: { execution: DatabasePool; d
         await restore(row, 'read');
       } catch { throw new DraftStorageError(); } finally { active = false; }
     },
-    close() { closed = true; operations.close(); drafts.close(); history?.close(); },
+    close() { closed = true; operations.close(); drafts.close(); history?.close(); retainedHistory?.close(); },
   };
 }

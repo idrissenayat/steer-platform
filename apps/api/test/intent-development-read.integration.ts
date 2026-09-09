@@ -10,7 +10,7 @@ import { createVerifiedDevelopmentReader } from '../src/runtime.ts';
 import { createApi } from '../src/app.ts';
 
 type ReaderDependencies = Parameters<typeof createVerifiedDevelopmentReader>[2];
-interface Fixture {
+export interface DevelopmentReadFixture {
   config: { organizationId: string; subject: string; productId: string; repository: string; branch: string; configurationRevision: string; recordsPolicyDigest: string };
   execution: { expiresAt: string; budget: { budgetId: string } };
   pools: Parameters<typeof createVerifiedDevelopmentReader>[0];
@@ -22,6 +22,7 @@ interface Fixture {
   drafts: ReturnType<typeof createDraftRevisionStore>; lifecycle: ReturnType<typeof createDraftLifecycleStore>;
   content: { originalText: string; clarificationTurns: string[]; documents: null };
 }
+type Fixture = DevelopmentReadFixture;
 
 /** Actual HTTP + SQL/encryption + recorded SDK fixture. No real grants, model
  * transport or live records retention. Reads never gain a dispatch capability. */
