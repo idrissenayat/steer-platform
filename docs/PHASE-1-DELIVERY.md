@@ -6754,3 +6754,43 @@ final readback, then close the remaining source gap and run the full unchanged
 performance protocol. No credentials, live model spending, records/D1 activation,
 runtime GitHub authority/write, signed source, gate, deployment, release or user
 data changed.
+
+## 0298 — Measured request-cost diagnosis and bounded correction plan
+
+The user's estimate/stall challenge changes the sequence: diagnose the complete
+request cost before another production optimization. Test-only transport profiles
+and explicit synthetic scheduling-origin labels preserve all 45 HTTP invocations
+in two joined runs, including denials, reconstruction and repeats. Both runs pass
+their joined/migration assertions and have identical identity vectors: 81,500
+attempts each. All 2,337 origin groups are retained without capture error/overflow.
+The encoded traces retain source locations only, 41 production hashes and exact
+executed/final harness distinctions; no credential, raw source or identity data.
+
+First confirmation remains 7,637 attempts: current scope 1,728, historical scope
+1,760, other development history 2,612, other preview 1,176, own confirmation 204,
+other identity 11 and repository 146. No performance improvement is claimed.
+The current per-file corpus protocol itself has a 258-attempt lower bound:
+two independent previews, 43 blobs each, one body request and two fresh identity
+checks per blob. History-only consolidation therefore cannot meet 200.
+
+See [specification](../intent/0298/SPEC.md), [complete trace](../intent/0298/PROFILE.json),
+[diagnosis and correction plan](../intent/0298/REQUEST-BUDGET-PLAN.md),
+[proposed budget](../intent/0298/REQUEST-BUDGET.json) and [evidence](../intent/0298/EVIDENCE.md).
+Next is an executable boundary/batch feasibility experiment; then one coherent
+bounded corpus/records read graph, integration across all outer actions/effects,
+and the full unchanged benchmark. Proposed component caps are not feasibility
+proof or a new delivery date. Keep source/records policies, fresh authority,
+exact final checks and separate phases across writes. The stack is unchanged.
+
+Final verification: 27 focused checks pass (no failures/cancellations/skips),
+prototype and all eight package types pass; 95 kit artifacts and workflow scopes
+pass. The origin run loaded the previous Buffer source decoder; the final typed
+TextDecoder correction is focused/type-verified and its distinct hash is retained.
+This is not a broad/full SQL, unprofiled rerun, delayed p95 or browser/live pass.
+Recovery returns committed (215 ms, 17 requests); 0289's prior failure remains
+unexplained. Production files, signed sources, credentials, live records/model/
+GitHub authority, spending, deployment and user data are unchanged. Disposable
+test containers/tmpfs are cleaned up by their owners. The user's untracked
+roadmap and outputs remain untouched. Progress: **68% (17/25; 8 remaining; +0)**.
+Final delivery audit verifies 48 recorded source/harness hashes, four protected
+hashes, 414 relative documentation links and the unchanged contiguous 17/25 tracker.

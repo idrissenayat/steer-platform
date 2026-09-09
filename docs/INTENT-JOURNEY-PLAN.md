@@ -9,7 +9,29 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0297 / partial C22 — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0298 / diagnosed C22 correction — 68% (17/25; 8 remaining; +0 points)**.
+The user challenged the estimate and prolonged micro-optimization loop. Two
+authenticated synthetic diagnostic runs preserve all 45 HTTP requests and exact
+identity count vectors (81,500 each). Confirmation remains 7,637 total attempts;
+no production change or performance gain is claimed. Trace attribution separates
+current scope (1,728), historical scope (1,760), other development history (2,612),
+other preview (1,176), own confirmation (204), other identity (11) and repository
+(146). See [0298 evidence](../intent/0298/EVIDENCE.md) and
+[complete traces](../intent/0298/PROFILE.json).
+
+**Critical correction:** even zero-cost history would not suffice. Two isolated
+previews × 43 physical blobs × (one body request + two fresh identity checks) is
+a **258-attempt lower bound**, already above 200. Neither records-only nor body-
+only increments can establish completion. Next follow the
+[whole-request correction plan](../intent/0298/REQUEST-BUDGET-PLAN.md): first an
+executable boundary/batch feasibility experiment, then bounded immutable batch
+reads plus a coherent records read graph, all outer actions/effect boundaries,
+and the unchanged full benchmark. Proposed allocations are not measured/proven.
+Keep fresh authority, every source/records policy, exact final verification and
+independent phases across writes. No new ETA or progress point until evidence
+supports it; live prerequisites and the unresolved 0289 recovery remain separate.
+
+Prior delivery checkpoint: **0297 / partial C22**.
 One read-only package preview now shares exact immutable corpus evidence across
 its repeated source/final reviews. Current grants, head, draft, provenance,
 history, scope and destination checks remain. Confirmation opens independent

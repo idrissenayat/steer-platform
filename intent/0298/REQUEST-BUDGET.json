@@ -1,0 +1,21 @@
+{
+  "kind": "steer-proposed-request-budget/v1",
+  "status": "design-allocation-not-implemented-or-proven",
+  "representativeCorpus": { "semanticSources": 34, "physicalBlobReadsPerPreview": 43 },
+  "currentProtocol": { "independentPreviewsPerConfirmation": 2, "bodyRequestsPerBlob": 1, "freshIdentityChecksPerBlob": 2 },
+  "acceptanceCeiling": 200,
+  "proposedConfirmation": {
+    "previews": 2,
+    "eachPreview": { "corpusAllProviderAttempts": 30, "recordsAllProviderAttempts": 30, "otherPreviewAttempts": 10 },
+    "confirmationControlAttempts": 40,
+    "httpTokenRetryReserve": 20
+  },
+  "conditions": [
+    "Every repeated preview, callback, token acquisition and retry counts.",
+    "No per-file fresh-identity checks are removed from the current protocol; a separately verified batch-read boundary is required.",
+    "All individual source and records policies still execute; no request-wide permission lease or decision cache.",
+    "Separate full snapshots on each side of effects; exact final readback and current authorization remain mandatory.",
+    "Batch count, byte bounds, keys, database reads and policy boundaries must be enumerated by an executable fixture plan before these allocations can be called feasible.",
+    "Every other C22 action independently must fit the same 200-attempt ceiling; confirmation arithmetic is not whole-journey acceptance."
+  ]
+}

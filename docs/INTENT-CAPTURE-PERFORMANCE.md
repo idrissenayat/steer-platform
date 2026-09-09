@@ -57,7 +57,24 @@ do not exclude expensive identity traffic or weaken checks to meet the number.
 
 ## Current gap and next work
 
-Latest: [0297](../intent/0297/EVIDENCE.md) shares exact immutable source evidence
+Latest: [0298](../intent/0298/EVIDENCE.md) completes a diagnostic/plan increment,
+not a production optimization. All 45 HTTP invocations in each synthetic run are
+retained; identity vectors match exactly (81,500 attempts each), with no origin
+capture errors or overflow. Confirmation stays 7,637 attempts: 7,491 identity
+and 146 repository. [The trace](../intent/0298/PROFILE.json) separates scope,
+history, preview and confirmation-own costs.
+
+The current unbatched corpus protocol has a **258-attempt lower bound** for two
+independent previews of 43 blobs with two fresh caller checks each. It cannot fit
+200 even if all other work becomes free. The next step is the
+[bounded boundary/batch experiment and whole-read-graph correction](../intent/0298/REQUEST-BUDGET-PLAN.md),
+including explicit proposed component budgets and stop conditions. These budgets
+are unproven design allocations; the ceiling and entire protocol above remain
+unchanged. Do not continue presenting partial records/body reductions as a
+sufficient path to acceptance. No latency, live acceptance or higher progress is
+claimed; C22 stays pending at 68% (17/25).
+
+Prior: [0297](../intent/0297/EVIDENCE.md) shares exact immutable source evidence
 through every repeated review within one read-only preview. Confirmation's two
 previews retain independent sessions separated by persistence. All current grants,
 head/draft/provenance/history/scope/destination checks and final readback remain.

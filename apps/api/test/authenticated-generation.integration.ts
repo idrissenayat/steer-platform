@@ -26,6 +26,7 @@ import { createNativeRequestMeter, summarizeNativeRequests, subtractNativeReques
 import { authenticatedJourneyChoice, authenticatedJourneyItem, type AuthenticatedJourneyDirection } from './authenticated-journey-direction.fixture.ts';
 import { createIntentPerformanceProbe } from './intent-performance-probe.ts';
 import { testAuthenticatedPerformancePrefix } from './authenticated-performance-prefix.integration.ts';
+import { createIdentityRequestProfile } from './identity-request-profile.ts';
 
 /** Signed synthetic JWT + native Git grants, real API constructor graph, SQL and
  * recorded SDK roles. No real issuer, model transport, live migration or external Git write.
@@ -33,7 +34,8 @@ import { testAuthenticatedPerformancePrefix } from './authenticated-performance-
  * This check does not claim real provider authority or signed-in UI acceptance. */
 export async function testAuthenticatedGeneration({ admin, connect, check }: {
   admin: Pool; connect(role: string): Pool; check(name: string, run: () => Promise<void>): Promise<void>;
-}, direction: AuthenticatedJourneyDirection = 'new-distinct', performanceOnly = false) {
+}, direction: AuthenticatedJourneyDirection = 'new-distinct', performanceOnly = false, profileRequests = false) {
+  if (profileRequests && performanceOnly) throw new Error('Attribution overhead must not be mixed with performance acceptance.');
   const itemId = authenticatedJourneyItem(direction);
   const name = performanceOnly ? `bounded authenticated ${direction} performance prefix preserves records and reports incomplete/failed benchmark honestly`
     : direction === 'new-distinct' ? 'concrete authenticated journey binds native multi-batch scope, both SDK roles, corrected confirmation and fixed save/reopen through restart'
@@ -49,7 +51,8 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
       { path: `items/${itemId}/EXAM.md`, content: '# Synthetic canonical Exam\nEXAM-MARKER-NOT-FOR-SCOPE\n' },
       { path: `items/${itemId}/.notes/preserved.md`, content: 'Synthetic existing context; preserve exact bytes. فارسی 🌸\n' },
     ]);
-    const identityTraffic=createNativeRequestMeter(native.git.transport);
+    const attribution = profileRequests ? createIdentityRequestProfile(native.git.transport) : undefined;
+    const identityTraffic=createNativeRequestMeter(attribution?.transport ?? native.git.transport);
     const identity = await recordedRuntimeFixture({ after: run => cleanup.push(run) }, { source: {...native.git,transport:identityTraffic.transport},
       organizationId: `authenticated-generation-${randomUUID()}`,
       selection: { itemId: `items/${itemId}`, idempotencyKey: randomUUID() },
@@ -116,9 +119,19 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
       runtimes.push(runtime); return runtime;
     };
     let runtime: Awaited<ReturnType<typeof createIdentityRuntime>>;
-    const post = async (name: string, input: unknown) => runtime.fetch(new Request(`https://steer.example/v1/tools/${name}`, {
+    const post = async (name: string, input: unknown) => {
+      const trace = attribution?.begin(), identityBefore = identityTraffic.snapshot();
+      try { return await runtime.fetch(new Request(`https://steer.example/v1/tools/${name}`, {
       method: 'POST', headers: { authorization: `Bearer ${await identity.issueBearer()}`, 'content-type': 'application/json' }, body: JSON.stringify(input),
-    }));
+      })); } finally {
+        if (trace) {
+          const profile = trace.finish(), counts = subtractNativeRequests(identityTraffic.snapshot(), identityBefore);
+          assert.equal(profile.attempts, Object.values(counts).reduce((a,b) => a+b,0));
+          assert.equal(profile.attempts, profile.groups.reduce((n,g) => n+g.attempts,0));
+          console.log('Synthetic authenticated identity attribution: ' + JSON.stringify({ tool: name, counts, ...profile }));
+        }
+      }
+    };
     const read = async (name: string, input: unknown) => { const start = performance.now(), before = native.git.calls.length, identityBefore = identityTraffic.snapshot();
       const response = await post(name, input);
       assert.equal(response.status, 200, JSON.stringify({ tool: name, ms: Math.round(performance.now() - start),

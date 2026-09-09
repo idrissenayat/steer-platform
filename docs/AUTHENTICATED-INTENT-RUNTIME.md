@@ -62,6 +62,22 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Diagnosed request-cost correction, no runtime change — 0298
+
+Two synthetic diagnostic runs preserve 45 HTTP invocations and identical request
+counts. Source-location attribution maps the nested scope/history/preview and
+confirmation-own identity calls; confirmation remains 7,637 attempts. The existing
+per-file corpus protocol alone requires at least 258 calls across its two separate
+preview phases, so history-only consolidation cannot meet the 200-call target.
+See [evidence](../intent/0298/EVIDENCE.md), [traces](../intent/0298/PROFILE.json) and
+[correction sequence](../intent/0298/REQUEST-BUDGET-PLAN.md).
+
+Next is an executable batch/read-boundary feasibility experiment, followed by a
+coherent bounded corpus/records read graph. No production port, permission cache,
+signed architecture, startup configuration or live activation is changed here.
+The diagnostic preload is restricted to the synthetic selection and is never a
+production startup option. Proposed budgets do not establish C22 or a new ETA.
+
 ### Whole-preview immutable corpus session — 0297
 
 Private construction proof keyed by the exact review method/scope allows the
