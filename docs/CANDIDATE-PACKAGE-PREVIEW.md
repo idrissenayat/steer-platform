@@ -22,8 +22,11 @@ The explicit server factory composes:
    predecessor chain. Partial, clarification-only and unavailable history fail.
 3. A mandatory current destination/lifecycle authority port. It must verify the
    exact repository/branch/head, item lifecycle, prior bundle/proposal and any
-   relationship. File existence alone cannot supply lifecycle evidence. There
-   is no default port or fixture fallback in application startup.
+  relationship. File existence alone cannot supply lifecycle evidence. 0265
+  provides [repository-backed new-item resolution](NEW-CANDIDATE-DESTINATION.md)
+  for distinct/linked work under a mandatory current policy verifier. Existing-item
+  lifecycle/prior-pointer resolution remains separate. There is no default port
+  or fixture fallback in application startup.
 4. Final history, original, source review, destination, draft and caller-authority
    rechecks. Changes invalidate the whole proposal. Four active requests and a
    60-second server deadline bound work; timed-out dependencies retain their
@@ -53,10 +56,10 @@ This is reproducibility, not authorization, a reservation or durable consent.
 - Legacy `intent/` targets are rejected until an explicit publication mapping
   exists. No automatic migration or guessed `items/` identity is performed.
 
-The actual preview UI supports new/linked item IDs and server-resolved extensions;
-it does not yet select an existing amendment for correction. Item IDs are checked,
-not allocated by the text field. Destination provisioning remains a separate
-runtime installation prerequisite.
+The actual preview UI supports new/linked item IDs, server-resolved extensions and
+0263's explicit existing-proposal selection. Item IDs are checked, not allocated by
+the text field. Destination provisioning remains a separate runtime installation
+prerequisite; unsupported directions remain unavailable in a new-item-only resolver.
 
 Only the manifest, hashes, minimized lineage and **proposed** confirmation binding
 are returned. Private prompts, original conversation, SDK wire responses and the

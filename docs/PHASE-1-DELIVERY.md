@@ -5783,3 +5783,28 @@ resolve; protected signed-file hashes and user-owned roadmap/outputs are unchang
 Next: trusted destination/lifecycle composition, then authorized runtime integration
 and I1–I6 human save/reopen acceptance. The diagnostic factory remains uninstalled;
 records adoption, model spending, provider writes and deployment stay closed.
+
+## Development increment: 0265 — Repository-backed new-candidate destination
+
+The explicit new-distinct/new-linked destination adapter checks the exact reviewed
+branch head, complete bounded Git inventory and physical absence of the intended
+item path. Linked work additionally verifies the regular target Brief's exact bytes
+and current source authority. Independent current policy evidence must establish
+new-item admissibility and bind scope, request/review, head/tree and relationship.
+Changed head, policy, validity or identity withholds the result.
+
+The result is reproducible preview metadata, not consent, item allocation, a path
+reservation or write authority. Existing-item corrections/amendments fail closed
+in this resolver. Its API composition export is uninstalled; no new frontend or
+runtime provider binding is added. See [0265 evidence](../intent/0265/EVIDENCE.md)
+and [the destination guide](NEW-CANDIDATE-DESTINATION.md).
+
+Verification: 1,266 regression tests including nine native-Git destination checks,
+prototype/eight-package type checks, optimized Next build, kit validation and token
+scope audit pass. No new SQL-suite run or live signed-in/provider acceptance is
+claimed. The policy and review fixtures are synthetic; the repository bytes and
+commit/tree verification are native Git.
+
+Next: existing-item lifecycle and prior candidate/proposal parent composition,
+then actual governed policy/runtime binding and the I1–I6 human acceptance path.
+Records/model/provider/write activation remains subject to the existing boundaries.

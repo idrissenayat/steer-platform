@@ -33,7 +33,16 @@ scope, choose what to do, answer only necessary questions, review and correct a
 Brief/Spec/Exam bundle, save it to the authorized repository and reopen it exactly.
 No separate local preview, synthetic success, silent merging or lost work counts.
 
-Latest checkpoint: **0264 adds missing-original preparation diagnostics**.
+Latest checkpoint: **0265 adds repository-backed new-candidate destinations**.
+New distinct/linked work now has an explicit destination port that checks the
+reviewed Git head, absent item root and exact linked Brief, plus separate current
+policy evidence. Repeated valid reads reproduce the same package identity; absent
+directories never grant saving. See [the destination guide](NEW-CANDIDATE-DESTINATION.md)
+and [0265 evidence](../intent/0265/EVIDENCE.md). The resolver remains uninstalled.
+Existing-item lifecycle/prior-pointer resolution, actual governed policy bindings,
+real records/model/provider authority and signed-in acceptance remain open.
+
+0264 adds missing-original preparation diagnostics.
 The actual run-history panel distinguishes configured recorded preparation from
 retained original metadata, verified content and execution outcome. Explicit pages
 never authorize retry or imply complete history; source/access/lifecycle changes

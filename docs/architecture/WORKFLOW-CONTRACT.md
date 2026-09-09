@@ -1193,3 +1193,22 @@ Source, identity, visibility and records/session expiry invalidate late output.
 
 The factory remains uninstalled. See [process guide](../PREPARATION-DIAGNOSTICS.md),
 [0264 specification](../../intent/0264/SPEC.md) and [evidence](../../intent/0264/EVIDENCE.md).
+
+### New-candidate destination evidence — 0265
+
+The package-preview destination port has an explicit repository-backed new-item
+implementation. It binds the current reviewed commit, complete bounded Git inventory
+and absent item root. Linked work verifies the exact current regular target Brief
+and current target/source permission. It never guesses a legacy namespace mapping.
+
+Independent governed policy evidence must bind the exact scope, request/review,
+head/tree, item and relationship, with bounded validity. Rechecking policy, branch
+and principal withholds late changes; observation timestamps alone do not alter
+the reproducible destination digest. This is not a reservation or write permission:
+save reconstitution and expected-head CAS remain mandatory at dispatch.
+
+Existing-item corrections and amendments fail closed in this resolver pending
+their lifecycle and prior-pointer implementation. The API export is uninstalled;
+the actual policy service, records/provider activation and signed-in acceptance
+are not supplied by the synthetic tests. See [guide](../NEW-CANDIDATE-DESTINATION.md),
+[0265 specification](../../intent/0265/SPEC.md) and [evidence](../../intent/0265/EVIDENCE.md).

@@ -1,6 +1,17 @@
 # STEER platform implementation
 
-## Current checkpoint — 0264
+## Current checkpoint — 0265
+
+0265 adds repository-backed resolution for new distinct/linked candidate destinations
+at the exact reviewed Git head. Linked targets require exact regular Brief bytes;
+all new paths require separate current policy evidence as well as physical absence.
+The adapter composes with existing package-preview contracts and never allocates,
+saves or signs. See [destination guide](NEW-CANDIDATE-DESTINATION.md) and
+[0265 evidence](../intent/0265/EVIDENCE.md). Existing-item lifecycle/prior-pointer
+resolution and actual governed policy/runtime bindings remain open; no live startup
+installation or I1–I6 user acceptance is claimed.
+
+## Prior checkpoint — 0264
 
 0264 adds explicit preparation diagnostics to actual draft run history: recorded
 scope/development admissions can be discovered even when original-input metadata

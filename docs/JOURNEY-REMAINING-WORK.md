@@ -18,7 +18,10 @@ Latest development delta: 0260–0263 connect immutable package preview, exact
 confirmation/original preservation, save-start recovery and existing-proposal
 selection. 0264 adds [preparation diagnostics](PREPARATION-DIAGNOSTICS.md) for
 recorded scope/development admissions with missing originals. The next engineering
-dependency is trusted destination/lifecycle composition. Actual records adoption,
+dependency is trusted destination/lifecycle composition. 0265 implements the new
+distinct/linked repository branch under a mandatory current policy verifier; next
+is existing-item lifecycle/prior-pointer composition and actual policy binding.
+See [new-candidate destination](NEW-CANDIDATE-DESTINATION.md). Actual records adoption,
 model/provider/write authority and signed-in I1–I6 acceptance remain separate and
 unresolved; these tested, uninstalled services do not complete the live journey.
 
