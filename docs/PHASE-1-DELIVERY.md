@@ -6542,3 +6542,37 @@ The final delayed prefix passes both integrity checks but reports the actual C22
 failure: source review returns HTTP 401 after 202 attempts / 200 dispatches in
 both directions, without late work at return. Draft-read warm/cold/concurrent
 groups pass; this is not the later-stage or complete performance protocol.
+
+## 0292 — Consolidate deeper records metadata authorization
+
+Current/historical scope and development readers, and the read-only portion of
+development start, now use one private permission-query helper. Owners retain
+initial authentication; every metadata policy executes before fresh caller
+validation and content continuation. Keys, SDK verification, full source/SQL
+readbacks, proof-bearing scope windows, start/scheduling barriers, deadlines and
+four-call pending-work admission remain. No permission, principal or result is
+cached, and no public option or activation path is added.
+
+All 34 focused checks, **1,446 broad tests**, eight-package/prototype types and
+the Next production build pass. Three authenticated joined checks plus migrations
+pass through separate roles, correction, confirmation, one native save, lost
+acknowledgements, restart, exact older-commit reopen and current-policy denial.
+First confirmation falls from 14,829 to **11,213** requests (24.38%), preview from
+7,309 to **5,501** (24.74%), and initial drafting start from 11,537 to **7,871**
+(31.78%). Source review remains 317; complete C22 and live acceptance remain open.
+See [specification](../intent/0292/SPEC.md), [evidence](../intent/0292/EVIDENCE.md)
+and [raw measurements](../intent/0292/PERFORMANCE.json).
+
+Recovery returns committed with 17 requests, 14 SQL phases, three valid clock
+observations and no failure/reversal. The earlier 0289 unknown remains retained
+and unexplained. The delayed source-review prefix and full repeated/concurrent
+protocol were not rerun; no warmed p95 or real UI/provider acceptance is claimed.
+Progress remains **68% (17/25; 8 remaining; +0 points)**. Next remove remaining
+source-review and records/identity boundary multiplication without changing the
+acceptance ceiling. No credential, live spending, records/D1 activation, runtime
+GitHub grant/write, gate, deployment, release or user-data deletion changed.
+
+Focused SQL verification additionally passes ten historical-development, four
+development-start and 82 scope-runtime checks, each with idempotent migrations.
+The full SQL suite and real signed-in UI were not run. All source hashes, raw
+measurement partitions, local document links and protected signed sources validate.

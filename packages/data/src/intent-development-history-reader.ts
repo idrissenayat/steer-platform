@@ -6,6 +6,7 @@ import { createHistoricalDevelopmentOperationReader } from './intent-operations.
 import { developmentOriginalHash as hash,freezeOriginal as freeze } from './development-original-contracts.ts';
 import { withHistoricalScopeReadWindow } from './historical-scope-read-window.ts';
 import { bracketHistoricalReadAuthority } from './historical-read-authority.ts';
+import { createReadPolicyAuthority } from './read-policy-authority.ts';
 
 type Records=Parameters<typeof createDevelopmentObservationStore>[2];
 const unavailable=()=>new Error('Development history is unavailable.');
@@ -33,7 +34,7 @@ export function createIntentDevelopmentHistoryReader(pools:Parameters<typeof cre
       const track=async<T>(work:Promise<T>):Promise<T>=>{pending++;try{return await work;}finally{pending--;release();}};
       const current=async()=>{guard();if(await track(Promise.resolve().then(revalidate))!==undefined)throw unavailable();guard();};
       const checked=async<T>(work:()=>Promise<T>)=>{await current();const value=await track(Promise.resolve().then(work));await current();return value;};
-      const authority=async(action:string,work:()=>Promise<void>)=>{if(action!=='read'||await checked(work)!==undefined)throw unavailable();};
+      const authority=createReadPolicyAuthority(current,track,guard);
       const denied=async()=>{throw unavailable();};
       // Memoize only exact deterministic SDK verification within this one read.
       // The final readback rechecks both roles after all SDK callbacks. Scope
@@ -51,7 +52,8 @@ export function createIntentDevelopmentHistoryReader(pools:Parameters<typeof cre
         verifyHistoricalExchange:async context=>{
           const fingerprint=hash(context),prior=verified.get(context.role);
           if(prior!==undefined){if(prior!==fingerprint)throw unavailable();guard();return;}
-          await authority('read',()=>r.verifyHistoricalExchange!(context));verified.set(context.role,fingerprint);
+          if(await checked(()=>r.verifyHistoricalExchange!(context))!==undefined)throw unavailable();
+          verified.set(context.role,fingerprint);
         },
         originals:{
           authorize:denied,authorizeOperation:denied,

@@ -7,6 +7,7 @@ import { createDevelopmentResultStore } from './development-results.ts';
 import { createDevelopmentObservationStore } from './development-observations.ts';
 import { createIntentOperationStore } from './intent-operations.ts';
 import { developmentOriginalHash as hash, freezeOriginal as freeze } from './development-original-contracts.ts';
+import { createReadPolicyAuthority } from './read-policy-authority.ts';
 
 type Records = Parameters<typeof createDevelopmentObservationStore>[2];
 type Observation = Awaited<ReturnType<ReturnType<typeof createDevelopmentObservationStore>['read']>>['observation'];
@@ -46,7 +47,7 @@ export function createIntentDevelopmentReader(pools: Parameters<typeof createDev
       const track = async <T>(work: Promise<T>): Promise<T> => { pending++; try { return await work; } finally { pending--; release(); } };
       const current = async () => { guard(); if (await track(Promise.resolve().then(revalidate)) !== undefined) throw unavailable(); guard(); };
       const checked = async <T>(work: () => Promise<T>) => { await current(); const value = await track(Promise.resolve().then(work)); await current(); return value; };
-      const authority = async (action: string, work: () => Promise<void>) => { if (action !== 'read' || await checked(work) !== undefined) throw unavailable(); };
+      const authority = createReadPolicyAuthority(current, track, guard);
       const operationAuthority = (original: boolean): Records['originals']['authorizeOperation'] => async context => {
         if (JSON.stringify(context.request) !== JSON.stringify(target)) throw unavailable();
         await authority('read', () => (original ? r.originals : r.results).authorizeOperation(context));

@@ -57,6 +57,23 @@ do not exclude expensive identity traffic or weaken checks to meet the number.
 
 ## Current gap and next work
 
+Latest: [0292](../intent/0292/EVIDENCE.md) reduces nested records metadata-policy
+traversal, without caching permission or changing content/key/SDK/effect barriers.
+Compared with 0291, scope-result reads fall from 337 to 227 requests, save review
+from 1,326 to 1,106, preview from 7,309 to 5,501 and first confirmation from 14,829
+to 11,213 (24.38%). Initial/repeated drafting preparation falls from 6,516 / 5,846
+to 4,756 / 4,306, and initial drafting start from 11,537 to 7,871.
+The authenticated synthetic save/recovery/reopen passes. Source review remains
+317 and scope preparation 1,250; neither improved in this increment.
+
+[Raw samples](../intent/0292/PERFORMANCE.json) retain all twelve action samples,
+two preparations, nine start logs, origin partitions and recovery diagnostics.
+The source-review delayed prefix was not rerun because it stops before these
+changed records readers; its prior failure remains open. No full warmed/cold/
+concurrent protocol, p95, actual UI or live provider acceptance is claimed.
+Next reduce remaining identity-policy/records traversal, not raise the 200-attempt
+ceiling. The historical account below preserves earlier positive and failed evidence.
+
 0283's new-distinct confirmation used 60,372 attempts and 37.6 seconds without
 injected network delay. The history-barrier optimization in 0284 is a partial
 reduction only. [0285](../intent/0285/EVIDENCE.md) adds an executable **prefix**, not

@@ -9,7 +9,19 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0291 / partial C22 — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0292 / partial C22 — 68% (17/25; 8 remaining; +0 points)**.
+0292 removes duplicate caller traversal around read-only records permission
+queries. Every policy still runs, followed by fresh identity before continuation;
+key/SDK checks, source readbacks, effect barriers and admission/drain remain.
+The authenticated synthetic joined journey passes through one save, lost-response
+recovery, restart and exact reopen. First confirmation falls from 14,829 to 11,213
+requests, preview from 7,309 to 5,501, and initial drafting start from 11,537 to
+7,871. See [0292 evidence](../intent/0292/EVIDENCE.md). These still exceed C22;
+source review is unchanged at 317. Next reduce the remaining source-review and
+records/identity boundary multiplication, then run the full performance protocol.
+Live records/model/GitHub/UI acceptance retains its separate prerequisites.
+
+Prior delivery checkpoint: **0291 / partial C22**.
 0291 consolidates metadata-only policy traversal while keeping fresh checks around
 content IO/effects and result release, and reuses exact immutable Git membership
 without caching grants or bodies. Authenticated source review falls from 2,634

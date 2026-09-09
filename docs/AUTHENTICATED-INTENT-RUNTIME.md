@@ -62,6 +62,29 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Deeper records metadata authorization — 0292
+
+Current/historical scope and development readers, plus the read-only portion of
+development start, use a private metadata-policy helper. Owners authenticate
+before work; each independent read permission query then runs before fresh caller
+validation and before SQL/content continuation. Installed authorizers are strictly
+permission-metadata queries: no content fetching/transmission, key retrieval,
+SDK verification or effects belong in them. No policy or principal is cached.
+
+Key access and SDK verification retain their original full caller brackets.
+Historical exchange verification explicitly stays on checked(), not the metadata
+helper. Existing private historical/current bracket proofs and scope windows
+retain their stronger semantics; the new helper cannot supply either proof.
+All full source/readback checks, separate start authorization/scheduling, strict
+void outcomes, four-call admissions, deadlines and pending-work drain remain.
+
+[0292 evidence](../intent/0292/EVIDENCE.md) records the authenticated synthetic
+save/recovery/reopen and [raw measurements](../intent/0292/PERFORMANCE.json).
+Preview falls to 5,501 requests, first confirmation to 11,213 and initial drafting
+start to 7,871. This is partial C22 work, not live activation or latency acceptance.
+The older recovery-unknown observation remains unresolved; no passing rerun
+establishes its cause. Progress stays **68% (17/25; 8 remaining; +0 points)**.
+
 ### Read-only policy traversal and immutable membership — 0291
 
 The managed journey now authenticates before the first policy query, then runs

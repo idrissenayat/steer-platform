@@ -5,6 +5,7 @@ import { createScopeReviewOriginalStore, scopeRecordsConfigurationSchema } from 
 import { createScopeReviewObservationStore } from './scope-review-observations.ts';
 import { createScopeReviewOperationStore, describeScopeReviewCheckpoint } from './scope-review-operations.ts';
 import { scopeOriginalHash as hash, freezeScopeOriginal as freeze } from './scope-original-contracts.ts';
+import { createReadPolicyAuthority } from './read-policy-authority.ts';
 
 const uuid = z.uuid().length(36).refine(v => v === v.toLowerCase());
 const digest = z.string().regex(/^[a-f0-9]{64}(?![\s\S])/);
@@ -43,9 +44,7 @@ export function createScopeReviewReader(pools: Parameters<typeof createScopeRevi
       const track = async <T>(work: Promise<T>): Promise<T> => { pending++; try { return await work; } finally { pending--; release(); } };
       const current = async () => { guard(); if (await track(Promise.resolve().then(revalidate)) !== undefined) throw unavailable(); guard(); };
       const checked = async <T>(work: () => Promise<T>) => { await current(); const value = await track(Promise.resolve().then(work)); await current(); return value; };
-      const authority = async (action: string, work: () => Promise<void>) => {
-        if (action !== 'read' || await checked(work) !== undefined) throw unavailable();
-      };
+      const authority = createReadPolicyAuthority(current, track, guard);
       const secure: Records = {
         authorize: context => authority(context.action, () => r.authorize(context)),
         verifyObservation: async context => { if (await checked(() => r.verifyObservation(context)) !== undefined) throw unavailable(); },

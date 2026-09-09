@@ -5,6 +5,7 @@ import { createIntentOperationStore } from './intent-operations.ts';
 import { developmentOriginalHash as hash, freezeOriginal as freeze, type DevelopmentOriginal } from './development-original-contracts.ts';
 import { withCurrentScopeReadWindow } from './current-scope-read-window.ts';
 import { bracketCurrentReadAuthority } from './current-read-authority.ts';
+import { createReadPolicyAuthority } from './read-policy-authority.ts';
 
 type Records = Parameters<typeof createDevelopmentOriginalStore>[2];
 const unavailable = () => new Error('Development start is unavailable.');
@@ -34,7 +35,7 @@ export function createIntentDevelopmentStarter(pools: Parameters<typeof createDe
       const track = async <T>(work: Promise<T>) => { pending++; try { return await work; } finally { pending--; release(); } };
       const current = async () => { guard(); if (await track(Promise.resolve().then(revalidate)) !== undefined) throw unavailable(); guard(); };
       const checked = async <T>(work: () => Promise<T>) => { await current(); const value = await track(Promise.resolve().then(work)); await current(); return value; };
-      const authority = async (action: string, work: () => Promise<void>) => { if (action !== 'read' || await checked(work) !== undefined) throw unavailable(); };
+      const authority = createReadPolicyAuthority(current, track, guard);
       const sourceScope = r.scopeReview; let scopeReader = sourceScope, validating = false;
       const secured: Records = {
         ...(sourceScope ? { scopeReview: { scope: sourceScope.scope, read: (input, current) => scopeReader!.read(input, current) } } : {}),
