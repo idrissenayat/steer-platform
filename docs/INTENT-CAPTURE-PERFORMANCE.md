@@ -112,7 +112,17 @@ by a rerun. Forty focused save/recovery checks also pass. All twelve corrected-
 package request counts/partitions and drafting-start counts remain unchanged from
 0288. The delayed prefix and other full dispositions were not rerun.
 
-Next investigate the retained recovery-unknown observation and reduce remaining
+[0290](../intent/0290/EVIDENCE.md) adds a bounded diagnostic for the retained
+already-sent recovery observation. Twenty ordinary and twenty 2-ms-SQL-delay
+repetitions pass on the final harness, with 920 clock samples and no database
+failures/reversals. This is a smaller native fixture, not the 34-source authenticated
+performance protocol; its timings cannot be substituted for interactive latency.
+No production code, request counts or deadlines changed. The unexplained 0289
+failure remains recorded, and its cause was not established by these repetitions.
+The new content-free trace separates leases/resets/late completions and is
+available when the full joined recovery assertion is next exercised.
+
+Next retain diagnostics for any recovery-unknown recurrence and reduce remaining
 repeated identity-policy traversal, including source review and final-package
 verification, then extend the prefix to later stages
 and the full measurement protocol. Preserve every independent policy and fresh

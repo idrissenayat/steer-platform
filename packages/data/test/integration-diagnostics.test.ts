@@ -45,6 +45,10 @@ test('integration focus is explicit, bounded and distinct from the full suite',(
   assert.deepEqual(parseIntegrationSelection(['--clarification-repro','1','--query-delay-ms','2']),{mode:'clarification-repro',iterations:1,queryDelayMs:2});
   for(const args of [['--focus'],['--clarification-repro'],['--clarification-repro','0'],['--clarification-repro','21'],['--clarification-repro','01'],['--clarification-repro','1e1'],['--clarification-repro','2','extra']])assert.throws(()=>parseIntegrationSelection(args));
   for(const v of ['-1','6','1.5','private'])assert.throws(()=>parseIntegrationSelection(['--clarification-repro','1','--query-delay-ms',v]));
+  for(const n of ['1','10','20'])assert.deepEqual(parseIntegrationSelection(['--candidate-recovery-repro',n]),{mode:'candidate-recovery-repro',iterations:Number(n),queryDelayMs:0});
+  assert.deepEqual(parseIntegrationSelection(['--candidate-recovery-repro','20','--query-delay-ms','5']),{mode:'candidate-recovery-repro',iterations:20,queryDelayMs:5});
+  for(const args of [['--candidate-recovery-repro'],['--candidate-recovery-repro','0'],['--candidate-recovery-repro','21'],['--candidate-recovery-repro','01'],['--candidate-recovery-repro','1e1'],['--candidate-recovery-repro','2','extra'],['--candidate-recovery-repro','1','--journey-runtime'],['--candidate-recovery-repro','1','--query-delay-ms']])assert.throws(()=>parseIntegrationSelection(args));
+  for(const v of ['-1','6','1.5','private'])assert.throws(()=>parseIntegrationSelection(['--candidate-recovery-repro','1','--query-delay-ms',v]));
 });
 test('database diagnostic ring preserves only bounded phases, durations and allowlisted codes',async()=>{
   const trace=createIntegrationDatabaseTrace();let released=0,queries=0;
@@ -60,4 +64,49 @@ test('database diagnostic ring preserves only bounded phases, durations and allo
   assert.equal(summary.counts.connect,1);assert.equal(summary.counts.query,42);
   trace.reset();assert.equal(trace.summary().calls,0);assert.deepEqual(trace.summary().events,[]);assert.ok(Object.values(trace.summary().counts).every(v=>v===0));
   for(const invalid of [-1,6,NaN,1.5])assert.throws(()=>createIntegrationDatabaseTrace(invalid));
+});
+
+const clockSql="SELECT floor(extract(epoch FROM clock_timestamp())*1000)::bigint AS now";
+test('clock diagnostics observe regressions without exposing absolute time or changing query results and errors',async()=>{
+  const trace=createIntegrationDatabaseTrace(),privateValue='PRIVATE-CLOCK-QUERY-BODY';let result:unknown,error:Error|undefined;
+  const client={query:async()=>{if(error)throw error;return result;},release(){}};
+  const connection=await trace.wrap({connect:async()=>client} as unknown as Pool).connect();
+  for(const now of [1788000000000,'1788000000003','1787999999998']){
+    result={rows:[{now,privateValue}]};assert.equal(await connection.query(clockSql,[privateValue]),result);
+  }
+  assert.deepEqual(trace.summary().clock,{samples:3,regressions:1,maxBackwardMs:5,invalidSamples:0});
+  for(const now of ['', '1e3', '-1', '01', ' 1', Number.MAX_SAFE_INTEGER+1, NaN, -1, null]){
+    result={rows:[{now}]};assert.equal(await connection.query(clockSql),result);
+  }
+  result=Object.defineProperty({},'rows',{get(){throw new Error(privateValue);}});
+  assert.equal(await connection.query('SELECT PRIVATE'),result); // Unrecognized SQL must not inspect rows.
+  assert.equal(await connection.query(clockSql),result);assert.equal(trace.summary().clock.invalidSamples,10);
+  error=new Error(privateValue);await assert.rejects(connection.query(clockSql),e=>e===error);
+  const summary=trace.summary();assert.equal(summary.failures,1);
+  assert.doesNotMatch(JSON.stringify(summary),/PRIVATE|178800000000|178799999999/);
+  summary.clock.samples=999;assert.equal(trace.summary().clock.samples,3);connection.release();
+});
+
+test('clock diagnostics keep concurrent leases and reset generations separate and cap backward deltas',async()=>{
+  const trace=createIntegrationDatabaseTrace();let now=0,released=0;
+  const raw={query:async()=>({rows:[{now}]}),release(){assert.equal(this,raw);released++;}};
+  const pool=trace.wrap({connect:async()=>raw} as unknown as Pool),one=await pool.connect(),two=await pool.connect();
+  now=5000000;await one.query(clockSql);now=100;await two.query(clockSql); // A different lease is not a regression.
+  assert.equal(trace.summary().clock.regressions,0);
+  now=0;await one.query(clockSql);assert.deepEqual(trace.summary().clock,{samples:3,regressions:1,maxBackwardMs:3600000,invalidSamples:0});
+  trace.reset();now=1;await two.query(clockSql);assert.deepEqual(trace.summary().clock,{samples:1,regressions:0,maxBackwardMs:0,invalidSamples:0});
+  one.release();two.release();assert.equal(released,2);
+  const next=await pool.connect();now=0;await next.query(clockSql);assert.equal(trace.summary().clock.regressions,0);next.release();
+});
+
+test('reset excludes late query completions and errors from the next diagnostic sample without hiding their results',async()=>{
+  const trace=createIntegrationDatabaseTrace();let resolve!:(value:unknown)=>void,reject!:(error:Error)=>void;
+  const client={query:()=>new Promise((yes,no)=>{resolve=yes;reject=no;}),release(){}};
+  const connection=await trace.wrap({connect:async()=>client} as unknown as Pool).connect();
+  const first=connection.query(clockSql),result={rows:[{now:1788000000000}]};trace.reset();resolve(result);
+  assert.equal(await first,result);assert.equal(trace.summary().calls,0);assert.equal(trace.summary().clock.samples,0);
+  const second=connection.query(clockSql),error=new Error('PRIVATE late error');trace.reset();reject(error);
+  await assert.rejects(second,e=>e===error);assert.equal(trace.summary().calls,0);assert.equal(trace.summary().failures,0);
+  const third=connection.query(clockSql);resolve({rows:[{now:1}]});await third;
+  assert.equal(trace.summary().calls,1);assert.deepEqual(trace.summary().clock,{samples:1,regressions:0,maxBackwardMs:0,invalidSamples:0});connection.release();
 });

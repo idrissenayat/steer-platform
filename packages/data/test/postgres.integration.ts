@@ -135,6 +135,20 @@ try {
     }});
     assert.equal(passed,4);
     console.log(`FOCUSED candidate start result: ${passed-1} checks passed plus idempotent migration check; full suite NOT RUN.`);
+  }else if(selection.mode==='candidate-recovery-repro'){
+    console.log(`FOCUSED already-sent candidate recovery reproduction: ${selection.iterations} iterations; synthetic query delay ${selection.queryDelayMs}ms; NOT full SQL/authenticated journey or C22 acceptance.`);
+    const trace=createIntegrationDatabaseTrace(selection.queryDelayMs);let matched=0,completed=0;
+    await testDurableCandidateBundles({app:trace.wrap(connect('steer_app')),admin,connect:role=>trace.wrap(connect(role)),check:async(name,run)=>{
+      if(name!=='lost native Git acknowledgement recovers the original operation receipt without a second dispatch')return;
+      matched++;
+      for(let i=0;i<selection.iterations;i++){
+        trace.reset();const start=performance.now();
+        try{await run();completed++;console.log(`FOCUSED PASS candidate recovery ${i+1}/${selection.iterations} ${JSON.stringify({durationMs:Math.ceil(performance.now()-start),database:trace.summary()})}`);}
+        catch(error){console.log(`FOCUSED FAIL candidate recovery ${i+1}/${selection.iterations} ${JSON.stringify({durationMs:Math.ceil(performance.now()-start),database:trace.summary()})}`);throw error;}
+      }
+    }});
+    assert.equal(matched,1);assert.equal(completed,selection.iterations);
+    console.log(`FOCUSED candidate recovery result: ${completed}/${selection.iterations} passed; full SQL/authenticated journey/C22 NOT RUN.`);
   }else if(selection.mode==='candidate-save'){
     console.log('FOCUSED candidate save admission/originals/HTTP/Temporal/native-Git; NOT the full integration suite.');
     await testDurableCandidateBundles({app:connect('steer_app'),admin,connect,check});

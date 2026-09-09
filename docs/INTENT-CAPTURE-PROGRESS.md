@@ -75,11 +75,15 @@ it does not imply that no code exists.
 | 2026-09-09 / 0287 | 17/25 | 68% | +0 percentage points | Partial C22: separate read-only scope-preparation windows remove 15.55% of requests without crossing admission/persistence effects; nine focused tests, 82 scope-runtime checks, three default authenticated joined checks, 1,406 broad tests, types and build pass. Source review, confirmation and drafting-start counts remain unchanged; no whole checkpoint or live acceptance is complete. |
 | 2026-09-09 / 0288 | 17/25 | 68% | +0 percentage points | Partial C22: privately proven current-scope caller barriers remove 44.78% of initial drafting-start requests and 45.14% of receipt-recovery/repeated-start requests; 25 focused tests, four start-SQL checks, three default authenticated joined checks, 1,415 broad tests, types and build pass. No completed performance checkpoint or live acceptance is implied. |
 | 2026-09-09 / 0289 | 17/25 | 68% | +0 percentage points | Partial C22: separate drafting-preparation evidence windows reduce the two-source native comparison from 70 to 52 requests. Twelve focused tests, 17 preparation checks, 40 save checks, three final authenticated joined checks, 1,416 broad tests, types and build pass. Managed preparation remains over budget. One earlier joined recovery-unknown result is retained; a passing rerun does not establish its root cause or a fix. |
+| 2026-09-09 / 0290 | 17/25 | 68% | +0 percentage points | Recovery diagnostics: five focused tests, 40 final ordinary/delayed recovery repetitions, 40 candidate-save checks, 1,419 broad tests and all types pass. Clock traces show no reversal in 920 final observations. The 0289 failure did not reproduce; no root cause, production fix, new performance result or acceptance checkpoint is claimed. |
 
 Next unblocked engineering checkpoint: C22, meet the documented request-load and
 latency bounds without weakening current authority or recovery guarantees.
 The retained 0289 already-sent recovery-unknown observation also needs investigation;
 its final rerun and existing synthetic C20 checks pass, but its cause is not known.
+[0290](../intent/0290/EVIDENCE.md) adds bounded reproduction/clock diagnostics;
+40 final ordinary/delayed repetitions do not reproduce it. No production fix or
+new checkpoint is claimed; keep diagnostics available during performance work.
 Eight checkpoints remain in total: performance, governed records/runtime activation,
 real model quality and signed-in human acceptance. Live model/activation work still
 requires its specific prerequisites; it is not authorized by this progress update.

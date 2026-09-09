@@ -6468,3 +6468,37 @@ observation and reduce repeated identity-policy traversal before the complete
 delayed performance protocol. No real UI/live-provider acceptance, credentials,
 spending, runtime grants/writes, records/D1 adoption, signature, deployment or
 release changed. User files and signed source documents remain untouched.
+
+## 0290 — Bounded saved-operation recovery reproduction and clock diagnostics
+
+Added the explicit `--candidate-recovery-repro 1-20 [--query-delay-ms 0-5]`
+selection. It repeats the existing lost-native-acknowledgement case: one isolated
+native save, same original admission, exact receipt inspection and already-sent
+recovery without another dispatch. Failed assertions stop the run and retain
+bounded diagnostics; no full SQL/authenticated journey or C22 pass is implied.
+
+The test-only database trace recognizes the exact existing clock query and reports
+sample/regression/invalid counts plus a capped backward delta, never absolute
+timestamps, SQL/arguments, identifiers, credentials or content. Clock sequences are
+per lease and reset generation. Late results/errors do not contaminate a subsequent
+sample; original query results/error identity still reach the caller. Production
+source, authority, clocks, deadlines and recovery are unchanged.
+
+Five focused tests, final ordinary and 2-ms-SQL-delay reproductions (20 cases each),
+40 candidate-save SQL/HTTP/Temporal/native checks, **1,419 broad regressions**,
+prototype/eight-package types, kit and scope audit pass. The final 40 repetitions
+observe 920 clock values with zero reversals, malformed observations or SQL errors.
+Two earlier 20-case runs also pass but precede late-generation isolation; they are
+recorded separately from final evidence. All five SQL runs pass idempotent migrations.
+See [specification](../intent/0290/SPEC.md), [evidence](../intent/0290/EVIDENCE.md)
+and [raw diagnostics](../intent/0290/RECOVERY.json).
+
+The 0289 recovery-unknown result did not reproduce in the narrower fixture. Its
+root cause remains unestablished; no production fix or clock explanation is claimed.
+The original failed evidence is retained. Full managed journey, full SQL, build,
+live providers and UI acceptance were not rerun for this test-only increment.
+Next resume source-review identity-policy request reduction with these diagnostics
+available on future joined runs, rather than repeating the narrow test indefinitely.
+Overall remains **68% (17/25; 8 remaining; +0 points)**. Only owned disposable test
+data was removed; no user data, credentials, live policies/records/D1, spending,
+runtime writes/grants, gate/signature, deployment or release changed.

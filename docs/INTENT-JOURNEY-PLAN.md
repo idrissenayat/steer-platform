@@ -9,7 +9,18 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0289 / partial C22 — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0290 / recovery diagnostics — 68% (17/25; 8 remaining; +0 points)**.
+0290 adds an explicit bounded already-sent recovery reproduction and content-free
+SQL-clock diagnostics. Final ordinary/delayed selections pass 20 cases each;
+920 clock observations show no reversal or database failure. Forty candidate-save
+regression checks also pass. The earlier 0289 unknown outcome did not reproduce;
+its cause is still unknown, not fixed or erased. See
+[0290 evidence](../intent/0290/EVIDENCE.md). No production code or authority changed.
+Continue reducing source-review identity-policy traversal, with the new diagnostics
+available on subsequent joined recovery runs rather than repeating an uninformative
+test indefinitely. C18/C22 and live acceptance remain incomplete.
+
+Prior performance checkpoint: **0289 / partial C22**.
 0283 completed C10. 0284–0288 reduce proven repeated checks and establish the
 [performance benchmark prefix](INTENT-CAPTURE-PERFORMANCE.md). 0289 extends separate
 read-only evidence windows to drafting preparation, closing before each effect.
@@ -19,7 +30,7 @@ That journey now records preparation at 20,130 / 18,790 requests, still far over
 budget. Its final save/reopen rerun passes, but an earlier already-sent recovery
 returned unknown; the cause is unestablished and retained in
 [0289 evidence](../intent/0289/EVIDENCE.md), not declared fixed by a rerun.
-C22 remains failed/incomplete. Next investigate that recovery observation and
+C22 remains failed/incomplete. Retain that recovery observation and
 reduce repeated identity-policy traversal, beginning with source review's 2,634
 requests, without weakening authority/effect/recovery guarantees. Live activation,
 real model quality and signed-in UI acceptance retain their specific prerequisites.

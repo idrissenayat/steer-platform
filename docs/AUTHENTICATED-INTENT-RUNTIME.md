@@ -62,6 +62,27 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Bounded saved-operation recovery diagnosis — 0290
+
+`node packages/data/test/postgres.integration.ts --candidate-recovery-repro 20`
+runs only the existing lost-native-acknowledgement recovery case repeatedly in
+disposable PostgreSQL/native Git fixtures. Add `--query-delay-ms 2` for the
+separate delayed diagnostic. The selector accepts 1–20 repetitions and 0–5 ms
+delay, stops on a failed assertion and never authorizes a resend. It is not the
+full SQL suite, authenticated 34-source journey, real GitHub write or UI test.
+
+The existing diagnostic shared with the joined recovery assertion now reports
+clock observations, regressions and a capped backward delta, not absolute times.
+Sequences belong to individual database leases; reset/release separate samples,
+and late completions cannot pollute a later trace generation. Query results/errors
+still reach the caller unchanged. No production clock or recovery rule changes.
+
+See [0290 evidence](../intent/0290/EVIDENCE.md): final ordinary/delayed selections
+each pass 20 repetitions with 460 clock observations and zero reversals/database
+failures. Forty save checks also pass. The 0289 unknown outcome remains unexplained;
+these narrower tests do not establish a root cause or fix. Keep diagnostics on
+future joined runs while continuing performance work. **68% (17/25; +0 points)**.
+
 ### Separate drafting-preparation read windows — 0289
 
 The owned journey now installs the same private evidence hook in assessed drafting
