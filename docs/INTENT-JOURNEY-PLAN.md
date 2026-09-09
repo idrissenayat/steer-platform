@@ -9,7 +9,25 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0294 / partial C22 — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0295 / partial C22 — 68% (17/25; 8 remaining; +0 points)**.
+0295 shares an invocation-owned retained-original read set across generation
+history and observations. Full first/final original-source verification brackets
+fresh intermediate authority, key, lifecycle/hold/expiry and row-identity checks.
+Failed/abandoned windows close before late work drains; success remains alive for
+the outer scope window's final permission checks. The authenticated synthetic
+save/recovery/reopen and 1,468 broad tests pass. Preview falls from 5,057 to
+**4,957** requests; first confirmation from 10,307 to **10,107**. This roughly 2%
+reduction does not resolve the larger bottleneck or complete C22. Source review
+remains 210. See [0295 evidence](../intent/0295/EVIDENCE.md) and
+[raw samples](../intent/0295/PERFORMANCE.json).
+
+Next priority remains **whole save-path records/history validation**, especially
+repeated result/observation/operation and source-authority traversal not removed
+by this original-only read set. Preserve fresh checks and final readback before
+effects, close the source-review gap, then run the full C22 protocol. Do not raise
+the request ceiling or infer live activation/model/GitHub/UI acceptance.
+
+Prior delivery checkpoint: **0294 / partial C22**.
 0294 forwards exact proven corpus reads through the catalog without another
 caller pair. Original policies execute; unknown ports keep full checks and
 replaced proven methods reject. Parent admission follows actual bundle callback

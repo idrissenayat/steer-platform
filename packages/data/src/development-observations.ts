@@ -8,6 +8,7 @@ import { createIntentOperationStore, createHistoricalDevelopmentStepReader } fro
 import { developmentOriginalHash as hash, freezeOriginal as freeze } from './development-original-contracts.ts';
 import { draftEnvelopeSchema, sealDraft, openDraft, DraftStorageError } from './draft-envelope.ts';
 import { applyRuntimeQueryLimits, DatabaseCommitOutcomeUnknownError } from './runtime-pool.ts';
+import { readHistoricalOriginalWindow, type HistoricalOriginalReadWindow } from './historical-original-read-window.ts';
 
 const id = z.string().min(1).max(200).refine(v => v.trim().length > 0 && !/[\u0000-\u001f\u007f\uD800-\uDFFF]/u.test(v));
 const uuid = z.uuid().length(36).refine(v => v === v.toLowerCase());
@@ -46,7 +47,7 @@ export function createDevelopmentObservationStore(pools: Parameters<typeof creat
   authorizeHistoricalRead?: (context: Readonly<{ configuration: z.infer<typeof developmentRecordsConfigurationSchema>; target: Target }>) => Promise<void>;
   verifyHistoricalExchange?: (context: Readonly<{ original: Awaited<ReturnType<ReturnType<typeof createDevelopmentOriginalStore>['readHistorical']>>['original'];
     role: Target['stepId']; request: Extract<Payload,{stage:'request'}>; response: Extract<Payload,{stage:'response'}> }>) => Promise<void>;
-}) {
+}, historicalOriginalWindow?: HistoricalOriginalReadWindow) {
   const config = freeze(developmentRecordsConfigurationSchema.parse(rawConfiguration)), configurationDigest = hash(config);
   if (typeof dependencies.authorize !== 'function') throw new DraftStorageError();
   const originals = createDevelopmentOriginalStore(pools, config, dependencies.originals);
@@ -102,7 +103,9 @@ export function createDevelopmentObservationStore(pools: Parameters<typeof creat
     return { metadata: m, envelope: draftEnvelopeSchema.parse(row.encrypted_value) };
   }
   async function retainedContext(t: Target) {
-    guard(); const restored = await bounded(originals.readHistorical({operationId:t.operationId,inputDigest:t.inputDigest})); guard();
+    guard(); const target = {operationId:t.operationId,inputDigest:t.inputDigest};
+    const restored = await bounded(historicalOriginalWindow
+      ? readHistoricalOriginalWindow(historicalOriginalWindow, config, target) : originals.readHistorical(target)); guard();
     const original = restored.original;
     const operations = createHistoricalDevelopmentStepReader(pools.execution, original.configuration, {
       authorize: async ({request}) => authorize({...t,stepId:request.stepId},'read',true),

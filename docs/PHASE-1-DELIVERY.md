@@ -6637,3 +6637,42 @@ key checks and final readback before effects, then complete the full performance
 protocol and separately authorized live acceptance. No credentials, spending,
 records/D1 activation, runtime GitHub writes, gates, deployment, release or user
 data changed.
+
+## 0295 — Share retained-original verification across generation history
+
+An invocation-owned, privately registered original-store read set now serves the
+history projection and its observation readers. First/final reads fully reopen
+originals and source drafts. Intermediate reuse retains fresh historical/draft/
+source authority, all observed original/draft key identities, lifecycle/hold/
+expiry, encrypted-row identity and exact source/latest revision checks. The outer
+scope-history full verification remains. Failed/abandoned windows close before
+late work drains; successful owners survive until outer final permission checks
+finish. Unknown/copied/foreign/expired tokens, replaced dependencies, parallel
+reads and swallowed failures deny. No public activation or authority lease exists.
+
+Final verification passes 40 focused tests, eight native SQL/HTTP/recorded-role
+records checks plus migrations, **1,468 broad tests**, prototype/eight-package
+types and the Next optimized build. A preliminary wider history run passes ten
+checks before the final abandonment/order refinements; it is not final-source
+evidence. The explicit records-only selector labels its exclusions; old selectors
+are unchanged. The final authenticated joined selection separately passes three
+checks plus migrations through both drafting roles, corrected confirmation, one
+native save, lost acknowledgements, reconstruction, exact reopen and current denial.
+
+Preview drops from 5,057 to **4,957** requests (1.98%); first confirmation from
+10,307 to **10,107** (1.94%). Reconstructed/repeated confirmation use 10,079 /
+10,077, retaining both reconstructed token refreshes. Source review remains 210;
+scope/drafting preparation and start counts are unchanged. Repository/body reads
+remain. The roughly 2% reduction does not resolve the bottleneck. Recovery returns
+committed in 208 ms / 17 requests, with 14 SQL phases and no clock reversal; the
+older 0289 failure remains retained and unexplained.
+
+See [specification](../intent/0295/SPEC.md), [evidence](../intent/0295/EVIDENCE.md)
+and [raw measurements](../intent/0295/PERFORMANCE.json). These are single undelayed
+samples, not complete C22 or live acceptance. Full SQL, other full dispositions
+and delayed/warmed/cold/concurrent acceptance were not rerun. Progress remains
+**68% (17/25; 8 remaining; +0 points)**. Next address the broader repeated result/
+observation/operation and source-authority traversal, then the remaining source
+gap and full performance protocol. No credentials, live spending, records/D1
+activation, runtime GitHub grants/writes, gates, deployment, release or user data
+changed.

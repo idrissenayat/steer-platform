@@ -62,6 +62,27 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Retained-original read set for generation history — 0295
+
+The private generation-history owner now shares one exact original-store read
+set with its observation readers. First and final reads fully reopen originals/
+sources; intermediate reads recheck historical/draft/source authority, every
+observed original/draft key, lifecycle/hold/expiry and encrypted row/source identity.
+Final metadata readback and the existing outer full scope-history verification
+remain. No permission lease, request-provided proof or write-spanning cache exists.
+
+Copied/foreign/expired tokens, replaced ports, concurrent/abandoned reads and
+swallowed failures deny. Failed windows close their original store before draining
+late work. Successful owners remain alive for outer scope-history final source
+callbacks, then close with the history owner. Ordinary reads/writes are unchanged.
+
+The authenticated synthetic save/recovery/reopen, eight final native records
+checks and 1,468 broad tests pass. Preview now uses 4,957 requests and first
+confirmation 10,107: about 2% fewer, not a resolved bottleneck. The broader repeated
+result/observation/operation and source-authority traversal remains next. C22 and
+real signed-in acceptance are open; progress remains 68% (17/25; +0 points).
+See [0295 evidence](../intent/0295/EVIDENCE.md) and [raw samples](../intent/0295/PERFORMANCE.json).
+
 ### Proven catalog forwarding and parent callback ownership — 0294
 
 The candidate catalog forwards only an exact privately proven source read, which

@@ -57,7 +57,23 @@ do not exclude expensive identity traffic or weaken checks to meet the number.
 
 ## Current gap and next work
 
-Latest: [0294](../intent/0294/EVIDENCE.md) forwards privately proven source reads
+Latest: [0295](../intent/0295/EVIDENCE.md) consolidates retained-original reads
+across history and observations with fresh intermediate key/lifecycle/authority
+checks and full first/final source readback. Preview falls from 5,057 to **4,957**
+requests (1.98%); first confirmation from 10,307 to **10,107** (1.94%). Reconstructed
+and repeated confirmation use 10,079 / 10,077. This is only a small partial reduction:
+confirmation still exceeds the ceiling by more than 50 times. Source review stays
+210; scope/drafting preparation and start counts are unchanged.
+
+The authenticated synthetic save/recovery/reopen, final records verification and
+1,468 broad tests pass. [Raw measurements](../intent/0295/PERFORMANCE.json) retain
+all 12 action, two preparation, nine start and recovery samples. Single undelayed
+preview/first-confirmation times are 8,872 / 17,887 ms, not warmed p95 or a timing
+speedup claim. No delayed prefix, full performance protocol or live acceptance
+was run. Next target repeated result/observation/operation and source-authority
+traversal across the whole read set; original-only consolidation is insufficient.
+
+[0294](../intent/0294/EVIDENCE.md) forwards privately proven source reads
 through the catalog while retaining actual parent callback admission. Source
 review is **210** requests, scope preparation **844**, save preview **5,057**,
 first confirmation **10,307** and drafting preparation **4,350 / 3,900**. Every

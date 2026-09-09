@@ -7,6 +7,7 @@ import { developmentOriginalHash as hash,freezeOriginal as freeze } from './deve
 import { withHistoricalScopeReadWindow } from './historical-scope-read-window.ts';
 import { bracketHistoricalReadAuthority } from './historical-read-authority.ts';
 import { createReadPolicyAuthority } from './read-policy-authority.ts';
+import { withHistoricalOriginalReadWindow, readHistoricalOriginalWindow } from './historical-original-read-window.ts';
 
 type Records=Parameters<typeof createDevelopmentObservationStore>[2];
 const unavailable=()=>new Error('Development history is unavailable.');
@@ -85,11 +86,13 @@ export function createIntentDevelopmentHistoryReader(pools:Parameters<typeof cre
         scopeHistory=window;
         await current();await authorizeRoles();
         const originals=own(createDevelopmentOriginalStore(scopedPools,config,secure.originals));
-        const original=await originals.readHistorical(target);guard();const source=original.original.source;
+        return withHistoricalOriginalReadWindow(originals,target,current,async originalWindow=>{
+        const readOriginal=()=>readHistoricalOriginalWindow(originalWindow,config,target);
+        const original=await readOriginal();guard();const source=original.original.source;
         const operations=own(createHistoricalDevelopmentOperationReader(scopedPools.execution,original.original.configuration,{
           authorize:async({request})=>{if(hash(request)!==hash(target))throw unavailable();await authorizeRoles();},
         }));
-        const observations=own(createDevelopmentObservationStore(scopedPools,config,secure));
+        const observations=own(createDevelopmentObservationStore(scopedPools,config,secure,originalWindow));
         const inspect=async()=>{
           const result=await operations.inspectHistory(target);guard();
           if(result.operation.draftId!==source.draftId||result.operation.draftRevision!==source.revision)throw unavailable();
@@ -114,7 +117,7 @@ export function createIntentDevelopmentHistoryReader(pools:Parameters<typeof cre
           if(hash(reread.response.result)!==captured.outputDigest||hash(reread.resultReference)!==hash({resultRef:captured.resultRef,
             resultDigest:captured.resultDigest,stepInputDigest:captured.stepInputDigest,predecessorResultDigest:captured.predecessorResultDigest}))throw unavailable();
         }
-        const final=await originals.readHistorical(target);guard();
+        const final=await readOriginal();guard();
         if(hash(final.original)!==hash(original.original)||final.latestDraftRevision!==original.latestDraftRevision)throw unavailable();
         const last=await inspect();
         if(hash({operation:last.operation,steps:last.steps})!==hash({operation:initial.operation,steps:initial.steps}))throw unavailable();
@@ -127,6 +130,7 @@ export function createIntentDevelopmentHistoryReader(pools:Parameters<typeof cre
             scopeInputDigest:source.scopeInputDigest,latestRevision:final.latestDraftRevision},status,steps,results,
           savedToGit:false,gateSigned:false,executionAuthorized:false,retryAuthorized:false,semanticQualityVerified:false});
         await current();return freeze(output);
+        });
       });
       void work.finally(()=>{settled=true;release();}).catch(()=>{});
       try{return await Promise.race([work,new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(unavailable()),30000);})]);}

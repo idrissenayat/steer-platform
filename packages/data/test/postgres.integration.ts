@@ -175,10 +175,12 @@ try {
     }});
     assert.equal(passed,8);
     console.log(`FOCUSED run discovery result: ${passed-1} checks passed plus idempotent migration check; full suite NOT RUN.`);
-  }else if(selection.mode==='development-history'){
-    console.log('FOCUSED retained development history/SQL/recorded SDK checks; NOT the full integration suite.');
+  }else if(selection.mode==='development-history'||selection.mode==='development-history-records'){
+    console.log(selection.mode==='development-history-records'
+      ?'FOCUSED retained original/observation history records and HTTP; excludes scope-runtime composition, NOT the full integration suite.'
+      :'FOCUSED retained development history/SQL/recorded SDK checks; NOT the full integration suite.');
     const selectedCheck = async (name:string,run:()=>Promise<void>) => {if(name.startsWith('historical development ')) await check(name,run);};
-    await testScopeStepRuntime({admin,connect,check:selectedCheck});
+    if(selection.mode==='development-history')await testScopeStepRuntime({admin,connect,check:selectedCheck});
     await testDevelopmentObservations({admin,connect,check:selectedCheck});
     assert.ok(passed>1,'No historical development checks selected');
     console.log(`FOCUSED development history result: ${passed-1} checks passed plus idempotent migration check; full suite NOT RUN.`);

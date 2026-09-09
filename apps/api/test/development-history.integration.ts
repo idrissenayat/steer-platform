@@ -129,14 +129,23 @@ export async function testDevelopmentHistory(setup:(ttl?:number)=>Promise<Fixtur
     const held=historyApi(f);try{assert.equal((await f.lifecycle.hold({draftId:f.draftId,holdReference:randomUUID()})).outcome,'ok');assert.equal((await held.post()).status,503);}finally{held.reader.close();}
   });
   await check('historical development combined projection rechecks earlier role authority and source after all SDK verifiers complete',async()=>{
-    for(const failure of ['none','result-authority','source-edit']){
+    for(const failure of ['none','result-authority','source-edit','original-key','changed-original-key','original-authority','hold']){
       const f=await setup();for(const role of ['architect','test-agent'] as const)assert.equal((await run(f,role)).outcome,'succeeded');
       const records=historyRecords(f),codec=createRecordedMastraVerifier(f.gatewayProfiles);let revoke=false,verified=0;
       const reader=createIntentDevelopmentHistoryReader(f.pools,f.config,{...records,
+        originals:{...records.originals,
+          authorizeOriginal:async context=>{if(revoke&&failure==='original-authority')throw new Error('Original source revoked');return records.originals.authorizeOriginal(context);},
+          keyForDraft:async(...args)=>{
+            if(revoke&&failure==='original-key')throw new Error('Original key revoked');
+            const key=await records.originals.keyForDraft(...args);
+            return revoke&&failure==='changed-original-key'?{...key,bytes:Uint8Array.from(key.bytes,byte=>byte^255)}:key;
+          }},
         results:{...records.results,authorizeHistoricalResult:async context=>{if(revoke&&context.target.stepId==='architect')throw new Error('Earlier role access revoked');}},
         verifyHistoricalExchange:async({role,request,response})=>{
           codec.verify(role,(request.rendered as any).request,request as RecordedRequest,response as RecordedResponse);verified++;
           if(role==='test-agent'&&failure==='result-authority')revoke=true;
+          if(role==='test-agent'&&['original-key','changed-original-key','original-authority'].includes(failure))revoke=true;
+          if(role==='test-agent'&&failure==='hold')assert.equal((await f.lifecycle.hold({draftId:f.draftId,holdReference:randomUUID()})).outcome,'ok');
           if(role==='test-agent'&&failure==='source-edit')assert.equal((await f.drafts.append({draftId:f.draftId,mutationId:randomUUID(),expectedRevision:1,
             expectedDigest:f.saved.reference.revisionDigest,content:{...f.content,originalText:'A correction during history read'}})).outcome,'acknowledged');
         }});
