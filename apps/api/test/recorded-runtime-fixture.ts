@@ -11,13 +11,13 @@ export interface DisposableRecordedIdentity {
 /** Native Git and signed JWTs. Issuer is synthetic unless explicitly supplied by a disposable test. */
 export async function recordedRuntimeFixture(t: { after(run: () => void): void }, options?: {
   source?: ReturnType<typeof fixture>; selection: { itemId: string; idempotencyKey: string };
-  actor?: { subject: string; toolGrants: string[]; authorizationPath: string };
+  actor?: { subject: string; toolGrants: string[]; authorizationPath: string; type?: 'agent' | 'human' };
   identity?: DisposableRecordedIdentity;
 }) {
   const source = options?.source ?? fixture(t), keys = await generateKeyPair('RS256'), app = await generateKeyPair('RS256', { extractable: true });
   const provider = options?.identity, binding = { ...fixtureBinding, organizationId: provider?.organizationId ?? fixtureBinding.organizationId };
   const issuer = provider?.issuer ?? 'https://recorded.identity.invalid', jwksUri = provider ? `${issuer}/protocol/openid-connect/certs` : `${issuer}/jwks`, epoch = Math.floor(Date.now() / 1000);
-  const grant = { issuer, subject: provider?.subject ?? options?.actor?.subject ?? 'synthetic-recorded-dispatcher', organizationId: binding.organizationId, type: 'agent', hats: [] as string[],
+  const grant = { issuer, subject: provider?.subject ?? options?.actor?.subject ?? 'synthetic-recorded-dispatcher', organizationId: binding.organizationId, type: options?.actor?.type ?? 'agent', hats: [] as string[],
     toolGrants: options?.actor?.toolGrants ?? ['workflow.recorded-brief.start', 'workflow.recorded-brief.status'], active: true,
     validAfter: new Date((epoch - 30) * 1000).toISOString(), expiresAt: new Date((epoch + 180) * 1000).toISOString() };
   const authorizationPath = options?.actor?.authorizationPath ?? 'access/dispatch.json';
@@ -25,7 +25,7 @@ export async function recordedRuntimeFixture(t: { after(run: () => void): void }
     content: JSON.stringify({ version: 'steer-authorization/v1', organizationId: binding.organizationId, records: [value] }) }]);
   publish();
   const jwk = { ...await exportJWK(keys.publicKey), kid: 'synthetic-recorded', alg: 'RS256' };
-  const token = provider ? await provider.issueBearer() : await new SignJWT({ typ: 'Bearer', azp: 'steer-web', steer_org: grant.organizationId, steer_kind: 'agent', steer_hats: [] })
+  const token = provider ? await provider.issueBearer() : await new SignJWT({ typ: 'Bearer', azp: 'steer-web', steer_org: grant.organizationId, steer_kind: grant.type, steer_hats: [] })
     .setProtectedHeader({ alg: 'RS256', kid: jwk.kid, typ: 'JWT' }).setSubject(grant.subject).setIssuer(issuer).setAudience('steer-api')
     .setIssuedAt(epoch).setExpirationTime(epoch + 180).sign(keys.privateKey);
   const selection = options?.selection ?? { itemId: 'items/0176-recorded', idempotencyKey: '17600000-0000-4000-8000-000000000001' };
@@ -58,5 +58,5 @@ export async function recordedRuntimeFixture(t: { after(run: () => void): void }
   const request = (name: 'start' | 'status' | 'recover' | 'recovery.status', body: unknown = input, bearer = token) => new Request(`https://steer.example/v1/tools/workflow.recorded-brief.${name}`, {
     method: 'POST', headers: { authorization: `Bearer ${bearer}`, 'content-type': 'application/json' }, body: JSON.stringify(body),
   });
-  return { source, grant, publish, profile, secrets, ports, input, target, workflowId, request, counts: () => ({ jwks, assertions }) };
+  return { source, grant, publish, profile, secrets, ports, input, target, workflowId, request, token, counts: () => ({ jwks, assertions }) };
 }

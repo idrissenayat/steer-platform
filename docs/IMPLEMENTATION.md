@@ -1,6 +1,20 @@
 # STEER platform implementation
 
-## Current checkpoint — 0270
+## Current checkpoint — 0271
+
+0271 connects a strict managed journey inventory to the existing authenticated
+identity runtime. The explicit factory and independent current activation/use
+authority are required together. All 21 service scopes/methods are pinned; HTTP
+and optional MCP keep their existing identity and tool checks. Shutdown drains
+newer browser-only intent calls and late dependencies before closing resources.
+See [runtime guide](AUTHENTICATED-INTENT-RUNTIME.md) and
+[0271 evidence](../intent/0271/EVIDENCE.md). The focused integration proves exact
+encrypted draft recovery across a lost acknowledgement and runtime reconstruction
+with synthetic signed identities and current native Git grants. Other service
+constructors are not assembled into this factory yet. No live configuration,
+policy adoption, provider authority or signed-in I1–I6 acceptance is claimed.
+
+## Prior checkpoint — 0270
 
 0270 adds an explicit publication-recording factory that joins verified original-
 bound Git receipts to draft retention through a mandatory independent stable clock

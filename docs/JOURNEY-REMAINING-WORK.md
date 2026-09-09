@@ -30,8 +30,14 @@ versioned candidate direction/current-pointer binding. 0269 now joins the same
 confirmed original to fixed HTTP/Temporal save, native receipt recovery and exact
 HTTP reopen, including lost acknowledgements without a second send. 0270 adds the
 explicit publication-to-lifecycle recorder with mandatory stable clock and records
-authority. Next complete governed startup composition and activation checks.
-See [0270 evidence](../intent/0270/EVIDENCE.md), [0269 evidence](../intent/0269/EVIDENCE.md),
+authority. 0271 adds the strict managed inventory/ownership boundary to the actual
+identity root and joins authenticated encrypted draft recovery through it.
+Next assemble the remaining concrete scope, recorded drafting, destination,
+history and save constructors through that boundary, then extend the joined
+package journey through the authenticated runtime. This is not yet the full
+factory, signed-in UI acceptance or live activation.
+See [runtime guide](AUTHENTICATED-INTENT-RUNTIME.md), [0271 evidence](../intent/0271/EVIDENCE.md),
+[0270 evidence](../intent/0270/EVIDENCE.md), [0269 evidence](../intent/0269/EVIDENCE.md),
 [0268 evidence](../intent/0268/EVIDENCE.md), [existing-item destination](EXISTING-CANDIDATE-DESTINATION.md)
 and [new-candidate destination](NEW-CANDIDATE-DESTINATION.md). Actual records adoption,
 model/provider/write authority and signed-in I1–I6 acceptance remain separate and

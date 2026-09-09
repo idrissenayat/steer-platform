@@ -5,6 +5,7 @@ import { createGitBackedBrowserApi } from './git-browser.ts';
 import type { ToolServices } from '@steer/tool-registry';
 import { createGitBackedMcpEndpoint } from './identity.ts';
 import type { SessionBriefWriterFactory } from './request-writer.ts';
+import { intentJourneyMethods } from './intent-journey-services.ts';
 
 export interface ManagedIdentitySessions {
   readonly binding: Readonly<{ issuer: string; clientId: string; redirectUri: string }>;
@@ -43,7 +44,8 @@ export function createIdentityService(configuration: BrowserSessionConfiguration
     ...(dependencies.now ? { now: dependencies.now } : {}),
   });
   const stopResources = sessions.shutdown.bind(sessions);
-  const drainBeforeResources = Boolean(mcp || dependencies.services?.reconciliationScheduler || dependencies.services?.recordedBriefScheduler || dependencies.services?.recordedBriefRecoveryScheduler || dependencies.services?.briefDestination || dependencies.createBriefWriter || dependencies.services?.briefWriterFactory);
+  const drainBeforeResources = Boolean(mcp || dependencies.services?.reconciliationScheduler || dependencies.services?.recordedBriefScheduler || dependencies.services?.recordedBriefRecoveryScheduler || dependencies.services?.briefDestination || dependencies.createBriefWriter || dependencies.services?.briefWriterFactory
+    || Object.keys(intentJourneyMethods).some(key => dependencies.services?.[key as keyof ToolServices]));
   let state: 'running' | 'draining' | 'stopped' | 'failed' = 'running';
   let activeRequests = 0; let shutdown: Promise<void> | undefined;
   let drained: (() => void) | undefined;

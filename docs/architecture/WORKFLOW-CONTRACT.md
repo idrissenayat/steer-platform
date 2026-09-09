@@ -1319,3 +1319,28 @@ See [records guide](../CANDIDATE-PUBLICATION-RECORDS.md),
 [0270 specification](../../intent/0270/SPEC.md) and [evidence](../../intent/0270/EVIDENCE.md).
 The joined disposable integration uses synthetic clock/records/provider authority.
 It does not activate D1, prove deletion/key destruction, or complete signed-in use.
+
+### Managed journey ownership in the authenticated runtime — 0271
+
+The existing identity root accepts the journey only as a strict profile, complete
+21-service inventory plus internal publication recorder, owned cleanup and
+separate current activation/use authority. Git home, owner, product, branch,
+configuration, policy and allowed items must agree. Missing/foreign/private scope
+fields, method replacement and ambiguous unrecorded-agent bindings deny.
+
+Pinned reference scopes and explicit methods reach the existing HTTP/MCP registry;
+the publication action never becomes a tool or implicit read effect. Bundle-use
+authority supplements, never replaces, action-time human/tool/records/source/
+consent/model/provider authority. A late denial withholds acknowledgement but
+cannot undo an effect already committed or permit a replacement operation.
+
+Shared admissions remain occupied until actual dependencies settle. Shutdown
+drains transport requests and managed work before closing the journey and shared
+identity/read-model pools. Failed cleanup remains failed/closed. Factory rejection
+must clean pre-transfer allocations; post-transfer validation failure closes the
+owned bundle. Construction is not a records adoption or an environment fallback.
+
+See [runtime guide](../AUTHENTICATED-INTENT-RUNTIME.md),
+[0271 specification](../../intent/0271/SPEC.md) and [evidence](../../intent/0271/EVIDENCE.md).
+The focused authenticated SQL test exercises only drafts; the complete concrete
+constructor bundle, actual policy/clock bindings and signed-in I1–I6 remain open.

@@ -32,8 +32,8 @@ boundary or transaction. One admission is held until timed-out dependencies
 actually drain; the total operation is bounded to 90 seconds, authority/clock
 calls to five seconds. The proof lifetime starts when verified clock evidence
 returns; later authorization latency cannot renew its freshness. Closure prevents
-late writes where the commit has not
-already happened; uncertain commit outcomes remain unknown.
+late writes where the commit has not already happened; uncertain commit outcomes
+remain unknown.
 
 ## Records effect and recovery
 
@@ -65,6 +65,9 @@ history verification. It uses actual temporary engines, but its identities,
 provider responses, clock attestation and records authorities are synthetic.
 No real draft policy is activated; no paid model call or live GitHub write occurs.
 
-Next complete the governed startup/service composition and independently adopted
-clock, records, source/consent/lifecycle and provider bindings. The actual signed-in
+0271 adds the [managed identity-runtime boundary](AUTHENTICATED-INTENT-RUNTIME.md).
+It validates and owns this internal recorder but does not expose it as a tool,
+automatically invoke it, supply a clock or assemble all concrete services.
+Next complete the owned factory and independently adopted clock, records,
+source/consent/lifecycle and provider bindings. The actual signed-in
 [I1–I6 journey](INTENT-JOURNEY-PLAN.md) is not complete from this factory or its tests.

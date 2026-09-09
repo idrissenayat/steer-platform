@@ -32,6 +32,7 @@ import { testDevelopmentRequests } from './development-requests.integration.ts';
 import { testDevelopmentStepRuntime } from '../../../apps/worker/test/development-step-runtime.integration.ts';
 import { testDevelopmentObservations } from './development-observations.integration.ts';
 import { testIntentDraftApi } from '../../../apps/api/test/intent-drafts.integration.ts';
+import { testManagedIntentJourneyRuntime } from '../../../apps/api/test/intent-journey-runtime.integration.ts';
 import { testDevelopmentPreparation } from '../../../apps/api/test/intent-development-prepare.integration.ts';
 
 const exec = promisify(execFile);
@@ -78,7 +79,12 @@ try {
     await migrate(drizzle(admin), { migrationsFolder });
     assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 28);
   });
-  if(selection.mode==='candidate-start'){
+  if(selection.mode==='journey-runtime'){
+    console.log('FOCUSED managed identity runtime with native authorization and encrypted SQL drafts; NOT the full integration suite.');
+    await testManagedIntentJourneyRuntime({admin,connect,check});
+    assert.equal(passed,2);
+    console.log(`FOCUSED journey runtime result: ${passed-1} joined check passed plus idempotent migration check; full suite NOT RUN.`);
+  }else if(selection.mode==='candidate-start'){
     console.log('FOCUSED candidate HTTP start to SQL/Temporal/native-Git; NOT the full integration suite.');
     await testDurableCandidateBundles({app:connect('steer_app'),admin,connect,check:async(name,run)=>{
       if(name.includes('candidate HTTP'))await check(name,run);
@@ -316,6 +322,7 @@ try {
   await testDevelopmentObservations({ admin, connect, check });
   await testDevelopmentPreparation({ admin, connect, check });
   await testIntentDraftApi({ admin, connect, check });
+  await testManagedIntentJourneyRuntime({ admin, connect, check });
   await testDurableCandidateBundles({ admin, app, connect, check });
   console.log(`PostgreSQL integration: ${passed} checks passed; server ${(await admin.query('SHOW server_version')).rows[0].server_version}`);
   }

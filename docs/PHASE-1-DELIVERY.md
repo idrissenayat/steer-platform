@@ -5953,3 +5953,32 @@ originals, governed startup/service ownership and current policy bindings remain
 next. D1 and model/provider/write authority remain unresolved. This increment does
 not activate records, prove physical erasure, sign a gate or demonstrate real-user
 I1–I6 acceptance. Protected signed artifacts and user-owned work remain untouched.
+
+## Development increment: 0271 — Managed authenticated intent runtime
+
+The existing identity composition root now accepts a strict optional journey
+profile paired with a complete owned service factory and separate current
+activation/use authority. All 21 journey services and internal publication
+recording are scoped and pinned. Existing HTTP/MCP identity, human and tool checks
+remain intact; no unrelated writer override or legacy-agent ambiguity is allowed.
+
+Newer browser-only intent calls now drain before resource closure. The shared
+manager retains bounded admissions through timed-out dependency settlement and
+closes the owned journey before shared identity/read-model pools. Late authority
+failure withholds acknowledgement, not an already committed effect. Internal
+publication recording is not a public tool or an automatic status/reopen effect.
+
+Verification passes 1,320 broad regressions, the prototype/eight-package type
+checks, the optimized Next build, 95-artifact kit validation and the workflow
+read-only token-scope audit. The focused authenticated SQL journey proves exact
+draft recovery across a lost append acknowledgement and runtime reconstruction,
+plus current policy/grant/product/hold denials without changing encrypted bytes.
+See [0271 specification](../intent/0271/SPEC.md), [evidence](../intent/0271/EVIDENCE.md)
+and [runtime guide](AUTHENTICATED-INTENT-RUNTIME.md) for verification and limits.
+
+Only draft services use real SQL in this new joined identity test; unexercised
+inventory entries explicitly deny. Complete concrete scope, recorded drafting,
+destination, history and save construction through this factory is next. Actual
+clock/records adoption, constrained late recovery, model/provider/write authority
+and signed-in I1–I6 acceptance remain open. No live runtime profile, credentials,
+signed documents, user-owned roadmap/outputs, deployment, deletion or gates change.

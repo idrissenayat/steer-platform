@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { manageIntentJourney, type ManagedRuntimeIntentJourney, type IntentJourneyConfiguration } from './intent-journey-services.ts';
+import { candidateSaveStatusScopeSchema } from '@steer/tool-registry/candidate-save-status-contracts';
 import { createCandidateSavePreviewer } from '@steer/data/candidate-save-previewer';
 import { createCandidateSavePreparer } from '@steer/data/candidate-save-preparer';
 import { createCandidateSaveStarter } from '@steer/data/candidate-save-starter';
@@ -290,6 +292,10 @@ export interface ManagedRuntimeScheduler { readonly scheduler: ReconciliationSch
 export interface ManagedRuntimeRecordedScheduler { readonly scheduler: RecordedBriefScheduler; shutdown(): Promise<void> }
 export interface ManagedRuntimeRecoveryScheduler { readonly scheduler: RecordedBriefRecoveryScheduler; shutdown(): Promise<void> }
 export interface IdentityRuntimeDependencies {
+  /** Explicit complete bundle, transferred only after separate records/activation authority. No environment fallback. */
+  createIntentJourney?: (configuration: IntentJourneyConfiguration) => Promise<ManagedRuntimeIntentJourney>;
+  /** Verifies adopted records, approved bindings and current bundle use. Never a substitute for action-time grants. */
+  authorizeIntentJourney?: (context: Readonly<{ configuration: IntentJourneyConfiguration; action: 'activate' | 'use' }>) => Promise<void>;
   /** Explicitly configured, budget-controlled agent. Absent means no model calls. */
   intentAgent?: IntentAgentService;
   /** Server-only gateway credential and approved budget ledger, never browser values. */
@@ -325,6 +331,7 @@ const profileSchema = z.strictObject({
   recordedRecovery: recordedBriefRecoveryInputSchema.pick({ itemId: true, idempotencyKey: true, failedRunId: true }).optional(),
   briefDestination: briefDestinationScopeSchema.pick({ paths: true }).optional(),
   heldBrief: heldGitBriefConfigurationSchema.optional(),
+  intentJourney: candidateOriginalConfigurationSchema.extend({ itemIds: candidateSaveStatusScopeSchema.shape.itemIds }).optional(),
   sessionKeyId: text,
 });
 const secretsSchema = z.strictObject({ browserClientSecret: text, githubPrivateKeyPem: text,
@@ -449,21 +456,35 @@ export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unk
   let managedScheduler: ManagedRuntimeScheduler | undefined;
   let managedRecordedScheduler: ManagedRuntimeRecordedScheduler | undefined;
   let managedRecoveryScheduler: ManagedRuntimeRecoveryScheduler | undefined;
+  let ownedJourney: ManagedRuntimeIntentJourney | undefined;
+  let managedJourney: ReturnType<typeof manageIntentJourney> | undefined;
   let stopOwned: Promise<void> | undefined;
   let heldAssessment: HeldBriefAssessment | null = null, holdStopping = false;
   const shutdownPools = async () => {
     return stopOwned ??= (async () => {
+      // Journey callbacks may still require current identity or read-model data
+      // after a transport timeout. Drain them before closing shared pools.
+      let journeyFailed = false;
+      try { if (managedJourney) await managedJourney.shutdown(); else if (ownedJourney) await ownedJourney.shutdown(); }
+      catch { journeyFailed = true; }
       const results = await Promise.allSettled([
         ...pools.map((pool) => pool.shutdown()),
         ...(managedScheduler ? [Promise.resolve().then(() => managedScheduler!.shutdown())] : []),
         ...(managedRecordedScheduler ? [Promise.resolve().then(() => managedRecordedScheduler!.shutdown())] : []),
         ...(managedRecoveryScheduler ? [Promise.resolve().then(() => managedRecoveryScheduler!.shutdown())] : []),
       ]);
-      if (results.some((result) => result.status === 'rejected')) throw new Error('Identity runtime resource shutdown failed.');
+      if (journeyFailed || results.some((result) => result.status === 'rejected')) throw new Error('Identity runtime resource shutdown failed.');
     })();
   };
   try {
     const profile = profileSchema.parse(rawProfile); const secrets = secretsSchema.parse(rawSecrets);
+    if (Boolean(profile.intentJourney) !== Boolean(transports.createIntentJourney)
+      || Boolean(profile.intentJourney) !== Boolean(transports.authorizeIntentJourney)
+      || (transports.createIntentJourney !== undefined && typeof transports.createIntentJourney !== 'function')
+      || (transports.authorizeIntentJourney !== undefined && typeof transports.authorizeIntentJourney !== 'function')) throw new Error('Incomplete intent journey binding.');
+    if (profile.intentJourney && (profile.intentJourney.organizationId !== profile.github.binding.organizationId
+      || profile.intentJourney.repository !== `github:${profile.github.binding.repositoryId}` || profile.intentJourney.branch !== profile.github.binding.branch
+      || transports.intentAgent || transports.modelGateway)) throw new Error('Mismatched or ambiguous intent journey binding.');
     if (transports.intentAgent && transports.intentAgent.organizationId !== profile.github.binding.organizationId) throw new Error('Agent scope mismatch.');
     if (transports.intentAgent && transports.modelGateway) throw new Error('Choose one agent binding.');
     const intentAgent = transports.modelGateway ? createIntentDevelopment({ organizationId: profile.github.binding.organizationId,
@@ -533,6 +554,18 @@ export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unk
       if (typeof managedRecoveryScheduler.shutdown !== 'function' || !scheduler || typeof scheduler.start !== 'function' || typeof scheduler.inspect !== 'function' ||
         (Object.keys(expected) as (keyof typeof expected)[]).some(key => configured[key] !== expected[key]) || scheduler.workflowId !== id) throw new Error('Mismatched recovery scheduler binding.');
     }
+    if (profile.intentJourney) {
+      const configuration = Object.freeze({ ...profile.intentJourney, itemIds: Object.freeze([...profile.intentJourney.itemIds]) });
+      const authority = async (action: 'activate' | 'use') => {
+        if (await transports.authorizeIntentJourney!(Object.freeze({ configuration, action })) !== undefined) throw new Error('Intent journey authority unavailable.');
+      };
+      // No service is mounted while factory construction or current policy is
+      // incomplete. Factories must be lazy and clean allocations if they reject.
+      await authority('activate');
+      ownedJourney = await transports.createIntentJourney!(configuration);
+      managedJourney = manageIntentJourney(configuration, ownedJourney, () => authority('use'));
+      await authority('activate');
+    }
     const service = createIdentityService({ ...profile.browser, clientSecret: secrets.browserClientSecret }, {
       reader, authorizationPath: profile.github.authorizationPath,
       sessions: { binding, store, shutdown: shutdownPools },
@@ -549,7 +582,8 @@ export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unk
         };
       } } : {}),
       ...(profile.mcp ? { mcp: profile.mcp } : {}),
-      ...((intentAgent || artifactProjection || managedScheduler || managedRecordedScheduler || managedRecoveryScheduler || profile.briefDestination) ? { services: {
+      ...((managedJourney || intentAgent || artifactProjection || managedScheduler || managedRecordedScheduler || managedRecoveryScheduler || profile.briefDestination) ? { services: {
+        ...(managedJourney ? managedJourney.services : {}),
         ...(intentAgent ? { intentAgent } : {}),
         ...(destinationScope ? { briefDestination: { scope: Object.freeze({ ...destinationScope,
           paths: Object.freeze([...destinationScope.paths]),

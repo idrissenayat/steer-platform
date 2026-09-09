@@ -33,7 +33,19 @@ scope, choose what to do, answer only necessary questions, review and correct a
 Brief/Spec/Exam bundle, save it to the authorized repository and reopen it exactly.
 No separate local preview, synthetic success, silent merging or lost work counts.
 
-Latest checkpoint: **0270 binds verified publication to draft retention**.
+Latest checkpoint: **0271 adds managed journey ownership in the authenticated runtime**.
+The existing identity root now accepts a strict, explicitly authorized inventory
+of all 21 journey services, with pinned scopes, shared HTTP/MCP authorization and
+drain-before-close ownership. Encrypted draft create/append/read, lost-acknowledgement
+recovery and runtime reconstruction are joined through this root under synthetic
+identity/records authority. See [runtime guide](AUTHENTICATED-INTENT-RUNTIME.md)
+and [0271 evidence](../intent/0271/EVIDENCE.md). The full concrete service factory
+is not yet assembled: next connect the remaining scope, recorded drafting,
+destination, history and save constructors through this boundary and extend the
+joined package journey. No real profile or records/model/provider/write authority
+is activated; clock provenance, constrained late recovery and signed-in I1–I6 remain open.
+
+0270 binds verified publication to draft retention.
 An explicit uninstalled records action verifies the original-bound Git receipt and
 separate stable clock twice before invoking the existing lifecycle transition.
 Lost SQL acknowledgements retain the same time/deadline; status remains read-only
@@ -279,6 +291,12 @@ and cancellation checks during scope/Temporal composition and live acceptance.
 | I4 Review without loss | Show and edit all three documents, connect corrections to the source, expose conflicts/assumptions, preserve durable draft state across navigation, expiry, refresh and restart within the approved records policy. Never silently erase user work. Support retry without duplicate paid runs. | Editing/comparison/invalidation (0204–0205), encrypted originals/lifecycle/revisions (0213–0215), recorded checkpoints/roles (0217–0224), HTTP draft service (0225), editor preserve/restore (0226), recorded result preview/adoption and exact recovery (0230), owned-draft discovery and latest retained-run resumption (0231) tested; read-only draft-history UI (0251), retained scope inspection (0255), server-side historical generation inputs (0256), per-role retained SDK exchange verification (0257), combined role/source snapshots and actual-editor read-only original/current comparison over authenticated HTTP/MCP (0258), all-preserved-revision captured scope/drafting run discovery with explicit history navigation (0259); uncaptured-admission diagnostics (0264) and separate original-bound publication-retention transition (0270) developed with synthetic authority; real runtime/records activation and full live acceptance pending |
 | I5 Save and reopen | Recheck scope and duplicate-review revisions immediately before an atomic, idempotent bundle write. Concurrent new intents/changes cause re-review, not two creations. Use actual granted GitHub paths and expected-head checks; uncertain saves require status/readback. Reopen exact saved versions in the application. | Disabled planner/reader, collector, bundle store, durable dispatch, candidate-save Temporal, receipt reconciliation and encrypted immutable originals implemented (0205–0213); exact-reference read query/API/MCP and actual UI developed under synthetic authority (0252); original save-status API/MCP/UI and receipt-to-exact-reopen link (0253); final preserved-bundle review without generation or admission (0254); reproducible package preview with retained lineage and trusted destination/lifecycle evidence (0260); exact human confirmation, shared API/worker admission and immutable encrypted-original preservation/readback with same-command recovery in the actual UI (0261); explicit human reference-only save-start API/MCP/UI with fixed Temporal scheduling and original recovery (0262); exact-commit proposal discovery and explicit parent-bound selection in the actual package panel (0263). Native new/existing destination composition (0265–0268), joined new-distinct SQL/SDK/Temporal save and exact reopen (0269), and explicit verified-publication/retention connection with lost-ACK recovery (0270) are tested under synthetic authority. Governed startup, actual clock/records/lifecycle/full-corpus authority, constrained late recovery, quarantined-outcome resolution and live human acceptance remain incomplete |
 | I6 Human acceptance | In the real signed-in UI demonstrate new, exact duplicate, paraphrased duplicate, partial overlap, related-but-distinct, empty/failed/stale search, corrections, permission loss, cost exhaustion, uncertain save, concurrent creation, refresh/reopen and keyboard/narrow-screen behavior. Record real source and saved commit. | Pending |
+
+0271 advances the shared runtime dependency for I1–I5 and joins I4's encrypted
+draft recovery through authenticated identity/Git authorization. It does not close
+any row: complete concrete service construction and the signed-in acceptance
+cases are still required. The internal publication recorder remains separate from
+public tools and is not automatically invoked by status or reopen.
 
 I1's lexical retrieval is only a candidate finder, never a semantic verdict.
 Explain matches using source excerpts and citations. Semantic coverage must respect
