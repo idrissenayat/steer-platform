@@ -52,6 +52,14 @@ This is reproducibility, not authorization, a reservation or durable consent.
 - New linked work requires an absent item and the exact reviewed target/revision.
 - Extending existing work requires that exact item. A pre-pull correction keeps
   its prior bundle binding and any authority-verified existing relationship.
+  Versioned candidate Brief references stay exact: 0268 checks the current pointer,
+  full bundle and root mirror for candidate revisions and links. A stale candidate
+  with identical bytes cannot substitute, and a candidate source cannot turn into
+  an amendment. The actual chooser derives the existing item without rewriting
+  that reviewed path or offering amendment selection for it.
+  A versioned amendment Brief is not a current pre-pull candidate: select the
+  current root Brief for an amendment direction instead. No source path is
+  silently rewritten or promoted by the UI.
 - In-flight work uses an amendment, never a canonical-document overwrite. A new
   proposal ID must be supplied reproducibly by the trusted destination port;
   correcting an existing proposal requires its explicit ID, both prior digests and
@@ -93,5 +101,20 @@ rebased. Listing a proposal does not establish editability or save authority.
 
 D1 adoption, the proposed model budget, real destination/source/lifecycle/gate
 authority and the signed-in saved-repository acceptance journey remain open.
+
+## Joined integration evidence — 0268
+
+The actual corpus/catalog readers now supply native Git evidence before immutable
+encrypted scope admission in the composed SQL/SDK test. Two scope batches and both
+drafting roles feed the same history and destination factories used by package
+preview/confirmation. Six cases cover the five directions, including canonical
+and candidate links and continuation with separate original/current commits.
+Exact BOM citation bytes are retained; partial or normalized quotations do not
+silently become exact evidence. See [0268 evidence](../intent/0268/EVIDENCE.md).
+
+Synthetic identities, current-policy responses and model bodies remain explicit.
+This is not a live signed-in walkthrough or runtime provider-write result. Next
+join fixed save execution and verified reopen to this same recorded path, before
+actual governed installation and user acceptance under approved prerequisites.
 The factory is not installed by default. See [0260 evidence](../intent/0260/EVIDENCE.md)
 and [the current plan](INTENT-JOURNEY-PLAN.md).

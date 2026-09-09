@@ -10,10 +10,13 @@ import { describeScopeOriginal } from '../src/scope-original-contracts.ts';
 import { createScopeReviewOperationStore } from '../src/scope-review-operations.ts';
 import { createScopeReviewOriginalStore } from '../src/scope-review-originals.ts';
 import type { DatabasePool } from '../src/runtime-pool.ts';
+import { intentEvidenceInputSchema } from '../../tool-registry/src/intent-evidence-contracts.ts';
 
 type Dependencies=Parameters<typeof createScopeReviewOriginalStore>[2];
+export type ScopeFixtureOptions={sourceCount?:number;inventoryComplete?:boolean;accessGapCount?:number;branch?:string;
+  repositoryEvidence?:(input:ReturnType<typeof intentEvidenceInputSchema.parse>)=>Promise<ReturnType<typeof intentEvidenceInputSchema.parse>>};
 export async function scopeDraftIntegrationFixture({admin,connect}:{admin:Pool;connect(role:string):Pool},large=false,ttl=3600000,
-  options:{sourceCount?:number;inventoryComplete?:boolean;accessGapCount?:number;branch?:string}={}) {
+  options:ScopeFixtureOptions={}) {
   const f=await scopeReviewFixture(options.sourceCount??(large?40:4));
   const config={organizationId:`scope-original-${randomUUID()}`,subject:'synthetic-human',productId:f.scope.productId,repository:f.scope.repository,
     branch:options.branch??f.evidence.branch,configurationRevision:'scope-original-r1',recordsPolicyDigest:'a'.repeat(64)};
@@ -33,11 +36,14 @@ export async function scopeDraftIntegrationFixture({admin,connect}:{admin:Pool;c
   const saved=await drafts.append({draftId,mutationId:randomUUID(),expectedRevision:0,expectedDigest:null,content});
   assert.equal(saved.outcome,'acknowledged');if(saved.outcome!=='acknowledged')throw new Error('Synthetic revision missing');
   const scope={...f.scope,organizationId:config.organizationId,draftId},documents=f.evidence.documents.map((d,i)=>({...d,content:large?`# Source ${i}\n`+'x'.repeat(20000):d.content}));
-  const evidence={...f.evidence,inventoryComplete:options.inventoryComplete??f.evidence.inventoryComplete,
+  const fixtureEvidence={...f.evidence,inventoryComplete:options.inventoryComplete??f.evidence.inventoryComplete,
     accessGapCount:options.accessGapCount??f.evidence.accessGapCount,
     organizationId:config.organizationId,branch:config.branch,scopeInputDigest:(await fingerprintIntentScope(scope)).scopeInputDigest,documents,
     inventory:f.evidence.inventory.map((s,i)=>({...s,contentDigest:createHash('sha256').update(documents[i]!.content).digest('hex'),
       blobOid:createHash('sha1').update(`blob ${Buffer.byteLength(documents[i]!.content)}\0${documents[i]!.content}`).digest('hex')}))};
+  // Resolve repository bytes BEFORE immutable original hashing/admission. Never
+  // rewrite retained scope evidence to fit a later destination fixture.
+  const evidence=options.repositoryEvidence?await options.repositoryEvidence(fixtureEvidence):fixtureEvidence;
   const described=await describeScopeOriginal({kind:'steer-scope-original/v1',configuration:execution,
     source:{revision:1,revisionDigest:saved.reference.revisionDigest,scope},evidence,profile:f.profile});
   return{config,execution,pools,key,deps,draftId,drafts,lifecycle,saved,content,described};

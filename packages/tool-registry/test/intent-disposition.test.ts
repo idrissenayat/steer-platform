@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { bindIntentDisposition } from '../src/intent-overlap-contracts.ts';
+import { bindIntentDisposition, intentDispositionChoiceSchema } from '../src/intent-overlap-contracts.ts';
+import { briefProjectionInputSchema } from '../src/brief-contracts.ts';
 
 const target = { path: 'items/0201-booking/BRIEF.md', revision: 'a'.repeat(40), contentDigest: 'b'.repeat(64) };
 const review = { organizationId: 'org', repository: 'github:1', kind: 'intent-overlap-candidates', method: 'lexical-candidates/v1',
@@ -33,6 +34,11 @@ test('target must be a currently reviewed Brief and its own digest, not the matc
   }
   const empty = { ...review, candidates: [] };
   assert.throws(() => bindIntentDisposition(empty, empty, { action: 'extend-existing', reason: 'Missing scope', target }), /Choose an existing Brief/);
+  const versioned={...target,path:'items/0201-booking/candidates/57762718-d38a-4926-b96d-7a1c40fdd6f7/BRIEF.md'};
+  const choice={action:'extend-existing',reason:'Reviewed candidate scope',target:versioned};
+  assert.deepEqual(intentDispositionChoiceSchema.parse(choice),choice);
+  assert.equal(briefProjectionInputSchema.shape.path.safeParse(versioned.path).success,false);
+  assert.throws(()=>bindIntentDisposition(review,review,choice),/Choose an existing Brief/);
 });
 test('no inferred disposition, blank reason, extra authority or target on distinct choice', () => {
   for (const choice of [{ action: 'new-distinct', reason: ' ' }, { action: 'new-distinct', reason: 'x'.repeat(3001) },

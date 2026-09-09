@@ -24,8 +24,11 @@ is existing-item lifecycle/prior-pointer composition and actual policy binding.
 0266 now verifies pre-pull candidate parents and first amendment destinations and
 composes both direction ports. 0267 resolves unchanged-target existing-proposal
 continuation with separate current/original revisions and independent eligibility;
-changed targets still deny. Next compose native destination ports with the encrypted
-SQL/SDK package journey and complete actual governed bindings. See [existing-item destination](EXISTING-CANDIDATE-DESTINATION.md)
+changed targets still deny. 0268 joins native corpus/destination ports with encrypted
+SQL/SDK package history and confirmation, fixing BOM citation fidelity and exact
+versioned candidate direction/current-pointer binding. Next join fixed save
+execution and verified reopen to this same composed path, then complete actual
+governed bindings. See [0268 evidence](../intent/0268/EVIDENCE.md), [existing-item destination](EXISTING-CANDIDATE-DESTINATION.md)
 and [new-candidate destination](NEW-CANDIDATE-DESTINATION.md). Actual records adoption,
 model/provider/write authority and signed-in I1–I6 acceptance remain separate and
 unresolved; these tested, uninstalled services do not complete the live journey.

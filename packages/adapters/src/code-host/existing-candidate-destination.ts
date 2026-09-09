@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
-import { candidateSavePreviewInputSchema, candidateSaveDestinationSchema, candidateProposalContinuitySchema,
+import { candidateSavePreviewInputSchema, candidateSaveDestinationSchema, candidateProposalContinuitySchema, reviewedItemBriefTarget,
   type CandidateSavePreviewInput, type CandidateSaveDestination } from '@steer/tool-registry/candidate-save-preview-contracts';
 import { verifyCandidateSaveReview, type CandidateSaveReviewOutput } from '@steer/tool-registry/candidate-save-review-contracts';
 import { newCandidateDestinationConfigurationSchema } from './new-candidate-destination.ts';
@@ -58,7 +58,8 @@ export function createExistingCandidateSaveDestination(reader: CorpusRepositoryR
       const input = freeze(candidateSavePreviewInputSchema.parse(raw));
       if (lifetime.signal.aborted || active >= 4 || typeof current !== 'function' || !bindingValid() || !itemIds.includes(input.itemId)
         || input.choice.action !== 'extend-existing'
-        || input.choice.target.path !== `items/${input.itemId}/BRIEF.md`
+        || reviewedItemBriefTarget(input.choice.target.path)?.itemId !== input.itemId
+        || (input.proposalId!==null && reviewedItemBriefTarget(input.choice.target.path)?.bundleId!==null)
         || (['organizationId', 'productId', 'repository', 'configurationRevision'] as const).some(k => input[k] !== scope[k])) throw fail();
       const target = input.choice.target;
       active++; let finished = false, pending = 0, released = false;
@@ -160,10 +161,11 @@ export function createExistingCandidateSaveDestination(reader: CorpusRepositoryR
         } else if (first.stable.proposalContinuation !== undefined) throw fail();
         else if (lifecycle === 'candidate-not-pulled') {
           const prior = await openPrior(null);
-          if (prior.manifest.purpose === 'amendment' || hash(prior.manifest.relationship) !== hash(relationship)) throw fail();
+          if (prior.manifest.purpose === 'amendment' || hash(prior.manifest.relationship) !== hash(relationship)
+            || (reviewedItemBriefTarget(target.path)?.bundleId!==null && target.path!==prior.sources.documents.brief?.path)) throw fail();
           previousBundleDigest = prior.reference.manifestDigest;
         } else {
-          if (relationship !== null) throw fail();
+          if (relationship !== null || reviewedItemBriefTarget(target.path)?.bundleId!==null) throw fail();
           // A deterministic proposal identity is reproducible, not a reservation.
           const proposalId = proposalIdFor(hash(['steer-first-amendment-destination/v1', config, input, head]));
           const path = `${root}/proposals/${proposalId}.json`, parent = entries.get(`${root}/proposals`);

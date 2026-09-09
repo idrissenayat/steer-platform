@@ -3,7 +3,7 @@ import {randomUUID,randomBytes} from 'node:crypto';
 import {setTimeout as delay} from 'node:timers/promises';
 import type {Pool,PoolClient} from 'pg';
 import type {DatabasePool} from '@steer/data/runtime-pool';
-import {scopeOriginalIntegrationFixture} from '../../../packages/data/test/scope-originals.integration.ts';
+import {scopeOriginalIntegrationFixture,type ScopeFixtureOptions} from '../../../packages/data/test/scope-originals.integration.ts';
 import {scopeReviewFixture} from '../../../packages/tool-registry/test/intent-scope-review.fixture.ts';
 import {prepareIntentScopeReview} from '@steer/tool-registry/intent-scope-review';
 import {createVerifiedScopeReviewReader} from '../../api/src/runtime.ts';
@@ -16,8 +16,8 @@ import {testAdmissionDiscovery} from '../../api/test/intent-admission-discovery.
 import {testAssessedDevelopment} from '../../api/test/intent-assessed-development.integration.ts';
 type Dependencies=Parameters<typeof createScopeStepRuntime>[3];
 const gate=()=>{let release!:()=>void;const promise=new Promise<void>(r=>{release=r;});return{promise,release};};
-export async function scopeStepIntegrationFixture({admin,connect}:{admin:Pool;connect(role:string):Pool},sourceCount=4,ttl=3600000,large=false){
-    const f=await scopeOriginalIntegrationFixture({admin,connect},large,ttl,{sourceCount});assert.equal((await f.make().put(f.input)).outcome,'stored');
+export async function scopeStepIntegrationFixture({admin,connect}:{admin:Pool;connect(role:string):Pool},sourceCount=4,ttl=3600000,large=false,options:ScopeFixtureOptions={}){
+    const f=await scopeOriginalIntegrationFixture({admin,connect},large,ttl,{...options,sourceCount});assert.equal((await f.make().put(f.input)).outcome,'stored');
     const b=f.execution.budget,t=f.execution.scopeTerms;
     await admin.query('INSERT INTO steer_usage.scope_review_terms VALUES($1,$2,$3,$4,$5,$6,$7,true)',[b.organizationId,b.budgetId,b.subject,b.configurationRevision,t.approvalDigest,t.profileDigest,t.amountMicrousd]);
     const fixture=await scopeReviewFixture(),prepared=await prepareIntentScopeReview(f.input.original.source.scope,f.input.original.evidence,f.input.original.profile);
@@ -52,7 +52,7 @@ export async function testScopeStepRuntime({admin,connect,check:checkBase}:{admi
   const owned:Pool[]=[];
   const connection=(role:string)=>{const p=connect(role);owned.push(p);return p;};
   const check=(name:string,run:()=>Promise<void>)=>checkBase(name,async()=>{try{await run();}finally{await Promise.all(owned.splice(0).map(p=>p.end()));}});
-  const setup=(sourceCount=4,ttl=3600000,large=false)=>scopeStepIntegrationFixture({admin,connect:connection},sourceCount,ttl,large);
+  const setup=(sourceCount=4,ttl=3600000,large=false,options:ScopeFixtureOptions={})=>scopeStepIntegrationFixture({admin,connect:connection},sourceCount,ttl,large,options);
   await testScopeStart(setup,check,admin);
   await testScopeDiscovery(setup,check,admin);
   await testRunDiscovery(setup,check,admin);

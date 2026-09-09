@@ -119,7 +119,9 @@ export function validateIntentScopeAssessment(envelope: IntentEvidenceEnvelope, 
       const source = sources.get(ref.sourceId);
       if (!source || !finding.assessedSourceIds.includes(ref.sourceId) || ref.startByte >= ref.endByte || ref.endByte > source.endByte) throw new Error('Invalid citation range or source.');
       let actual: string;
-      try { actual = new TextDecoder('utf-8', { fatal: true }).decode(bytes(source.content).subarray(ref.startByte, ref.endByte)); }
+      // BOM is source content too. The default decoder silently strips it at
+      // the start of ANY slice, rejecting exact quotes and accepting omissions.
+      try { actual = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes(source.content).subarray(ref.startByte, ref.endByte)); }
       catch { throw new Error('Citation splits a UTF-8 character.'); }
       if (actual !== ref.quote) throw new Error('Citation does not match source bytes.');
       cited.add(ref.sourceId);

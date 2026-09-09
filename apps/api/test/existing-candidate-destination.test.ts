@@ -55,6 +55,50 @@ test('native Git pre-pull destination verifies pointer, manifest, all documents 
     assert.doesNotMatch(JSON.stringify(first), /documents|instructions|synthetic-current-grants/);
   } finally { port.close(); }
 });
+test('versioned reviewed candidate Brief stays bound to the CURRENT pointer for revision and linked new work',async t=>{
+  const f=await setup(t),target={...(f.review.choice as {target:{path:string;revision:string;contentDigest:string}}).target,
+    path:`${f.root}/candidates/${candidateInput.bundleId}/BRIEF.md`};
+  const selected=f.bind({choice:{action:'extend-existing',reason:'Preserve the versioned reviewed source.',target}}),port=f.make();
+  try {
+    const result=await port.resolve(selected.input,selected.review,async()=>{});
+    assert.equal(result.purpose,'candidate-revision');assert.equal(result.previousBundleDigest,f.prior.manifestDigest);
+    const preview=await describeCandidateSavePreview(selected.input,selected.review,f.f.content.documents,f.f.lineage,result,'app:synthetic');
+    assert.equal(preview.output.input.choice.action,'extend-existing');assert.deepEqual(preview.output.input.choice,selected.input.choice);
+  }finally{port.close();}
+  const linked=f.bind({choice:{action:'new-linked',reason:'Separate linked work.',target}}),input={...linked.input,itemId:'0999-new'};
+  const newAuthority:NewCandidateDestinationAuthority={authorize:async()=>{},authorizeSource:f.authority.authorizeSource,
+    verify:async context=>({...context,kind:'steer-new-candidate-destination-authority/v1',lifecycle:'absent-item',permissionsRevision:'synthetic-current-grants',
+      evidenceDigest:'e'.repeat(64),evaluatedAt:new Date().toISOString(),validThrough:new Date(Date.now()+60000).toISOString()})};
+  const router=createVerifiedCandidateSaveDestination(f.native,f.config,{newItem:newAuthority,existingItem:f.authority});
+  try {const result=await router.resolve(input,linked.review,async()=>{});assert.deepEqual(result.relationship,{itemId:f.input.itemId,revision:f.git.head()});}
+  finally{router.close();}
+  assert.equal(f.git.mutations(),0);
+});
+test('old versioned Brief cannot authorize a revision or link after a different current bundle is selected, even with identical bytes',async t=>{
+  const f=await setup(t),oldPath=`${f.root}/candidates/${candidateInput.bundleId}/BRIEF.md`;
+  const latest=await planCandidateBundle({...candidateInput,itemId:f.input.itemId,expectedHead:f.git.head(),bundleId:randomUUID(),operationId:randomUUID(),
+    purpose:'candidate-revision',previousBundleDigest:f.prior.manifestDigest});
+  f.git.add(latest.files.map(({path,content})=>({path,content})));
+  for(const action of ['extend-existing','new-linked'] as const){
+    const selected=f.bind(),target={...(selected.review.choice as {target:object}).target,path:oldPath};
+    const chosen=f.bind({choice:{action,target,reason:'Old source bytes still exist.'}}),input={...chosen.input,itemId:action==='new-linked'?'0999-new':chosen.input.itemId};
+    const router=createVerifiedCandidateSaveDestination(f.native,f.config,{existingItem:f.authority,newItem:{authorize:async()=>{},authorizeSource:async()=>{},
+      verify:async context=>({...context,kind:'steer-new-candidate-destination-authority/v1',lifecycle:'absent-item',permissionsRevision:'synthetic',evidenceDigest:'e'.repeat(64),
+        evaluatedAt:new Date().toISOString(),validThrough:new Date(Date.now()+60000).toISOString()})}});
+    try{await assert.rejects(router.resolve(input,chosen.review,async()=>{}));}finally{router.close();}
+  }
+  assert.equal(f.git.mutations(),0);
+});
+test('a versioned candidate reference cannot become an amendment through a changed lifecycle or proposal selection',async t=>{
+  const f=await setup(t),selected=f.bind({choice:{action:'extend-existing',reason:'Keep candidate direction.',
+    target:{...(f.review.choice as {target:object}).target,path:`${f.root}/candidates/${candidateInput.bundleId}/BRIEF.md`}}});
+  const port=f.make(f.native,{verify:async(...args)=>({...await f.authority.verify(...args) as object,lifecycle:'existing-target-proposal-only'})});
+  try{
+    await assert.rejects(port.resolve(selected.input,selected.review,async()=>{}));
+    await assert.rejects(port.resolve({...selected.input,proposalId:randomUUID()},selected.review,async()=>{}));
+  }finally{port.close();}
+  assert.equal(f.git.mutations(),0);
+});
 test('candidate revision preserves only the exact prior relationship approved by current policy', async t => {
   const f = await setup(t, 'candidate-not-pulled', true), port = f.make();
   try {

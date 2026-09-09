@@ -3,7 +3,7 @@ import { developmentFixture } from './intent-development.fixture.ts';
 import { fingerprintIntentScope } from '../src/intent-revision-contracts.ts';
 import { SCOPE_REVIEW_INSTRUCTIONS, SCOPE_REVIEW_PROFILE_REVISION, prepareIntentScopeReview, scopeReviewProfileSchema } from '../src/intent-scope-review.ts';
 
-export async function scopeReviewFixture(count = 4, published = false) {
+export async function scopeReviewFixture(count = 4, published = false, versionedCandidate = false) {
   const f = await developmentFixture();
   const scope = { ...f.scope, draftId: f.input.draftId, sourceRevision: 1, ...f.content,
     documents: { brief: '# Current corrected Brief\r\nPatient booking فارسی', spec: '# Current corrected Spec\nEmail only; never SMS.' } };
@@ -12,7 +12,8 @@ export async function scopeReviewFixture(count = 4, published = false) {
   const evidence = { ...f.evidence, ...(await fingerprintIntentScope(scope)),
     inventory: documents.map((d, n) => { const number = String(Math.floor(n / 2) + 1).padStart(4, '0');
       const targetId = published ? `items/${number}-existing` : `intent/${number}`;
-      return { sourceId: d.sourceId, targetId, path: `${targetId}/${n % 2 ? 'SPEC' : 'BRIEF'}.md`, status: 'canonical' as const,
+      const versioned=published&&versionedCandidate&&n<2;
+      return { sourceId: d.sourceId, targetId, path: `${targetId}${versioned?'/candidates/57762718-d38a-4926-b96d-7a1c40fdd6f7':''}/${n % 2 ? 'SPEC' : 'BRIEF'}.md`, status: versioned?'candidate' as const:'canonical' as const,
         contentDigest: createHash('sha256').update(d.content).digest('hex'), blobOid: createHash('sha1').update(`blob ${Buffer.byteLength(d.content)}\0${d.content}`).digest('hex') };
     }), documents };
   // Fingerprint result's per-document digests are not evidence input fields.

@@ -7,6 +7,9 @@ import { createRecordedCandidateSaveReviewer, createRecordedCandidateSavePreview
 import { createApi } from '../src/app.ts';
 import { verifyCandidateSavePreview } from '@steer/tool-registry/candidate-save-preview-contracts';
 import { testCandidateConfirmationWithHistory } from './candidate-save-prepare.integration.ts';
+import type { nativeCandidateJourneyFixture } from './native-candidate-journey.fixture.ts';
+import type { CandidateSaveReviewInput } from '@steer/tool-registry/candidate-save-review-contracts';
+import { candidateSavePreviewInputSchema, type CandidateSavePreviewInput } from '@steer/tool-registry/candidate-save-preview-contracts';
 
 type Fixture = Awaited<ReturnType<typeof scopeStepIntegrationFixture>>;
 /** Composed inside the actual SQL + 34-source SDK journey. All authorities and
@@ -14,8 +17,9 @@ type Fixture = Awaited<ReturnType<typeof scopeStepIntegrationFixture>>;
 export async function testCandidateSavePreviewWithHistory(f: Fixture,
   reference: { operationId: string; inputDigest: string },
   deps: Parameters<typeof createVerifiedDevelopmentHistoryReader>[2],
-  scopeReader: NonNullable<Parameters<typeof createRecordedCandidateSaveReviewer>[1]['scopeReview']>, admin: Pool) {
-  let allowed = true, moving = false, reads = 0, generationAllowed = true;
+  scopeReader: NonNullable<Parameters<typeof createRecordedCandidateSaveReviewer>[1]['scopeReview']>, admin: Pool,
+  native: ReturnType<typeof nativeCandidateJourneyFixture>) {
+  let allowed = true, changing = false, reads = 0, generationAllowed = true;
   const drafts = createIntentDraftService(f.pools.drafts, f.config, { lifecycle: { authorize: async () => {} },
     revisions: { authorize: f.deps.records.originals.authorizeDraft, keyForDraft: f.deps.records.originals.keyForDraft } });
   const sources = createIntentDevelopmentReviewer(f.config, { drafts, evidenceFor: async () => f.described.original.evidence, authorizeReview: async () => {} });
@@ -24,9 +28,11 @@ export async function testCandidateSavePreviewWithHistory(f: Fixture,
     if (!generationAllowed) throw new Error('PRIVATE historical result denial');
   } } };
   const history = createVerifiedDevelopmentHistoryReader(f.pools, f.config, { ...deps, records });
-  const destination = { scope: review.scope, resolve: async () => ({ organizationId: f.config.organizationId, productId: f.config.productId,
-    repository: f.config.repository, branch: f.config.branch, itemId: '0260-booking', expectedHead: moving && ++reads === 2 ? 'f'.repeat(40) : f.described.original.evidence.head,
-    purpose: 'new-candidate', previousBundleDigest: null, amendment: null, relationship: null, lifecycle: 'absent-item', authorityDigest: 'a'.repeat(64) }) };
+  const resolved = native.destination(f.config);
+  const destination = { scope: resolved.scope, resolve: async (...args: Parameters<typeof resolved.resolve>) => {
+    if(changing&&++reads===2)native.state.policyRevision='synthetic-policy-r2';
+    return resolved.resolve(...args);
+  } };
   const service = createRecordedCandidateSavePreviewer(f.pools, { ...f.config, serviceCommitter: 'app:synthetic' },
     { drafts, review, history, originals: records.originals, destination, authorizePreview: async () => { if (!allowed) throw new Error('PRIVATE preview denial'); } });
   try {
@@ -41,7 +47,7 @@ export async function testCandidateSavePreviewWithHistory(f: Fixture,
     const principal = { organizationId: f.config.organizationId, subject: f.config.subject, type: 'human', hats: [],
       toolGrants: ['intent.candidate.save.preview'], expiresAt: new Date(Date.now() + 300000).toISOString() };
     const app = createApi({ authenticate: async () => principal, services: { candidateSavePreviewer: service } });
-    const post = () => app.request('/v1/tools/intent.candidate.save.preview', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input) });
+    const post = (selected:CandidateSavePreviewInput=input) => app.request('/v1/tools/intent.candidate.save.preview', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(selected) });
     const snapshot = async () => (await admin.query(`SELECT
       (SELECT count(*) FROM steer_execution.intent_operations WHERE organization_id=$1) AS operations,
       (SELECT count(*) FROM steer_execution.intent_steps WHERE organization_id=$1) AS steps,
@@ -56,13 +62,50 @@ export async function testCandidateSavePreviewWithHistory(f: Fixture,
     assert.equal(output.manifest.specConformance.state, 'stale'); assert.equal(output.manifest.examReview.state, 'stale');
     assert.deepEqual(await (await post()).json(), output);
     assert.doesNotMatch(JSON.stringify(output), /EXAM-MARKER-NOT-FOR-SCOPE|# Assessed Brief|scopeEvidence|instructions|requestBody|responseBody/);
-    moving = true; assert.equal((await post()).status, 503); moving = false;
+    assert.equal(output.destination.expectedHead,native.git.head());
+    for(const variant of ['linked','linked-candidate','revision','first-amendment','continuation'] as const){
+      const linked=variant==='linked'||variant==='linked-candidate';
+      const item=variant==='revision'||variant==='linked-candidate'?'0002-existing':variant==='continuation'?'0001-existing':'0003-existing';
+      const target=f.described.original.evidence.inventory.find(s=>s.targetId===`items/${item}`&&s.path.endsWith('/BRIEF.md')&&s.status!=='amendment')!;
+      const choice:CandidateSaveReviewInput['choice']={action:linked?'new-linked':'extend-existing',reason:'Explicit synthetic disposition of assessed scope.',
+        target:{path:target.path,revision:native.git.head(),contentDigest:target.contentDigest}};
+      const variantInput={...reviewInput,choice},variantReview=await review.review(variantInput,async()=>{});
+      const request=candidateSavePreviewInputSchema.parse({...input,...variantInput,reviewDigest:variantReview.reviewDigest,
+        itemId:linked?input.itemId:item,proposalId:variant==='continuation'?native.proposalId:null});
+      const response=await post(request);assert.equal(response.status,200,`${variant}: ${await response.clone().text()}`);
+      const result=await verifyCandidateSavePreview(request,await response.json(),f.content.documents);
+      assert.deepEqual(result.generation,output.generation);assert.equal(result.saveConfirmed,false);assert.equal(result.savedToGit,false);
+      if(linked)assert.deepEqual(result.destination.relationship,{itemId:item,revision:native.git.head()});
+      else if(variant==='revision'){assert.equal(result.destination.purpose,'candidate-revision');assert.equal(result.destination.previousBundleDigest,native.parents().priorManifest);}
+      else {
+        assert.equal(result.destination.purpose,'amendment');assert.equal(result.destination.amendment!.target.revision,
+          variant==='continuation'?native.parents().originalTarget:native.git.head());
+        if(variant==='continuation'){
+          assert.equal(result.destination.previousBundleDigest,native.parents().proposalManifest);
+          assert.equal(result.destination.amendment!.parentProposalDigest,native.parents().pointerDigest);
+          assert.notEqual(result.destination.amendment!.target.revision,result.review.expectedHead);
+          native.state.continuationAllowed=false;assert.equal((await post(request)).status,503);native.state.continuationAllowed=true;
+        }
+      }
+      native.state.sourceAllowed=false;assert.equal((await post(request)).status,503);native.state.sourceAllowed=true;
+    }
+    changing = true; assert.equal((await post()).status, 503); changing = false;native.state.policyRevision='synthetic-policy-r1';
+    native.state.allowed=false;assert.equal((await post()).status,503);native.state.allowed=true;
     generationAllowed = false; const denied = await post(); assert.equal(denied.status, 503); assert.doesNotMatch(await denied.text(), /PRIVATE|manifestDigest/);
     generationAllowed = true; allowed = false; assert.equal((await post()).status, 503); allowed = true;
     principal.toolGrants = []; assert.equal((await post()).status, 403);
     assert.equal(await f.reservations(), reservations);
     assert.deepEqual(await snapshot(), before);
-    console.log('PASS composed candidate preview: exact preserved bytes, both retained SDK roles, reproducibility and late destination/result/grant denial; no admission or model calls');
+    console.log('PASS composed native-Git candidate preview: six cases across five directions, exact corpus/draft/SDK lineage, original proposal target, current policy/source/result/grant denial; no admission or model calls');
     await testCandidateConfirmationWithHistory(f, drafts, service, output, admin);
-  } finally { service.close(); history.close(); review.close(); sources.close(); drafts.close(); }
+    principal.toolGrants=['intent.candidate.save.preview'];
+    // The expanded matrix can outlive the original synthetic session. Establish
+    // a fresh test identity for this independent race; do not relax API expiry.
+    principal.expiresAt=new Date(Date.now()+300000).toISOString();
+    const confirmed=await snapshot();native.state.moveAtProof=native.state.proofs+2;
+    assert.equal((await post()).status,503);assert.notEqual(native.git.head(),output.review.expectedHead);
+    assert.deepEqual(await snapshot(),confirmed);assert.equal(await f.reservations(),reservations);
+    assert.equal(native.git.mutations(),0);assert.equal(native.git.approvals(),0);
+    assert.ok(native.git.calls.every(c=>c.method==='GET'||c.path==='/app/installations/1/access_tokens'));
+  } finally { service.close(); resolved.close(); history.close(); review.close(); sources.close(); drafts.close(); }
 }

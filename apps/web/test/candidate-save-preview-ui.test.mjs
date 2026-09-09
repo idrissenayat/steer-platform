@@ -12,9 +12,17 @@ import { describeCandidateSaveReview } from '@steer/tool-registry/candidate-save
 import { describeCandidateSavePreview } from '@steer/tool-registry/candidate-save-preview-contracts';
 
 async function fixture(existing = false) {
-  let f = await candidateSavePreviewFixture(existing ? 2 : 0, existing);
+  let f = await candidateSavePreviewFixture(existing ? 2 : 0, !!existing, existing==='candidate');
   const require = createRequire(import.meta.url);
-  if (existing) {
+  if (existing==='candidate') {
+    const brief=f.evidence.inventory[0],itemId=brief.targetId.slice('items/'.length);
+    const choice={action:'extend-existing',target:{path:brief.path,revision:f.output.expectedHead,contentDigest:brief.contentDigest},reason:'Revise this exact candidate.'};
+    const output=await describeCandidateSaveReview({...f.input,choice},f.scope.subject,f.scope.branch,f.content.documents,f.evidence,f.binding);
+    const previewInput={...f.previewInput,choice,itemId,reviewDigest:output.reviewDigest};
+    const destination={...f.destination,itemId,purpose:'candidate-revision',lifecycle:'candidate-not-pulled',previousBundleDigest:'1'.repeat(64)};
+    f={...f,output,previewInput,destination,prepared:await describeCandidateSavePreview(previewInput,output,f.content.documents,f.lineage,destination,'app:synthetic')};
+  }
+  if (existing===true) {
     const brief = f.evidence.inventory[0], itemId = brief.targetId.slice('items/'.length);
     const choice = { action: 'extend-existing', target: { path: brief.path, revision: f.output.expectedHead, contentDigest: brief.contentDigest }, reason: 'Revise the existing proposal explicitly.' };
     const output = await describeCandidateSaveReview({ ...f.input, choice }, f.scope.subject, f.scope.branch, f.content.documents, f.evidence, f.binding);
@@ -42,7 +50,7 @@ async function fixture(existing = false) {
     scope: 'current-owner-records-configuration-all-preserved-revisions', order: 'revision-type-id-descending-not-chronological',
     contentLoaded: false, executionAuthorized: false, savedToGit: false, gateSigned: false };
   const state = { calls: [], commands: [], starts: [], output: f.prepared.output, page, denied: false, wait: null, confirmation: 'prepared', start: 'acknowledged' };
-  if (existing) {
+  if (existing===true) {
     const home = { organizationId: f.scope.organizationId, productId: f.scope.productId, repository: f.scope.repository, branch: f.scope.branch, itemId: f.previewInput.itemId, revision: f.output.expectedHead };
     const entry = { proposalId: f.previewInput.proposalId, reference: { ...home, bundleId: randomUUID(), manifestDigest: f.destination.previousBundleDigest },
       pointerDigest: f.destination.amendment.parentProposalDigest, target: f.destination.amendment.target };
@@ -114,6 +122,18 @@ test('actual package component selects a retained run and previews exact documen
     const audit = await require('axe-core').run(document.getElementById('root'), { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] }, rules: { 'color-contrast': { enabled: false } } });
     assert.deepEqual(audit.violations.map(v => v.id), []);
   } finally { await t.cleanup(); }
+});
+test('actual package component preserves the versioned reviewed candidate and does not offer amendment selection',async()=>{
+  const t=await fixture('candidate');
+  try {
+    assert.match(document.body.textContent,/Versioned Brief selected/);
+    assert.match(document.body.textContent,/only if the server verifies the current pre-pull/);
+    assert.equal(document.querySelector('input[type="checkbox"]'),null);
+    assert.equal(document.querySelector('#candidate-item-name'),null);
+    await t.choose();await t.click('Preview exact package');await t.until(()=>document.body.textContent.includes('Exact package preview — not saved'));
+    assert.match(t.f.previewInput.choice.target.path,/\/candidates\//);
+    assert.equal(t.state.commands.length,0);assert.equal(t.state.starts.length,0);
+  }finally{await t.cleanup();}
 });
 test('actual package UI confirms explicitly, recovers an identical lost command, retains its original status link, and never starts a save', async () => {
   const t = await fixture();

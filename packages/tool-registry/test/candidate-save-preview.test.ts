@@ -2,9 +2,17 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { randomUUID } from 'node:crypto';
 import { candidateSavePreviewFixture } from './candidate-save-preview.fixture.ts';
-import { describeCandidateSavePreview, verifyCandidateSavePreview } from '../src/candidate-save-preview-contracts.ts';
+import { describeCandidateSavePreview, verifyCandidateSavePreview, reviewedItemBriefTarget } from '../src/candidate-save-preview-contracts.ts';
 import { describeCandidateSaveDocuments, describeCandidateSaveReview } from '../src/candidate-save-review-contracts.ts';
 import { planCandidateBundle } from '../src/candidate-bundle-contracts.ts';
+
+test('reviewed item references preserve canonical versus exact candidate identity and reject path aliases',()=>{
+  const id=randomUUID(),root='items/0002-existing',path=`${root}/candidates/${id}/BRIEF.md`;
+  assert.deepEqual(reviewedItemBriefTarget(`${root}/BRIEF.md`),{itemId:'0002-existing',bundleId:null});
+  assert.deepEqual(reviewedItemBriefTarget(path),{itemId:'0002-existing',bundleId:id});
+  for(const value of [path+'\n',path+'/extra',path.replace('BRIEF','SPEC'),path.replace(id,id.toUpperCase()),path.replace(id,'-'.repeat(36)),
+    `${root}/../0003-other/BRIEF.md`,'intent/0002/BRIEF.md',path.replace('/candidates/','/proposals/')])assert.equal(reviewedItemBriefTarget(value),null);
+});
 
 test('package preview is reproducible across reconstruction and hands exact manifest/consent bytes to existing admission without an operation ID', async () => {
   const f = await candidateSavePreviewFixture(), p = f.prepared;

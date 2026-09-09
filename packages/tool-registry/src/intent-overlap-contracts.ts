@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { briefCatalogInputSchema, artifactProjectionInputSchema, briefProjectionInputSchema } from './brief-contracts.ts';
+import { reviewedCandidateBriefPathSchema } from './reviewed-brief-target.ts';
 
 export const intentOverlapInputSchema = briefCatalogInputSchema.extend({
   intent: z.string().min(1).max(13050).refine(value => value.trim().length > 0),
@@ -29,7 +30,9 @@ export const intentOverlapOutputSchema = briefCatalogInputSchema.extend({
 export type IntentOverlapInput = z.infer<typeof intentOverlapInputSchema>;
 export type IntentOverlapOutput = z.infer<typeof intentOverlapOutputSchema>;
 
-const dispositionTarget = z.strictObject({ path: briefProjectionInputSchema.shape.path,
+// Only direction references expand. Projection/writer paths remain unchanged;
+// both lexical and assessed flows must still match freshly reviewed evidence.
+const dispositionTarget = z.strictObject({ path: z.union([briefProjectionInputSchema.shape.path,reviewedCandidateBriefPathSchema]),
   revision: artifactProjectionInputSchema.shape.revision, contentDigest: digest });
 const reason = z.string().min(1).max(3000).refine(value => value.trim().length > 0);
 export const intentDispositionChoiceSchema = z.discriminatedUnion('action', [

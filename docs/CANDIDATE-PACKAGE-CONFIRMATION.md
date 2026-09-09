@@ -9,8 +9,9 @@ separate application. Preview remains read-only; confirmation is a separate comm
 After reviewing the exact package, choose **Confirm this exact package**. STEER
 rechecks the package and attempts to preserve its exact original. A verified
 acknowledgement says **Original preserved**, explicitly **not saved to GitHub**.
-No workflow or provider write starts from this action. Save-start composition is
-still the next implementation step; the current runtime factory is uninstalled.
+No workflow or provider write starts from this action. Reference-only save-start
+composition is separate in [0262](CANDIDATE-SAVE-START.md); the runtime factories
+remain uninstalled.
 
 If the acknowledgement is uncertain, the panel keeps the exact command and any
 known original-operation status link. **Recover this exact confirmation** repeats
@@ -22,7 +23,8 @@ An explicit pre-admission conflict returns the person to package review.
 Context/identity changes, hiding the page and session/records expiry clear private
 display state and abort the browser request. Aborting is not rollback. The server
 original, if admitted, remains governed by its records policy. All-revision
-diagnostics for admitted-but-uncaptured operations remain separate unfinished work;
+diagnostics for configured scope/development admissions are separate in
+[0264](PREPARATION-DIAGNOSTICS.md); coverage does not include every save preparation,
 refresh cannot be presented as proof that no operation exists.
 
 ## Server sequence and authority
@@ -87,10 +89,17 @@ authority at actual dispatch. Preserving an original does not authorize dispatch
 ## Remaining acceptance
 
 D1 adoption, an approved model-test budget, real destination/source/lifecycle/
-human-consent/provider authority, existing-proposal
-selection, missing-original diagnostics and signed-in I1–I6 acceptance remain open.
+human-consent/provider authority and signed-in I1–I6 acceptance remain open.
+Existing-proposal selection and configured preparation diagnostics are implemented
+separately; they do not grant confirmation, continuation or retry authority.
 Reference-only save start is now implemented separately in
 [0262](CANDIDATE-SAVE-START.md); confirmation alone still never schedules it.
 Production React, SQL and recorded-SDK fixtures demonstrate software behavior,
 not live human acceptance or authority. See [0261 evidence](../intent/0261/EVIDENCE.md)
 and [the current plan](INTENT-JOURNEY-PLAN.md).
+
+0268 composes native Git corpus/destination resolution with the encrypted SQL and
+recorded SDK history behind this confirmation command. Lost admission/original
+acknowledgements recover one exact original and match worker admission identity;
+the test never dispatches Git. See [0268 evidence](../intent/0268/EVIDENCE.md).
+Next connect fixed save execution and verified reopen to this same joined path.

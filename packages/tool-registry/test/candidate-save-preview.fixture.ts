@@ -2,8 +2,8 @@ import { randomUUID } from 'node:crypto';
 import { candidateSaveReviewFixture } from './candidate-save-review.fixture.ts';
 import { describeCandidateSaveDocuments } from '../src/candidate-save-review-contracts.ts';
 import { describeCandidateSavePreview } from '../src/candidate-save-preview-contracts.ts';
-export async function candidateSavePreviewFixture(count = 0, published = false) {
-  const f = await candidateSaveReviewFixture(count, published);
+export async function candidateSavePreviewFixture(count = 0, published = false, versionedCandidate = false) {
+  const f = await candidateSaveReviewFixture(count, published, versionedCandidate);
   const generation = { operationId: randomUUID(), inputDigest: 'c'.repeat(64) };
   const role = { configurationRevision: 'profile-r1', resultRef: randomUUID(), resultDigest: 'd'.repeat(64), outputDigest: 'e'.repeat(64) };
   const lineage = { ...generation, source: { draftId: f.input.draftId, revision: 1, revisionDigest: f.input.revisionDigest,

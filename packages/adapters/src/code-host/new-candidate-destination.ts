@@ -1,11 +1,12 @@
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
-import { candidateSavePreviewInputSchema, candidateSaveDestinationSchema,
+import { candidateSavePreviewInputSchema, candidateSaveDestinationSchema, reviewedItemBriefTarget,
   type CandidateSavePreviewInput, type CandidateSaveDestination } from '@steer/tool-registry/candidate-save-preview-contracts';
 import { verifyCandidateSaveReview, type CandidateSaveReviewOutput } from '@steer/tool-registry/candidate-save-review-contracts';
 import { candidateProposalScopeSchema } from '@steer/tool-registry/candidate-proposal-contracts';
 import { verifyScopeInventory } from './scope-inventory.ts';
 import type { ArtifactSnapshot, CorpusRepositoryReader } from './github.ts';
+import { createCandidateBundleReader } from './candidate-bundle-reader.ts';
 
 const destination = candidateSaveDestinationSchema.shape;
 export const newCandidateDestinationConfigurationSchema = candidateProposalScopeSchema.extend({ configurationRevision: z.string().min(1).max(200) });
@@ -26,7 +27,8 @@ export interface NewCandidateDestinationAuthority {
   authorize(input: Readonly<CandidateSavePreviewInput>): Promise<void>;
   authorizeSource(reference: Readonly<{ organizationId: string; subject: string; productId: string; repository: string; branch: string; revision: string; path: string }>): Promise<void>;
   /** Must independently verify current lifecycle/admissibility, inventory scope,
-   * current grants and any exact related target under governed evidence. No
+   * current grants and any exact related target under governed evidence, including
+   * whether a versioned target is the current pre-pull candidate. No
    * browser assertions or constant test-like fallback may implement this port.
    * This is preview authority, NOT consent, write authorization or a gate. */
   verify(context: Readonly<Context>, input: Readonly<CandidateSavePreviewInput>, review: Readonly<CandidateSaveReviewOutput>): Promise<unknown>;
@@ -70,6 +72,7 @@ export function createNewCandidateSaveDestination(reader: CorpusRepositoryReader
       const check = async () => {
         if (await bounded(current) !== undefined || await bounded(() => authority.authorize(input)) !== undefined || await bounded(current) !== undefined) throw fail(); guard();
       };
+      let priorReader:ReturnType<typeof createCandidateBundleReader>|undefined;
       try {
         await check(); const { reviewDigest, generation: _generation, itemId, proposalId: _proposal, ...reviewInput } = input;
         const review = await bounded(() => verifyCandidateSaveReview(reviewInput, rawReview));
@@ -84,21 +87,31 @@ export function createNewCandidateSaveDestination(reader: CorpusRepositoryReader
         const observed: Array<{ path: string; blobSha: string; contentDigest: string }> = [];
         const sources: Array<Parameters<NewCandidateDestinationAuthority['authorizeSource']>[0]> = [];
         if (input.choice.action === 'new-linked') {
-          const target = input.choice.target, targetId = /^items\/([0-9]{4}-[a-z0-9]+(?:-[a-z0-9]+)*)\/BRIEF\.md$/.exec(target.path)?.[1];
+          const target = input.choice.target, selectedTarget=reviewedItemBriefTarget(target.path), targetId=selectedTarget?.itemId;
           if (!targetId || targetId === itemId || !itemIds.includes(targetId) || target.revision !== head) throw fail();
-          const entry = entries.get(target.path); if (entry?.type !== 'blob' || entry.mode !== '100644') throw fail();
-          const reference = freeze({ organizationId: scope.organizationId, subject: scope.subject, productId: scope.productId,
-            repository: scope.repository, branch: scope.branch, revision: head, path: target.path });
-          if (await bounded(() => authority.authorizeSource(reference)) !== undefined) throw fail(); await check();
-          const file: ArtifactSnapshot = sourceSchema.parse(await bounded(() => reader.readArtifact(target.path, head)));
-          const bytes = Buffer.from(file.content, 'utf8');
-          if (file.organizationId !== scope.organizationId || file.repositoryId !== binding.repositoryId || file.revision !== head || file.path !== target.path
-            || bytes.length > 131072 || !file.content.trim() || file.blobSha !== entry.objectSha
-            || createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex') !== file.blobSha
-            || createHash('sha256').update(bytes).digest('hex') !== file.contentDigest || file.contentDigest !== target.contentDigest) throw fail();
-          if (await bounded(() => authority.authorizeSource(reference)) !== undefined) throw fail(); await check();
-          relationship = { itemId: targetId, revision: head }; sources.push(reference);
-          observed.push({ path: file.path, blobSha: file.blobSha, contentDigest: file.contentDigest });
+          const read=async(path:string,revision:string):Promise<ArtifactSnapshot>=>{
+            const entry=entries.get(path);
+            if(revision!==head||!path.startsWith(`items/${targetId}/`)||entry?.type!=='blob'||entry.mode!=='100644')throw fail();
+            const reference=freeze({organizationId:scope.organizationId,subject:scope.subject,productId:scope.productId,
+              repository:scope.repository,branch:scope.branch,revision:head,path});
+            if(await bounded(()=>authority.authorizeSource(reference))!==undefined)throw fail();await check();
+            const file=sourceSchema.parse(await bounded(()=>reader.readArtifact(path,head))),bytes=Buffer.from(file.content,'utf8');
+            if(file.organizationId!==scope.organizationId||file.repositoryId!==binding.repositoryId||file.revision!==head||file.path!==path
+              ||bytes.length>131072||!file.content.trim()||file.blobSha!==entry.objectSha
+              ||createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex')!==file.blobSha
+              ||createHash('sha256').update(bytes).digest('hex')!==file.contentDigest)throw fail();
+            if(await bounded(()=>authority.authorizeSource(reference))!==undefined)throw fail();await check();
+            sources.push(reference);observed.push({path:file.path,blobSha:file.blobSha,contentDigest:file.contentDigest});return file;
+          };
+          const file=await read(target.path,head);if(file.contentDigest!==target.contentDigest)throw fail();
+          if(selectedTarget!.bundleId){
+            priorReader=createCandidateBundleReader({binding,readHead:()=>reader.readHead(),readArtifact:read},
+              {organizationId:scope.organizationId,productId:scope.productId,repository:scope.repository,branch:scope.branch,itemIds},check);
+            const prior=await bounded(()=>priorReader!.readPointer({organizationId:scope.organizationId,productId:scope.productId,
+              repository:scope.repository,branch:scope.branch,itemId:targetId,revision:head,proposalId:null}));
+            if(prior.manifest.purpose==='amendment'||prior.sources.documents.brief?.path!==target.path)throw fail();
+          }
+          relationship = { itemId: targetId, revision: head };
         }
         const context = freeze(contextSchema.parse({ ...scope, itemId, expectedHead: head, treeSha: inventory.treeSha, requestDigest: hash(input), reviewDigest, relationship }));
         const verify = async () => {
@@ -123,7 +136,7 @@ export function createNewCandidateSaveDestination(reader: CorpusRepositoryReader
           branch: scope.branch, itemId, expectedHead: head, purpose: 'new-candidate', previousBundleDigest: null, amendment: null,
           relationship, lifecycle: 'absent-item', authorityDigest: hash(['steer-new-candidate-destination/v1', config, first.stable, observed]) }));
       } catch { throw fail(); }
-      finally { finished = true; release(); }
+      finally { priorReader?.close(); finished = true; release(); }
     },
     close() { lifetime.abort(); },
   };

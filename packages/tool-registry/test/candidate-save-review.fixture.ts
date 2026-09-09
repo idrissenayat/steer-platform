@@ -5,8 +5,8 @@ import { buildIntentDevelopmentContext } from '../src/intent-development-context
 import { intentScopeReadOutputSchema } from '../src/intent-scope-read-contracts.ts';
 import { describeCandidateSaveReview } from '../src/candidate-save-review-contracts.ts';
 
-export async function candidateSaveReviewFixture(count = 4, published = false) {
-  const f = await scopeReviewFixture(count, published), { organizationId, productId, repository, draftId, originalText, clarificationTurns } = f.scope;
+export async function candidateSaveReviewFixture(count = 4, published = false, versionedCandidate = false) {
+  const f = await scopeReviewFixture(count, published, versionedCandidate), { organizationId, productId, repository, draftId, originalText, clarificationTurns } = f.scope;
   const scope = { organizationId, subject: 'human', productId, repository, branch: f.evidence.branch, configurationRevision: 'config-r1' };
   const sourceInput = { organizationId, productId, repository, draftId, revision: 1, revisionDigest: 'a'.repeat(64), scopeInputDigest: f.evidence.scopeInputDigest };
   const content = { originalText, clarificationTurns, documents: { ...f.scope.documents, exam: '# Human-edited Exam فارسی\r\nNOT RUN\n' } };

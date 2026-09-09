@@ -3,6 +3,8 @@ import { candidateSaveReviewInputSchema, candidateSaveReviewOutputSchema, verify
 import { candidateBundleInputSchema, candidateBundleManifestSchema, planCandidateBundle } from './candidate-bundle-contracts.ts';
 import { intentSaveBindingSchema } from './intent-revision-contracts.ts';
 import { intentDevelopmentHistoryInputSchema, intentDevelopmentHistoryOutputSchema } from './intent-development-history-contracts.ts';
+import { reviewedItemBriefTarget } from './reviewed-brief-target.ts';
+export { reviewedItemBriefTarget } from './reviewed-brief-target.ts';
 
 const digest = z.string().regex(/^[a-f0-9]{64}(?![\s\S])/);
 const bundle = candidateBundleInputSchema.shape;
@@ -81,10 +83,12 @@ export async function describeCandidateSavePreview(raw: unknown, rawReview: unkn
       || destination.purpose !== 'amendment' || !destination.amendment.parentProposalDigest || !destination.previousBundleDigest))
     || (proposalId === null && (destination.amendment?.parentProposalDigest || destination.proposalContinuity))) throw fail();
   const choice = input.choice;
-  const target = 'target' in choice ? /^items\/([0-9]{4}-[a-z0-9]+(?:-[a-z0-9]+)*)\/BRIEF\.md$/.exec(choice.target.path)?.[1] : undefined;
+  const targetReference = 'target' in choice ? reviewedItemBriefTarget(choice.target.path) : null;
+  const target = targetReference?.itemId;
   if ('target' in choice && !target) throw fail(); // Never invent a legacy-to-items mapping.
   if (choice.action === 'extend-existing') {
     if (itemId !== target || destination.purpose === 'new-candidate') throw fail();
+    if(targetReference?.bundleId && (destination.purpose!=='candidate-revision'||proposalId!==null))throw fail();
     if (proposalId !== null) {
       const continuity = destination.proposalContinuity;
       if (!continuity || continuity.proposalId !== proposalId || continuity.targetRevision !== destination.amendment?.target.revision

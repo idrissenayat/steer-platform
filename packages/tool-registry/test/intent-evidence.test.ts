@@ -24,7 +24,7 @@ const output = (envelope: Awaited<ReturnType<typeof buildIntentEvidenceEnvelope>
   findings: envelope.evidence.map(ref => ({ targetId: ref.targetId, assessedSourceIds: [ref.sourceId],
     relation: 'related-distinct', overlapExplanation: 'Synthetic assessment fixture; not a model evaluation.',
     missingScopeExplanation: 'Synthetic explanation.',
-    citations: [{ sourceId: ref.sourceId, startByte: ref.startByte, endByte: ref.endByte, quote: ref.content }],
+    citations: [{ sourceId: ref.sourceId, startByte: Number(ref.startByte), endByte: ref.endByte, quote: ref.content }],
   })),
 });
 
@@ -57,6 +57,19 @@ test('hash and Git blob validation rejects substituted content before returning 
   }
   const fixture = input(); fixture.documents[0]!.content += '\n';
   await assert.rejects(buildIntentEvidenceEnvelope(fixture), /pinned reference/);
+});
+
+test('exact source citations preserve a BOM at the start of a document or an interior slice',async()=>{
+  for(const prefix of ['', 'Header\r\n']){
+    const content=`${prefix}\ufeff# فارسی café ☕\r\n`,envelope=await buildIntentEvidenceEnvelope(input([content]));
+    const result=output(envelope),citation=result.findings[0]!.citations[0]!;
+    citation.startByte=Buffer.byteLength(prefix);citation.quote=content.slice(prefix.length);
+    assert.equal(validateIntentScopeAssessment(envelope,result,'review-r1').state,'assessed-declared-scope');
+    citation.quote=citation.quote.slice(1);
+    assert.throws(()=>validateIntentScopeAssessment(envelope,result,'review-r1'),/does not match/);
+    citation.startByte+=3;assert.equal(validateIntentScopeAssessment(envelope,result,'review-r1').state,'assessed-declared-scope');
+    citation.startByte-=1;assert.throws(()=>validateIntentScopeAssessment(envelope,result,'review-r1'),/splits a UTF-8/);
+  }
 });
 
 test('bounded batches never truncate context or silently classify missing sources as assessed', async () => {

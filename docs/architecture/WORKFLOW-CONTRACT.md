@@ -1256,3 +1256,24 @@ confirmation after parent substitution or missing/changed evidence. It cannot
 silently rebase, clear selection or create another proposal. Changed-target rebasing
 remains unsupported. See [guide](../EXISTING-CANDIDATE-DESTINATION.md),
 [0267 specification](../../intent/0267/SPEC.md) and [evidence](../../intent/0267/EVIDENCE.md).
+
+### Exact versioned scope through the recorded package journey — 0268
+
+Native Git corpus evidence is resolved before scope-original hashing/admission;
+retained originals are never rewritten to align with a later destination. The
+composed synthetic integration joins two scope batches and both drafting SDK roles
+to encrypted history, current final review, native destination resolution and
+explicit confirmation. No runtime provider write or live authority is inferred.
+
+Reviewed candidate Brief paths stay versioned through direction and package identity.
+Revision/linking requires the current candidate pointer, full bundle, root mirror
+and independent policy. Old identical candidate bytes cannot pass; a versioned
+candidate cannot become a first amendment or selected-proposal continuation.
+Projection and single-document write path schemas remain unchanged. The actual
+package chooser derives the existing item and omits amendment selection for this case.
+
+Exact source quotation preserves UTF-8 BOM bytes at document or slice start. A
+missing BOM is not byte equality; changing the range to begin after those bytes
+is permitted only as an explicit valid range. Character splits and normalization
+still fail. No retained record is rewritten to satisfy the corrected validator.
+See [0268 specification](../../intent/0268/SPEC.md) and [evidence](../../intent/0268/EVIDENCE.md).

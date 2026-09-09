@@ -27,11 +27,15 @@ new item and any linked item, but does not grant inventory access or ownership.
    item root must be absent, including all descendants. Invalid topology, duplicate
    paths, wrong repository/commit, truncation or inaccessible inventory are errors,
    not evidence of absence.
-3. For linked work, require the allowed, different `items/.../BRIEF.md` target at
+3. For linked work, require the allowed, different root or versioned candidate Brief at
    that same reviewed head. Verify its regular Git mode, exact UTF-8 content digest,
    blob OID, path and repository identity. Reauthorize the source around I/O and
    before release. Executable files, symlinks, stale revisions, foreign targets
    and substituted bytes cannot create a relationship.
+   For a versioned candidate reference, verify the current `CANDIDATE.json`, full
+   bundle and root Brief mirror; the reviewed path must be that bundle's Brief.
+   Old identical bytes and amendment bundles cannot substitute for the current
+   candidate. Current policy must independently establish target applicability.
 4. Independently verify governed new-item admissibility/lifecycle evidence through
    a mandatory trusted policy service. Its response must bind current subject,
    scope/configuration, requested item, reviewed head/tree, full request digest,
@@ -58,9 +62,11 @@ verify governed evidence and target product assignment; schema acceptance or
 matching hashes are not such verification. The existing GitHub reader validates
 the provider's non-truncated commit/tree response and regular blob bytes.
 
-Four operations, a 30-second deadline, the existing 10,000-entry Git inventory bound
-and a single bounded linked-source read limit work. Timed-out or closed dependencies
-retain admission until they actually drain. Error output is generic and content-free.
+Four concurrent operations, a 30-second deadline and the existing 10,000-entry Git
+inventory limit bound work. Canonical links read one Brief; versioned links additionally
+verify the bounded candidate bundle under its existing 15-second reader limit.
+Timed-out or closed dependencies retain admission until they actually drain.
+Error output is generic and content-free.
 The adapter has no model, SQL, write, operation-dispatch or credential-storage port.
 
 ## What remains
@@ -78,7 +84,8 @@ Those remain explicit dependencies. No default startup binding or live provider
 access is added.
 
 See [0265 specification](../intent/0265/SPEC.md), [evidence](../intent/0265/EVIDENCE.md)
-and [current journey](INTENT-JOURNEY-PLAN.md). With 0266's partial existing-item
-composition and 0267's unchanged-target continuation in place, next compose native
-destinations with encrypted SQL/SDK package history, then complete governed runtime
+and [current journey](INTENT-JOURNEY-PLAN.md). [0268](../intent/0268/EVIDENCE.md) joins
+native corpus and destination checks with encrypted SQL/SDK package history and
+confirmation, including links to canonical and pre-pull candidate sources. Next
+join fixed save execution/reopen to this path, then complete governed runtime
 bindings and actual I1–I6 acceptance when prerequisites are satisfied.

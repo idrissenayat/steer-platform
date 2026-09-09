@@ -5859,3 +5859,35 @@ Protected signed hashes are unchanged; actual user acceptance remains open.
 Next compose native destinations into the encrypted SQL/recorded-SDK package
 journey and complete actual governed bindings. Factories remain uninstalled;
 records/model/provider/write activation stays closed under existing prerequisites.
+
+## Development increment: 0268 — Native repository evidence through recorded package confirmation
+
+The composed journey now obtains native Git corpus/catalog evidence before
+immutable encrypted scope admission, runs two recorded scope batches and both
+drafting SDK roles, and uses actual new/existing destination factories for package
+preview and explicit confirmation. Six cases cover all five directions, including
+canonical and candidate links and continuation at a later reviewed commit than
+the unchanged original target. Policy, identities and provider bodies are synthetic.
+
+This integration exposed and fixed two contract bugs. Exact citation decoding now
+preserves BOM bytes rather than silently stripping them. Direction/package/UI
+contracts preserve versioned Brief references; revision/linking verifies the
+current candidate pointer, full bundle and root mirror. Old identical candidate
+bytes cannot pass, and versioned scope cannot become an amendment. Projection and
+single-document write schemas are unchanged. The actual UI explains the current-
+candidate requirement and directs amendments to explicit current-root review.
+
+See [0268 specification](../intent/0268/SPEC.md), [evidence](../intent/0268/EVIDENCE.md)
+and the [package guide](CANDIDATE-PACKAGE-PREVIEW.md). Verification passes: 1,294
+regressions, prototype/eight-package type checks, optimized Next build, 95-artifact
+kit validation, workflow token-scope audit and 323 local Markdown links. The joined
+native-corpus/SQL/recorded-SDK run passes six focused checks plus idempotent migration;
+the separate candidate-save SQL/Temporal/native-Git run passes 40 focused checks
+plus idempotent migration. Neither focused run is the full SQL suite or signed-in
+acceptance. Protected signed hashes and user-owned work are unchanged.
+
+Next extend the joined path from confirmed original through fixed save execution
+and verified reopen, then complete actual governed startup bindings. Factories
+remain uninstalled; D1 adoption, model/provider/write authority and signed-in I1–I6
+acceptance remain open. No paid model, live provider write, credential change,
+gate, deployment or release is authorized by this increment.

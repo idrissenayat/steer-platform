@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { CandidateSaveReviewOutput } from '@steer/tool-registry/candidate-save-review-contracts';
-import { candidateSavePreviewInputSchema, type CandidateSavePreviewOutput } from '@steer/tool-registry/candidate-save-preview-contracts';
+import { candidateSavePreviewInputSchema, reviewedItemBriefTarget, type CandidateSavePreviewOutput } from '@steer/tool-registry/candidate-save-preview-contracts';
 import type { IntentRunDiscoveryOutput } from '@steer/tool-registry/intent-run-discovery-contracts';
 import type { DevelopmentEditorSource } from './intent-development-editor';
 import { createCandidateSavePreviewClient } from './candidate-save-preview-client';
@@ -61,7 +61,8 @@ export default function CandidatePackagePreview({ review, source, identity, expi
     } catch { if (owner.current === session && session.valid()) setState('unavailable'); }
     finally { if (owner.current === session) busy.current = false; }
   }
-  const existing = review.choice.action === 'extend-existing' ? /^items\/([^/]+)\/BRIEF\.md$/.exec(review.choice.target.path)?.[1] : undefined;
+  const existingTarget = review.choice.action === 'extend-existing' ? reviewedItemBriefTarget(review.choice.target.path) : null;
+  const existing = existingTarget?.itemId;
   const chosenProposal = reviseProposal ? proposals?.entries.find(entry => entry.proposalId === proposal) : undefined;
   const destinationReady = !reviseProposal || !!(chosenProposal && review.choice.action === 'extend-existing' && chosenProposal.target.itemId === existing);
   async function findProposals(cursor: string | null = null) {
@@ -144,7 +145,9 @@ export default function CandidatePackagePreview({ review, source, identity, expi
       : <><label htmlFor="candidate-item-name">Repository item ID</label><input id="candidate-item-name" value={item} maxLength={160} disabled={working || state === 'closed'}
         placeholder="For example, 0260-booking" onChange={e => { setItem(e.target.value); setReceipt(null); }} />
         <p>Use the assigned four-digit number and a short name. The server checks that this destination is available; this field does not reserve it.</p></>}
-    {existing && <>
+    {existingTarget?.bundleId && <p>Versioned Brief selected for <code>items/{existing}</code>. A revision is available only if the server verifies the current pre-pull candidate pointer and matching root Brief.
+      {' '}To amend an existing item, select its current root Brief in scope review. This selection cannot create an amendment.</p>}
+    {existing && !existingTarget?.bundleId && <>
       <label><input type="checkbox" checked={reviseProposal} disabled={working || state === 'closed'} onChange={event => {
         setReviseProposal(event.target.checked); setProposal(''); setProposals(null); setReceipt(null); setState('idle');
       }} /> Revise an existing proposal</label>

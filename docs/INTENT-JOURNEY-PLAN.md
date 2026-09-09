@@ -33,7 +33,18 @@ scope, choose what to do, answer only necessary questions, review and correct a
 Brief/Spec/Exam bundle, save it to the authorized repository and reopen it exactly.
 No separate local preview, synthetic success, silent merging or lost work counts.
 
-Latest checkpoint: **0267 preserves original amendment targets through continuation**.
+Latest checkpoint: **0268 joins native destinations to encrypted recorded history**.
+The composed path collects exact native Git corpus evidence before scope-original
+admission, runs two scope batches and both recorded drafting roles, and previews
+all five destination directions through the actual HTTP/SQL/history factories.
+It fixes exact BOM quotation handling and preserves versioned pre-pull Brief
+references through review, current-pointer checks and the actual package chooser.
+See [0268 evidence](../intent/0268/EVIDENCE.md). Policies/provider responses remain
+synthetic and factories uninstalled. Next extend this joined path from confirmed
+original through fixed save execution and verified reopen, then complete actual
+governed bindings. Records/model/provider authority and signed-in I1–I6 remain open.
+
+0267 preserves original amendment targets through continuation.
 Current scope review remains pinned to the latest head; selected-proposal preview
 separately verifies the original target, unchanged item surface, both parent
 digests and additional current governed eligibility. The actual chooser displays

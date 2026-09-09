@@ -18,6 +18,8 @@ import { createApi } from '../src/app.ts';
 import { createRecordedRunDiscovery } from '../src/runtime.ts';
 import { intentRunDiscoveryOutputSchema } from '@steer/tool-registry/intent-run-discovery-contracts';
 import { testCandidateSavePreviewWithHistory } from './candidate-save-preview.integration.ts';
+import type { ScopeFixtureOptions } from '../../../packages/data/test/scope-originals.integration.ts';
+import { nativeCandidateJourneyFixture } from './native-candidate-journey.fixture.ts';
 
 type Fixture = Awaited<ReturnType<typeof scopeStepIntegrationFixture>>;
 type Dependencies = Parameters<typeof createAssessedRecordedDevelopmentPreparer>[3];
@@ -45,10 +47,18 @@ async function assessedApi(f: Fixture, evidence = f.described.original.evidence,
 }
 const selection = (f: Fixture, review: Awaited<ReturnType<Fixture['read']>>) => ({ kind: 'recorded', ...f.target, resultsDigest: review.review!.resultsDigest });
 
-export async function testAssessedDevelopment(setup: (count?: number, ttl?: number, large?: boolean) => Promise<Fixture>,
+export async function testAssessedDevelopment(setup: (count?: number, ttl?: number, large?: boolean, options?: ScopeFixtureOptions) => Promise<Fixture>,
   check: (name: string, run: () => Promise<void>) => Promise<void>, admin: Pool) {
   await check('historical development composes full assessed multi-batch inputs with both actual SDK roles and retained output verification after human edits',async()=>{
-    const f=await setup(34);assert.equal((await f.run(0)).outcome,'succeeded');assert.equal((await f.run(1)).outcome,'succeeded');
+    const cleanup:Array<()=>void>=[],native=nativeCandidateJourneyFixture({after:run=>cleanup.push(run)});
+    try {
+    const f=await setup(32,3600000,false,{branch:native.branch,repositoryEvidence:native.repositoryEvidence});
+    assert.equal(f.described.original.evidence.documents.length,34);
+    assert.equal(f.described.original.evidence.head,native.git.head());
+    for(let batch=0;batch<f.prepared.batches.length;batch++){
+      const outcome=await f.run(batch);assert.equal(outcome.outcome,'succeeded',JSON.stringify({batch,calls:f.state.calls,
+        state:(await f.step(f.batchId(batch)))?.state,requests:await f.count('request'),responses:await f.count('response')}));
+    }
     const a=await assessedApi(f,f.described.original.evidence,{},true),review=await f.read();
     const current=createVerifiedScopeReviewReader(f.pools,f.config,a.scope),history=createVerifiedScopeReviewHistoryReader(f.pools,f.config,
       {...a.scope,records:{...a.scope.records,authorizeHistoricalRead:async()=>{},authorizeHistoricalReview:async()=>{}}});
@@ -81,7 +91,7 @@ export async function testAssessedDevelopment(setup: (count?: number, ttl?: numb
       const previewHistoryRecords={...records,authorizeHistoricalRead:async()=>{},
         originals:{...records.originals,scopeHistory:history,authorizeHistoricalRead:async()=>{},authorizeOperation:async()=>{throw new Error('No execution');}},
         results:{...records.results,authorizeHistoricalResult:async()=>{},authorizeOperation:async()=>{throw new Error('No execution');}}};
-      await testCandidateSavePreviewWithHistory(f,prepared.reference,{profiles,records:previewHistoryRecords},current,admin);
+      await testCandidateSavePreviewWithHistory(f,prepared.reference,{profiles,records:previewHistoryRecords},current,admin,native);
       await f.edit();const reservations=await f.reservations();
       const discovery=createRecordedRunDiscovery(f.pools.drafts,f.config,{authorize:async()=>{},authorizeEntry:async()=>{}});
       try {
@@ -109,6 +119,7 @@ export async function testAssessedDevelopment(setup: (count?: number, ttl?: numb
       }finally{combined.close();}
       assert.equal(calls,2);assert.equal(f.state.calls,2);assert.equal(reservations,4);assert.equal(await f.reservations(),reservations);
     }finally{current.close();history.close();a.service.close();}
+    }finally{cleanup.forEach(run=>run());}
   });
   await check('assessed generation input history restores exact multi-batch lineage after source edits and expiry without current execution or new records',async()=>{
     const f=await setup(34,15000);assert.equal((await f.run(0)).outcome,'succeeded');assert.equal((await f.run(1)).outcome,'succeeded');

@@ -1,6 +1,18 @@
 # STEER platform implementation
 
-## Current checkpoint — 0267
+## Current checkpoint — 0268
+
+0268 composes native Git corpus/destination checks with encrypted SQL scope and
+generation history, both recorded SDK roles, package preview and confirmation.
+It fixes BOM citation fidelity and versioned candidate references across direction,
+current-pointer verification and the actual package UI. Old identical candidate
+bytes cannot replace the current pointer or become an amendment.
+See [0268 evidence](../intent/0268/EVIDENCE.md) and
+[package guide](CANDIDATE-PACKAGE-PREVIEW.md). Synthetic policy/provider responses
+are not live authority. Next join fixed save execution and verified reopen to this
+same path, then finish governed installation and signed-in I1–I6 acceptance.
+
+## Prior checkpoint — 0267
 
 0267 resolves unchanged-target amendment continuation. It keeps final scope review
 current while separately verifying the original target surface and selected

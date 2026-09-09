@@ -24,7 +24,7 @@ supplied by the browser, guessed from filenames or established by an allowlist.
 ## Verification sequence
 
 1. Validate the exact preview reference, current human, fixed configuration and
-   review digest. Require an allowed `items/<id>/BRIEF.md` target matching the
+   review digest. Require an allowed root or exact versioned candidate Brief matching the
    requested item. Legacy namespaces and new directions fail closed in the
    existing-item resolver before Git I/O. Selected proposals require the additional
    verification below; selection is not continuation eligibility.
@@ -36,7 +36,7 @@ supplied by the browser, guessed from filenames or established by an allowlist.
    are not valid candidate artifacts.
 4. Obtain mandatory independent governed lifecycle evidence. It binds the human,
    product/repository/configuration, item, request/review digests, head, repository
-   tree, item tree and root Brief metadata. It must establish either pre-pull
+   tree, item tree and reviewed Brief metadata. It must establish either pre-pull
    candidate eligibility or proposal-only eligibility, plus any permitted prior
    candidate relationship. Schema validation does not implement this service.
 5. For pre-pull work, read `CANDIDATE.json` using the existing exact-bundle reader
@@ -44,6 +44,9 @@ supplied by the browser, guessed from filenames or established by an allowlist.
    documents, reject an amendment masquerading as a candidate and require the root
    Brief mirror. Preserve the verified manifest digest and exact relationship;
    the latter must agree with current policy and configured related-item scope.
+   A versioned reviewed path must be that current bundle's Brief, not any old
+   candidate with identical bytes. The root mirror is separately verified. A
+   versioned candidate cannot enter either first-amendment or continuation logic.
 6. For proposal-only work, do not inspect an old retained candidate pointer or
    assume that its presence allows candidate correction. Derive a reproducible
    UUIDv8 proposal identifier from the domain-separated configuration, exact
@@ -113,11 +116,18 @@ human direction and current review. No signed artifact is changed by this contra
 
 ## Evidence and activation boundary
 
-See [0267 specification](../intent/0267/SPEC.md) and [evidence](../intent/0267/EVIDENCE.md).
-Native Git tests with synthetic transport, policy, review and lineage exercise
-the adapter and pure package planner. They do not demonstrate installation into
-the encrypted SQL/SDK preview or the real signed-in UI journey. Actual governed
-policy bindings, D1 records adoption, model/provider/write authority and I1–I6
-acceptance remain separate. Next compose these native destination ports with the
-encrypted SQL/recorded-SDK package journey and complete actual governed runtime
-bindings. No live activation or gate decision is made here.
+See [0267 specification](../intent/0267/SPEC.md), [0267 evidence](../intent/0267/EVIDENCE.md)
+and [0268 integration evidence](../intent/0268/EVIDENCE.md). 0268 joins the native
+corpus/destination readers to encrypted SQL and recorded SDK history before package
+preview/confirmation. It preserves versioned candidate source references through
+the actual direction and package UI instead of inventing a canonical path. The
+chooser does not offer amendment selection for a versioned candidate.
+The UI calls this a versioned reference, not proof of pre-pull status. A versioned
+amendment source must not pass current-candidate verification; an amendment
+direction requires an explicit current root Brief selection instead.
+
+Policy, identities and provider bodies remain synthetic; no real signed-in UI
+acceptance or governed-service installation is demonstrated. Next join fixed save
+execution and verified reopen to that same recorded path. Actual governed bindings,
+D1 records adoption, model/provider/write authority and I1–I6 acceptance remain
+separate. No live activation or gate decision is made here.
