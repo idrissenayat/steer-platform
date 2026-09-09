@@ -14,7 +14,7 @@ import { verifyCandidateSavePrepare } from '@steer/tool-registry/candidate-save-
 import { scopeReviewFixture } from '../../../packages/tool-registry/test/intent-scope-review.fixture.ts';
 import { createScopeStepRuntime } from '../../worker/src/scope-step-runtime.ts';
 import type { authenticatedModelWorkflows } from '../../worker/test/authenticated-model-workflows.integration.ts';
-import { summarizeNativeRequests } from './native-request-metrics.ts';
+import { summarizeNativeRequests,subtractNativeRequests,type createNativeRequestMeter } from './native-request-metrics.ts';
 
 type Fixture = Awaited<ReturnType<typeof scopeDraftIntegrationFixture>>;
 /** Continue the SAME signed-identity/SQL/recorded-generation test after correction.
@@ -23,7 +23,7 @@ type Fixture = Awaited<ReturnType<typeof scopeDraftIntegrationFixture>>;
  * Candidate-save scheduling, Git writing and publication remain unavailable. */
 export function authenticatedCandidateConfirmation(f: Fixture, native: ReturnType<typeof nativeCandidateJourneyFixture>,
   authority: () => Promise<void>, scopeRecords: IntentJourneyFactoryDependencies['scope']['records']['originals'],
-  workflows: ReturnType<typeof authenticatedModelWorkflows>) {
+  workflows: ReturnType<typeof authenticatedModelWorkflows>,identityTraffic:ReturnType<typeof createNativeRequestMeter>) {
   let enabled = false;
   const current = async () => { await authority(); if (!enabled) throw new Error('PRIVATE candidate confirmation policy denied'); };
   const records = { authorize: current, lifecycle: f.lifecycle.lifecycle, keyForDraft: f.deps.keyForDraft };
@@ -39,12 +39,18 @@ export function authenticatedCandidateConfirmation(f: Fixture, native: ReturnTyp
       previousScope: { reviewId: string; preparationDigest: string; resultsDigest: string }; modelCall(): void; modelCalls(): number;
     }) {
       const { admin, post } = input, measurements: Array<{ tool: string; ms: number; nativeRequests: number;
-        requestKinds:ReturnType<typeof summarizeNativeRequests> }> = [];
+        requestKinds:ReturnType<typeof summarizeNativeRequests>;origins:{identity:ReturnType<typeof summarizeNativeRequests>;
+          repository:ReturnType<typeof summarizeNativeRequests>} }> = [];
+      const measured=(tool:string,start:number,before:number,identityBefore:ReturnType<typeof identityTraffic.snapshot>)=>{
+        const requestKinds=summarizeNativeRequests(native.git.calls,before),identity=subtractNativeRequests(identityTraffic.snapshot(),identityBefore),
+          repository=subtractNativeRequests(requestKinds,identity);
+        assert.equal(Object.values(requestKinds).reduce((sum,count)=>sum+count,0),native.git.calls.length-before);
+        return {tool,ms:Math.round(performance.now()-start),nativeRequests:native.git.calls.length-before,requestKinds,origins:{identity,repository}};
+      };
       const read = async (tool: string, body: unknown) => {
-        const start = performance.now(), before = native.git.calls.length;
+        const start = performance.now(), before = native.git.calls.length,identityBefore=identityTraffic.snapshot();
         const result = await input.read(tool, body);
-        const measurement = { tool, ms: Math.round(performance.now() - start), nativeRequests: native.git.calls.length - before,
-          requestKinds:summarizeNativeRequests(native.git.calls,before) };
+        const measurement = measured(tool,start,before,identityBefore);
         measurements.push(measurement);
         console.log('Synthetic authenticated corrected-package request: ' + JSON.stringify(measurement));
         return result;
@@ -114,10 +120,9 @@ export function authenticatedCandidateConfirmation(f: Fixture, native: ReturnTyp
           confirmation: preview.proposedConfirmation, confirm: true as const };
         // Discard the first HTTP reply as a lost client acknowledgement, then
         // rebuild the owned identity/factory and recover the same exact command.
-        const started = performance.now(), requestsBefore = native.git.calls.length;
+        const started = performance.now(), requestsBefore = native.git.calls.length,identityBefore=identityTraffic.snapshot();
         const lost = await post('intent.candidate.save.prepare', confirmation); assert.equal(lost.status, 200); await lost.body?.cancel();
-        measurements.push({ tool: 'intent.candidate.save.prepare (discarded reply)', ms: Math.round(performance.now() - started), nativeRequests: native.git.calls.length - requestsBefore,
-          requestKinds:summarizeNativeRequests(native.git.calls,requestsBefore) });
+        measurements.push(measured('intent.candidate.save.prepare (discarded reply)',started,requestsBefore,identityBefore));
         console.log('Synthetic discarded confirmation request: ' + JSON.stringify(measurements.at(-1)));
         const stored = await snapshot(); assert.equal(stored.operations, '2'); assert.equal(stored.originals, '1');
         assert.equal(stored.reservations, '6');

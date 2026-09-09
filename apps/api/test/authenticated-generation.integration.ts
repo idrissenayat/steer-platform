@@ -22,6 +22,7 @@ import { createDevelopmentStepRuntime } from '../../worker/src/development-step-
 import { authenticatedCandidateConfirmation } from './authenticated-candidate-confirmation.integration.ts';
 import { authenticatedCandidateSave } from '../../worker/test/authenticated-candidate-save.integration.ts';
 import { authenticatedModelWorkflows } from '../../worker/test/authenticated-model-workflows.integration.ts';
+import { createNativeRequestMeter } from './native-request-metrics.ts';
 
 /** Signed synthetic JWT + native Git grants, real API constructor graph, SQL and
  * recorded SDK roles. No real issuer, model transport, live migration or external Git write.
@@ -34,7 +35,8 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
     const cleanup: Array<() => void> = [];
     try {
     const native = nativeCandidateJourneyFixture({ after: run => cleanup.push(run) }, true);
-    const identity = await recordedRuntimeFixture({ after: run => cleanup.push(run) }, { source: native.git,
+    const identityTraffic=createNativeRequestMeter(native.git.transport);
+    const identity = await recordedRuntimeFixture({ after: run => cleanup.push(run) }, { source: {...native.git,transport:identityTraffic.transport},
       organizationId: `authenticated-generation-${randomUUID()}`,
       selection: { itemId: 'items/0273-synthetic', idempotencyKey: randomUUID() },
       actor: { type: 'human', subject: 'synthetic-human', authorizationPath: 'access/generation.json', toolGrants: [
@@ -68,7 +70,7 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
     fixture.config.candidate = { ...f.config, action: 'candidate-save', expiresAt: f.execution.expiresAt, budget: null };
     fixture.config.retrievalConfigurationRevision = 'synthetic-native-corpus-r1';
     const workflows = authenticatedModelWorkflows(executionAuthority);
-    const candidate = authenticatedCandidateConfirmation(f, native, authority, scopeRecords, workflows);
+    const candidate = authenticatedCandidateConfirmation(f, native, authority, scopeRecords, workflows,identityTraffic);
     const save = authenticatedCandidateSave(f, native, fixture.config, authority);
     const profiles = fixture.config.developmentProfiles;
     const { recordedScheduling: _unused, ...base } = identity.profile;

@@ -6150,3 +6150,18 @@ The first confirmation still makes 65,713 head lookups among 67,820 total reques
 and takes about 50 seconds; repeated recovery takes up to 53 seconds. This is not
 live-load or usable-UI acceptance. Continue mapping duplicate caller barriers at
 read/return/effect boundaries while preserving distinct current authorization.
+
+## 0278 — Authenticated traffic ownership
+
+The synthetic joined fixture now separates identity transport counts from the
+shared corpus/destination/save transport and verifies per-action partition sums.
+No principal, provider reply, service result or production authorization behavior
+is changed. All three joined checks plus migrations pass with unchanged requests,
+six synthetic model reservations and one native save/exact reopen. Identity owns
+65,669 of the first confirmation's 65,713 head reads (96.8% of all its requests);
+repository-content reads account for only 44 heads. All 1,355 broad tests,
+typechecks, production build, protected hashes, 95-artifact kit, scope audit and
+221 links in seven changed/new documents pass;
+see [0278 evidence](../intent/0278/EVIDENCE.md) and the
+[next-change investigation](../intent/0278/INVESTIGATION.md). This is a verified
+diagnosis, not a delivered performance improvement, changed authority or UI acceptance.

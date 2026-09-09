@@ -58,6 +58,22 @@ records transition and its recovery path.
 
 ## Evidence and remaining work
 
+### Native traffic ownership — 0278
+
+The joined fixture now meters the actual identity runtime's synthetic transport
+separately from corpus/destination/save readers and reconciles each HTTP action's
+counts. For the first confirmation, identity owns 65,669 head lookups versus 44
+for the repository-content path, and 96.8% of all requests. Exact-commit document
+reuse is working: the identity transport reads one commit/tree/blob per request.
+The dominant cost is repeated fresh-head verification, not downloading that file.
+
+No production behavior or request totals change in this diagnostic. All prior
+workflow/recovery checks remain; see [0278 evidence](../intent/0278/EVIDENCE.md).
+The [next-change investigation](../intent/0278/INVESTIGATION.md) proposes a private
+corpus-read session to remove repeated immutable work and associated checks while
+preserving current source/grant/head verification. It must be tested before use;
+it is not an implemented permission lease, live binding or signed-in acceptance.
+
 ### Historical caller-barrier reduction — 0277
 
 The history projection's known private scope port now relies on the window's own

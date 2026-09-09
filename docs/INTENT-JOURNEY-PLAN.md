@@ -60,6 +60,15 @@ first distinguish identity-reader traffic from corpus/destination transport call
 then change only demonstrably duplicated checks. Do not skip independent policy
 checks or adopt a stale permission cache.
 
+0278 attributes the first confirmation's 65,669 head lookups to identity and only
+44 to repository-content paths. Identity owns 96.8% of all requests; document
+fetching is not the dominant source. All three joined checks pass with unchanged
+request totals and behavior; all 1,355 broad tests, typechecks and build pass. See
+[0278 evidence](../intent/0278/EVIDENCE.md). Next review and implement the
+[request-owned corpus verification proposal](../intent/0278/INVESTIGATION.md),
+with current-grant/source/closure negatives before measuring any reduction. It is
+not an implemented session, authorization lease or current approval to cache grants.
+
 Prior checkpoint: **0275 saves and reopens the confirmed package through identity**.
 The same authenticated journey now reaches one fixed Temporal/native Git save,
 lost scheduler/provider acknowledgement recovery, actual identity/factory restart
