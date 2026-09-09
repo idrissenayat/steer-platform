@@ -102,4 +102,6 @@ and [the current plan](INTENT-JOURNEY-PLAN.md).
 recorded SDK history behind this confirmation command. Lost admission/original
 acknowledgements recover one exact original and match worker admission identity;
 the test never dispatches Git. See [0268 evidence](../intent/0268/EVIDENCE.md).
-Next connect fixed save execution and verified reopen to this same joined path.
+0269 now connects fixed save execution and verified reopen to this same joined
+path; see [its evidence](../intent/0269/EVIDENCE.md). Confirmation alone still does
+not start work. Next complete governed startup composition and activation checks.

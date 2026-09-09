@@ -5891,3 +5891,38 @@ and verified reopen, then complete actual governed startup bindings. Factories
 remain uninstalled; D1 adoption, model/provider/write authority and signed-in I1–I6
 acceptance remain open. No paid model, live provider write, credential change,
 gate, deployment or release is authorized by this increment.
+
+## Development increment: 0269 — Recorded package to fixed save and exact reopen
+
+A second instance of the joined native-corpus/encrypted-SQL/recorded-SDK journey
+now continues its actual confirmed original through explicit HTTP save start,
+fixed Temporal execution, one native Git save, original receipt recovery and exact
+HTTP reopen. The independent six-case destination/head-race journey remains intact.
+No original is reset, rebased or replaced to make save execution succeed.
+The joined save case is new-distinct; the other destinations are not claimed as
+joined save/reopen acceptance from preview or isolated adapter tests.
+
+The isolated journey test passes lost SQL-to-Temporal acknowledgement recovery,
+one single-attempt activity, an unknown workflow outcome after a committed native
+save loses its response, read-only HTTP receipt recovery, separate SQL checkpoint,
+history replay without resend and exact older-commit document/manifest reopen
+after a later root edit. Start/read denial releases no private content. Operation,
+original and model-reservation counts and the encrypted original remain unchanged.
+
+See [0269 specification](../intent/0269/SPEC.md) and [evidence](../intent/0269/EVIDENCE.md).
+The focused `--candidate-journey` check and idempotent migration pass; 1,294 broad
+regressions, prototype/eight-package type checks, 95-artifact kit validation,
+optimized Next build, workflow token-scope audit and focus-selector tests pass. The expanded retained-
+history recheck passes all seven focused checks plus idempotent migration; all
+325 local Markdown links in 12 changed documents resolve. An initial
+pre-dispatch timeout under concurrent broad testing remained fail-closed; no
+timeouts or recovery boundaries were relaxed. Neither focused test is the full
+SQL suite, live installation or signed-in I1–I6 acceptance.
+
+Next complete governed startup composition and activation checks. Actual records
+adoption, model budget, live provider/write authority and human acceptance remain
+separate and open. No real model call, GitHub App write, credential change, gate,
+deployment or release occurs. Signed artifacts and user-owned work are preserved.
+The next binding also must connect trusted publication evidence/time to the
+existing draft-lifecycle `recordPublication` transition; receipt verification and
+execution checkpointing do not themselves complete that records-policy step.

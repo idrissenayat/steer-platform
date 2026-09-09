@@ -1,6 +1,18 @@
 # STEER platform implementation
 
-## Current checkpoint — 0268
+## Current checkpoint — 0269
+
+0269 extends the same native-corpus/encrypted-SQL/recorded-SDK package through
+explicit HTTP save start, the fixed Temporal activity, one new-distinct native Git save,
+original-bound receipt recovery and exact HTTP reopen. Lost scheduling and Git
+acknowledgements cannot mint replacement work or cause another send. A later root
+edit does not replace the selected commit's document bytes.
+See [0269 evidence](../intent/0269/EVIDENCE.md) for focused verification and its limits.
+The independent preview/head-race scenario is retained. Next complete governed
+startup composition and activation checks; actual records/model/provider authority
+and signed-in I1–I6 acceptance remain open. No live activation is claimed.
+
+## Prior checkpoint — 0268
 
 0268 composes native Git corpus/destination checks with encrypted SQL scope and
 generation history, both recorded SDK roles, package preview and confirmation.

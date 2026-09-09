@@ -10,6 +10,7 @@ import { testCandidateConfirmationWithHistory } from './candidate-save-prepare.i
 import type { nativeCandidateJourneyFixture } from './native-candidate-journey.fixture.ts';
 import type { CandidateSaveReviewInput } from '@steer/tool-registry/candidate-save-review-contracts';
 import { candidateSavePreviewInputSchema, type CandidateSavePreviewInput } from '@steer/tool-registry/candidate-save-preview-contracts';
+import { testConfirmedNativeCandidateSave } from '../../worker/test/native-candidate-save.integration.ts';
 
 type Fixture = Awaited<ReturnType<typeof scopeStepIntegrationFixture>>;
 /** Composed inside the actual SQL + 34-source SDK journey. All authorities and
@@ -18,7 +19,7 @@ export async function testCandidateSavePreviewWithHistory(f: Fixture,
   reference: { operationId: string; inputDigest: string },
   deps: Parameters<typeof createVerifiedDevelopmentHistoryReader>[2],
   scopeReader: NonNullable<Parameters<typeof createRecordedCandidateSaveReviewer>[1]['scopeReview']>, admin: Pool,
-  native: ReturnType<typeof nativeCandidateJourneyFixture>) {
+  native: ReturnType<typeof nativeCandidateJourneyFixture>, save=false) {
   let allowed = true, changing = false, reads = 0, generationAllowed = true;
   const drafts = createIntentDraftService(f.pools.drafts, f.config, { lifecycle: { authorize: async () => {} },
     revisions: { authorize: f.deps.records.originals.authorizeDraft, keyForDraft: f.deps.records.originals.keyForDraft } });
@@ -63,7 +64,7 @@ export async function testCandidateSavePreviewWithHistory(f: Fixture,
     assert.deepEqual(await (await post()).json(), output);
     assert.doesNotMatch(JSON.stringify(output), /EXAM-MARKER-NOT-FOR-SCOPE|# Assessed Brief|scopeEvidence|instructions|requestBody|responseBody/);
     assert.equal(output.destination.expectedHead,native.git.head());
-    for(const variant of ['linked','linked-candidate','revision','first-amendment','continuation'] as const){
+    for(const variant of (save?[]:['linked','linked-candidate','revision','first-amendment','continuation']) as Array<'linked'|'linked-candidate'|'revision'|'first-amendment'|'continuation'>){
       const linked=variant==='linked'||variant==='linked-candidate';
       const item=variant==='revision'||variant==='linked-candidate'?'0002-existing':variant==='continuation'?'0001-existing':'0003-existing';
       const target=f.described.original.evidence.inventory.find(s=>s.targetId===`items/${item}`&&s.path.endsWith('/BRIEF.md')&&s.status!=='amendment')!;
@@ -96,12 +97,21 @@ export async function testCandidateSavePreviewWithHistory(f: Fixture,
     principal.toolGrants = []; assert.equal((await post()).status, 403);
     assert.equal(await f.reservations(), reservations);
     assert.deepEqual(await snapshot(), before);
-    console.log('PASS composed native-Git candidate preview: six cases across five directions, exact corpus/draft/SDK lineage, original proposal target, current policy/source/result/grant denial; no admission or model calls');
-    await testCandidateConfirmationWithHistory(f, drafts, service, output, admin);
+    console.log(save?'PASS composed native-Git save journey preview: exact corpus/draft/SDK lineage and current policy/result/grant denial; no admission or model calls'
+      :'PASS composed native-Git candidate preview: six cases across five directions, exact corpus/draft/SDK lineage, original proposal target, current policy/source/result/grant denial; no admission or model calls');
+    const confirmedOriginal=await testCandidateConfirmationWithHistory(f, drafts, service, output, admin);
     principal.toolGrants=['intent.candidate.save.preview'];
     // The expanded matrix can outlive the original synthetic session. Establish
     // a fresh test identity for this independent race; do not relax API expiry.
     principal.expiresAt=new Date(Date.now()+300000).toISOString();
+    if(save){
+      await testConfirmedNativeCandidateSave(f,drafts,confirmedOriginal,native,admin);
+      principal.expiresAt=new Date(Date.now()+300000).toISOString();
+      const saved=await snapshot();assert.equal((await post()).status,503);
+      assert.deepEqual(await snapshot(),saved);assert.equal(await f.reservations(),reservations);
+      assert.equal(native.git.mutations(),1);
+      return;
+    }
     const confirmed=await snapshot();native.state.moveAtProof=native.state.proofs+2;
     assert.equal((await post()).status,503);assert.notEqual(native.git.head(),output.review.expectedHead);
     assert.deepEqual(await snapshot(),confirmed);assert.equal(await f.reservations(),reservations);

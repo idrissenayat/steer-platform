@@ -49,8 +49,14 @@ extend retention or delete records.
 
 ## Remaining journey
 
-Save preparation and exact human confirmation/start integration must provide the
-original recovery reference. Candidate discovery and live activation are separate.
+0261–0262 now provide the original recovery reference through exact confirmation
+and separate explicit start. 0269 joins that same native-corpus/SQL/recorded-SDK
+original to one Temporal activity and a native Git save with a lost response. Its
+HTTP status check must recover the exact receipt while leaving SQL dispatch state
+unchanged. Separately authorized reconciliation records the checkpoint; exact
+document reopen uses its own read authority. See [0269 evidence](../intent/0269/EVIDENCE.md)
+for current results. No schedule, completed workflow or acknowledgement is a
+substitute for receipt verification. Candidate discovery and live activation are separate.
 This feature is verified with synthetic identities, actual temporary Git, disposable
 PostgreSQL and actual React components—not a real signed-in human save. See
 [0253 evidence](../intent/0253/EVIDENCE.md) and [the journey plan](INTENT-JOURNEY-PLAN.md).

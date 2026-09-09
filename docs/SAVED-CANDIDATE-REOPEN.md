@@ -55,8 +55,13 @@ Unknown or missing receipts never produce a retry action. See [save recovery](CA
 
 This slice verifies explicit-link reopening with native temporary Git fixtures,
 synthetic identities and actual React components. It does not prove a live human
-saved a bundle. Save preparation/confirmation/start wiring, current
-full-corpus/lifecycle authority and live human save/receipt acceptance remain open.
+saved a bundle. Preview, confirmation and start factories are now implemented;
+0269 joins their native-corpus/recorded-SDK original to fixed save execution,
+receipt recovery and this exact HTTP read. It checks a saved commit after a later
+root edit, with no current-head fallback or extra save. See
+[0269 evidence](../intent/0269/EVIDENCE.md) for verification status.
+Actual startup installation, current full-corpus/lifecycle authority and live human
+save/receipt acceptance remain open.
 Candidate discovery is separate; this reader does not enumerate all items.
 Existing draft records and model-spend activation boundaries remain unchanged.
 See [0252 evidence](../intent/0252/EVIDENCE.md) and [the journey plan](INTENT-JOURNEY-PLAN.md).

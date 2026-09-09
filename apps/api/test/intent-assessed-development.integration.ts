@@ -49,8 +49,10 @@ const selection = (f: Fixture, review: Awaited<ReturnType<Fixture['read']>>) => 
 
 export async function testAssessedDevelopment(setup: (count?: number, ttl?: number, large?: boolean, options?: ScopeFixtureOptions) => Promise<Fixture>,
   check: (name: string, run: () => Promise<void>) => Promise<void>, admin: Pool) {
-  await check('historical development composes full assessed multi-batch inputs with both actual SDK roles and retained output verification after human edits',async()=>{
-    const cleanup:Array<()=>void>=[],native=nativeCandidateJourneyFixture({after:run=>cleanup.push(run)});
+  for(const save of [false,true])await check(save
+    ?'historical development composes native corpus and recorded roles through confirmed Temporal save, recovery and exact HTTP reopen'
+    :'historical development composes full assessed multi-batch inputs with both actual SDK roles and retained output verification after human edits',async()=>{
+    const cleanup:Array<()=>void>=[],native=nativeCandidateJourneyFixture({after:run=>cleanup.push(run)},save);
     try {
     const f=await setup(32,3600000,false,{branch:native.branch,repositoryEvidence:native.repositoryEvidence});
     assert.equal(f.described.original.evidence.documents.length,34);
@@ -91,7 +93,7 @@ export async function testAssessedDevelopment(setup: (count?: number, ttl?: numb
       const previewHistoryRecords={...records,authorizeHistoricalRead:async()=>{},
         originals:{...records.originals,scopeHistory:history,authorizeHistoricalRead:async()=>{},authorizeOperation:async()=>{throw new Error('No execution');}},
         results:{...records.results,authorizeHistoricalResult:async()=>{},authorizeOperation:async()=>{throw new Error('No execution');}}};
-      await testCandidateSavePreviewWithHistory(f,prepared.reference,{profiles,records:previewHistoryRecords},current,admin,native);
+      await testCandidateSavePreviewWithHistory(f,prepared.reference,{profiles,records:previewHistoryRecords},current,admin,native,save);
       await f.edit();const reservations=await f.reservations();
       const discovery=createRecordedRunDiscovery(f.pools.drafts,f.config,{authorize:async()=>{},authorizeEntry:async()=>{}});
       try {

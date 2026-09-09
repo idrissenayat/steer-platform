@@ -97,12 +97,19 @@ try {
     }});
     assert.equal(passed,7);
     console.log(`FOCUSED preparation diagnostics result: ${passed-1} checks passed plus idempotent migration check; full suite NOT RUN.`);
+  }else if(selection.mode==='candidate-journey'){
+    console.log('FOCUSED native corpus to recorded SQL/SDK package, HTTP/Temporal save and exact reopen; NOT the full integration suite.');
+    await testScopeStepRuntime({admin,connect,check:async(name,run)=>{
+      if(name.startsWith('historical development composes native corpus '))await check(name,run);
+    }});
+    assert.equal(passed,2);
+    console.log(`FOCUSED candidate journey result: ${passed-1} joined check passed plus idempotent migration check; full suite NOT RUN.`);
   }else if(selection.mode==='run-discovery'){
     console.log('FOCUSED retained run discovery plus composed SQL/SDK history; NOT the full integration suite.');
     await testScopeStepRuntime({admin,connect,check:async(name,run)=>{
       if(name.startsWith('retained run discovery ')||name.startsWith('historical development composes '))await check(name,run);
     }});
-    assert.equal(passed,7);
+    assert.equal(passed,8);
     console.log(`FOCUSED run discovery result: ${passed-1} checks passed plus idempotent migration check; full suite NOT RUN.`);
   }else if(selection.mode==='development-history'){
     console.log('FOCUSED retained development history/SQL/recorded SDK checks; NOT the full integration suite.');

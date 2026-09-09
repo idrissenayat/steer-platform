@@ -85,4 +85,8 @@ export async function testCandidateConfirmationWithHistory(f: Awaited<ReturnType
     assert.equal(await count('steer_execution.intent_steps'), before.steps); assert.equal(await f.reservations(), before.reservations);
   } finally { originals.close(); worker.close(); }
   console.log('PASS composed candidate confirmation: lost admission/original acknowledgements recover one exact encrypted original; API/worker IDs match; late authority loss withholds success; no dispatch or budget reservation');
+  // A separate synthetic start phase must establish its own current authority.
+  // Restoring this fixture grant does not schedule or dispatch the original.
+  denied = false;
+  return { binding, publication, execution, records, reference: third.reference! };
 }

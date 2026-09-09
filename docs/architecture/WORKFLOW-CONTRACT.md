@@ -1277,3 +1277,24 @@ missing BOM is not byte equality; changing the range to begin after those bytes
 is permitted only as an explicit valid range. Character splits and normalization
 still fail. No retained record is rewritten to satisfy the corrected validator.
 See [0268 specification](../../intent/0268/SPEC.md) and [evidence](../../intent/0268/EVIDENCE.md).
+
+### Confirmed recorded package through save and exact reopen — 0269
+
+The composed test carries the same native-corpus/SQL/recorded-SDK original through
+the existing human-only HTTP start and fixed Temporal activity. A lost scheduler
+acknowledgement recovers the same workflow. A lost Git response after one native
+commit leaves workflow outcome unknown and SQL dispatch-committed; neither state
+permits a replacement save. History replay has no further provider effect.
+
+Original-bound HTTP status verifies the exact receipt without checkpointing SQL.
+Separate reconciliation records success. Exact HTTP reopen uses the verified
+commit and all three document/manifest byte hashes, even after a later root edit;
+it cannot follow the moving head. Current read denial withholds document bytes.
+Operation/original/budget counts and encrypted originals remain unchanged.
+
+The independent preview/head-race fixture is preserved; no retained original is
+reset or rebased for the save scenario. Native Git, SQL and Temporal are real test
+engines, while all identities/provider bodies/policy/dispatch proofs are synthetic.
+Factories remain uninstalled. See [0269 specification](../../intent/0269/SPEC.md)
+and [evidence](../../intent/0269/EVIDENCE.md). Live records/model/provider authority,
+signed-in I1–I6, gates, deployment and release are not supplied by this test.

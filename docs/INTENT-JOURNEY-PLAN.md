@@ -33,7 +33,22 @@ scope, choose what to do, answer only necessary questions, review and correct a
 Brief/Spec/Exam bundle, save it to the authorized repository and reopen it exactly.
 No separate local preview, synthetic success, silent merging or lost work counts.
 
-Latest checkpoint: **0268 joins native destinations to encrypted recorded history**.
+Latest checkpoint: **0269 joins confirmed originals to save and exact reopen**.
+The same native-corpus/SQL/recorded-SDK journey now reaches explicit HTTP start,
+one fixed Temporal activity, one new-distinct native Git save, read-only receipt recovery and
+exact older-commit HTTP reopen. Lost acknowledgements do not authorize another
+send; workflow completion is not a save claim. See [0269 evidence](../intent/0269/EVIDENCE.md).
+These are composed synthetic-provider checks, not signed-in human acceptance.
+Next complete governed startup composition and its activation checks while actual
+records/model/provider/write authority remains closed under existing prerequisites.
+
+The next composition must also bind verified publication to the existing draft-
+lifecycle `recordPublication` port with trusted evidence/time and failure recovery.
+Git receipt verification and SQL execution checkpointing alone do not apply the
+draft-retention transition. This remains an activation requirement under D1, not
+permission to install records, infer a publication clock or discard content.
+
+0268 joins native destinations to encrypted recorded history.
 The composed path collects exact native Git corpus evidence before scope-original
 admission, runs two scope batches and both recorded drafting roles, and previews
 all five destination directions through the actual HTTP/SQL/history factories.

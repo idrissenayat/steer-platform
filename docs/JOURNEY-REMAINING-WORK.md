@@ -26,12 +26,19 @@ composes both direction ports. 0267 resolves unchanged-target existing-proposal
 continuation with separate current/original revisions and independent eligibility;
 changed targets still deny. 0268 joins native corpus/destination ports with encrypted
 SQL/SDK package history and confirmation, fixing BOM citation fidelity and exact
-versioned candidate direction/current-pointer binding. Next join fixed save
-execution and verified reopen to this same composed path, then complete actual
-governed bindings. See [0268 evidence](../intent/0268/EVIDENCE.md), [existing-item destination](EXISTING-CANDIDATE-DESTINATION.md)
+versioned candidate direction/current-pointer binding. 0269 now joins the same
+confirmed original to fixed HTTP/Temporal save, native receipt recovery and exact
+HTTP reopen, including lost acknowledgements without a second send. Next complete
+governed startup composition and activation checks. See [0269 evidence](../intent/0269/EVIDENCE.md),
+[0268 evidence](../intent/0268/EVIDENCE.md), [existing-item destination](EXISTING-CANDIDATE-DESTINATION.md)
 and [new-candidate destination](NEW-CANDIDATE-DESTINATION.md). Actual records adoption,
 model/provider/write authority and signed-in I1–I6 acceptance remain separate and
 unresolved; these tested, uninstalled services do not complete the live journey.
+
+Governed composition must include verified-publication synchronization with the
+existing draft-lifecycle port and its trusted clock, in addition to service wiring,
+current source/consent/lifecycle policy, records adoption and runtime authority.
+The joined save test does not complete that retention transition.
 
 ### Current UX priority (2026-09-07)
 

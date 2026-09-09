@@ -74,6 +74,14 @@ full disposable PostgreSQL suite. Focused output is labelled as such.
 For just the three HTTP-to-workflow start journeys, use `--candidate-start` instead;
 it still uses the real disposable database, isolated Temporal and native synthetic Git.
 
+0269 adds a joined check starting with actual native corpus collection, encrypted
+scope admission and both recorded drafting SDK roles, then preview/confirmation,
+this HTTP start and exact save recovery/reopen. Use
+`pnpm --filter @steer/data test:integration --candidate-journey` for that one joined
+scenario, or `--run-discovery` to include the retained-history cases and independent
+six-case preview/head-race scenario. Neither selection is the full SQL suite.
+Current results and any failed attempts are in [0269 evidence](../intent/0269/EVIDENCE.md).
+
 Factories remain explicit and uninstalled. Runtime records adoption, scoped human
 and service grants, qualified publication/consent verification, provider permissions,
 and real signed-in UI/readback acceptance remain required. No paid call, real GitHub
