@@ -9,6 +9,8 @@ import { createCandidateSavePreviewClient } from './candidate-save-preview-clien
 import { createIntentRunDiscoveryTransport } from './intent-run-discovery-transport';
 import { createCandidateSavePrepareClient } from './candidate-save-prepare-client';
 import { createCandidateSaveStartClient } from './candidate-save-start-client';
+import { createCandidateProposalClient } from './candidate-proposal-client';
+import type { CandidateProposalOutput } from '@steer/tool-registry/candidate-proposal-contracts';
 import type { CandidateSaveStartOutput } from '@steer/tool-registry/candidate-save-start-contracts';
 import { candidateSaveStatusFragment } from './candidate-save-status-client';
 import { candidateSavePrepareInputSchema, type CandidateSavePrepareInput, type CandidateSavePrepareOutput } from '@steer/tool-registry/candidate-save-prepare-contracts';
@@ -20,23 +22,25 @@ export default function CandidatePackagePreview({ review, source, identity, expi
   const [item, setItem] = useState(''), [state, setState] = useState('idle'), [receipt, setReceipt] = useState<{ key: string; output: CandidateSavePreviewOutput } | null>(null);
   const [confirmation, setConfirmation] = useState<{ key: string; input: CandidateSavePrepareInput; output: CandidateSavePrepareOutput | null; reference: CandidateSavePrepareOutput['reference']; busy: boolean } | null>(null);
   const [saveRequest, setSaveRequest] = useState<{ key: string; output: CandidateSaveStartOutput | null; busy: boolean } | null>(null);
-  const contextKey = JSON.stringify([review, source, identity, expiresAt]), selectionKey = JSON.stringify([contextKey, selected, item]);
+  const [reviseProposal, setReviseProposal] = useState(false), [proposals, setProposals] = useState<CandidateProposalOutput | null>(null), [proposal, setProposal] = useState('');
+  const contextKey = JSON.stringify([review, source, identity, expiresAt]), selectionKey = JSON.stringify([contextKey, selected, item, reviseProposal, proposal]);
   const active = useRef(selectionKey); active.current = selectionKey;
-  const owner = useRef<{ start: ReturnType<typeof createCandidateSaveStartClient>; prepare: ReturnType<typeof createCandidateSavePrepareClient>; preview: ReturnType<typeof createCandidateSavePreviewClient>; discovery: ReturnType<typeof createIntentRunDiscoveryTransport>; valid(): boolean } | null>(null);
+  const owner = useRef<{ proposals: ReturnType<typeof createCandidateProposalClient>; start: ReturnType<typeof createCandidateSaveStartClient>; prepare: ReturnType<typeof createCandidateSavePrepareClient>; preview: ReturnType<typeof createCandidateSavePreviewClient>; discovery: ReturnType<typeof createIntentRunDiscoveryTransport>; valid(): boolean } | null>(null);
   const busy = useRef(false), recordsExpiry = useRef(0), heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     const preview = createCandidateSavePreviewClient(window.location.origin), discovery = createIntentRunDiscoveryTransport(window.location.origin), prepare = createCandidateSavePrepareClient(window.location.origin);
     const start = createCandidateSaveStartClient(window.location.origin);
+    const proposals = createCandidateProposalClient(window.location.origin);
     let closed = false, last = Date.now(); recordsExpiry.current = 0; busy.current = false;
     const valid = () => { const now = Date.now(), expiry = Date.parse(expiresAt);
       const result = !closed && !document.hidden && Number.isFinite(expiry) && now >= last && now < expiry && (!recordsExpiry.current || now < recordsExpiry.current);
       last = now; return result; };
-    const session = { start, prepare, preview, discovery, valid }; owner.current = session;
-    const clear = () => { closed = true; start.close(); prepare.close(); preview.close(); discovery.close(); setPage(null); setSelected(''); setReceipt(null); setConfirmation(null); setSaveRequest(null); setState('closed'); };
+    const session = { proposals, start, prepare, preview, discovery, valid }; owner.current = session;
+    const clear = () => { closed = true; proposals.close(); start.close(); prepare.close(); preview.close(); discovery.close(); setProposals(null); setProposal(''); setPage(null); setSelected(''); setReceipt(null); setConfirmation(null); setSaveRequest(null); setState('closed'); };
     const check = () => { if (!valid()) clear(); };
-    setPage(null); setSelected(''); setItem(''); setReceipt(null); setConfirmation(null); setSaveRequest(null); setState('idle'); check();
+    setReviseProposal(false); setProposals(null); setProposal(''); setPage(null); setSelected(''); setItem(''); setReceipt(null); setConfirmation(null); setSaveRequest(null); setState('idle'); check();
     const timer = setInterval(check, 1000); document.addEventListener('visibilitychange', check); window.addEventListener('pagehide', clear);
-    return () => { closed = true; start.close(); prepare.close(); preview.close(); discovery.close(); if (owner.current === session) owner.current = null; clearInterval(timer);
+    return () => { closed = true; proposals.close(); start.close(); prepare.close(); preview.close(); discovery.close(); if (owner.current === session) owner.current = null; clearInterval(timer);
       document.removeEventListener('visibilitychange', check); window.removeEventListener('pagehide', clear); };
   }, [contextKey, expiresAt]);
   const result = receipt?.key === selectionKey ? receipt.output : null;
@@ -58,20 +62,37 @@ export default function CandidatePackagePreview({ review, source, identity, expi
     finally { if (owner.current === session) busy.current = false; }
   }
   const existing = review.choice.action === 'extend-existing' ? /^items\/([^/]+)\/BRIEF\.md$/.exec(review.choice.target.path)?.[1] : undefined;
+  const chosenProposal = reviseProposal ? proposals?.entries.find(entry => entry.proposalId === proposal) : undefined;
+  const destinationReady = !reviseProposal || !!(chosenProposal && review.choice.action === 'extend-existing' && chosenProposal.target.revision === review.choice.target.revision);
+  async function findProposals(cursor: string | null = null) {
+    const session = owner.current;
+    if (!session?.valid() || busy.current || !existing || !reviseProposal) return;
+    busy.current = true; setProposals(null); setProposal(''); setReceipt(null); setState('finding-proposals');
+    try {
+      const output = await session.proposals.list({ organizationId: review.organizationId, productId: review.productId,
+        repository: review.repository, branch: review.branch, itemId: existing, revision: review.expectedHead, cursor });
+      if (owner.current !== session || !session.valid()) return;
+      setProposals(output); setState('ready');
+    } catch { if (owner.current === session && session.valid()) setState('proposals-unavailable'); }
+    finally { if (owner.current === session) busy.current = false; }
+  }
   const entry = page?.entries.find(e => e.kind === 'development' && e.operationId === selected);
   const { kind: _kind, subject: _subject, branch: _branch, expectedHead: _head, documents: _docs, assessmentDigest: _assessment,
     dispositionDigest: _direction, saveConfirmed: _consent, operationCreated: _operation, savedToGit: _saved,
     executionAuthorized: _execution, gateSigned: _gate, ...reviewInput } = review;
   const parsed = candidateSavePreviewInputSchema.safeParse({ ...reviewInput, generation: entry?.kind === 'development'
-    ? { operationId: entry.operationId, inputDigest: entry.inputDigest } : null, itemId: existing ?? item, proposalId: null });
+    ? { operationId: entry.operationId, inputDigest: entry.inputDigest } : null, itemId: existing ?? item, proposalId: chosenProposal?.proposalId ?? null });
   async function preview() {
     const session = owner.current, key = selectionKey;
-    if (!session?.valid() || busy.current || !parsed.success || !source.content.documents) return;
+    if (!session?.valid() || busy.current || !parsed.success || !destinationReady || !source.content.documents) return;
     busy.current = true; setReceipt(null); setState('previewing');
     try {
       const output = await session.preview.preview(parsed.data, source.content.documents);
       if (owner.current !== session || !session.valid() || active.current !== key) return;
       if (JSON.stringify(output.review) !== JSON.stringify(review)) throw new Error();
+      if (chosenProposal && (output.destination.amendment?.parentProposalDigest !== chosenProposal.pointerDigest
+        || output.destination.previousBundleDigest !== chosenProposal.reference.manifestDigest
+        || JSON.stringify(output.destination.amendment?.target) !== JSON.stringify(chosenProposal.target))) throw new Error();
       setReceipt({ key, output }); setState('ready');
     } catch { if (owner.current === session && session.valid() && active.current === key) {
       setPage(null); setSelected(''); setReceipt(null); setState('unavailable');
@@ -106,7 +127,7 @@ export default function CandidatePackagePreview({ review, source, identity, expi
   }
   // An uncertain acknowledgement keeps the same command. The package controls
   // cannot silently turn a recovery click into a new confirmation.
-  const working = state === 'finding' || state === 'previewing' || !!confirmed;
+  const working = state === 'finding' || state === 'finding-proposals' || state === 'previewing' || !!confirmed;
   return <section aria-label="Candidate package preview">
     <h5>Preview the repository package</h5>
     <p>Select the drafting run to compare with your preserved documents. Previewing does not confirm a save or start an agent.</p>
@@ -123,9 +144,31 @@ export default function CandidatePackagePreview({ review, source, identity, expi
       : <><label htmlFor="candidate-item-name">Repository item ID</label><input id="candidate-item-name" value={item} maxLength={160} disabled={working || state === 'closed'}
         placeholder="For example, 0260-booking" onChange={e => { setItem(e.target.value); setReceipt(null); }} />
         <p>Use the assigned four-digit number and a short name. The server checks that this destination is available; this field does not reserve it.</p></>}
-    <button type="button" className="access-secondary" disabled={working || state === 'closed' || !parsed.success || (review.choice.action === 'extend-existing' && !existing)} onClick={() => { void preview(); }}>Preview exact package</button>
+    {existing && <>
+      <label><input type="checkbox" checked={reviseProposal} disabled={working || state === 'closed'} onChange={event => {
+        setReviseProposal(event.target.checked); setProposal(''); setProposals(null); setReceipt(null); setState('idle');
+      }} /> Revise an existing proposal</label>
+      <p>Without a selected proposal, current lifecycle authority must allow a new amendment or an unpulled candidate revision. Nothing here changes canonical documents.</p>
+      {reviseProposal && <>
+        <button type="button" className="access-secondary" disabled={working || state === 'closed'} onClick={() => { void findProposals(); }}>Find existing proposals</button>
+        {proposals && <><label htmlFor="candidate-existing-proposal">Existing proposal at the reviewed commit</label>
+          <select id="candidate-existing-proposal" value={proposal} disabled={working} onChange={event => { setProposal(event.target.value); setReceipt(null); }}>
+            <option value="">Select a verified proposal</option>{proposals.entries.map(entry => <option key={entry.proposalId} value={entry.proposalId}
+              disabled={review.choice.action !== 'extend-existing' || entry.target.revision !== review.choice.target.revision}>
+              {entry.proposalId}{review.choice.action === 'extend-existing' && entry.target.revision !== review.choice.target.revision ? ' — different target revision; review required' : ''}</option>)}</select>
+          <p>{proposals.inventoryCount} proposal pointers at this commit. Listing does not establish that a proposal is open or editable.</p>
+          {!proposals.entries.length && <p>No proposals on this page at the reviewed commit. This is not permission to create another intent.</p>}
+          {proposals.nextCursor && <button type="button" disabled={working} onClick={() => { void findProposals(proposals.nextCursor); }}>More proposals</button>}
+          {proposals.cursor && <button type="button" disabled={working} onClick={() => { void findProposals(); }}>First proposal page</button>}
+        </>}
+        {chosenProposal && <p>Selected proposal: <code>{chosenProposal.proposalId}</code>. The preview must preserve this exact parent pointer and bundle; no automatic rebasing.</p>}
+      </>}
+    </>}
+    <button type="button" className="access-secondary" disabled={working || state === 'closed' || !parsed.success || !destinationReady || (review.choice.action === 'extend-existing' && !existing)} onClick={() => { void preview(); }}>Preview exact package</button>
     <div role="status" aria-live="polite">{(state === 'finding' || state === 'previewing') && <p>{state === 'finding' ? 'Finding recorded drafting runs…' : 'Verifying the documents, both agent roles and destination…'}</p>}
       {state === 'unavailable' && <p>Package preview is unavailable or changed under current configuration or permissions. Your documents are unchanged; nothing was confirmed or saved.</p>}</div>
+    <div role="status" aria-live="polite">{state === 'finding-proposals' && <p>Verifying proposal pointers and exact bundles at the reviewed commit…</p>}
+      {state === 'proposals-unavailable' && <p>Existing proposals could not be verified. This is not an empty list. Your documents are unchanged; no proposal was selected or saved.</p>}</div>
     {result && <div><h5 ref={heading} tabIndex={-1}>Exact package preview — not saved</h5>
       <p>{result.destination.purpose} · {result.destination.repository} · {result.destination.branch} · items/{result.destination.itemId}</p>
       <p>Original generation: draft revision {result.generation.source.revision}. Preserved documents: revision {result.review.revision}.</p>

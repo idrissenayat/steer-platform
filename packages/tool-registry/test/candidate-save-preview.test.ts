@@ -80,6 +80,8 @@ test('linked new work, pre-pull corrections and amendment proposals bind their e
   assert.equal(correction.output.manifest.relationship?.itemId, '0300-related');
   const proposalId = randomUUID(), amendment = { proposalId, target: { itemId: targetId, revision: target.revision }, parentProposalDigest: null };
   const proposed = await create('extend-existing', { purpose: 'amendment', lifecycle: 'existing-target-proposal-only', amendment });
+  await assert.rejects(create('extend-existing', { purpose: 'amendment', lifecycle: 'existing-target-proposal-only', amendment }, proposalId),
+    /unavailable|changed/, 'Selecting an existing proposal cannot be reinterpreted as creating its first pointer.');
   assert.equal(proposed.output.pointerPath, `items/${targetId}/proposals/${proposalId}.json`);
   const plan = await planCandidateBundle({ ...proposed.submission.bundle, operationId: randomUUID() }, proposed.submission.confirmation);
   assert.equal(plan.files.length, 6);

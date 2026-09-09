@@ -558,3 +558,4 @@ export async function createIdentityRuntime(rawProfile: unknown, rawSecrets: unk
     throw new Error('Identity runtime configuration could not be initialized.');
   }
 }
+export { createCandidateProposalReader as createVerifiedCandidateProposalReader } from '@steer/adapters/candidate-proposal-reader';

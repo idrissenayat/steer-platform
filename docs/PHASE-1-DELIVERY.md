@@ -5729,3 +5729,27 @@ synthetic results do not establish live records adoption or signed-in acceptance
 
 Next: existing-proposal selection and missing-original diagnostics. Real records/
 model/provider authority and signed-in I1–I6 saved-repository acceptance remain open.
+
+## Development increment: 0263 — Select an existing proposal
+
+The read-only `intent.candidate.proposals` query enumerates a configured item's
+proposal pointers at an exact reviewed commit and verifies the current page's
+pointer, manifest and three document blobs. The actual package panel supports
+pagination and explicit selection, with no automatic selection, newness claim,
+canonical update or lifecycle inference. Missing/malformed evidence is unavailable,
+not an empty list. Different target revisions require review rather than rebasing.
+
+The next package preview must match the selected proposal, parent pointer, previous
+bundle and target. A selected existing ID cannot become creation of a first pointer.
+Existing exact confirmation/save recovery remains separate and cannot be replaced
+by changing selection. See [0263 evidence](../intent/0263/EVIDENCE.md) and
+[the selection guide](EXISTING-PROPOSAL-SELECTION.md) for measured verification.
+
+Verification: 1,243 regression tests, 40 focused candidate SQL/Temporal/native-Git
+checks plus migration, prototype/eight-package type checks and optimized Next build
+pass. All 219 local links in eight changed documents resolve; protected hashes are
+unchanged. The focused SQL run is not reported as a new full-suite result.
+
+The reader remains uninstalled; trusted destination/lifecycle composition,
+missing-original diagnostics, real records/model/provider authority and signed-in
+I1–I6 saved-repository acceptance remain open. No live save or deployment is enabled.

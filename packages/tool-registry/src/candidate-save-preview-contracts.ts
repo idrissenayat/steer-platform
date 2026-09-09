@@ -67,7 +67,8 @@ export async function describeCandidateSavePreview(raw: unknown, rawReview: unkn
     || (generation.source.revision === input.revision && (generation.source.revisionDigest !== input.revisionDigest || generation.source.scopeInputDigest !== input.scopeInputDigest))
     || (['organizationId', 'productId', 'repository', 'branch', 'expectedHead'] as const).some(k => destination[k] !== review[k])
     || destination.itemId !== itemId
-    || (proposalId !== null && destination.amendment?.proposalId !== proposalId)
+    || (proposalId !== null && (destination.amendment?.proposalId !== proposalId
+      || destination.purpose !== 'amendment' || !destination.amendment.parentProposalDigest || !destination.previousBundleDigest))
     || (proposalId === null && destination.amendment?.parentProposalDigest)) throw fail();
   const choice = input.choice;
   const target = 'target' in choice ? /^items\/([0-9]{4}-[a-z0-9]+(?:-[a-z0-9]+)*)\/BRIEF\.md$/.exec(choice.target.path)?.[1] : undefined;

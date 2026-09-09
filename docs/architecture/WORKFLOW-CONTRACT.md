@@ -1096,9 +1096,9 @@ operation/receipt or private source/prompts/wire output is disclosed.
 
 The actual UI explicitly discovers/selects a retained drafting run and previews
 the package. Its backend remains uninstalled; 0261 now composes human confirmation
-and immutable original admission/readback; 0262 adds the explicit workflow start. Existing
-amendment correction selection and explicit legacy publication mapping remain
-separate. See [the package guide](../CANDIDATE-PACKAGE-PREVIEW.md) and
+and immutable original admission/readback; 0262 adds the explicit workflow start.
+0263 adds verified existing-proposal selection; explicit legacy publication mapping
+remains separate. See [the package guide](../CANDIDATE-PACKAGE-PREVIEW.md) and
 [0260 specification](../../intent/0260/SPEC.md).
 
 ### Exact human confirmation and immutable original — 0261
@@ -1150,3 +1150,23 @@ the original status link during uncertainty. There is no automatic start/retry o
 browser storage of original bytes. The service remains uninstalled pending adopted
 runtime authority. See [the save-start guide](../CANDIDATE-SAVE-START.md),
 [0262 specification](../../intent/0262/SPEC.md) and [evidence](../../intent/0262/EVIDENCE.md).
+
+### Exact existing-proposal selection — 0263
+
+The separate read-only `intent.candidate.proposals` query enumerates a configured
+item's proposal pointers at the reviewed immutable commit. Each page verifies
+pointer, manifest and three document blobs against the same tree before releasing
+metadata under current read authority. Malformed or inaccessible evidence is an
+error, not an empty list. Inventory completeness is not lifecycle eligibility.
+
+The actual package panel lists and paginates these references with no automatic
+selection. A proposal targeting a different reviewed revision cannot be silently
+rebased. A selected ID must remain an existing amendment with the same parent
+pointer, previous bundle and target in the next preview. Confirmation and save
+continue through their distinct exact-original operations; selection cannot sign,
+write, replace an uncertain command or promote a canonical Exam.
+
+The adapter remains uninstalled. Trusted current destination/lifecycle composition,
+records adoption, provider/grant evidence and real UI acceptance remain required.
+See [the selection guide](../EXISTING-PROPOSAL-SELECTION.md),
+[0263 specification](../../intent/0263/SPEC.md) and [evidence](../../intent/0263/EVIDENCE.md).

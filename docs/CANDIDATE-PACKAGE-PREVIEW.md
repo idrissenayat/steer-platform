@@ -78,6 +78,11 @@ reference-only save request after preservation. A lost
 acknowledgement must recover the original operation, not produce another save.
 Dispatch independently rechecks current authority.
 
+[0263](EXISTING-PROPOSAL-SELECTION.md) adds explicit discovery and selection of
+existing proposal pointers at the reviewed commit. The selected parent and target
+must match the next preview; incompatible target revisions cannot be silently
+rebased. Listing a proposal does not establish editability or save authority.
+
 D1 adoption, the proposed model budget, real destination/source/lifecycle/gate
 authority and the signed-in saved-repository acceptance journey remain open.
 The factory is not installed by default. See [0260 evidence](../intent/0260/EVIDENCE.md)

@@ -1,4 +1,6 @@
 import { roles } from '@steer/domain/types';
+import { candidateProposalInputSchema, candidateProposalOutputSchema, candidateProposalScopeSchema, verifyCandidateProposals,
+  type CandidateProposalReader, type CandidateProposalOutput } from './candidate-proposal-contracts.ts';
 import { candidateSaveStartInputSchema, candidateSaveStartOutputSchema, verifyCandidateSaveStart,
   type CandidateSaveStarter, type CandidateSaveStartOutput } from './candidate-save-start-contracts.ts';
 import { candidateSaveStatusInputSchema, candidateSaveStatusOutputSchema, candidateSaveStatusScopeSchema, verifyCandidateSaveStatus,
@@ -167,7 +169,7 @@ export interface RecordedBriefRecoveryScheduler {
   start(): Promise<unknown>;
   inspect(): Promise<unknown>;
 }
-export interface ToolServices { candidateSaveStarter?: CandidateSaveStarter; candidateSavePreparer?: CandidateSavePreparer; candidateSavePreviewer?: CandidateSavePreviewer; intentRunDiscovery?: IntentRunDiscoveryReader; intentDevelopmentHistoryReader?: IntentDevelopmentHistoryReader; intentScopeHistoryReader?: IntentScopeHistoryReader; candidateSaveReviewer?: CandidateSaveReviewer; candidateSaveStatusReader?: CandidateSaveStatusReader; candidateBundleReader?: CandidateBundleReadService; intentScopeDiscovery?: IntentScopeDiscoveryReader; intentScopeStarter?: IntentScopeStarter; intentScopePreparer?: IntentScopePreparer; intentScopeReader?: IntentScopeReader; intentDraftDiscovery?: IntentDraftDiscoveryReader; intentDevelopmentReviewReader?: IntentDevelopmentReviewReader; intentDevelopmentPreparer?: IntentDevelopmentPreparer; intentDevelopmentStarter?: IntentDevelopmentStarter; intentDevelopmentReader?: IntentDevelopmentReader; intentDrafts?: IntentDraftService; intentAgent?: IntentAgentService; artifactProjection?: ArtifactProjectionReader; reconciliationScheduler?: ReconciliationScheduler; recordedBriefScheduler?: RecordedBriefScheduler; recordedBriefRecoveryScheduler?: RecordedBriefRecoveryScheduler; projectionChanges?: ProjectionChangeReader; projectionSnapshot?: ProjectionSnapshotReader; briefWriter?: BriefWriter; briefWriterFactory?: () => ManagedBriefWriter; briefDestination?: BriefDestinationReader }
+export interface ToolServices { candidateProposalReader?: CandidateProposalReader; candidateSaveStarter?: CandidateSaveStarter; candidateSavePreparer?: CandidateSavePreparer; candidateSavePreviewer?: CandidateSavePreviewer; intentRunDiscovery?: IntentRunDiscoveryReader; intentDevelopmentHistoryReader?: IntentDevelopmentHistoryReader; intentScopeHistoryReader?: IntentScopeHistoryReader; candidateSaveReviewer?: CandidateSaveReviewer; candidateSaveStatusReader?: CandidateSaveStatusReader; candidateBundleReader?: CandidateBundleReadService; intentScopeDiscovery?: IntentScopeDiscoveryReader; intentScopeStarter?: IntentScopeStarter; intentScopePreparer?: IntentScopePreparer; intentScopeReader?: IntentScopeReader; intentDraftDiscovery?: IntentDraftDiscoveryReader; intentDevelopmentReviewReader?: IntentDevelopmentReviewReader; intentDevelopmentPreparer?: IntentDevelopmentPreparer; intentDevelopmentStarter?: IntentDevelopmentStarter; intentDevelopmentReader?: IntentDevelopmentReader; intentDrafts?: IntentDraftService; intentAgent?: IntentAgentService; artifactProjection?: ArtifactProjectionReader; reconciliationScheduler?: ReconciliationScheduler; recordedBriefScheduler?: RecordedBriefScheduler; recordedBriefRecoveryScheduler?: RecordedBriefRecoveryScheduler; projectionChanges?: ProjectionChangeReader; projectionSnapshot?: ProjectionSnapshotReader; briefWriter?: BriefWriter; briefWriterFactory?: () => ManagedBriefWriter; briefDestination?: BriefDestinationReader }
 
 const contextInput = z.strictObject({ organizationId: identifier });
 const contextOutput = principalSchema.omit({ expiresAt: true });
@@ -1314,9 +1316,33 @@ const candidateRead = Object.freeze({ ...candidateReadGuard, output: candidateBu
   },
 });
 
+const candidateProposalsGuard = defineQuery({ name: 'intent.candidate.proposals',
+  description: 'List verified proposal pointers at an exact reviewed Git commit. No lifecycle, editability, newness or save authority is inferred.',
+  input: candidateProposalInputSchema, output: principalSchema, handler: (_input, principal) => principal });
+const candidateProposals = Object.freeze({ ...candidateProposalsGuard, output: candidateProposalOutputSchema,
+  async invoke(raw: unknown, context: InvocationContext): Promise<CandidateProposalOutput> {
+    const initial = candidateProposalsGuard.invoke(raw, context), input = candidateProposalInputSchema.parse(raw);
+    const service = context.services?.candidateProposalReader;
+    if (!service || !context.revalidate) throw new ToolError('UNAVAILABLE');
+    const current = async () => {
+      await freshToolPrincipal(candidateProposalsGuard, input, initial, context);
+      const scope = candidateProposalScopeSchema.safeParse(service.scope);
+      if (!scope.success || scope.data.subject !== initial.subject || !scope.data.itemIds.includes(input.itemId)
+        || (['organizationId', 'productId', 'repository', 'branch'] as const).some(k => scope.data[k] !== input[k])) throw new ToolError('FORBIDDEN');
+    };
+    await current(); let result: unknown, failed = false;
+    try { result = await service.list(input, current); } catch { failed = true; }
+    await current(); if (failed) throw new ToolError('UNAVAILABLE');
+    let output: CandidateProposalOutput;
+    try { output = verifyCandidateProposals(input, result); } catch { throw new ToolError('INTERNAL_ERROR'); }
+    await current(); return output;
+  },
+});
+
 // Frozen definitions are the common source for discovery, dispatch and HTTP contracts.
-const definitions = Object.freeze([candidateStart, candidatePrepare, candidatePreview, runDiscovery, developmentHistory, scopeHistory, candidateSaveReview, candidateStatus, candidateRead, scopeDiscovery, scopeStart, scopePrepare, scopeRead, draftDiscovery, developmentReview, developmentPrepare, developmentStart, developmentRead,draftCreate, draftAppend, draftRead, Object.freeze(overlapQuery), Object.freeze(agentCommand), Object.freeze(contextQuery), Object.freeze(projectionQuery), Object.freeze(reconciliationStart), Object.freeze(reconciliationStatus), Object.freeze(recordedBriefStart), Object.freeze(recordedBriefStatus), Object.freeze(recordedBriefRecover), Object.freeze(recordedBriefRecoveryStatus), Object.freeze(changesQuery), Object.freeze(snapshotQuery), Object.freeze(briefQuery), Object.freeze(artifactsQuery), Object.freeze(decisionsQuery), Object.freeze(evidenceQuery), Object.freeze(catalogQuery), Object.freeze(previewQuery), Object.freeze(briefSaveCommand), Object.freeze(briefSaveStatusQuery), Object.freeze(destinationQuery)]);
+const definitions = Object.freeze([candidateProposals, candidateStart, candidatePrepare, candidatePreview, runDiscovery, developmentHistory, scopeHistory, candidateSaveReview, candidateStatus, candidateRead, scopeDiscovery, scopeStart, scopePrepare, scopeRead, draftDiscovery, developmentReview, developmentPrepare, developmentStart, developmentRead,draftCreate, draftAppend, draftRead, Object.freeze(overlapQuery), Object.freeze(agentCommand), Object.freeze(contextQuery), Object.freeze(projectionQuery), Object.freeze(reconciliationStart), Object.freeze(reconciliationStatus), Object.freeze(recordedBriefStart), Object.freeze(recordedBriefStatus), Object.freeze(recordedBriefRecover), Object.freeze(recordedBriefRecoveryStatus), Object.freeze(changesQuery), Object.freeze(snapshotQuery), Object.freeze(briefQuery), Object.freeze(artifactsQuery), Object.freeze(decisionsQuery), Object.freeze(evidenceQuery), Object.freeze(catalogQuery), Object.freeze(previewQuery), Object.freeze(briefSaveCommand), Object.freeze(briefSaveStatusQuery), Object.freeze(destinationQuery)]);
 export function invokeTool(name: 'intent.overlap.check', input: unknown, context: InvocationContext): Promise<IntentOverlapOutput>;
+export function invokeTool(name: 'intent.candidate.proposals', input: unknown, context: InvocationContext): Promise<CandidateProposalOutput>;
 export function invokeTool(name: 'intent.candidate.read', input: unknown, context: InvocationContext): Promise<CandidateBundleReadOutput>;
 export function invokeTool(name: 'intent.candidate.save.status', input: unknown, context: InvocationContext): Promise<CandidateSaveStatusOutput>;
 export function invokeTool(name: 'intent.candidate.save.review', input: unknown, context: InvocationContext): Promise<CandidateSaveReviewOutput>;
@@ -1357,7 +1383,7 @@ export function invokeTool(name: 'intent.brief.catalog', input: unknown, context
 export function invokeTool(name: 'intent.brief.preview', input: unknown, context: InvocationContext): Promise<BriefPreview>;
 export function invokeTool(name: 'intent.brief.destination', input: unknown, context: InvocationContext): Promise<BriefDestination>;
 export function invokeTool(name: 'intent.brief.save' | 'intent.brief.save.status', input: unknown, context: InvocationContext): Promise<BriefSaveOutput>;
-export function invokeTool(name: string, input: unknown, context: InvocationContext): z.output<typeof contextOutput> | Promise<CandidateSaveStartOutput | CandidateSavePrepareOutput | CandidateSavePreviewOutput | IntentRunDiscoveryOutput | IntentDevelopmentHistoryOutput | IntentScopeHistoryOutput | CandidateSaveReviewOutput | CandidateSaveStatusOutput | CandidateBundleReadOutput | IntentScopeDiscoveryOutput | IntentScopeStartOutput | IntentScopePrepareOutput | IntentScopeReadOutput | IntentDraftDiscoveryOutput | IntentDevelopmentReviewOutput | IntentDevelopmentPrepareOutput | IntentDevelopmentStartOutput | IntentDevelopmentReadOutput | IntentDraftCreateOutput | IntentDraftAppendOutput | IntentDraftReadOutput | IntentOverlapOutput | AgentOutput | ArtifactProjection | BriefProjection | BriefArtifacts | BriefDecisions | DecisionEvidence | BriefCatalog | BriefPreview | BriefSaveOutput | BriefDestination | null | ReconciliationStartResult | RecordedBriefStartResult | ReconciliationStatusResult | ProjectionChangesResult | ProjectionSnapshotResult>;
+export function invokeTool(name: string, input: unknown, context: InvocationContext): z.output<typeof contextOutput> | Promise<CandidateProposalOutput | CandidateSaveStartOutput | CandidateSavePrepareOutput | CandidateSavePreviewOutput | IntentRunDiscoveryOutput | IntentDevelopmentHistoryOutput | IntentScopeHistoryOutput | CandidateSaveReviewOutput | CandidateSaveStatusOutput | CandidateBundleReadOutput | IntentScopeDiscoveryOutput | IntentScopeStartOutput | IntentScopePrepareOutput | IntentScopeReadOutput | IntentDraftDiscoveryOutput | IntentDevelopmentReviewOutput | IntentDevelopmentPrepareOutput | IntentDevelopmentStartOutput | IntentDevelopmentReadOutput | IntentDraftCreateOutput | IntentDraftAppendOutput | IntentDraftReadOutput | IntentOverlapOutput | AgentOutput | ArtifactProjection | BriefProjection | BriefArtifacts | BriefDecisions | DecisionEvidence | BriefCatalog | BriefPreview | BriefSaveOutput | BriefDestination | null | ReconciliationStartResult | RecordedBriefStartResult | ReconciliationStatusResult | ProjectionChangesResult | ProjectionSnapshotResult>;
 export function invokeTool(name: string, input: unknown, context: InvocationContext) {
   const definition = definitions.find((tool) => tool.name === name);
   if (!definition) throw new ToolError('TOOL_NOT_FOUND');

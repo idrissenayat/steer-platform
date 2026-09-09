@@ -8,9 +8,21 @@ import { createElement, act } from 'react';
 import { JSDOM } from 'jsdom';
 import { candidateSavePreviewFixture } from '../../../packages/tool-registry/test/candidate-save-preview.fixture.ts';
 import { randomUUID } from 'node:crypto';
+import { describeCandidateSaveReview } from '@steer/tool-registry/candidate-save-review-contracts';
+import { describeCandidateSavePreview } from '@steer/tool-registry/candidate-save-preview-contracts';
 
-async function fixture() {
-  const f = await candidateSavePreviewFixture(), require = createRequire(import.meta.url);
+async function fixture(existing = false) {
+  let f = await candidateSavePreviewFixture(existing ? 2 : 0, existing);
+  const require = createRequire(import.meta.url);
+  if (existing) {
+    const brief = f.evidence.inventory[0], itemId = brief.targetId.slice('items/'.length);
+    const choice = { action: 'extend-existing', target: { path: brief.path, revision: f.output.expectedHead, contentDigest: brief.contentDigest }, reason: 'Revise the existing proposal explicitly.' };
+    const output = await describeCandidateSaveReview({ ...f.input, choice }, f.scope.subject, f.scope.branch, f.content.documents, f.evidence, f.binding);
+    const previewInput = { ...f.previewInput, choice, itemId, proposalId: randomUUID(), reviewDigest: output.reviewDigest };
+    const destination = { ...f.destination, itemId, purpose: 'amendment', lifecycle: 'existing-target-proposal-only', previousBundleDigest: '1'.repeat(64),
+      amendment: { proposalId: previewInput.proposalId, target: { itemId, revision: choice.target.revision }, parentProposalDigest: '2'.repeat(64) } };
+    f = { ...f, output, previewInput, destination, prepared: await describeCandidateSavePreview(previewInput, output, f.content.documents, f.lineage, destination, 'app:synthetic') };
+  }
   let code = (await transformWithOxc(readFileSync(new URL('../app/candidate-save-preview.tsx', import.meta.url), 'utf8'), '/synthetic/candidate-save-preview.tsx', { jsx: { runtime: 'automatic' } })).code;
   for (const specifier of [...code.matchAll(/from\s+(["'])([^"']+)\1/g)].map(m => m[2])) {
     const target = specifier.startsWith('./') ? new URL(`../app/${specifier.slice(2)}.ts`, import.meta.url).href : pathToFileURL(require.resolve(specifier)).href;
@@ -27,12 +39,27 @@ async function fixture() {
     scope: 'current-owner-records-configuration-all-preserved-revisions', order: 'revision-type-id-descending-not-chronological',
     contentLoaded: false, executionAuthorized: false, savedToGit: false, gateSigned: false };
   const state = { calls: [], commands: [], starts: [], output: f.prepared.output, page, denied: false, wait: null, confirmation: 'prepared', start: 'acknowledged' };
+  if (existing) {
+    const home = { organizationId: f.scope.organizationId, productId: f.scope.productId, repository: f.scope.repository, branch: f.scope.branch, itemId: f.previewInput.itemId, revision: f.output.expectedHead };
+    const entry = { proposalId: f.previewInput.proposalId, reference: { ...home, bundleId: randomUUID(), manifestDigest: f.destination.previousBundleDigest },
+      pointerDigest: f.destination.amendment.parentProposalDigest, target: f.destination.amendment.target };
+    state.proposals = { ...home, cursor: null, kind: 'steer-candidate-proposals/v1', treeSha: 'a'.repeat(40), inventoryCount: 2, inventoryComplete: true,
+      entries: [entry, { ...entry, proposalId: randomUUID(), target: { ...entry.target, revision: '0'.repeat(40) } }].sort((a,b) => a.proposalId.localeCompare(b.proposalId)), nextCursor: null,
+      lifecycleVerified: false, executionAuthorized: false, savedToGit: false, gateSigned: false };
+  }
   const saveReference = { organizationId: f.scope.organizationId, productId: f.scope.productId, repository: f.scope.repository, branch: f.scope.branch,
     draftId: f.input.draftId, draftRevision: 1, operationId: randomUUID(), inputDigest: 'a'.repeat(64) };
   globalThis.fetch = async (url, init) => {
     state.calls.push(String(url)); assert.equal(init.credentials, 'same-origin'); assert.equal(init.cache, 'no-store');
     assert.doesNotMatch(init.body, /Human-edited Exam|Current corrected Brief|serviceCommitter|savedToGit|saveConfirmed/);
     if (String(url).endsWith('/intent.runs.discover')) return Response.json(state.page);
+    if (String(url).endsWith('/intent.candidate.proposals')) {
+      if (state.wait) await state.wait;
+      if (state.denied) return Response.json({ PRIVATE: 'denied' }, { status: 403 });
+      assert.deepEqual(JSON.parse(init.body), { organizationId: f.scope.organizationId, productId: f.scope.productId, repository: f.scope.repository,
+        branch: f.scope.branch, itemId: f.previewInput.itemId, revision: f.output.expectedHead, cursor: null });
+      return Response.json(state.proposals);
+    }
     if (String(url).endsWith('/intent.candidate.save.start')) {
       const input = JSON.parse(init.body); state.starts.push(input); assert.deepEqual(input, { ...saveReference, save: true });
       if (state.wait) await state.wait;
@@ -65,8 +92,8 @@ async function fixture() {
   const choose = async () => {
     await click('Find drafting runs for this package'); await until(() => document.querySelector('select'));
     await act(async () => { const select = document.querySelector('select'); select.value = f.previewInput.generation.operationId; select.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
-      const input = document.querySelector('input'); Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set.call(input, f.previewInput.itemId);
-      input.dispatchEvent(new dom.window.Event('input', { bubbles: true })); await tick(); });
+      if (!existing) { const input = document.querySelector('input'); Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set.call(input, f.previewInput.itemId);
+        input.dispatchEvent(new dom.window.Event('input', { bubbles: true })); } await tick(); });
   };
   await render();
   return { f, state, props, render, choose, click, until, button, dom,
@@ -154,4 +181,49 @@ test('package UI conceals stale/denied proposals and drops late results after id
     await act(async () => { Object.defineProperty(document, 'hidden', { configurable: true, value: true }); document.dispatchEvent(new t.dom.window.Event('visibilitychange')); });
     assert.doesNotMatch(document.body.textContent, /Exact package preview — not saved/); assert.equal(t.button('Preview exact package').disabled, true);
   } finally { release?.(); await t.cleanup(); }
+});
+test('actual proposal chooser lists verified references, blocks target rebasing and preserves the selected parent through preview and confirmation', async () => {
+  const t = await fixture(true);
+  try {
+    await t.choose();
+    await act(async () => { document.querySelector('input[type=checkbox]').click(); });
+    assert.equal(t.button('Preview exact package').disabled, true);
+    await t.click('Find existing proposals'); await t.until(() => document.getElementById('candidate-existing-proposal'));
+    const select = document.getElementById('candidate-existing-proposal');
+    assert.equal([...select.options].filter(o => o.disabled).length, 1);
+    assert.match(document.body.textContent, /different target revision; review required/);
+    await act(async () => { select.value = t.f.previewInput.proposalId; select.dispatchEvent(new t.dom.window.Event('change', { bubbles: true })); });
+    await t.click('Preview exact package'); await t.until(() => t.button('Confirm this exact package'));
+    assert.match(document.body.textContent, /no automatic rebasing/); assert.equal(t.state.commands.length, 0);
+    await t.click('Confirm this exact package'); await t.until(() => t.state.commands.length === 1);
+    assert.equal(t.state.commands[0].preview.proposalId, t.f.previewInput.proposalId);
+    assert.equal(document.querySelector('input[type=checkbox]').disabled, true);
+    assert.equal(t.state.starts.length, 0);
+  } finally { await t.cleanup(); }
+});
+test('proposal listing failures and late identity loss never become an empty inventory or a selectable stale proposal', async () => {
+  const t = await fixture(true);
+  try {
+    await t.choose(); await act(async () => { document.querySelector('input[type=checkbox]').click(); });
+    t.state.denied = true; await t.click('Find existing proposals');
+    await t.until(() => document.body.textContent.includes('This is not an empty list'));
+    assert.equal(document.getElementById('candidate-existing-proposal'), null); assert.equal(t.button('Preview exact package').disabled, true);
+    t.state.denied = false; let release; t.state.wait = new Promise(r => { release = r; });
+    await t.click('Find existing proposals'); await t.render({ identity: 'another-human' });
+    release(); await act(async () => { await new Promise(r => setTimeout(r, 50)); });
+    assert.equal(document.getElementById('candidate-existing-proposal'), null); assert.equal(t.state.commands.length, 0);
+  } finally { await t.cleanup(); }
+});
+test('a preview substituted away from the chosen proposal parent is withheld before confirmation', async () => {
+  const t = await fixture(true);
+  try {
+    await t.choose(); await act(async () => { document.querySelector('input[type=checkbox]').click(); });
+    await t.click('Find existing proposals'); await t.until(() => document.getElementById('candidate-existing-proposal'));
+    await act(async () => { const select = document.getElementById('candidate-existing-proposal'); select.value = t.f.previewInput.proposalId; select.dispatchEvent(new t.dom.window.Event('change', { bubbles: true })); });
+    const substituted = await describeCandidateSavePreview(t.f.previewInput, t.f.output, t.f.content.documents, t.f.lineage,
+      { ...t.f.destination, amendment: { ...t.f.destination.amendment, parentProposalDigest: '9'.repeat(64) } }, 'app:synthetic');
+    t.state.output = substituted.output;
+    await t.click('Preview exact package'); await t.until(() => document.body.textContent.includes('Package preview is unavailable or changed'));
+    assert.equal(t.button('Confirm this exact package'), undefined); assert.equal(t.state.commands.length, 0);
+  } finally { await t.cleanup(); }
 });
