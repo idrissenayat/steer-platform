@@ -6214,3 +6214,21 @@ own, and real signed-in UI/repository acceptance remains in the denominator.
 No spending, D1 adoption, live runtime authority or gate changes are inferred.
 Next complete the new-linked authenticated save/reopen checkpoint, with remaining
 amendment/continuation saves, provider-load reduction and live acceptance still open.
+
+## 0281 — Authenticated linked-intent save/reopen
+
+Verified synthetic integration: explicit new-linked choice now targets the reviewed versioned
+candidate while saving a different item. Synthetic profile scope explicitly
+includes both the new destination and linked target; discovery alone is not
+authority. Added assertions cover both drafting roles, current source denial,
+wrong target digest, create-only files, unchanged linked-item inventory and
+relationship preservation through exact older-commit reopen. See
+[specification](../intent/0281/SPEC.md) and [evidence](../intent/0281/EVIDENCE.md).
+The linked joined selection and idempotent migration check pass, as do the default
+three joined checks plus their migration check. All 15 focused selector/choice/
+native-destination checks, 1,371 broad tests, prototype/eight-package typechecks,
+production build, protected hashes, 95-artifact kit and token-scope audit pass.
+The full SQL suite and revision selection were not rerun; no prior result is
+presented as new verification. Overall progress is now **60% (15/25; +4 points)**
+for completed C08. Next: first-amendment save/reopen, with continuation, performance
+and live activation/acceptance still open. No live authority changes.

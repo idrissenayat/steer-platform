@@ -93,6 +93,15 @@ export function authenticatedCandidateSave(f: Fixture, native: ReturnType<typeof
         const root = `items/${request.bundle.itemId}`, sourceReader = native.reader(f.config.organizationId);
         const priorFiles = direction === 'candidate-revision' ? (await sourceReader.readDirectoryInventory(root, plan.expectedHead)).entries.filter(entry => entry.type === 'blob') : [];
         const priorPointer = direction === 'candidate-revision' ? JSON.parse((await sourceReader.readArtifact(`${root}/CANDIDATE.json`, plan.expectedHead)).content) : null;
+        const linkedBefore = direction === 'new-linked' ? (await sourceReader.readDirectoryInventory('items/0002-existing', plan.expectedHead)).entries : null;
+        if (linkedBefore) {
+          assert.ok(linkedBefore.length > 0); assert.equal(request.bundle.itemId, '0281-linked');
+          assert.deepEqual(request.bundle.relationship, { itemId: '0002-existing', revision: plan.expectedHead });
+          assert.equal(request.bundle.previousBundleDigest, null); assert.equal(request.bundle.amendment, null);
+          assert.equal(plan.requiredLifecycle, 'absent-item'); assert.ok(plan.files.every(file => file.mode === 'create'));
+          assert.ok(plan.files.every(file => file.path.startsWith(`${root}/`) || file.path === `.steer/authoring/bundle-operations/${target.operationId}.json`));
+          assert.ok(plan.files.every(file => file.path !== `${root}/SPEC.md` && file.path !== `${root}/EXAM.md`));
+        }
         if (priorPointer) {
           assert.equal(request.bundle.previousBundleDigest, native.parents().priorManifest); assert.equal(priorPointer.manifestDigest, request.bundle.previousBundleDigest);
           assert.notEqual(priorPointer.bundleId, request.bundle.bundleId);
@@ -143,6 +152,11 @@ export function authenticatedCandidateSave(f: Fixture, native: ReturnType<typeof
         assert.equal(receipt.outcome, 'committed'); if (receipt.outcome !== 'committed') throw new Error('Expected verified receipt');
         assert.equal(receipt.saveVerified, true); assert.equal(receipt.reference.revision, native.git.head());
         assert.equal(receipt.reference.manifestDigest, plan.manifestDigest); assert.equal(receipt.confirmationDigest, plan.confirmationDigest);
+        if (linkedBefore) {
+          assert.deepEqual((await sourceReader.readDirectoryInventory('items/0002-existing', receipt.reference.revision)).entries, linkedBefore,
+            'Creating linked work must leave every linked source file and prior bundle unchanged.');
+          assert.notEqual(request.bundle.relationship!.revision, receipt.reference.revision, 'The relationship stays at the reviewed source commit.');
+        }
         if (priorPointer) {
           const after = (await sourceReader.readDirectoryInventory(root, receipt.reference.revision)).entries, changed = new Set(plan.files.map(file => file.path));
           for (const file of priorFiles.filter(file => !changed.has(file.path)))
@@ -167,6 +181,12 @@ export function authenticatedCandidateSave(f: Fixture, native: ReturnType<typeof
         const reopened = await verifyCandidateBundleRead(receipt.reference, await read('intent.candidate.read', receipt.reference));
         assert.equal(reopened.verification, 'exact-commit-bytes'); assert.deepEqual(reopened.documents, input.documents);
         assert.equal(reopened.manifestContent, plan.files.find(file => file.path.endsWith('/MANIFEST.json'))!.content);
+        if (linkedBefore) {
+          assert.deepEqual(reopened.manifest.relationship, request.bundle.relationship);
+          assert.equal(reopened.manifest.relationship!.revision, plan.expectedHead);
+          assert.equal(reopened.manifest.target, null); assert.equal(reopened.manifest.previousBundleDigest, null);
+          assert.equal(reopened.manifest.purpose, 'new-candidate');
+        }
         readAllowed = false;
         const refused = await post('intent.candidate.read', receipt.reference); assert.equal(refused.status, 503);
         assert.doesNotMatch(await refused.text(), /PRIVATE|Synthetic generated|Human correction|MANIFEST/); readAllowed = true;

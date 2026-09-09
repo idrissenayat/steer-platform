@@ -62,6 +62,31 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Distinct linked-intent save — 0281
+
+The authenticated joined fixture now supports an explicit new-linked choice
+targeting the reviewed versioned candidate Brief. The governed synthetic profile
+must include both the new destination and source target; finding a source is not
+authority. A dedicated native-destination negative rejects an omitted target.
+Both drafting roles receive the exact choice. A corrected Brief requires fresh
+scope review; wrong target digests and current source denial withhold preview.
+
+The new item uses create-only bundle/pointer/Brief and operation-receipt files,
+without writing a canonical root Spec/Exam or any linked-item file. The entire
+linked-item inventory stays identical after save. Exact older-commit reopen
+preserves the relationship's reviewed source commit even after a later branch
+edit. Lost confirmation/scheduler/provider replies, replay and runtime restart
+retain one candidate-save commit, one original and six synthetic model reservations.
+
+The linked joined selection and migration check pass, along with the default
+three joined checks plus their migration check, all 15 focused selector/choice/
+native-destination checks, 1,371 broad tests, typechecks and build. See
+[0281 evidence](../intent/0281/EVIDENCE.md). This completes C08 in the fixed tracker:
+60% (15/25; +4 percentage points), not a live-readiness or time estimate.
+No production source, live grant, model call, runtime binding or signed-in UI
+acceptance is supplied. Amendment/continuation saves, request volume, governed
+activation and real-user acceptance remain open.
+
 ### Existing pre-pull candidate revision — 0280
 
 The full authenticated synthetic journey also accepts an explicit existing
@@ -77,8 +102,8 @@ remain stable across lost acknowledgements, replay and runtime reconstruction.
 The revision's focused joined check and idempotent migration check pass, as do
 the default three joined checks plus their migration check, all 1,369 broad tests,
 prototype/eight-package typechecks and production build. See [0280 evidence](../intent/0280/EVIDENCE.md).
-This extends verification only, not production source or authority. New-linked,
-first-amendment and proposal-continuation joined saves, request-volume reduction,
+This extends verification only, not production source or authority. 0281 above
+adds linked save/reopen coverage. First-amendment and proposal-continuation joined saves, request-volume reduction,
 governed startup and actual live/user acceptance remain open.
 
 ### Request-owned corpus verification — 0279

@@ -120,6 +120,18 @@ export function authenticatedCandidateConfirmation(f: Fixture, native: ReturnTyp
           assert.equal(preview.destination.amendment, null); assert.equal(preview.destination.relationship, null);
           assert.ok('target' in choice); assert.match(choice.target.path, /\/candidates\/[a-f0-9-]+\/BRIEF\.md$/);
           assert.equal(preview.manifest.itemId, '0002-existing');
+        }
+        if (direction === 'new-linked') {
+          assert.ok('target' in choice); assert.equal(choice.action, 'new-linked');
+          assert.equal(preview.destination.purpose, 'new-candidate'); assert.equal(preview.destination.previousBundleDigest, null);
+          assert.equal(preview.destination.amendment, null); assert.equal(preview.manifest.itemId, '0281-linked');
+          assert.deepEqual(preview.destination.relationship, { itemId: '0002-existing', revision: choice.target.revision });
+          assert.deepEqual(preview.manifest.relationship, preview.destination.relationship);
+          assert.notEqual(preview.manifest.itemId, preview.destination.relationship!.itemId);
+          assert.match(choice.target.path, /\/candidates\/[a-f0-9-]+\/BRIEF\.md$/);
+        }
+        if (direction !== 'new-distinct') {
+          assert.ok('target' in choice);
           native.state.sourceAllowed = false;
           try { assert.equal((await post('intent.candidate.save.preview', previewInput)).status, 503); }
           finally { native.state.sourceAllowed = true; }

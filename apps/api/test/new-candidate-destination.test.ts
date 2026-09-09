@@ -58,6 +58,15 @@ test('native Git linked destination verifies the exact current Brief and preserv
     await assert.rejects(port.resolve({ ...f.input, choice: changed.choice, reviewDigest: changed.reviewDigest }, changed, async () => {}));
   } finally { port.close(); }
 });
+test('a discovered linked source outside the governed item allowlist cannot authorize a new destination', async t => {
+  const f = await setup(t, true);
+  const port = createVerifiedNewCandidateDestination(f.native, { ...f.config, itemIds: [f.input.itemId] }, f.authority);
+  try {
+    await assert.rejects(port.resolve(f.input, f.review, async () => {}), /unavailable/);
+    assert.deepEqual(f.state.sources, []); assert.equal(f.state.proofs, 0);
+    assert.equal(f.git.mutations(), 0); assert.equal(f.git.approvals(), 0);
+  } finally { port.close(); }
+});
 test('new destination rejects existing-item and amendment requests rather than inferring a lifecycle from filenames', async t => {
   const f = await setup(t, true), port = f.make();
   try {

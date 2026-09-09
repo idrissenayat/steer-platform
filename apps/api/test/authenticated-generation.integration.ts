@@ -34,7 +34,7 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
 }, direction: AuthenticatedJourneyDirection = 'new-distinct') {
   const itemId = authenticatedJourneyItem(direction);
   const name = direction === 'new-distinct' ? 'concrete authenticated journey binds native multi-batch scope, both SDK roles, corrected confirmation and fixed save/reopen through restart'
-    : 'concrete authenticated candidate-revision journey binds native multi-batch scope, both SDK roles, corrected confirmation and fixed save/reopen through restart';
+    : `concrete authenticated ${direction} journey binds native multi-batch scope, both SDK roles, corrected confirmation and fixed save/reopen through restart`;
   await check(name, async () => {
     const cleanup: Array<() => void> = [];
     try {
@@ -66,7 +66,9 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
       authorizeDraft: authority, authorizeHistoricalRead: authority, keyForDraft: f.deps.keyForDraft };
     const results = { authorizeOperation: executionAuthority, authorizeDraft: authority, authorizeResult: authority,
       authorizeHistoricalResult: authority, keyForDraft: f.deps.keyForDraft };
-    const expected = { ...f.config, itemIds: [itemId] }, fixture = intentJourneyFactoryFixture(expected);
+    // Linking requires the reviewed target in the governed destination allowlist
+    // as well as the distinct new item. These remain synthetic profile grants.
+    const expected = { ...f.config, itemIds: direction === 'new-linked' ? [itemId, '0002-existing'] : [itemId] }, fixture = intentJourneyFactoryFixture(expected);
     fixture.config.scope = f.execution; fixture.config.scopeProfile = f.described.original.profile;
     fixture.config.development = { ...f.execution, action: 'develop' };
     // scopeTerms belong only to the scope execution schema.

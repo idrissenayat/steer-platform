@@ -2,7 +2,7 @@
 
 Checklist version: 1. Established 2026-09-09 at the user's request.
 
-**Overall: 56% — 14 of 25 acceptance checkpoints verified.**
+**Overall: 60% — 15 of 25 acceptance checkpoints verified.**
 
 This measures completion of the fixed delivery checklist below, not elapsed time,
 remaining engineering effort, production readiness or the number of tests/commits.
@@ -41,7 +41,7 @@ it does not imply that no code exists.
 | C05 | I2 Disposition | Explicit human direction, reason and exact target in the actual editor, with stale-choice invalidation; component/API verification. | Verified | [0201](../intent/0201/EVIDENCE.md), [0230](../intent/0230/EVIDENCE.md). No automatic merge/create. |
 | C06 | I2 Disposition | Server-verified assessment and exact human direction reach both separate drafting roles; recorded integration verification. | Verified | [0248](../intent/0248/EVIDENCE.md), [0276](../intent/0276/EVIDENCE.md). |
 | C07 | I2 Disposition | Authenticated pre-pull candidate revision through confirmation, one native save and exact old/new reopen, preserving prior files. | Verified | [0280](../intent/0280/EVIDENCE.md): revision and default joined selections, 1,369 broad tests, types and build pass. Synthetic authority, not live GitHub/UI. |
-| C08 | I2 Disposition | Authenticated new-linked direction through confirmation, one native save and exact reopen with preserved relationship. | Pending | [0268](../intent/0268/EVIDENCE.md) joins preview, not this full save journey. |
+| C08 | I2 Disposition | Authenticated new-linked direction through confirmation, one native save and exact reopen with preserved relationship. | Verified | [0281](../intent/0281/EVIDENCE.md): linked/default joined selections, 1,371 broad tests, types and build pass. Linked source is unchanged; relationship stays pinned. Synthetic authority, not live GitHub/UI. |
 | C09 | I2 Disposition | Authenticated first amendment through confirmation, one native save and exact reopen without replacing canonical artifacts. | Pending | [0266](../intent/0266/EVIDENCE.md), [0268](../intent/0268/EVIDENCE.md) provide resolver/preview evidence. |
 | C10 | I2 Disposition | Authenticated proposal continuation through confirmation, one native save and exact reopen with original target/parent checks. | Pending | [0267](../intent/0267/EVIDENCE.md), [0268](../intent/0268/EVIDENCE.md) provide resolver/preview evidence. |
 | C11 | I3 Drafting | Ordered Architect Brief/Spec and separate Test Agent Exam with full permitted source context; recorded workflow verification. | Verified | [0276](../intent/0276/EVIDENCE.md). Model responses remain synthetic. |
@@ -55,7 +55,7 @@ it does not imply that no code exists.
 | C19 | I5 Save/reopen | Authenticated new-distinct exact confirmation and atomic idempotent native save, with current scope/authority checks. | Verified | [0275](../intent/0275/EVIDENCE.md), [0276](../intent/0276/EVIDENCE.md). Synthetic authority, not live GitHub. |
 | C20 | I5 Save/reopen | Uncertain save, scheduler/provider lost replies and restart reconcile without resend; exact older-commit reopen through authenticated services. | Verified | [0275](../intent/0275/EVIDENCE.md), [0276](../intent/0276/EVIDENCE.md). |
 | C21 | I5 Save/reopen | Governed actual startup, current runtime GitHub write authority and a verified real repository save/reopen. | Pending | Source-code pushes are not application saves or runtime-write authorization. |
-| C22 | I5 Save/reopen | Measured provider request load and end-to-end latency satisfy documented human-UX acceptance thresholds on the representative journey. | Pending | [0279](../intent/0279/EVIDENCE.md): about 60,000 local confirmation requests and 36 seconds remain unacceptable; establish and verify practical bounds. |
+| C22 | I5 Save/reopen | Measured provider request load and end-to-end latency satisfy documented human-UX acceptance thresholds on the representative journey. | Pending | [0279](../intent/0279/EVIDENCE.md), [0281](../intent/0281/EVIDENCE.md): about 60,000 local confirmation requests and 36–40 seconds remain unacceptable; establish and verify practical bounds. |
 | C23 | I6 Human acceptance | Actual signed-in UI happy path, open-existing, exact/paraphrased duplicate, partial overlap and related-but-distinct scenarios; real sources and saved commits. | Pending | No preview, fixture or component-only result substitutes for this demonstration. |
 | C24 | I6 Human acceptance | Actual UI handles empty/failed/stale search, corrections, permission loss, exhausted budget, concurrent creation, uncertain save and refresh/reopen without lost work. | Pending | Component/negative tests inform but do not complete this real journey. |
 | C25 | I6 Human acceptance | Actual end-to-end keyboard, narrow-screen and accessibility verification, followed by the user's usable-journey acceptance. | Pending | Component axe checks do not establish browser/visual or human acceptance. |
@@ -66,8 +66,9 @@ it does not imply that no code exists.
 | --- | --- | --- | --- | --- |
 | 2026-09-09 baseline through 0279 | 13/25 | 52% | Baseline, not a new capability | Evidence-backed component and joined synthetic results above; no live UI acceptance. |
 | 2026-09-09 / 0280 | 14/25 | 56% | +4 percentage points | C07: authenticated existing-candidate revision/save/reopen with prior-file preservation; both joined selections and final broad regression pass. |
+| 2026-09-09 / 0281 | 15/25 | 60% | +4 percentage points | C08: authenticated new-linked save/reopen with unchanged source and exact relationship; linked/default joined selections and final broad regression pass. |
 
-Next checkpoint: C08, the authenticated new-linked save/reopen journey. Eleven
+Next checkpoint: C09, the authenticated first-amendment save/reopen journey. Ten
 checkpoints remain in total, including amendment/continuation saves, performance,
 governed live activation, real model quality and signed-in human acceptance.
 

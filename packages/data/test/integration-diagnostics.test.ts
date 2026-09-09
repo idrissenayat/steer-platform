@@ -19,6 +19,9 @@ test('integration focus is explicit, bounded and distinct from the full suite',(
   assert.deepEqual(parseIntegrationSelection(['--journey-runtime-revision']),{mode:'journey-runtime-revision'});
   assert.throws(()=>parseIntegrationSelection(['--journey-runtime-revision','extra']));
   assert.throws(()=>parseIntegrationSelection(['--journey-runtime-revision','--journey-runtime']));
+  assert.deepEqual(parseIntegrationSelection(['--journey-runtime-linked']),{mode:'journey-runtime-linked'});
+  assert.throws(()=>parseIntegrationSelection(['--journey-runtime-linked','extra']));
+  assert.throws(()=>parseIntegrationSelection(['--journey-runtime-linked','--journey-runtime-revision']));
   assert.throws(()=>parseIntegrationSelection(['--journey-runtime','extra']));
   assert.throws(()=>parseIntegrationSelection(['--candidate-journey','extra']));
   assert.throws(()=>parseIntegrationSelection(['--candidate-start','extra']));
