@@ -24,6 +24,8 @@ import { authenticatedCandidateSave } from '../../worker/test/authenticated-cand
 import { authenticatedModelWorkflows } from '../../worker/test/authenticated-model-workflows.integration.ts';
 import { createNativeRequestMeter } from './native-request-metrics.ts';
 import { authenticatedJourneyChoice, authenticatedJourneyItem, type AuthenticatedJourneyDirection } from './authenticated-journey-direction.fixture.ts';
+import { createIntentPerformanceProbe } from './intent-performance-probe.ts';
+import { testAuthenticatedPerformancePrefix } from './authenticated-performance-prefix.integration.ts';
 
 /** Signed synthetic JWT + native Git grants, real API constructor graph, SQL and
  * recorded SDK roles. No real issuer, model transport, live migration or external Git write.
@@ -31,14 +33,16 @@ import { authenticatedJourneyChoice, authenticatedJourneyItem, type Authenticate
  * This check does not claim real provider authority or signed-in UI acceptance. */
 export async function testAuthenticatedGeneration({ admin, connect, check }: {
   admin: Pool; connect(role: string): Pool; check(name: string, run: () => Promise<void>): Promise<void>;
-}, direction: AuthenticatedJourneyDirection = 'new-distinct') {
+}, direction: AuthenticatedJourneyDirection = 'new-distinct', performanceOnly = false) {
   const itemId = authenticatedJourneyItem(direction);
-  const name = direction === 'new-distinct' ? 'concrete authenticated journey binds native multi-batch scope, both SDK roles, corrected confirmation and fixed save/reopen through restart'
+  const name = performanceOnly ? `bounded authenticated ${direction} performance prefix preserves records and reports incomplete/failed benchmark honestly`
+    : direction === 'new-distinct' ? 'concrete authenticated journey binds native multi-batch scope, both SDK roles, corrected confirmation and fixed save/reopen through restart'
     : `concrete authenticated ${direction} journey binds native multi-batch scope, both SDK roles, corrected confirmation and fixed save/reopen through restart`;
   await check(name, async () => {
     const cleanup: Array<() => void> = [];
     try {
-    const native = nativeCandidateJourneyFixture({ after: run => cleanup.push(run) }, true);
+    const performanceProbe = performanceOnly ? createIntentPerformanceProbe() : undefined;
+    const native = nativeCandidateJourneyFixture({ after: run => cleanup.push(run) }, true, performanceProbe?.wrap);
     // Seed only this disposable scenario before identity/corpus snapshots. The
     // existing canonical Exam must survive, but must never enter either prompt.
     if (direction === 'first-amendment' || direction === 'proposal-continuation') native.git.add([
@@ -132,6 +136,15 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
       (SELECT count(*) FROM steer_usage.model_reservations WHERE organization_id=$1) AS reservations`, [f.config.organizationId])).rows[0];
     try {
       runtime = await make();
+      if (performanceProbe) {
+        const before = await snapshot(), head = native.git.head();
+        await testAuthenticatedPerformancePrefix({ probe: performanceProbe, source, content: f.content, direction, post,
+          restart: async () => { await runtime.shutdown(); runtime = await make(); } });
+        assert.deepEqual(await snapshot(), before); assert.equal(native.git.head(), head);
+        assert.equal(modelCalls, 0); assert.equal(native.git.mutations(), 0);
+        await runtime.shutdown(); assert.equal(constructions, 4); assert.equal(closures, 4);
+        return;
+      }
       const b = f.execution.budget, terms = f.execution.scopeTerms;
       await admin.query('INSERT INTO steer_usage.scope_review_terms VALUES($1,$2,$3,$4,$5,$6,$7,true)',
         [b.organizationId, b.budgetId, b.subject, b.configurationRevision, terms.approvalDigest, terms.profileDigest, terms.amountMicrousd]);

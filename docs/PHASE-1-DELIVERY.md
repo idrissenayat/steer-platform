@@ -6293,3 +6293,31 @@ as do the 24 focused tests, types, build, links, kit/audit and protected hashes.
 live model/GitHub/UI acceptance, records/D1 adoption or deployment is claimed.
 Overall stays **68% (17/25; +0 points)**. Continue reducing repeated reads and
 implement the performance benchmark without weakening recovery or permission checks.
+
+## 0285 — Executable authenticated performance prefix
+
+Test-only delivery: explicit `--journey-performance` selection over the same
+authenticated 34-source native Git/SQL fixture. A request-local probe adds 20 ms
+per native Git-provider attempt and permits at most 200 dispatches per call,
+including identity grant-file reads. Concurrent users have separate budgets;
+aborted, unawaited or closed contexts cannot produce successful latency samples.
+See [specification](../intent/0285/SPEC.md), [evidence](../intent/0285/EVIDENCE.md)
+and [raw samples](../intent/0285/PERFORMANCE.json).
+
+Both directions run twenty warmed, three reconstructed and four concurrent draft
+reads, with exact bytes preserved and roughly 0.8–0.9-second timings. Source review
+then fails closed at the limit (204 attempts / 200 dispatches, 401). The first run's
+incorrect 503-only expectation was corrected with measured-limit evidence; no
+production status/auth behavior changed. **Harness integrity passed; performance
+acceptance did not.** Later stages, full negative/concurrent protocol, origin
+partitions, issuer/JWKS latency and actual UI acceptance remain open.
+
+Both prefix checks and their migration check pass, as do the normal three joined
+checks plus migrations, seven focused tests, 1,387 broad tests, types, build,
+raw-statistic/hash checks, kit/audit, links and protected hashes. The normal
+journey retains its same request counts, six synthetic reservations and one save
+with exact restart/reopen; this is not a production optimization. Full SQL and
+other full-disposition/historical selections were not rerun this increment.
+Overall stays **68% (17/25; +0 points)**. Next reduce repeated identity/corpus
+traversal in source review. No live configuration, spend, records/D1 adoption,
+runtime grant/write, gate, deployment or release changed.

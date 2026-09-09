@@ -9,11 +9,13 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0284 / partial C22 — 68% (17/25; +0 points)**.
-0283 completed C10. 0284 verifies a private proof that removes only duplicated
-identical caller barriers. The [performance acceptance benchmark](INTENT-CAPTURE-PERFORMANCE.md)
-now defines the request/latency pass bar; it is not yet passed. Next unblocked
-engineering work remains C22, without weakening authority/recovery guarantees. This is synthetic
+Current delivery checkpoint: **0285 / partial C22 — 68% (17/25; +0 points)**.
+0283 completed C10; 0284 reduced duplicate historical caller checks. 0285 adds the
+first executable [performance benchmark prefix](INTENT-CAPTURE-PERFORMANCE.md).
+Draft reads meet its limited targets, but source review exceeds the request ceiling;
+the benchmark is failed/incomplete. Its integrity checks and final regression pass. Next unblocked
+engineering work remains C22's repeated identity/corpus traversal, without weakening
+authority/recovery guarantees. This is synthetic
 integration progress; live activation, real model quality and signed-in UI acceptance
 remain open and retain their specific prerequisites.
 
@@ -139,6 +141,18 @@ focused tests, 1,382 broad tests, typechecks and build pass. The engineering
 benchmark is documented but not passed. C22 remains pending: **68% (17/25; +0 points)**.
 Next reduce remaining repeated reads and implement delay-bearing, cold/warm and
 concurrent measurements; no live authority or human acceptance is inferred.
+
+0285 implements the authenticated performance prefix with 20 ms delay and a
+200-attempt limit on each call's native Git-provider traffic. Twenty warmed,
+three reconstructed and four concurrent draft reads per direction meet their
+limited targets (about 0.8–0.9 seconds). Source review then hits the limit and
+fails closed; the benchmark remains explicitly failed/incomplete. See
+[0285 evidence](../intent/0285/EVIDENCE.md) and its raw samples. Both prefix integrity
+checks, default three joined checks, idempotent migrations, seven focused tests,
+1,387 broad tests, typechecks and build pass. This is test-only delivery, not a new
+application optimization or C22 completion: **68% (17/25; +0 points)**. Next reduce
+repeated identity/corpus traversal in source review before extending the benchmark
+to later stages, issuer latency, origin partitions and the full failure protocol.
 
 Prior checkpoint: **0275 saves and reopens the confirmed package through identity**.
 The same authenticated journey now reaches one fixed Temporal/native Git save,

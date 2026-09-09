@@ -80,7 +80,13 @@ try {
     await migrate(drizzle(admin), { migrationsFolder });
     assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 28);
   });
-  if(selection.mode==='journey-runtime-continuation'){
+  if(selection.mode==='journey-performance'){
+    console.log('FOCUSED synthetic 20ms/200-attempt authenticated prefix; expected limit detection is NOT a complete C22 or full-suite pass.');
+    await testAuthenticatedGeneration({admin,connect,check},'new-distinct',true);
+    await testAuthenticatedGeneration({admin,connect,check},'proposal-continuation',true);
+    assert.equal(passed,3);
+    console.log('FOCUSED performance harness: 2 prefix integrity checks passed plus idempotent migrations. See reported performance failures; C22/full suite NOT PASSED.');
+  }else if(selection.mode==='journey-runtime-continuation'){
     console.log('FOCUSED authenticated proposal continuation through native corpus, recorded roles, confirmation and fixed save/reopen; NOT the full integration suite.');
     await testAuthenticatedGeneration({admin,connect,check},'proposal-continuation');
     assert.equal(passed,2);

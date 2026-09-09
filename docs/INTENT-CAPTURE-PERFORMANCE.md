@@ -59,8 +59,14 @@ do not exclude expensive identity traffic or weaken checks to meet the number.
 
 0283's new-distinct confirmation used 60,372 attempts and 37.6 seconds without
 injected network delay. The history-barrier optimization in 0284 is a partial
-reduction only. The repeatable delay-bearing/concurrency benchmark is not yet
-implemented or passed. Next reduce duplicate authority traversal at explicit
+reduction only. [0285](../intent/0285/EVIDENCE.md) adds an executable **prefix**, not
+the complete benchmark: twenty warmed, three reconstructed and four concurrent
+authenticated draft reads per direction, followed by a bounded source-review
+probe. Draft reads meet their prefix targets; source review exceeds the request
+ceiling and fails closed. [Raw samples](../intent/0285/PERFORMANCE.json) retain the
+negative result. Later stages, full repeated/concurrent failure protocol, origin
+partitions and issuer/JWKS latency remain unimplemented or unverified.
+Next reduce duplicate authority traversal at explicit
 read/policy boundaries, preserve fresh revocation checks, then implement this
 measurement protocol. No permission cache, longer deadline, hidden background
 write or substituted preview is an acceptable shortcut.

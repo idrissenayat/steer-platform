@@ -12,8 +12,9 @@ const hash=(value:string)=>createHash('sha256').update(value).digest('hex');
 /** Native Git, actual corpus/catalog/byte readers, synthetic governed policy.
  * Preparation happens before encrypted SQL original admission. No real network,
  * credential, user repository, live lifecycle authority or write grant exists. */
-export function nativeCandidateJourneyFixture(t:{after(run:()=>void):void}, save=false) {
-  const git=fixture(t,save?'candidate-bundle':'brief'), proposalId=randomUUID();
+export function nativeCandidateJourneyFixture(t:{after(run:()=>void):void}, save=false, wrapTransport?: (transport: typeof fetch) => typeof fetch) {
+  const source=fixture(t,save?'candidate-bundle':'brief'), git=wrapTransport ? { ...source, transport: wrapTransport(source.transport) } : source;
+  const proposalId=randomUUID();
   const state={allowed:true,sourceAllowed:true,continuationAllowed:true,proofs:0,moveAtProof:0,policyRevision:'synthetic-policy-r1'};
   let originalTarget='', priorManifest='', proposalManifest='', pointerDigest='';
   const reader=(organizationId:string)=>createGitHubReader({...binding,organizationId},

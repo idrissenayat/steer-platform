@@ -62,6 +62,27 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Executable performance prefix — 0285
+
+An explicit test-only `--journey-performance` selection reuses the actual
+authenticated composition with synthetic native Git/SQL fixtures. It adds 20 ms
+delay per native Git-provider attempt, including authorization-file traffic, and
+caps each call at 200 dispatches. Separate request-local counters work under
+concurrency; abort/closed/unawaited cases cannot become successful samples.
+
+Both directions run twenty warmed, three reconstructed and four concurrent
+authenticated draft reads, preserving exact content. Those reads take about
+0.8–0.9 seconds in the captured run. Source review then exceeds the limit and
+returns 401 when current identity lookup cannot finish: 204 attempts, at most
+200 dispatches. That is an explicit failed/incomplete benchmark, not a successful
+workflow. No production authentication or error mapping has changed.
+
+See [0285 evidence](../intent/0285/EVIDENCE.md) and [raw samples](../intent/0285/PERFORMANCE.json).
+The full later-stage/negative/load protocol, origin partitions, issuer/JWKS
+latency and human UI acceptance remain open. Integrity-test success must not be
+presented as C22 acceptance. Progress stays **68% (17/25; +0 points)**; next reduce
+repeated source-review identity/corpus traversal before extending the benchmark.
+
 ### Private historical caller-barrier proof — 0284
 
 The data layer now records a private function-identity proof for a source-policy
