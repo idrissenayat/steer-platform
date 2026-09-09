@@ -109,7 +109,8 @@ export function authenticatedCandidateConfirmation(f: Fixture, native: ReturnTyp
         assert.equal(assessed.semanticQualityVerified, false); assert.ok(assessed.review);
         const finalInput = { ...preparation, choice, scopeReview: { kind: 'recorded' as const, ...admitted.reference, resultsDigest: assessed.review.resultsDigest } };
         const finalReview = await verifyCandidateSaveReview(finalInput, await read('intent.candidate.save.review', finalInput), draft.content.documents);
-        const previewInput = { ...finalInput, reviewDigest: finalReview.reviewDigest, generation: input.generation, itemId: authenticatedJourneyItem(direction), proposalId: null };
+        const previewInput = { ...finalInput, reviewDigest: finalReview.reviewDigest, generation: input.generation, itemId: authenticatedJourneyItem(direction),
+          proposalId: direction === 'proposal-continuation' ? native.proposalId : null };
         const preview = await verifyCandidateSavePreview(previewInput, await read('intent.candidate.save.preview', previewInput), draft.content.documents);
         assert.equal(preview.generation.source.revision, 1); assert.equal(preview.generation.source.latestRevision, 2);
         assert.deepEqual(preview.manifest.lineage.editedDocuments, ['brief']);
@@ -139,6 +140,28 @@ export function authenticatedCandidateConfirmation(f: Fixture, native: ReturnTyp
           assert.deepEqual(preview.destination.amendment!.target, { itemId: '0003-existing', revision: choice.target.revision });
           assert.deepEqual(preview.manifest.target, preview.destination.amendment!.target);
           assert.match(preview.destination.amendment!.proposalId, /^[a-f0-9]{8}-[a-f0-9]{4}-8[a-f0-9]{3}-a[a-f0-9]{3}-[a-f0-9]{12}$/);
+        }
+        if (direction === 'proposal-continuation') {
+          assert.ok('target' in choice); assert.equal(choice.action, 'extend-existing');
+          assert.equal(choice.target.path, 'items/0001-existing/BRIEF.md');
+          const parents = native.parents(), continuity = preview.destination.proposalContinuity!;
+          assert.equal(preview.destination.purpose, 'amendment'); assert.equal(preview.manifest.itemId, '0001-existing');
+          assert.equal(preview.destination.lifecycle, 'existing-target-proposal-only'); assert.equal(preview.destination.relationship, null);
+          assert.equal(preview.destination.previousBundleDigest, parents.proposalManifest);
+          assert.deepEqual(preview.destination.amendment, { proposalId: native.proposalId,
+            target: { itemId: '0001-existing', revision: parents.originalTarget }, parentProposalDigest: parents.pointerDigest });
+          assert.deepEqual(preview.manifest.target, preview.destination.amendment!.target);
+          assert.equal(preview.manifest.previousBundleDigest, parents.proposalManifest);
+          assert.equal(continuity.targetRevision, parents.originalTarget); assert.equal(continuity.reviewedRevision, choice.target.revision);
+          assert.notEqual(continuity.targetRevision, continuity.reviewedRevision);
+          assert.equal(continuity.targetSurfaceDigest, continuity.reviewedSurfaceDigest);
+          assert.equal(continuity.pointerDigest, parents.pointerDigest); assert.equal(continuity.manifestDigest, parents.proposalManifest);
+          native.state.continuationAllowed = false;
+          try { assert.equal((await post('intent.candidate.save.preview', previewInput)).status, 503); }
+          finally { native.state.continuationAllowed = true; }
+          const missingProposal = { ...previewInput, proposalId: 'ffffffff-ffff-4fff-afff-ffffffffffff' };
+          assert.notEqual(missingProposal.proposalId, native.proposalId);
+          assert.equal((await post('intent.candidate.save.preview', missingProposal)).status, 503);
         }
         if (direction !== 'new-distinct') {
           assert.ok('target' in choice);

@@ -62,6 +62,28 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Proposal-continuation save — 0283
+
+The joined authenticated fixture now selects the canonical target Brief and an
+explicit existing proposal ID. The current reviewed head remains separate from
+the proposal's earlier original target. Canonical Exam and hidden context exist
+before both snapshots; neither drafting prompt may contain the Exam. Independent
+current continuation eligibility and historical/current source checks stay required.
+
+The six-file plan must compare-and-swap only the selected proposal pointer, create
+four new candidate files and a receipt, and preserve every canonical/hidden and
+prior proposal blob. Assertions bind the prior pointer and manifest digests, exact
+file set, unchanged original target and exact old/new reads after restart and a
+later simulated branch edit. Missing proposal or eligibility cannot create a new
+proposal as a fallback. This extends verification, not production authority.
+
+The continuation joined check plus idempotent migrations and default three joined
+checks plus their migration check pass. All 31 focused choice/selector/native-
+destination tests, 1,373 broad tests, typechecks and build pass; see
+[0283 evidence](../intent/0283/EVIDENCE.md). This completes C10: 68% (17/25; +4 points).
+Next is C22: establish and meet practical request-load/latency bounds. No live model,
+GitHub or signed-in UI result is claimed; governed activation remains pending.
+
 ### First-amendment save — 0282
 
 The joined authenticated fixture now selects a canonical root Brief for an
@@ -81,8 +103,8 @@ approval to continue a proposal against a changed target.
 The first-amendment joined check plus idempotent migrations and default three
 joined checks plus their migration check pass, along with six focused tests,
 1,372 broad tests, typechecks and build. See [0282 evidence](../intent/0282/EVIDENCE.md).
-This completes C09: 64% (16/25; +4 percentage points). C10 proposal continuation
-is next; performance, governed activation and real-user acceptance remain open.
+This completed C09 at 64% (16/25; +4 percentage points). 0283 above adds continuation
+coverage; performance, governed activation and real-user acceptance remain open.
 No live binding, permission, model call, gate or signed-in UI acceptance is added.
 
 ### Distinct linked-intent save — 0281
@@ -107,8 +129,8 @@ native-destination checks, 1,371 broad tests, typechecks and build. See
 [0281 evidence](../intent/0281/EVIDENCE.md). This completes C08 in the fixed tracker:
 60% (15/25; +4 percentage points), not a live-readiness or time estimate.
 No production source, live grant, model call, runtime binding or signed-in UI
-acceptance is supplied. 0282 above adds first-amendment coverage; continuation
-saves, request volume, governed activation and real-user acceptance remain open.
+acceptance is supplied. 0282 and 0283 above add first-amendment and continuation
+coverage; request volume, governed activation and real-user acceptance remain open.
 
 ### Existing pre-pull candidate revision — 0280
 
@@ -125,9 +147,9 @@ remain stable across lost acknowledgements, replay and runtime reconstruction.
 The revision's focused joined check and idempotent migration check pass, as do
 the default three joined checks plus their migration check, all 1,369 broad tests,
 prototype/eight-package typechecks and production build. See [0280 evidence](../intent/0280/EVIDENCE.md).
-This extends verification only, not production source or authority. 0281 and 0282
-above add linked and first-amendment save/reopen coverage. Proposal-continuation joined saves, request-volume reduction,
-governed startup and actual live/user acceptance remain open.
+This extends verification only, not production source or authority. 0281–0283 above
+add linked, first-amendment and continuation save/reopen coverage. Request-volume
+reduction, governed startup and actual live/user acceptance remain open.
 
 ### Request-owned corpus verification — 0279
 

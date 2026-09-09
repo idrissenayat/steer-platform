@@ -2,7 +2,7 @@
 
 Checklist version: 1. Established 2026-09-09 at the user's request.
 
-**Overall: 64% — 16 of 25 acceptance checkpoints verified.**
+**Overall: 68% — 17 of 25 acceptance checkpoints verified.**
 
 This measures completion of the fixed delivery checklist below, not elapsed time,
 remaining engineering effort, production readiness or the number of tests/commits.
@@ -43,7 +43,7 @@ it does not imply that no code exists.
 | C07 | I2 Disposition | Authenticated pre-pull candidate revision through confirmation, one native save and exact old/new reopen, preserving prior files. | Verified | [0280](../intent/0280/EVIDENCE.md): revision and default joined selections, 1,369 broad tests, types and build pass. Synthetic authority, not live GitHub/UI. |
 | C08 | I2 Disposition | Authenticated new-linked direction through confirmation, one native save and exact reopen with preserved relationship. | Verified | [0281](../intent/0281/EVIDENCE.md): linked/default joined selections, 1,371 broad tests, types and build pass. Linked source is unchanged; relationship stays pinned. Synthetic authority, not live GitHub/UI. |
 | C09 | I2 Disposition | Authenticated first amendment through confirmation, one native save and exact reopen without replacing canonical artifacts. | Verified | [0282](../intent/0282/EVIDENCE.md): first-amendment/default joined selections, 1,372 broad tests, types and build pass. Existing canonical and hidden-context blobs stay unchanged; original proposal target survives exact reopen. Synthetic authority, not live GitHub/UI. |
-| C10 | I2 Disposition | Authenticated proposal continuation through confirmation, one native save and exact reopen with original target/parent checks. | Pending | [0267](../intent/0267/EVIDENCE.md), [0268](../intent/0268/EVIDENCE.md) provide resolver/preview evidence. |
+| C10 | I2 Disposition | Authenticated proposal continuation through confirmation, one native save and exact reopen with original target/parent checks. | Verified | [0283](../intent/0283/EVIDENCE.md): continuation/default joined selections, 1,373 broad tests, types and build pass. Only the selected proposal pointer advances; canonical/prior proposal files and original target are preserved, with exact old/new reopen. Synthetic authority, not live GitHub/UI. |
 | C11 | I3 Drafting | Ordered Architect Brief/Spec and separate Test Agent Exam with full permitted source context; recorded workflow verification. | Verified | [0276](../intent/0276/EVIDENCE.md). Model responses remain synthetic. |
 | C12 | I3 Drafting | Focused clarification stops generation until answered and resumes with source/review invalidation; actual-component verification. | Verified | [0230](../intent/0230/EVIDENCE.md), [0238](../intent/0238/EVIDENCE.md). |
 | C13 | I3 Drafting | Durable run/cost reservation, refusal handling and retry/replay without duplicate model dispatch; synthetic integration verification. | Verified | [0198](../intent/0198/EVIDENCE.md), [0235](../intent/0235/EVIDENCE.md), [0276](../intent/0276/EVIDENCE.md). No spending approval is implied. |
@@ -55,7 +55,7 @@ it does not imply that no code exists.
 | C19 | I5 Save/reopen | Authenticated new-distinct exact confirmation and atomic idempotent native save, with current scope/authority checks. | Verified | [0275](../intent/0275/EVIDENCE.md), [0276](../intent/0276/EVIDENCE.md). Synthetic authority, not live GitHub. |
 | C20 | I5 Save/reopen | Uncertain save, scheduler/provider lost replies and restart reconcile without resend; exact older-commit reopen through authenticated services. | Verified | [0275](../intent/0275/EVIDENCE.md), [0276](../intent/0276/EVIDENCE.md). |
 | C21 | I5 Save/reopen | Governed actual startup, current runtime GitHub write authority and a verified real repository save/reopen. | Pending | Source-code pushes are not application saves or runtime-write authorization. |
-| C22 | I5 Save/reopen | Measured provider request load and end-to-end latency satisfy documented human-UX acceptance thresholds on the representative journey. | Pending | [0279](../intent/0279/EVIDENCE.md), [0281](../intent/0281/EVIDENCE.md): about 60,000 local confirmation requests and 36–40 seconds remain unacceptable; establish and verify practical bounds. |
+| C22 | I5 Save/reopen | Measured provider request load and end-to-end latency satisfy documented human-UX acceptance thresholds on the representative journey. | Pending | [0279](../intent/0279/EVIDENCE.md), [0283](../intent/0283/EVIDENCE.md): about 60,000–61,000 local confirmation requests and 36–41 seconds remain unacceptable; establish and verify practical bounds. |
 | C23 | I6 Human acceptance | Actual signed-in UI happy path, open-existing, exact/paraphrased duplicate, partial overlap and related-but-distinct scenarios; real sources and saved commits. | Pending | No preview, fixture or component-only result substitutes for this demonstration. |
 | C24 | I6 Human acceptance | Actual UI handles empty/failed/stale search, corrections, permission loss, exhausted budget, concurrent creation, uncertain save and refresh/reopen without lost work. | Pending | Component/negative tests inform but do not complete this real journey. |
 | C25 | I6 Human acceptance | Actual end-to-end keyboard, narrow-screen and accessibility verification, followed by the user's usable-journey acceptance. | Pending | Component axe checks do not establish browser/visual or human acceptance. |
@@ -68,10 +68,13 @@ it does not imply that no code exists.
 | 2026-09-09 / 0280 | 14/25 | 56% | +4 percentage points | C07: authenticated existing-candidate revision/save/reopen with prior-file preservation; both joined selections and final broad regression pass. |
 | 2026-09-09 / 0281 | 15/25 | 60% | +4 percentage points | C08: authenticated new-linked save/reopen with unchanged source and exact relationship; linked/default joined selections and final broad regression pass. |
 | 2026-09-09 / 0282 | 16/25 | 64% | +4 percentage points | C09: authenticated first-amendment save/reopen with unchanged canonical artifacts and preserved original target; amendment/default joined selections and final broad regression pass. |
+| 2026-09-09 / 0283 | 17/25 | 68% | +4 percentage points | C10: authenticated proposal-continuation save/reopen with exact parent advancement and original target/canonical/prior-file preservation; continuation/default joined selections and final broad regression pass. |
 
-Next checkpoint: C10, the authenticated proposal-continuation save/reopen journey.
-Nine checkpoints remain in total, including continuation, performance,
-governed live activation, real model quality and signed-in human acceptance.
+Next unblocked engineering checkpoint: C22, establish and meet practical request-load
+and latency bounds without weakening current authority or recovery guarantees.
+Eight checkpoints remain in total: performance, governed records/runtime activation,
+real model quality and signed-in human acceptance. Live model/activation work still
+requires its specific prerequisites; it is not authorized by this progress update.
 
 The [delivery ledger](PHASE-1-DELIVERY.md) records individual increments. Updating
 this reporting document itself earns no completion points.

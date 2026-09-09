@@ -6249,3 +6249,21 @@ revision/linked selections were not rerun. Overall is now **64% (16/25; +4 point
 for completed C09. Next: C10 proposal continuation; performance, governed activation,
 real model quality and actual UI acceptance remain open. No production source,
 live configuration or authority change.
+
+## 0283 — Authenticated proposal-continuation save/reopen
+
+Verified synthetic integration: the actual identity/factory journey uses the exact selected
+proposal. The current canonical Brief is reviewed, while the original target stays
+pinned to its earlier commit. Assertions cover independent continuation eligibility,
+exact parent manifest/pointer requirements, six-file save, preserved canonical and
+prior proposal blobs, pointer-only advancement and exact old/new reopen. See
+[specification](../intent/0283/SPEC.md) and [evidence](../intent/0283/EVIDENCE.md).
+The continuation joined check plus idempotent migrations and default three joined
+checks plus their migration check pass. All 31 focused choice/selector/native-
+destination tests, 1,373 broad tests, prototype/eight-package typechecks, optimized
+build, protected hashes, 95-artifact kit and token-scope audit pass. The full SQL
+suite and prior revision/linked/first-amendment joined selections were not rerun.
+Overall is now **68% (17/25; +4 points)** for completed C10. Next unblocked work:
+C22 request-load/latency bounds and reduction. Real model quality, records/runtime
+activation and actual UI acceptance remain open. No production source, live
+configuration, model spending or authority change.

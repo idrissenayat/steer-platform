@@ -51,3 +51,16 @@ test('first amendment explicitly selects the canonical Brief and current reviewe
     f.evidence.inventory.map(source => source === target ? { ...source, path: 'items/0003-existing/candidates/57762718-d38a-4926-b96d-7a1c40fdd6f7/BRIEF.md' } : source)])
     assert.throws(() => authenticatedJourneyChoice('first-amendment', { ...f.evidence, inventory }));
 });
+test('proposal continuation reviews the current canonical target, never substitutes the prior proposal body or another item', async () => {
+  const f = await scopeReviewFixture(6, true), target = f.evidence.inventory.find(source => source.path === 'items/0001-existing/BRIEF.md')!;
+  const choice = authenticatedJourneyChoice('proposal-continuation', f.evidence);
+  assert.equal(authenticatedJourneyItem('proposal-continuation'), '0001-existing'); assert.equal(choice.action, 'extend-existing');
+  assert.ok('target' in choice); assert.deepEqual(choice.target, { path: target.path, revision: f.evidence.head, contentDigest: target.contentDigest });
+  const later = authenticatedJourneyChoice('proposal-continuation', { ...f.evidence, head: 'f'.repeat(40) });
+  assert.ok('target' in later); assert.equal(later.target.revision, 'f'.repeat(40)); assert.equal(choice.target.revision, f.evidence.head);
+  for (const inventory of [f.evidence.inventory.filter(source => source !== target),
+    [...f.evidence.inventory, { ...target, sourceId: 'ambiguous-continuation' }],
+    ...['candidate', 'amendment'].map(status => f.evidence.inventory.map(source => source === target ? { ...source, status } : source)),
+    f.evidence.inventory.map(source => source === target ? { ...source, path: 'items/0001-existing/candidates/57762718-d38a-4926-b96d-7a1c40fdd6f7/BRIEF.md' } : source)])
+    assert.throws(() => authenticatedJourneyChoice('proposal-continuation', { ...f.evidence, inventory }));
+});
