@@ -147,13 +147,13 @@ export async function testScopePreparation({admin,connect,check:checkBase}:{admi
       {path:'intent/0001/EXAM.md',content:'PRIVATE EXAM MUST NOT ENTER SCOPE'}]);
     const reader=createGitHubReader({...binding,organizationId:f.config.organizationId},{appJwt:async()=>'synthetic-app-jwt',fetch:git.transport,now:()=>now});
     let permitted=true;
-    const authority={authorize:async()=>{if(!permitted)throw new Error('PRIVATE corpus denial');return{permissionsRevision:'p1'};},
+    const authority:Parameters<typeof createIntentCorpusEvidence>[2]={authorize:async()=>{if(!permitted)throw new Error('PRIVATE corpus denial');return{permissionsRevision:'p1'};},
       select:async(context:unknown)=>({...context as object,selection:'canonical',authorityDigest:'a'.repeat(64)}),authorizeSource:async()=>{}};
     const {organizationId,productId,repository,branch}=f.config,corpus=createIntentCorpusEvidence(reader,{organizationId,productId,repository,branch,retrievalConfigurationRevision:'retrieval-r1'},authority);services.push(corpus);
     const evidence=(await corpus.collect({organizationId,productId,repository,branch,scopeInputDigest:f.saved.reference.scopeInputDigest},async()=>{})).evidence;
     const service=createCorpusRecordedScopePreparer(reader,f.pools,f.execution,f.described.original.profile,'retrieval-r1',{records:f.deps,authorizePreparation:async()=>{},authority});
     const a=await api(f,{evidenceFor:async()=>evidence},f.pools,f.execution,f.described.original.profile,service);
-    return{f,git,reader,evidence,a,revoke(){permitted=false;}};
+    return{f,git,reader,evidence,a,corpus,authority,revoke(){permitted=false;}};
   };
   await check('scope preparation HTTP composes actual native-Git repository discovery with encrypted SQL capture and exact reopen',async()=>{
     const {f,git,evidence,a}=await corpusFixture(),response=await a.post();assert.equal(response.status,200);const output=await response.json();assert.equal(output.outcome,'prepared');
@@ -176,5 +176,71 @@ export async function testScopePreparation({admin,connect,check:checkBase}:{admi
     const a=await api(f,{authorizePreparation:async()=>{if(++checks===3)await delay(Math.max(0,Date.parse(f.execution.expiresAt)-Date.now()+50));}});
     const result=await (await a.post()).json();assert.equal(checks,3);assert.equal(result.outcome,'unknown');assert.equal(result.readyToRequestStart,false);
     const stored=await rows(f);assert.equal(stored.runs.length,1);assert.equal(stored.originals.length,1);assert.equal(stored.reservations.length,0);
+  });
+  await check('private scope preparation windows reduce native body reads while preserving the full fallback and exact original',async()=>{
+    const c=await corpusFixture(),{f,reader,corpus,a}=c,method=reader.readArtifact;let bodies=0;
+    reader.readArtifact=async(...args)=>{bodies++;return method(...args);};
+    const output=await (await a.post()).json();assert.equal(output.outcome,'prepared');assert.equal(bodies,8);
+    const before=await rows(f),{organizationId,productId,repository,branch}=f.config;
+    const fallback=await api(f,{evidenceFor:async(_input,current)=>(await corpus.collect({organizationId,productId,repository,branch,
+      scopeInputDigest:f.saved.reference.scopeInputDigest},current)).evidence});
+    bodies=0;assert.deepEqual(await (await fallback.post()).json(),output);assert.equal(bodies,14);
+    assert.deepEqual(await rows(f),before);assert.equal(c.git.mutations(),0);assert.equal(before.reservations.length,0);
+    const originals=createScopeReviewOriginalStore(f.pools,f.config,f.deps);services.push(originals);
+    assert.deepEqual((await originals.read(output.reference)).original.evidence,c.evidence);
+  });
+  await check('scope preparation windows close before every admission or original write and reopen with fresh native bodies',async()=>{
+    const c=await corpusFixture(),{f,reader,corpus}=c,{organizationId,productId,repository,branch}=f.config;
+    let open=false,windows=0,policies=0;const writes:string[]=[],bodyPhases:string[]=[],method=reader.readArtifact;
+    reader.readArtifact=async(...args)=>{bodyPhases.push(`${open?windows:0}:${writes.length}`);return method(...args);};
+    const pool=(role:'drafts'|'execution')=>({async connect(){const client=await f.pools[role].connect();return{
+      query:async(sql:string,values?:unknown[])=>{
+        if(/^\s*INSERT INTO steer_(execution\.scope_review_runs|drafts\.scope_review_originals)\b/.test(sql)){
+          assert.equal(open,false,'Read-only evidence window crossed a write');writes.push(sql.includes('scope_review_runs')?'admission':'original');
+        }
+        return client.query(sql,values);
+      },release:(broken:boolean)=>client.release(broken)} as PoolClient;}});
+    const evidenceFor:Dependencies['evidenceFor']=async(_input,current)=>(await corpus.collect({organizationId,productId,repository,branch,
+      scopeInputDigest:f.saved.reference.scopeInputDigest},current)).evidence;
+    const a=await api(f,{evidenceFor,authorizePreparation:async()=>{assert.equal(open,true);policies++;},
+      withEvidenceRead:async(input,current,work)=>{
+        assert.equal(open,false);open=true;windows++;
+        try{await corpus.withReadSession({organizationId,productId,repository,branch,scopeInputDigest:input.scopeInputDigest},current,
+          read=>work(async()=>(await read()).evidence));}finally{open=false;}
+      }},{drafts:pool('drafts'),execution:pool('execution')});
+    bodyPhases.length=0;const output=await (await a.post()).json();assert.equal(output.outcome,'prepared');
+    assert.equal(open,false);assert.equal(windows,3);assert.equal(policies,3);assert.deepEqual(writes,['admission','original']);
+    assert.deepEqual(bodyPhases,['0:0','0:0','1:0','1:0','2:1','2:1','3:2','3:2']);
+    const stored=await rows(f);assert.equal(stored.runs.length,1);assert.equal(stored.originals.length,1);assert.equal(stored.reservations.length,0);
+  });
+  await check('final private corpus grant recheck denies scope admission after otherwise completed validation',async()=>{
+    const c=await corpusFixture(),{f,corpus,authority}=c,{organizationId,productId,repository,branch}=f.config;let revoked=false;
+    authority.authorizeSource=async ref=>{if(revoked&&ref.path.endsWith('/SPEC.md'))throw new Error('PRIVATE revoked source');};
+    const a=await api(f,{evidenceFor:async()=>c.evidence,withEvidenceRead:async(input,current,work)=>
+      corpus.withReadSession({organizationId,productId,repository,branch,scopeInputDigest:input.scopeInputDigest},current,async read=>{
+        await work(async()=>(await read()).evidence);revoked=true;
+      })});
+    const output=await (await a.post()).json();assert.equal(output.outcome,'unavailable');assert.equal(output.originalPreserved,false);
+    assert.deepEqual(await rows(f),{runs:[],originals:[],batches:[],reservations:[]});assert.equal(c.git.mutations(),0);
+  });
+  await check('new native evidence after admission or original persistence is not reused across effect boundaries',async()=>{
+    for(const target of ['scope_review_runs','scope_review_originals']){
+      const c=await corpusFixture(),{f,git,reader,authority}=c;let inserted=false,changed=false;
+      const role=target==='scope_review_runs'?'execution':'drafts';
+      const pools={...f.pools,[role]:{async connect(){const client=await f.pools[role].connect();return{
+        query:async(sql:string,values?:unknown[])=>{const result=await client.query(sql,values);
+          if(sql.includes(`INSERT INTO steer_${role==='execution'?'execution':'drafts'}.${target}`))inserted=true;
+          if(sql==='COMMIT'&&inserted&&!changed){changed=true;git.add([{path:'intent/0001/SPEC.md',content:'# Changed source after an effect\n'}]);}
+          return result;
+        },release:(broken:boolean)=>client.release(broken)} as PoolClient;}}};
+      const service=createCorpusRecordedScopePreparer(reader,pools,f.execution,f.described.original.profile,'retrieval-r1',
+        {records:f.deps,authorizePreparation:async()=>{},authority});
+      const a=await api(f,{evidenceFor:async()=>c.evidence},pools,f.execution,f.described.original.profile,service);
+      const output=await (await a.post()).json();assert.equal(changed,true);assert.equal(output.outcome,'unknown');assert.equal(output.originalPreserved,false);
+      const stored=await rows(f);assert.equal(stored.runs.length,1);assert.equal(stored.originals.length,target==='scope_review_runs'?0:1);
+      assert.equal(stored.reservations.length,0);assert.equal(git.mutations(),0);
+      if(stored.originals.length){const originals=createScopeReviewOriginalStore(f.pools,f.config,f.deps);services.push(originals);
+        assert.deepEqual((await originals.read(output.reference)).original.evidence,c.evidence);}
+    }
   });
 }

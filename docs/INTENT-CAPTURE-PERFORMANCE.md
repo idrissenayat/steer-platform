@@ -73,6 +73,17 @@ than 48,980. Both are still far above the 200-attempt target, and the delayed pr
 still fails closed. Counts and single-run local latency are separate evidence;
 the latter is not a warmed p95 or a reliable speedup claim.
 
+[0287](../intent/0287/EVIDENCE.md) adds separate read-only windows around each
+scope-preparation validation pair, closing before admission/persistence and opening
+fresh afterward. Preparation falls from 11,365 to 9,598 requests (15.55%): identity
+traffic 10,434 to 9,054, repository traffic 931 to 544. The single undelayed local
+sample is 9,619 ms, not warmed p95. Source review (2,634), first confirmation
+(45,716), and drafting-start counts are unchanged; the
+[raw artifact](../intent/0287/PERFORMANCE.json) preserves all samples and origin
+partitions. The delayed prefix was not rerun because it stops before this changed
+boundary. Its prior source-review failure and the full later-stage protocol remain
+open. No new latency or C22 acceptance is claimed.
+
 Next reduce the remaining repeated current-policy traversal, including the
 unchanged drafting/history admission path, then extend the prefix to later stages
 and the full measurement protocol. Preserve every independent policy and fresh

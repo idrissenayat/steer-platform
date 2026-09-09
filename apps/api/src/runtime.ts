@@ -142,11 +142,13 @@ export function createRecordedScopePreparer(pools: Parameters<typeof createInten
  * No caller-provided evidence or environment-only activation path. */
 export function createCorpusRecordedScopePreparer(reader: Parameters<typeof createIntentCorpusEvidence>[0],
   pools: Parameters<typeof createIntentScopePreparer>[0], configuration: unknown, profile: unknown, retrievalConfigurationRevision: string,
-  dependencies: Omit<Parameters<typeof createIntentScopePreparer>[3], 'evidenceFor'> & { authority: IntentCorpusAuthority }) {
+  dependencies: Omit<Parameters<typeof createIntentScopePreparer>[3], 'evidenceFor' | 'withEvidenceRead'> & { authority: IntentCorpusAuthority }) {
   const config = scopeReviewConfigurationSchema.parse(configuration), { organizationId, productId, repository, branch } = config;
   const corpus = createIntentCorpusEvidence(reader, { organizationId, productId, repository, branch, retrievalConfigurationRevision }, dependencies.authority);
   try {
     const preparer = createIntentScopePreparer(pools, config, profile, { records: dependencies.records, authorizePreparation: dependencies.authorizePreparation,
+      withEvidenceRead: (input, current, work) => corpus.withReadSession({ organizationId, productId, repository, branch, scopeInputDigest: input.scopeInputDigest }, current,
+        read => work(async () => (await read()).evidence)),
       evidenceFor: async (input, current) => (await corpus.collect({ organizationId, productId, repository, branch, scopeInputDigest: input.scopeInputDigest }, current)).evidence });
     return { scope: preparer.scope, prepare: preparer.prepare, close() { preparer.close(); corpus.close(); } };
   } catch (error) { corpus.close(); throw error; }

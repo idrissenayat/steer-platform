@@ -9,13 +9,15 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0286 / partial C22 — 68% (17/25; +0 points)**.
+Current delivery checkpoint: **0287 / partial C22 — 68% (17/25; 8 remaining; +0 points)**.
 0283 completed C10. 0284 and 0286 reduce privately proven duplicate checks; 0285
 introduced the [performance benchmark prefix](INTENT-CAPTURE-PERFORMANCE.md).
-0286 reduces source-review requests by 13.41% and confirmation requests by 6.66%,
-with final joined recovery/save/reopen and 1,399 broad tests passing. Draft reads
-meet the prefix targets, but source review still exceeds the ceiling: C22 remains
-failed/incomplete. Next reduce remaining policy/evidence traversal without weakening
+0287 reduces scope-preparation requests by 15.55% using separate private read-only
+validation windows, never across admission or persistence. Scope-runtime and final
+authenticated recovery/save/reopen checks pass; see [0287 evidence](../intent/0287/EVIDENCE.md)
+for all verification. The previous delayed prefix still fails before this changed
+boundary, and the new 9,598-request preparation remains far over its target: C22
+is failed/incomplete. Next reduce remaining policy/evidence traversal without weakening
 authority/recovery guarantees. This is synthetic
 integration progress; live activation, real model quality and signed-in UI acceptance
 remain open and retain their specific prerequisites.
@@ -166,6 +168,17 @@ see [0286 evidence](../intent/0286/EVIDENCE.md) for exact counts and limits.
 Overall stays **68% (17/25; +0 points)**. Next investigate remaining repeated
 policy/evidence traversal and unchanged drafting/history admission, preserving
 read-only proof boundaries. Live activation and actual UI acceptance remain open.
+
+0287 reuses verified immutable corpus bytes only inside each source/policy/source
+scope-preparation recheck. A new window collects full evidence after each effect;
+admission and encrypted-original writes are always outside it. Callback/pending
+ownership, final grants, stale-draft/source conflicts and unknown-outcome recovery
+remain enforced. The 34-source preparation drops from 11,365 to 9,598 requests
+(15.55%); confirmation and drafting-start counts are unchanged. See
+[0287 evidence](../intent/0287/EVIDENCE.md) for focused/native boundary, scope-runtime
+and full authenticated joined verification. Overall stays **68% (17/25; +0 points)**.
+The unchanged source-review prefix and later-stage performance protocol remain
+incomplete; no signed-in UI or real-provider acceptance is implied.
 
 Prior checkpoint: **0275 saves and reopens the confirmed package through identity**.
 The same authenticated journey now reaches one fixed Temporal/native Git save,

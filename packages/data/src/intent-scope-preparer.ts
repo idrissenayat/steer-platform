@@ -6,6 +6,7 @@ import {createDraftRevisionStore} from './draft-revisions.ts';
 import {createScopeReviewOperationStore,scopeReviewConfigurationSchema} from './scope-review-operations.ts';
 import {createScopeReviewOriginalStore,scopeRecordsConfigurationSchema} from './scope-review-originals.ts';
 import {describeScopeOriginal,scopeOriginalSchema,scopeOriginalHash as hash,freezeScopeOriginal as freeze,type ScopeOriginal} from './scope-original-contracts.ts';
+import {withPreparationEvidence,type PreparationEvidenceWindow} from './preparation-evidence-window.ts';
 
 type Records=Parameters<typeof createScopeReviewOriginalStore>[2];
 const unavailable=()=>new Error('Scope preparation is unavailable.');
@@ -16,11 +17,14 @@ class Conflict extends Error {}
  * No model transport, reservation, workflow start or publication exists here. */
 export function createIntentScopePreparer(pools:Parameters<typeof createScopeReviewOriginalStore>[0],rawConfiguration:unknown,
   rawProfile:unknown,deps:{records:Records;evidenceFor(input:Readonly<IntentScopePrepareInput>,revalidate:()=>Promise<void>):Promise<unknown>;
+    // Trusted read-only recheck composition; never encloses admission or puts.
+    withEvidenceRead?(input:Readonly<IntentScopePrepareInput>,revalidate:()=>Promise<void>,work:Parameters<PreparationEvidenceWindow>[0]):Promise<void>;
     authorizePreparation(original:Readonly<ScopeOriginal>):Promise<void>}){
   const execution=freeze(scopeReviewConfigurationSchema.parse(rawConfiguration));
   const {expiresAt:_expiry,budget:_budget,scopeTerms:_terms,...recordsConfig}=execution;
   const config=freeze(scopeRecordsConfigurationSchema.parse(recordsConfig)),profile=freeze(scopeOriginalSchema.shape.profile.parse(rawProfile)),r=deps.records;
   if([r?.authorize,r?.authorizeOriginal,r?.authorizeReview,r?.authorizeDraft,r?.keyForDraft,deps.evidenceFor,deps.authorizePreparation].some(v=>typeof v!=='function'))throw unavailable();
+  if(deps.withEvidenceRead!==undefined&&typeof deps.withEvidenceRead!=='function')throw unavailable();
   const scope=freeze({organizationId:config.organizationId,subject:config.subject,productId:config.productId,repository:config.repository,configurationRevision:config.configurationRevision});
   let closed=false,active=0;const children=new Set<{close():void}>();
   return{
@@ -29,9 +33,10 @@ export function createIntentScopePreparer(pools:Parameters<typeof createScopeRev
       const input=freeze(intentScopePrepareInputSchema.parse(raw));
       if(closed||active>=4||typeof revalidate!=='function'||(['organizationId','productId','repository','configurationRevision'] as const).some(k=>input[k]!==scope[k]))throw unavailable();
       active++;let finished=false,settled=false,pending=0,released=false,effectPossible=false,timer:ReturnType<typeof setTimeout>|undefined;
+      const evidenceWindow=deps.withEvidenceRead;
       let reference:IntentScopePrepareOutput['reference']=null,coverage:IntentScopePrepareOutput['coverage']=null;
       const owned:{close():void}[]=[],release=()=>{if(settled&&!pending&&!released){released=true;active--;}};
-      const guard=()=>{if(finished||closed)throw unavailable();};
+      const guard=()=>{if(finished||closed||deps.withEvidenceRead!==evidenceWindow)throw unavailable();};
       const track=async<T>(work:Promise<T>)=>{pending++;try{return await work;}finally{pending--;release();}};
       const current=async()=>{guard();if(await track(Promise.resolve().then(revalidate))!==undefined)throw unavailable();guard();};
       const checked=async<T>(work:()=>Promise<T>)=>{await current();const value=await track(Promise.resolve().then(work));await current();return value;};
@@ -56,9 +61,10 @@ export function createIntentScopePreparer(pools:Parameters<typeof createScopeRev
         if((['organizationId','productId','repository','branch'] as const).some(k=>evidence[k]!==config[k])
           ||evidence.scopeInputDigest!==input.scopeInputDigest||plan.summary.sourceSnapshotDigest!==input.sourceSnapshotDigest)throw new Conflict();
         const {gaps,...counts}=plan.summary.coverage;coverage={...counts,gapCount:gaps.length,batchCount:plan.batches.length};
-        const recheckSources=async()=>{
+        const evidenceFor=()=>deps.evidenceFor(input,current);
+        const recheckSources=async(readEvidence:()=>Promise<unknown>=evidenceFor)=>{
           await current();if(hash(await read())!==hash(source))throw new Conflict();
-          const fresh=intentEvidenceInputSchema.parse(await checked(()=>deps.evidenceFor(input,current)));
+          const fresh=intentEvidenceInputSchema.parse(await checked(readEvidence));
           if(hash(fresh)!==hash(evidence))throw new Conflict();await current();
         };
         if(!plan.batches.length){await recheckSources();return output(coverage.plannedComplete?'no-sources':'scope-incomplete');}
@@ -67,7 +73,9 @@ export function createIntentScopePreparer(pools:Parameters<typeof createScopeRev
             draftId:input.draftId,sourceRevision:source.reference.sourceRevision,originalText:content.originalText,clarificationTurns:content.clarificationTurns,
             documents:content.documents?{brief:content.documents.brief,spec:content.documents.spec}:null}},evidence,profile});guard();
         const {original,manifest}=described;
-        const recheck=async()=>{await recheckSources();await authority(()=>deps.authorizePreparation(original));await recheckSources();};
+        const recheck=()=>withPreparationEvidence(
+          evidenceWindow?work=>Reflect.apply(evidenceWindow,deps,[input,current,work]):undefined,evidenceFor,
+          async readEvidence=>{await recheckSources(readEvidence);await authority(()=>deps.authorizePreparation(original));await recheckSources(readEvidence);},track,guard);
         const secured:Records={
           authorize:async c=>{if(!reference||hash(c.target)!==hash(reference))throw unavailable();await authority(()=>r.authorize(c));},
           authorizeOriginal:async c=>{if(hash(c.original)!==hash(original))throw unavailable();await authority(()=>r.authorizeOriginal(c));},

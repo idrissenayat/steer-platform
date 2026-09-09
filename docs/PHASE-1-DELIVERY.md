@@ -6353,3 +6353,43 @@ Overall stays **68% (17/25; +0 points)**. Next reduce remaining repeated current
 policy/evidence traversal and unchanged drafting/history admission without
 extending read-only proofs across writes. No live configuration, spending,
 records/D1 adoption, runtime grant/write, gate, deployment or release changed.
+
+## 0287 — Separate read-only scope-preparation evidence windows
+
+The actual corpus/preparer factory now reuses immutable evidence only within each
+source/policy/source validation pair. Initial acquisition is unchanged; each pair
+opens a fresh session. Admission and encrypted-original persistence happen after
+the session closes, and full corpus acquisition resumes in a new session after
+each effect. No permission or source proof crosses a write or another request.
+Independent records/draft/preparation/source grants and current final checks remain.
+
+The owner pins the hook and retains pending work/reads. Replayed/skipped callbacks,
+early/nonvoid returns, swallowed failures, overlapping/unawaited reads and escaped
+late calls deny; source/draft conflicts preserve their pre-effect classification.
+The complete fallback remains unchanged. See [specification](../intent/0287/SPEC.md),
+[evidence](../intent/0287/EVIDENCE.md) and [raw measurements](../intent/0287/PERFORMANCE.json).
+
+The two-source native fixture drops body reads from fourteen to eight with exact
+retained originals and three distinct windows. Post-callback grant loss prevents
+admission; source drift after admission/persistence returns unknown while retaining
+existing records. The actual managed 34-source preparation drops from 11,365 to
+9,598 requests (15.55%): identity 10,434 to 9,054, repository 931 to 544. Source
+review, confirmation and drafting-start counts are unchanged. Single local time
+is 9,619 ms, not warmed p95 or a reliable latency speedup.
+
+Nine focused tests, 82 scope-runtime checks, three full default authenticated
+joined checks and their idempotent migrations pass. Final broad regression is
+**1,406/1,406**, with types and optimized build passing on the same production
+code. Kit/audit, links, raw source/harness hashes and partitions, protected hashes
+and whitespace are checked. Synthetic save/recovery/exact reopen retains six
+model calls/reservations, one confirmation original and one native save. Full SQL,
+other full authenticated dispositions and the delayed prefix were not rerun;
+the unchanged prefix stops at source review before this modified boundary.
+
+Overall remains **68% (17/25; 8 remaining; +0 points)**. The reporting contract now
+explicitly includes remaining checkpoints after each completed increment. C22
+still fails its request budget; actual signed-in UI/live-provider acceptance is
+not demonstrated. Next reduce remaining duplicated current-policy traversal and
+unchanged drafting/history admission without carrying read proofs across effects.
+No live configuration, credential, spending, records adoption, runtime write/grant,
+signature, deployment or release changed.

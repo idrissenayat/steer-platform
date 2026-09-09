@@ -15,7 +15,7 @@ the latter remains pending. The actual authenticated application journey in
 
 After every verified completed increment, report:
 
-> Intent capture: **X% (N/25 checkpoints; +Y percentage points)**. Completed:
+> Intent capture: **X% (N/25 checkpoints; R remaining; +Y percentage points)**. Completed:
 > [capability and verification level]. Next: [next incomplete capability].
 
 If an increment improves part of an incomplete checkpoint, report the same overall
@@ -55,7 +55,7 @@ it does not imply that no code exists.
 | C19 | I5 Save/reopen | Authenticated new-distinct exact confirmation and atomic idempotent native save, with current scope/authority checks. | Verified | [0275](../intent/0275/EVIDENCE.md), [0276](../intent/0276/EVIDENCE.md). Synthetic authority, not live GitHub. |
 | C20 | I5 Save/reopen | Uncertain save, scheduler/provider lost replies and restart reconcile without resend; exact older-commit reopen through authenticated services. | Verified | [0275](../intent/0275/EVIDENCE.md), [0276](../intent/0276/EVIDENCE.md). |
 | C21 | I5 Save/reopen | Governed actual startup, current runtime GitHub write authority and a verified real repository save/reopen. | Pending | Source-code pushes are not application saves or runtime-write authorization. |
-| C22 | I5 Save/reopen | Measured provider request load and end-to-end latency satisfy documented human-UX acceptance thresholds on the representative journey. | Pending | [0286](../intent/0286/EVIDENCE.md) reduces source-review requests to 2,634 and first confirmation to 45,716. The [benchmark prefix](INTENT-CAPTURE-PERFORMANCE.md) still fails source review at the 200-attempt target; only draft-read targets pass. Later-stage, full failure/concurrency and issuer-latency coverage remain open. This remains unacceptable request load, not C22 completion. |
+| C22 | I5 Save/reopen | Measured provider request load and end-to-end latency satisfy documented human-UX acceptance thresholds on the representative journey. | Pending | [0287](../intent/0287/EVIDENCE.md) lowers scope preparation to 9,598 requests (15.55% reduction); source review and first confirmation stay at 2,634 and 45,716. The [benchmark prefix](INTENT-CAPTURE-PERFORMANCE.md) still fails source review at the 200-attempt target; only draft-read targets passed previously. Later-stage, full failure/concurrency and issuer-latency coverage remain open. This remains unacceptable request load, not C22 completion. |
 | C23 | I6 Human acceptance | Actual signed-in UI happy path, open-existing, exact/paraphrased duplicate, partial overlap and related-but-distinct scenarios; real sources and saved commits. | Pending | No preview, fixture or component-only result substitutes for this demonstration. |
 | C24 | I6 Human acceptance | Actual UI handles empty/failed/stale search, corrections, permission loss, exhausted budget, concurrent creation, uncertain save and refresh/reopen without lost work. | Pending | Component/negative tests inform but do not complete this real journey. |
 | C25 | I6 Human acceptance | Actual end-to-end keyboard, narrow-screen and accessibility verification, followed by the user's usable-journey acceptance. | Pending | Component axe checks do not establish browser/visual or human acceptance. |
@@ -72,6 +72,7 @@ it does not imply that no code exists.
 | 2026-09-09 / 0284 | 17/25 | 68% | +0 percentage points | Partial C22: private identical-caller proof removes about 19% of preview/confirmation requests; default/continuation and historical SQL selections pass, followed by final receiver-compatibility, 1,382 broad tests, types and build. Exact verification timing is recorded; latency-bearing acceptance remains open. |
 | 2026-09-09 / 0285 | 17/25 | 68% | +0 percentage points | Partial C22: executable authenticated delay/budget prefix, retained samples and correct failed-benchmark reporting; two prefix integrity checks, default joined regression, 1,387 broad tests, types and build pass. Source review exceeds the request limit; full performance acceptance remains open. |
 | 2026-09-09 / 0286 | 17/25 | 68% | +0 percentage points | Partial C22: private nested-read proof removes 13.41% of source-review and 6.66% of confirmation requests; 58 focused tests, final default joined regression, two prefix integrity checks, 1,399 broad tests, types and build pass. The source-review limit still fails; no live acceptance or completed checkpoint is implied. |
+| 2026-09-09 / 0287 | 17/25 | 68% | +0 percentage points | Partial C22: separate read-only scope-preparation windows remove 15.55% of requests without crossing admission/persistence effects; nine focused tests, 82 scope-runtime checks, three default authenticated joined checks, 1,406 broad tests, types and build pass. Source review, confirmation and drafting-start counts remain unchanged; no whole checkpoint or live acceptance is complete. |
 
 Next unblocked engineering checkpoint: C22, meet the documented request-load and
 latency bounds without weakening current authority or recovery guarantees.

@@ -21,6 +21,7 @@ test('scope preparer is lazy and denies missing authority, foreign scope and clo
   assert.equal((await service.prepare(f.input,async()=>true as any)).outcome,'unavailable');
   service.close();await assert.rejects(service.prepare(f.input,async()=>{}));assert.equal(calls,0);
   for(const key of ['evidenceFor','authorizePreparation'])assert.throws(()=>createIntentScopePreparer(pools,f.config,f.profile,{...deps,[key]:undefined} as any));
+  assert.throws(()=>createIntentScopePreparer(pools,f.config,f.profile,{...deps,withEvidenceRead:true} as any));
   for(const key of Object.keys(f.records))assert.throws(()=>createIntentScopePreparer(pools,f.config,f.profile,{...deps,records:{...f.records,[key]:undefined}} as any));
 });
 test('scope preparation timeout retains all admission slots until actual dependencies drain and blocks late SQL',async t=>{

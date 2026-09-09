@@ -62,6 +62,28 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Separate scope-preparation read windows — 0287
+
+The actual corpus/preparer factory now installs a trusted private evidence hook.
+Each source/policy/source validation pair opens its own read-only session; initial
+full acquisition is unchanged. The session closes before scope admission or
+encrypted-original persistence, and the next pair starts with a full fresh
+collection. No source bytes or authority proof survive across effects/requests.
+Every independent records, draft, preparation and consumed-source grant remains.
+
+The owner pins the hook identity and tracks both the wrapper and actual work/reads.
+Skipped/replayed callbacks, early/nonvoid completion, swallowed failures,
+overlapping/unawaited reads and escaped late use cannot permit the next effect.
+Source/draft conflict identity survives session error sanitization. The full
+no-hook fallback remains available; caller DTOs cannot install this private hook.
+
+See [0287 evidence](../intent/0287/EVIDENCE.md). Native boundary tests prove eight
+rather than fourteen body reads in the two-source fixture, fresh reads after
+effects and denial/unknown outcomes for late revocation/drift. The actual managed
+34-source preparation falls from 11,365 to 9,598 requests; final synthetic
+confirmation/save/reopen still passes. This remains far above the performance
+target and changes no live profile or authority: **68% (17/25; +0 points)**.
+
 ### Private nested repository-read proof — 0286
 
 The adapter now constructs an immutable, private read callback that invokes its
