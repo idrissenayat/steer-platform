@@ -62,6 +62,25 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Explicit historical source-policy query composition — 0296
+
+The generation-history owner explicitly marks its read-only source-permission
+query through a private constructor. Ordinary calls retain caller/policy/caller.
+The authenticated historical scope window may select policy/fresh-caller ordering
+before content, SQL, keys or continuation, without repeating the leading check.
+Generic/copy/foreign-caller callbacks cannot acquire this stronger proof. Genuine
+forwarding retains arguments, intrinsic invocation and every owner guard/tracker;
+nonvoid/late failures and incomplete policy work still deny. No grant is cached.
+
+Initial authentication, all source queries, both full scope reads and final
+original/key/lifecycle/records verification remain. Preview now uses 4,017 provider
+requests and first confirmation 8,227 (about 19% fewer); these still fail C22.
+The next read-set work must also address repeated immutable-source bodies: 344
+repository blobs per confirmation already exceed the full 200-attempt budget.
+Any reuse remains within a read-only phase, with exact commit identity and fresh
+grants/head checks, never across effects or requests. See
+[0296 evidence](../intent/0296/EVIDENCE.md) and [raw samples](../intent/0296/PERFORMANCE.json).
+
 ### Retained-original read set for generation history — 0295
 
 The private generation-history owner now shares one exact original-store read

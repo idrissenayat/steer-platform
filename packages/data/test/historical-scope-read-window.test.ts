@@ -4,7 +4,8 @@ import { scopeReviewFixture } from '../../tool-registry/test/intent-scope-review
 import { validateIntentScopeBatchResults } from '@steer/tool-registry/intent-scope-batches';
 import { verifyIntentScopeHistoryOutput, type IntentScopeHistoryReader } from '@steer/tool-registry/intent-scope-history-contracts';
 import { withHistoricalScopeReadWindow as window } from '../src/historical-scope-read-window.ts';
-import { bracketHistoricalReadAuthority as bracket, forwardHistoricalReadAuthority as forward } from '../src/historical-read-authority.ts';
+import { bracketHistoricalReadAuthority as bracket, forwardHistoricalReadAuthority as forward,
+  bracketHistoricalReadPolicyAuthority as metadata } from '../src/historical-read-authority.ts';
 
 async function fixture() {
   const f = await scopeReviewFixture(), input = { organizationId: f.scope.organizationId, productId: f.scope.productId,
@@ -23,6 +24,43 @@ async function fixture() {
     read: async (_input, recheck) => { state.calls++; await recheck(); if (!state.recordsAllowed) throw new Error('Private retained records/key/profile denial'); return state.output; } };
   return { input, output, state, reader, current, source };
 }
+
+test('explicit metadata sources remove one duplicated caller query per check without losing source queries or full reads', async () => {
+  const run = async (proven: boolean) => {
+    const f = await fixture(), create = proven ? metadata : bracket;
+    const source = forward(forward(create(f.current, f.source, pending => pending, () => {}), [], pending => pending, () => {}), [], pending => pending, () => {});
+    await window(f.reader, f.current, async port => { for (let i = 0; i < 10; i++) await port!.read(f.input, source); });
+    assert.equal(f.state.calls, 2); return f.state;
+  };
+  const full = await run(false), reduced = await run(true);
+  assert.equal(full.source, reduced.source); assert.equal(full.current - reduced.current, full.source);
+});
+
+test('metadata-source identity/source revocation during initial/final read denies without publishing', async () => {
+  for (const final of [false, true]) for (const failure of ['identity', 'source', 'nonvoid']) {
+    const f = await fixture(); let published = false;
+    const source = metadata(f.current, async () => {
+      await f.source(); if (f.state.calls === (final ? 2 : 1)) {
+        if (failure === 'identity') f.state.allowed = false;
+        if (failure === 'source') throw new Error('revoked source');
+        if (failure === 'nonvoid') return true;
+      }
+    }, pending => pending, () => {});
+    await assert.rejects(window(f.reader, f.current, async port => { await port!.read(f.input, source); return 'private'; }).then(() => { published = true; }));
+    assert.equal(published, false); assert.equal(f.state.calls, final ? 2 : 1);
+  }
+});
+
+test('metadata path still authenticates before its first policy and falls back for a foreign caller', async () => {
+  const f = await fixture(); f.state.allowed = false;
+  const source = metadata(f.current, f.source, pending => pending, () => {});
+  await assert.rejects(window(f.reader, f.current, async port => port!.read(f.input, source)));
+  assert.equal(f.state.source, 0); assert.equal(f.state.calls, 0);
+  f.state.allowed = true;
+  const foreign = metadata(async () => {}, async () => { await f.source(); f.state.allowed = false; }, pending => pending, () => {});
+  await assert.rejects(window(f.reader, f.current, async port => port!.read(f.input, foreign)));
+  assert.equal(f.state.calls, 0);
+});
 
 test('privately bracketed and forwarded sources remove only duplicate identical caller barriers, retaining two full reads', async () => {
   const run = async (recognized: boolean) => {

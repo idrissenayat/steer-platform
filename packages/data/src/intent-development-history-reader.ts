@@ -5,7 +5,7 @@ import { createDevelopmentObservationStore } from './development-observations.ts
 import { createHistoricalDevelopmentOperationReader } from './intent-operations.ts';
 import { developmentOriginalHash as hash,freezeOriginal as freeze } from './development-original-contracts.ts';
 import { withHistoricalScopeReadWindow } from './historical-scope-read-window.ts';
-import { bracketHistoricalReadAuthority } from './historical-read-authority.ts';
+import { bracketHistoricalReadPolicyAuthority } from './historical-read-authority.ts';
 import { createReadPolicyAuthority } from './read-policy-authority.ts';
 import { withHistoricalOriginalReadWindow, readHistoricalOriginalWindow } from './historical-original-read-window.ts';
 
@@ -43,7 +43,9 @@ export function createIntentDevelopmentHistoryReader(pools:Parameters<typeof cre
       // intermediate reuse never escapes it or replaces caller authorization.
       const verified=new Map<string,string>();
       // Only the private window may supply this port. It already brackets every
-      // original/source callback with current(), including nonvoid/late denial.
+      // source callback with fresh current() before continuation, including
+      // nonvoid/late denial. Proven metadata-only callbacks consolidate the
+      // redundant leading check only inside that authenticated private window.
       // Adding checked()/authority() around it repeats the same barrier at every
       // nested scope read without introducing another IO or policy boundary.
       let scopeHistory:Records['originals']['scopeHistory'];
@@ -59,7 +61,7 @@ export function createIntentDevelopmentHistoryReader(pools:Parameters<typeof cre
         originals:{
           authorize:denied,authorizeOperation:denied,
           authorizeHistoricalRead:context=>authority('read',()=>r.originals.authorizeHistoricalRead!(context)),
-          authorizeOriginal:bracketHistoricalReadAuthority(current,async (context: Parameters<typeof r.originals.authorizeOriginal>[0])=>{
+          authorizeOriginal:bracketHistoricalReadPolicyAuthority(current,async (context: Parameters<typeof r.originals.authorizeOriginal>[0])=>{
             if(context.action!=='read')throw unavailable();
             return r.originals.authorizeOriginal(context);
           },track,guard),

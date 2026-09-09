@@ -9,7 +9,25 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0295 / partial C22 — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0296 / partial C22 — 68% (17/25; 8 remaining; +0 points)**.
+0296 consolidates the redundant leading identity check around explicitly proven
+historical source-permission metadata queries. Initial authentication, every
+source policy, fresh caller checks before data/continuation, and both full final
+history/source/key reads remain. Preview falls from 4,957 to **4,017** requests
+(18.96%); first confirmation from 10,107 to **8,227** (18.60%). Source review is
+unchanged at 210. See [0296 evidence](../intent/0296/EVIDENCE.md) and
+[raw samples](../intent/0296/PERFORMANCE.json). This does not complete C22.
+
+Next consolidate **both repeated immutable-source reads and identity/records
+validation within each read-only preview/confirmation phase**. Confirmation still
+downloads 344 repository blobs, exceeding the whole 200-attempt budget even before
+identity traffic. Identity-only reductions cannot finish C22. Reuse must be bound
+to exact verified commit/content identity with fresh grants/head checks, no mixed
+snapshots, no cross-request cache and no reuse across writes. Preserve complete
+final verification; then close the source-review gap and run the full unchanged
+performance protocol. Live records/model/GitHub/UI prerequisites remain separate.
+
+Prior delivery checkpoint: **0295 / partial C22**.
 0295 shares an invocation-owned retained-original read set across generation
 history and observations. Full first/final original-source verification brackets
 fresh intermediate authority, key, lifecycle/hold/expiry and row-identity checks.

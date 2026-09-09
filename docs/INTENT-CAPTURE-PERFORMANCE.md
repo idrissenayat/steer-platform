@@ -57,7 +57,23 @@ do not exclude expensive identity traffic or weaken checks to meet the number.
 
 ## Current gap and next work
 
-Latest: [0295](../intent/0295/EVIDENCE.md) consolidates retained-original reads
+Latest: [0296](../intent/0296/EVIDENCE.md) removes only redundant leading identity
+checks around explicitly proven metadata-only historical source queries. Preview
+falls from 4,957 to **4,017** requests (18.96%); first confirmation from 10,107 to
+**8,227** (18.60%). Every source policy still runs, followed by fresh caller checks
+before data/continuation; initial authentication and full final history reads remain.
+Source review remains 210 and other preparation/start counts are unchanged.
+[Raw samples](../intent/0296/PERFORMANCE.json) retain the request partitions.
+
+This is partial C22, not latency or live acceptance. Broad regression overlaps the
+beginning of this single undelayed diagnostic; timings are not comparable p95.
+Confirmation still downloads **344 repository blobs**, greater than the entire
+200-attempt budget before identity/metadata traffic. Next consolidate exact
+immutable-source reads alongside identity/records validation within each read-only
+phase, with fresh grants/head checks and no reuse across writes/requests. Do not
+spend more source-only or identity-only increments claiming they can close C22.
+
+[0295](../intent/0295/EVIDENCE.md) consolidates retained-original reads
 across history and observations with fresh intermediate key/lifecycle/authority
 checks and full first/final source readback. Preview falls from 5,057 to **4,957**
 requests (1.98%); first confirmation from 10,307 to **10,107** (1.94%). Reconstructed

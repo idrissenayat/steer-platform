@@ -1,7 +1,7 @@
 import { intentScopeHistoryInputSchema, verifyIntentScopeHistoryOutput,
   type IntentScopeHistoryReader, type IntentScopeHistoryInput, type IntentScopeHistoryOutput } from '@steer/tool-registry/intent-scope-history-contracts';
 import { developmentOriginalHash as hash, freezeOriginal as freeze } from './development-original-contracts.ts';
-import { historicalReadAuthorityCovers } from './historical-read-authority.ts';
+import { historicalReadAuthorityCovers, historicalReadPolicyQuery } from './historical-read-authority.ts';
 
 const unavailable = () => new Error('Historical scope read is unavailable.');
 /** Private composition boundary for ONE read-only generation-history projection.
@@ -24,6 +24,12 @@ export async function withHistoricalScopeReadWindow<T>(reader: IntentScopeHistor
     guard(); if (typeof callback !== 'function' || await callback() !== undefined) throw unavailable(); guard();
   };
   const present = async (callback: () => Promise<void>) => {
+    // Initial caller validation already ran at window entry. An explicitly
+    // proven metadata-only source query may run first, followed by fresh caller
+    // validation before any content/SQL/key work or result continuation. Ordinary
+    // generic brackets retain their full path; no permission is cached.
+    const query = historicalReadPolicyQuery(callback, current);
+    if (query) { await check(query); return; }
     // A privately constructed callback already brackets its exact source policy
     // with this SAME caller check. Do not repeat that barrier without another IO
     // or policy boundary. Unknown/copied/differently scoped callbacks stay full.

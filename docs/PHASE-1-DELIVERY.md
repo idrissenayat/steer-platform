@@ -6676,3 +6676,41 @@ observation/operation and source-authority traversal, then the remaining source
 gap and full performance protocol. No credentials, live spending, records/D1
 activation, runtime GitHub grants/writes, gates, deployment, release or user data
 changed.
+
+## 0296 — Consolidate historical source-policy identity checks
+
+Explicit private metadata-policy construction now distinguishes generation-history
+source-permission queries from generic bracketed callbacks. Ordinary invocation
+keeps caller/policy/caller. Inside the authenticated historical scope window, the
+proven metadata path executes policy/fresh-caller before content, SQL, keys or
+continuation. Initial authentication, every source grant and both full historical
+reads remain. Genuine forwarding preserves captured arguments, intrinsic invocation
+and all guards/trackers; copied/generic/foreign-caller callbacks keep full checks.
+Early/nonvoid/failed/late callbacks cannot publish or bypass owner admission.
+
+Final Node 24 verification passes 65 focused tests, eight native records checks
+plus migrations, **1,583 expanded broad tests**, 233 separate domain/worker/web
+tests, 88 prototype tests, all types and the Next optimized build. The expanded
+broad selection includes root controls, so its count is not directly comparable
+to the prior selection. Three authenticated joined checks plus migrations pass
+through both roles, correction, confirmation, one native save, lost acknowledgements,
+reconstruction, exact reopen and current policy/Git denial. See
+[specification](../intent/0296/SPEC.md), [evidence](../intent/0296/EVIDENCE.md) and
+[raw measurements](../intent/0296/PERFORMANCE.json).
+
+Preview falls from 4,957 to **4,017** requests (18.96%); first confirmation from
+10,107 to **8,227** (18.60%). Reconstructed/repeated confirmation use 8,199 / 8,197,
+retaining both reconstructed token refreshes. Source review stays 210; scope/
+drafting preparation and start counts are unchanged. Repository/body requests
+remain. Recovery is committed in 211 ms / 17 requests, with 14 SQL phases and no
+clock reversal; the older 0289 unknown remains retained and unexplained.
+
+The broad run overlaps the beginning of the undelayed joined diagnostic; times
+are not warmed p95 or a timing speedup claim. Full SQL, other full dispositions,
+delayed prefix and full performance/live acceptance were not rerun. Progress stays
+**68% (17/25; 8 remaining; +0 points)**. Confirmation's 344 repository blob reads
+alone exceed the 200-attempt budget. Next consolidate both immutable-source reads
+and identity/records validation within each read-only phase, with exact commit
+identity, fresh grants/head checks, and no reuse across effects or requests. No
+credentials, model spend, records/D1 adoption, runtime GitHub grant/write, signed
+source, gate, deployment, release or user data changed.
