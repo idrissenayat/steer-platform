@@ -62,6 +62,22 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Owned current-scope projection during drafting start — 0320
+
+[0320](../intent/0320/EVIDENCE.md) privately registers only the exact constructed
+current-scope reader and pins its read method/scope. One verified scope content
+lease encloses each development-original validation phase. The borrowed port is
+immutable, exact-target, non-concurrent and lifetime-bound; each borrowed read
+reruns current source/review/caller checks. Complete development records/key
+comparison is followed by complete scope records/key comparison before effects.
+Final scope work keeps development purposes current and drains actual pending work
+even after its result reports timeout or closure. Unknown/wrapped/history readers
+retain full-reader behavior; errors never select a fallback.
+
+No new tool, environment switch, authority cache, scheduling scope or live
+activation is introduced. Scope-key lookups halve and synthetic drafting-start
+attempts fall roughly 21%, but C22 and actual UI/save acceptance remain open.
+
 ### Current-source permission-query composition — 0319
 
 [0319](../intent/0319/EVIDENCE.md) marks drafting start's read-only original

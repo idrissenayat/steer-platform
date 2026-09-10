@@ -1,0 +1,628 @@
+{
+  "kind": "steer-implementation-verification/v1",
+  "intent": "0320",
+  "date": "2026-09-10",
+  "baseCommit": "c9ee37ac81102fe285545dae954d83aa2b12fafe",
+  "progress": {
+    "verified": 17,
+    "total": 25,
+    "percentage": 68,
+    "remaining": 8,
+    "percentagePointChange": 0
+  },
+  "checks": [
+    {
+      "command": "node --test apps/api/test/current-scope-projection.test.ts apps/api/test/intent-journey-factory.test.ts packages/data/test/current-scope-read-window.test.ts tests/package-boundaries.test.mjs",
+      "exitCode": 0,
+      "tests": 39,
+      "passed": 39,
+      "failed": 0,
+      "durationMs": 816.367875,
+      "scope": "Final source after explicit per-consumption scope grants and actual drain. Focused cases overlap the broad suite."
+    },
+    {
+      "command": "node --test --test-concurrency=4 packages/*/test/*.test.ts packages/domain/test/*.test.mjs apps/api/test/*.test.ts apps/worker/test/*.test.ts apps/web/test/*.test.mjs tests/package-boundaries.test.mjs",
+      "exitCode": 0,
+      "tests": 1548,
+      "passed": 1548,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "durationMs": 344329.596541,
+      "scope": "Final exact source. Focused tests overlap this suite and are not additional distinct tests."
+    },
+    {
+      "command": "pnpm typecheck",
+      "exitCode": 0,
+      "scope": "Prototype and all eight applications/packages, final source."
+    },
+    {
+      "command": "pnpm kit:check",
+      "exitCode": 0,
+      "requiredArtifacts": 95
+    },
+    {
+      "command": "pnpm security:check",
+      "exitCode": 0,
+      "scope": "Workflow token-scope audit: contents read-only."
+    },
+    {
+      "command": "node packages/data/test/postgres.integration.ts --development-start",
+      "exitCode": 0,
+      "checks": 9,
+      "idempotentMigrationsPassed": true,
+      "fullIntegrationSuiteRun": false
+    },
+    {
+      "command": "node packages/data/test/postgres.integration.ts --journey-runtime",
+      "exitCode": 0,
+      "joinedChecks": 3,
+      "idempotentMigrationsPassed": true,
+      "fullIntegrationSuiteRun": false,
+      "scope": "Final source; authenticated HTTP/native Git/PostgreSQL/recorded SDK/Temporal save, restart, lost-acknowledgement recovery and exact reopen. Includes all 26 original/scope closure scenarios."
+    },
+    {
+      "command": "node packages/data/test/postgres.integration.ts --journey-runtime-continuation",
+      "exitCode": 0,
+      "joinedChecks": 1,
+      "idempotentMigrationsPassed": true,
+      "fullIntegrationSuiteRun": false,
+      "scope": "Same final source and 26 closure scenarios, with canonical/prior-proposal/target preservation through continuation save/recovery/reopen."
+    }
+  ],
+  "measurements": {
+    "new-distinct": [
+      {
+        "tool": "intent.development.prepare",
+        "providerAttempts": 532,
+        "durationMs": 8005,
+        "identityHeadAttempts": 493,
+        "requestKinds": {
+          "head": 501,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.development.prepare",
+        "providerAttempts": 487,
+        "durationMs": 7845,
+        "identityHeadAttempts": 448,
+        "requestKinds": {
+          "head": 456,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.development.start",
+        "providerAttempts": 552,
+        "durationMs": 2167
+      },
+      {
+        "tool": "intent.development.start",
+        "providerAttempts": 628,
+        "durationMs": 2433
+      },
+      {
+        "tool": "intent.development.start",
+        "providerAttempts": 628,
+        "durationMs": 2639
+      },
+      {
+        "tool": "intent.draft.read",
+        "providerAttempts": 19,
+        "durationMs": 821,
+        "identityHeadAttempts": 16,
+        "requestKinds": {
+          "head": 16,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.development.review",
+        "providerAttempts": 75,
+        "durationMs": 2378,
+        "identityHeadAttempts": 62,
+        "requestKinds": {
+          "head": 64,
+          "commit": 2,
+          "tree": 2,
+          "blob": 6,
+          "token": 1,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.prepare",
+        "providerAttempts": 292,
+        "durationMs": 7567,
+        "identityHeadAttempts": 253,
+        "requestKinds": {
+          "head": 261,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "providerAttempts": 195,
+        "durationMs": 1315,
+        "identityHeadAttempts": 192,
+        "requestKinds": {
+          "head": 192,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "providerAttempts": 221,
+        "durationMs": 1305,
+        "identityHeadAttempts": 218,
+        "requestKinds": {
+          "head": 218,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "providerAttempts": 221,
+        "durationMs": 1390,
+        "identityHeadAttempts": 218,
+        "requestKinds": {
+          "head": 218,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.read",
+        "providerAttempts": 25,
+        "durationMs": 870,
+        "identityHeadAttempts": 22,
+        "requestKinds": {
+          "head": 22,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.review",
+        "providerAttempts": 211,
+        "durationMs": 2815,
+        "identityHeadAttempts": 199,
+        "requestKinds": {
+          "head": 201,
+          "commit": 2,
+          "tree": 2,
+          "blob": 6,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.preview",
+        "providerAttempts": 330,
+        "durationMs": 4668,
+        "identityHeadAttempts": 308,
+        "requestKinds": {
+          "head": 316,
+          "commit": 4,
+          "tree": 4,
+          "blob": 6,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare (discarded reply)",
+        "providerAttempts": 853,
+        "durationMs": 7789,
+        "identityHeadAttempts": 812,
+        "requestKinds": {
+          "head": 828,
+          "commit": 7,
+          "tree": 7,
+          "blob": 11,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "providerAttempts": 825,
+        "durationMs": 7864,
+        "identityHeadAttempts": 782,
+        "requestKinds": {
+          "head": 798,
+          "commit": 7,
+          "tree": 7,
+          "blob": 11,
+          "token": 2,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "providerAttempts": 823,
+        "durationMs": 8248,
+        "identityHeadAttempts": 782,
+        "requestKinds": {
+          "head": 798,
+          "commit": 7,
+          "tree": 7,
+          "blob": 11,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      }
+    ],
+    "proposal-continuation": [
+      {
+        "tool": "intent.development.prepare",
+        "providerAttempts": 532,
+        "durationMs": 8343,
+        "identityHeadAttempts": 493,
+        "requestKinds": {
+          "head": 501,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.development.prepare",
+        "providerAttempts": 487,
+        "durationMs": 8087,
+        "identityHeadAttempts": 448,
+        "requestKinds": {
+          "head": 456,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.development.start",
+        "providerAttempts": 552,
+        "durationMs": 2412
+      },
+      {
+        "tool": "intent.development.start",
+        "providerAttempts": 628,
+        "durationMs": 2353
+      },
+      {
+        "tool": "intent.development.start",
+        "providerAttempts": 628,
+        "durationMs": 2645
+      },
+      {
+        "tool": "intent.draft.read",
+        "providerAttempts": 19,
+        "durationMs": 907,
+        "identityHeadAttempts": 16,
+        "requestKinds": {
+          "head": 16,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.development.review",
+        "providerAttempts": 75,
+        "durationMs": 2478,
+        "identityHeadAttempts": 62,
+        "requestKinds": {
+          "head": 64,
+          "commit": 2,
+          "tree": 2,
+          "blob": 6,
+          "token": 1,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.prepare",
+        "providerAttempts": 292,
+        "durationMs": 7004,
+        "identityHeadAttempts": 253,
+        "requestKinds": {
+          "head": 261,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "providerAttempts": 195,
+        "durationMs": 1357,
+        "identityHeadAttempts": 192,
+        "requestKinds": {
+          "head": 192,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "providerAttempts": 221,
+        "durationMs": 1364,
+        "identityHeadAttempts": 218,
+        "requestKinds": {
+          "head": 218,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "providerAttempts": 221,
+        "durationMs": 1302,
+        "identityHeadAttempts": 218,
+        "requestKinds": {
+          "head": 218,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.read",
+        "providerAttempts": 25,
+        "durationMs": 1003,
+        "identityHeadAttempts": 22,
+        "requestKinds": {
+          "head": 22,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.review",
+        "providerAttempts": 211,
+        "durationMs": 2283,
+        "identityHeadAttempts": 199,
+        "requestKinds": {
+          "head": 201,
+          "commit": 2,
+          "tree": 2,
+          "blob": 6,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.preview",
+        "providerAttempts": 440,
+        "durationMs": 5119,
+        "identityHeadAttempts": 400,
+        "requestKinds": {
+          "head": 408,
+          "commit": 6,
+          "tree": 6,
+          "blob": 20,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare (discarded reply)",
+        "providerAttempts": 1073,
+        "durationMs": 11026,
+        "identityHeadAttempts": 996,
+        "requestKinds": {
+          "head": 1012,
+          "commit": 11,
+          "tree": 11,
+          "blob": 39,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "providerAttempts": 1045,
+        "durationMs": 11534,
+        "identityHeadAttempts": 966,
+        "requestKinds": {
+          "head": 982,
+          "commit": 11,
+          "tree": 11,
+          "blob": 39,
+          "token": 2,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "providerAttempts": 1043,
+        "durationMs": 10485,
+        "identityHeadAttempts": 966,
+        "requestKinds": {
+          "head": 982,
+          "commit": 11,
+          "tree": 11,
+          "blob": 39,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      }
+    ]
+  },
+  "scopeClosure": {
+    "priorWrappedReaderScenarios": 15,
+    "addedExactReaderScenarios": 11,
+    "scopeContentLeasesAcrossThreeDraftingPhases": {
+      "before": 6,
+      "after": 3
+    },
+    "physicalScopeKeyReads": {
+      "before": 12,
+      "after": 6
+    },
+    "physicalDevelopmentKeyReads": {
+      "before": 6,
+      "after": 6
+    },
+    "finalDevelopmentBeforeScopeKeyComparison": true,
+    "heldFinalScopeKeyMustDrainAfterExplicitScopeClose": true
+  },
+  "benchmark": {
+    "passed": false,
+    "completeProtocolRun": false,
+    "maxProviderAttemptsPerAction": 200,
+    "providerAttemptLatencyMs": 20,
+    "maxP95Ms": 5000,
+    "warmSamplesPerDirection": 20,
+    "coldSamplesPerDirection": 3,
+    "concurrentSamplesPerDirection": 4,
+    "negativeCasesRequired": true,
+    "identityAndTokenAttemptsIncluded": true,
+    "limitation": "Undelayed synthetic functional samples on a shared host, not warmed p95, live model quality, signed-in UI or runtime GitHub saving."
+  },
+  "iterations": [
+    {
+      "stage": "initial focused run",
+      "tests": 39,
+      "passed": 37,
+      "failed": 2,
+      "issues": [
+        "Helper imported storage contracts outside the API composition root; replaced with portable contracts and local structural comparison/freezing.",
+        "Malformed-result test attempted to mutate a frozen fixture; corrected to replace the fixture value."
+      ]
+    },
+    {
+      "stage": "type verification",
+      "issues": [
+        "Test cleanup needed narrowing before calling optional shutdown."
+      ],
+      "resolved": true
+    },
+    {
+      "stage": "review",
+      "changes": [
+        "Per-consumption scope/review policy queries remain explicit before fresh caller verification.",
+        "Borrowed scope phases await actual read-set drainage even after timeout/close rejects the result.",
+        "Native shutdown case explicitly closes the scope owner while its final key read is held."
+      ]
+    },
+    {
+      "stage": "final reruns",
+      "scope": "Focused/types, native start, both joined journeys and broad regression use all corrections. Earlier experimental runs are not final evidence or additional distinct tests."
+    }
+  ],
+  "sourceHashes": {
+    "apps/api/src/runtime.ts": "9a721eb8ebddb2872bcc2d6ddd085f73b3a8ba1a246824141abc4387983a27c5",
+    "apps/api/src/current-scope-projection.ts": "48fd076e1aa50a7844baae7917657bfc17c61a68f90c16bc790cceb49db6d515",
+    "apps/api/test/current-scope-projection.test.ts": "d5968f8679b499a52ff7e8cae609c4053c5c97dca24a0772e88dc70ad7489226",
+    "apps/api/test/owned-development-start.integration.ts": "060d03d1e5f2f315f1b28232c3aab5712c8d9ec36c41a6965b71d7dcb3456edd"
+  },
+  "protectedHashes": {
+    "intent/0001/ARCHITECTURE.md": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65",
+    "intent/0001/EXAM.md": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f",
+    "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32",
+    "intent/0289/PERFORMANCE.json": "d0371c364bbfb103b70675faf911499bffb91afe8a5e6950718c87a171e9e302"
+  },
+  "artifactIntegrity": {
+    "sourceFiles": 4,
+    "protectedFiles": 4,
+    "fixedCheckpointRows": 25,
+    "verifiedCheckpointRows": 17,
+    "localDocumentLinks": 550
+  },
+  "boundaries": {
+    "liveModelCalls": false,
+    "modelSpending": false,
+    "runtimeGitHubArtifactSave": false,
+    "recordsOrProfileActivation": false,
+    "deployment": false,
+    "release": false,
+    "liveRecordDeletion": false,
+    "gateSignature": false,
+    "browserVerification": false,
+    "cleanup": "Only synthetic harness-owned PostgreSQL containers and tmpfs data.",
+    "preservedUserPaths": [
+      "docs/REAL-USER-ROADMAP.md",
+      "outputs/"
+    ],
+    "priorFailure": "Passing synthetic recovery does not explain or replace the retained 0289 performance failure."
+  },
+  "next": "Consolidate remaining preparation/save-confirmation validation and drafting caller traversal, then the unchanged complete benchmark. Governed real model/runtime activation and signed-in UI/save acceptance remain required."
+}

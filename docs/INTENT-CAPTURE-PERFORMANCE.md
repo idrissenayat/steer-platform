@@ -7,6 +7,28 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Owned current-scope projection — 0320
+
+[0320](../intent/0320/EVIDENCE.md) joins the complete scope content lease with
+dependent drafting validation. Final development records/keys precede final scope
+records/keys, with fresh source/review/current checks and real pending-work drain.
+The exact constructed current reader is required; ordinary/wrapped/history paths
+retain their established behavior. Scope-key reads fall twelve→six over three
+phases, without removing initial/final key comparison inside any phase.
+
+| Authenticated synthetic action | 0319 attempts | 0320 attempts |
+| --- | ---: | ---: |
+| Drafting start | 699 | 552 |
+| Drafting recovery / repeat | 796 / 796 | 628 / 628 |
+
+This is approximately 21% fewer attempts. Other action counts are unchanged. See
+[verification](../intent/0320/VERIFICATION.json) for exact source/check/sample scope.
+These are undelayed functional samples, not p95, model-quality or signed-in UI
+acceptance. C22 retains its full 200-attempt/20 ms/five-second p95, 20-warm/3-cold/
+4-concurrent protocol in both directions and all negative cases. Next consolidate
+remaining preparation/confirmation validation and drafting caller traversal.
+**68% (17/25; eight remaining; +0 percentage points).**
+
 ## Current-scope permission-query composition — 0319
 
 [0319](../intent/0319/EVIDENCE.md) applies a private permission-query pattern

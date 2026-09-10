@@ -108,4 +108,75 @@ export async function testOwnedDevelopmentStartClosure(pools: Parameters<typeof 
     } finally { release(); starter.close(); scope.service.close(); }
   }
   console.log('PASS owned drafting-start closure: two full current scope reads per phase with the final read after development records/keys under fresh purpose grants; cross-boundary scope/record/key loss and historical scope deny before scheduling');
+  // Exact constructed current readers, not the wrappers above, can keep a scope
+  // content lease around the original phase. This must halve physical scope-key
+  // lookups while preserving final native comparison and cross-purpose denial.
+  for (const failure of ['none', 'scope-record', 'scope-key', 'scope-revision', 'development-record',
+    'development-key', 'rotated-scope-key', 'source', 'caller', 'method']) {
+    let scopeKeys = 0, developmentKeys = 0, schedules = 0, sourceAllowed = true, callerAllowed = true;
+    let development: ReturnType<typeof ownedDevelopmentOriginalFixture>;
+    const scopeBinding = ownedScopeReadFixture(discovery.budgetId, async (...args) => {
+      const value = await s.records.originals.keyForDraft(...args); scopeKeys++;
+      if (scopeKeys === 2) {
+        assert.equal(developmentKeys, 2, 'Final scope key lookup follows development records/key comparison');
+        if (failure === 'development-record') development.state.deniedRecord = 'development_originals';
+        if (failure === 'development-key') development.state.deniedKey = 'development_originals';
+        if (failure === 'rotated-scope-key') return { ...value, bytes: new Uint8Array(32) };
+      }
+      return value;
+    });
+    const sourceRecords = { ...s.records, originals: { ...s.records.originals, authorizeOriginal: async (context: Parameters<typeof s.records.originals.authorizeOriginal>[0]) => {
+      if (!sourceAllowed) throw new Error('PRIVATE revoked scope source'); return s.records.originals.authorizeOriginal(context);
+    } } };
+    const scope = createVerifiedScopeReviewReader(pools, config, { records: sourceRecords, profile: s.profile,
+      ownedRead: { ...scopeBinding, profiles: deps.profiles } });
+    development = ownedDevelopmentOriginalFixture(discovery.budgetId, async (...args) => {
+      const value = await key(...args); developmentKeys++;
+      if (developmentKeys === 2) {
+        if (failure === 'scope-record') scopeBinding.state.deniedRecord = 'scope_observations';
+        if (failure === 'scope-key') scopeBinding.state.deniedKey = 'scope_observations';
+        if (failure === 'scope-revision') scopeBinding.state.revision = 'synthetic-changed';
+        if (failure === 'source') sourceAllowed = false;
+      }
+      return value;
+    });
+    const starter = createRecordedDevelopmentStarter(pools, config, { records: { ...deps.records.originals, scopeReview: scope },
+      profiles: retained.original.profiles, ownedRead: development,
+      authorizeStart: async () => { if (failure === 'caller') callerAllowed = false;
+        if (failure === 'method') scope.read = async () => { throw new Error('Replaced scope port must not run'); }; },
+      scheduler: { start: async (_input, current) => { await current(); schedules++; return { outcome: 'unknown' }; } },
+    });
+    try {
+      const current = async () => { if (!callerAllowed) throw new Error('PRIVATE caller'); };
+      if (failure === 'none') {
+        const result = await starter.start(input, current); assert.equal(result.documentsReady, false);
+        assert.equal(schedules, 1); assert.equal(scopeKeys, 6); assert.equal(developmentKeys, 6);
+      } else { await assert.rejects(starter.start(input, current)); assert.equal(schedules, 0); }
+    } finally { starter.close(); scope.close(); if ('shutdown' in starter) await starter.shutdown(); if ('shutdown' in scope) await scope.shutdown(); }
+  }
+  {
+    let scopeKeys = 0, schedules = 0, stopped = false, release!: () => void, entered!: () => void;
+    const held = new Promise<void>(resolve => { release = resolve; }), reached = new Promise<void>(resolve => { entered = resolve; });
+    const scopeBinding = ownedScopeReadFixture(discovery.budgetId, async (...args) => {
+      const value = await s.records.originals.keyForDraft(...args); if (++scopeKeys === 2) { entered(); await held; } return value;
+    });
+    const scope = createVerifiedScopeReviewReader(pools, config, { records: s.records, profile: s.profile,
+      ownedRead: { ...scopeBinding, profiles: deps.profiles } });
+    const development = ownedDevelopmentOriginalFixture(discovery.budgetId, key);
+    const starter = createRecordedDevelopmentStarter(pools, config, { records: { ...deps.records.originals, scopeReview: scope },
+      profiles: retained.original.profiles, ownedRead: development, authorizeStart: async () => {},
+      scheduler: { start: async () => { schedules++; return { outcome: 'unknown' }; } },
+    });
+    const result = assert.rejects(starter.start(input, async () => {}));
+    try {
+      await reached; assert.equal(development.state.reads, 2);
+      if (!('shutdown' in starter)) throw new Error('Owned starter needs drainage');
+      const stop = starter.shutdown().then(() => { stopped = true; });
+      await new Promise(resolve => setImmediate(resolve)); assert.equal(stopped, false);
+      scope.close(); // An early scope result rejection must still drain its held key.
+      await new Promise(resolve => setImmediate(resolve)); assert.equal(stopped, false);
+      release(); await stop; await result; assert.equal(stopped, true); assert.equal(schedules, 0);
+    } finally { release(); starter.close(); scope.close(); if ('shutdown' in scope) await scope.shutdown(); }
+  }
+  console.log('PASS owned current-scope projection: one native scope content lease per drafting phase, six physical scope/development key reads across three phases, final scope comparison after development, nine late-denial cases and actual held final scope-key drain');
 }

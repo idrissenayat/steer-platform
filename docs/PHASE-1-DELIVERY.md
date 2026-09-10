@@ -7053,6 +7053,28 @@ live model/key access, spending, runtime GitHub save, deployment, profile/record
 activation, signature or human UI acceptance. User drafts, signed artifacts and
 roadmap/outputs remain unchanged. **68% (17/25; eight remaining; +0 points).**
 
+## 0320 — Owned current-scope projection for drafting start
+
+[0320](../intent/0320/EVIDENCE.md) keeps one actual current-scope records/key lease
+around each owned development-original validation phase. Only exact construction
+identity opts in; history/wrapped/ordinary readers retain the established path.
+The borrowed result is immutable and exact-input, with fresh source/review/caller
+checks and actual pending-read drain. Development records/keys recheck before
+final scope records/keys; current development purposes remain active through that
+final work. Scheduling stays outside each independent validation phase.
+
+Synthetic drafting-start requests fall 699→552 and recovery/repeat 796→628,
+approximately 21%; physical scope-key lookups fall twelve→six across three phases.
+The unchanged ordinary-reader tests and new exact-reader negative/cancellation
+cases are recorded in [verification](../intent/0320/VERIFICATION.json). Other
+preparation/confirmation actions still exceed C22's fixed limits.
+
+**Progress: 68% (17/25; eight remaining; +0 percentage points).** This increment
+does not close performance, model quality, live records/runtime or signed-in
+UI/save acceptance. No model spending, runtime artifact save, activation,
+deployment, release or signature. Next consolidate remaining preparation/save
+confirmation validation and drafting caller traversal, then the full benchmark.
+
 ## 0319 — Current-scope permission-query composition
 
 [0319](../intent/0319/EVIDENCE.md) targets the dominant current-source caller
