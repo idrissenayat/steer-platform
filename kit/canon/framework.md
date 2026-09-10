@@ -32,7 +32,13 @@ The Flight Board: eight plays, seven states, three gates on the chain.
 
 An intent is a candidate brief in the intent backlog. It becomes a work item only when the Product Lead pulls it into flight against the visible WIP limit for the responsible human across every pod and hat they hold. This boundary absorbs machine-speed supply without allowing it to flood human-speed judgment.
 
-Every role home preserves the same attention order: the decision inbox for what needs judgment now, triggered candidates for what could enter next, and an ambient in-motion pane watched by aging bands. The platform projects these surfaces from the chain; it stores no private status. See STEER Practice Note 3, The Three Surfaces.
+Every role home preserves the same attention order: the decision inbox for what needs judgment now, triggered candidates for what could enter next, and an ambient in-motion pane watched by aging bands. The platform projects business status from the chain; it cannot invent a private approval or lifecycle state. D1 separately governs private draft and execution status before publication. See STEER Practice Note 3, The Three Surfaces.
+
+## Private drafts and published artifacts
+
+Under the accepted D1 amendment, an organization with a verified storage binding may preserve encrypted private intent drafts and generation checkpoints in Postgres before publishing candidate documents. Preservation acknowledges an exact recoverable revision; publication commits only human-confirmed documents to Git. Neither action pulls work or supplies a gate signature. Git remains canonical business authority, while operational records and rebuildable projections have distinct recovery paths.
+
+Private drafts expire at the earliest of original creation plus seven days, verified publication plus 60 seconds, or discard plus 60 seconds; edits and reauthentication do not renew retention. Content-free operation and model-accounting records follow D1's one-year post-terminal/reconciliation rules, retaining unknown outcomes. Current owner/tenant/product grants, per-draft keys, expiry/hold controls and all-copy recovery verification remain prerequisites. The Operating Model gives the complete schedule and activation conditions. The accepted source is D1 revision 1 at commit 9442b2d212b2c47c436cbe527dd07707b3c8174c; the historical signed architecture and Exam remain unchanged.
 
 ## The Eight Plays
 

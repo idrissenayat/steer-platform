@@ -47,9 +47,29 @@ live-agent setup are unconfigured. `local-workspace.mjs start` does not install
 the managed intent-journey factory/policy binding or enable its editor/agent flags;
 the private profile has no intent-journey binding. This is the next concrete
 integration target, not the old C22 optimization work. The proposed D1 records
-amendment remains unsigned/inactive; the $5 test budget does not adopt it.
+amendment was unsigned at that browser check; the $5 test budget did not adopt it.
 Connect existing services within those boundaries; do not fabricate activation
 authority or enable a second preview. Sign-in repair earns no W01–W08 points.
+
+### D1 approval incorporated — 2026-09-10
+
+The user subsequently answered yes to the exact D1 records/architecture-owner
+approval question. The [detached decision](../operating/local-mac/records-d1-approval.json)
+binds the previously reviewed commit and unchanged amendment digest. The root
+Methodology, Framework and Operating Model, matching Learn sources, machine
+records schedule and [architecture successor](architecture/D1-ADOPTION.md) now
+distinguish private operational records from canonical artifacts and projections.
+The local `records-status` command verifies this decision without secrets, SQL,
+model calls or activation authority. The existing real migration guard remains.
+All 18 focused tests and the web production build pass. After the owned web
+restart, actual Chrome sign-in and the updated D1 section in Learn were observed.
+Draft preservation, search and live-agent controls still report unconfigured.
+
+Acceptance remains **0% (0/8; W01–W08 remaining; +0 percentage points)**. Removing
+the policy-decision blocker is not a demonstrated saved-draft workflow. Next finish
+the amendment's independent Exam incorporation and exact local key/storage/schema
+and recovery binding, then connect the existing managed journey in the actual UI.
+Do not ask the user to approve this same D1 policy again.
 
 ### Current reporting contract
 

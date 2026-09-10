@@ -1,0 +1,49 @@
+{
+  "version": "steer-intent-records-policy/v1",
+  "frameworkVersion": "3.2",
+  "amendment": {
+    "id": "D1",
+    "revision": 1,
+    "commit": "9442b2d212b2c47c436cbe527dd07707b3c8174c",
+    "path": "docs/architecture/DRAFT-RECORDS-AMENDMENT.md",
+    "sha256": "9191831b9870da5cb632d51e8f815aa538e7a191d4ac119f2d8318a264b53ac8"
+  },
+  "defaultActivation": "disabled-until-organization-adoption-and-verified-binding",
+  "businessAuthority": "git",
+  "operationalRecords": "separately-governed-postgres-not-rebuildable-projections",
+  "browserPersistenceAllowed": false,
+  "automaticGitPublicationAllowed": false,
+  "adminHatGrantsDraftContentAccess": false,
+  "classes": {
+    "RC-INTENT-DRAFT": {
+      "encryption": "per-draft-envelope-key-outside-database-and-backups",
+      "ordinaryUseEndsAt": "earliest-applicable-authoritative-trigger",
+      "triggers": { "created": "P7D", "published": "PT60S", "discarded": "PT60S" },
+      "editsRetriesAndSignInRenewExpiry": false,
+      "expiredUse": "deny",
+      "heldUse": "restricted-preservation-only",
+      "disposition": "separate-authority-and-all-copy-verification"
+    },
+    "RC-INTENT-OPERATION": {
+      "content": "allowlisted-metadata-no-prompt-or-output-text",
+      "retention": "P1Y-after-verified-terminal-operation",
+      "unknownOutcome": "retain-for-reconciliation-without-invented-terminal-clock"
+    },
+    "RC-MODEL-USAGE": {
+      "content": "approval-bindings-consumed-reservations-and-reconciliation-no-prompt-or-output-text",
+      "retention": "P1Y-after-later-of-budget-expiry-or-revocation-and-resolution-of-all-outcomes",
+      "unknownOutcome": "retain-for-reconciliation",
+      "restoreMayReplenishBudget": false
+    }
+  },
+  "activationRequires": [
+    "exact-qualified-records-and-architecture-owner-adoption",
+    "canon-policy-and-architecture-incorporation",
+    "independent-exam-incorporation-and-applicable-exact-gate-rulings",
+    "current-owner-tenant-product-access-and-cross-owner-denial-evidence",
+    "expiry-hold-and-all-copy-key-lifecycle-evidence",
+    "reset-proof-accounting-and-failure-backup-recovery-evidence",
+    "exact-organization-storage-schema-and-runtime-binding"
+  ],
+  "approvalDoesNotGrant": ["runtime-tool-access", "migration", "github-write", "deletion", "deployment", "release", "gate-signature", "model-spending"]
+}

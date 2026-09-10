@@ -5,6 +5,13 @@ It uses the actual application HTTP and, when explicitly configured, MCP transpo
 It does not start a second application, bypass authentication or install a live
 profile. The deployed/local real-user configuration remains unchanged.
 
+Current D1 status, 2026-09-10: the exact records and architecture amendment is
+accepted in [D1 adoption](architecture/D1-ADOPTION.md). Historical references below
+to unsigned D1 describe their increment's state, not a reason to re-request that
+decision. Policy acceptance does not waive independent Exam, storage/key/recovery
+evidence or exact schema/runtime authorization. `local-workspace.mjs records-status`
+verifies the detached decision without private state or external effects.
+
 ## Binding and authority
 
 A runtime profile must name the exact organization, owner, product, repository,

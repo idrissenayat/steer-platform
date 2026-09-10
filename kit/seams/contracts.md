@@ -38,6 +38,17 @@ is derived from organization, product home repository, and item identifier.
 Timers and execution progress may live in the orchestrator, but business truth
 must be recoverable from the Git chain.
 
+## Operational records and draft key adapters
+
+Under an adopted D1 policy and verified binding, retain encrypted private drafts,
+generation checkpoints, operation ownership and model accounting independently
+of rebuildable projections. Every read/write needs current owner/tenant/product
+and purpose checks; an admin hat is not content access. The key seam enforces
+per-draft envelope keys outside database backups and their verified copy/recovery
+lifecycle. Expiry and holds deny ordinary use without claiming physical deletion.
+Restore cannot replenish budget or replay an uncertain external effect. Canonical
+business authority stays in Git; the accepted schedule is `kit/policy/intent-records.json`.
+
 ## Evidence adapter
 
 Stores immutable, tenant-scoped objects and returns a content hash, media type,

@@ -18,6 +18,14 @@ A versioned product-stack bundle containing a Builder runtime binding, language 
 
 An intent is a candidate brief in the intent backlog. It has not consumed pod capacity and is not a work item until a Product Lead pulls it into flight.
 
+## Private intent draft
+
+An encrypted, owner-scoped operational record before canonical publication. Where D1 is adopted and its controls verified, acknowledgement preserves an exact revision for recovery within the original retention window. It is not a candidate Git commit, pull or gate signature. Sign-in does not renew its expiry.
+
+## Operational record
+
+Non-rebuildable state needed to recover private drafts, generation checkpoints, durable operation ownership or model reservations. Governed separately from projections; replay from Git must not reset it or replenish spending. Content and metadata follow their distinct D1 record classes.
+
 ## Pull
 
 Pull is the Product Lead's deliberate commitment of a candidate intent into flight against the visible personal attention limit across that human's pods and hats. It is the boundary where a candidate becomes a work item.

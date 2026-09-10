@@ -8,6 +8,7 @@ import { homedir } from 'node:os';
 import { createRequire } from 'node:module';
 import { makeRealm, makeGrant, makeProfile, composeConfiguration, postgresHba } from './local-workspace-config.mjs';
 import { assertLocalMigrationBoundary } from './local-migration-boundary.mjs';
+import { inspectLocalRecordsApproval, localD1Decision } from './local-records-approval.mjs';
 
 const root = fileURLToPath(new URL('../../../', import.meta.url));
 const directory = join(homedir(), '.config/steer/local-workspace');
@@ -48,7 +49,13 @@ function createBrowserCertificate() {
 }
 async function main() {
   if (!uid || Number(process.versions.node.split('.')[0]) < 24) throw new Error('Use Node 24+ as the non-root workspace owner.');
-  if (!['init', 'prepare-browser-tls', 'configure', 'up', 'migrate', 'verify', 'verify-github', 'start', 'status', 'stop-services'].includes(action)) throw new Error('Usage: local-workspace.mjs init|prepare-browser-tls|configure|up|migrate|verify|verify-github|start|status|stop-services');
+  if (!['init', 'prepare-browser-tls', 'configure', 'up', 'migrate', 'verify', 'verify-github', 'start', 'status', 'records-status', 'stop-services'].includes(action)) throw new Error('Usage: local-workspace.mjs init|prepare-browser-tls|configure|up|migrate|verify|verify-github|start|status|records-status|stop-services');
+  if (action === 'records-status') {
+    const read = path => readFileSync(resolve(root, path));
+    const decision = inspectLocalRecordsApproval(JSON.parse(read('operating/local-mac/records-d1-approval.json')),
+      JSON.parse(read('kit/policy/intent-records.json')), read(localD1Decision.path));
+    console.log(JSON.stringify(decision)); return;
+  }
   if (action === 'migrate') assertLocalMigrationBoundary(JSON.parse(readFileSync(resolve(root, 'packages/data/migrations/meta/_journal.json'), 'utf8')));
   if (action === 'init') {
     // Refuse overwrite, including a partially completed initialization.

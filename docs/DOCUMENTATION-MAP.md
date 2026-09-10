@@ -1,7 +1,8 @@
 # STEER documentation map
 
 Current framework version: **3.2**
-Last alignment audit: **2026-09-03**
+Last doctrine update: **2026-09-10 — D1 records amendment incorporation**.
+The prior complete v3.2 alignment audit remains dated 2026-09-03.
 
 This map explains which documents govern STEER, which files the platform reads,
 and which implementation evidence remains outside the repository.
@@ -14,12 +15,15 @@ audit above, the signed execution plan or formal gate status.
 - [End-to-end blueprint](architecture/END-TO-END.md) and
   [workflow contract / open decisions](architecture/WORKFLOW-CONTRACT.md): process,
   sequence, architecture, owners, storage/recovery and current implementation
-  boundaries. Proposed operational-state and candidate-publication decisions are
-  not adopted doctrine; the signed architecture and protected Exam remain unchanged.
+  boundaries. D1 operational-state semantics were accepted on September 10;
+  candidate-publication activation remains separate. Signed historical artifacts
+  and the protected Exam remain unchanged.
 - [Revision 2 correction record](architecture/REVIEW-FIXES.md) maps all five review
   findings to concrete design contracts and acceptance cases. The separate
-  [draft-records amendment](architecture/DRAFT-RECORDS-AMENDMENT.md) states an exact
-  proposed policy change; no root doctrine or signed records policy is changed by it.
+  [draft-records amendment](architecture/DRAFT-RECORDS-AMENDMENT.md) preserves the
+  exact approved bytes. Its [D1 adoption successor](architecture/D1-ADOPTION.md)
+  records the September 10 decision, architecture data boundary and incorporation;
+  the root Word documents and their Learn projections now include that amendment.
 - [Current intent journey plan](INTENT-JOURNEY-PLAN.md): I1–I6 implementation and
   the design checkpoint before dependent persistence/publication work.
 - [Phase 1 delivery ledger](PHASE-1-DELIVERY.md): completed development increments
@@ -61,7 +65,7 @@ audit above, the signed execution plan or formal gate status.
 | Product intent | What this platform must implement and how it is examined | canonical numbered chains under `intent/0001` through `intent/0006` |
 | Production architecture | The Phase 1 foundation, stable seams, phased end state, and architecture exit exam | `intent/0001/ARCHITECTURE.md`, its Gate 1 record at `intent/0001/signatures/gate-1.json`, and `docs/architecture/STEER-platform-end-state-phased.png` |
 | Execution plan | The Gate-bound implementation sequence, evidence route, stop conditions, and pilot closure | `intent/0001/PLAN.md` |
-| Integration design for review | End-to-end process and workflow; explicit proposed amendments and acceptance boundaries, not replacement signed policy | `docs/architecture/END-TO-END.md`; `docs/architecture/WORKFLOW-CONTRACT.md` |
+| Integration design and accepted amendment | End-to-end workflow, D1 authority/recovery successor and remaining activation boundaries; historical signed bytes remain unchanged | `docs/architecture/END-TO-END.md`; `docs/architecture/WORKFLOW-CONTRACT.md`; `docs/architecture/D1-ADOPTION.md`; `operating/local-mac/records-d1-approval.json` |
 | Machine policy | Rules enforced by the kit and platform | `kit/policy`, `kit/guardrails`, `kit/bands`, `kit/metrics`, `kit/stack-packs`, and `kit/readiness` |
 | Implementation record | What exists locally and what evidence is still missing | `docs/IMPLEMENTATION.md` and `docs/INTENT-COMPLETION.md` |
 
@@ -108,8 +112,13 @@ diagram, the relevant seam contract, Stack Pack, and implementation boundary in
 the same commit. The current fixture-backed prototype cannot satisfy the
 production walking-skeleton exam merely by reproducing the intended screens.
 
-Git is the sole system of record. The browser and platform are rebuildable
-projections of these files and must not become a private source of truth.
+Git is the canonical system of record for published business artifacts and
+decisions. Under an adopted and verified D1 binding, Postgres may separately retain
+encrypted private drafts and operational/accounting records, which are not
+rebuildable projections. Projection replay must not erase those records or reset
+spending. Browser persistence remains prohibited. See the accepted
+[data-boundary successor](architecture/D1-ADOPTION.md) and
+`kit/policy/intent-records.json`; neither document activates a runtime by itself.
 
 ## Completion boundary
 

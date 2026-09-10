@@ -75,8 +75,11 @@ journey factory/policy service nor draft-editor/agent configuration. The browser
 therefore disables submission and scope search and warns that text is not saved.
 Next connect the existing workflow to this same runtime, beginning with authorized
 draft preservation/reopen. The [D1 amendment](architecture/DRAFT-RECORDS-AMENDMENT.md)
-is still unsigned/inactive; its required adoption and demonstrated controls are
-separate from the approved $5 model-test cap. Do not bypass those requirements or
+was accepted by the records and architecture owner on 2026-09-10; see
+[D1 adoption](architecture/D1-ADOPTION.md). The exact decision is recorded and its
+doctrine/machine schedule incorporated. Independent Exam incorporation and
+demonstrated storage/schema/runtime controls remain separate from the approved
+$5 model-test cap. Do not re-request D1 acceptance, bypass those requirements or
 resume unrelated performance work while preparing the integration.
 
 Last verified implementation checkpoint before the pause: **0329 / shared draft graph across save reviews — 68% (17/25; 8 remaining; +0 points)**.

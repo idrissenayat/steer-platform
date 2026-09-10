@@ -1,0 +1,43 @@
+{
+  "version": "steer-records-decision/v1",
+  "decisionId": "D1-LOCAL-2026-09-10",
+  "decision": "accepted-amendment",
+  "acceptedOn": "2026-09-10",
+  "recordedAt": "2026-09-10T13:42:04Z",
+  "organizationId": "steer-local-idrissenayat",
+  "signer": {
+    "name": "Idriss Enayat",
+    "githubLogin": "idrissenayat",
+    "authorities": ["records-owner", "architecture-owner"],
+    "authorizationConfirmed": true
+  },
+  "boundState": {
+    "commit": "9442b2d212b2c47c436cbe527dd07707b3c8174c",
+    "artifactPath": "docs/architecture/DRAFT-RECORDS-AMENDMENT.md",
+    "artifactSha256": "9191831b9870da5cb632d51e8f815aa538e7a191d4ac119f2d8318a264b53ac8",
+    "revision": 1,
+    "priorPolicyCommit": "bebbd7537c632d7c2426fdf2271d2f56a800d666",
+    "priorPolicySha256": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32"
+  },
+  "confirmation": {
+    "prompt": "Before enabling saved drafts, I need your acceptance of the [existing D1 amendment](https://github.com/idrissenayat/steer-platform/blob/9442b2d212b2c47c436cbe527dd07707b3c8174c/docs/architecture/DRAFT-RECORDS-AMENDMENT.md), which changes your previously signed memory-only policy:\n\n- Encrypted private drafts remain recoverable for up to seven days, with earlier expiry after publication or discard.\n- Content-free operation and cost records follow the specified one-year retention rules; unresolved outcomes remain retained.\n- Activation still requires verified access, encryption and recovery controls. No GitHub writes, deletion, deployment or additional spending is authorized.\n\nDo you confirm you’re authorized to act as STEER’s records and architecture owner and approve this exact D1 revision at commit `9442b2d212b2c47c436cbe527dd07707b3c8174c`?",
+    "response": "yes",
+    "provider": "OpenAI Codex",
+    "threadId": "01a049c9-80d5-7710-9607-2a5ae0c23e43",
+    "recordLocator": "User message yes immediately following the exact D1 approval question reproduced here",
+    "proofKind": "recorded-user-confirmation-not-cryptographic-attestation"
+  },
+  "effects": {
+    "recordsAmendmentAccepted": true,
+    "architectureAmendmentAccepted": true,
+    "activationPrerequisitesWaived": false,
+    "runtimeActivated": false,
+    "schemaMigrationAuthorizedByThisRecord": false,
+    "applicationGithubWritesAuthorized": false,
+    "deletionAuthorized": false,
+    "deploymentAuthorized": false,
+    "releaseAuthorized": false,
+    "gateSigned": false,
+    "additionalSpendingAuthorized": false
+  }
+}

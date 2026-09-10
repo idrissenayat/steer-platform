@@ -6,6 +6,15 @@ Last implementation audit: 2026-09-04. Current delivery route:
 
 ## Outcome status
 
+2026-09-10 D1 update: the records and architecture owner accepted the exact
+recoverable-draft amendment. The root Methodology, Framework and Operating Model
+and their Learn projections now distinguish canonical Git artifacts, rebuildable
+views and governed private operational records. The detached decision and machine
+schedule are recorded; independent Exam and verified runtime/storage activation
+remain separate. This documentation incorporation does not complete actual intent
+capture. See [D1 adoption](architecture/D1-ADOPTION.md) and the current W01–W08
+tracker in `docs/INTENT-CAPTURE-PROGRESS.md`.
+
 The local prototype now demonstrates the complete human journey against a fixture
 repository: computed workspace, role-specific decisions, Gate-specific review,
 revision-safe sign/send-back, evidence assembly, continuous work-item threads,

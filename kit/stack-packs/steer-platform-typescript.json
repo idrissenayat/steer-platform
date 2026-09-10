@@ -25,7 +25,13 @@
       "postgres-full-text",
       "pgvector"
     ],
-    "evidence": "s3-compatible-content-addressed"
+    "evidence": "s3-compatible-content-addressed",
+    "operationalRecords": {
+      "policy": "kit/policy/intent-records.json",
+      "authoritySuccessor": "docs/architecture/D1-ADOPTION.md",
+      "requiresAdoptedVerifiedBinding": true,
+      "projectionReplayMayResetRecords": false
+    }
   },
   "agents": {
     "platformRuntime": "mastra-pinned-adapter",

@@ -17,8 +17,10 @@ binds revision 2 at `281c9736816ec22fa1209b060b58fa8164519f7c`.
 The [five review corrections](REVIEW-FIXES.md) now have explicit design contracts:
 edit invalidation, contextual semantic evidence, durable step ownership, an exact
 records amendment proposal and candidate publication paths. They are not runtime
-completion claims. The [records amendment](DRAFT-RECORDS-AMENDMENT.md) still needs
-qualified approval before real draft persistence can be activated.
+completion claims. The [records amendment](DRAFT-RECORDS-AMENDMENT.md) received
+exact records/architecture-owner acceptance on 2026-09-10. Its
+[adoption successor](D1-ADOPTION.md) incorporates the changed data boundary;
+verification and exact runtime/schema activation remain separate requirements.
 
 ## 1. The human experience
 

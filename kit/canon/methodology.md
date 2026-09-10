@@ -69,3 +69,9 @@ The five moves. Repeat closes every turn.
 - STEER Practice Note 3 · The Three Surfaces · How intents, in-flight work, and decisions protect human attention
 
 The Guidebook is the complete reference; the Whitepaper is the shareable overview.
+
+## Recoverability and accountable authority
+
+People must be able to recover an acknowledged intent without confusing private drafting with published business truth. D1 permits separately governed encrypted operational records for an adopted organization with verified controls; Git remains the authority for published artifacts and decisions. Agents may preserve and prepare work under current owner permissions, but cannot turn a private draft into a human approval or authorize external effects.
+
+The Operating Model specifies D1's finite draft window, longer content-free accounting records, key/copy treatment and activation conditions. The records and architecture owner accepted the exact revision for STEER on 2026-09-10. That decision does not certify a running implementation or weaken independent verification, gates, provider restrictions or spending limits.

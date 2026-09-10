@@ -155,6 +155,7 @@ calling sign-in available. Do not rebuild Next while the owned renderer is activ
 
 ```sh
 node apps/api/ops/local-workspace.mjs status
+node apps/api/ops/local-workspace.mjs records-status
 node apps/api/ops/local-workspace.mjs verify-github
 NODE_EXTRA_CA_CERTS="$HOME/.config/steer/local-workspace/browser-tls/server.crt" node apps/api/ops/local-workspace.mjs verify
 node apps/api/ops/local-workspace.mjs stop-services
@@ -165,6 +166,13 @@ discovery and the login form without submitting a password. It creates only an
 ordinary short-lived login transaction. It is not completed human sign-in proof.
 `stop-services` stops only this Compose project and preserves all data. There is
 deliberately no reset, destroy or volume-deletion command.
+
+`records-status` reads only tracked public approval/policy files and checks the
+exact accepted D1 source. On 2026-09-10 the user approved the records and
+architecture amendment; that decision is no longer pending. This diagnostic grants
+no runtime authority, reads no credentials and makes no database/provider calls.
+The real migration baseline remains held until exact schema and storage/recovery
+activation conditions are satisfied; D1 policy approval alone does not waive them.
 
 `verify-github` reads the real App and installation permission records and the
 current Git-backed subject grant. It checks that the actual membership matches

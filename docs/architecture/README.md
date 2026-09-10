@@ -7,8 +7,10 @@ proposed state transitions, persistence, duplicate prevention and failure recove
 
 Revision 2's [five review corrections](REVIEW-FIXES.md) specify edit invalidation,
 contextual evidence, durable execution ownership and candidate publication paths.
-The [exact draft-records amendment](DRAFT-RECORDS-AMENDMENT.md) is a separate,
-unsigned adoption proposal, not active retention or deletion policy.
+The [exact draft-records amendment](DRAFT-RECORDS-AMENDMENT.md) was accepted by the
+records and architecture owner on 2026-09-10. Its original bytes remain unchanged;
+[D1 adoption](D1-ADOPTION.md) records the decision and authority/recovery successor.
+Its implementation/activation conditions remain required; it authorizes no deletion.
 
 The canonical production architecture for item 0001 remains
 [Architecture revision 2](../../intent/0001/ARCHITECTURE.md). Its historical
@@ -18,8 +20,8 @@ The canonical production architecture for item 0001 remains
 visual projection, not proof that its components are live.
 
 The September 7 blueprint adds an integration design for review. In particular,
-durable operational-state semantics and protected candidate-bundle publication
-remain proposed decisions, not silently adopted changes to the signed baseline.
+durable operational-state semantics now have explicit D1 acceptance, while
+protected candidate-bundle publication still has separate activation conditions.
 No gate, spending or runtime write authorization changes with this package.
 
 The original supplied files remain external source inputs. This directory holds

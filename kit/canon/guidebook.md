@@ -16,6 +16,10 @@ Read the Framework for the artifact chain, three surfaces, eight plays, three ga
 
 Read the Operating Model for the organization topology, solo-mode hats, agent identities, agent-first domain assurance, deterministic human escalation, trust-metered autonomy, personal capacity, Stack Packs, readiness, handover, isolation, onboarding, culture, scale, governance, adoption, and protected attention.
 
+## Preserve and recover intent
+
+Read Recoverable drafts and operational records in the Operating Model for the accepted D1 amendment. Private encrypted preservation acknowledges a revision; publication, pull and gate approval remain separate. Drafts have an unrenewable seven-day maximum with earlier publication/discard expiry, while content-free operation and usage records follow their terminal/reconciliation retention rules. D1 requires verified owner isolation, external keys, expiry/holds and recovery controls before activating a storage binding; policy acceptance alone does not make saving available.
+
 ## Use the practice notes
 
 The numbered practice notes provide the daily operating detail for sizing and scoping, providing intent, and the three surfaces.

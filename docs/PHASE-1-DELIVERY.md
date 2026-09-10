@@ -35,9 +35,18 @@ TLS trust or grants. Chrome now shows the correct organization and three hats.
 The same screen shows unconfigured draft preservation, repository search and
 live-agent setup, so acceptance is **0/8 workflow milestones verified**, not a
 claim that no implementation exists. Existing local startup does not mount the
-managed journey. Connect that existing path next, respecting the still-inactive
-D1 records amendment and independent runtime authority. Exact observations are
+managed journey. Connect that existing path next, respecting D1's activation
+conditions and independent runtime authority. Exact observations are
 in the [workflow tracker](INTENT-CAPTURE-PROGRESS.md#actual-browser-evidence--2026-09-10).
+
+2026-09-10 D1 decision incorporation: the user confirmed records/architecture-owner
+authority and accepted the exact amendment at `9442b2d212b2c47c436cbe527dd07707b3c8174c`.
+The detached confirmation, unchanged approved bytes, updated root Word/Learn
+doctrine, machine records policy and authority/recovery successor are now recorded.
+The read-only local `records-status` command recognizes acceptance without granting
+runtime, schema, write, deletion or spending authority. The policy decision need
+not be requested again. Independent Exam incorporation and verified storage/key/
+recovery/runtime binding remain before activation; W01–W08 acceptance stays 0/8.
 
 Live-test spending approval, 2026-09-10: the user replied **"Approve up to $5 total"**
 to the explicit request for a one-time $5 USD cap for live OpenAI intent-review

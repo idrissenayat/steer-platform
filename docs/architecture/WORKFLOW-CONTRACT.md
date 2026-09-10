@@ -470,24 +470,28 @@ accounting first. Rebuilding projections must never touch operational records.
 
 ## 6. Decisions before dependent implementation
 
-These are explicit recommendations for review, not approvals hidden in a design.
+These decisions retain their explicit authority and adoption state. D1's
+September 10 acceptance is recorded separately from this original design review.
 
 | ID | Decision and recommended resolution | Status / owner / affected boundary |
 | --- | --- | --- |
-| D1 | Keep Git as canonical business authority; explicitly distinguish durable operational records from rebuildable projections. Apply the exact proposed classes, retention and activation conditions in [the records amendment](DRAFT-RECORDS-AMENDMENT.md). This is a real amendment, not merely clarification of existing memory-only rules. | **Specified, unsigned and inactive.** Architecture owner + qualified records owner; signed ADR-02/03/04, canon, records schedule and recovery exam must be incorporated through their owners before live persistence. |
+| D1 | Keep Git as canonical business authority; distinguish durable operational records from rebuildable projections. Apply the exact classes, retention and activation conditions in [the records amendment](DRAFT-RECORDS-AMENDMENT.md). This is a real amendment to memory-only rules. | **Policy and architecture decision accepted 2026-09-10; runtime not activated.** [Detached acceptance and successor](D1-ADOPTION.md) preserve the exact approved source and historical signed ADRs. Root canon/Learn and machine schedule are incorporated; independent Exam and verified storage/schema/runtime activation remain required. |
 | D2 | Treat the early three-document bundle as a preliminary candidate. Save is not pull; pull is not Gate 1; an Exam draft is not Gate 2. Reconcile design and independent Exam after the appropriate gate. | **Clarification based on existing canon.** Product Lead/Designer and Tech Lead confirm the UX interpretation. No automatic pull or machine signature. |
 | D3 | Use the fixed candidate/proposal/receipt layout and manifest-driven discovery/reopen/promotion contract above. Publish new candidates atomically; extensions never overwrite canonical signed scope. | **Design specified; protection acceptance pending.** Tech Lead/Exam owner and code-host policy owner; I5 catalog/writer/promotion changes need integrated negative tests and current grants. `intent/0001/EXAM.md` remains untouched. |
 | D4 | Replace manual scope-check choreography with an agent-run, evidence-bound workflow behind the same tools. Add a pinned semantic-review role/configuration; all its calls consume the same approved accounting policy as drafting. | **Requested UX direction; integration pending.** Platform Engineer owns grants/configuration/evals. No extra framework and no unbudgeted semantic calls. |
-| D5 | Keep Gate 1's selected GitHub App, Keycloak adapter, LiteLLM seam, portable containers and content-free analytics. Activate model usage and runtime writes only with their separate scoped authority. | **Existing baseline, not a new purchasing decision.** Model test budget and real runtime writing remain closed; the infrastructure ceiling is not authorization. |
+| D5 | Keep Gate 1's selected GitHub App, Keycloak adapter, LiteLLM seam, portable containers and content-free analytics. Activate model usage and runtime writes only with their separate scoped authority. | **Existing baseline, not a new purchasing decision.** A one-time $5 total model-test budget was approved September 10; durable binding and live activation remain pending. Real runtime writing remains closed; the infrastructure ceiling is not authorization. |
 
-D1 needs a qualified exact-revision ruling before real draft persistence. D3 now
+D1 has its qualified exact-revision acceptance; do not ask for that decision again.
+Its independent Exam and verified runtime/storage prerequisites still apply. D3 now
 has a concrete implementation contract; tests and disabled adapters can be built
 against it, but canonical promotion or live writes remain gated. Source-faithful
 documentation and safe read-only integration can proceed. An approved amendment must follow
 [the documentation synchronization rule](../DOCUMENTATION-MAP.md#publication-and-synchronization-rule),
 update the affected specification/Exam through their owners, and bind any required
 new gate decision to an exact revision. This proposal does not rewrite signed files
-or claim to amend the root Operating Model Word document.
+or turn policy acceptance into runtime authority. The September 10 D1 incorporation
+updates the root Operating Model and matching Learn source while preserving signed
+historical artifacts.
 
 ## 7. Acceptance before calling the journey complete
 
