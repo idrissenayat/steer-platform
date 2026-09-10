@@ -62,6 +62,26 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Destination membership and source-policy integration — 0313
+
+[0313](../intent/0313/EVIDENCE.md) connects existing adapter-private native
+inventory and exact-authorizer proofs to the actual new-linked/existing-item
+destination readers. Current and original-target inventories stay distinct. Every
+body retains root/mode/commit selection, size/UTF-8 and hash checks. The nested
+bundle reader verifies pointer, manifest, all three documents and root mirror;
+only its redundant invocation of the exact already-bracketed authorizer is removed.
+
+Every artifact still has independent before/after source grants and fresh caller
+checks. Metadata-only surface/final grant groups check every source, bracketed by
+current caller checks, with no body reads or effects inside those groups. Full
+lifecycle/proposal eligibility, original-target surface, final source/head/expiry
+checks remain. Pinned ports reject late replacement. Nested callbacks retain parent
+ownership until actual settlement. No proof survives an invocation, permission
+is cached, public capability is added or live startup configuration is changed.
+
+Both synthetic save/recovery/reopen directions pass; the continuation request
+reduction is partial C22 only. See the measured table in the performance guide.
+
 ### Owned final-review phase in candidate preview — 0312
 
 [0312](../intent/0312/EVIDENCE.md) uses the existing private registered session to

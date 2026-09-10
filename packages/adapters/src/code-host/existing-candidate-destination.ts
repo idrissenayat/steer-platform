@@ -7,6 +7,8 @@ import { newCandidateDestinationConfigurationSchema } from './new-candidate-dest
 import { createCandidateBundleReader } from './candidate-bundle-reader.ts';
 import { verifyScopeInventory } from './scope-inventory.ts';
 import { describeAmendmentTargetSurface } from './amendment-target-surface.ts';
+import { readCorpusArtifact } from './corpus-artifact-read.ts';
+import { bracketRepositoryRead } from './repository-read-authority.ts';
 import type { CorpusRepositoryReader } from './github.ts';
 
 const destination = candidateSaveDestinationSchema.shape;
@@ -63,9 +65,12 @@ export function createExistingCandidateSaveDestination(reader: CorpusRepositoryR
         || (['organizationId', 'productId', 'repository', 'configurationRevision'] as const).some(k => input[k] !== scope[k])) throw fail();
       const target = input.choice.target;
       active++; let finished = false, pending = 0, released = false;
+      const ports = [reader.readHead, reader.readScopeInventory, reader.readArtifact, authority.authorize, authority.authorizeSource, authority.verify];
       const signal = AbortSignal.any([lifetime.signal, AbortSignal.timeout(30000)]), started = Date.now();
       const release = () => { if (finished && !pending && !released) { released = true; active--; } };
-      const guard = () => { signal.throwIfAborted(); if (finished || !bindingValid() || Date.now() < started) throw fail(); };
+      const guard = () => { signal.throwIfAborted(); if (finished || !bindingValid() || Date.now() < started
+        || [reader.readHead, reader.readScopeInventory, reader.readArtifact, authority.authorize, authority.authorizeSource, authority.verify]
+          .some((port, i) => port !== ports[i])) throw fail(); };
       const bounded = async <T>(run: () => Promise<T>): Promise<T> => {
         guard(); pending++; let abort = () => {};
         const task = Promise.resolve().then(() => { guard(); return run(); });
@@ -84,39 +89,55 @@ export function createExistingCandidateSaveDestination(reader: CorpusRepositoryR
         if (review.subject !== scope.subject || review.branch !== scope.branch || review.reviewDigest !== reviewDigest) throw fail();
         const head = destination.expectedHead.parse(await bounded(() => reader.readHead())); await check();
         if (head !== review.expectedHead || head !== target.revision) throw fail();
-        const inventory = freeze(verifyScopeInventory(await bounded(() => reader.readScopeInventory(head)))); await check();
+        const nativeInventory = await bounded(() => reader.readScopeInventory(head));
+        const inventory = freeze(verifyScopeInventory(nativeInventory)); await check();
         if (inventory.organizationId !== scope.organizationId || inventory.repositoryId !== binding.repositoryId || inventory.revision !== head) throw fail();
         const root = `items/${itemId}`, entries = new Map(inventory.entries.map(e => [e.path, e])), rootEntry = entries.get(root);
         if (rootEntry?.type !== 'tree' || rootEntry.mode !== '040000') throw fail();
         const observed = new Map<string, z.infer<typeof source>>(), sources = new Map<string, ReturnType<typeof sourceReference>>();
         const inventories = new Map([[head, entries]]);
+        const nativeInventories = new Map([[head, nativeInventory]]);
         function sourceReference(path: string, revision = head) { return freeze({ organizationId: scope.organizationId, subject: scope.subject, productId: scope.productId,
           repository: scope.repository, branch: scope.branch, revision, path }); }
-        const sourceCheck = async (path: string, revision = head) => {
-          const reference = sourceReference(path, revision);
-          if (await bounded(() => authority.authorizeSource(reference)) !== undefined) throw fail(); await check();
-          sources.set(JSON.stringify([revision, path]), reference);
+        const sourceChecks = async (references: readonly ReturnType<typeof sourceReference>[]) => {
+          if (!references.length) return;
+          // This group contains only independent metadata-policy queries: no
+          // artifact IO, lifecycle inference or effect. Caller authority brackets
+          // the group, and every referenced source still has its own grant check.
+          await check();
+          for (const reference of references) {
+            if (await bounded(() => authority.authorizeSource(reference)) !== undefined) throw fail();
+            guard(); sources.set(JSON.stringify([reference.revision, reference.path]), reference);
+          }
+          await check();
         };
-        const read = async (path: string, revision: string) => {
+        const member = (path: string, revision: string) => {
           if (!path.startsWith(`${root}/`)) throw fail();
           const entry = inventories.get(revision)?.get(path); if (entry?.type !== 'blob' || entry.mode !== '100644') throw fail();
-          await sourceCheck(path, revision);
-          const file = artifactSchema.parse(await bounded(() => reader.readArtifact(path, revision))), bytes = Buffer.from(file.content, 'utf8');
+          return entry;
+        };
+        const sourcePolicy = async (path: string, revision: string) => {
+          member(path, revision); const reference = sourceReference(path, revision);
+          if (await bounded(() => authority.authorizeSource(reference)) !== undefined) throw fail();
+          sources.set(JSON.stringify([revision, path]), reference);
+        };
+        const read = bracketRepositoryRead(check, async (path: string, revision: string) => {
+          const entry = member(path, revision);
+          const file = artifactSchema.parse(await bounded(() => readCorpusArtifact(reader, nativeInventories.get(revision), path, revision))), bytes = Buffer.from(file.content, 'utf8');
           if (file.organizationId !== scope.organizationId || file.repositoryId !== binding.repositoryId || file.revision !== revision || file.path !== path
             || bytes.length > 131072 || !file.content.trim() || file.blobSha !== entry.objectSha
             || createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex') !== file.blobSha
             || createHash('sha256').update(bytes).digest('hex') !== file.contentDigest) throw fail();
-          await sourceCheck(path, revision);
           const metadata = source.parse({ path, blobSha: file.blobSha, contentDigest: file.contentDigest });
           const key = JSON.stringify([revision, path]);
           if (observed.has(key) && hash(observed.get(key)) !== hash(metadata)) throw fail(); observed.set(key, metadata);
           return file;
-        };
+        }, guard, { before: sourcePolicy, after: sourcePolicy });
         const brief = await read(target.path, head); if (brief.contentDigest !== target.contentDigest) throw fail();
         const openPrior = async (proposalId: string | null) => {
           priorReader ??= createCandidateBundleReader({ binding, readHead: () => reader.readHead(), readArtifact: read }, {
             organizationId: scope.organizationId, productId: scope.productId, repository: scope.repository, branch: scope.branch, itemIds,
-          }, check);
+          }, check, { enter: () => { guard(); pending++; }, leave: () => { pending--; release(); } });
           return bounded(() => priorReader!.readPointer({ organizationId: scope.organizationId, productId: scope.productId,
             repository: scope.repository, branch: scope.branch, itemId, revision: head, proposalId }));
         };
@@ -126,13 +147,15 @@ export function createExistingCandidateSaveDestination(reader: CorpusRepositoryR
           selectedPrior = await openPrior(input.proposalId);
           const originalTarget = selectedPrior.manifest.target;
           if (selectedPrior.manifest.purpose !== 'amendment' || !originalTarget || originalTarget.itemId !== itemId) throw fail();
-          const historical = originalTarget.revision === head ? inventory : freeze(verifyScopeInventory(await bounded(() => reader.readScopeInventory(originalTarget.revision))));
+          const nativeHistorical = originalTarget.revision === head ? nativeInventory : await bounded(() => reader.readScopeInventory(originalTarget.revision));
+          const historical = originalTarget.revision === head ? inventory : freeze(verifyScopeInventory(nativeHistorical));
           await check();
           if (historical.organizationId !== scope.organizationId || historical.repositoryId !== binding.repositoryId || historical.revision !== originalTarget.revision) throw fail();
           inventories.set(originalTarget.revision, new Map(historical.entries.map(e => [e.path, e])));
+          nativeInventories.set(originalTarget.revision, nativeHistorical);
           const originalSurface = describeAmendmentTargetSurface(historical, itemId), reviewedSurface = describeAmendmentTargetSurface(inventory, itemId);
-          for (const path of originalSurface.paths) await sourceCheck(path, originalTarget.revision);
-          for (const path of reviewedSurface.paths) await sourceCheck(path);
+          await sourceChecks([...originalSurface.paths.map(path => sourceReference(path, originalTarget.revision)),
+            ...reviewedSurface.paths.map(path => sourceReference(path))]);
           const originalBrief = await read(target.path, originalTarget.revision);
           if (originalBrief.contentDigest !== brief.contentDigest || originalSurface.digest !== reviewedSurface.digest) throw fail();
           proposalContinuity = freeze(candidateProposalContinuitySchema.parse({ kind: 'steer-proposal-continuity/v1', proposalId: input.proposalId,
@@ -173,12 +196,12 @@ export function createExistingCandidateSaveDestination(reader: CorpusRepositoryR
             || inventory.entries.some(e => e.path.startsWith(`${path}/`))) throw fail();
           amendment = { proposalId, target: { itemId, revision: head }, parentProposalDigest: null };
         }
-        for (const source of sources.values()) await sourceCheck(source.path, source.revision);
+        await sourceChecks([...sources.values()]);
         if (destination.expectedHead.parse(await bounded(() => reader.readHead())) !== head) throw fail();
         const final = await verify();
         if (hash(first.stable) !== hash(final.stable) || performance.now() >= Math.min(first.deadline, final.deadline)) throw fail();
         if (destination.expectedHead.parse(await bounded(() => reader.readHead())) !== head) throw fail(); await check();
-        for (const source of sources.values()) await sourceCheck(source.path, source.revision);
+        await sourceChecks([...sources.values()]);
         if (await bounded(current) !== undefined || performance.now() >= Math.min(first.deadline, final.deadline)) throw fail(); guard();
         return freeze(candidateSaveDestinationSchema.parse({ organizationId: scope.organizationId, productId: scope.productId, repository: scope.repository,
           branch: scope.branch, itemId, expectedHead: head, purpose: amendment ? 'amendment' : 'candidate-revision', previousBundleDigest, amendment,

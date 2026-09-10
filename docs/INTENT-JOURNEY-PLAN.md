@@ -9,7 +9,20 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0312 / shared final-review phase — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0313 / destination membership integration — 68% (17/25; 8 remaining; +0 points)**.
+The [destination correction](../intent/0313/EVIDENCE.md) reuses verified native
+inventory membership and exact nested caller brackets while retaining independent
+source/lifecycle checks, original target continuity, final head checks and actual
+pending-work ownership. Unknown adapters keep ordinary membership verification.
+
+Synthetic continuation preview falls 633→453 attempts and confirmation
+1,459→1,099; new-distinct stays 343 / 879. Both save/recovery/reopen paths pass,
+but C22 remains open. Next integrate repeated current-source/draft validation and
+preparation/start effect boundaries, then the full unchanged benchmark. No new
+deadline, ETA, permission cache, live activation, model usage or runtime save is
+implied. Actual signed-in user acceptance remains separate.
+
+Prior delivery checkpoint: **0312 / shared final-review phase — 68% (17/25; 8 remaining; +0 points)**.
 The [owned final-review phase](../intent/0312/EVIDENCE.md) removes repeated full
 draft/source/scope reconstruction within each preview, retaining lazy entry,
 fresh per-consumption authority, complete final readback and actual cancellation

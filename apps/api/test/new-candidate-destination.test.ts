@@ -58,6 +58,41 @@ test('native Git linked destination verifies the exact current Brief and preserv
     await assert.rejects(port.resolve({ ...f.input, choice: changed.choice, reviewDigest: changed.reviewDigest }, changed, async () => {}));
   } finally { port.close(); }
 });
+
+test('linked native membership uses one inventory without changing verified output or source-policy coverage', async t => {
+  const f = await setup(t, true), results = [];
+  for (const native of [true, false]) {
+    const reader = native ? f.native : { ...f.native, readArtifact: (path: string, revision: string) => f.native.readArtifact(path, revision) };
+    const port = f.make(reader), before = f.git.calls.length, sources = f.state.sources.length;
+    try {
+      const value = await port.resolve(f.input, f.review, async () => {}), calls = f.git.calls.slice(before);
+      results.push({ value, sources: f.state.sources.slice(sources), commits: calls.filter(c => c.path.includes('/git/commits/')).length,
+        trees: calls.filter(c => c.path.includes('/git/trees/')).length, blobs: calls.filter(c => c.path.includes('/git/blobs/')).length });
+    } finally { port.close(); }
+  }
+  assert.deepEqual(results[0]!.value, results[1]!.value); assert.deepEqual(results[0]!.sources, results[1]!.sources);
+  assert.equal(results[0]!.sources.length, 4); assert.equal(results[0]!.commits, 1); assert.equal(results[0]!.trees, 1);
+  assert.equal(results[1]!.commits, 2); assert.equal(results[1]!.trees, 2); assert.equal(results[0]!.blobs, results[1]!.blobs);
+});
+
+test('linked destination rejects late native-method and independent-policy replacement', async t => {
+  const f = await setup(t, true);
+  for (const kind of ['artifact', 'inventory', 'source', 'authorize']) {
+    const reader = { ...f.native }, authority = { ...f.authority }; let replacements = 0;
+    const deny = async () => { replacements++; throw new Error('Replacement invoked'); };
+    authority.verify = async (...args) => {
+      const value = await f.authority.verify(...args);
+      if (kind === 'artifact') reader.readArtifact = deny;
+      if (kind === 'inventory') reader.readScopeInventory = deny;
+      if (kind === 'source') authority.authorizeSource = deny;
+      if (kind === 'authorize') authority.authorize = deny;
+      return value;
+    };
+    const port = createVerifiedNewCandidateDestination(reader, f.config, authority);
+    try { await assert.rejects(port.resolve(f.input, f.review, async () => {})); assert.equal(replacements, 0); }
+    finally { port.close(); }
+  }
+});
 test('a discovered linked source outside the governed item allowlist cannot authorize a new destination', async t => {
   const f = await setup(t, true);
   const port = createVerifiedNewCandidateDestination(f.native, { ...f.config, itemIds: [f.input.itemId] }, f.authority);

@@ -7,6 +7,30 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Destination membership and authority integration — 0313
+
+[0313](../intent/0313/EVIDENCE.md) reuses the exact native inventory for destination
+artifact reads and the existing private authorizer bracket for nested bundle reads.
+Independent per-source checks remain; metadata-only grant groups use fresh caller
+checks before and after, with no content IO or effects within the group. Full
+pointer/manifest/documents, target surface, lifecycle and final head checks remain.
+
+| Authenticated synthetic action | 0312 attempts | 0313 attempts |
+| --- | ---: | ---: |
+| New-distinct preview | 343 | 343 |
+| New-distinct confirmation / recovery / repeat | 879 / 851 / 849 | 879 / 851 / 849 |
+| Proposal-continuation preview | 633 | 453 |
+| Proposal-continuation confirmation / recovery / repeat | 1,459 / 1,431 / 1,429 | 1,099 / 1,071 / 1,069 |
+
+Continuation falls by 180 requests per preview (28.44%) and 360 per confirmation
+(24.67% for first confirmation). New-distinct is unchanged. These actions remain
+over 200, as do scope/drafting preparation and start paths recorded below. Next
+consolidate remaining repeated current-source/draft validations and preparation/
+start effect boundaries. The whole-action protocol, not another isolated request
+reduction, is the C22 acceptance condition. Exact samples and verification scope
+are in [0313](../intent/0313/VERIFICATION.json). No live-provider or UI measurement
+is claimed. **68% (17/25; eight remaining; +0 points).**
+
 ## Shared final-review phase in preview — 0312
 
 [0312](../intent/0312/EVIDENCE.md) consolidates repeated full final reviews within

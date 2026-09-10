@@ -7,6 +7,8 @@ import { candidateProposalScopeSchema } from '@steer/tool-registry/candidate-pro
 import { verifyScopeInventory } from './scope-inventory.ts';
 import type { ArtifactSnapshot, CorpusRepositoryReader } from './github.ts';
 import { createCandidateBundleReader } from './candidate-bundle-reader.ts';
+import { readCorpusArtifact } from './corpus-artifact-read.ts';
+import { bracketRepositoryRead } from './repository-read-authority.ts';
 
 const destination = candidateSaveDestinationSchema.shape;
 export const newCandidateDestinationConfigurationSchema = candidateProposalScopeSchema.extend({ configurationRevision: z.string().min(1).max(200) });
@@ -58,9 +60,12 @@ export function createNewCandidateSaveDestination(reader: CorpusRepositoryReader
         || input.proposalId !== null || !['new-distinct', 'new-linked'].includes(input.choice.action)
         || (['organizationId', 'productId', 'repository', 'configurationRevision'] as const).some(k => input[k] !== scope[k])) throw fail();
       active++; let finished = false, pending = 0, released = false;
+      const ports = [reader.readHead, reader.readScopeInventory, reader.readArtifact, authority.authorize, authority.authorizeSource, authority.verify];
       const signal = AbortSignal.any([lifetime.signal, AbortSignal.timeout(30000)]), started = Date.now();
       const release = () => { if (finished && !pending && !released) { released = true; active--; } };
-      const guard = () => { signal.throwIfAborted(); if (finished || !bindingValid() || Date.now() < started) throw fail(); };
+      const guard = () => { signal.throwIfAborted(); if (finished || !bindingValid() || Date.now() < started
+        || [reader.readHead, reader.readScopeInventory, reader.readArtifact, authority.authorize, authority.authorizeSource, authority.verify]
+          .some((port, i) => port !== ports[i])) throw fail(); };
       const bounded = async <T>(run: () => Promise<T>): Promise<T> => {
         guard(); pending++; let abort = () => {};
         const task = Promise.resolve().then(() => { guard(); return run(); });
@@ -79,34 +84,53 @@ export function createNewCandidateSaveDestination(reader: CorpusRepositoryReader
         if (review.subject !== scope.subject || review.branch !== scope.branch || review.reviewDigest !== reviewDigest) throw fail();
         const head = destination.expectedHead.parse(await bounded(() => reader.readHead())); await check();
         if (head !== review.expectedHead) throw fail();
-        const inventory = freeze(verifyScopeInventory(await bounded(() => reader.readScopeInventory(head)))); await check();
+        const nativeInventory = await bounded(() => reader.readScopeInventory(head));
+        const inventory = freeze(verifyScopeInventory(nativeInventory)); await check();
         if (inventory.organizationId !== scope.organizationId || inventory.repositoryId !== binding.repositoryId || inventory.revision !== head) throw fail();
         const root = `items/${itemId}`, entries = new Map(inventory.entries.map(e => [e.path, e]));
         if (inventory.entries.some(e => e.path === root || e.path.startsWith(`${root}/`))) throw fail();
         let relationship: CandidateSaveDestination['relationship'] = null;
         const observed: Array<{ path: string; blobSha: string; contentDigest: string }> = [];
         const sources: Array<Parameters<NewCandidateDestinationAuthority['authorizeSource']>[0]> = [];
+        const sourceChecks = async () => {
+          if (!sources.length) return;
+          // Metadata-policy queries only; caller authority brackets the group.
+          // Every path still has an independent grant, with no cached decision.
+          await check();
+          for (const source of sources) {
+            if (await bounded(() => authority.authorizeSource(source)) !== undefined) throw fail(); guard();
+          }
+          await check();
+        };
         if (input.choice.action === 'new-linked') {
           const target = input.choice.target, selectedTarget=reviewedItemBriefTarget(target.path), targetId=selectedTarget?.itemId;
           if (!targetId || targetId === itemId || !itemIds.includes(targetId) || target.revision !== head) throw fail();
-          const read=async(path:string,revision:string):Promise<ArtifactSnapshot>=>{
+          const member=(path:string,revision:string)=>{
             const entry=entries.get(path);
             if(revision!==head||!path.startsWith(`items/${targetId}/`)||entry?.type!=='blob'||entry.mode!=='100644')throw fail();
-            const reference=freeze({organizationId:scope.organizationId,subject:scope.subject,productId:scope.productId,
+            return entry;
+          };
+          const sourcePolicy=async(path:string,revision:string)=>{
+            member(path,revision);const reference=freeze({organizationId:scope.organizationId,subject:scope.subject,productId:scope.productId,
               repository:scope.repository,branch:scope.branch,revision:head,path});
-            if(await bounded(()=>authority.authorizeSource(reference))!==undefined)throw fail();await check();
-            const file=sourceSchema.parse(await bounded(()=>reader.readArtifact(path,head))),bytes=Buffer.from(file.content,'utf8');
+            if(await bounded(()=>authority.authorizeSource(reference))!==undefined)throw fail();
+          };
+          const read=bracketRepositoryRead(check,async(path:string,revision:string):Promise<ArtifactSnapshot>=>{
+            const entry=member(path,revision);
+            const file=sourceSchema.parse(await bounded(()=>readCorpusArtifact(reader,nativeInventory,path,head))),bytes=Buffer.from(file.content,'utf8');
             if(file.organizationId!==scope.organizationId||file.repositoryId!==binding.repositoryId||file.revision!==head||file.path!==path
               ||bytes.length>131072||!file.content.trim()||file.blobSha!==entry.objectSha
               ||createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex')!==file.blobSha
               ||createHash('sha256').update(bytes).digest('hex')!==file.contentDigest)throw fail();
-            if(await bounded(()=>authority.authorizeSource(reference))!==undefined)throw fail();await check();
-            sources.push(reference);observed.push({path:file.path,blobSha:file.blobSha,contentDigest:file.contentDigest});return file;
-          };
+            sources.push(freeze({organizationId:scope.organizationId,subject:scope.subject,productId:scope.productId,
+              repository:scope.repository,branch:scope.branch,revision:head,path}));
+            observed.push({path:file.path,blobSha:file.blobSha,contentDigest:file.contentDigest});return file;
+          },guard,{before:sourcePolicy,after:sourcePolicy});
           const file=await read(target.path,head);if(file.contentDigest!==target.contentDigest)throw fail();
           if(selectedTarget!.bundleId){
             priorReader=createCandidateBundleReader({binding,readHead:()=>reader.readHead(),readArtifact:read},
-              {organizationId:scope.organizationId,productId:scope.productId,repository:scope.repository,branch:scope.branch,itemIds},check);
+              {organizationId:scope.organizationId,productId:scope.productId,repository:scope.repository,branch:scope.branch,itemIds},check,
+              {enter:()=>{guard();pending++;},leave:()=>{pending--;release();}});
             const prior=await bounded(()=>priorReader!.readPointer({organizationId:scope.organizationId,productId:scope.productId,
               repository:scope.repository,branch:scope.branch,itemId:targetId,revision:head,proposalId:null}));
             if(prior.manifest.purpose==='amendment'||prior.sources.documents.brief?.path!==target.path)throw fail();
@@ -123,14 +147,14 @@ export function createNewCandidateSaveDestination(reader: CorpusRepositoryReader
           return { stable, deadline: start + expires - now };
         };
         const first = await verify();
-        for (const source of sources) { if (await bounded(() => authority.authorizeSource(source)) !== undefined) throw fail(); await check(); }
+        await sourceChecks();
         if (destination.expectedHead.parse(await bounded(() => reader.readHead())) !== head) throw fail();
         const final = await verify();
         if (hash(first.stable) !== hash(final.stable) || performance.now() >= Math.min(first.deadline, final.deadline)) throw fail();
         // Recheck head after policy I/O as well: policy verification cannot hide
         // a moved branch behind a still-valid immutable source snapshot.
         if (destination.expectedHead.parse(await bounded(() => reader.readHead())) !== head) throw fail(); await check();
-        for (const source of sources) if (await bounded(() => authority.authorizeSource(source)) !== undefined) throw fail();
+        await sourceChecks();
         if (await bounded(current) !== undefined || performance.now() >= Math.min(first.deadline, final.deadline)) throw fail(); guard();
         return freeze(candidateSaveDestinationSchema.parse({ organizationId: scope.organizationId, productId: scope.productId, repository: scope.repository,
           branch: scope.branch, itemId, expectedHead: head, purpose: 'new-candidate', previousBundleDigest: null, amendment: null,

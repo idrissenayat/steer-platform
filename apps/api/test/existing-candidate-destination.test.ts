@@ -282,6 +282,93 @@ test('native Git amendment continuation keeps original A, reviews current B and 
     assert.equal(f.git.mutations(), 0); assert.equal(f.git.approvals(), 0);
   } finally { port.close(); }
 });
+
+test('destination native membership reads each revision once and preserves compatibility output and all source grants', async t => {
+  for (const mode of ['candidate', 'continuation'] as const) {
+    const f = await amendmentFixture(t);
+    const candidate = mode === 'candidate' ? await setup(t) : undefined;
+    const chosen = candidate ?? f, selected = candidate ? { input: candidate.input, review: candidate.review } : f.selected;
+    const make = candidate ? candidate.make : f.continue;
+    const measurements = [];
+    for (const native of [true, false]) {
+      const reader = native ? chosen.native : { ...chosen.native,
+        readArtifact: (path: string, revision: string) => chosen.native.readArtifact(path, revision) };
+      const port = make(reader), before = chosen.git.calls.length, sourceStart = chosen.state.sources.length, proofStart = chosen.state.proofs;
+      try {
+        const result = await port.resolve(selected.input, selected.review, async () => {});
+        const calls = chosen.git.calls.slice(before);
+        measurements.push({ result, sources: chosen.state.sources.slice(sourceStart), proofs: chosen.state.proofs - proofStart,
+          commits: calls.filter(c => c.path.includes('/git/commits/')).length,
+          trees: calls.filter(c => c.path.includes('/git/trees/')).length,
+          blobs: calls.filter(c => c.path.includes('/git/blobs/')).length });
+      } finally { port.close(); }
+    }
+    const [native, compatibility] = measurements;
+    assert.deepEqual(native!.result, compatibility!.result); assert.deepEqual(native!.sources, compatibility!.sources);
+    assert.equal(native!.proofs, 2); assert.equal(compatibility!.proofs, 2);
+    assert.equal(native!.commits, mode === 'candidate' ? 1 : 2); assert.equal(native!.trees, native!.commits);
+    assert.equal(native!.blobs, compatibility!.blobs); assert.ok(compatibility!.commits > native!.commits);
+    assert.equal(compatibility!.commits - native!.commits, native!.blobs);
+    assert.equal(chosen.git.mutations(), 0); assert.equal(chosen.git.approvals(), 0);
+  }
+});
+
+test('destination policy/read ports cannot change during native validation or switch into fallback', async t => {
+  const f = await setup(t);
+  for (const kind of ['head', 'inventory', 'artifact', 'authorize', 'source', 'verify']) {
+    const reader = { ...f.native }, authority = { ...f.authority }; let replacements = 0;
+    const deny = async () => { replacements++; throw new Error('Replacement invoked'); };
+    authority.verify = async (...args) => {
+      const value = await f.authority.verify(...args);
+      if (kind === 'head') reader.readHead = deny;
+      if (kind === 'inventory') reader.readScopeInventory = deny;
+      if (kind === 'artifact') reader.readArtifact = deny;
+      if (kind === 'authorize') authority.authorize = deny;
+      if (kind === 'source') authority.authorizeSource = deny;
+      if (kind === 'verify') authority.verify = deny;
+      return value;
+    };
+    const port = createVerifiedExistingCandidateDestination(reader, f.config, authority);
+    try { await assert.rejects(port.resolve(f.input, f.review, async () => {})); assert.equal(replacements, 0); }
+    finally { port.close(); }
+  }
+});
+
+test('caller loss during a metadata-only surface grant group denies before historical body access', async t => {
+  const f = await amendmentFixture(t); let revoked = false;
+  const bodies: Array<{ path: string; revision: string }> = [];
+  const reader = { ...f.native, readArtifact: async (path: string, revision: string) => {
+    bodies.push({ path, revision }); return f.native.readArtifact(path, revision);
+  } };
+  const port = f.continue(reader, { authorizeSource: async reference => {
+    await f.authority.authorizeSource(reference);
+    if (reference.revision === f.targetRevision && reference.path === `${f.root}/SPEC.md`) revoked = true;
+  } });
+  try {
+    await assert.rejects(port.resolve(f.selected.input, f.selected.review, async () => { if (revoked) throw new Error('PRIVATE caller revoked'); }));
+    assert.equal(revoked, true); assert.ok(bodies.length > 0);
+    assert.ok(bodies.every(body => body.revision !== f.targetRevision)); assert.equal(f.git.mutations(), 0);
+  } finally { port.close(); }
+});
+
+test('destination close suppresses held nested bundle reads and never advances to later documents', async t => {
+  const f = await setup(t), releases: Array<() => void> = [], reads: string[] = [];
+  const reader = { ...f.native, readArtifact: async (path: string, revision: string) => {
+    reads.push(path);
+    if (path.endsWith('/MANIFEST.json')) await new Promise<void>(resolve => { releases.push(resolve); });
+    return f.native.readArtifact(path, revision);
+  } };
+  const port = f.make(reader), jobs = Array.from({ length: 4 }, () => assert.rejects(port.resolve(f.input, f.review, async () => {})));
+  try {
+    for (let i = 0; i < 300 && releases.length < 4; i++) await new Promise(resolve => setTimeout(resolve, 10));
+    assert.equal(releases.length, 4); await assert.rejects(port.resolve(f.input, f.review, async () => {}));
+    port.close(); await Promise.all(jobs); const before = [...reads];
+    releases.forEach(release => release());
+    await new Promise(resolve => setTimeout(resolve, 50));
+    assert.deepEqual(reads, before); assert.ok(!reads.some(path => /\/(SPEC|EXAM)\.md$/.test(path)));
+    assert.equal(f.git.mutations(), 0);
+  } finally { port.close(); releases.forEach(release => release()); await Promise.all(jobs); }
+});
 test('native amendment continuation rejects changed Spec, Exam, gates and hidden item content even when Brief is identical', async t => {
   for (const path of ['SPEC.md', 'EXAM.md', 'gates/GATE-1.md', '.policy']) {
     const f = await amendmentFixture(t);

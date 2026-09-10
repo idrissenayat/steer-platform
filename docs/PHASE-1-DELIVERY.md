@@ -7053,6 +7053,27 @@ live model/key access, spending, runtime GitHub save, deployment, profile/record
 activation, signature or human UI acceptance. User drafts, signed artifacts and
 roadmap/outputs remain unchanged. **68% (17/25; eight remaining; +0 points).**
 
+## 0313 — Verified destination membership integration
+
+[0313](../intent/0313/EVIDENCE.md) uses native inventory membership and exact
+read-authorizer construction proofs in the actual destination readers. Independent
+per-file grants, exact documents/pointer/manifest/root mirror, original target
+surface, lifecycle eligibility and final head/grant checks remain. Metadata-only
+grant groups retain fresh caller boundaries; no permission decision is cached.
+Method/policy replacement denies and actual nested callbacks retain parent admission.
+
+Synthetic continuation preview falls 633→453 attempts and confirmation
+1,459→1,099, with exact save/recovery/reopen still passing. New-distinct stays
+343 / 879 and its joined regression passes. Focused native/compatibility and denial
+tests preserve output/source coverage; exact final checks and hashes are recorded
+in [verification](../intent/0313/VERIFICATION.json). No UI or live acceptance is claimed.
+
+Next consolidate remaining current-source/draft validation and effect-separated
+preparation/start controls, then run the full unchanged performance protocol.
+No live model, provider access, spending, runtime GitHub save, records/profile
+activation, deployment or signature. Protected and user-owned files are preserved.
+**68% (17/25; eight remaining; +0 percentage points).**
+
 ## 0312 — One owned final-review phase in candidate preview
 
 [0312](../intent/0312/EVIDENCE.md) consolidates repeated full draft/source/scope
