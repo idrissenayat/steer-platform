@@ -7053,6 +7053,29 @@ live model/key access, spending, runtime GitHub save, deployment, profile/record
 activation, signature or human UI acceptance. User drafts, signed artifacts and
 roadmap/outputs remain unchanged. **68% (17/25; eight remaining; +0 points).**
 
+## 0328 — Complete preparation draft validation
+
+[0328](../intent/0328/EVIDENCE.md) owns one exact draft snapshot per preparation
+recheck, with full final draft/key/row/latest/lifecycle validation after evidence
+closure. Fresh phases precede admission, original preservation and readiness;
+no snapshot crosses a write. Native tests check exact originals, both effect
+boundaries and 36 successful late-change injections. Unknown outcomes preserve
+immutable admitted work without claiming readiness.
+
+Native draft key lookups fall twelve→six across the three rechecks, but whole
+preparation requests improve only 280→277 and 520/475→517/472 in both directions.
+Save preview/confirmation are unchanged. The refreshed 45-action trace conserves
+10,445 identity attempts: first confirmation contains 470 identity checks in
+previews, 177 elsewhere and 38 repository requests. Neither hotspot alone can
+meet 200. The next change must address the combined review/preview and confirmation
+control paths, not make a new estimate from small draft savings. Both synthetic
+save/recovery/reopen journeys, 39 native
+preparation checks, 1,583 broad tests, focused checks and final types pass.
+
+**68% (17/25; eight remaining; +0 points).** Full C22, model quality, governed
+records/runtime save/reopen and human acceptance remain open. No activation,
+live model spending, runtime provider write, deployment/release or signature.
+
 ## 0327 — Owned source-review draft phase and lifecycle test repair
 
 [0327](../intent/0327/EVIDENCE.md) keeps one exact draft snapshot within each

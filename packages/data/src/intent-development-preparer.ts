@@ -10,6 +10,7 @@ import { describeDevelopmentOriginal, developmentOriginalSchema, developmentOrig
   type DevelopmentOriginal } from './development-original-contracts.ts';
 import { withPreparationEvidence, type PreparationEvidenceWindow } from './preparation-evidence-window.ts';
 import { createReadPolicyAuthority } from './read-policy-authority.ts';
+import { withDraftReadSession } from './draft-read-session.ts';
 
 type Records = Parameters<typeof createDevelopmentOriginalStore>[2];
 const unavailable = () => new Error('Development preparation is unavailable.');
@@ -75,8 +76,8 @@ export function createIntentDevelopmentPreparer(pools: Parameters<typeof createD
           if (ref.draftId !== input.draftId || keyId === null) throw unavailable(); return checked(() => r.keyForDraft(ref, keyId));
         };
         const drafts = own(createDraftRevisionStore(scopedPools.drafts, config, { authorize: sourceAuthority, keyForDraft: historicalKey }));
-        const read = async () => {
-          const found = await drafts.read({ draftId: input.draftId, revision: input.revision }); guard();
+        const read = async (borrowed?: () => ReturnType<typeof drafts.read>) => {
+          const found = await (borrowed ? borrowed() : drafts.read({ draftId: input.draftId, revision: input.revision })); guard();
           if (found.latestRevision !== input.revision || found.reference.revisionDigest !== input.revisionDigest || found.reference.scopeInputDigest !== input.scopeInputDigest) throw new Conflict();
           return found;
         };
@@ -97,20 +98,35 @@ export function createIntentDevelopmentPreparer(pools: Parameters<typeof createD
             ...(scopeReview ? { scopeReview } : {}), ...(input.draftingContextDigest ? { draftingContextDigest: input.draftingContextDigest } : {}) }, profiles });
         const original = described.original, submission = freeze({ draftId: input.draftId, draftRevision: input.revision, inputDigest: described.inputDigest });
         const evidenceFor = () => deps.evidenceFor(freeze(input), current);
-        const validate = async (readEvidence: () => Promise<unknown>) => {
-          await current(); if (hash(await read()) !== hash(source)) throw new Conflict();
+        const validate = async (readEvidence: () => Promise<unknown>, readDraft: () => ReturnType<typeof drafts.read>) => {
+          await current(); if (hash(await readDraft()) !== hash(source)) throw new Conflict();
           const fresh = intentEvidenceInputSchema.parse(await checked(readEvidence));
           if (hash(fresh) !== hash(evidence)) throw new Conflict();
           await authority(() => deps.authorizePreparation(original));
           await checked(() => revalidateDevelopmentScopeReview(original, r.scopeReview, current));
-          if (hash(await read()) !== hash(source)) throw new Conflict();
+          if (hash(await readDraft()) !== hash(source)) throw new Conflict();
           const final = intentEvidenceInputSchema.parse(await checked(readEvidence));
           if (hash(final) !== hash(evidence)) throw new Conflict();
           await current();
         };
-        const recheck = () => withPreparationEvidence(
-          evidenceWindow ? work => Reflect.apply(evidenceWindow, deps, [freeze(input), current, work]) : undefined,
-          evidenceFor, validate, track, guard);
+        const recheck = async () => {
+          let conflict = false;
+          try {
+            // Only this constructed store uses a guard-only inner caller: each
+            // metadata grant freshly checks current(), keys keep both edges and
+            // the owner checks entry/return. Complete final draft verification
+            // follows evidence/scope validation; no phase spans an effect.
+            await current();
+            await withDraftReadSession<Awaited<ReturnType<typeof drafts.read>>>({ scope: config, read: drafts.read },
+              { draftId: input.draftId, revision: input.revision }, async () => { guard(); }, async borrowed => {
+                try { await withPreparationEvidence(
+                  evidenceWindow ? work => Reflect.apply(evidenceWindow, deps, [freeze(input), current, work]) : undefined,
+                  evidenceFor, readEvidence => validate(readEvidence, () => read(borrowed)), track, guard);
+                } catch (error) { conflict = error instanceof Conflict; throw error; }
+              });
+            await current();
+          } catch (error) { if (conflict) throw new Conflict(); throw error; }
+        };
         const secured: Records = {
           ...(r.scopeReview ? { scopeReview: r.scopeReview } : {}),
           authorize: async c => { if (!reference || hash(c.target) !== hash(reference)) throw unavailable(); await recordsAuthority(c.action, () => r.authorize(c)); },

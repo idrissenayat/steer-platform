@@ -17,6 +17,7 @@ import { createApi } from '../src/app.ts';
 import { createGitHubReader } from '@steer/adapters/github';
 import { createIntentCorpusEvidence } from '@steer/adapters/intent-corpus-evidence';
 import { fixture as nativeGitFixture, binding, now } from '../../../packages/adapters/test/github-brief-fixture.ts';
+import { seedAgedDraftLifecycle, expireAgedDraftLifecycle } from '../../../packages/data/test/aged-draft-lifecycle.fixture.ts';
 
 type Dependencies = Parameters<typeof createRecordedDevelopmentPreparer>[3];
 type Pools = Parameters<typeof createRecordedDevelopmentPreparer>[0];
@@ -70,7 +71,7 @@ export async function prepareRecordedFixture(pools: Pools, original: Development
 export async function testDevelopmentPreparation({ admin, connect, check }: {
   admin: Pool; connect(role: string): Pool; check(name: string, run: () => Promise<void>): Promise<void>;
 }) {
-  const setup = async (branch = 'codex/synthetic') => {
+  const setup = async (branch = 'codex/synthetic', agedLifecycle = false) => {
     const config = { organizationId: `prepare-${randomUUID()}`, subject: 'synthetic-human', productId: 'product', repository: 'github:52',
       branch, configurationRevision: 'prepare-r1', recordsPolicyDigest: 'a'.repeat(64) };
     const budget = { organizationId: config.organizationId, subject: config.subject, configurationRevision: config.configurationRevision,
@@ -81,7 +82,8 @@ export async function testDevelopmentPreparation({ admin, connect, check }: {
     const pools = { drafts: connect('steer_draft_runtime'), execution: connect('steer_app') }, key = { keyId: randomUUID(), bytes: randomBytes(32) };
     const records: Dependencies['records'] = { authorize: async () => {}, authorizeOriginal: async () => {}, authorizeOperation: async () => {}, authorizeDraft: async () => {}, keyForDraft: async () => key };
     const lifecycle = createDraftLifecycleStore(pools.drafts, config, { authorize: async () => {}, verifyHold: async () => {} });
-    const created = await lifecycle.create({ requestId: randomUUID() }); assert.equal(created.outcome, 'ok'); if (created.outcome !== 'ok') throw new Error();
+    const created = agedLifecycle ? { outcome: 'ok' as const, value: { draftId: await seedAgedDraftLifecycle(admin, config) } }
+      : await lifecycle.create({ requestId: randomUUID() }); assert.equal(created.outcome, 'ok'); if (created.outcome !== 'ok') throw new Error();
     const drafts = createDraftRevisionStore(pools.drafts, config, { authorize: records.authorizeDraft, keyForDraft: records.keyForDraft });
     const draftId = created.value.draftId, content = { originalText: ' Exact original intent 🌸\r\n', clarificationTurns: ['Answer one\r\n', 'Answer two'],
       documents: { brief: '# Human Brief\r\n', spec: '# Human Spec\nOut of scope: payroll', exam: '# Human Exam proposal\nNOT RUN' } };
@@ -107,6 +109,52 @@ export async function testDevelopmentPreparation({ admin, connect, check }: {
       body: JSON.stringify({ organizationId: config.organizationId, productId: config.productId, repository: config.repository, cursor: null, ...patch }) }));
     return { service, state, post };
   };
+  await check('drafting preparation uses two draft key reads per phase with final draft closure after evidence and before writes', async () => {
+    const f = await setup(), keys = [0, 0, 0], events: string[] = []; let phase = 0, open = false, finalKey = false;
+    const pool = (role: 'drafts' | 'execution') => ({ async connect() { const c = await f.pools[role].connect(); return {
+      query: async (sql: string, values?: unknown[]) => {
+        if (/^\s*INSERT INTO steer_(execution\.intent_operations|drafts\.development_originals)\b/.test(sql)) {
+          assert.equal(open, false); assert.equal(finalKey, false); assert.equal(keys[phase - 1], 2); events.push(`write:${phase}`);
+        } return c.query(sql, values);
+      }, release: (broken: boolean) => c.release(broken),
+    } as PoolClient; } });
+    const app = f.make({ records: { ...f.records, keyForDraft: async (...args) => {
+      if (open || finalKey) { keys[phase - 1] = keys[phase - 1]! + 1; events.push(`${open ? 'initial' : 'final'}:${phase}`); finalKey = false; }
+      return f.records.keyForDraft(...args);
+    } }, withEvidenceRead: async (_input, _current, work) => {
+      phase++; open = true; try { await work(async () => f.original.evidence); } finally { open = false; }
+      finalKey = true; events.push(`evidence-closed:${phase}`);
+    } }, { drafts: pool('drafts'), execution: pool('execution') });
+    try {
+      const result = await (await app.post()).json(); assert.equal(result.outcome, 'prepared'); assert.deepEqual(keys, [2, 2, 2]); assert.equal(finalKey, false);
+      assert.deepEqual(events, ['initial:1', 'evidence-closed:1', 'final:1', 'write:1', 'initial:2', 'evidence-closed:2', 'final:2', 'write:2', 'initial:3', 'evidence-closed:3', 'final:3']);
+      assert.deepEqual(await f.snapshot(), { operations: '1', originals: '1', reservations: '0', revisions: '1' });
+      const originals = createDevelopmentOriginalStore(f.pools, f.config, f.records);
+      try { assert.deepEqual((await originals.read(result.reference)).original, f.original); } finally { originals.close(); }
+    } finally { app.service.close(); f.drafts.close(); f.lifecycle.close(); }
+  });
+  await check('drafting preparation rejects successful late draft mutations after evidence closure before or after either effect', async () => {
+    for (const target of [1, 2, 3]) for (const mode of ['edit', 'hold', 'expire', 'key', 'grant', 'close']) {
+      const f = await setup('codex/synthetic', mode === 'expire'); let phase = 0, changed = false, denied = false, keyChanged = false;
+      let app: ReturnType<typeof f.make>;
+      app = f.make({ records: { ...f.records, authorizeDraft: async c => { if (denied) throw new Error('PRIVATE revoked draft'); await f.records.authorizeDraft(c); },
+        keyForDraft: async (...args) => { const key = await f.records.keyForDraft(...args); return keyChanged ? { ...key, bytes: Buffer.alloc(32) } : key; } },
+        withEvidenceRead: async (_input, _current, work) => {
+          phase++; await work(async () => f.original.evidence); if (phase !== target) return;
+          if (mode === 'edit') assert.equal((await f.drafts.append({ draftId: f.draftId, mutationId: randomUUID(), expectedRevision: 1,
+            expectedDigest: f.saved.reference.revisionDigest, content: { ...f.content, originalText: 'Late human correction' } })).outcome, 'acknowledged');
+          if (mode === 'hold') assert.equal((await f.lifecycle.hold({ draftId: f.draftId, holdReference: randomUUID() })).outcome, 'ok');
+          if (mode === 'expire') await expireAgedDraftLifecycle(admin, f.draftId);
+          if (mode === 'key') keyChanged = true; if (mode === 'grant') denied = true; if (mode === 'close') app.service.close(); changed = true;
+        } });
+      try {
+        const response = await app.post(), result = await response.json(); assert.equal(changed, true, `${target}/${mode} transition must succeed`);
+        assert.equal(response.status, 200); assert.equal(result.outcome, target === 1 ? 'unavailable' : 'unknown'); assert.equal(result.readyToRequestStart, false);
+        assert.deepEqual(await f.snapshot(), { operations: target === 1 ? '0' : '1', originals: target === 3 ? '1' : '0', reservations: '0', revisions: mode === 'edit' ? '2' : '1' });
+        assert.equal(JSON.stringify(result).includes('PRIVATE'), false);
+      } finally { app.service.close(); f.drafts.close(); f.lifecycle.close(); }
+    }
+  });
   await check('final save-review HTTP restores exact encrypted SQL documents and rechecks current scope without admission, generation or writes', async () => {
     const f = await setup(), evidence = { ...f.original.evidence, inventory: [], documents: [], inventoryComplete: true, accessGapCount: 0 };
     const before = await f.snapshot();

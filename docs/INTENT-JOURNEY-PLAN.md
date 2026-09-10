@@ -9,7 +9,23 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0327 / owned source-review draft phase — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0328 / preparation draft validation — 68% (17/25; 8 remaining; +0 points)**.
+[0328](../intent/0328/EVIDENCE.md) keeps one exact draft snapshot per preparation
+recheck, with full final draft/key/lifecycle verification after evidence closure.
+Three fresh phases bracket admission and preservation. Native tests verify 36
+successful late-change injections across these boundaries and exact originals.
+
+Both synthetic directions measure scope preparation 280→277 and drafting
+preparation 520/475→517/472 attempts. This modest reduction does not meet the
+whole-action budget; save preview/confirmation remain 265/685 and 375/905.
+The fresh trace attributes first confirmation's 685 attempts to 470 identity
+checks inside its previews, 177 other identity checks and 38 repository requests.
+Neither hotspot alone can meet 200. Next consolidate the combined review/preview
+and confirmation-control paths, retaining separate phases around effects, and
+address the still-over-budget drafting start. The full unchanged
+benchmark and governed live/human acceptance remain open.
+
+Prior delivery checkpoint: **0327 / owned source-review draft phase — 68% (17/25; 8 remaining; +0 points)**.
 [0327](../intent/0327/EVIDENCE.md) shares one exact encrypted-draft snapshot
 through a read-only source review, then performs full final key/permission/row/
 latest-revision/lifecycle verification after dependent work and corpus closure.

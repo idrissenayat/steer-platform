@@ -62,6 +62,25 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Effect-separated preparation draft phases — 0328
+
+[0328](../intent/0328/SPEC.md) extends the existing private draft-read owner to
+scope and drafting preparation rechecks. Each recheck opens a fresh phase around
+evidence/preparation/scope validation. Complete final draft key/row/latest/lifecycle
+verification follows evidence closure; only then may admission or preservation
+proceed. The third independent phase precedes readiness. No borrowed draft
+snapshot is reused across an effect boundary; ordinary initial/empty/incomplete
+reads remain unchanged.
+
+Only the exact preparer-created native store uses guard-only inner caller hooks:
+its independent metadata policies freshly check the caller, key lookups retain
+both caller edges, and the preparer checks entry and post-verification return.
+Existing timeouts, actual pending-work ownership and admission limits remain.
+Native tests assert two draft key lookups per phase, real effect ordering, exact
+originals and 36 successfully applied late-change cases. Failures after possible
+effects remain unknown, never false readiness or rollback of immutable work.
+This does not activate records, model use, provider writes or a second application.
+
 ### Owned source-review draft phase — 0327
 
 [0327](../intent/0327/SPEC.md) privately registers the exact draft read method

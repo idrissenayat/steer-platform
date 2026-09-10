@@ -8,6 +8,7 @@ import {createScopeReviewOriginalStore,scopeRecordsConfigurationSchema} from './
 import {describeScopeOriginal,scopeOriginalSchema,scopeOriginalHash as hash,freezeScopeOriginal as freeze,type ScopeOriginal} from './scope-original-contracts.ts';
 import {withPreparationEvidence,type PreparationEvidenceWindow} from './preparation-evidence-window.ts';
 import {createReadPolicyAuthority} from './read-policy-authority.ts';
+import {withDraftReadSession} from './draft-read-session.ts';
 
 type Records=Parameters<typeof createScopeReviewOriginalStore>[2];
 const unavailable=()=>new Error('Scope preparation is unavailable.');
@@ -56,8 +57,8 @@ export function createIntentScopePreparer(pools:Parameters<typeof createScopeRev
         const sourceAuthority:Records['authorizeDraft']=async c=>{if(c.action!=='read'||c.draftId!==input.draftId)throw unavailable();await readAuthority(c.action,()=>r.authorizeDraft(c));};
         const keyForDraft:Records['keyForDraft']=(ref,keyId)=>{if(ref.draftId!==input.draftId)throw unavailable();return checked(()=>r.keyForDraft(ref,keyId));};
         const drafts=own(createDraftRevisionStore(scopedPools.drafts,config,{authorize:sourceAuthority,keyForDraft:(ref,keyId)=>{if(keyId===null)throw unavailable();return keyForDraft(ref,keyId);}}));
-        const read=async()=>{
-          const found=await drafts.read({draftId:input.draftId,revision:input.revision});guard();
+        const read=async(borrowed?:()=>ReturnType<typeof drafts.read>)=>{
+          const found=await (borrowed?borrowed():drafts.read({draftId:input.draftId,revision:input.revision}));guard();
           if(found.latestRevision!==input.revision||found.reference.revisionDigest!==input.revisionDigest||found.reference.scopeInputDigest!==input.scopeInputDigest)throw new Conflict();
           return found;
         };
@@ -67,8 +68,8 @@ export function createIntentScopePreparer(pools:Parameters<typeof createScopeRev
           ||evidence.scopeInputDigest!==input.scopeInputDigest||plan.summary.sourceSnapshotDigest!==input.sourceSnapshotDigest)throw new Conflict();
         const {gaps,...counts}=plan.summary.coverage;coverage={...counts,gapCount:gaps.length,batchCount:plan.batches.length};
         const evidenceFor=()=>deps.evidenceFor(input,current);
-        const recheckSources=async(readEvidence:()=>Promise<unknown>=evidenceFor)=>{
-          await current();if(hash(await read())!==hash(source))throw new Conflict();
+        const recheckSources=async(readEvidence:()=>Promise<unknown>=evidenceFor,readDraft:()=>ReturnType<typeof drafts.read>=read)=>{
+          await current();if(hash(await readDraft())!==hash(source))throw new Conflict();
           const fresh=intentEvidenceInputSchema.parse(await checked(readEvidence));
           if(hash(fresh)!==hash(evidence))throw new Conflict();await current();
         };
@@ -78,9 +79,25 @@ export function createIntentScopePreparer(pools:Parameters<typeof createScopeRev
             draftId:input.draftId,sourceRevision:source.reference.sourceRevision,originalText:content.originalText,clarificationTurns:content.clarificationTurns,
             documents:content.documents?{brief:content.documents.brief,spec:content.documents.spec}:null}},evidence,profile});guard();
         const {original,manifest}=described;
-        const recheck=()=>withPreparationEvidence(
-          evidenceWindow?work=>Reflect.apply(evidenceWindow,deps,[input,current,work]):undefined,evidenceFor,
-          async readEvidence=>{await recheckSources(readEvidence);await authority(()=>deps.authorizePreparation(original));await recheckSources(readEvidence);},track,guard);
+        const recheck=async()=>{
+          let conflict=false;
+          try{
+            // This exact store's policies check the current caller after every
+            // grant, and keys retain both caller edges. The outer owner checks
+            // entry/return. Final draft verification follows corpus closure;
+            // admission and preservation remain OUTSIDE each fresh phase.
+            await current();
+            await withDraftReadSession<Awaited<ReturnType<typeof drafts.read>>>({scope:config,read:drafts.read},
+              {draftId:input.draftId,revision:input.revision},async()=>{guard();},async borrowed=>{
+                try{await withPreparationEvidence(
+                  evidenceWindow?work=>Reflect.apply(evidenceWindow,deps,[input,current,work]):undefined,evidenceFor,
+                  async readEvidence=>{await recheckSources(readEvidence,()=>read(borrowed));await authority(()=>deps.authorizePreparation(original));
+                    await recheckSources(readEvidence,()=>read(borrowed));},track,guard);
+                }catch(error){conflict=error instanceof Conflict;throw error;}
+              });
+            await current();
+          }catch(error){if(conflict)throw new Conflict();throw error;}
+        };
         const secured:Records={
           authorize:async c=>{if(!reference||hash(c.target)!==hash(reference))throw unavailable();await recordsAuthority(c.action,()=>r.authorize(c));},
           authorizeOriginal:async c=>{if(hash(c.original)!==hash(original))throw unavailable();await recordsAuthority(c.action,()=>r.authorizeOriginal(c));},

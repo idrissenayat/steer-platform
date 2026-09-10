@@ -11,6 +11,7 @@ import {createGitHubReader} from '@steer/adapters/github';
 import {createIntentCorpusEvidence} from '@steer/adapters/intent-corpus-evidence';
 import {fixture as nativeGitFixture,binding,now} from '../../../packages/adapters/test/github-brief-fixture.ts';
 import {createApi} from '../src/app.ts';
+import {expireAgedDraftLifecycle} from '../../../packages/data/test/aged-draft-lifecycle.fixture.ts';
 
 type Fixture=Awaited<ReturnType<typeof scopeDraftIntegrationFixture>>;
 type Dependencies=Parameters<typeof createRecordedScopePreparer>[3];
@@ -20,8 +21,8 @@ type Pools=Parameters<typeof createRecordedScopePreparer>[0];
 export async function testScopePreparation({admin,connect,check:checkBase}:{admin:Pool;connect(role:string):Pool;check(name:string,run:()=>Promise<void>):Promise<void>}){
   const services:{close():void}[]=[],owned:Pool[]=[],cleanup:Array<()=>void>=[];
   const check=(name:string,run:()=>Promise<void>)=>checkBase(name,async()=>{try{await run();}finally{services.splice(0).forEach(s=>s.close());await Promise.all(owned.splice(0).map(p=>p.end()));cleanup.splice(0).forEach(f=>f());}});
-  const setup=async(sourceCount=4,ttl=3600000,branch?:string)=>{
-    const f=await scopeDraftIntegrationFixture({admin,connect:role=>{const pool=connect(role);owned.push(pool);return pool;}},false,ttl,{sourceCount,...(branch===undefined?{}:{branch})});
+  const setup=async(sourceCount=4,ttl=3600000,branch?:string,agedLifecycle=false)=>{
+    const f=await scopeDraftIntegrationFixture({admin,connect:role=>{const pool=connect(role);owned.push(pool);return pool;}},false,ttl,{sourceCount,agedLifecycle,...(branch===undefined?{}:{branch})});
     services.push(f.drafts,f.lifecycle);return f;
   };
   const rows=async(f:Fixture)=>({runs:(await admin.query('SELECT * FROM steer_execution.scope_review_runs WHERE organization_id=$1 ORDER BY review_id',[f.config.organizationId])).rows,
@@ -57,6 +58,47 @@ export async function testScopePreparation({admin,connect,check:checkBase}:{admi
     const outputs=await Promise.all(apis.map(async a=>{const response=await a.post();assert.equal(response.status,200);return response.json();}));
     assert.ok(outputs.every(o=>o.outcome==='prepared'));for(const o of outputs)assert.deepEqual(o,outputs[0]);
     const stored=await rows(f);assert.equal(stored.runs.length,1);assert.equal(stored.originals.length,1);assert.equal(stored.reservations.length,0);
+  });
+  await check('scope preparation owns exactly two draft key reads per phase and closes draft verification after evidence but before each effect',async()=>{
+    const f=await setup(),keys=[0,0,0],events:string[]=[];let phase=0,open=false,finalKey=false;
+    const pool=(role:'drafts'|'execution')=>({async connect(){const c=await f.pools[role].connect();return{
+      query:async(sql:string,values?:unknown[])=>{
+        if(/^\s*INSERT INTO steer_(execution\.scope_review_runs|drafts\.scope_review_originals)\b/.test(sql)){
+          assert.equal(open,false);assert.equal(finalKey,false);assert.equal(keys[phase-1],2);events.push(`write:${phase}`);
+        }return c.query(sql,values);
+      },release:(broken:boolean)=>c.release(broken)} as PoolClient;}});
+    const a=await api(f,{records:{...f.deps,keyForDraft:async(...args)=>{
+      if(open||finalKey){keys[phase-1]=keys[phase-1]!+1;events.push(`${open?'initial':'final'}:${phase}`);finalKey=false;}
+      return f.deps.keyForDraft(...args);
+    }},withEvidenceRead:async(_input,_current,work)=>{
+      phase++;open=true;try{await work(async()=>f.described.original.evidence);}finally{open=false;}
+      finalKey=true;events.push(`evidence-closed:${phase}`);
+    }},{drafts:pool('drafts'),execution:pool('execution')});
+    const result=await (await a.post()).json();assert.equal(result.outcome,'prepared');assert.deepEqual(keys,[2,2,2]);assert.equal(finalKey,false);
+    assert.deepEqual(events,['initial:1','evidence-closed:1','final:1','write:1','initial:2','evidence-closed:2','final:2','write:2','initial:3','evidence-closed:3','final:3']);
+    const before=await rows(f);assert.equal(before.runs.length,1);assert.equal(before.originals.length,1);assert.equal(before.reservations.length,0);
+    const originals=createScopeReviewOriginalStore(f.pools,f.config,f.deps);services.push(originals);
+    assert.deepEqual((await originals.read(result.reference)).original,f.described.original);
+  });
+  await check('scope preparation rejects successful late draft changes after evidence closure in all three effect-separated phases',async()=>{
+    for(const target of [1,2,3])for(const mode of ['edit','hold','expire','key','grant','close']){
+      const f=await setup(4,3600000,undefined,mode==='expire');let phase=0,changed=false,denied=false,keyChanged=false;
+      let a:Awaited<ReturnType<typeof api>>;
+      a=await api(f,{records:{...f.deps,authorizeDraft:async c=>{if(denied)throw new Error('PRIVATE revoked draft');await f.deps.authorizeDraft(c);},
+        keyForDraft:async(...args)=>{const key=await f.deps.keyForDraft(...args);return keyChanged?{...key,bytes:Buffer.alloc(32)}:key;}},
+        withEvidenceRead:async(_input,_current,work)=>{
+          phase++;await work(async()=>f.described.original.evidence);if(phase!==target)return;
+          if(mode==='edit')assert.equal((await f.drafts.append({draftId:f.draftId,mutationId:randomUUID(),expectedRevision:1,expectedDigest:f.saved.reference.revisionDigest,
+            content:{...f.content,originalText:'Late human correction'}})).outcome,'acknowledged');
+          if(mode==='hold')assert.equal((await f.lifecycle.hold({draftId:f.draftId,holdReference:randomUUID()})).outcome,'ok');
+          if(mode==='expire')await expireAgedDraftLifecycle(admin,f.draftId);
+          if(mode==='key')keyChanged=true;if(mode==='grant')denied=true;if(mode==='close')a.service.close();changed=true;
+        }});
+      const response=await a.post(),result=await response.json();assert.equal(changed,true,`${target}/${mode} transition must succeed`);
+      assert.equal(response.status,200);assert.equal(result.outcome,target===1?'unavailable':'unknown');assert.equal(result.readyToRequestStart,false);
+      const stored=await rows(f);assert.equal(stored.runs.length,target===1?0:1);assert.equal(stored.originals.length,target===3?1:0);assert.equal(stored.reservations.length,0);
+      assert.equal(JSON.stringify(result).includes('PRIVATE'),false);
+    }
   });
   await check('lost scope admission and encrypted-original acknowledgements recover exact preparation without duplicate identities or expiry renewal',async()=>{
     for(const table of ['steer_execution.scope_review_runs','steer_drafts.scope_review_originals']){

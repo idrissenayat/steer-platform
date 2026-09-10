@@ -7,6 +7,28 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Preparation draft closure — 0328
+
+[0328](../intent/0328/EVIDENCE.md) halves draft key lookups across the three
+preparation rechecks, twelve→six, while placing full final draft/lifecycle
+verification after evidence closure and before the next effect. Both native
+directions measure scope preparation **280→277** and drafting preparation
+**520/475→517/472** attempts. New-distinct preview/confirmation remain **265/685**;
+continuation remains **375/905**. All identity/token/retry traffic stays counted.
+
+Three fewer requests per preparation is not a whole-action solution. The fresh
+[0328 profile](../intent/0328/PROFILE.json) validates 45 actions / 10,445 identity
+attempts. First confirmation's 685 attempts comprise 470 identity checks inside
+two previews, 166 other confirmation identity checks, 11 boundary/other identity
+checks and 38 repository requests. Removing either hotspot alone would still
+leave more than 200; neither can be omitted. The next change must consolidate
+the combined review/preview and confirmation control paths with separate effect
+phases, not extrapolate effort from another key-read reduction.
+The 200-attempt ceiling and full delayed
+20-warm/3-cold/4-concurrent benchmark remain unchanged and incomplete. These native
+functional runs, including 36 late-change cases, are not live/model/UI acceptance.
+**68% (17/25; eight remaining; +0 percentage points).**
+
 ## Owned source-review draft phase — 0327
 
 [0327](../intent/0327/EVIDENCE.md) reduces repeated draft restoration within one
