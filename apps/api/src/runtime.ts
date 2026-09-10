@@ -20,6 +20,7 @@ import { candidateBundleStoreConfigurationSchema } from '@steer/adapters/github-
 import { createIntentScopeDiscovery } from '@steer/data/intent-scope-discovery';
 import { createIntentRunDiscovery } from '@steer/data/intent-run-discovery';
 import { createIntentScopeStarter } from '@steer/data/intent-scope-starter';
+import { intentScopeStartInputSchema } from '@steer/tool-registry/intent-scope-start-contracts';
 import { createIntentScopePreparer } from '@steer/data/intent-scope-preparer';
 import { scopeReviewConfigurationSchema, scopeReviewManifestSchema } from '@steer/data/scope-review-operations';
 import { createScopeReviewReader } from '@steer/data/scope-review-reader';
@@ -316,8 +317,14 @@ export function createRecordedCandidatePublicationRecorder(pool: Parameters<type
 /** Start/recover only retained scope references under current authority. No
  * default installation, source admission or direct model dispatch capability. */
 export function createRecordedScopeStarter(pools: Parameters<typeof createIntentScopeStarter>[0], configuration: unknown,
-  dependencies: Parameters<typeof createIntentScopeStarter>[2]) {
-  return createIntentScopeStarter(pools, configuration, dependencies);
+  dependencies: Parameters<typeof createIntentScopeStarter>[2] & { ownedRead?: Omit<OwnedScopeReadBinding, 'profiles'>; profile?: unknown }) {
+  if (dependencies.ownedRead === undefined) return createIntentScopeStarter(pools, configuration, dependencies);
+  if (!dependencies.ownedRead || dependencies.withOriginalRead !== undefined) throw historyUnavailable();
+  const reader = createOwnedScopeOriginalRead(pools, configuration, dependencies);
+  try {
+    const starter = createIntentScopeStarter(pools, configuration, { ...dependencies, withOriginalRead: reader.withRead });
+    return { ...starter, close() { starter.close(); reader.close(); }, async shutdown() { starter.close(); await reader.shutdown(); } };
+  } catch (error) { reader.close(); throw error; }
 }
 /** Explicit preparation only. Current corpus/records/profile authorities are
  * mandatory; no workflow/model call or default activation. */
@@ -408,6 +415,68 @@ type OwnedScopeReadBinding = {
  * is supplied only by the trusted runtime, with independent current/history
  * record and key grants. Existing source/profile/draft/review policies still run;
  * a failed owned read never falls back to a recursive or less-authorized reader. */
+function createOwnedScopeOriginalRead(pools: Parameters<typeof createIntentScopeStarter>[0], configuration: unknown,
+  dependencies: Parameters<typeof createRecordedScopeStarter>[2]) {
+  const config = freeze(draftRecordsConfigurationSchema.parse(configuration)), profile = freeze(scopeReviewProfileSchema.parse(dependencies.profile));
+  const records = dependencies.records, binding = dependencies.ownedRead!, authority = binding.authority, keys = binding.keys;
+  const ports = ['authorize', 'authorizeOriginal', 'authorizeReview', 'authorizeDraft', 'keyForDraft'].map(name => ({ name, value: Reflect.get(records, name) }));
+  const pinned = () => {
+    if (dependencies.records !== records || dependencies.ownedRead !== binding || binding.authority !== authority || binding.keys !== keys
+      || ports.some(port => typeof port.value !== 'function' || Reflect.get(records, port.name) !== port.value)) throw historyUnavailable();
+  };
+  pinned();
+  const reader = createRecordsContentReader(pools, config, authority, keys);
+  return { async withRead(raw, revalidate, work) {
+    pinned(); const input = intentScopeStartInputSchema.parse(raw), target = freeze({ reviewId: input.reviewId, preparationDigest: input.preparationDigest });
+    if (typeof work !== 'function' || typeof revalidate !== 'function'
+      || (['organizationId', 'productId', 'repository'] as const).some(k => input[k] !== config[k])) throw historyUnavailable();
+    let original: Parameters<Parameters<typeof createIntentScopeStarter>[2]['authorizeStart']>[0] | undefined;
+    let checkLease = () => {}, ended = false;
+    const current = async () => {
+      pinned(); if (ended) throw historyUnavailable(); checkLease();
+      if (await revalidate() !== undefined) throw historyUnavailable(); pinned(); checkLease();
+      if (await records.authorize(freeze({ configuration: config, target, action: 'read' })) !== undefined) throw historyUnavailable();
+      if (original) {
+        if (await records.authorizeDraft(freeze({ configuration: config, draftId: input.draftId, action: 'read' })) !== undefined
+          || await records.authorizeOriginal(freeze({ original, action: 'read' })) !== undefined
+          || await records.authorizeReview(freeze({ configuration: original.configuration, request: target })) !== undefined) throw historyUnavailable();
+      }
+      pinned(); checkLease();
+    };
+    const reading = reader.startReadSet({ kind: 'scope-review', mode: 'original', ...target }, current, async lease => {
+      const saved = historyOnly(lease.contents.decoded.scope_originals);
+      if (!saved || saved.metadata.reviewId !== target.reviewId || saved.metadata.preparationDigest !== target.preparationDigest
+        || saved.metadata.draftId !== input.draftId || saved.metadata.draftRevision !== input.revision
+        || saved.metadata.draftRevisionDigest !== input.revisionDigest
+        || Number(lease.snapshot.data.latest_revision[0]?.revision) !== input.revision) throw historyUnavailable();
+      original = saved.value; historyEqual(original.profile, profile);
+      if (original.configuration.budget.budgetId !== lease.snapshot.target.budgetId) throw historyUnavailable();
+      checkLease = () => { lease.check(); if (lease.hasExpired(original!.configuration.expiresAt)) throw historyUnavailable(); };
+      const manifest = scopeReviewManifestSchema.parse(historyOnly(lease.snapshot.data.scope_runs)?.manifest);
+      const value = freeze({ original, manifest, latestDraftRevision: input.revision, reviewExpired: false,
+        executionAuthorized: false, retryAuthorized: false, gateSigned: false });
+      let closed = false, failed = false, consuming = false, consumed = false;
+      const pending = new Set<Promise<unknown>>();
+      const read = () => {
+        if (closed || failed || consuming) { failed = true; const denied = Promise.reject(historyUnavailable()); void denied.catch(() => {}); return denied; }
+        consuming = true;
+        const task = Promise.resolve().then(async () => { await current(); if (closed || failed) throw historyUnavailable(); consumed = true; return value; })
+          .catch(error => { failed = true; throw error; }).finally(() => { consuming = false; });
+        pending.add(task); void task.finally(() => pending.delete(task)).catch(() => {}); return task;
+      };
+      try {
+        await current(); let returned: unknown;
+        try { returned = await work(read); } finally { closed = true; }
+        if (returned !== undefined || failed || !consumed || consuming || pending.size) throw historyUnavailable();
+        await current(); await lease.recheck(); await current(); checkLease();
+      } finally { closed = true; await Promise.allSettled([...pending]); }
+    });
+    try { const result = await reading.result; if (result.value !== undefined) throw historyUnavailable(); pinned(); }
+    catch { throw historyUnavailable(); }
+    finally { ended = true; await reading.drained; }
+  }, close: reader.close, shutdown: reader.shutdown } satisfies { withRead: NonNullable<Parameters<typeof createIntentScopeStarter>[2]['withOriginalRead']>; close(): void; shutdown(): Promise<void> };
+}
+
 function createOwnedScopeReadProjection(pools: Parameters<typeof createScopeReviewReader>[0], configuration: unknown,
   dependencies: { records: Omit<Parameters<typeof createScopeReviewReader>[2], 'verifyObservation'>;
     profile: unknown; ownedRead?: OwnedScopeReadBinding }, historical: boolean) {
@@ -1282,7 +1351,8 @@ export async function createOwnedIntentJourney(expected: IntentJourneyConfigurat
         config.retrievalConfigurationRevision, { records: deps.scope.records.originals, authority: deps.corpus,
           authorizePreparation: deps.scope.authorizePreparation })),
       intentScopeStarter: own(createRecordedScopeStarter(pools, records, { records: deps.scope.records.originals,
-        scheduler: deps.scope.scheduler, authorizeStart: deps.scope.authorizeStart })),
+        scheduler: deps.scope.scheduler, authorizeStart: deps.scope.authorizeStart,
+        ...(deps.scope.ownedReads ? { ownedRead: deps.scope.ownedReads.current, profile: config.scopeProfile } : {}) })),
       intentScopeReader: scopeReader, intentScopeHistoryReader: scopeHistory,
       intentDevelopmentReviewReader: sourceReview,
       intentDevelopmentPreparer: own(createAssessedRecordedDevelopmentPreparer(pools, config.development, profiles, {

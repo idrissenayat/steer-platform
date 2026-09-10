@@ -53,3 +53,19 @@ test('scope start owns metadata policies until actual drain after storage timeou
   t.mock.timers.tick(5001); await Promise.all(pending); await assert.rejects(service.start(input, async () => {}));
   service.close(); release(); await new Promise(r => setImmediate(r)); assert.equal(sql, 0); assert.equal(scheduled, 0);
 });
+
+test('scope start rejects malformed or replaced original-read windows before storage or scheduling', async () => {
+  let sql = 0, scheduled = 0;
+  const pool = { connect: async () => { sql++; throw new Error(); } }, base = { records, authorizeStart: async () => {},
+    scheduler: { start: async () => { scheduled++; } } };
+  assert.throws(() => createIntentScopeStarter({ drafts: pool, execution: pool }, config, { ...base, withOriginalRead: true } as never));
+  for (const withOriginalRead of [async () => {}, async (_input: unknown, _current: unknown, work: any) => { await work(async () => ({})).catch(() => {}); },
+    async () => true as never]) {
+    const service = createIntentScopeStarter({ drafts: pool, execution: pool }, config, { ...base, withOriginalRead });
+    try { await assert.rejects(service.start(input, async () => {})); } finally { service.close(); }
+  }
+  const deps = { ...base, withOriginalRead: async () => {} }, service = createIntentScopeStarter({ drafts: pool, execution: pool }, config, deps);
+  try { await assert.rejects(service.start(input, async () => { deps.withOriginalRead = async () => {}; })); }
+  finally { service.close(); }
+  assert.equal(sql, 0); assert.equal(scheduled, 0);
+});

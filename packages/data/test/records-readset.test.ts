@@ -7,6 +7,7 @@ import type { DatabasePool } from '../src/runtime-pool.ts';
 
 const names: RecordsReadSetGroup[] = ['revisions', 'latest_revision', 'scope_originals', 'scope_observations', 'development_originals',
   'development_results', 'development_observations', 'candidate_originals', 'operations', 'steps', 'scope_runs', 'scope_batches', 'reservations', 'budget', 'scope_terms'];
+const originalGroups = ['revisions', 'latest_revision', 'scope_originals', 'scope_runs', 'budget', 'scope_terms'];
 const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
 const deferred = () => { let resolve = () => {}; const promise = new Promise<void>(r => { resolve = r; }); return { promise, resolve }; };
 const tick = () => new Promise<void>(r => setImmediate(r));
@@ -83,10 +84,11 @@ function fixture(selection: boolean | 'development' = false) {
         assert.deepEqual(args, [config.organizationId, target.draftId, target.operationIds, target.reviewIds, target.revisions, target.budgetId]);
         assert.ok(!sql.includes(target.draftId)); assert.ok(!sql.includes(config.organizationId));
         const metadata = sql.includes("to_jsonb(selected) - 'encrypted_value'");
-        if (!metadata) assert.ok(names.filter(name => data[name].length && !(sql.includes('expired current scope')
-          && ['scope_observations', 'scope_batches', 'reservations'].includes(name))).every(name => grants.includes(name)), 'Ciphertext dispatch requires every independent row policy.');
+        const omitted = (name: string) => sql.includes('scope original only') && !originalGroups.includes(name)
+          || sql.includes('expired current scope') && ['scope_observations', 'scope_batches', 'reservations'].includes(name);
+        if (!metadata) assert.ok(names.filter(name => data[name].length && !omitted(name)).every(name => grants.includes(name)), 'Ciphertext dispatch requires every independent row policy.');
         return { rows: [{ clock_ms: header.clock_ms, data: Object.fromEntries(Object.entries(data).filter(([name]) => sql.includes(`'${name}',`))
-          .map(([name, rows]) => [name, sql.includes('expired current scope') && ['scope_observations', 'scope_batches', 'reservations'].includes(name) ? []
+          .map(([name, rows]) => [name, omitted(name) ? []
             : clone(rows).map(row => { if (metadata) delete row.encrypted_value; return row; })])) }] };
       }
       assert.ok(sql === 'COMMIT' || sql === 'ROLLBACK' || sql.startsWith('BEGIN ') || sql.startsWith('SELECT set_config(')); return { rows: [] };
@@ -207,6 +209,36 @@ test('expired current scope never fetches observation ciphertext or exposes batc
     assert.ok(f.queries.filter(sql => sql.startsWith('WITH requested')).every(sql => sql.includes('expired current scope')));
     assert.equal(f.grants.includes('scope_observations'), false);
   } finally { await owner.shutdown(); }
+});
+
+test('current-original scope selection excludes observations and mutable execution results at SQL and policy boundaries', async () => {
+  const f = fixture(true); f.scopeRequest.mode = 'original'; const owner = f.owner();
+  try {
+    const result = await owner.withReadSet(f.scopeRequest, f.current, async lease => {
+      for (const name of names.filter(name => !originalGroups.includes(name))) assert.deepEqual(lease.snapshot.data[name], []);
+      assert.equal(lease.snapshot.keys.length, 1); assert.deepEqual(lease.snapshot.keys[0]!.records, ['revisions:0', 'scope_originals:0']);
+      f.data.scope_observations[0].changedDuringExecution = true;
+      await lease.recheck(); return 'only original';
+    });
+    assert.equal(result.value, 'only original'); assert.ok(f.grants.every(name => originalGroups.includes(name)));
+    assert.ok(f.queries.filter(q => q.startsWith('WITH requested')).every(q => q.includes('scope original only')));
+  } finally { await owner.shutdown(); }
+});
+
+test('current-original mode refuses expired execution before draft content and preserves independent record denial', async () => {
+  for (const mode of ['expired', 'policy', 'changed', 'invalid-mode']) {
+    const f = fixture(true); f.scopeRequest.mode = mode === 'invalid-mode' ? 'forged' : 'original';
+    if (mode === 'expired') f.data.scope_runs[0].expires_at = new Date(f.header.clock_ms - 1).toISOString();
+    if (mode === 'policy') f.deny('scope_originals');
+    const owner = f.owner(); let used = false;
+    try {
+      await assert.rejects(owner.withReadSet(f.scopeRequest, f.current, async lease => {
+        used = true; if (mode === 'changed') f.data.scope_originals[0].encrypted_value.changed = true; await lease.recheck();
+      }));
+      assert.equal(used, mode === 'changed');
+      if (mode === 'expired' || mode === 'invalid-mode') assert.equal(f.queries.some(q => q.startsWith('WITH requested')), false);
+    } finally { await owner.shutdown(); }
+  }
 });
 
 test('native non-model candidate-save step requires a null budget; model steps still require the exact budget', async () => {

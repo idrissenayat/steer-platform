@@ -7053,6 +7053,30 @@ live model/key access, spending, runtime GitHub save, deployment, profile/record
 activation, signature or human UI acceptance. User drafts, signed artifacts and
 roadmap/outputs remain unchanged. **68% (17/25; eight remaining; +0 points).**
 
+## 0316 — Owned current-original reads for scope start
+
+[0316](../intent/0316/EVIDENCE.md) wires the actual authenticated factory's
+explicit current records/key binding into scope start. The original-only selection
+omits changing observations/results and denies expired originals. Initial binding
+and first authorization share a read-only phase; scheduler revalidation and
+post-effect checks open fresh phases. Each use checks present independent grants;
+final complete records/key readback precedes closure. No permission is cached or
+validation carried across scheduling, and absent-binding compatibility remains.
+
+Synthetic scope start falls 406→195 requests (51.97%), with recovery/repeat
+460→221. Drafting start remains 1,407 / 1,594 / 1,594 and save/preparation counts
+are unchanged. Focused/broad tests, native scope start/current/history behavior,
+type checks and both synthetic save/reopen directions are detailed in
+[verification](../intent/0316/VERIFICATION.json). Late grants/keys/holds/source changes,
+method replacement and shutdown drainage remain covered. An initial missing-import
+type failure and intermediate 212 / 238 / 238 sample are retained in the evidence.
+
+Next consolidate drafting-start current-original reads, then remaining preparation
+and confirmation controls before the unchanged whole-action benchmark. No live
+model/spend, runtime GitHub artifact save, records/profile activation, deployment,
+release or signature. Actual UI acceptance remains separate.
+**68% (17/25; eight remaining; +0 percentage points).**
+
 ## 0315 — Preparation and scope-start read-policy integration
 
 [0315](../intent/0315/EVIDENCE.md) applies the established metadata-only authority

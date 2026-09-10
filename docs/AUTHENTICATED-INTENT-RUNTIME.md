@@ -62,6 +62,23 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Owned current-original reads for scope start — 0316
+
+[0316](../intent/0316/EVIDENCE.md) binds scope start to the factory's explicit
+current records/key service. An original-only selection reads the exact draft,
+latest revision, retained original, immutable manifest, budget and terms; changing
+observations/results are not prerequisites to scheduling and are not fetched.
+Expired originals deny. Current/history review behavior remains separate.
+
+Initial binding and first authorization share one read-only phase. Every consumed
+snapshot revalidates present source/draft/original/review authority; final keys and
+complete records are re-read before closure. Scheduling occurs outside the phase.
+Scheduler-requested and post-scheduling checks open fresh phases, never carrying
+validation over an effect. Late source/key/hold/record changes and replaced methods
+deny, and shutdown retains actual pending records/key work until it drains.
+No browser option, history grant, permission cache or implicit activation enables
+this path. The absent-binding fallback and independent execution approval remain.
+
 ### Preparation and scope-start metadata authority — 0315
 
 [0315](../intent/0315/EVIDENCE.md) applies the existing read-policy composition to

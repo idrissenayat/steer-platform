@@ -8,7 +8,7 @@ const uuid = z.uuid().refine(value => value === value.toLowerCase());
 const resolvedTargetSchema = z.strictObject({ draftId: uuid, operationIds: z.array(uuid).max(8),
   reviewIds: z.array(uuid).max(8), revisions: z.array(z.number().int().min(1).max(1000)).min(1).max(16), budgetId: uuid });
 const targetSchema = resolvedTargetSchema.extend({ operationIds: z.array(uuid).min(1).max(8), reviewIds: z.array(uuid).min(1).max(8) });
-const scopeTargetSchema = z.strictObject({ kind: z.literal('scope-review'), mode: z.enum(['current', 'history']), reviewId: uuid,
+const scopeTargetSchema = z.strictObject({ kind: z.literal('scope-review'), mode: z.enum(['current', 'history', 'original']), reviewId: uuid,
   preparationDigest: z.string().regex(/^[a-f0-9]{64}(?![\s\S])/) });
 const developmentTargetSchema = z.strictObject({ kind: z.literal('development-history'), operationId: uuid,
   inputDigest: z.string().regex(/^[a-f0-9]{64}(?![\s\S])/) });
@@ -69,12 +69,13 @@ const milliseconds = (raw: unknown) => {
   const value = raw instanceof Date ? raw.getTime() : typeof raw === 'string' ? Date.parse(raw) : NaN;
   if (!Number.isSafeInteger(value) || value < 0) throw fail(); return value;
 };
-const queryFor = (selectedGroups: readonly Group[], metadata: boolean, expiredScope = false) => `WITH requested AS
+const originalGroups = new Set<RecordsReadSetGroup>(['revisions', 'latest_revision', 'scope_originals', 'scope_runs', 'budget', 'scope_terms']);
+const queryFor = (selectedGroups: readonly Group[], metadata: boolean, expiredScope = false, originalOnly = false) => `WITH requested AS
   (SELECT $1::text AS org,$2::uuid AS draft,$3::uuid[] AS ops,$4::uuid[] AS reviews,$5::int[] AS revisions,$6::uuid AS budget)
   SELECT jsonb_build_object(${selectedGroups.map(g => `'${g.name}',(SELECT COALESCE(jsonb_agg(to_jsonb(selected)${metadata ? " - 'encrypted_value'" : ''}),'[]'::jsonb)
     FROM (SELECT ${g.name === 'latest_revision' ? 'r.organization_id,r.subject,r.product_id,r.revision' : 'r.*'}
       FROM ${'schema' in g ? g.schema : 'steer_drafts'}.${g.table} r,requested q
-      WHERE r.organization_id=q.org AND ${g.filter}${expiredScope && ['scope_observations', 'scope_batches', 'reservations'].includes(g.name) ? ' AND FALSE /* expired current scope */' : ''}
+      WHERE r.organization_id=q.org AND ${g.filter}${originalOnly && !originalGroups.has(g.name) ? ' AND FALSE /* scope original only */' : expiredScope && ['scope_observations', 'scope_batches', 'reservations'].includes(g.name) ? ' AND FALSE /* expired current scope */' : ''}
       ORDER BY ${g.order} LIMIT ${g.max + (g.name === 'latest_revision' ? 0 : 1)}) selected)`).join(',')}) AS data,
     floor(extract(epoch FROM clock_timestamp())*1000)::bigint AS clock_ms`;
 const clear = (role: 'drafts' | 'execution') => `SELECT ${
@@ -110,6 +111,7 @@ export function createRecordsReadSetReader(pools: { drafts: DatabasePool; execut
     pinned(); const requested = freeze(z.union([targetSchema, scopeTargetSchema, developmentTargetSchema]).parse(rawTarget));
     const discoveryRequest = 'kind' in requested ? requested : undefined;
     const scopeRequest = discoveryRequest?.kind === 'scope-review' ? discoveryRequest : undefined;
+    const originalOnly = scopeRequest?.mode === 'original';
     const developmentRequest = discoveryRequest?.kind === 'development-history' ? discoveryRequest : undefined;
     let target: RecordsReadSetTarget = discoveryRequest ? undefined! : requested as RecordsReadSetTarget;
     let context: Context = discoveryRequest ? undefined! : freeze({ configuration, target });
@@ -176,7 +178,7 @@ export function createRecordsReadSetReader(pools: { drafts: DatabasePool; execut
             lifecycle = JSON.parse(JSON.stringify(header)) as Row;
           } else await query("SELECT set_config('steer.execution_organization',$1,true),set_config('steer.execution_subject',$2,true),set_config('steer.execution_product',$3,true),set_config('steer.usage_organization',$1,true),set_config('steer.usage_subject',$2,true),set_config('steer.usage_budget',$4,true)", [configuration.organizationId, configuration.subject, configuration.productId, target.budgetId]);
           const selectedGroups = role === 'drafts' ? draftGroups : executionGroups, started = monotonic();
-          const result = await query(queryFor(selectedGroups, metadata, expiredScope), [configuration.organizationId, target.draftId, target.operationIds, target.reviewIds, target.revisions, target.budgetId]);
+          const result = await query(queryFor(selectedGroups, metadata, expiredScope, originalOnly), [configuration.organizationId, target.draftId, target.operationIds, target.reviewIds, target.revisions, target.budgetId]);
           if (result.rows.length !== 1) throw fail(); const aggregate = rowValue(result.rows[0]), value = rowValue(aggregate.data);
           if (Buffer.byteLength(JSON.stringify(value)) > 16 * 1024 * 1024 || Object.keys(value).length !== selectedGroups.length) throw fail();
           const observed = observeDatabase(aggregate.clock_ms, started);
@@ -197,6 +199,7 @@ export function createRecordsReadSetReader(pools: { drafts: DatabasePool; execut
               if (role === 'drafts' && g.name !== 'latest_revision' && !metadata && !row.encrypted_value) throw fail();
             }
             data[g.name] = rows;
+            if (originalOnly && !originalGroups.has(g.name) && rows.length) throw fail();
             if (expiredScope && ['scope_observations', 'scope_batches', 'reservations'].includes(g.name) && rows.length) throw fail();
           }
           if (role === 'drafts') for (const row of data.candidate_originals!) {
@@ -256,7 +259,8 @@ export function createRecordsReadSetReader(pools: { drafts: DatabasePool; execut
                 : discoveredRun.operation_id !== developmentRequest!.operationId || discoveredRun.action !== 'develop'
                   || rowValue(discoveredRun.binding).inputDigest !== developmentRequest!.inputDigest)) throw fail();
             const observed = observeDatabase(result.rows[0].clock_ms, started), expiry = milliseconds(discoveredRun.expires_at);
-            if (scopeRequest?.mode === 'current') {
+            if (scopeRequest && scopeRequest.mode !== 'history') {
+              if (originalOnly && expiry <= observed) throw fail();
               expiredScope = expiry <= observed;
               if (!expiredScope) deadline = Math.min(deadline, started + expiry - observed);
             }

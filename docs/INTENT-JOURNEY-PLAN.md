@@ -9,7 +9,21 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0315 / preparation and scope-start authority — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0316 / owned scope-start originals — 68% (17/25; 8 remaining; +0 points)**.
+[0316](../intent/0316/EVIDENCE.md) connects the actual factory's explicit current
+records/key service to scope start. Exact original/draft/manifest state is shared
+only within read-only phases, with fresh independent grants and full final records/
+key readback. Scheduling remains between separate phases. Changing observations
+and results are excluded from the original-only read; expired originals deny.
+
+Synthetic scope start falls 406→195 attempts; recovery/repeat fall 460→221.
+The first start is now below 200, but the other starts and remaining preparation/
+save actions are not. C22 stays open. Next consolidate drafting-start originals
+(still 1,407 / 1,594 / 1,594 attempts), then remaining preparation/confirmation
+controls and the unchanged complete benchmark. No new ETA or live acceptance is
+implied. Real model, governed records/runtime activation and signed-in UI remain.
+
+Prior delivery checkpoint: **0315 / preparation and scope-start authority — 68% (17/25; 8 remaining; +0 points)**.
 [0315](../intent/0315/EVIDENCE.md) integrates read-only metadata permission checks
 in both preparers and scope start, keeping every policy and current caller check
 before continuation. Key/content and effect boundaries remain fully bracketed.

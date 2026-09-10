@@ -7,6 +7,33 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Owned current-original scope start — 0316
+
+[0316](../intent/0316/EVIDENCE.md) consolidates original reconstruction within
+effect-separated read phases, retaining fresh independent grants and complete
+final records/key readback. It excludes changing observations and results from
+the original-only selection; it does not cache permission or cross scheduling.
+
+| Authenticated synthetic action | 0315 attempts | 0316 attempts |
+| --- | ---: | ---: |
+| Scope start | 406 | 195 |
+| Scope start recovery / repeat | 460 / 460 | 221 / 221 |
+| Drafting start / recovery / repeat | 1,407 / 1,594 / 1,594 | 1,407 / 1,594 / 1,594 |
+
+First scope start removes 211 attempts (51.97%); recovery/repeat remove 239
+(51.96%). Only the first scope start is below 200 in these functional samples.
+Recovery/repeat, scope preparation (292), drafting preparation (532 / 487),
+save review (211), new-distinct preview/confirmation (330 / 853) and continuation
+(440 / 1,073) still exceed 200. No complete performance checkpoint is earned.
+
+Exact verification scope and samples: [0316 verification](../intent/0316/VERIFICATION.json).
+These are undelayed synthetic runs on a shared host, not the unchanged 20 ms per
+attempt, five-second p95, 20 warm / three cold / four concurrent protocol in both
+directions plus negatives. Next consolidate drafting-start current-original reads,
+then remaining preparation and confirmation controls. Do not relax thresholds or
+infer browser, live provider or real-model acceptance.
+**68% (17/25; eight remaining; +0 percentage points).**
+
 ## Preparation and scope-start metadata authority — 0315
 
 [0315](../intent/0315/EVIDENCE.md) removes redundant pre-policy caller traversal

@@ -219,6 +219,19 @@ try {
     await testScopeReviewReader({admin,connect,check});
     assert.ok(passed>1,'No scope reader checks selected');
     console.log(`FOCUSED scope read result: ${passed-1} checks passed plus idempotent migration check; full suite NOT RUN.`);
+  }else if(selection.mode==='scope-start'){
+    console.log('FOCUSED scope-start HTTP/SQL, owned current originals and authority/effect boundaries; NOT the full integration suite.');
+    const names=new Set([
+      'actual scope start HTTP binds the retained original and source before reference-only scheduling; ACK is not generated documents',
+      'missing start grant, denied records/execution authority and stale source never reach scope scheduling',
+      'draft hold or source change during last start authority check blocks the scheduler callback',
+      'lost scope scheduling ACK remains unknown; post-dispatch grant revocation withholds it without another scheduling call',
+      'scope start rejects foreign retained bindings, nonvoid authority, key loss and caller scheduling settings before scheduling',
+      'scope start authorizes the actual retained original again after scheduler work without creating records or retrying dispatch',
+    ]);
+    await testScopeStepRuntime({admin,connect,check:async(name,run)=>{if(names.has(name)||name.startsWith('owned scope start '))await check(name,run);}});
+    assert.ok(passed>1,'No scope start checks selected');
+    console.log(`FOCUSED scope start result: ${passed-1} checks passed plus idempotent migration check; full suite NOT RUN.`);
   }else if(selection.mode==='scope-prepare'){
     console.log('FOCUSED scope preparation HTTP/SQL, native source windows and effect-boundary checks; NOT the full integration suite.');
     await testScopePreparation({admin,connect,check});
