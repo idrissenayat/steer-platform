@@ -7,6 +7,30 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Review caller-bracket ownership — 0323
+
+[0323](../intent/0323/EVIDENCE.md) removes only additional wrapper checks where
+the exact constructed read-only review producer already owns fresh before/after
+caller checks. Independent callers, ordinary readers, full native verification
+and effect-separated phases remain. Swallowed or unfinished caller checks deny.
+
+| Authenticated synthetic action | 0322 attempts | 0323 attempts |
+| --- | ---: | ---: |
+| Save review, either direction | 166 | 162 |
+| New-distinct preview | 285 | 277 |
+| New-distinct confirmation / recovery / repeat | 763 / 735 / 733 | 747 / 719 / 717 |
+| Continuation preview | 395 | 387 |
+| Continuation confirmation / recovery / repeat | 983 / 955 / 953 | 967 / 939 / 937 |
+
+Other measured actions are unchanged. This is only a 2.10% / 1.63% first-confirmation
+reduction. Control outside the two previews still costs 193 attempts; both previews
+also exceed 200. More wrapper-only tuning is not sufficient. Next consolidate
+remaining draft/original read graphs within effect-separated phases and measure
+whole actions. [Final-source samples](../intent/0323/VERIFICATION.json) include all
+identity/token traffic; they are undelayed functional samples, not warmed p95 or
+live UI acceptance. The unchanged full protocol and all eight pending checkpoints
+remain. **68% (17/25; eight remaining; +0 percentage points).**
+
 ## Owned current assessment during final review — 0322
 
 [0322](../intent/0322/EVIDENCE.md) shares the exact current assessment projection

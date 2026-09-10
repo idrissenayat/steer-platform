@@ -7053,6 +7053,26 @@ live model/key access, spending, runtime GitHub save, deployment, profile/record
 activation, signature or human UI acceptance. User drafts, signed artifacts and
 roadmap/outputs remain unchanged. **68% (17/25; eight remaining; +0 points).**
 
+## 0323 — Review caller-bracket ownership
+
+[0323](../intent/0323/EVIDENCE.md) removes duplicate outer caller brackets only
+for the exact constructed source/final-review producers. Fresh before/after
+checks, independent callbacks, ordinary readers, native final validation and
+effect-separated phases remain. Denied or unfinished caller checks fail closed,
+including swallowed errors. Final-source evidence is in
+[verification](../intent/0323/VERIFICATION.json).
+
+Synthetic final review is 162 attempts; new-distinct preview/confirmation is
+277/747 and continuation 387/967. First confirmation improves only 2.10% / 1.63%;
+the unchanged outside-preview control still costs 193 attempts. This small
+increment does not establish the full read-graph allocation or close C22.
+Next consolidate remaining draft/original validation across explicit read-only
+phases, retain admission/persistence barriers, and measure complete actions.
+
+**Progress: 68% (17/25; eight remaining; +0 percentage points).** No live model
+spend, runtime GitHub save, activation, deployment or signature. Protected
+artifacts, the prior recovery observation and user-owned changes are preserved.
+
 ## 0322 — Owned current assessment during final save review
 
 [0322](../intent/0322/EVIDENCE.md) holds one exact current assessment lease per

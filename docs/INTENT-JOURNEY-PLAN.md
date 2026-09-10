@@ -9,7 +9,21 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0322 / owned current assessment during save review — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0323 / review caller-bracket ownership — 68% (17/25; 8 remaining; +0 points)**.
+The [0323 contract](../intent/0323/SPEC.md) lets only the exact constructed source
+and final-review producers own their existing before/after caller checks. Ordinary
+readers retain extra brackets. Independent callers must complete their own checks;
+denied or unfinished checks cannot release a value. No record/key/source check or
+write-separated phase is removed. This is a small partial C22 change, not the
+whole-action read-graph correction or a new estimate of remaining effort.
+Both final native save/recovery/reopen directions, 75 focused and 1,568 broad
+tests, types and kit/scope audit pass. [Evidence](../intent/0323/EVIDENCE.md) records
+277/747 new-distinct preview/confirmation attempts and 387/967 for continuation.
+Control outside previews still costs 193 attempts. Next consolidate remaining
+draft/original read graphs within effect-separated phases and measure complete
+actions; C22 and live acceptance remain open.
+
+Prior delivery checkpoint: **0322 / owned current assessment during save review — 68% (17/25; 8 remaining; +0 points)**.
 [0322](../intent/0322/EVIDENCE.md) keeps one current assessment records/key lease
 through each read-only final review, opening only at the first assessment read.
 Complete scope comparison precedes the final

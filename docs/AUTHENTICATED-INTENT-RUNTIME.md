@@ -62,6 +62,16 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Review caller-bracket ownership — 0323
+
+[0323](../intent/0323/EVIDENCE.md) lets the exact constructed source/final-review
+methods own their existing fresh caller brackets; ordinary and bound readers
+retain outer checks. The private session requires completed checks for each exact
+caller and rejects pending or swallowed-denial cases. It does not cache authority
+or remove draft/source/records/key verification, native closure or write barriers.
+Confirmation now takes 747/967 attempts in the two synthetic directions, still
+far above 200. Runtime activation and real signed-in acceptance remain pending.
+
 ### Owned current assessment during final review — 0322
 
 [0322](../intent/0322/EVIDENCE.md) installs the existing private current-scope

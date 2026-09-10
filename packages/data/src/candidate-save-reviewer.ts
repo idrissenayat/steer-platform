@@ -6,7 +6,7 @@ import type { IntentScopeReader, IntentScopeReadInput } from '@steer/tool-regist
 import { draftRecordsConfigurationSchema } from './draft-revisions.ts';
 import { resolveDevelopmentScopeReview } from './development-scope-review.ts';
 import { freezeOriginal as freeze } from './development-original-contracts.ts';
-import { registerReviewReadSession, withReviewReadSession } from './review-read-session.ts';
+import { registerCallerBracketedReviewReadSession, withReviewReadSession } from './review-read-session.ts';
 
 const fail = () => new Error('Final save review is unavailable; nothing was saved or confirmed.');
 /** Read-only final review. No original/operation allocation, profile or authorship
@@ -135,7 +135,7 @@ export function createCandidateSaveReviewer(configuration: unknown, deps: {
       }
   }
   const service = { scope, review: (raw, current) => review(raw, current), close() { lifetime.abort(); } } satisfies CandidateSaveReviewer & { close(): void };
-  registerReviewReadSession(service.review, scope, async (raw, current, work) => {
+  registerCallerBracketedReviewReadSession(service.review, scope, async (raw, current, work) => {
     await review(raw, current, work);
   });
   return service;

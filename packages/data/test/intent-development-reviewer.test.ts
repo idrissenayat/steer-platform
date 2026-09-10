@@ -108,8 +108,8 @@ test('identical caller composition removes duplicate invocation without changing
   assert.deepEqual(shared.state, independent.state); assert.deepEqual(shared.state, { reads: 3, evidenceReads: 2, authorizations: 4 });
   assert.equal(shared.childCalls, 0); assert.ok(independent.childCalls > 0);
   assert.ok(shared.parentCalls < independent.parentCalls);
-  assert.equal(independent.parentCalls - shared.parentCalls, independent.childCalls - 6,
-    'Only duplicate source-owner calls disappear; before/after consumption checks stay');
+  assert.equal(independent.parentCalls - shared.parentCalls, independent.childCalls,
+    'The source owner retains both caller boundaries; no extra session-wrapper checks remain to subtract');
 });
 
 test('identical source caller still rejects revocation during draft or evidence IO and at final closure', async () => {

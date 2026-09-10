@@ -5,7 +5,7 @@ import { intentEvidenceInputSchema } from '@steer/tool-registry/intent-evidence-
 import { planIntentScopeBatches } from '@steer/tool-registry/intent-scope-batches';
 import { developmentRecordsConfigurationSchema } from './development-originals.ts';
 import { developmentOriginalHash as hash, freezeOriginal as freeze } from './development-original-contracts.ts';
-import { registerReviewReadSession } from './review-read-session.ts';
+import { registerCallerBracketedReviewReadSession } from './review-read-session.ts';
 
 const unavailable = () => new Error('Current source review is unavailable; this does not establish new intent.');
 /** Read-only composition over the existing owner-bound SQL draft service and a
@@ -75,7 +75,7 @@ export function createIntentDevelopmentReviewer(rawConfiguration: unknown, deps:
       finally { finished = true; if (timer) clearTimeout(timer); }
   }
   const service = { scope, review: (raw, current) => review(raw, current), close() { closed = true; } } satisfies IntentDevelopmentReviewReader & { close(): void };
-  registerReviewReadSession(service.review, scope, async (raw, outerCurrent, work) => {
+  registerCallerBracketedReviewReadSession(service.review, scope, async (raw, outerCurrent, work) => {
     const input = freeze(intentDevelopmentReviewInputSchema.parse(raw)), window = deps.withEvidenceRead;
     if (!window) { await work(current => review(input, current)); return; }
     if (closed || active >= 4 || typeof outerCurrent !== 'function' || typeof work !== 'function') throw unavailable();
