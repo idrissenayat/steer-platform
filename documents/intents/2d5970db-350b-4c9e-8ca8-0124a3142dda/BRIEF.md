@@ -1,6 +1,7 @@
 # Brief: Add 'Copy original intent' button to detail view
 
 Author: STEER platform agent
+
 Status: draft for user review — not approved for implementation
 
 ## Problem
