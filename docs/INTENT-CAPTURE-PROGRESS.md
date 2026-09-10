@@ -1,14 +1,59 @@
 # Intent capture delivery progress
 
-Checklist version: 1. Established 2026-09-09 at the user's request.
+## Current user-workflow tracker — version 2, 2026-09-10
 
-**Overall: 68% — 17 of 25 acceptance checkpoints verified.**
+The user explicitly resumed the loop at one-minute intervals after narrowing
+the priority to intent capture, understanding, duplicate review, document
+generation, and human review/approval. These eight milestones enumerate that
+whole user-facing workflow; they do not add eight new features.
 
-2026-09-10: the user paused the implementation loop and reset the next priority to
-the [actual intent-to-documents journey](INTENT-JOURNEY-PLAN.md#controlling-priority--user-reset-2026-09-10).
-Historical C22-first sequencing below is superseded. The fixed broader checklist
-and its pending checkpoints remain unchanged; this plan reset earns no progress
-points and does not make the application journey 68% usable.
+**Initial actual-application baseline: pending verification.** Existing code and
+test coverage remain; do not imply that development restarts at zero. The first
+resumed run must verify which milestones already work in the actual application,
+then publish the evidenced N/8 baseline. Do not carry forward the old 68%.
+
+| ID | User-visible workflow milestone | Acceptance evidence required | Status |
+| --- | --- | --- | --- |
+| W01 | Capture natural-language intent | Actual UI accepts free text without a mandatory questionnaire, preserves the submitted intent and can reopen it. | Awaiting actual-UI baseline |
+| W02 | Understand intent and clarify only what is needed | Real agent responds to the submitted intent; necessary questions can be answered and the workflow continues without losing source context. | Awaiting actual-UI baseline |
+| W03 | Check duplicates, overlap and related intent | Actual workflow searches permitted existing content, presents useful matches/evidence and uncertainty, and lets the user resolve the relationship without silent merging or false claims from incomplete search. | Awaiting actual-UI baseline |
+| W04 | Generate Intent Brief | Real model produces a useful source-faithful Brief visible in the actual application, not a fixture or an unrelated preview. | Awaiting actual-UI baseline |
+| W05 | Generate Intent Spec | Real model produces a useful Spec consistent with the intent and Brief, visible in the same workflow. | Awaiting actual-UI baseline |
+| W06 | Generate Intent Exam | Separate fresh-context Test Agent produces a relevant Exam from the accepted source context; visible alongside Brief and Spec. | Awaiting actual-UI baseline |
+| W07 | Review and correct the documents | The user can read all three documents, make corrections and retain/reopen the resulting revision without losing their changes. | Awaiting actual-UI baseline |
+| W08 | Explicitly approve for implementation | The actual user approves the exact reviewed revision in STEER; the approval is retained and visible, and the user accepts the complete journey. Agents do not fabricate signatures or begin deployment. | Awaiting actual-UI baseline |
+
+### Current reporting contract
+
+After each verified completed increment report:
+
+> Workflow acceptance: X% (N/8 verified; R remaining; +Y percentage points).
+> Completed: user-visible behavior and actual evidence. Remaining: incomplete
+> milestone IDs and any real blocker. Next: the immediate missing workflow step.
+
+Percentage = verified milestones / 8 × 100, displayed to one decimal when needed
+(12.5 points per milestone). Count actual-application acceptance, not files,
+tests, commits, planning, synthetic outputs or hours. Mark partial work as
+implemented/tested but not verified; an unchanged percentage is valid. Reopen a
+milestone if it regresses. Do not claim 100% without the actual user's acceptance.
+Keep these eight milestones fixed; scope changes require the user's direction
+and an explicit versioned comparison. Report after meaningful completions or
+blockers, not an unchanged notification every minute. The schedule can wake
+every minute without spawning overlapping work or deliberately idling a live run.
+
+Live OpenAI testing has an explicitly approved one-time **$5 USD total** cap,
+shared across all loop runs, not $5 per run. Enforce it through durable budget
+controls before calling the provider; count usage and outstanding/uncertain
+reservations, stop at the cap and never auto-renew. Application GitHub writes,
+deployment and other runtime/records prerequisites remain separate.
+
+## Historical broader-delivery tracker — version 1
+
+Established 2026-09-09. Retained without changing its 25-checkpoint denominator
+or previous evidence. The following percentage is not the version 2 workflow
+baseline, and its historical "next" statements do not control current work.
+
+**Historical broader coverage: 68% — 17 of 25 acceptance checkpoints verified.**
 
 This measures completion of the fixed delivery checklist below, not elapsed time,
 remaining engineering effort, production readiness or the number of tests/commits.

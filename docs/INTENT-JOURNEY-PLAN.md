@@ -1,13 +1,16 @@
 # Complete the actual intent journey
 
-Owner: user-directed development. Implementation loop paused at the user's request, 2026-09-10.
+Owner: user-directed development. One-minute implementation loop resumed by explicit user request, 2026-09-10.
 Plan origin: `09c3ab8`; current implementation is recorded below. This plan controls delivery sequencing; it does
 not replace signed requirements, alter gates or authorize model spending.
 
 ## Controlling priority — user reset, 2026-09-10
 
-The user approved pausing the recurring implementation loop and focusing on the
-requirements they give. Do not resume it without their explicit instruction.
+The user first paused the recurring implementation loop, then explicitly asked
+to resume it at one-minute intervals with progress based on the whole requested
+workflow. The resumed loop is restricted to the requirements below, not the old
+optimization backlog. The interval is a scheduling opportunity, not a promise
+that a work session or a feature finishes in one minute; do not overlap runs.
 This section supersedes the optimization-first sequencing and historical
 "next" statements below; existing evidence and broader release requirements remain.
 
@@ -33,13 +36,26 @@ Preserve existing auth, tenant boundaries, durable drafts, signed requirements
 and the pink/orange design. Real model spending and governed GitHub writes still
 require their specific approvals; this reset grants neither.
 
-The prior 25-checkpoint percentage remains a broader delivery measure, not a
-percentage of usable functionality. This planning change earns no checkpoint.
+Progress reporting now uses the eight user-workflow milestones W01–W08 in the
+[delivery tracker](INTENT-CAPTURE-PROGRESS.md). First establish the actual-UI
+baseline, reusing existing working behavior rather than rebuilding it. After
+each verified completion show the percentage, completed N/8, remaining items,
+evidence level, change and next step. Partial coding does not earn acceptance
+points; show implemented/tested work separately from actual-application proof.
+Keep the denominator fixed and reopen regressions. The prior 25-checkpoint
+68% measure remains historical broader-delivery coverage and is not comparable
+to the new workflow acceptance percentage. This scheduling change earns no points.
 
-Progress reporting: use the [fixed 25-checkpoint delivery tracker](INTENT-CAPTURE-PROGRESS.md)
-after every verified completion. Its percentage measures verified acceptance
-checkpoints, not time remaining, test count or production readiness. Live human
-acceptance remains a separate required part of the denominator.
+First resumed work: trace the real UI from intent submission through the next
+missing step, report the concrete blocker, then fix only what prevents the
+requested journey. Do not return to C22 optimization as the default next task.
+The user explicitly approved up to **$5 USD total** for live OpenAI intent-review
+and Brief/Spec/Exam tests on 2026-09-10, shared across all runs, not per run.
+Before dispatch, bind this approval to the existing durable budget controls and
+verify that reservations, usage and uncertain in-flight requests cannot exceed
+the aggregate cap. Stop further calls at the cap; do not renew it automatically.
+This approval does not authorize deployment or application GitHub writes, waive
+other required runtime/records prerequisites, or permit credential recreation.
 
 Last verified implementation checkpoint before the pause: **0329 / shared draft graph across save reviews — 68% (17/25; 8 remaining; +0 points)**.
 [0329](../intent/0329/EVIDENCE.md) lends one exact owned draft phase through

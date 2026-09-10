@@ -13,15 +13,26 @@ is not spending authorization.
 
 ## First usable milestone
 
-2026-09-10 user reset: the recurring implementation loop is **paused** and must
-not restart without the user's explicit instruction. The controlling priority is
+2026-09-10 user reset: after pausing the old loop, the user explicitly resumed
+one-minute scheduled continuation for the narrowed workflow below. Do not run
+overlapping sessions or resume the old optimization-first backlog. The controlling priority is
 the [intent journey plan](INTENT-JOURNEY-PLAN.md#controlling-priority--user-reset-2026-09-10):
 natural-language intent, agent understanding and duplicate/overlap review,
 necessary clarification, actual Brief/Spec/Exam generation, then human review,
 correction and explicit approval for implementation in the actual application.
 Further optimization or broader hardening is not the next milestone unless it
 is necessary to make that requested journey work. No checkpoint is completed by
-this sequencing change, and model spending or governed writes are not authorized.
+this sequencing change. Governed application writes and deployment remain separate.
+Report progress against W01–W08 in [the workflow tracker](INTENT-CAPTURE-PROGRESS.md),
+not the historical 17/25 broader-delivery count. Verify the existing actual UI
+first, then close the missing workflow steps without expanding scope.
+
+Live-test spending approval, 2026-09-10: the user replied **"Approve up to $5 total"**
+to the explicit request for a one-time $5 USD cap for live OpenAI intent-review
+and Brief/Spec/Exam tests across all loop runs, stopping at the cap, excluding
+deployment and application GitHub writes. Record/bind that approval to the
+existing durable budget controls before any dispatch, including outstanding or
+uncertain reservations. No per-run renewal or inferred additional authority.
 
 The prior broader Phase 1 target remains: Keycloak sign-in, authorized GitHub App
 commit, board projection and a revision-bound decision inside STEER. It is not
