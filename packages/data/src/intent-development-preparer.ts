@@ -125,9 +125,9 @@ export function createIntentDevelopmentPreparer(pools: Parameters<typeof createD
         if (admitted.outcome !== 'ok') return output(admitted.outcome);
         reference = freeze({ operationId: admitted.value.operationId, inputDigest: described.inputDigest });
         await recheck(); const originals = own(createDevelopmentOriginalStore(scopedPools, config, secured));
-        const preserved = await originals.put({ ...reference, original }); guard();
+        const preserved = await originals.putAndRead({ ...reference, original }); guard();
         if (preserved.outcome !== 'stored') return output(preserved.outcome);
-        const recovered = await originals.read(reference); guard();
+        const recovered = preserved.recovered;
         if (hash(recovered.original) !== hash(original) || recovered.latestDraftRevision !== input.revision || recovered.operationExpired) throw unavailable();
         await recheck(); return output('prepared');
       });

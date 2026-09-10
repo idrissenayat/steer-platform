@@ -7053,6 +7053,29 @@ live model/key access, spending, runtime GitHub save, deployment, profile/record
 activation, signature or human UI acceptance. User drafts, signed artifacts and
 roadmap/outputs remain unchanged. **68% (17/25; eight remaining; +0 points).**
 
+## 0326 — Dual-purpose original preservation and verified readback
+
+[0326](../intent/0326/EVIDENCE.md) joins preservation and complete verified
+recovery in both scope/drafting preparers. Distinct put/read target and original
+permissions remain independent, including a final read-purpose check after
+put-specific execution checks. Legacy put acknowledgements, historical reads,
+full ciphertext/source/key/lifecycle/final-row verification, immutable originals
+and effect-separated rechecks remain. Unknown results contain no recovered bytes.
+
+The shared native contract covers both stores: legacy/joined parity, early/late
+purpose denial, nonvoid grants, late lifecycle/key/source/target/owner loss, lost
+insert acknowledgements, four-way recovery, immutable rows and timeout drainage.
+Key lookups fall 11→7 initially and 10→6 on repetition. Both synthetic directions
+measure scope preparation 292→280, drafting preparation 532→520 and 487→475.
+Other sampled counts remain unchanged. See the linked evidence and machine-readable
+verification for final test counts, samples, exact source hashes and limitations.
+
+**68% (17/25; eight remaining; +0 points).** This modest reduction does not close
+C22. Remaining whole-action costs and the full unchanged benchmark remain open,
+along with model quality, records adoption, live save/reopen and human acceptance.
+No live model spending, runtime GitHub artifact write, activation, deployment,
+release, signature or real-data deletion. Protected artifacts remain unchanged.
+
 ## 0325 — Exact-parent current-read policy composition
 
 [0325](../intent/0325/EVIDENCE.md) preserves independent metadata policies while

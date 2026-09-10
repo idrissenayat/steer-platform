@@ -7,6 +7,33 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Dual-purpose scope/drafting preservation readback — 0326
+
+[0326](../intent/0326/EVIDENCE.md) shares verified original restoration between
+preservation and its immediate readback, with independent put/read permissions.
+It retains all source, key, lifecycle and final-row checks and every preparer
+recheck around admission/persistence. Legacy puts remain acknowledgement-only.
+
+| Authenticated synthetic action, either direction | 0325 attempts | 0326 attempts |
+| --- | ---: | ---: |
+| Scope preparation | 292 | 280 |
+| First drafting preparation | 532 | 520 |
+| Second drafting preparation | 487 | 475 |
+
+Each preparation removes 12 attempts. Native store key lookups fall 11→7 on first
+preservation and 10→6 on repetition, without removing either permission purpose.
+This is only a 4.11% scope / 2.26% first-drafting reduction. Other sampled actions
+are unchanged: drafting start 458/521/521, review 162, new-distinct preview/
+confirmation 277/709 and continuation 387/929. Identity, repository, token and
+retry traffic remain counted. Undelayed shared-host samples are not warmed p95.
+
+These preparation actions and save/continuation still exceed 200. Remaining
+whole-action validation consolidation and the complete unchanged benchmark are
+open; the prefix harness is not full coverage. Do not treat another small
+restoration reduction as an estimate of time to completion. Live model quality,
+governed runtime save/reopen and human acceptance remain separate requirements.
+**68% (17/25; eight remaining; +0 percentage points).**
+
 ## Exact-parent current-read policy composition — 0325
 
 [0325](../intent/0325/EVIDENCE.md) composes only constructed metadata policies

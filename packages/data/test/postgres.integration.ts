@@ -142,6 +142,12 @@ try {
     await testAuthenticatedGeneration({admin,connect,check});
     assert.equal(passed,4);
     console.log(`FOCUSED journey runtime result: ${passed-1} joined checks passed plus idempotent migration check; full suite NOT RUN.`);
+  }else if(selection.mode==='original-preservation'){
+    console.log('FOCUSED scope/development original preservation and recovery; NOT the full integration suite.');
+    await testScopeOriginals({admin,connect,check});
+    await testDevelopmentOriginals({admin,connect,check});
+    assert.ok(passed>10,'Original preservation checks missing');
+    console.log(`FOCUSED original preservation result: ${passed-1} checks passed plus idempotent migration check; full suite NOT RUN.`);
   }else if(selection.mode==='development-prepare'){
     console.log('FOCUSED development preparation/source-review/discovery HTTP/SQL; NOT the full integration suite.');
     await testDevelopmentPreparation({admin,connect,check});

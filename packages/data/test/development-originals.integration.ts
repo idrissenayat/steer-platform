@@ -9,6 +9,7 @@ import { createIntentOperationStore } from '../src/intent-operations.ts';
 import { createDevelopmentOriginalStore } from '../src/development-originals.ts';
 import { createDevelopmentResultStore } from '../src/development-results.ts';
 import { originalFixture } from './development-original.fixture.ts';
+import { testOriginalReadback } from './original-readback.integration.ts';
 type Dependencies=Parameters<typeof createDevelopmentOriginalStore>[2];
 export async function testDevelopmentOriginals({admin,connect,check}:{admin:Pool;connect(role:string):Pool;check(name:string,run:()=>Promise<void>):Promise<void>}) {
   const setup=async(ttl=3600000)=>{
@@ -32,10 +33,21 @@ export async function testDevelopmentOriginals({admin,connect,check}:{admin:Pool
     const operations=createIntentOperationStore(pools.execution,execution,{authorize:deps.authorizeOperation,verifyCheckpoint:async()=>{throw new Error();}});
     const op=await operations.create({draftId,draftRevision:1,inputDigest:description.inputDigest});assert.equal(op.outcome,'ok');if(op.outcome!=='ok')throw new Error();
     const target={operationId:op.value.operationId,inputDigest:description.inputDigest},input={...target,original:description.original};
-    const make=(overrides:Partial<Dependencies>={},otherPools=pools,patch={})=>createDevelopmentOriginalStore(otherPools,{...config,...patch},{...deps,...overrides});
+    const make=(overrides:Partial<Dependencies>={},otherPools:{drafts:DatabasePool;execution:DatabasePool}=pools,patch={})=>createDevelopmentOriginalStore(otherPools,{...config,...patch},{...deps,...overrides});
     const count=async()=>Number((await admin.query('SELECT count(*) AS n FROM steer_drafts.development_originals WHERE organization_id=$1',[config.organizationId])).rows[0].n);
     return {config,execution,pools,key,state,deps,lifecycle,drafts,draftId,saved,operations,target,input,description,make,count};
   };
+  await testOriginalReadback('development',async()=>{
+    const f=await setup();return{input:f.input,target:f.target,table:'development_originals' as const,pools:f.pools,
+      make:(hooks={},pools=f.pools)=>f.make({
+        authorize:async c=>{await f.deps.authorize(c);return hooks.target?.(c.action);},
+        authorizeOriginal:async c=>{await f.deps.authorizeOriginal(c);return hooks.source?.(c.action);},
+        keyForDraft:async(ref,keyId)=>{const value=await f.deps.keyForDraft(ref,keyId);return hooks.key?hooks.key(value,keyId):value;},
+      },pools),
+      row:async()=>(await admin.query('SELECT * FROM steer_drafts.development_originals WHERE operation_id=$1',[f.target.operationId])).rows[0],
+      mutateLifecycle:async mode=>{await admin.query('UPDATE steer_drafts.draft_lifecycles SET '+(mode==='hold'?'held=true':'use_until=clock_timestamp()')+' WHERE organization_id=$1 AND draft_id=$2',[f.config.organizationId,f.draftId]);},
+    };
+  },check);
   await check('immutable encrypted development originals restore the full exact source, evidence, direction and prompt/configuration profile using only current records scope',async()=>{
     const f=await setup();assert.equal((await f.make().put(f.input)).outcome,'stored');
     const actual=await f.make().read(f.target);assert.deepEqual(actual.original,f.input.original);assert.equal(actual.executionAuthorized,false);assert.equal(actual.operationExpired,false);

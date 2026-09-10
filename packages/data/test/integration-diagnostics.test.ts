@@ -1,5 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+test('original preservation selection is explicit and cannot combine with another suite or delay flag',()=>{
+  assert.deepEqual(parseIntegrationSelection(['--original-preservation']),{mode:'original-preservation'});
+  for(const args of [['--original-preservation','extra'],['--original-preservation','--journey-runtime'],['--original-preservation','--query-delay-ms','1']])
+    assert.throws(()=>parseIntegrationSelection(args));
+});
 import type {Pool} from 'pg';
 import {createIntegrationDatabaseTrace,parseIntegrationSelection} from './integration-diagnostics.ts';
 

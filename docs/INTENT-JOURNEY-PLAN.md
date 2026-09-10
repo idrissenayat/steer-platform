@@ -9,7 +9,24 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0325 / exact-parent current-read policies — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0326 / dual-purpose original readback — 68% (17/25; 8 remaining; +0 points)**.
+[0326](../intent/0326/EVIDENCE.md) joins preservation and verified readback for
+scope/drafting originals while separately requiring put and read permissions.
+Legacy acknowledgements and historical reads stay unchanged. All source/key/
+lifecycle/final-row checks and preparer rechecks around effects remain; failed
+or uncertain readback never returns recovered content.
+
+Scope preparation falls 292→280 attempts, first drafting preparation 532→520
+and second preparation 487→475 in both authenticated synthetic directions.
+Native key lookups fall 11→7 initially and 10→6 on repetition. This is a modest
+partial C22 reduction, not a complete checkpoint or a remaining-time estimate.
+Other sampled actions remain unchanged, including confirmation 709/929.
+Next address remaining whole-action validation costs and finish the unchanged
+all-action benchmark; real model quality, governed runtime save/reopen and
+signed-in human acceptance are still required. Exact verification scope is in
+the linked evidence, not inferred from commit/test counts.
+
+Prior delivery checkpoint: **0325 / exact-parent current-read policies — 68% (17/25; 8 remaining; +0 points)**.
 [0325](../intent/0325/EVIDENCE.md) composes constructed metadata-only checks with
 the same parent, preserving every independent purpose and one fresh caller check
 before consumption. Unrecognized/different-parent callbacks keep full ordinary

@@ -119,8 +119,13 @@ export function createScopeReviewOriginalStore(pools:{ drafts:DatabasePool; exec
     if (actual.reference.revisionDigest!==s.revisionDigest || actual.reference.scopeInputDigest!==described.manifest.scopeInputDigest
       || actual.reference.sourceRevision!==s.scope.sourceRevision || hash(current)!==hash(captured)) throw new Conflict();
   }
-  async function restore(t:Target,row:Stored,action:'put'|'read') {
-    await authorize(t,action); await transaction(c=>sourceState(c,row.metadata));
+  async function restore(t:Target,row:Stored,action:'put'|'read',readback=false) {
+    if(readback&&action!=='put')throw new DraftStorageError();
+    await authorize(t,action);
+    // Preserving does not grant read access. The joined path independently
+    // authorizes disclosure before recovering the stored ciphertext.
+    if(readback)await authorize(t,'read');
+    await transaction(c=>sourceState(c,row.metadata));
     const historicalKeyId=row.envelope.chunks[0]!.keyId;
     if(row.envelope.chunks.some(c=>c.keyId!==historicalKeyId))throw new Conflict();
     const originalKey=await key(row.metadata.draftId,historicalKeyId);
@@ -129,7 +134,7 @@ export function createScopeReviewOriginalStore(pools:{ drafts:DatabasePool; exec
     try {
       const described=await describeScopeOriginal(openDraft(row.envelope,aad(row.metadata),lease)),original=described.original;
       if (described.manifest.preparationDigest!==t.preparationDigest || hash(metadata(t,described))!==hash(row.metadata)) throw new Conflict();
-      await verify(original,action); await source(described);
+      await verify(original,action); if(readback)await verify(original,'read'); await source(described);
       const currentKey=await key(row.metadata.draftId,historicalKeyId);
       if (!(currentKey.bytes instanceof Uint8Array) || currentKey.bytes.byteLength!==32) throw new DraftStorageError();
       const current=Buffer.from(currentKey.bytes);
@@ -137,6 +142,8 @@ export function createScopeReviewOriginalStore(pools:{ drafts:DatabasePool; exec
       if (await bounded(dependencies.authorizeDraft(freeze({ configuration:config,draftId:row.metadata.draftId,action:'read' })))!==undefined || closed) throw new DraftStorageError();
       await verify(original,action); await authorize(t,action);
       if (action==='put') await execution(t,described);
+      // Keep the read purpose current after put-specific execution checks too.
+      if(readback){await verify(original,'read');await authorize(t,'read');}
       const final=await transaction(async c=>({ state:await sourceState(c,row.metadata),row:await select(c,t) }));
       if (closed || performance.now()>=final.state.expiry || hash(final.row)!==hash(row)
         || (action==='put' && final.state.latestRevision!==row.metadata.draftRevision)) throw new DraftStorageError();
@@ -144,8 +151,7 @@ export function createScopeReviewOriginalStore(pools:{ drafts:DatabasePool; exec
         executionAuthorized:false as const,retryAuthorized:false as const,gateSigned:false as const });
     } finally { lease.bytes.fill(0); }
   }
-  return {
-    async put(raw:unknown) {
+  async function preserve(raw:unknown,readback:boolean) {
       if (closed || active || pending) return { outcome:'unavailable' as const }; active=true; let persisted=false;
       try {
         const request=z.strictObject({ reviewId:uuid,preparationDigest:digest,original:z.unknown() }).parse(raw),t=freeze(targetSchema.parse({ reviewId:request.reviewId,preparationDigest:request.preparationDigest }));
@@ -168,10 +174,19 @@ export function createScopeReviewOriginalStore(pools:{ drafts:DatabasePool; exec
             if (closed || performance.now()>=state.expiry) throw new DraftStorageError(); return candidate;
           });
         }
-        persisted=true; await restore(t,row,'put'); return freeze({ outcome:'stored' as const,...t });
+        persisted=true; const recovered=await restore(t,row,'put',readback);
+        return freeze({ outcome:'stored' as const,...t,recovered });
       } catch (e) { return { outcome:persisted || e instanceof DatabaseCommitOutcomeUnknownError ? 'unknown' as const : e instanceof Conflict ? 'conflict' as const : 'unavailable' as const }; }
       finally { active=false; }
+  }
+  return {
+    async put(raw:unknown) {
+      const result=await preserve(raw,false);
+      return result.outcome==='stored'?freeze({outcome:result.outcome,reviewId:result.reviewId,preparationDigest:result.preparationDigest}):result;
     },
+    // One effect followed by a complete, independently read-authorized recovery.
+    // No retained value is returned on failure or uncertain acknowledgement.
+    putAndRead(raw:unknown){return preserve(raw,true);},
     async read(raw:unknown) {
       if (closed || active || pending) throw new DraftStorageError(); active=true;
       try { const t=freeze(targetSchema.parse(raw)); await authorize(t,'read'); const row=await transaction(c=>select(c,t));

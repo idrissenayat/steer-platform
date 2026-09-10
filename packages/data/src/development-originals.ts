@@ -151,15 +151,20 @@ export function createDevelopmentOriginalStore(pools:{ drafts:DatabasePool; exec
     if (actual.reference.revisionDigest!==s.revisionDigest || actual.reference.scopeInputDigest!==s.scopeInputDigest
       || actual.reference.sourceRevision!==s.sourceRevision || hash(actual.content)!==hash(s.content)) throw new Conflict();
   }
-  async function restore(t:Target,row:Stored,action:'put'|'read',historical=false) {
-    await authorize(t,action,historical); await transaction(c=>sourceState(c,row.metadata));
+  async function restore(t:Target,row:Stored,action:'put'|'read',historical=false,readback=false) {
+    if(readback&&(action!=='put'||historical))throw new DraftStorageError();
+    await authorize(t,action,historical);
+    // Read is a separate current purpose, never inferred from preservation or
+    // historical authority. Require it before decrypting a joined readback.
+    if(readback)await authorize(t,'read');
+    await transaction(c=>sourceState(c,row.metadata));
     const originalKey=await key(row.metadata.draftId,row.envelope.keyId);
     if (!(originalKey.bytes instanceof Uint8Array) || originalKey.bytes.byteLength!==32) throw new DraftStorageError();
     const lease={ keyId:originalKey.keyId,bytes:Buffer.from(originalKey.bytes) };
     try {
       const described=await describeDevelopmentOriginal(openDraft(row.envelope,aad(row.metadata),lease)),original=described.original;
       if (described.inputDigest!==t.inputDigest || hash(metadata(t,original))!==hash(row.metadata)) throw new Conflict();
-      await verify(original,action,historical); await source(original);
+      await verify(original,action,historical); if(readback)await verify(original,'read'); await source(original);
       const currentKey=await key(row.metadata.draftId,row.envelope.keyId);
       if (!(currentKey.bytes instanceof Uint8Array) || currentKey.bytes.byteLength!==32) throw new DraftStorageError();
       const current=Buffer.from(currentKey.bytes);
@@ -167,6 +172,7 @@ export function createDevelopmentOriginalStore(pools:{ drafts:DatabasePool; exec
       if (await bounded(dependencies.authorizeDraft(freeze({ configuration:config,draftId:row.metadata.draftId,action:'read' })))!==undefined || closed) throw new DraftStorageError();
       await verify(original,action,historical); await authorize(t,action,historical);
       if (action==='put') await execution(t,original);
+      if(readback){await verify(original,'read');await authorize(t,'read');}
       const final=await transaction(async c=>({ state:await sourceState(c,row.metadata),row:await select(c,t) }));
       if (closed || performance.now()>=final.state.expiry || hash(final.row)!==hash(row)) throw new DraftStorageError();
       return freeze({ original,latestDraftRevision:final.state.latestRevision,operationExpired:final.state.clock>=Date.parse(original.configuration.expiresAt),
@@ -179,8 +185,7 @@ export function createDevelopmentOriginalStore(pools:{ drafts:DatabasePool; exec
       if (!row) throw new DraftStorageError(); const result=await restore(t,row,'read',historical); capture?.(freeze(structuredClone(row))); return result;
     } catch { throw new DraftStorageError(); } finally { active=false; }
   }
-  const store = {
-    async put(raw:unknown) {
+  async function preserve(raw:unknown,readback:boolean) {
       if (closed || active || pending || activeWindow) return { outcome:'unavailable' as const }; active=true; let persisted=false;
       try {
         const request=z.strictObject({ operationId:uuid,inputDigest:digest,original:z.unknown() }).parse(raw),t=freeze(targetSchema.parse({ operationId:request.operationId,inputDigest:request.inputDigest }));
@@ -201,10 +206,17 @@ export function createDevelopmentOriginalStore(pools:{ drafts:DatabasePool; exec
             if (closed || performance.now()>=state.expiry) throw new DraftStorageError(); return candidate;
           });
         }
-        persisted=true; await restore(t,row,'put'); return freeze({ outcome:'stored' as const,...t });
+        persisted=true; const recovered=await restore(t,row,'put',false,readback);
+        return freeze({ outcome:'stored' as const,...t,recovered });
       } catch (e) { return { outcome:persisted || e instanceof DatabaseCommitOutcomeUnknownError ? 'unknown' as const : e instanceof Conflict ? 'conflict' as const : 'unavailable' as const }; }
       finally { active=false; }
+  }
+  const store = {
+    async put(raw:unknown) {
+      const result=await preserve(raw,false);
+      return result.outcome==='stored'?freeze({outcome:result.outcome,operationId:result.operationId,inputDigest:result.inputDigest}):result;
     },
+    putAndRead(raw:unknown){return preserve(raw,true);},
     read(raw:unknown) { return read(raw,false); },
     async readHistorical(raw:unknown) { return freeze({...await read(raw,true),historical:true as const}); },
     close() { closed=true; drafts.close(); },
@@ -215,7 +227,7 @@ export function createDevelopmentOriginalStore(pools:{ drafts:DatabasePool; exec
     const target = freeze(targetSchema.parse(raw)), window = {}; activeWindow = window;
     const ports = () => [dependencies.authorizeHistoricalRead, dependencies.authorizeOriginal, dependencies.authorizeDraft,
       dependencies.keyForDraft, dependencies.scopeHistory, dependencies.scopeHistory?.read, pools.drafts, pools.execution, pools.drafts.connect, pools.execution.connect,
-      store.put, store.read, store.readHistorical, store.close];
+      store.put, store.putAndRead, store.read, store.readHistorical, store.close];
     const initialPorts = ports(), tasks = new Set<Promise<unknown>>(), observedKeys = new Map<string, KeyObservation>();
     let finished = false, reading = false, failed = false, successful = false, captured: HistoricalOriginalSnapshot | undefined, capturedRow: Stored | undefined;
     const guard = () => { if (closed || finished || failed || activeWindow !== window || ports().some((port, i) => port !== initialPorts[i])) throw new DraftStorageError(); };

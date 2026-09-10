@@ -92,8 +92,8 @@ export function createIntentScopePreparer(pools:Parameters<typeof createScopeRev
         if(admitted.outcome!=='ok')return output(admitted.outcome);
         reference=freeze({reviewId:admitted.value.reviewId,preparationDigest:manifest.preparationDigest});
         await recheck();const originals=own(createScopeReviewOriginalStore(scopedPools,config,secured));
-        const preserved=await originals.put({...reference,original});guard();if(preserved.outcome!=='stored')return output(preserved.outcome);
-        const recovered=await originals.read(reference);guard();
+        const preserved=await originals.putAndRead({...reference,original});guard();if(preserved.outcome!=='stored')return output(preserved.outcome);
+        const recovered=preserved.recovered;
         if(hash(recovered.original)!==hash(original)||hash(recovered.manifest)!==hash(manifest)||recovered.latestDraftRevision!==input.revision||recovered.reviewExpired)throw unavailable();
         await recheck();if(Date.parse(execution.expiresAt)<=Date.now())throw unavailable();return output('prepared');
       });

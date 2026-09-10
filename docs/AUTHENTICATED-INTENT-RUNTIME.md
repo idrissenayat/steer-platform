@@ -62,6 +62,28 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Dual-purpose scope/drafting original readback — 0326
+
+[0326](../intent/0326/SPEC.md) adds server-only `putAndRead` to scope and
+development original stores. Unlike candidate preservation, these stores have
+distinct put and read purposes. The joined path checks each target purpose before
+decrypting, each original/source purpose before source reconstruction, and the
+read original/target purposes again after put-specific execution validation.
+Shared physical restoration never substitutes one permission for another.
+
+Legacy `put` remains acknowledgement-only and does not acquire read-purpose
+requirements. A joined failure returns no recovered payload; a read denial after
+persistence is explicitly unknown, not proof that no original was stored. Exact
+ciphertext/source/key/lifecycle/final-row checks and immutable recovery remain.
+Both preparers compare the recovered original to the intended source and reject
+stale revisions or expired execution, retaining fresh rechecks around effects.
+Historical reads are unchanged; the added method is pinned in historical-window
+ownership checks. Timeout drainage cannot release content late.
+
+The [evidence](../intent/0326/EVIDENCE.md) distinguishes native store/preparation
+and synthetic journey results from C22 and actual activation. No live profile,
+records policy, authorization, public request contract or UI mode changes.
+
 ### Exact-parent current-read policy composition — 0325
 
 [0325](../intent/0325/SPEC.md) adds private construction metadata for a caller's

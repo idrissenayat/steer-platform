@@ -33,10 +33,14 @@ test('original storage is lazy, sanitizes denial and has no dispatch, mutation o
   const pool={connect:async()=>{calls++;throw new Error('private-connection');}};
   const store=createDevelopmentOriginalStore({execution:pool,drafts:pool},config,{authorize:async()=>{throw new Error('private-denial');},
     authorizeOriginal:async()=>{},authorizeOperation:async()=>{},authorizeDraft:async()=>{},keyForDraft:async()=>{throw new Error('must not read keys');}});
-  assert.deepEqual(Object.keys(store),['put','read','readHistorical','close']);
+  assert.deepEqual(Object.keys(store),['put','putAndRead','read','readHistorical','close']);
+  assert.deepEqual(await store.putAndRead({approved:true}),{outcome:'unavailable'});
+  const original=await originalFixture(execution,source);
+  assert.deepEqual(await store.putAndRead({operationId:source.draftId,inputDigest:original.inputDigest,original:original.original}),{outcome:'unavailable'});
   await assert.rejects(store.read({ operationId:source.draftId,inputDigest:'a'.repeat(64),approved:true }));
   await assert.rejects(store.read({ operationId:source.draftId,inputDigest:'a'.repeat(64) }),{message:'Draft storage is unavailable.'});
   assert.equal(calls,0);store.close();
+  assert.deepEqual(await store.putAndRead({}),{outcome:'unavailable'});
 });
 
 test('historical original reads require their distinct current authorization before SQL and never fall back to ordinary access',async()=>{

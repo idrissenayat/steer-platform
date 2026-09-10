@@ -9,6 +9,7 @@ import { createDraftRevisionStore } from '../src/draft-revisions.ts';
 import { describeScopeOriginal } from '../src/scope-original-contracts.ts';
 import { createScopeReviewOperationStore } from '../src/scope-review-operations.ts';
 import { createScopeReviewOriginalStore } from '../src/scope-review-originals.ts';
+import { testOriginalReadback } from './original-readback.integration.ts';
 import type { DatabasePool } from '../src/runtime-pool.ts';
 import { intentEvidenceInputSchema } from '../../tool-registry/src/intent-evidence-contracts.ts';
 
@@ -60,6 +61,16 @@ export async function scopeOriginalIntegrationFixture(dependencies:Parameters<ty
 }
 export async function testScopeOriginals({admin,connect,check}:{admin:Pool;connect(role:string):Pool;check(name:string,run:()=>Promise<void>):Promise<void>}) {
   const setup=(large=false,ttl=3600000)=>scopeOriginalIntegrationFixture({admin,connect},large,ttl);
+  await testOriginalReadback('scope',async()=>{
+    const f=await setup();return{input:f.input,target:f.target,table:'scope_review_originals' as const,pools:f.pools,
+      make:(hooks={},pools=f.pools)=>f.make({
+        authorize:async c=>{await f.deps.authorize(c);return hooks.target?.(c.action);},
+        authorizeOriginal:async c=>{await f.deps.authorizeOriginal(c);return hooks.source?.(c.action);},
+        keyForDraft:async(ref,keyId)=>{const value=await f.deps.keyForDraft(ref,keyId);return hooks.key?hooks.key(value,keyId):value;},
+      },pools),row:f.row,
+      mutateLifecycle:async mode=>{await admin.query('UPDATE steer_drafts.draft_lifecycles SET '+(mode==='hold'?'held=true':'use_until=clock_timestamp()')+' WHERE organization_id=$1 AND draft_id=$2',[f.config.organizationId,f.draftId]);},
+    };
+  },check);
   await check('encrypted multi-batch scope originals restore exact Unicode input, full corpus and pinned profile without Exam or reservations',async()=>{
     const f=await setup(true);assert.ok(Buffer.byteLength(JSON.stringify(f.input.original))>786432);assert.ok(f.described.manifest.batches.length>1);
     assert.equal((await f.make().put(f.input)).outcome,'stored');
