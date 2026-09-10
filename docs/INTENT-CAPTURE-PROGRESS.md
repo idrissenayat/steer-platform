@@ -55,7 +55,7 @@ it does not imply that no code exists.
 | C19 | I5 Save/reopen | Authenticated new-distinct exact confirmation and atomic idempotent native save, with current scope/authority checks. | Verified | [0275](../intent/0275/EVIDENCE.md), [0276](../intent/0276/EVIDENCE.md). Synthetic authority, not live GitHub. |
 | C20 | I5 Save/reopen | Uncertain save, scheduler/provider lost replies and restart reconcile without resend; exact older-commit reopen through authenticated services. | Verified | [0275](../intent/0275/EVIDENCE.md), [0276](../intent/0276/EVIDENCE.md). |
 | C21 | I5 Save/reopen | Governed actual startup, current runtime GitHub write authority and a verified real repository save/reopen. | Pending | Source-code pushes are not application saves or runtime-write authorization. |
-| C22 | I5 Save/reopen | Measured provider request load and end-to-end latency satisfy documented human-UX acceptance thresholds on the representative journey. | Pending | [0301](../intent/0301/EVIDENCE.md) combines native records and two retained source revisions: a test-only immutable-object graph reduces that portion from 74 to 50 simulated provider attempts, preserving both revisions' grants and exact sources, 20 encrypted records and six SDK exchanges. It is not installed; final cross-component source closure, production policies, ownership and outer effect boundaries remain. Full confirmation still costs 7,637. [Next](../intent/0298/REQUEST-BUDGET-PLAN.md): complete boundaries, coherent integration, unchanged full benchmark. Prior delayed failure and unexplained 0289 recovery remain retained. |
+| C22 | I5 Save/reopen | Measured provider request load and end-to-end latency satisfy documented human-UX acceptance thresholds on the representative journey. | Pending | [0301](../intent/0301/EVIDENCE.md) combines native records and two retained source revisions: a test-only immutable-object graph reduces that portion from 74 to 50 simulated provider attempts (52 with the final-source follow-up), preserving both revisions' grants and exact sources, 20 encrypted records and six SDK exchanges. It is not installed; post-record source revocation now rejects, but complete lifecycle/authority closure, production policies, ownership and outer effect boundaries remain. Full confirmation still costs 7,637. [Next](../intent/0298/REQUEST-BUDGET-PLAN.md): complete boundaries, coherent integration, unchanged full benchmark. Prior delayed failure and unexplained 0289 recovery remain retained. |
 | C23 | I6 Human acceptance | Actual signed-in UI happy path, open-existing, exact/paraphrased duplicate, partial overlap and related-but-distinct scenarios; real sources and saved commits. | Pending | No preview, fixture or component-only result substitutes for this demonstration. |
 | C24 | I6 Human acceptance | Actual UI handles empty/failed/stale search, corrections, permission loss, exhausted budget, concurrent creation, uncertain save and refresh/reopen without lost work. | Pending | Component/negative tests inform but do not complete this real journey. |
 | C25 | I6 Human acceptance | Actual end-to-end keyboard, narrow-screen and accessibility verification, followed by the user's usable-journey acceptance. | Pending | Component axe checks do not establish browser/visual or human acceptance. |
@@ -90,11 +90,15 @@ it does not imply that no code exists.
 
 Next unblocked engineering checkpoint: C22, meet the documented request-load and
 latency bounds without weakening current authority or recovery guarantees.
+0301's [final-source follow-up](../intent/0301/FINAL-SOURCE-CLOSURE.json) rejects
+source revocation after dependent records/key readback; the combined stage is now
+52 attempts, including two added identity checks. Native/focused/type checks pass.
+This remains partial C22: **68% (17/25; eight remaining; +0 percentage points)**.
 0298 establishes that neither records-only nor body-only reductions can suffice:
 the current per-file corpus protocol alone exceeds the whole-request ceiling.
 Follow the [bounded correction sequence](../intent/0298/REQUEST-BUDGET-PLAN.md),
 with 0299 covering corpus, 0300 records and 0301 the combined multi-revision graph.
-Finish cross-component source closure, independent policy/key-provider and owned
+Finish complete lifecycle/authority closure, independent policy/key-provider and owned
 outer-callback/effect boundaries before production integration. Preserve fresh
 authority, all policies, final readback and separate phases across effects. No
 proposed budget or additional test result earns a checklist point.

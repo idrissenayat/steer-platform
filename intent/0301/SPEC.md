@@ -43,6 +43,21 @@ topology. Keep the separate-reader result as the baseline, not as final acceptan
   head, method, binding and cancellation all fail closed. Assert intended failure
   triggers were reached. This does not establish production owner drainage.
 
+## Follow-up: final source closure after dependent records
+
+The native combined graph must await dependent records/key rereads before its final
+root-selection, path-permission, grants and head checks. The test-only callback is
+read-only, returns void and is bracketed by fresh caller/global-grants checks.
+Nothing is returned from the graph until this closure passes. Preserve the separate
+reader and records-only selection behavior; neither gains this graph guarantee.
+
+Inject source revocation after the complete records readback in the native test,
+and prove the final path policy observes it. Focused checks must also reject late
+selection/head changes, callback rejection/nonvoid and cancellation. Count the
+additional boundary checks; the previous 50-attempt result is historical, not the
+new final-boundary measurement. Ownership/drainage and independent production
+policy integration remain outside this helper; no installed-service claim.
+
 ## Interpretation limits
 
 This is the combined records/retained-source portion, not an installed preview or

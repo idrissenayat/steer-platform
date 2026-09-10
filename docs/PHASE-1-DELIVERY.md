@@ -6904,3 +6904,13 @@ isolated production micro-optimizations or infer a new delivery date.
 those boundaries, integrate the correction and run the unchanged full benchmark.
 No signed document, credential, real user draft, records adoption, live model call,
 runtime GitHub write, deployment, release or user roadmap/outputs changed.
+
+0301 final-source follow-up: dependent records/key readback now occurs before the
+graph's final selection/path/grants/head closure. The native test revokes a source
+after records readback and proves the final path policy rejects. Two additional
+identity checks bring this portion to 52 attempts; the 50-attempt result remains
+historical. Eleven graph/diagnostic checks and a final changed-test rerun pass,
+as do the native joined/combined selection, all types, kit and workflow checks.
+See [follow-up evidence](../intent/0301/FINAL-SOURCE-CLOSURE.json). Complete lifecycle/
+authority closure, independent policies, ownership and outer effect integration
+are still unproven. No application installation or completed C22; **68% (17/25; +0)**.

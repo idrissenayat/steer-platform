@@ -1,0 +1,146 @@
+{
+  "kind": "steer-combined-readgraph-final-source-closure/v1",
+  "baseCommit": "c9a86a20887b763c0b2c2a490297c738536a6061",
+  "command": "node packages/data/test/postgres.integration.ts --combined-readgraph-feasibility",
+  "node": "24.19.0",
+  "metrics": {
+    "providerAttempts": 52,
+    "elapsedMs": 1629,
+    "jwksAttempts": 1,
+    "callerChecks": 34,
+    "providerKinds": {
+      "head": 35,
+      "commit": 1,
+      "tree": 1,
+      "blob": 1,
+      "token": 1,
+      "mutation": 0,
+      "other": 0
+    },
+    "roleTransactions": 4,
+    "sqlStatements": 34,
+    "keyReferences": 1,
+    "keyCalls": 2,
+    "recordPolicyCalls": 82,
+    "retainedSourcePolicyCalls": 136,
+    "groups": {
+      "revisions": 2,
+      "latest_revision": 1,
+      "scope_originals": 2,
+      "scope_observations": 8,
+      "development_originals": 1,
+      "development_results": 2,
+      "development_observations": 4,
+      "candidate_originals": 1,
+      "operations": 2,
+      "steps": 3,
+      "scope_runs": 2,
+      "scope_batches": 4,
+      "reservations": 6,
+      "budget": 1,
+      "scope_terms": 1
+    },
+    "byteLength": 607626,
+    "plaintextRows": 20,
+    "scopeSdkExchanges": 4,
+    "developmentSdkExchanges": 2,
+    "historicalCorpus": {
+      "strategy": "graph",
+      "revisionCount": 2,
+      "originalContexts": 3,
+      "measurements": [
+        {
+          "semanticSources": 34,
+          "physicalFiles": 42,
+          "repositoryAttempts": null,
+          "sourcePolicyCalls": 126
+        },
+        {
+          "semanticSources": 34,
+          "physicalFiles": 42,
+          "repositoryAttempts": null,
+          "sourcePolicyCalls": 126
+        }
+      ],
+      "repositoryAttempts": 12,
+      "graph": {
+        "waves": [
+          {
+            "name": "roots-and-pointers",
+            "paths": 68,
+            "fetchedObjects": 34,
+            "batches": 3
+          },
+          {
+            "name": "manifests",
+            "paths": 4,
+            "fetchedObjects": 2,
+            "batches": 1
+          },
+          {
+            "name": "bundle-documents",
+            "paths": 12,
+            "fetchedObjects": 4,
+            "batches": 1
+          }
+        ],
+        "requests": 12,
+        "sourcePolicyQueries": 252
+      },
+      "uniqueBlobObjects": 40,
+      "blobObjectsSharedAcrossRevisions": 40,
+      "sourceMetadataPolicySynthetic": true,
+      "finalSourcesAfterDependentReadback": true,
+      "wholePhaseAccepted": false,
+      "productionInstalled": false
+    },
+    "httpRegistryIntegrated": false,
+    "actualRecordsPoliciesIntegrated": false,
+    "ownerDrainAndAllEffectsVerified": false,
+    "wholeJourneyPerformanceAccepted": false,
+    "productionInstalled": false
+  },
+  "negativeCases": [
+    "Source revoked after full dependent records readback is rejected by the subsequent path policy; mutation and denial triggers asserted.",
+    "Late selection/head change, source denial, callback rejection/nonvoid and cancellation reject.",
+    "Prior late record-policy/key loss, foreign subject, appended draft revision and hold assertions remain active."
+  ],
+  "verification": {
+    "nativeJoinedAndExperimentPassed": true,
+    "ownedCleanupObserved": true,
+    "graphAndDiagnosticsTests": 11,
+    "graphAndDiagnosticsDurationMs": 44680.265916,
+    "finalChangedTestRerun": {
+      "passed": 1,
+      "durationMs": 12427.548
+    },
+    "note": "The 11-test run preceded a test-only object type guard; that changed test was rerun. Production source is unchanged.",
+    "prototypeTypecheckPassed": true,
+    "typecheckPackages": 8,
+    "typecheckCached": 7,
+    "typecheckDurationSeconds": 1.262,
+    "fullSqlSuiteRun": false,
+    "fullC22Run": false,
+    "browserRun": false,
+    "modelCallsLive": false,
+    "realGithubRuntimeWrite": false
+  },
+  "comparison": {
+    "previousCombinedAttempts": 50,
+    "currentCombinedAttempts": 52,
+    "addedBoundaryIdentityAttempts": 2,
+    "previousMeasurement": "FEASIBILITY.json at c9a86a20887b763c0b2c2a490297c738536a6061",
+    "wholeConfirmationAttempts": 7637
+  },
+  "limitations": [
+    "This closes only source revalidation after dependent reads, not complete distributed lifecycle/authority atomicity.",
+    "Independent production policies/key providers, lifecycle expiry throughout final closure, owner drainage, HTTP and all effect-separated phases are still not proven by this test-only helper.",
+    "No production installation, application latency improvement or completed C22. Single local time is not p95."
+  ],
+  "sourceSha256": {
+    "apps/api/test/corpus-readgraph-prototype.ts": "863b613095064b831cc5e591ad2817ab6c3333c3db7fca4d5bafece7cd65681f",
+    "apps/api/test/corpus-readgraph-prototype.test.ts": "9a1deff19c9c9115b11b1611835fda21d9c2ea7e7e74e9a794df56daa9aa5c89",
+    "apps/api/test/corpus-history-feasibility.ts": "1185d3a227a1d930d02bcb66d99c82f122fc8ce70c2c2511babb05c51ef91938",
+    "apps/api/test/records-readset-feasibility.integration.ts": "3e3ba2d818b1f43f636ec4e77cf63bf3507493c4ca247dba11047f07ca22372d"
+  }
+}

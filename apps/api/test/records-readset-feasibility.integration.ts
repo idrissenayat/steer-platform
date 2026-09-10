@@ -29,8 +29,14 @@ export async function testRecordsReadsetFeasibility(f: Awaited<ReturnType<typeof
     resolveAuthorization: resolve, fetch: async (input, init) => { jwks++; return identity.ports.identity(input, init); },
   });
   let denied = false, recordPolicies = 0, retainedSourcePolicies = 0, keyCalls = 0, checks = 0;
+  const originalSourcePolicy = native?.corpusAuthority.authorizeSource;
+  let lateSourceDenied = false, lateSourceDenials = 0;
+  if (native && strategy === 'graph') native.corpusAuthority.authorizeSource = async ref => {
+    await originalSourcePolicy!(ref);
+    if (lateSourceDenied) { lateSourceDenials++; throw new Error('Synthetic source revoked after records readback.'); }
+  };
   const policy = async () => { await authorize(); if (denied) throw new Error('Synthetic records policy denied.'); recordPolicies++; };
-  const run = async (alter?: (phase: 'decoded' | 'keys-rechecked') => Promise<void>, changeKey = false) => resolve.withinRequest(async () => {
+  const run = async (alter?: (phase: 'decoded' | 'keys-rechecked' | 'records-rechecked') => Promise<void>, changeKey = false) => resolve.withinRequest(async () => {
     const request = new Request('https://steer.example/synthetic-records-feasibility', { headers: { authorization: `Bearer ${await identity.issueBearer()}` } });
     const started = performance.now(), before = traffic.snapshot(), beforeJwks = jwks, beforePolicies = recordPolicies, beforeSources = retainedSourcePolicies, beforeKeys = keyCalls, beforeChecks = checks;
     const current = async () => { checks++; const context = await authenticate(request);
@@ -46,22 +52,28 @@ export async function testRecordsReadsetFeasibility(f: Awaited<ReturnType<typeof
         keys.set(JSON.stringify([ref.draftId, ref.keyId]), { keyId: key.keyId, bytes: Buffer.from(key.bytes) });
       }
       await current(); const decoded = await decodeRecordsReadsetPrototype(first, keys, profiles); await current();
-      const historicalCorpus = native ? await inspectHistoricalCorpusCost(native, identity, decoded.decoded, current, strategy) : undefined;
-      for (const original of decoded.decoded.scope_originals!) for (const source of original.value.evidence.inventory) {
-        await policy(); assert.ok(source.path); retainedSourcePolicies++;
-      }
-      await alter?.('decoded');
-      for (const ref of first.keys) {
-        await current(); keyCalls++; const fresh = await f.deps.keyForDraft({ ...f.config, draftId: ref.draftId }, ref.keyId); await current();
-        const bytes = Buffer.from(fresh.bytes); if (changeKey) bytes[0] = bytes[0]! ^ 255;
-        try { assert.equal(fresh.keyId, ref.keyId); assert.deepEqual(bytes, keys.get(JSON.stringify([ref.draftId, ref.keyId]))!.bytes); }
-        finally { bytes.fill(0); }
-      }
-      await alter?.('keys-rechecked');
-      for (const rows of Object.values(first.data)) for (const _row of rows) await policy();
-      for (const original of decoded.decoded.scope_originals!) for (const _source of original.value.evidence.inventory) { await policy(); retainedSourcePolicies++; }
-      const last = await readRecordsReadsetPrototype(f.pools, f.config, target, current);
-      assert.equal(last.digest, first.digest); await policy(); await current();
+      let last: Awaited<ReturnType<typeof readRecordsReadsetPrototype>> | undefined;
+      const recheckDependents = async () => {
+        for (const original of decoded.decoded.scope_originals!) for (const source of original.value.evidence.inventory) {
+          await policy(); assert.ok(source.path); retainedSourcePolicies++;
+        }
+        await alter?.('decoded');
+        for (const ref of first.keys) {
+          await current(); keyCalls++; const fresh = await f.deps.keyForDraft({ ...f.config, draftId: ref.draftId }, ref.keyId); await current();
+          const bytes = Buffer.from(fresh.bytes); if (changeKey) bytes[0] = bytes[0]! ^ 255;
+          try { assert.equal(fresh.keyId, ref.keyId); assert.deepEqual(bytes, keys.get(JSON.stringify([ref.draftId, ref.keyId]))!.bytes); }
+          finally { bytes.fill(0); }
+        }
+        await alter?.('keys-rechecked');
+        for (const rows of Object.values(first.data)) for (const _row of rows) await policy();
+        for (const original of decoded.decoded.scope_originals!) for (const _source of original.value.evidence.inventory) { await policy(); retainedSourcePolicies++; }
+        last = await readRecordsReadsetPrototype(f.pools, f.config, target, current);
+        assert.equal(last.digest, first.digest); await policy(); await current();
+        await alter?.('records-rechecked');
+      };
+      const historicalCorpus = native ? await inspectHistoricalCorpusCost(native, identity, decoded.decoded, current, strategy, recheckDependents) : undefined;
+      if (!native) await recheckDependents();
+      assert.ok(last);
       const after = traffic.snapshot();
       const providerAttempts = Object.values(after).reduce((a, b) => a + b, 0) - Object.values(before).reduce((a, b) => a + b, 0)
         + jwks - beforeJwks + (historicalCorpus?.repositoryAttempts ?? 0);
@@ -76,7 +88,7 @@ export async function testRecordsReadsetFeasibility(f: Awaited<ReturnType<typeof
         wholeJourneyPerformanceAccepted: false, productionInstalled: false };
     } finally { for (const key of keys.values()) key.bytes.fill(0); }
   });
-  const rejectAfter = async (selected: 'decoded' | 'keys-rechecked', effect: () => Promise<void>) => {
+  const rejectAfter = async (selected: 'decoded' | 'keys-rechecked' | 'records-rechecked', effect: () => Promise<void>) => {
     let reached = false;
     await assert.rejects(run(async phase => { if (phase === selected) { await effect(); reached = true; } }));
     assert.equal(reached, true, 'Negative case must reach and apply its intended change.');
@@ -88,7 +100,13 @@ export async function testRecordsReadsetFeasibility(f: Awaited<ReturnType<typeof
     assert.equal(initial.groups.candidate_originals, 1);
     if (!native) assert.ok(initial.providerAttempts <= 30);
     else { assert.ok(initial.historicalCorpus); assert.ok(initial.historicalCorpus.revisionCount >= 2); }
+    if (native && strategy === 'graph') assert.equal(initial.historicalCorpus?.finalSourcesAfterDependentReadback, true);
     console.log((native ? 'Synthetic combined readset feasibility: ' : 'Synthetic records readset feasibility: ') + JSON.stringify(initial));
+    if (native && strategy === 'graph') {
+      await rejectAfter('records-rechecked', async () => { lateSourceDenied = true; });
+      assert.ok(lateSourceDenials > 0, 'The final source policy must observe post-record revocation.');
+      lateSourceDenied = false;
+    }
     await rejectAfter('decoded', async () => { denied = true; }); denied = false;
     const beforeKeyLoss = keyCalls; await assert.rejects(run(undefined, true)); assert.equal(keyCalls - beforeKeyLoss, initial.keyCalls);
     await assert.rejects(readRecordsReadsetPrototype(f.pools, { ...f.config, subject: 'foreign' }, target, async () => {}));
@@ -102,5 +120,5 @@ export async function testRecordsReadsetFeasibility(f: Awaited<ReturnType<typeof
       assert.equal((await f.lifecycle.hold({ draftId: f.draftId, holdReference: randomUUID() })).outcome, 'ok');
     });
     console.log('PASS records readset: exact encrypted snapshot/crypto/SDK topology; late policy/key loss, foreign owner, new revision and hold deny. No production installation or C22 acceptance.');
-  } finally { resolve.close(); }
+  } finally { if (native && originalSourcePolicy) native.corpusAuthority.authorizeSource = originalSourcePolicy; resolve.close(); }
 }

@@ -1,5 +1,9 @@
 # Combined revision graph: verified experiment, not installed
 
+The original comparison and source hashes below describe `c9a86a2`. The
+[final-source-closure follow-up](FINAL-SOURCE-CLOSURE.json) is the newer measurement:
+**52 attempts**, including two additional identity checks. It is also test-only.
+
 Both focused native selectors pass the unchanged authenticated generation,
 correction, confirmation, native save and exact reopen journey, followed by the
 records/source experiment and its negative cases. [Measurements](FEASIBILITY.json)
@@ -79,3 +83,38 @@ real-model quality and actual repository acceptance are not run or claimed.
 the cross-component policy/ownership/effect boundaries and integrate the coherent
 correction, then run the unchanged complete performance benchmark. A 50-request
 test portion is not a completed checkpoint or a new delivery-time estimate.
+
+## Follow-up: source revalidation after dependent records
+
+The graph now awaits the records/key final readback inside its read-only phase,
+then rechecks all selections, path grants, current global permissions and head
+before returning. A native negative case revokes source access after the full
+records readback; the final path policy must observe that exact revocation and
+reject. Sharing immutable bytes never shares the authority to return them.
+
+The final combined stage uses **52 attempts**: 39 identity-provider requests,
+one JWKS request and 12 historical repository requests. Fresh caller validations
+increase from 32 to 34; the new two checks bracket dependent work. All 252 path
+grants, 82 records policies, 136 retained-source policies, four SQL transactions /
+34 statements, two key calls, 20 encrypted rows and six SDK exchanges remain.
+The single local sample is 1,629 ms and the encrypted snapshot is 607,626 bytes;
+neither is a full-action or delayed-performance measurement.
+
+The unchanged native journey, added post-record source denial and existing negative
+checks pass, followed by owned cleanup. Eleven graph/diagnostic tests pass in
+44,680.265916 ms. A TypeScript unknown-value spread in the new test was corrected
+with an object assertion; the changed test passes again in 12,427.548 ms. Final
+prototype/eight package types pass (seven cached, 1.262 s), as do kit/workflow checks.
+The earlier 50-attempt measurement and its source hashes remain historical and
+unchanged; the follow-up JSON records four current changed-source hashes.
+
+This closes one final-source ordering gap in the experiment, not complete
+distributed lifecycle/authority atomicity or operational per-purpose policy,
+key-provider, owner-drain, HTTP/effect-phase integration. Lifecycle expiry through
+final closure must still be covered by the integrated owner's deadline. No source
+service is installed. Full confirmation remains 7,637; **68% (17/25; +0 points)**.
+
+Follow-up final audit: 16 baseline source hashes verified at `c9a86a2`, four changed
+source hashes verified in the working tree, four protected hashes, 446 relative
+links, the unchanged 25-row / 17-verified tracker and counted provider arithmetic
+pass. Diff whitespace checks pass; no user roadmap or outputs are staged.

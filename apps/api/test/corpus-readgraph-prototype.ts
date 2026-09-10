@@ -24,9 +24,11 @@ async function json(response: Response) {
   } finally { reader.releaseLock(); }
 }
 export async function collectCorpusReadgraphPrototype(rawBinding: GitHubBinding, productId: string, rawRevisions: unknown,
-  transport: typeof fetch, authority: IntentCorpusAuthority, revalidate: () => Promise<void>, signal = new AbortController().signal) {
+  transport: typeof fetch, authority: IntentCorpusAuthority, revalidate: () => Promise<void>, signal = new AbortController().signal,
+  recheckDependents?: () => Promise<void>) {
   const revisions = z.array(oid).min(1).max(4).parse(rawRevisions);
   if (new Set(revisions).size !== revisions.length) throw fail();
+  if (recheckDependents !== undefined && typeof recheckDependents !== 'function') throw fail();
   const binding = Object.freeze({ ...rawBinding }), pinned = JSON.stringify(binding);
   if (binding.owner !== 'synthetic' || binding.repository !== 'fixture' || binding.repositoryId !== 52) throw fail();
   const scope = Object.freeze({ organizationId: binding.organizationId, productId, repository: `github:${binding.repositoryId}`, branch: binding.branch });
@@ -150,6 +152,10 @@ export async function collectCorpusReadgraphPrototype(rawBinding: GitHubBinding,
       if (!m.value.proposalTarget && c.files.get(`${m.root}/BRIEF.md`)!.contentDigest !== m.manifest.documents.brief.contentDigest) throw fail();
     } return { revision: c.revision, files: [...c.files.values()], semantic };
   });
+  // Keep dependent record/key rereads INSIDE this read-only phase. No result
+  // escapes before the subsequent final selection/path/grant/head closure.
+  // This test-only callback must not dispatch operations or provider writes.
+  if (recheckDependents) { await current(); if (await recheckDependents() !== undefined) throw fail(); await current(); }
   for (const c of contexts) { for (const s of c.selections) { guard(); if (JSON.stringify(await ports.select.call(authority, s.context)) !== JSON.stringify(s.value)) throw fail(); guard(); }
     for (const path of c.files.keys()) await grant(c, path); }
   if (await io(head) !== observedHead) throw fail(); guard();

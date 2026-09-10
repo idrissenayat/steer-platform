@@ -145,3 +145,10 @@ cross-component source closure, independent production records/source/key polici
 ownership/drainage, outer callbacks and write-separated phases remain to integrate
 and measure. The old 204-attempt confirmation control outside previews also needs
 correction. Replacing only the source and records readers cannot close C22.
+
+The [final-source follow-up](../0301/FINAL-SOURCE-CLOSURE.json) adds two identity
+checks and places records/key readback before final source closure. Updated combined
+cost is 52; post-record source revocation rejects. This does not yet establish
+complete lifecycle/authority closure, independently configured policies/providers,
+owner drainage or full outer/effect integration. The original 50 measurement and
+allocation comparison are historical, not a complete production budget acceptance.

@@ -10,7 +10,8 @@ import type { decodeRecordsReadsetPrototype } from './records-readset-decode.ts'
  * equal document bytes authorize sharing metadata checks across revisions. */
 export async function inspectHistoricalCorpusCost(native: ReturnType<typeof nativeCandidateJourneyFixture>,
   identity: Awaited<ReturnType<typeof recordedRuntimeFixture>>,
-  decoded: Awaited<ReturnType<typeof decodeRecordsReadsetPrototype>>['decoded'], current: () => Promise<void>, strategy: 'separate' | 'graph' = 'separate') {
+  decoded: Awaited<ReturnType<typeof decodeRecordsReadsetPrototype>>['decoded'], current: () => Promise<void>, strategy: 'separate' | 'graph' = 'separate',
+  recheckDependents?: () => Promise<void>) {
   const transport: typeof fetch = async (input, init) => {
     const url = new URL(String(input)); assert.equal(url.origin, 'https://api.github.com');
     if (url.pathname !== '/graphql') {
@@ -38,7 +39,7 @@ export async function inspectHistoricalCorpusCost(native: ReturnType<typeof nati
   const revisions = [...new Set(originals.map(original => original.value.evidence.head as string))];
   const physical = new Map<string, Set<string>>(), measurements = [];
   const graph = strategy === 'graph' ? await collectCorpusReadgraphPrototype(identity.profile.github.binding,
-    originals[0]!.value.evidence.productId, revisions, counted, native.corpusAuthority, current) : undefined;
+    originals[0]!.value.evidence.productId, revisions, counted, native.corpusAuthority, current, new AbortController().signal, recheckDependents) : undefined;
   for (const revision of revisions) {
     const sources = originals.filter(original => original.value.evidence.head === revision);
     const before = providerRequests;
@@ -58,8 +59,9 @@ export async function inspectHistoricalCorpusCost(native: ReturnType<typeof nati
     measurements.push({ semanticSources: corpus.semantic.length, physicalFiles: corpus.files.length,
       repositoryAttempts: graph ? null : providerRequests - before, sourcePolicyCalls: corpus.files.length * 3 });
   }
+  if (!graph && recheckDependents) await recheckDependents();
   return { strategy, revisionCount: revisions.length, originalContexts: originals.length, measurements, repositoryAttempts: providerRequests,
     ...(graph ? { graph: { waves: graph.waves, requests: graph.requests, sourcePolicyQueries: graph.sourcePolicyQueries } } : {}),
     uniqueBlobObjects: physical.size, blobObjectsSharedAcrossRevisions: [...physical.values()].filter(refs => refs.size > 1).length,
-    sourceMetadataPolicySynthetic: true, wholePhaseAccepted: false, productionInstalled: false };
+    sourceMetadataPolicySynthetic: true, finalSourcesAfterDependentReadback: Boolean(graph && recheckDependents), wholePhaseAccepted: false, productionInstalled: false };
 }

@@ -78,6 +78,12 @@ drainage, outer effect-boundary integration or C22. Actual confirmation remains
 prerequisites are unchanged. The next integration must retain those boundaries;
 the prototype is not a drop-in production service.
 
+The [follow-up](../intent/0301/FINAL-SOURCE-CLOSURE.json) puts dependent records/key
+readback before the graph's final source checks. A native post-record revocation
+now rejects; two added identity checks bring this portion to 52 attempts. The
+initial 50-attempt comparison remains historical. Complete lifecycle/authority
+closure, independent production policies, ownership and effect phases remain open.
+
 ### Native records experiment, no runtime installation — 0300
 
 The [bounded read-set experiment](../intent/0300/EVIDENCE.md) follows the unchanged

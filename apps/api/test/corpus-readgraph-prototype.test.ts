@@ -70,3 +70,33 @@ test('revision sets are explicit, bounded and immutable object IDs only', async 
     await assert.rejects(collectCorpusReadgraphPrototype(f.binding, f.evidence.productId, revisions, f.repository, f.authority, async () => {}));
   assert.equal(f.wire.length, before);
 });
+
+test('dependent readback is awaited before final source closure; late denial withholds the result', async t => {
+  const f = await corpusBatchPrototypeFixture(t), first = f.native.git.head();
+  let dependentDone = false, finalGrants = 0, rechecks = 0;
+  const authority: IntentCorpusAuthority = { ...f.authority, authorizeSource: async ref => {
+    await f.authority.authorizeSource(ref); if (dependentDone) finalGrants++;
+  } };
+  const result = await collectCorpusReadgraphPrototype(f.binding, f.evidence.productId, [first], f.repository, authority,
+    async () => {}, new AbortController().signal, async () => { rechecks++; assert.equal(finalGrants, 0); dependentDone = true; });
+  assert.equal(rechecks, 1); assert.equal(finalGrants, result.contexts[0]!.files.length);
+  for (const mode of ['source', 'selection', 'head', 'abort', 'nonvoid', 'reject']) {
+    f.state.source = true; let changed = false, reached = false;
+    const signal = new AbortController();
+    const selected: IntentCorpusAuthority = { ...f.authority, select: async c => {
+      const value = await f.authority.select(c); assert.ok(value && typeof value === 'object');
+      return changed ? { ...value, authorityDigest: '0'.repeat(64) } : value;
+    } };
+    await assert.rejects(collectCorpusReadgraphPrototype(f.binding, f.evidence.productId, [first], f.repository, selected,
+      async () => {}, signal.signal, async () => {
+        reached = true;
+        if (mode === 'source') f.state.source = false;
+        if (mode === 'selection') changed = true;
+        if (mode === 'head') f.native.git.add([{ path: 'dependent-head.md', content: 'head changed after records\n' }]);
+        if (mode === 'abort') signal.abort();
+        if (mode === 'nonvoid') return 'invalid' as unknown as void;
+        if (mode === 'reject') throw new Error('Synthetic dependent read rejected');
+      }));
+    assert.equal(reached, true);
+  }
+});

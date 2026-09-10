@@ -23,6 +23,13 @@ Single local samples (3,116 / 1,621 ms) have no injected network delay and are n
 p95, comparable to a records-only sample, or actual user-action latency. The
 200-attempt/5-second limits and full warm/cold/concurrent protocol are unchanged.
 
+The [final-source follow-up](../intent/0301/FINAL-SOURCE-CLOSURE.json) adds two fresh
+identity checks and moves records/key readback inside the source phase. The updated
+combined stage costs **52**, not 50, and rejects source revocation after records
+readback. Eleven focused tests, the native selection and final types pass. This
+does not prove lifecycle expiry through final closure, independent production
+policies, owner drainage or outer effect integration. Full confirmation stays 7,637.
+
 ## Records protocol experiment — 0300
 
 The [native records experiment](../intent/0300/EVIDENCE.md) reads and fully rechecks

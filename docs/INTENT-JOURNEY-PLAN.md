@@ -19,8 +19,12 @@ exchanges and complete final records readback. Forty immutable objects are share
 permissions are not. Both selectors preserve the preceding authenticated journey.
 
 This is test-only and not a 50-request confirmation or a UI latency result.
+The [follow-up](../intent/0301/FINAL-SOURCE-CLOSURE.json) moves the dependent records/
+key readback inside the graph, before its final source closure. A source revocation
+after records readback now rejects in the native test. The combined portion is
+52 attempts including two added identity checks; the 50-attempt result is historical.
 Application confirmation still costs 7,637. Production per-purpose policies,
-final cross-component source closure, ownership/drainage and outer effect phases
+complete cross-component lifecycle/authority closure, ownership/drainage and outer effect phases
 remain unproven. Continue [0298's bounded correction](../intent/0298/REQUEST-BUDGET-PLAN.md)
 through those boundaries and coherent integration; then run the unchanged full
 benchmark. Do not restart isolated micro-optimizations, inflate checklist coverage
