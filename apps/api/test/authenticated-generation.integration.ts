@@ -36,7 +36,7 @@ import { testOwnedRecordsReadset } from './records-owned-readset.integration.ts'
  * This check does not claim real provider authority or signed-in UI acceptance. */
 export async function testAuthenticatedGeneration({ admin, connect, check }: {
   admin: Pool; connect(role: string): Pool; check(name: string, run: () => Promise<void>): Promise<void>;
-}, direction: AuthenticatedJourneyDirection = 'new-distinct', performanceOnly = false, profileRequests = false, recordsFeasibility = false, combinedFeasibility: false | 'separate' | 'graph' | 'native-graph' | 'owned-records' | 'owned-content' = false) {
+}, direction: AuthenticatedJourneyDirection = 'new-distinct', performanceOnly = false, profileRequests = false, recordsFeasibility = false, combinedFeasibility: false | 'separate' | 'graph' | 'native-graph' | 'owned-records' | 'owned-content' | 'owned-history' = false) {
   if (profileRequests && performanceOnly) throw new Error('Attribution overhead must not be mixed with performance acceptance.');
   if (recordsFeasibility && (profileRequests || performanceOnly)) throw new Error('Records feasibility must be an isolated test selection.');
   if (combinedFeasibility && !recordsFeasibility) throw new Error('Combined feasibility requires native records.');
@@ -270,9 +270,9 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
           toolGrants: identity.grant.toolGrants.filter(tool => tool !== 'intent.candidate.read') }) });
       assert.equal(modelCalls, 6); assert.equal(native.git.mutations(), 1);
       await runtime.shutdown(); assert.equal(constructions, 4); assert.equal(closures, 4);
-      if (combinedFeasibility === 'owned-records' || combinedFeasibility === 'owned-content') await testOwnedRecordsReadset(f, identity, profiles, { draftId: f.draftId,
+      if (combinedFeasibility === 'owned-records' || combinedFeasibility === 'owned-content' || combinedFeasibility === 'owned-history') await testOwnedRecordsReadset(f, identity, profiles, { draftId: f.draftId,
         operationIds: [reference.operationId, confirmed.reference.operationId], reviewIds: [scopePrepared.reference!.reviewId, confirmed.scopeReference.reviewId],
-        revisions: [1, 2], budgetId: f.execution.budget.budgetId }, authority, native, combinedFeasibility === 'owned-content');
+        revisions: [1, 2], budgetId: f.execution.budget.budgetId }, authority, native, combinedFeasibility !== 'owned-records', combinedFeasibility === 'owned-history');
       else if (recordsFeasibility) await testRecordsReadsetFeasibility(f, identity, profiles, { draftId: f.draftId,
         operationIds: [reference.operationId, confirmed.reference.operationId], reviewIds: [scopePrepared.reference!.reviewId, confirmed.scopeReference.reviewId],
         revisions: [1, 2], budgetId: f.execution.budget.budgetId }, authority, combinedFeasibility ? native : undefined, combinedFeasibility || 'separate');

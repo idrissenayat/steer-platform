@@ -7029,3 +7029,26 @@ run the unchanged complete C22 benchmark. No live key/model/provider grants,
 spending, records adoption, deployment, real runtime GitHub save or UI completion.
 Signed documents and the user's roadmap/outputs are unchanged. **68% (17/25; eight
 remaining; +0 percentage points).**
+
+## 0307 — Production SDK and recorded-history verification
+
+The [production history composition](../intent/0307/EVIDENCE.md) uses canonical
+SDK/worker verification inside the owned content reader. Exact scope review, source
+revision and assessment are joined to development; requests, responses, durable
+results and succeeded checkpoints must agree. Pending, unknown and clarifying
+outcomes stay incomplete. A fresh Test Agent predecessor comes only from the exact
+eligible Architect checkpoint; SDK consistency grants no execution or gate authority.
+
+All 37 native isolation cases, 44 focused tests, prototype/eight-package types,
+95-artifact kit and workflow scope audit pass. Native records/key/source denials
+and authenticated synthetic save/reopen pass. The owned portion verifies 20 records,
+four scope and two development SDK exchanges at 52 simulated provider attempts.
+Exact measurements and source hashes are in [verification](../intent/0307/VERIFICATION.json).
+Its single undelayed sample includes extra comparison-oracle work and is not C22.
+
+The actual factory remains unchanged and confirmation still costs 7,637 attempts.
+Next connect actual service contracts, authorized stage-specific target discovery
+and separate read/effect phases, then run the unchanged complete benchmark. No
+live model/key access, spending, runtime GitHub save, deployment, profile/records
+activation, signature or human UI acceptance. User drafts, signed artifacts and
+roadmap/outputs remain unchanged. **68% (17/25; eight remaining; +0 points).**

@@ -9,7 +9,22 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0306 / canonical content and owned key access — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0307 / production SDK and recorded-history verification — 68% (17/25; 8 remaining; +0 points)**.
+The [production history composition](../intent/0307/EVIDENCE.md) checks actual SDK
+requests/responses, worker checkpoints and exact recorded scope-to-development
+lineage over the owned content reader. Pending/unknown outcomes remain incomplete;
+the Test Agent uses only an eligible succeeded Architect result. All 37 native
+isolation cases, 44 focused tests and types pass. The portion uses 52 simulated
+attempts; actual application confirmation remains 7,637. SDK consistency is not
+current permission, semantic quality or execution authorization.
+
+Next bind actual service contracts and stage-appropriate authorized target
+discovery to the owned source/records/history phases. Keep existing public
+projections and separate phases around effects, then run the unchanged complete
+C22 benchmark. Neither shared reader is yet installed in the application factory.
+No live profile, model call, spending, runtime save or UI acceptance is implied.
+
+Prior delivery checkpoint: **0306 / canonical content and owned key access — 68% (17/25; 8 remaining; +0 points)**.
 The [content composition](../intent/0306/EVIDENCE.md) shares the existing production
 codecs and adds separately authorized key access inside the owned records read.
 All purposes are granted before lookup; exact provider identity controls sharing,

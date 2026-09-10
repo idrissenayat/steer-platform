@@ -7,6 +7,20 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Production SDK and recorded-history verification — 0307
+
+[0307](../intent/0307/EVIDENCE.md) uses actual production SDK and worker schemas
+over the owned content reader, including exact scope-to-development lineage and
+partial-history handling. Thirty-seven native isolation cases and 44 focused tests
+pass. The portion retains 52 simulated attempts, 51 SQL statements, 80 record
+policies, 40 key policies and two key reads. A single undelayed 1,652 ms sample
+with an extra test comparison oracle is not p95 or an accepted application budget.
+
+The actual factory remains unchanged: confirmation/recovery/repeat are 7,637 /
+7,609 / 7,607. Next bind actual services, authorized stage-specific discovery and
+effect-separated phases to these shared readers. The 200-attempt/5-second limits,
+full warm/cold/concurrent protocol and eight pending checkpoints remain unchanged.
+
 ## Canonical content and owned key access — 0306
 
 [0306](../intent/0306/EVIDENCE.md) composes the metadata-first reader with the actual

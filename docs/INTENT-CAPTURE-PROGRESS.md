@@ -55,7 +55,7 @@ it does not imply that no code exists.
 | C19 | I5 Save/reopen | Authenticated new-distinct exact confirmation and atomic idempotent native save, with current scope/authority checks. | Verified | [0275](../intent/0275/EVIDENCE.md), [0276](../intent/0276/EVIDENCE.md). Synthetic authority, not live GitHub. |
 | C20 | I5 Save/reopen | Uncertain save, scheduler/provider lost replies and restart reconcile without resend; exact older-commit reopen through authenticated services. | Verified | [0275](../intent/0275/EVIDENCE.md), [0276](../intent/0276/EVIDENCE.md). |
 | C21 | I5 Save/reopen | Governed actual startup, current runtime GitHub write authority and a verified real repository save/reopen. | Pending | Source-code pushes are not application saves or runtime-write authorization. |
-| C22 | I5 Save/reopen | Measured provider request load and end-to-end latency satisfy documented human-UX acceptance thresholds on the representative journey. | Pending | [0306](../intent/0306/EVIDENCE.md) adds canonical production crypto and invocation-owned key policies. The native content/corpus portion passes at 52 simulated attempts with 20 exact records and 40 key grants; its extra SDK/crypto oracle is test-only. The actual application factory is unchanged; confirmation remains 7,637. SDK/operation/lineage/service and outer-effect integration remain before the unchanged full benchmark under [0298](../intent/0298/REQUEST-BUDGET-PLAN.md). Prior failures remain retained. |
+| C22 | I5 Save/reopen | Measured provider request load and end-to-end latency satisfy documented human-UX acceptance thresholds on the representative journey. | Pending | [0307](../intent/0307/EVIDENCE.md) adds production SDK/worker and exact recorded scope-to-development verification. Thirty-seven native isolation cases, 44 focused tests and types pass; the owned content/history/corpus portion uses 52 simulated attempts. Actual application confirmation remains 7,637. Service/factory binding, authorized stage-specific discovery and separate effect phases remain before the unchanged whole-action benchmark under [0298](../intent/0298/REQUEST-BUDGET-PLAN.md). Prior failures remain retained. |
 | C23 | I6 Human acceptance | Actual signed-in UI happy path, open-existing, exact/paraphrased duplicate, partial overlap and related-but-distinct scenarios; real sources and saved commits. | Pending | No preview, fixture or component-only result substitutes for this demonstration. |
 | C24 | I6 Human acceptance | Actual UI handles empty/failed/stale search, corrections, permission loss, exhausted budget, concurrent creation, uncertain save and refresh/reopen without lost work. | Pending | Component/negative tests inform but do not complete this real journey. |
 | C25 | I6 Human acceptance | Actual end-to-end keyboard, narrow-screen and accessibility verification, followed by the user's usable-journey acceptance. | Pending | Component axe checks do not establish browser/visual or human acceptance. |
@@ -92,6 +92,7 @@ it does not imply that no code exists.
 | 2026-09-09 / 0304 | 17/25 | 68% | +0 percentage points | Owned application-source corpus graph preserves current/historical canonical, candidate and amendment bytes, dependency order and final source closure after dependent records work. Cancelled work keeps admission until it drains. Native records/OIDC/Git selection passes at 53 simulated attempts for that portion; application confirmation remains 7,637. No factory switch, accepted allocation, live records adoption or completed C22. |
 | 2026-09-09 / 0305 | 17/25 | 68% | +0 percentage points | Owned metadata-first records reader grants each group independently before ciphertext, requires full final row/lifecycle equality, and drains actual cancelled work. The corrected native corpus/records portion passes at 56 simulated attempts with the existing test crypto/SDK oracle; 30 focused tests and all types pass. Initial native null-budget rejection and correction are retained. No factory switch, production policy activation, UI improvement or completed C22; application confirmation remains 7,637. |
 | 2026-09-09 / 0306 | 17/25 | 68% | +0 percentage points | Canonical production decoding and owned key access verify 20 native encrypted records against the SDK/crypto oracle, with 40 independent key grants and 52 simulated provider attempts for this portion. Forty-one focused and eighteen existing-store tests, native selection and all types pass. JSONB equality and enclosing final-caller lease regressions are retained with three prior native failures. No factory/profile switch, actual runtime save, UI improvement or completed C22. |
+| 2026-09-09 / 0307 | 17/25 | 68% | +0 percentage points | Production SDK/worker and exact recorded scope-to-development lineage verification, with explicit pending/unknown/clarifying outcomes. Thirty-seven native isolation cases, 44 focused tests and types pass; the owned portion stays at 52 simulated attempts. No factory switch, application speedup, live authority or completed C22. |
 
 Next unblocked engineering checkpoint: C22, meet the documented request-load and
 latency bounds without weakening current authority or recovery guarantees.
@@ -107,10 +108,11 @@ with 0299 covering corpus, 0300 records and 0301 the combined multi-revision gra
 0305 replaces the experiment's SQL reader with the owned production-source metadata-
 first reader. Its independent per-group policies are still synthetic and its
 cryptographic/SDK decoder remains a test oracle at that checkpoint. 0306 adds
-canonical production decoding and invocation-owned independent key-policy access;
-SDK/source/operation/lineage composition and authorized target discovery remain.
-Neither reader is installed in the actual application factory. Complete those
-service contracts and outer effect phases next, then run the whole-action benchmark.
+canonical production decoding and invocation-owned independent key-policy access.
+0307 adds production SDK/worker and exact recorded scope-to-development lineage.
+Authorized stage-specific target discovery and actual service binding remain.
+Neither reader is installed in the application factory. Connect those service
+contracts and outer effect phases next, then run the whole-action benchmark.
 0303 adds the actual adapter primitive for the upcoming integrated graph, with no
 automatic collector switch and no reduction claimed for installed application actions.
 0302 retains earliest snapshot expiry through return; it adds no provider calls

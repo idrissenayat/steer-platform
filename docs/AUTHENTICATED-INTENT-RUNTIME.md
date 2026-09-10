@@ -62,6 +62,23 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Production SDK and recorded history, no factory switch — 0307
+
+[0307](../intent/0307/EVIDENCE.md) adds an internal API composition that uses the
+production SDK codec, request renderer and operation/worker schemas. Exact original
+scope review, source revision, inventory and assessment are joined to the drafting
+run; raw response, parsed result and succeeded checkpoint must agree. Pending or
+unknown work remains incomplete, and a clarifying Architect cannot acquire a
+fabricated Test Agent result. No network transport is created by verification.
+
+The enclosing records/key/source owner still supplies current authority and final
+closure. SDK consistency does not grant current source permission, profile approval,
+retry/execution, semantic quality, candidate-save authority or a gate. Nothing is
+automatically installed in the application factory. Next bind existing service
+contracts and stage-appropriate authorized discovery, preserving public projections
+and separate read phases around effects. Initial capture must not fabricate retained
+operation/review IDs. Existing activation and real-provider prerequisites stand.
+
 ### Canonical contents and key ownership, no factory switch — 0306
 
 [0306](../intent/0306/EVIDENCE.md) adds an internal content reader over the 0305

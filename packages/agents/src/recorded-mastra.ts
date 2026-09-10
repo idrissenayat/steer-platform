@@ -87,6 +87,16 @@ export function createRecordedMastraVerifier(profiles: RecordedProfiles) {
   return Object.freeze({ verify: codec.verify });
 }
 
+/** Provider-free verification also for a recorded request whose outcome is not
+ * known yet. Verifying that request never invents a response or permits dispatch. */
+export function createRecordedMastraExchangeVerifier(profiles: RecordedProfiles) {
+  const codec = createRecordedMastraCodec(profiles);
+  return Object.freeze({ verify: codec.verify, verifyRequest(rawRole: unknown, rawRequest: unknown, observation: RecordedRequest) {
+    try { const { role, request } = codec.requestFor(rawRole, rawRequest); codec.verifyRequest(role, request, observation); }
+    catch { throw unavailable(); }
+  } });
+}
+
 /** Uninstalled explicit LiteLLM binding. OpenAI provider credentials never belong
  * here; only a scoped gateway key. Fresh Agent/provider per call, no tools/memory,
  * no automatic retries, no telemetry and no provider response-store opt-in.

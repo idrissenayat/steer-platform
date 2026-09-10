@@ -67,6 +67,8 @@ function storedStep(row: any, config: Configuration, op: Operation, stepId: stri
   return { record, predecessorResultDigest: digest.nullable().parse(row.predecessor_result_digest),
     resultRef: uuid.nullable().parse(row.result_ref), budgetId: row.budget_id };
 }
+/** Internal canonical read-only codecs; these do not establish execution authority. */
+export const intentOperationCodec = Object.freeze({ binding: operationBinding, step: recordSchema, storedStep });
 
 /** Uninstalled metadata adapter. Configuration is not policy/spending authority.
  * Trusted authorize verifies current identity, scope, source and records authority.

@@ -61,6 +61,8 @@ const recordSchema = z.strictObject({ binding: bindingSchema,
     ctx.addIssue({ code: 'custom', message: 'Invalid scope batch state.' });
 });
 type Manifest = z.infer<typeof scopeReviewManifestSchema>;
+/** Internal canonical historical-state codec, not a checkpoint or spending grant. */
+export const scopeReviewOperationCodec = Object.freeze({ step: recordSchema });
 type Configuration = z.infer<typeof scopeReviewConfigurationSchema>;
 type Reference = z.infer<typeof reference>;
 type Run = { reviewId: string; manifest: Manifest };

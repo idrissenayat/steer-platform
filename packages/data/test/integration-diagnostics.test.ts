@@ -29,6 +29,8 @@ test('integration focus is explicit, bounded and distinct from the full suite',(
   assert.deepEqual(parseIntegrationSelection(['--combined-native-readgraph-feasibility']),{mode:'combined-native-readgraph-feasibility'});
   assert.deepEqual(parseIntegrationSelection(['--owned-records-readset']),{mode:'owned-records-readset'});
   assert.deepEqual(parseIntegrationSelection(['--owned-content-readset']),{mode:'owned-content-readset'});
+  assert.deepEqual(parseIntegrationSelection(['--owned-history-readset']),{mode:'owned-history-readset'});
+  assert.throws(()=>parseIntegrationSelection(['--owned-history-readset','--owned-content-readset']));
   assert.throws(()=>parseIntegrationSelection(['--owned-content-readset','--owned-records-readset']));
   assert.throws(()=>parseIntegrationSelection(['--owned-records-readset','extra']));
   assert.throws(()=>parseIntegrationSelection(['--owned-records-readset','--combined-native-readgraph-feasibility']));

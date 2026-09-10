@@ -15,12 +15,14 @@ import type { createRecordedMastraVerifier } from '@steer/agents/recorded-mastra
 import type { DraftKey } from '../../../packages/data/src/draft-envelope.ts';
 import { createRecordsContentReader, type RecordsKeyServices } from '../../../packages/data/src/records-content-reader.ts';
 import { encryptedRecordGroups, type DecodedRecordContents } from '../../../packages/data/src/records-content-codecs.ts';
+import { createVerifiedRecordsContentReader, createRecordedHistoryVerifier } from '../src/recorded-history-verifier.ts';
+import { testRecordedHistoryCases } from './recorded-history-cases.ts';
 
 /** Native owned readers plus the existing test crypto/SDK oracle. No real model,
  * records adoption, actual factory installation or application cost substitution. */
 export async function testOwnedRecordsReadset(f: Awaited<ReturnType<typeof scopeDraftIntegrationFixture>>,
   identity: Awaited<ReturnType<typeof recordedRuntimeFixture>>, profiles: Parameters<typeof createRecordedMastraVerifier>[0],
-  target: RecordsReadSetTarget, authorize: () => Promise<void>, native: ReturnType<typeof nativeCandidateJourneyFixture>, productionContent = false) {
+  target: RecordsReadSetTarget, authorize: () => Promise<void>, native: ReturnType<typeof nativeCandidateJourneyFixture>, productionContent = false, productionHistory = false) {
   const traffic = createNativeRequestMeter(identity.ports.github);
   const reader = createGitHubReader(identity.profile.github.binding, {
     appJwt: createAppJwtSigner(identity.profile.github.appId, identity.secrets.githubPrivateKeyPem), fetch: traffic.transport,
@@ -33,6 +35,7 @@ export async function testOwnedRecordsReadset(f: Awaited<ReturnType<typeof scope
   let denied: RecordsReadSetGroup | undefined, recordPolicies = 0, sourcePolicies = 0, keyCalls = 0, checks = 0, metadataGrants = 0;
   let lateSourceDenied = false, lateSourceDenials = 0, lateExpiryReached = false, lateExpiryDenied = false, decodedCalls = 0;
   let deniedKey: typeof encryptedRecordGroups[number] | undefined, keyPolicies = 0;
+  let historyFixture: Parameters<ReturnType<typeof createRecordedHistoryVerifier>['verify']>[0] | undefined;
   const sourcePolicy = native.corpusAuthority.authorizeSource;
   native.corpusAuthority.authorizeSource = async ref => {
     await sourcePolicy(ref); if (lateSourceDenied) { lateSourceDenials++; throw new Error('Synthetic source revoked after final records.'); }
@@ -74,7 +77,8 @@ export async function testOwnedRecordsReadset(f: Awaited<ReturnType<typeof scope
       if (deniedKey === group) throw new Error('Synthetic independent key policy denied.');
     } }])) as RecordsKeyServices;
     const beforeKeyPolicies = keyPolicies;
-    const owner = productionContent ? createRecordsContentReader(f.pools, f.config, authority, services, { monotonicNow: () => performance.now() + offset })
+    const owner = productionHistory ? createVerifiedRecordsContentReader(f.pools, f.config, authority, services, profiles, { monotonicNow: () => performance.now() + offset })
+      : productionContent ? createRecordsContentReader(f.pools, f.config, authority, services, { monotonicNow: () => performance.now() + offset })
       : createRecordsReadSetReader(f.pools, f.config, authority, { monotonicNow: () => performance.now() + offset });
     const keys = new Map<string, DraftKey>();
     try {
@@ -94,6 +98,16 @@ export async function testOwnedRecordsReadset(f: Awaited<ReturnType<typeof scope
           const contents = lease.contents as DecodedRecordContents;
           assert.deepEqual(contents.decoded, decoded.decoded); assert.equal(contents.plaintextRows, decoded.counts.plaintextRows);
           for (const flag of ['sdkVerified', 'sourcePermissionsVerified', 'executionAuthorized', 'gateSigned'] as const) assert.equal(contents[flag], false);
+        }
+        if ('history' in lease && 'contents' in lease) {
+          historyFixture ??= { snapshot: lease.snapshot, contents: lease.contents as DecodedRecordContents, check() {} };
+          const history = lease.history as Awaited<ReturnType<ReturnType<typeof createRecordedHistoryVerifier>['verify']>>;
+          assert.equal(history.counts.scopeSdkExchanges, decoded.counts.scopeSdkExchanges);
+          assert.equal(history.counts.developmentSdkExchanges, decoded.counts.developmentSdkExchanges);
+          assert.equal(history.scopeReviews.length, 2); assert.equal(history.developments.length, 1);
+          assert.ok(history.scopeReviews.every(review => review.batches.every(batch => batch.checkpointVerified)));
+          assert.ok(history.developments.every(development => development.roles.every(role => role.checkpointVerified)));
+          assert.equal(history.sdkConsistencyVerified, true); assert.equal(history.executionAuthorized, false);
         }
         const retainedSources = async () => {
           for (const original of decoded.decoded.scope_originals!) for (const source of original.value.evidence.inventory) {
@@ -124,7 +138,8 @@ export async function testOwnedRecordsReadset(f: Awaited<ReturnType<typeof scope
         recordPolicyCalls: recordPolicies - beforePolicies, metadataGrants: metadataGrants - beforeMetadata,
         retainedSourcePolicyCalls: sourcePolicies - beforeSources, keyCalls: keyCalls - beforeKeys, keyPolicyCalls: keyPolicies - beforeKeyPolicies, ...result.value,
         metadataBeforeCiphertext: true, productionSourceReader: true, independentPoliciesSynthetic: true, cryptoDecoderTestOnly: !productionContent,
-        productionContentReader: productionContent, sdkVerifierTestOnly: true, additionalOracleDecodedRows: productionContent ? result.value.plaintextRows : 0,
+        productionContentReader: productionContent, productionHistoryVerifier: productionHistory, sdkVerifierTestOnly: !productionHistory,
+        additionalOracleDecodedRows: productionContent ? result.value.plaintextRows : 0,
         elapsedLifetimeCheckedThroughReturn: true, httpRegistryIntegrated: false, actualRecordsPoliciesIntegrated: false,
         wholeJourneyPerformanceAccepted: false, productionInstalled: false };
     } finally { await owner.shutdown(); for (const key of keys.values()) key.bytes.fill(0); for (const key of changedKeys) key.fill(0); }
@@ -138,7 +153,8 @@ export async function testOwnedRecordsReadset(f: Awaited<ReturnType<typeof scope
     assert.equal(initial.groups.revisions, 2); assert.equal(initial.groups.scope_originals, 2); assert.equal(initial.groups.candidate_originals, 1);
     assert.equal(initial.sqlStatements, 51); assert.equal(initial.roleTransactions, 6); assert.equal(initial.readerCallerChecks, 13);
     assert.equal(initial.historicalCorpus.finalSourcesAfterDependentReadback, true);
-    console.log(`Synthetic owned ${productionContent ? 'content' : 'records'}/corpus readset: ` + JSON.stringify(initial));
+    console.log(`Synthetic owned ${productionHistory ? 'history' : productionContent ? 'content' : 'records'}/corpus readset: ` + JSON.stringify(initial));
+    if (productionHistory) { assert.ok(historyFixture); await testRecordedHistoryCases(historyFixture, profiles); }
     if (productionContent) {
       assert.equal(initial.keyCalls, 2); assert.equal(initial.keyPolicyCalls, 40);
       for (const group of encryptedRecordGroups) {
