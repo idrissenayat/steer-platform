@@ -1,0 +1,573 @@
+{
+  "kind": "steer-implementation-verification/v1",
+  "intent": "0314",
+  "date": "2026-09-10",
+  "baseCommit": "14ab0550454601665fa0ae7ba033f8b5f4b68264",
+  "progress": {
+    "verified": 17,
+    "total": 25,
+    "percentage": 68,
+    "remaining": 8,
+    "percentagePointChange": 0
+  },
+  "checks": [
+    {
+      "command": "node --test packages/data/test/intent-development-reviewer.test.ts apps/api/test/candidate-save-review.test.ts apps/api/test/candidate-save-preview.test.ts packages/data/test/review-read-session.test.ts tests/package-boundaries.test.mjs",
+      "exitCode": 0,
+      "tests": 50,
+      "passed": 50,
+      "failed": 0,
+      "durationMs": 1973.68725,
+      "scope": "Final source and all final negative test variants."
+    },
+    {
+      "command": "node --test --test-concurrency=4 packages/*/test/*.test.ts packages/domain/test/*.test.mjs apps/api/test/*.test.ts apps/worker/test/*.test.ts apps/web/test/*.test.mjs tests/package-boundaries.test.mjs",
+      "exitCode": 0,
+      "tests": 1520,
+      "passed": 1520,
+      "failed": 0,
+      "durationMs": 325059.999667,
+      "scope": "Final production and test source, including four additional source-phase tests."
+    },
+    {
+      "command": "pnpm typecheck",
+      "exitCode": 0,
+      "scope": "Prototype and all eight packages/applications; final repetition reused valid Turbo results."
+    },
+    {
+      "command": "pnpm kit:check",
+      "exitCode": 0,
+      "requiredArtifacts": 95
+    },
+    {
+      "command": "pnpm security:check",
+      "exitCode": 0,
+      "scope": "Workflow token-scope audit: contents read-only."
+    },
+    {
+      "command": "node packages/data/test/postgres.integration.ts --journey-runtime",
+      "exitCode": 0,
+      "joinedChecks": 3,
+      "idempotentMigrationsPassed": true,
+      "fullIntegrationSuiteRun": false,
+      "scope": "Final production/native fixture source; actual HTTP/native Git/PostgreSQL, recorded SDK and Temporal new-distinct save, lost responses, restart, receipt recovery, exact reopen and current-policy denial. Extra final test-only negative variants were added while this ran."
+    },
+    {
+      "command": "node packages/data/test/postgres.integration.ts --journey-runtime-continuation",
+      "exitCode": 0,
+      "joinedChecks": 1,
+      "idempotentMigrationsPassed": true,
+      "fullIntegrationSuiteRun": false,
+      "scope": "Same final production/native fixture source and synthetic authority/model inputs for continuation; exact original target and prior proposal/canonical/unrelated bytes preserved."
+    }
+  ],
+  "measurements": {
+    "new-distinct": [
+      {
+        "tool": "intent.draft.read",
+        "durationMs": 865,
+        "providerAttempts": 19,
+        "identityHeadAttempts": 16,
+        "requestKinds": {
+          "head": 16,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.development.review",
+        "durationMs": 2403,
+        "providerAttempts": 75,
+        "identityHeadAttempts": 62,
+        "requestKinds": {
+          "head": 64,
+          "commit": 2,
+          "tree": 2,
+          "blob": 6,
+          "token": 1,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.prepare",
+        "durationMs": 7556,
+        "providerAttempts": 320,
+        "identityHeadAttempts": 281,
+        "requestKinds": {
+          "head": 289,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "durationMs": 1681,
+        "providerAttempts": 596,
+        "identityHeadAttempts": 593,
+        "requestKinds": {
+          "head": 593,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "durationMs": 1823,
+        "providerAttempts": 676,
+        "identityHeadAttempts": 673,
+        "requestKinds": {
+          "head": 673,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "durationMs": 2045,
+        "providerAttempts": 676,
+        "identityHeadAttempts": 673,
+        "requestKinds": {
+          "head": 673,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.read",
+        "durationMs": 934,
+        "providerAttempts": 25,
+        "identityHeadAttempts": 22,
+        "requestKinds": {
+          "head": 22,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.review",
+        "durationMs": 2616,
+        "providerAttempts": 211,
+        "identityHeadAttempts": 199,
+        "requestKinds": {
+          "head": 201,
+          "commit": 2,
+          "tree": 2,
+          "blob": 6,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.preview",
+        "durationMs": 4341,
+        "providerAttempts": 330,
+        "identityHeadAttempts": 308,
+        "requestKinds": {
+          "head": 316,
+          "commit": 4,
+          "tree": 4,
+          "blob": 6,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare (discarded reply)",
+        "durationMs": 8217,
+        "providerAttempts": 853,
+        "identityHeadAttempts": 812,
+        "requestKinds": {
+          "head": 828,
+          "commit": 7,
+          "tree": 7,
+          "blob": 11,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "durationMs": 9291,
+        "providerAttempts": 825,
+        "identityHeadAttempts": 782,
+        "requestKinds": {
+          "head": 798,
+          "commit": 7,
+          "tree": 7,
+          "blob": 11,
+          "token": 2,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "durationMs": 8429,
+        "providerAttempts": 823,
+        "identityHeadAttempts": 782,
+        "requestKinds": {
+          "head": 798,
+          "commit": 7,
+          "tree": 7,
+          "blob": 11,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      }
+    ],
+    "proposal-continuation": [
+      {
+        "tool": "intent.draft.read",
+        "durationMs": 1066,
+        "providerAttempts": 19,
+        "identityHeadAttempts": 16,
+        "requestKinds": {
+          "head": 16,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.development.review",
+        "durationMs": 2453,
+        "providerAttempts": 75,
+        "identityHeadAttempts": 62,
+        "requestKinds": {
+          "head": 64,
+          "commit": 2,
+          "tree": 2,
+          "blob": 6,
+          "token": 1,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.prepare",
+        "durationMs": 7690,
+        "providerAttempts": 320,
+        "identityHeadAttempts": 281,
+        "requestKinds": {
+          "head": 289,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "durationMs": 1770,
+        "providerAttempts": 596,
+        "identityHeadAttempts": 593,
+        "requestKinds": {
+          "head": 593,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "durationMs": 1708,
+        "providerAttempts": 676,
+        "identityHeadAttempts": 673,
+        "requestKinds": {
+          "head": 673,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "durationMs": 1691,
+        "providerAttempts": 676,
+        "identityHeadAttempts": 673,
+        "requestKinds": {
+          "head": 673,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.read",
+        "durationMs": 912,
+        "providerAttempts": 25,
+        "identityHeadAttempts": 22,
+        "requestKinds": {
+          "head": 22,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.review",
+        "durationMs": 2683,
+        "providerAttempts": 211,
+        "identityHeadAttempts": 199,
+        "requestKinds": {
+          "head": 201,
+          "commit": 2,
+          "tree": 2,
+          "blob": 6,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.preview",
+        "durationMs": 6149,
+        "providerAttempts": 440,
+        "identityHeadAttempts": 400,
+        "requestKinds": {
+          "head": 408,
+          "commit": 6,
+          "tree": 6,
+          "blob": 20,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare (discarded reply)",
+        "durationMs": 12643,
+        "providerAttempts": 1073,
+        "identityHeadAttempts": 996,
+        "requestKinds": {
+          "head": 1012,
+          "commit": 11,
+          "tree": 11,
+          "blob": 39,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "durationMs": 12247,
+        "providerAttempts": 1045,
+        "identityHeadAttempts": 966,
+        "requestKinds": {
+          "head": 982,
+          "commit": 11,
+          "tree": 11,
+          "blob": 39,
+          "token": 2,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "durationMs": 12340,
+        "providerAttempts": 1043,
+        "identityHeadAttempts": 966,
+        "requestKinds": {
+          "head": 982,
+          "commit": 11,
+          "tree": 11,
+          "blob": 39,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      }
+    ]
+  },
+  "preparationAndStartMeasurements": {
+    "new-distinct": [
+      {
+        "tool": "intent.development.prepare",
+        "durationMs": 6224,
+        "providerAttempts": 594,
+        "identityHeadAttempts": 555,
+        "requestKinds": {
+          "head": 563,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.development.prepare",
+        "durationMs": 6319,
+        "providerAttempts": 548,
+        "identityHeadAttempts": 509,
+        "requestKinds": {
+          "head": 517,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.development.start",
+        "durationMs": 2855,
+        "providerAttempts": 1407
+      },
+      {
+        "tool": "intent.development.start",
+        "durationMs": 3087,
+        "providerAttempts": 1594
+      },
+      {
+        "tool": "intent.development.start",
+        "durationMs": 2940,
+        "providerAttempts": 1594
+      }
+    ],
+    "proposal-continuation": [
+      {
+        "tool": "intent.development.prepare",
+        "durationMs": 6419,
+        "providerAttempts": 594,
+        "identityHeadAttempts": 555,
+        "requestKinds": {
+          "head": 563,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.development.prepare",
+        "durationMs": 6414,
+        "providerAttempts": 548,
+        "identityHeadAttempts": 509,
+        "requestKinds": {
+          "head": 517,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.development.start",
+        "durationMs": 2812,
+        "providerAttempts": 1407
+      },
+      {
+        "tool": "intent.development.start",
+        "durationMs": 3161,
+        "providerAttempts": 1594
+      },
+      {
+        "tool": "intent.development.start",
+        "durationMs": 3637,
+        "providerAttempts": 1594
+      }
+    ]
+  },
+  "measurementLimits": [
+    "All observed provider attempts count, including identity-head and token attempts.",
+    "Undelayed synthetic functional runs shared the host with regression tests; not p95, actual UI or live-provider acceptance.",
+    "C22 remains pending: actions still exceed 200 attempts, and the full 20 ms-per-attempt, five-second-p95 protocol with 20 warm, three cold and four concurrent journeys in both directions plus negatives has not passed.",
+    "Native selections are not the whole PostgreSQL suite. No browser or build verification was performed for this increment."
+  ],
+  "iterations": [
+    {
+      "command": "node --test packages/data/test/intent-development-reviewer.test.ts apps/api/test/candidate-save-review.test.ts apps/api/test/candidate-save-preview.test.ts packages/data/test/review-read-session.test.ts",
+      "tests": 34,
+      "passed": 33,
+      "failed": 1,
+      "durationMs": 1531.512541,
+      "reason": "Obsolete read-count assertion expected drafts/evidence/authorization 10/8/8 across two source phases; the specified new contract produces 6/4/6. Replaced with lazy/per-consumption/full-final-state assertions, not weaker output or permission checks."
+    },
+    {
+      "tests": 50,
+      "passed": 50,
+      "failed": 0,
+      "durationMs": 1573.479166,
+      "scope": "Intermediate expanded focused run, before late-content and policy-only negative variants; final run above supersedes it."
+    },
+    {
+      "scope": "Implementation inspection",
+      "correction": "Closed consumption before final validation and added a regression for an escaped read during final validation."
+    }
+  ],
+  "sourceHashes": {
+    "packages/data/src/intent-development-reviewer.ts": "383cfaed05799c58536ebbb8dce6d006f11b7ab56f8731bfa3ff5f44be5ad4e4",
+    "packages/data/test/intent-development-reviewer.test.ts": "3de368bab89065aaee3782f2a7e50c9b8af5e303615f09f8d43a932cbe4f69ee"
+  },
+  "protectedHashes": {
+    "intent/0001/ARCHITECTURE.md": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65",
+    "intent/0001/EXAM.md": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f",
+    "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32",
+    "intent/0289/PERFORMANCE.json": "d0371c364bbfb103b70675faf911499bffb91afe8a5e6950718c87a171e9e302"
+  },
+  "boundaries": [
+    "No live model usage, spend, runtime GitHub artifact save, records/profile activation, deployment, release or signature.",
+    "Public source review retains two complete reads; private sharing is lazy, read-only, invocation-owned and never crosses effects.",
+    "Fresh independent caller/source policy on each consumption, full final state and post-corpus exact draft checks remain.",
+    "Actual pending child/window work retains admission until drainage after cancellation or malformed work.",
+    "Only harness-owned disposable containers and tmpfs fixtures were removed.",
+    "User-owned docs/REAL-USER-ROADMAP.md and outputs/ remain untouched.",
+    "Passing recovery samples do not resolve the historical 0289 uncertain-recovery observation."
+  ],
+  "next": "Consolidate action-level current-draft/authority and preparation/start read composition with independent policies, final readback and separate phases across effects; then run the unchanged whole-action benchmark. Real model quality, governed activation and signed-in UI/runtime save acceptance remain separate pending checkpoints."
+}

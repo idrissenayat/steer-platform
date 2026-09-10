@@ -62,6 +62,27 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Owned current-source review phase — 0314
+
+[0314](../intent/0314/EVIDENCE.md) consolidates full source-review reconstruction
+inside the existing private, adapter-owned evidence window. The first consumer
+lazily reads the exact draft and source evidence. Subsequent consumers share only
+that immutable initial review, with fresh caller and source-policy validation.
+Independent child callers remain active during draft/source IO, alongside the
+outer caller. No authorization decision is cached or exposed as a public tool.
+
+After dependent work, the complete draft/evidence/output state is re-read and
+compared. The evidence owner performs final corpus validation, then the exact draft
+is re-opened and compared again. Consumption closes before final validation.
+Skipped, concurrent, escaped, malformed or caught-failed reads deny; pinned ports,
+scope and the unchanged deadline remain. One admission belongs to the whole phase
+until actual pending callbacks drain, including cancellation. Public independent
+review keeps two complete reads; unknown compositions keep their ordinary path.
+
+Separate confirmation/effect phases remain separate. Both synthetic native save/
+recovery/reopen selections pass, but the measured reduction is partial C22 only.
+No live startup, records/profile activation, model call or runtime write is enabled.
+
 ### Destination membership and source-policy integration — 0313
 
 [0313](../intent/0313/EVIDENCE.md) connects existing adapter-private native

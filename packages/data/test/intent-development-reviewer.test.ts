@@ -72,25 +72,30 @@ test('session path preserves exact draft, evidence, authority and late-caller re
     await assert.rejects(service.review(f.input, async () => { if (!valid) throw new Error('PRIVATE'); }), error => { assert.doesNotMatch(String(error), /PRIVATE/); return true; }); service.close();
   }
 });
-test('constructed read session shares one evidence window across full reviews and reopens the final exact draft', async () => {
+test('constructed source phase lazily shares initial review and reopens complete final state and exact draft', async () => {
   const { f, state, service, deps } = await setup(); let windows = 0;
   deps.withEvidenceRead = async (_input, current, work) => {
     windows++; await current(); const value = await work(async () => { state.evidenceReads++; await current(); return f.evidence; });
     await current(); return value;
   };
   for (let i = 0; i < 2; i++) await withReviewReadSession(service, f.input, async () => {}, async read => {
-    assert.deepEqual(await read(async () => {}), f.review); assert.deepEqual(await read(async () => {}), f.review);
+    assert.equal(state.reads, i * 3); assert.equal(state.evidenceReads, i * 2);
+    assert.deepEqual(await read(async () => {}), f.review);
+    assert.equal(state.reads, i * 3 + 1); assert.equal(state.evidenceReads, i * 2 + 1);
+    assert.deepEqual(await read(async () => {}), f.review);
+    assert.equal(state.reads, i * 3 + 1); assert.equal(state.evidenceReads, i * 2 + 1);
   }, pending => pending, () => {});
   assert.equal(windows, 2);
-  assert.deepEqual(state, { reads: 10, evidenceReads: 8, authorizations: 8 }); service.close();
+  assert.deepEqual(state, { reads: 6, evidenceReads: 4, authorizations: 6 }); service.close();
 });
 test('final corpus callback cannot hide a changed draft, key loss, hold, swapped port or revoked caller', async () => {
-  for (const mode of ['draft', 'key', 'hold', 'draft-port', 'authority-port', 'hook', 'caller', 'closed']) {
+  for (const mode of ['draft', 'content', 'key', 'hold', 'draft-port', 'authority-port', 'hook', 'caller', 'closed']) {
     const { f, deps, service } = await setup(); let ended = false, valid = true;
     const read = deps.drafts.read;
     deps.drafts.read = async (...args) => {
       if (ended && (mode === 'key' || mode === 'hold')) throw new Error('PRIVATE');
-      return { ...await read(...args) as object, latestRevision: ended && mode === 'draft' ? 2 : 1 };
+      return { ...await read(...args) as object, latestRevision: ended && mode === 'draft' ? 2 : 1,
+        ...(ended && mode === 'content' ? { content: { ...f.content, originalText: 'Changed during final source closure' } } : {}) };
     };
     deps.withEvidenceRead = async (_input, current, work) => {
       const result = await work(async () => f.evidence); ended = true;
@@ -134,4 +139,76 @@ test('a closed shared session retains actual held child work and source admissio
   await assert.rejects(service.review(f.input, async () => {}));
   service.close(); releases.forEach(release => release());
   await Promise.all(sessions.map(session => assert.rejects(session)));
+});
+
+test('source phase rechecks changed evidence and full draft content after dependent work', async () => {
+  for (const mode of ['evidence', 'draft', 'policy', 'incomplete']) {
+    const { f, deps, service } = await setup(); let changed = false;
+    const draft = deps.drafts.read;
+    deps.drafts.read = async (...args) => ({ ...await draft(...args) as object,
+      ...(changed && mode === 'draft' ? { content: { ...f.content, originalText: 'Changed text with stale metadata' } } : {}) });
+    deps.authorizeReview = async () => { if (changed && mode === 'policy') throw new Error('PRIVATE policy revoked'); };
+    deps.withEvidenceRead = async (_input, _current, work) => work(async () => ({ ...f.evidence,
+      ...(changed && mode === 'evidence' ? { head: 'f'.repeat(40) } : {}),
+      ...(changed && mode === 'incomplete' ? { inventoryComplete: false, accessGapCount: 1 } : {}) }));
+    try {
+      await assert.rejects(withReviewReadSession(service, f.input, async () => {}, async read => {
+        assert.deepEqual(await read(async () => {}), f.review); changed = true;
+      }, pending => pending, () => {}));
+    } finally { service.close(); }
+  }
+});
+
+test('each source consumption reauthorizes and keeps its independent caller active during evidence IO', async () => {
+  for (const mode of ['per-consumption', 'policy-consumption', 'during-io']) {
+    const { f, deps, service } = await setup(); let allowed = true, entered = false, finished = false;
+    const child = async () => { if (!allowed && mode !== 'policy-consumption') throw new Error('PRIVATE child caller revoked'); };
+    deps.authorizeReview = async () => { if (!allowed && mode === 'policy-consumption') throw new Error('PRIVATE source policy revoked'); };
+    deps.withEvidenceRead = async (_input, current, work) => work(async () => {
+      entered = true;
+      if (mode === 'during-io') allowed = false;
+      await current(); finished = true; return f.evidence;
+    });
+    try {
+      await assert.rejects(withReviewReadSession(service, f.input, async () => {}, async read => {
+        await read(child);
+        if (mode !== 'during-io') { allowed = false; await assert.rejects(read(child)); }
+      }, pending => pending, () => {}));
+      assert.equal(entered, true); if (mode === 'during-io') assert.equal(finished, false);
+    } finally { service.close(); }
+  }
+});
+
+test('source consumptions close before final validation and reject skipped, overlapping and escaped reads', async () => {
+  for (const mode of ['skipped', 'parallel', 'during-final', 'after-phase']) {
+    const { f, deps, service } = await setup(); let reads = 0, escaped: (() => Promise<unknown>) | undefined;
+    deps.withEvidenceRead = async (_input, _current, work) => work(async () => {
+      if (++reads === 2 && mode === 'during-final') await assert.rejects(escaped!());
+      return f.evidence;
+    });
+    const work = () => withReviewReadSession(service, f.input, async () => {}, async read => {
+      escaped = () => read(async () => {});
+      if (mode === 'parallel') await Promise.allSettled([escaped(), escaped()]);
+      else if (mode !== 'skipped') await escaped();
+    }, pending => pending, () => {});
+    try {
+      if (mode === 'after-phase') { await work(); await assert.rejects(escaped!()); }
+      else await assert.rejects(work());
+    } finally { service.close(); }
+  }
+});
+
+test('forgotten source consumption retains its owner until the actual independent caller drains', async () => {
+  const { f, deps, service } = await setup(); let entered!: () => void, release!: () => void, settled = false;
+  const started = new Promise<void>(resolve => { entered = resolve; }), gate = new Promise<void>(resolve => { release = resolve; });
+  deps.withEvidenceRead = async (_input, _current, work) => work(async () => f.evidence);
+  const result = withReviewReadSession(service, f.input, async () => {}, async read => {
+    await read(async () => {}); let calls = 0;
+    void read(async () => { if (++calls === 2) { entered(); await gate; } }).catch(() => {});
+    await started;
+  }, pending => pending, () => {}).then(() => assert.fail('Forgotten read returned'), () => {}).finally(() => { settled = true; });
+  try {
+    await started; service.close(); await new Promise(resolve => setTimeout(resolve, 10));
+    assert.equal(settled, false); release(); await result;
+  } finally { release(); service.close(); await result; }
 });

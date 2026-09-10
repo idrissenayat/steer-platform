@@ -7053,6 +7053,27 @@ live model/key access, spending, runtime GitHub save, deployment, profile/record
 activation, signature or human UI acceptance. User drafts, signed artifacts and
 roadmap/outputs remain unchanged. **68% (17/25; eight remaining; +0 points).**
 
+## 0314 — One owned current-source review phase
+
+[0314](../intent/0314/EVIDENCE.md) shares the first complete source review inside
+one lazy read-only phase. Every consumption freshly checks caller/source authority.
+Complete final draft/evidence comparison, final corpus validation and exact draft
+reread remain. Independent caller checks stay active during IO. The phase retains
+admission until actual child work drains; late or escaped consumption denies.
+Public review and all separate effect phases keep their established contracts.
+
+Synthetic save review falls 224→211 attempts; new-distinct preview/confirmation
+343 / 879→330 / 853 and continuation 453 / 1,099→440 / 1,073. Both native
+save/recovery/reopen selections pass. Final checks, scope, failed count-assertion
+iteration and unchanged protected hashes are in [verification](../intent/0314/VERIFICATION.json).
+
+This is a small partial C22 improvement. Next consolidate action-level current-
+draft/authority and preparation/start read composition, keeping fresh independent
+policies, final readback and separate phases across effects. The unchanged full
+performance protocol and real signed-in acceptance remain outstanding. No model
+spending, runtime GitHub save, activation, deployment or signature occurred.
+**68% (17/25; eight remaining; +0 percentage points).**
+
 ## 0313 — Verified destination membership integration
 
 [0313](../intent/0313/EVIDENCE.md) uses native inventory membership and exact

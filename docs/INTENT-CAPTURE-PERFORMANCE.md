@@ -7,6 +7,35 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Owned current-source validation phase — 0314
+
+[0314](../intent/0314/EVIDENCE.md) removes repeated complete review reconstruction
+inside one source phase, with fresh authority per consumption and complete final
+draft/evidence comparison. The corpus owner retains final validation, followed by
+an exact draft reread. Independent caller checks remain active during dependent IO.
+
+| Authenticated synthetic action | 0313 attempts | 0314 attempts |
+| --- | ---: | ---: |
+| Save review, either direction | 224 | 211 |
+| New-distinct preview | 343 | 330 |
+| New-distinct confirmation / recovery / repeat | 879 / 851 / 849 | 853 / 825 / 823 |
+| Proposal-continuation preview | 453 | 440 |
+| Proposal-continuation confirmation / recovery / repeat | 1,099 / 1,071 / 1,069 | 1,073 / 1,045 / 1,043 |
+
+This saves 13 attempts per review/preview and 26 per confirmation, but none of
+these actions meets the 200-attempt limit. Preview still contains 308 identity-head
+checks for new-distinct and 400 for continuation. Scope preparation remains 320;
+scope start 596 / 676 / 676; drafting preparation 594 / 548 and drafting start
+1,407 / 1,594 / 1,594. The next work is action-level current-draft/authority and
+preparation/start read composition, preserving separate pre-/post-effect phases.
+Another source-only reduction is not a substitute for whole-action acceptance.
+
+Both synthetic native save/recovery/reopen selections pass. Undelayed functional
+samples shared the host with regression tests; they are not p95, live-provider or
+UI measurements. Full unchanged warm/cold/concurrent acceptance remains required.
+Exact samples and scope: [verification](../intent/0314/VERIFICATION.json).
+**68% (17/25; eight remaining; +0 percentage points).**
+
 ## Destination membership and authority integration — 0313
 
 [0313](../intent/0313/EVIDENCE.md) reuses the exact native inventory for destination

@@ -9,7 +9,22 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0313 / destination membership integration — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0314 / owned source-review phase — 68% (17/25; 8 remaining; +0 points)**.
+The [source-review correction](../intent/0314/EVIDENCE.md) shares the first complete
+draft/evidence review within one lazy read-only phase. Each consumption checks
+current authority; complete final state and exact draft readback follow dependent
+work and final corpus validation. Public independent review remains unchanged.
+
+Synthetic save review falls 224→211 attempts. New-distinct preview falls 343→330
+and confirmation 879→853; continuation falls 453→440 and 1,099→1,073. Both
+save/recovery/reopen paths pass. This small reduction does not close C22: scope/
+drafting preparation/start and confirmation still need action-level consolidation
+of repeated current-draft/authority reads, with separate phases across effects.
+The complete unchanged benchmark and actual signed-in user acceptance remain.
+No permission cache, relaxed deadline, live activation, model usage or runtime
+GitHub save is implied. No new completion estimate is asserted.
+
+Prior delivery checkpoint: **0313 / destination membership integration — 68% (17/25; 8 remaining; +0 points)**.
 The [destination correction](../intent/0313/EVIDENCE.md) reuses verified native
 inventory membership and exact nested caller brackets while retaining independent
 source/lifecycle checks, original target continuity, final head checks and actual

@@ -33,6 +33,21 @@ export function createIntentDevelopmentReviewer(rawConfiguration: unknown, deps:
       || draft.revisionDigest !== input.revisionDigest || draft.scopeInputDigest !== input.scopeInputDigest) throw unavailable();
     return draft;
   };
+  const authorizeSources = async (input: IntentDevelopmentReviewInput, value: ReturnType<typeof intentEvidenceInputSchema.parse>, current: () => Promise<void>) => {
+    if (await deps.authorizeReview(input, value) !== undefined) throw unavailable(); await current();
+  };
+  const readEvidence = async (input: IntentDevelopmentReviewInput, current: () => Promise<void>, evidenceFor: () => Promise<unknown>) => {
+    await current(); const value = freeze(intentEvidenceInputSchema.parse(await evidenceFor())); await current();
+    if ((['organizationId', 'productId', 'repository', 'branch'] as const).some(k => value[k] !== config[k]) || value.scopeInputDigest !== input.scopeInputDigest) throw unavailable();
+    await authorizeSources(input, value, current); return value;
+  };
+  const describe = async (input: IntentDevelopmentReviewInput, sources: ReturnType<typeof intentEvidenceInputSchema.parse>) => {
+    const plan = await planIntentScopeBatches(sources), envelope = plan.envelope;
+    const { output } = await verifyDevelopmentReview(input, { ...input, kind: 'steer-development-review/v1', configurationRevision,
+      sourceSnapshotDigest: envelope.sourceSnapshotDigest, scopeBatchPlan: plan.summary, evidence: sources, semanticReviewComplete: false,
+      authoritativeClearance: false, executionAuthorized: false, savedToGit: false, gateSigned: false });
+    return freeze(output);
+  };
   async function review(raw: unknown, revalidate: () => Promise<void>, withEvidenceRead = deps.withEvidenceRead) {
       const input = freeze(intentDevelopmentReviewInputSchema.parse(raw));
       if (closed || active >= 4 || typeof revalidate !== 'function') throw unavailable();
@@ -43,16 +58,9 @@ export function createIntentDevelopmentReviewer(rawConfiguration: unknown, deps:
       };
       const current = async () => { guard(); if (await revalidate() !== undefined) throw unavailable(); guard(); };
       const read = () => readDraft(input, current);
-      const evidence = async (evidenceFor: () => Promise<unknown>) => {
-        await current(); const value = freeze(intentEvidenceInputSchema.parse(await evidenceFor())); await current();
-        if ((['organizationId', 'productId', 'repository', 'branch'] as const).some(k => value[k] !== config[k]) || value.scopeInputDigest !== input.scopeInputDigest) throw unavailable();
-        if (await deps.authorizeReview(input, value) !== undefined) throw unavailable(); await current(); return value;
-      };
+      const evidence = (evidenceFor: () => Promise<unknown>) => readEvidence(input, current, evidenceFor);
       const run = async (evidenceFor: () => Promise<unknown>) => {
-        const draft = await read(), sources = await evidence(evidenceFor), plan = await planIntentScopeBatches(sources), envelope = plan.envelope;
-        const { output } = await verifyDevelopmentReview(input, { ...input, kind: 'steer-development-review/v1', configurationRevision,
-          sourceSnapshotDigest: envelope.sourceSnapshotDigest, scopeBatchPlan: plan.summary, evidence: sources, semanticReviewComplete: false,
-          authoritativeClearance: false, executionAuthorized: false, savedToGit: false, gateSigned: false });
+        const draft = await read(), sources = await evidence(evidenceFor), output = await describe(input, sources);
         if (hash(await read()) !== hash(draft) || hash(await evidence(evidenceFor)) !== hash(sources)) throw unavailable();
         await current(); return freeze(output);
       };
@@ -70,40 +78,66 @@ export function createIntentDevelopmentReviewer(rawConfiguration: unknown, deps:
   registerReviewReadSession(service.review, scope, async (raw, outerCurrent, work) => {
     const input = freeze(intentDevelopmentReviewInputSchema.parse(raw)), window = deps.withEvidenceRead;
     if (!window) { await work(current => review(input, current)); return; }
+    if (closed || active >= 4 || typeof outerCurrent !== 'function' || typeof work !== 'function') throw unavailable();
+    active++;
     const ports = [deps.drafts, deps.drafts.read, deps.authorizeReview, deps.evidenceFor, window];
-    let ended = false, failed = false, invoked = false, completed = false, childCurrent: (() => Promise<void>) | undefined;
+    const deadline = AbortSignal.timeout(30000);
+    let ended = false, failed = false, invoked = false, completed = false, consumed = false, reading = false, consumptionsClosed = false,
+      childCurrent: (() => Promise<void>) | undefined;
     const pending = new Set<Promise<unknown>>(), windows = new Set<Promise<unknown>>();
-    const guard = () => { if (closed || ended || failed || [deps.drafts, deps.drafts.read, deps.authorizeReview, deps.evidenceFor, deps.withEvidenceRead]
-      .some((port, i) => port !== ports[i])) throw unavailable(); };
+    const guard = () => { deadline.throwIfAborted(); if (closed || ended || failed
+      || (['organizationId', 'productId', 'repository'] as const).some(k => input[k] !== scope[k])
+      || (['organizationId', 'subject', 'productId', 'repository'] as const).some(k => deps.drafts.scope[k] !== scope[k])
+      || [deps.drafts, deps.drafts.read, deps.authorizeReview, deps.evidenceFor, deps.withEvidenceRead]
+        .some((port, i) => port !== ports[i])) throw unavailable(); };
     const current = async () => {
       guard(); if (await outerCurrent() !== undefined) throw unavailable(); guard();
       if (childCurrent && await childCurrent() !== undefined) throw unavailable(); guard();
     };
+    const readState = async (read: () => Promise<unknown>) => {
+      const draft = freeze(await readDraft(input, current)), sources = await readEvidence(input, current, read);
+      const output = await describe(input, sources); await current(); return freeze({ draft, sources, output });
+    };
+    let initial: Awaited<ReturnType<typeof readState>> | undefined;
     try {
       await current();
-      const result = await window(input, current, readEvidence => {
-        if (invoked || typeof readEvidence !== 'function') { failed = true; const rejected = Promise.reject(unavailable()); void rejected.catch(() => {}); return rejected; } invoked = true;
+      const result = await window(input, current, evidenceFor => {
+        if (invoked || typeof evidenceFor !== 'function') { failed = true; const rejected = Promise.reject(unavailable()); void rejected.catch(() => {}); return rejected; } invoked = true;
         const task = Promise.resolve().then(async () => {
         guard();
-        const shared: NonNullable<typeof window> = async (requested, present, run) => {
-          guard(); if (childCurrent || hash(requested) !== hash(input)) { failed = true; throw unavailable(); }
-          childCurrent = present;
-          const task = Promise.resolve().then(() => run(readEvidence)).catch(error => { failed = true; throw error; })
-            .finally(() => { childCurrent = undefined; });
+        const read = (present: () => Promise<void>) => {
+          if (reading || consumptionsClosed || typeof present !== 'function') {
+            failed = true; const rejected = Promise.reject(unavailable()); void rejected.catch(() => {}); return rejected;
+          }
+          reading = true; childCurrent = present;
+          const task = Promise.resolve().then(async () => {
+            guard(); await current();
+            if (!initial) initial = await readState(evidenceFor);
+            else await authorizeSources(input, initial.sources, current);
+            await current(); consumed = true; return initial.output;
+          }).catch(error => { failed = true; throw error; })
+            .finally(() => { reading = false; childCurrent = undefined; });
           pending.add(task); void task.finally(() => pending.delete(task)).catch(() => {}); return task;
         };
-        try { await work(present => review(input, present, shared)); completed = true; }
+        try {
+          let returned: unknown;
+          try { returned = await work(read); } finally { consumptionsClosed = true; }
+          if (returned !== undefined || !consumed || reading || !initial) throw unavailable();
+          guard(); const final = await readState(evidenceFor);
+          if (hash(final) !== hash(initial)) throw unavailable(); await current(); completed = true;
+        }
         catch (error) { failed = true; throw error; }
         finally { await Promise.allSettled([...pending]); }
         });
         windows.add(task); void task.finally(() => windows.delete(task)).catch(() => {}); return task;
       });
-      guard(); if (result !== undefined || !invoked || !completed || pending.size || childCurrent) throw unavailable();
+      guard(); if (result !== undefined || !invoked || !completed || !initial || pending.size || childCurrent) throw unavailable();
       // The enclosing corpus performs a final freshness check after all reviews.
       // Re-open the exact draft after that callback too: a late edit, hold or key
       // loss cannot leave the shared preview tied to stale draft metadata.
-      await readDraft(input, current); await current();
-    } finally { ended = true; await Promise.allSettled([...windows]); }
+      if (hash(await readDraft(input, current)) !== hash(initial.draft)) throw unavailable(); await current();
+    } catch { throw unavailable(); }
+    finally { ended = true; await Promise.allSettled([...windows]); await Promise.allSettled([...pending]); active--; }
   });
   return service;
 }
