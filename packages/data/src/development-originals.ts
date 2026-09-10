@@ -27,6 +27,7 @@ type Metadata = z.infer<typeof metadataSchema>;
 type Stored = { metadata:Metadata; envelope:z.infer<typeof draftEnvelopeSchema> };
 type DraftDependencies = Parameters<typeof createDraftRevisionStore>[2];
 const aad = (m:Metadata) => JSON.stringify(['steer-development-original-content/v1',m]);
+export const developmentOriginalCodec = Object.freeze({ metadata: metadataSchema, aad });
 const clearScope = "SELECT set_config('steer.draft_organization','',false),set_config('steer.draft_subject','',false),set_config('steer.draft_product','',false)";
 class Conflict extends Error {}
 

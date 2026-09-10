@@ -7,6 +7,22 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Canonical content and owned key access — 0306
+
+[0306](../intent/0306/EVIDENCE.md) composes the metadata-first reader with the actual
+production encryption codecs and independent per-group key policies. It shares
+key material only within an invocation and one exact provider identity, preserves
+final key/records/source checks and drains pending work. It does not install an
+application service or establish SDK/source authority merely by decoding records.
+
+The native selection uses a separate test-only SDK/crypto comparison oracle, so
+its extra 20 local decodes are reported separately. The portion uses 52 simulated
+attempts, 51 SQL statements, 80 record policies, 40 key policies and two reads of
+one key. Its single undelayed 1,820 ms sample does not substitute for the full
+benchmark. Application confirmation/recovery/repeat remain 7,637 / 7,609 / 7,607
+and still use the existing readers. Complete SDK/lineage/service
+composition and outer effect phases before measuring the unchanged C22 protocol.
+
 ## Owned metadata-first records reader — 0305
 
 The [production-source records owner](../intent/0305/EVIDENCE.md) replaces the

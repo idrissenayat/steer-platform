@@ -22,6 +22,7 @@ export function parseIntegrationSelection(args:readonly string[]) {
   if(args.length===1&&args[0]==='--combined-readgraph-feasibility')return {mode:'combined-readgraph-feasibility' as const};
   if(args.length===1&&args[0]==='--combined-native-readgraph-feasibility')return {mode:'combined-native-readgraph-feasibility' as const};
   if(args.length===1&&args[0]==='--owned-records-readset')return {mode:'owned-records-readset' as const};
+  if(args.length===1&&args[0]==='--owned-content-readset')return {mode:'owned-content-readset' as const};
   if(args.length===1&&args[0]==='--journey-performance')return {mode:'journey-performance' as const};
   if(args.length===1&&args[0]==='--journey-runtime-revision')return {mode:'journey-runtime-revision' as const};
   if(args.length===1&&args[0]==='--journey-runtime-linked')return {mode:'journey-runtime-linked' as const};

@@ -1,0 +1,986 @@
+{
+  "kind": "steer-owned-record-contents/v1",
+  "baseCommit": "84b9e5f713c702267bf9e351f078d1ec956c3f89",
+  "node": "24.19.0",
+  "command": "node packages/data/test/postgres.integration.ts --owned-content-readset",
+  "scope": "Production canonical crypto and invocation-owned key services over metadata-first SQL and native corpus. Test-only SDK/comparison oracle. No application factory installation or C22 completion.",
+  "metrics": {
+    "providerAttempts": 52,
+    "elapsedMs": 1820,
+    "jwksAttempts": 1,
+    "callerChecks": 34,
+    "providerKinds": {
+      "head": 35,
+      "commit": 1,
+      "tree": 1,
+      "blob": 1,
+      "token": 1,
+      "mutation": 0,
+      "other": 0
+    },
+    "roleTransactions": 6,
+    "sqlStatements": 51,
+    "readerCallerChecks": 13,
+    "recordPolicyCalls": 80,
+    "metadataGrants": 13,
+    "retainedSourcePolicyCalls": 136,
+    "keyCalls": 2,
+    "keyPolicyCalls": 40,
+    "historicalCorpus": {
+      "strategy": "native-graph",
+      "revisionCount": 2,
+      "originalContexts": 3,
+      "measurements": [
+        {
+          "semanticSources": 34,
+          "physicalFiles": 42,
+          "repositoryAttempts": null,
+          "sourcePolicyCalls": 126
+        },
+        {
+          "semanticSources": 34,
+          "physicalFiles": 42,
+          "repositoryAttempts": null,
+          "sourcePolicyCalls": 126
+        }
+      ],
+      "repositoryAttempts": 12,
+      "graph": {
+        "waves": null,
+        "requests": 12,
+        "sourcePolicyQueries": 252
+      },
+      "uniqueBlobObjects": 40,
+      "blobObjectsSharedAcrossRevisions": 40,
+      "sourceMetadataPolicySynthetic": true,
+      "finalSourcesAfterDependentReadback": true,
+      "wholePhaseAccepted": false,
+      "productionInstalled": false
+    },
+    "groups": {
+      "revisions": 2,
+      "latest_revision": 1,
+      "scope_originals": 2,
+      "scope_observations": 8,
+      "development_originals": 1,
+      "development_results": 2,
+      "development_observations": 4,
+      "candidate_originals": 1,
+      "operations": 2,
+      "steps": 3,
+      "scope_runs": 2,
+      "scope_batches": 4,
+      "reservations": 6,
+      "budget": 1,
+      "scope_terms": 1
+    },
+    "byteLength": 607626,
+    "keyReferences": 1,
+    "plaintextRows": 20,
+    "scopeSdkExchanges": 4,
+    "developmentSdkExchanges": 2,
+    "metadataBeforeCiphertext": true,
+    "productionSourceReader": true,
+    "independentPoliciesSynthetic": true,
+    "cryptoDecoderTestOnly": false,
+    "productionContentReader": true,
+    "sdkVerifierTestOnly": true,
+    "additionalOracleDecodedRows": 20,
+    "elapsedLifetimeCheckedThroughReturn": true,
+    "httpRegistryIntegrated": false,
+    "actualRecordsPoliciesIntegrated": false,
+    "wholeJourneyPerformanceAccepted": false,
+    "productionInstalled": false
+  },
+  "finalNativeExitCode": 0,
+  "finalNativeSamples": [
+    {
+      "label": "Synthetic authenticated workflow start:",
+      "value": {
+        "tool": "intent.scope.start",
+        "ms": 656,
+        "nativeRequests": 596
+      }
+    },
+    {
+      "label": "Synthetic authenticated workflow start:",
+      "value": {
+        "tool": "intent.scope.start",
+        "ms": 708,
+        "nativeRequests": 676
+      }
+    },
+    {
+      "label": "Synthetic authenticated workflow start:",
+      "value": {
+        "tool": "intent.scope.start",
+        "ms": 703,
+        "nativeRequests": 676
+      }
+    },
+    {
+      "label": "Synthetic authenticated development preparation:",
+      "value": {
+        "tool": "intent.development.prepare",
+        "ms": 6870,
+        "nativeRequests": 4350,
+        "requestKinds": {
+          "head": 4167,
+          "commit": 5,
+          "tree": 5,
+          "blob": 173,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 4147,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 20,
+            "commit": 4,
+            "tree": 4,
+            "blob": 172,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      }
+    },
+    {
+      "label": "Synthetic authenticated development preparation:",
+      "value": {
+        "tool": "intent.development.prepare",
+        "ms": 6312,
+        "nativeRequests": 3900,
+        "requestKinds": {
+          "head": 3717,
+          "commit": 5,
+          "tree": 5,
+          "blob": 173,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 3697,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 20,
+            "commit": 4,
+            "tree": 4,
+            "blob": 172,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      }
+    },
+    {
+      "label": "Synthetic authenticated workflow start:",
+      "value": {
+        "tool": "intent.development.start",
+        "ms": 7934,
+        "nativeRequests": 7871
+      }
+    },
+    {
+      "label": "Synthetic authenticated workflow start:",
+      "value": {
+        "tool": "intent.development.start",
+        "ms": 9029,
+        "nativeRequests": 8866
+      }
+    },
+    {
+      "label": "Synthetic authenticated workflow start:",
+      "value": {
+        "tool": "intent.development.start",
+        "ms": 8761,
+        "nativeRequests": 8866
+      }
+    },
+    {
+      "label": "Synthetic authenticated corrected-package request:",
+      "value": {
+        "tool": "intent.draft.read",
+        "ms": 75,
+        "nativeRequests": 19,
+        "requestKinds": {
+          "head": 16,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 16,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      }
+    },
+    {
+      "label": "Synthetic authenticated corrected-package request:",
+      "value": {
+        "tool": "intent.development.review",
+        "ms": 640,
+        "nativeRequests": 210,
+        "requestKinds": {
+          "head": 161,
+          "commit": 2,
+          "tree": 2,
+          "blob": 44,
+          "token": 1,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 155,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 6,
+            "commit": 1,
+            "tree": 1,
+            "blob": 43,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      }
+    },
+    {
+      "label": "Synthetic authenticated corrected-package request:",
+      "value": {
+        "tool": "intent.scope.prepare",
+        "ms": 2377,
+        "nativeRequests": 844,
+        "requestKinds": {
+          "head": 661,
+          "commit": 5,
+          "tree": 5,
+          "blob": 173,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 641,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 20,
+            "commit": 4,
+            "tree": 4,
+            "blob": 172,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      }
+    },
+    {
+      "label": "Synthetic authenticated workflow start:",
+      "value": {
+        "tool": "intent.scope.start",
+        "ms": 721,
+        "nativeRequests": 596
+      }
+    },
+    {
+      "label": "Synthetic authenticated corrected-package request:",
+      "value": {
+        "tool": "intent.scope.start",
+        "ms": 722,
+        "nativeRequests": 596,
+        "requestKinds": {
+          "head": 593,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 593,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      }
+    },
+    {
+      "label": "Synthetic authenticated workflow start:",
+      "value": {
+        "tool": "intent.scope.start",
+        "ms": 783,
+        "nativeRequests": 676
+      }
+    },
+    {
+      "label": "Synthetic authenticated corrected-package request:",
+      "value": {
+        "tool": "intent.scope.start",
+        "ms": 783,
+        "nativeRequests": 676,
+        "requestKinds": {
+          "head": 673,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 673,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      }
+    },
+    {
+      "label": "Synthetic authenticated workflow start:",
+      "value": {
+        "tool": "intent.scope.start",
+        "ms": 754,
+        "nativeRequests": 676
+      }
+    },
+    {
+      "label": "Synthetic authenticated corrected-package request:",
+      "value": {
+        "tool": "intent.scope.start",
+        "ms": 754,
+        "nativeRequests": 676,
+        "requestKinds": {
+          "head": 673,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 673,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      }
+    },
+    {
+      "label": "Synthetic authenticated corrected-package request:",
+      "value": {
+        "tool": "intent.scope.read",
+        "ms": 453,
+        "nativeRequests": 227,
+        "requestKinds": {
+          "head": 224,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 224,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      }
+    },
+    {
+      "label": "Synthetic authenticated corrected-package request:",
+      "value": {
+        "tool": "intent.candidate.save.review",
+        "ms": 1556,
+        "nativeRequests": 871,
+        "requestKinds": {
+          "head": 823,
+          "commit": 2,
+          "tree": 2,
+          "blob": 44,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 813,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 10,
+            "commit": 1,
+            "tree": 1,
+            "blob": 43,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      }
+    },
+    {
+      "label": "Synthetic authenticated corrected-package request:",
+      "value": {
+        "tool": "intent.candidate.save.preview",
+        "ms": 7187,
+        "nativeRequests": 3722,
+        "requestKinds": {
+          "head": 3670,
+          "commit": 4,
+          "tree": 4,
+          "blob": 44,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 3646,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 24,
+            "commit": 3,
+            "tree": 3,
+            "blob": 43,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      }
+    },
+    {
+      "label": "Synthetic discarded confirmation request:",
+      "value": {
+        "tool": "intent.candidate.save.prepare (discarded reply)",
+        "ms": 14240,
+        "nativeRequests": 7637,
+        "requestKinds": {
+          "head": 7536,
+          "commit": 7,
+          "tree": 7,
+          "blob": 87,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 7488,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 48,
+            "commit": 6,
+            "tree": 6,
+            "blob": 86,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      }
+    },
+    {
+      "label": "Synthetic authenticated corrected-package request:",
+      "value": {
+        "tool": "intent.candidate.save.prepare",
+        "ms": 14477,
+        "nativeRequests": 7609,
+        "requestKinds": {
+          "head": 7506,
+          "commit": 7,
+          "tree": 7,
+          "blob": 87,
+          "token": 2,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 7458,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 48,
+            "commit": 6,
+            "tree": 6,
+            "blob": 86,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      }
+    },
+    {
+      "label": "Synthetic authenticated corrected-package request:",
+      "value": {
+        "tool": "intent.candidate.save.prepare",
+        "ms": 13979,
+        "nativeRequests": 7607,
+        "requestKinds": {
+          "head": 7506,
+          "commit": 7,
+          "tree": 7,
+          "blob": 87,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 7458,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 48,
+            "commit": 6,
+            "tree": 6,
+            "blob": 86,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      }
+    },
+    {
+      "label": "Synthetic authenticated saved-operation recovery:",
+      "value": {
+        "outcome": "committed",
+        "ms": 201,
+        "nativeRequests": 17,
+        "database": {
+          "calls": 14,
+          "failures": 0,
+          "maxDurationMs": 1,
+          "counts": {
+            "connect": 1,
+            "commit": 1,
+            "rollback": 0,
+            "observation-write": 0,
+            "result-write": 0,
+            "execution-write": 0,
+            "query": 12
+          },
+          "events": [
+            {
+              "phase": "connect",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "query",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "query",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "query",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "query",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "query",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "query",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "query",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "query",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "query",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "query",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "commit",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "query",
+              "durationMs": 1,
+              "code": null
+            },
+            {
+              "phase": "query",
+              "durationMs": 1,
+              "code": null
+            }
+          ],
+          "clock": {
+            "samples": 3,
+            "regressions": 0,
+            "maxBackwardMs": 0,
+            "invalidSamples": 0
+          }
+        }
+      }
+    },
+    {
+      "label": "Synthetic owned content/corpus readset:",
+      "value": {
+        "providerAttempts": 52,
+        "elapsedMs": 1820,
+        "jwksAttempts": 1,
+        "callerChecks": 34,
+        "providerKinds": {
+          "head": 35,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 1,
+          "mutation": 0,
+          "other": 0
+        },
+        "roleTransactions": 6,
+        "sqlStatements": 51,
+        "readerCallerChecks": 13,
+        "recordPolicyCalls": 80,
+        "metadataGrants": 13,
+        "retainedSourcePolicyCalls": 136,
+        "keyCalls": 2,
+        "keyPolicyCalls": 40,
+        "historicalCorpus": {
+          "strategy": "native-graph",
+          "revisionCount": 2,
+          "originalContexts": 3,
+          "measurements": [
+            {
+              "semanticSources": 34,
+              "physicalFiles": 42,
+              "repositoryAttempts": null,
+              "sourcePolicyCalls": 126
+            },
+            {
+              "semanticSources": 34,
+              "physicalFiles": 42,
+              "repositoryAttempts": null,
+              "sourcePolicyCalls": 126
+            }
+          ],
+          "repositoryAttempts": 12,
+          "graph": {
+            "waves": null,
+            "requests": 12,
+            "sourcePolicyQueries": 252
+          },
+          "uniqueBlobObjects": 40,
+          "blobObjectsSharedAcrossRevisions": 40,
+          "sourceMetadataPolicySynthetic": true,
+          "finalSourcesAfterDependentReadback": true,
+          "wholePhaseAccepted": false,
+          "productionInstalled": false
+        },
+        "groups": {
+          "revisions": 2,
+          "latest_revision": 1,
+          "scope_originals": 2,
+          "scope_observations": 8,
+          "development_originals": 1,
+          "development_results": 2,
+          "development_observations": 4,
+          "candidate_originals": 1,
+          "operations": 2,
+          "steps": 3,
+          "scope_runs": 2,
+          "scope_batches": 4,
+          "reservations": 6,
+          "budget": 1,
+          "scope_terms": 1
+        },
+        "byteLength": 607626,
+        "keyReferences": 1,
+        "plaintextRows": 20,
+        "scopeSdkExchanges": 4,
+        "developmentSdkExchanges": 2,
+        "metadataBeforeCiphertext": true,
+        "productionSourceReader": true,
+        "independentPoliciesSynthetic": true,
+        "cryptoDecoderTestOnly": false,
+        "productionContentReader": true,
+        "sdkVerifierTestOnly": true,
+        "additionalOracleDecodedRows": 20,
+        "elapsedLifetimeCheckedThroughReturn": true,
+        "httpRegistryIntegrated": false,
+        "actualRecordsPoliciesIntegrated": false,
+        "wholeJourneyPerformanceAccepted": false,
+        "productionInstalled": false
+      }
+    }
+  ],
+  "finalNativeAssertions": [
+    "PASS versioned Drizzle migrations apply twice without replay effects",
+    "FOCUSED owned-content-readset with native corpus and crypto/SDK comparison oracle; NOT factory installation or C22.",
+    "PASS authenticated scope workflow: denied start, one fixed lost-acknowledgement start, ordered single-attempt activities, reference-only history, replay/repeated start without model or reservation duplication, owned worker shutdown",
+    "PASS authenticated development workflow: denied start, one fixed lost-acknowledgement start, ordered single-attempt activities, reference-only history, replay/repeated start without model or reservation duplication, owned worker shutdown",
+    "PASS authenticated concrete factory: 34 native sources, two recorded scope batches, separate Brief/Spec and Exam roles, exact result restart, editable durable draft and historical lineage after correction; four synthetic calls/reservations, no Git save",
+    "PASS authenticated scope workflow: denied start, one fixed lost-acknowledgement start, ordered single-attempt activities, reference-only history, replay/repeated start without model or reservation duplication, owned worker shutdown",
+    "PASS authenticated new-distinct corrected package: stale assessment denied, two fresh recorded scope batches, exact edited-document lineage, human confirmation, discarded HTTP acknowledgement and reconstructed idempotent original recovery; six synthetic model calls/reservations, no candidate-save scheduling or Git save",
+    "PASS authenticated factory new-distinct confirmed save: denied start, lost scheduler acknowledgement, one fixed Temporal activity/native commit, replay without resend, identity/factory restart, read-only HTTP receipt recovery, separate reconciliation, exact older-commit reopen and current policy/Git-grant denial; prior bundle and unrelated source preservation checked for revisions; no added originals or model reservations",
+    "PASS owned records: native metadata-first/independent policies, exact crypto/SDK/source closure and final records; every early group denial and late policy/key/source/expiry/revision/hold denial. Not factory installation or C22.",
+    "PASS concrete authenticated journey binds native multi-batch scope, both SDK roles, corrected confirmation and fixed save/reopen through restart",
+    "FOCUSED owned records: preceding joined journey, owned records/source assertions and idempotent migrations passed; full suite NOT RUN.",
+    "Removed only this run's synthetic PostgreSQL container and tmpfs data."
+  ],
+  "priorNativeAttempts": [
+    {
+      "attempt": 1,
+      "exitCode": 1,
+      "stage": "Before structural JSONB equality correction and enclosing-lease correction",
+      "ownedReaderAccepted": false,
+      "precedingApplicationJourneyPassed": true,
+      "cleanup": true
+    },
+    {
+      "attempt": 2,
+      "exitCode": 1,
+      "stage": "JSONB equality corrected; enclosing lease still closed before final caller revalidation",
+      "ownedReaderAccepted": false,
+      "precedingApplicationJourneyPassed": true,
+      "cleanup": true
+    },
+    {
+      "attempt": 3,
+      "exitCode": 1,
+      "stage": "Temporary stack-frame-only diagnostics narrowed failure outside decoder and consumer; diagnostics removed before final run",
+      "ownedReaderAccepted": false,
+      "precedingApplicationJourneyPassed": true,
+      "cleanup": true
+    }
+  ],
+  "developmentVerification": {
+    "initialUnitFixture": "Seven tests initially rejected fixture construction because strict metadata included extraneous undefined configuration keys; corrected the fixture, not the schema.",
+    "initialTypes": "Native union callback contents needed an explicit comparison type; typed dynamic fixture maps required explicit mapping assertions.",
+    "enclosingLeaseRegression": {
+      "beforeFixExitCode": 1,
+      "output": "✖ the enclosing final caller revalidation retains the content lease until public return (19.3495ms)\nℹ tests 1\nℹ suites 0\nℹ pass 0\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 175.795667\n\n✖ failing tests:\n\ntest at packages/data/test/records-content-reader.test.ts:90:1\n✖ the enclosing final caller revalidation retains the content lease until public return (19.3495ms)\n  Error: The complete record contents could not be verified.\n      at fail (file:///Users/idrissenayat/Documents/ChatGPT/STEER/packages/data/src/records-content-reader.ts:22:20)\n      at Object.withReadSet (file:///Users/idrissenayat/Documents/ChatGPT/STEER/packages/data/src/records-content-reader.ts:99:21)\n      at async TestContext.<anonymous> (file:///Users/idrissenayat/Documents/ChatGPT/STEER/packages/data/test/records-content-reader.test.ts:93:20)\n      at async Test.run (node:internal/test_runner/test:1389:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)\n",
+      "afterFix": "Included in final focused test pass."
+    },
+    "focused": {
+      "command": "node --test packages/data/test/records-content-reader.test.ts packages/data/test/records-readset.test.ts packages/data/test/records-readset-prototype.test.ts packages/data/test/integration-diagnostics.test.ts",
+      "exitCode": 0,
+      "tests": 41,
+      "output": "✔ integration focus is explicit, bounded and distinct from the full suite (1.122917ms)\n✔ database diagnostic ring preserves only bounded phases, durations and allowlisted codes (1.694709ms)\n✔ clock diagnostics observe regressions without exposing absolute time or changing query results and errors (0.48775ms)\n✔ clock diagnostics keep concurrent leases and reset generations separate and cap backward deltas (0.158292ms)\n✔ reset excludes late query completions and errors from the next diagnostic sample without hiding their results (0.126583ms)\n✔ the enclosing final caller revalidation retains the content lease until public return (20.569375ms)\n✔ canonical content reader preserves exact bytes, separate authority flags and per-purpose grants with one shared key (10.139167ms)\n✔ same key ID on independent providers is not shared; each purpose must be granted before any lookup (10.469417ms)\n✔ JSONB key ordering does not change canonical stored hashes or decoded content (6.81725ms)\n✔ owned key copies are wiped on success and late failure while provider buffers stay untouched (8.124333ms)\n✔ missing services and non-void caller grants deny before key dispatch (2.315625ms)\n✔ denied or replaced key policies, provider identity and changed/malformed key material cannot release contents (35.639917ms)\n✔ recheck is mandatory, one-use and scoped to the current invocation (4.363459ms)\n✔ pending key lookups retain all four admission slots through cancellation and shutdown (5.343459ms)\n✔ forgotten pending key recheck is drained before owner shutdown and cannot release a result (3.191333ms)\n✔ canonical metadata, envelope, payload, retained source and forged decode plans fail closed (15.450958ms)\n✔ test-only snapshot uses two scoped roles, two bounded aggregates and four fresh caller checks (4.382916ms)\n✔ malformed, duplicate, oversized and non-fixture targets fail before pool access (0.876084ms)\n✔ wrong SQL roles, owner, row overflow and lifecycle loss close leases and deny (1.006834ms)\n✔ abort, replaced dependency and late caller denial never return snapshot (0.402791ms)\n✔ candidate-specific holds and expiry deny, independent of the draft lifecycle (0.424917ms)\n✔ physical key references are deduplicated without losing record membership (0.23025ms)\n✔ private lifetime reaches the exact deadline and cannot be extended by a later snapshot or copied metadata (0.341292ms)\n✔ candidate use deadline remains effective while later work runs (0.189291ms)\n✔ invalid database times fail closed instead of creating a non-expiring NaN deadline (1.090584ms)\n✔ clock regression or invalidity permanently invalidates a captured lifetime (1.5725ms)\n✔ native non-model candidate-save step requires a null budget; model steps still require the exact budget (7.854083ms)\n✔ owned reader uses metadata-first independent policies, exact full snapshots and six scoped transactions (6.381916ms)\n✔ invalid configuration, target, missing policy and changed bindings fail closed before content dispatch (1.032583ms)\n✔ each independent record denial prevents every ciphertext query and verifier invocation (6.252333ms)\n✔ wrong SQL role, missing role flags, foreign owner, wrong targets, overflow and missing membership deny (27.321625ms)\n✔ metadata changes after grants cannot reach decoding, including same-row metadata edits (3.142417ms)\n✔ late policy, grants revision, ciphertext, execution rows and lifecycle changes deny final result (6.205542ms)\n✔ recheck is mandatory, one-use, and cannot be salvaged by catching a failed verification (3.82775ms)\n✔ initial expiry, candidate expiry, monotonic regression and invalid database clocks remain closed (7.108792ms)\n✔ malformed envelope key references never reach a key or decoder callback (3.824833ms)\n✔ fresh current/grant checks and pinned dependencies reject changes during ciphertext IO (1.828167ms)\n✔ late source closure may run after records recheck, but a late grant revision still withholds return (1.01525ms)\n✔ four cancelled held verifiers retain all slots and shutdown drains their actual work (5.855875ms)\n✔ cancelled pending connect and SQL retain ownership until leases are cleaned up (4.925375ms)\n✔ a forgotten pending recheck drains even after the verifier returns or throws (2.179333ms)\nℹ tests 41\nℹ suites 0\nℹ pass 41\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 265.67425\n"
+    },
+    "existingStoreRegression": {
+      "command": "node --test packages/data/test/draft-envelope.test.ts packages/data/test/scope-originals.test.ts packages/data/test/development-originals.test.ts packages/data/test/development-results.test.ts packages/data/test/development-observations.test.ts",
+      "exitCode": 0,
+      "tests": 18,
+      "output": "✔ historical exchange access requires separate authority and verification before SQL and rejects caller wire bodies (2.988375ms)\n✔ timed-out historical exchange authority retains admission until drain and cannot access late SQL after close (5000.856541ms)\n✔ observation schemas preserve exact body text and unknown usage without accepting headers or authority flags (1.808333ms)\n✔ observation journal is lazy, strictly scoped and sanitizes denial before private reads (0.6725ms)\n✔ timed-out observation authorization retains admission and close suppresses late reads (5001.647541ms)\n✔ original input digest binds exact source, evidence, direction, both prompts and the original nonsecret execution profile (11.961333ms)\n✔ tampered evidence, source scope, stale direction, foreign corpus, secret fields and broken Unicode fail before storage (4.184917ms)\n✔ original storage is lazy, sanitizes denial and has no dispatch, mutation or supplied-configuration read API (1.226667ms)\n✔ historical original reads require their distinct current authorization before SQL and never fall back to ordinary access (0.282541ms)\n✔ timed-out historical original authorization retains admission and close prevents late source/key access (5000.796541ms)\n✔ timed-out original access retains admission and cannot acquire SQL or release late bytes after close (5002.712583ms)\n✔ result capture has no construction effects and malformed or denied requests cannot acquire a database connection (3.176917ms)\n✔ timed-out result authorization keeps admission until it drains and never starts a late database operation (5001.275083ms)\n✔ per-draft authenticated envelopes preserve Unicode with fresh nonces and no plaintext or key fields (2.033625ms)\n✔ ciphertext, nonce, tag, scope and key substitutions fail without disclosing contents (0.791917ms)\n✔ malformed keys, oversized plaintext and non-JSON values are rejected generically (0.789666ms)\n✔ scope original reconstructs the exact manifest and excludes inherited Exam and unbound credentials (24.08525ms)\n✔ chunked scope envelope preserves large Unicode source bytes and binds order, count, owner and key (20.506208ms)\nℹ tests 18\nℹ suites 0\nℹ pass 18\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 10189.81325\n"
+    },
+    "typesKitScopes": {
+      "exitCode": 0,
+      "commands": [
+        "pnpm typecheck",
+        "pnpm kit:check",
+        "pnpm security:check"
+      ],
+      "output": "$ pnpm typecheck:prototype && turbo run typecheck --filter='./apps/*' --filter='./packages/*'\n$ tsc --noEmit\n• turbo 2.10.12\n\n   • Packages in scope: @steer/adapters, @steer/agents, @steer/api, @steer/data, @steer/domain, @steer/tool-registry, @steer/web, @steer/worker\n   • Running typecheck in 8 packages\n   • Remote caching disabled\n\n@steer/domain:typecheck: cache hit, replaying logs e7b064b652605ba9\n@steer/domain:typecheck: $ tsc --noEmit\n@steer/tool-registry:typecheck: cache hit, replaying logs 6fb069d7c6044265\n@steer/tool-registry:typecheck: $ tsc --noEmit\n@steer/data:typecheck: cache miss, executing 76522561567ea417\n@steer/adapters:typecheck: cache hit, replaying logs 1e7ff114de6fe0e6\n@steer/agents:typecheck: cache hit, replaying logs 8d76ab1eb4549108\n@steer/web:typecheck: cache hit, replaying logs 6af70778d039f206\n@steer/agents:typecheck: $ tsc --noEmit\n@steer/adapters:typecheck: $ tsc --noEmit\n@steer/web:typecheck: $ next typegen && node scripts/generate-learn.ts && tsc --noEmit\n@steer/web:typecheck: Generating route types...\n@steer/web:typecheck: ✓ Types generated successfully\n@steer/data:typecheck: $ tsc --noEmit\n@steer/worker:typecheck: cache miss, executing 347bda3ca79026b1\n@steer/api:typecheck: cache miss, executing 056832c3e6023f22\n@steer/api:typecheck: $ tsc --noEmit\n@steer/worker:typecheck: $ tsc --noEmit\n\n Tasks:    8 successful, 8 total\nCached:    5 cached, 8 total\n  Time:    2.583s \n\n$ node scripts/validate-kit.mjs\nSTEER Phase 0 kit valid (95 required artifacts).\n$ node scripts/audit-workflow-scopes.mjs\nWorkflow token scope audit passed (contents: read only).\n"
+    }
+  },
+  "sourceHashes": {
+    "apps/api/test/authenticated-generation.integration.ts": "fccdd04298bf65d7944b2b85d3de6e2a920c009615a599f9168ae789e173a219",
+    "apps/api/test/records-owned-readset.integration.ts": "422bfc3ea8a16fd0a8c9399b0f394834ad74f3e6047bbe8fa4bdb741ed6f09df",
+    "packages/data/src/candidate-originals.ts": "50edd08c7c5cd729f39e1e591ee08a029cf1cc0f09afe0af47d41e2248c109f5",
+    "packages/data/src/development-observations.ts": "d02a822c6c2a3346ddb91a971f765c40f53c9a09eefa1a9575954bf672c2484b",
+    "packages/data/src/development-originals.ts": "450b7f7a12886db96b2abebaa8ef7475ecdc4e1b609ea7b09a47074e500c8a2d",
+    "packages/data/src/development-results.ts": "2671cae3c22683028a8e24a02ddb0c86386da97c27981b13d0d77f8085cf253c",
+    "packages/data/src/draft-revisions.ts": "f1c330368f7a94e6faa4dffb6388c51edb36903e4ce47c51eb681298d0b03e3b",
+    "packages/data/src/records-content-codecs.ts": "a190777a60806852222f748a23011d89cc150cd1e626f016565876e4af924993",
+    "packages/data/src/records-content-reader.ts": "ea149979dd29fe03c66b09f8714db069903b9e360374f4fb251ee9404c40bef9",
+    "packages/data/src/scope-review-observations.ts": "86cec54ae41825d4f5f3d43c25510072cb6807b52a3b61d5c1afcb890e72f321",
+    "packages/data/src/scope-review-originals.ts": "3f159b352646518455c3c509a9a444077049e06478b2c570832131639bd899e6",
+    "packages/data/test/integration-diagnostics.test.ts": "e8bad7ce14f839bfd00cd6886b6248c76625c9a663cc427e4702c5f6735b68eb",
+    "packages/data/test/integration-diagnostics.ts": "34710ac6c369ace6eab103b6c4a74e8688206c3f8627194f42c715c270de72b5",
+    "packages/data/test/postgres.integration.ts": "dd215e47b33f88aea264e3ac5892a4595f415c473e5c970e86443e58bf5eda88",
+    "packages/data/test/records-content-reader.test.ts": "ade610c7321c549a1ec1fbfa2bfd216f7cead43002a5d7d86bc6e767a2411fe8"
+  },
+  "protectedHashes": {
+    "intent/0001/ARCHITECTURE.md": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65",
+    "intent/0001/EXAM.md": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f",
+    "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32",
+    "intent/0289/PERFORMANCE.json": "d0371c364bbfb103b70675faf911499bffb91afe8a5e6950718c87a171e9e302"
+  },
+  "boundaries": {
+    "checkpointsVerified": 17,
+    "checkpointsTotal": 25,
+    "percent": 68,
+    "percentagePointChange": 0,
+    "fullPerformanceBenchmarkPassed": false,
+    "actualFactoryIntegrated": false,
+    "actualRecordsAdopted": false,
+    "productionSdkComposition": false,
+    "realModelCalls": false,
+    "actualRuntimeGitHubSave": false,
+    "realUserAcceptance": false,
+    "spendingAuthorized": false
+  }
+}

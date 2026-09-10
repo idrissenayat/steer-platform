@@ -30,6 +30,7 @@ type Metadata = z.infer<typeof metadataSchema>;
 type Stored = { metadata: Metadata; envelope: z.infer<typeof draftEnvelopeSchema> };
 type Payload = z.infer<typeof scopeReviewObservationSchema>;
 const aad = (m: Metadata) => JSON.stringify(['steer-scope-observation/v1', m]);
+export const scopeObservationCodec = Object.freeze({ metadata: metadataSchema, aad, payload: scopeReviewObservationSchema });
 const clearScope = "SELECT set_config('steer.draft_organization','',false),set_config('steer.draft_subject','',false),set_config('steer.draft_product','',false)";
 class Conflict extends Error {}
 

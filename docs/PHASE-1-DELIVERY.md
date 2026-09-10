@@ -7003,3 +7003,29 @@ owned outer action/effect paths, then run the unchanged full C22 benchmark. No
 factory/profile switch, actual records adoption, model spending, runtime GitHub
 save, UI completion, signed-document change or 0289 root-cause claim is made.
 User drafts and roadmap/outputs are preserved. **68% (17/25; eight remaining; +0).**
+
+## 0306 — Canonical contents and invocation-owned key access
+
+The [content composition](../intent/0306/EVIDENCE.md) shares actual production codecs
+with the existing stores and adds separately granted per-group key access over
+the owned metadata-first reader. Every record grant precedes physical key lookup;
+sharing requires exact provider identity, draft and key ID. Copied material is
+rechecked/wiped, and cancelled or forgotten pending work retains admission. The
+enclosing request owns validity through its final caller revalidation.
+
+Forty-one focused checks, eighteen existing-store checks, the explicit native
+selection, prototype/eight-package types, kit and workflow-scope checks pass.
+Twenty decrypted records match the existing comparison oracle, including four
+scope and two development SDK exchanges. The content/corpus portion uses 52
+simulated provider attempts, 80 record policies, 40 key policies, 51 SQL statements
+and two reads of one key. Extra test-only crypto/SDK work and three earlier native
+failures are retained in [verification](../intent/0306/VERIFICATION.json).
+
+Neither its single undelayed sample nor its request count is application acceptance.
+The actual factory is unchanged: confirmation/recovery/repeat remain 7,637 / 7,609 /
+7,607. Next connect production SDK/operation/lineage verification, authorized target
+discovery and existing service contracts with outer effect-separated phases, then
+run the unchanged complete C22 benchmark. No live key/model/provider grants,
+spending, records adoption, deployment, real runtime GitHub save or UI completion.
+Signed documents and the user's roadmap/outputs are unchanged. **68% (17/25; eight
+remaining; +0 percentage points).**

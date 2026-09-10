@@ -62,6 +62,27 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Canonical contents and key ownership, no factory switch — 0306
+
+[0306](../intent/0306/EVIDENCE.md) adds an internal content reader over the 0305
+owner. Existing stores and the new decoder share canonical metadata/AAD/digest
+definitions. Separate key policies grant every encrypted record before any key
+lookup. Material is shared only by exact provider object, draft and key ID;
+independent providers with the same ID may hold different keys. Owned copies are
+rechecked and wiped, while provider buffers remain untouched.
+
+The callback must await key and full records/lifecycle recheck before final source
+closure. Its validity follows the enclosing request through the final caller check,
+not the completion of an inner callback. Cancellation and forgotten rechecks drain
+before admission is released. Decoding explicitly does not prove SDK verification,
+current source permission, execution authority or any gate.
+
+The application factory is unchanged. Next compose production SDK/operation/lineage
+checks and authorized target discovery into the existing service contracts and
+separate phases around effects. The current retained-history target requires known
+operation/review IDs; it is not a substitute for initial capture. Real profile,
+records, key-provider, model and GitHub authorization remain unchanged.
+
 ### Owned records reader, no factory switch — 0305
 
 [0305](../intent/0305/EVIDENCE.md) adds internal metadata-first records composition

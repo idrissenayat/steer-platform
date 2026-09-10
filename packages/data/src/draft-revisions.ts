@@ -30,6 +30,8 @@ class Conflict extends Error {}
 const hash = (v: unknown) => createHash('sha256').update(JSON.stringify(v)).digest('hex');
 const revisionHash = (metadata: Metadata) => hash(['steer-draft-revision/v1', metadata]);
 const aad = (metadata: Metadata) => JSON.stringify(['steer-draft-revision-content/v1', metadata]);
+/** Internal canonical format; using it does not establish records/key authority. */
+export const draftRevisionCodec = Object.freeze({ metadata: metadataSchema, aad, revisionDigest: revisionHash, payload: intentDraftContentSchema });
 function freeze<T>(v: T): T { if (v && typeof v === 'object') { Object.values(v).forEach(freeze); Object.freeze(v); } return v; }
 const clearScope = "SELECT set_config('steer.draft_organization','',false), set_config('steer.draft_subject','',false), set_config('steer.draft_product','',false)";
 

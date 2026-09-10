@@ -31,6 +31,7 @@ class Conflict extends Error {}
 const week = 7 * 86400000;
 const hash = (v: unknown) => createHash('sha256').update(JSON.stringify(v)).digest('hex');
 const aad = (metadata: Metadata) => JSON.stringify(['steer-candidate-original/v1', metadata]);
+export const candidateOriginalCodec = Object.freeze({ metadata: metadataSchema, aad, payload: requestSchema });
 function freeze<T>(v: T): T { if (v && typeof v === 'object') { Object.values(v).forEach(freeze); Object.freeze(v); } return v; }
 const clearScope = "SELECT set_config('steer.draft_organization','',false), set_config('steer.draft_subject','',false), set_config('steer.draft_product','',false)";
 

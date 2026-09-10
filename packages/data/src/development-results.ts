@@ -28,6 +28,7 @@ type ResultAuthorityContext = Readonly<{ configuration: z.infer<typeof intentOpe
 const hash = (v: unknown) => createHash('sha256').update(JSON.stringify(v)).digest('hex');
 const resultHash = (v: Metadata) => hash(['steer-development-result/v1', v]);
 const aad = (v: Metadata) => JSON.stringify(['steer-development-result-content/v1', v]);
+export const developmentResultCodec = Object.freeze({ metadata: metadataSchema, aad, resultDigest: resultHash, payload: intentRoleResultSchema });
 function freeze<T>(v: T): T { if (v && typeof v === 'object') { Object.values(v).forEach(freeze); Object.freeze(v); } return v; }
 class Conflict extends Error {}
 const clearScope = "SELECT set_config('steer.draft_organization','',false),set_config('steer.draft_subject','',false),set_config('steer.draft_product','',false)";

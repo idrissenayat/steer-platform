@@ -9,7 +9,23 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0305 / owned records reader — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0306 / canonical content and owned key access — 68% (17/25; 8 remaining; +0 points)**.
+The [content composition](../intent/0306/EVIDENCE.md) shares the existing production
+codecs and adds separately authorized key access inside the owned records read.
+All purposes are granted before lookup; exact provider identity controls sharing,
+and key/records recheck and pending-work drainage remain mandatory. Forty-one
+focused checks, eighteen existing-store checks and native verification pass.
+The content/corpus portion uses 52 simulated attempts, with 20 exact records and
+40 independent key grants; this is not the complete application request. No
+application factory or live profile is switched.
+
+Next integrate production SDK/operation/lineage verification, authorized target
+discovery and the existing application service contracts into the owned outer
+read/effect phases. Then run the unchanged full C22 benchmark. These retained-history
+readers do not yet cover initial capture with no operation/review IDs. No placeholder
+IDs, cached permissions, new ETA, UI speedup or acceptance point is implied.
+
+Prior delivery checkpoint: **0305 / owned records reader — 68% (17/25; 8 remaining; +0 points)**.
 The [production-source records owner](../intent/0305/EVIDENCE.md) retrieves metadata
 before independently granting every record and fetching encrypted contents. It
 compares the complete authorized metadata, requires awaited final records/lifecycle
