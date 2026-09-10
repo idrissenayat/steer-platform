@@ -17,8 +17,11 @@ const unavailable = () => new Error('Development start is unavailable.');
 export function createIntentDevelopmentStarter(pools: Parameters<typeof createDevelopmentOriginalStore>[0], rawConfig: unknown, deps: {
   records: Records; scheduler: DevelopmentScheduler;
   authorizeStart(original: Readonly<DevelopmentOriginal>): Promise<void>;
-  /** Trusted current-original records phase, never a historical or effect window. */
-  withOriginalRead?(input: Readonly<ReturnType<typeof intentDevelopmentStartInputSchema.parse>>, current: () => Promise<void>, work: Parameters<PreparationEvidenceWindow>[0]): Promise<void>;
+  /** Trusted joint current-original/scope phase. Its current scope port must
+   * complete final validation AFTER original records/keys, before this returns.
+   * Never a historical grant, scheduling window or caller-supplied tool option. */
+  withOriginalRead?(input: Readonly<ReturnType<typeof intentDevelopmentStartInputSchema.parse>>, current: () => Promise<void>,
+    work: (read: Parameters<Parameters<PreparationEvidenceWindow>[0]>[0], scope: Records['scopeReview']) => Promise<void>): Promise<void>;
 }) {
   const config = freeze(developmentRecordsConfigurationSchema.parse(rawConfig));
   const scope = freeze({ organizationId: config.organizationId, subject: config.subject, productId: config.productId, repository: config.repository });
@@ -70,7 +73,10 @@ export function createIntentDevelopmentStarter(pools: Parameters<typeof createDe
           guard(); return described.original;
         };
         const withReads = (work: (read: () => Promise<DevelopmentOriginal>) => Promise<void>) => withPreparationEvidence(
-          originalWindow ? run => Reflect.apply(originalWindow, deps, [input, current, run]) : undefined,
+          originalWindow ? run => Reflect.apply(originalWindow, deps, [input, current,
+            async (read: Parameters<Parameters<PreparationEvidenceWindow>[0]>[0], reader: Records['scopeReview']) => {
+              scopeReader = reader; await run(read);
+            }]) : undefined,
           () => originals!.read(target), read => work(async () => validate(await read())), track, guard);
         let original: DevelopmentOriginal = undefined!, operations: ReturnType<typeof createIntentOperationStore> = undefined!;
         const bind = (value: DevelopmentOriginal) => {
@@ -83,10 +89,9 @@ export function createIntentDevelopmentStarter(pools: Parameters<typeof createDe
         if (!originalWindow) bind(await validate(await originals!.read(target)));
         const authorize = async () => {
           if (validating) throw unavailable(); validating = true;
-          // Records close after the complete final current-scope read, never
-          // before it or across the later scheduler effect.
-          try { await withReads(async read => { await withCurrentScopeReadWindow(sourceScope, current, async reader => {
-            scopeReader = reader;
+          // The owned composition encloses original records/key recheck in its
+          // current scope window. Ordinary readers retain their existing window.
+          const validatePhase = async (read: () => Promise<DevelopmentOriginal>) => {
             if (!original) bind(await read());
             await current(); if (hash(await read()) !== hash(original)) throw unavailable();
             if (await checked(() => deps.authorizeStart(original)) !== undefined) throw unavailable();
@@ -96,7 +101,13 @@ export function createIntentDevelopmentStarter(pools: Parameters<typeof createDe
             if (op.outcome !== 'ok' || op.value.operation.draftId !== input.draftId || op.value.operation.draftRevision !== input.revision) throw unavailable();
             if (hash(await read()) !== hash(original)) throw unavailable();
             await current(); if (Date.parse(original.configuration.expiresAt) <= Date.now()) throw unavailable();
-          }); }); } finally { scopeReader = sourceScope; validating = false; }
+          };
+          try {
+            await withReads(async read => {
+              if (originalWindow) await validatePhase(read);
+              else await withCurrentScopeReadWindow(sourceScope, current, async reader => { scopeReader = reader; await validatePhase(read); });
+            });
+          } finally { scopeReader = sourceScope; validating = false; }
         };
         await authorize();
         const receipt = developmentScheduleReceiptSchema.parse(await track(deps.scheduler.start(freeze({ organizationId: scope.organizationId,

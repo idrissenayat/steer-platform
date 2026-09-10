@@ -7053,6 +7053,28 @@ live model/key access, spending, runtime GitHub save, deployment, profile/record
 activation, signature or human UI acceptance. User drafts, signed artifacts and
 roadmap/outputs remain unchanged. **68% (17/25; eight remaining; +0 points).**
 
+## 0318 — Joint current-scope/original drafting-start validation
+
+[0318](../intent/0318/EVIDENCE.md) moves full final current-scope validation
+after dependent original records/key comparison within one owned read-only phase.
+The data service retains per-consumption canonical scope binding; fresh selected
+record/key purposes cover final scope IO and return. Exact current status, source,
+subject and result equality remain mandatory. A held final scope read retains
+owned shutdown drainage; scheduler and post-effect checks still open fresh phases.
+
+Full scope reads fall nine→six across the three phases. Reordering alone measured
+996 / 1,135 / 1,135 requests, slightly worse than 0317. Removing duplicate grants
+only from immutable no-IO intermediate consumption reduces final drafting start
+989→938 and recovery/repeat 1,127→1,069, about 5%. Other action counts are unchanged.
+Focused/native/whole-regression verification, adversarial scope and drain cases,
+exact measurements and source hashes: [verification](../intent/0318/VERIFICATION.json).
+
+C22 is still open. Next consolidate repeated current-caller/metadata traversal
+across preparation/start/confirmation and run the unchanged full benchmark. No
+model usage/spend, runtime GitHub save, records/profile activation, deployment,
+release, signature or actual UI acceptance. Protected artifacts and user-owned
+roadmap/outputs remain unchanged. **68% (17/25; eight remaining; +0 points).**
+
 ## 0317 — Owned current-original reads for drafting start
 
 [0317](../intent/0317/EVIDENCE.md) adds independently authorized current-original

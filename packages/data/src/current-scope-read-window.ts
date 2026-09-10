@@ -37,9 +37,12 @@ export async function withCurrentScopeReadWindow<T>(reader: IntentScopeReader | 
         const input = freeze(intentScopeReadInputSchema.parse(raw));
         if ((['organizationId', 'productId', 'repository'] as const).some(k => input[k] !== scope![k])
           || (target && hash(target) !== hash(input))) throw unavailable();
-        await present(callback);
+        // inspect brackets actual IO itself. An immutable intermediate reuse has
+        // no IO between two identical permission calls: one fresh source/caller
+        // barrier is sufficient, followed only by the synchronous value return.
         if (!captured) { target = input; captured = await inspect(input, callback); sourceCurrent = callback; }
-        await present(callback); return captured;
+        else await present(callback);
+        return captured;
       } catch { failed = true; throw unavailable(); }
       finally { reading = false; }
     },

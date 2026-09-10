@@ -165,3 +165,33 @@ test('current scope reader invocation preserves its receiver and ignores a repla
   await window(f.reader, f.current, async port => { assert.deepEqual(await port!.read(f.input, f.source), f.output); });
   assert.equal(f.state.reads, 2);
 });
+
+test('immutable intermediate reuse makes exactly one fresh source barrier, while real reads stay fully bracketed', async () => {
+  const f = await fixture(); const events: string[] = [], raw = f.reader.read;
+  f.reader.read = async (...args) => { events.push('read'); const value = await raw(...args); events.push('read-done'); return value; };
+  const source = bracket(f.current, async () => { events.push('source'); await f.source(); }, p => p, () => {});
+  await window(f.reader, f.current, async port => {
+    await port!.read(f.input, source);
+    const before = events.length;
+    assert.deepEqual(await port!.read(f.input, source), f.output);
+    assert.deepEqual(events.slice(before), ['source']);
+  });
+  assert.deepEqual(events, ['source', 'read', 'source', 'read-done', 'source', 'source',
+    'source', 'read', 'source', 'read-done', 'source']);
+  assert.equal(f.state.reads, 2);
+});
+
+test('a single intermediate permission check still rejects fresh source loss without exposing reused content', async () => {
+  for (const kind of ['source', 'caller', 'nonvoid']) {
+    const f = await fixture(); let nonvoid = false, returned = 0;
+    const source = bracket(f.current, async () => { await f.source(); if (nonvoid) return true; }, p => p, () => {});
+    await assert.rejects(window(f.reader, f.current, async port => {
+      await port!.read(f.input, source);
+      if (kind === 'source') f.state.sourcePermitted = false;
+      else if (kind === 'caller') f.state.permitted = false;
+      else nonvoid = true;
+      await port!.read(f.input, source); returned++;
+    }));
+    assert.equal(returned, 0); assert.equal(f.state.reads, 1);
+  }
+});

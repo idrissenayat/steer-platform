@@ -9,7 +9,22 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0317 / owned drafting-start originals — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0318 / joint current-scope/original validation — 68% (17/25; 8 remaining; +0 points)**.
+[0318](../intent/0318/EVIDENCE.md) places full final current-scope validation
+after dependent development records/key comparison in one owned read-only phase.
+The data owner still verifies every consumed original against the current scope.
+Fresh development record/key purposes remain active through final scope IO/return;
+scheduling and post-effect validation retain separate phases and actual drain.
+
+Full scope reads fall from nine to six across three validation phases. A first
+reordering-only experiment increased requests to 996 / 1,135 / 1,135. Removing
+duplicate permission calls only where no IO intervenes brings final drafting start
+to 938 and recovery/repeat to 1,069 (from 989 / 1,127 / 1,127). This is about 5%,
+not a C22 pass. Next consolidate remaining current-caller/metadata traversal in
+preparation, start and confirmation, then run the unchanged complete benchmark.
+No live model, runtime/save or signed-in UI acceptance is inferred.
+
+Prior delivery checkpoint: **0317 / owned drafting-start originals — 68% (17/25; 8 remaining; +0 points)**.
 [0317](../intent/0317/EVIDENCE.md) connects independently authorized current
 originals to drafting start. Exact records/source/profile/direction checks remain,
 with fresh phases around scheduling. Complete records/key readback is followed by

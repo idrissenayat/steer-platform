@@ -7,6 +7,33 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Joint current-scope/original validation — 0318
+
+[0318](../intent/0318/EVIDENCE.md) reduces full current-scope reads from nine
+to six across drafting start's three validation phases. The full final scope read
+follows complete development records/key comparison, with fresh purposes through
+its IO and return. Each immutable intermediate scope consumption retains one fresh
+source/caller barrier; actual initial/final IO retains complete brackets.
+
+| Authenticated synthetic action | 0317 attempts | 0318 attempts |
+| --- | ---: | ---: |
+| Drafting start | 989 | 938 |
+| Drafting start recovery / repeat | 1,127 / 1,127 | 1,069 / 1,069 |
+
+That removes 51 attempts (5.16%) for first start and 58 (5.15%) for recovery/repeat.
+The intermediate reordering-only version used 996 / 1,135 / 1,135: fewer complete
+reads alone did not improve request load. All other measured action counts are
+unchanged. Exact final native samples and checks are in
+[verification](../intent/0318/VERIFICATION.json).
+
+C22 remains pending: these undelayed shared-host synthetic samples are not warmed
+p95, real-provider or browser evidence. Preserve the 200-attempt ceiling, 20 ms
+per attempt, five-second p95 and complete 20-warm/3-cold/4-concurrent protocol in
+both directions plus negatives. Next reduce repeated current-caller/metadata
+traversal across the remaining preparation/start/confirmation owners. No changed
+request counting, cached permission or raised deadline is permitted.
+**68% (17/25; eight remaining; +0 percentage points).**
+
 ## Owned current-original drafting start — 0317
 
 [0317](../intent/0317/EVIDENCE.md) shares retained drafting inputs within explicit

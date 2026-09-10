@@ -62,6 +62,25 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Joint current-scope/original validation for drafting start — 0318
+
+[0318](../intent/0318/EVIDENCE.md) changes the owned phase ordering below:
+one private current-scope window encloses original consumption, authorization,
+operation inspection and full final development records/key comparison. Its full
+final scope read then verifies exact equality with the initially bound assessment.
+Fresh development purposes remain required through final scope IO and return.
+This replaces the prior inner-final plus extra closing scope read, not either
+component's final state validation. The data owner still independently binds each
+consumed original to the supplied current-scope port; missing, foreign, historical
+or expired results cannot authorize start.
+
+Immutable intermediate scope consumption makes one fresh source/caller check with
+no IO before the synchronous return. Actual first/final reads remain bracketed.
+The explicit API-owned hook supplies this private scope port; there is no HTTP
+flag, historical fallback, effect grant or automatic live activation. Scheduling
+stays outside each phase. Closing during final scope IO waits for that owned work
+to drain. The ordinary reader keeps its prior admission/policy ordering.
+
 ### Owned current-original reads for drafting start — 0317
 
 [0317](../intent/0317/EVIDENCE.md) adds an explicit `development.ownedCurrent`

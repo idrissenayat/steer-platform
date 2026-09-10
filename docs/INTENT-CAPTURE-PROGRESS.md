@@ -103,6 +103,7 @@ it does not imply that no code exists.
 | 2026-09-10 / 0315 | 17/25 | 68% | +0 percentage points | Metadata-only read-policy integration in both preparers and scope start preserves fresh policy/caller checks and full effect boundaries. Scope preparation falls 320→292, first scope start 596→406 and drafting preparation 594→532 attempts. Six new ordering/revocation/drainage tests and corrected native transport instrumentation cover the change. Development start/save counts are unchanged; C22 and live acceptance remain open. |
 | 2026-09-10 / 0316 | 17/25 | 68% | +0 percentage points | Owned current-original scope-start reads share immutable state only within validation phases, with fresh independent authority and complete final records/key readback. Scope start falls 406→195 and recovery/repeat 460→221; changing observations/results are excluded. Native equivalence/revocation/drainage and current/history regressions pass alongside focused/broad/types checks and both synthetic save/reopen directions. Other starts, preparation and save actions remain above 200; C22 and live acceptance stay open. |
 | 2026-09-10 / 0317 | 17/25 | 68% | +0 percentage points | Owned current-original drafting-start phases require distinct current discovery, exact source/profile/direction and fresh purpose grants through final scope/records/key closure. Drafting start falls 1,407→989, recovery/repeat 1,594→1,127. Native ordinary/owned equality, history-only denial and late-loss/drain tests cover the change; both synthetic save/reopen directions retain exact results. Ordinary first-policy order was restored after two regression failures. Counts still exceed 200; joint scope/original and caller consolidation plus the full benchmark remain. |
+| 2026-09-10 / 0318 | 17/25 | 68% | +0 percentage points | Joint current-scope/original phases reduce full scope reads nine→six while retaining final development records/key comparison followed by final current scope under fresh purpose grants. Reordering alone regressed request counts; removing redundant no-IO permission calls brings final drafting start 989→938 and recovery/repeat 1,127→1,069. Native exact-source/status/subject and shutdown checks cover the joint boundary. This roughly 5% reduction is partial C22; all real-user acceptance remains separate. |
 
 Next unblocked engineering checkpoint: C22, meet the documented request-load and
 latency bounds without weakening current authority or recovery guarantees.
@@ -131,9 +132,10 @@ final state/draft comparison. 0315 integrates metadata-only permission compositi
 in both preparers and scope start without weakening effect barriers. 0316 connects
 owned current-original records reads to scope start with fresh phases around
 scheduling. 0317 connects drafting-start originals with distinct current grants
-and final current-scope/record/key-purpose checks in both directions. Joint scope/
-original validation, surrounding caller traversal and remaining preparation/save
-controls still need consolidation before the whole-action benchmark. Preview optimization alone cannot
+and final current-scope/record/key-purpose checks in both directions. 0318 combines
+scope/original phase ordering while preserving those final checks, but repeated
+current-caller/metadata traversal across preparation/start/confirmation still needs
+consolidation before the whole-action benchmark. Preview optimization alone cannot
 close C22 while the other interactive actions exceed the same ceiling.
 0303 adds the actual adapter primitive for the upcoming integrated graph, with no
 automatic collector switch and no reduction claimed for installed application actions.

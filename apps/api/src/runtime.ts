@@ -41,6 +41,7 @@ import { createIntentDevelopmentReader } from '@steer/data/intent-development-re
 import { createIntentDevelopmentHistoryReader } from '@steer/data/intent-development-history-reader';
 import { createDevelopmentObservationStore } from '@steer/data/development-observations';
 import { createIntentDevelopmentStarter } from '@steer/data/intent-development-starter';
+import { withCurrentScopeReadWindow } from '@steer/data/current-scope-read-window';
 import { intentDevelopmentStartInputSchema } from '@steer/tool-registry/intent-development-start-contracts';
 import { createIntentDevelopmentPreparer } from '@steer/data/intent-development-preparer';
 import { intentOperationConfigurationSchema } from '@steer/data/intent-operations';
@@ -71,7 +72,6 @@ import { intentOperationCodec } from '@steer/data/intent-operations';
 import { scopeReviewOperationCodec } from '@steer/data/scope-review-operations';
 import { createRecordsContentReader, type RecordsContentLease } from '@steer/data/records-content-reader';
 import { recordValuesEqual, inspectEncryptedRecords, type DecodedRecordContents } from '@steer/data/records-content-codecs';
-import { bindRecordedIntentScope, intentScopeSelectionFor } from '@steer/tool-registry/intent-scope-selection';
 import { intentDevelopmentHistoryInputSchema, verifyIntentDevelopmentHistoryOutput, type IntentDevelopmentHistoryReader } from '@steer/tool-registry/intent-development-history-contracts';
 
 type RecordedHistoryProfiles = Parameters<typeof createRecordedMastraExchangeVerifier>[0];
@@ -649,8 +649,8 @@ type OwnedDevelopmentOriginalBinding = {
   keys: Parameters<typeof createRecordsContentReader>[3];
 };
 /** Current inputs only, under independently supplied current discovery/key grants.
- * The data service completes current scope validation inside this records phase;
- * complete records/key readback follows that work before any scheduling effect. */
+ * Current scope encloses dependent original validation and full records/key
+ * readback. Its final read carries fresh development purposes through return. */
 function createOwnedDevelopmentOriginalRead(pools: Parameters<typeof createIntentDevelopmentStarter>[0], configuration: unknown,
   dependencies: Parameters<typeof createRecordedDevelopmentStarter>[2]) {
   const config = freeze(draftRecordsConfigurationSchema.parse(configuration)), profiles = freeze(developmentOriginalSchema.shape.profiles.parse(dependencies.profiles));
@@ -718,21 +718,25 @@ function createOwnedDevelopmentOriginalRead(pools: Parameters<typeof createInten
         pending.add(task); void task.finally(() => pending.delete(task)).catch(() => {}); return task;
       };
       try {
-        await current(); let returned: unknown;
-        try { returned = await work(read); } finally { closed = true; }
-        if (returned !== undefined || failed || !consumed || consuming || pending.size) throw historyUnavailable();
-        await current(); await lease.recheck(); await current();
-        const bound = original.direction.scopeReview;
-        if (bound?.kind === 'recorded') {
-          if (!scopeReader) throw historyUnavailable();
-          const result = await scopeReader.read({ organizationId: config.organizationId, productId: config.productId,
-            repository: config.repository, reviewId: bound.reviewId, preparationDigest: bound.preparationDigest }, current);
-          const source = original.source;
-          historyEqual(await bindRecordedIntentScope(intentScopeSelectionFor(bound), result, original.evidence, {
-            organizationId: config.organizationId, subject: config.subject, productId: config.productId, repository: config.repository,
-            draftId: source.draftId, revision: source.revision, revisionDigest: source.revisionDigest, scopeInputDigest: source.scopeInputDigest,
-          }), bound);
-        }
+        await current(); let recordsRechecked = false;
+        // Initial scope uses the data owner's exact source/caller barrier. The
+        // final read follows full development record/key comparison and also
+        // re-grants selected development purposes through every scope IO wait.
+        const joinedScope: IntentScopeReader | undefined = scopeReader ? { scope: scopeReader.scope,
+          async read(input, sourceCurrent) {
+            pinned(); checkLease();
+            const present = recordsRechecked ? async () => {
+              if (await sourceCurrent() !== undefined) throw historyUnavailable(); await current();
+            } : sourceCurrent;
+            const result = await Reflect.apply(scopeRead!, scopeReader, [input, present]);
+            if (recordsRechecked) await current(); pinned(); checkLease(); return result;
+          } } : undefined;
+        await withCurrentScopeReadWindow(joinedScope, revalidate, async scoped => {
+          let returned: unknown;
+          try { returned = await work(read, scoped); } finally { closed = true; }
+          if (returned !== undefined || failed || !consumed || consuming || pending.size) throw historyUnavailable();
+          await current(); await lease.recheck(); await current(); recordsRechecked = true;
+        });
         await current(); checkLease();
       } finally { closed = true; await Promise.allSettled([...pending]); }
     });
