@@ -9,7 +9,19 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0320 / owned current-scope projection — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0321 / exact caller identity in shared source review — 68% (17/25; 8 remaining; +0 points)**.
+[0321](../intent/0321/EVIDENCE.md) preserves one guarded callback only when parent
+and child supply the exact same original caller. The source owner invokes it once
+at each boundary; independent callers, fresh checks around reads, complete final
+source/draft comparison and actual drainage remain. No authorization is cached.
+
+Synthetic save review falls 211→174 attempts, below the request ceiling in this
+sample. New-distinct preview/confirmation fall 330/853→293/779; continuation falls
+440/1,073→403/999. Preparation and drafting start are unchanged. C22 still needs
+the remaining action-level validation consolidation and the full unchanged
+benchmark. These are functional synthetic samples, not latency or live acceptance.
+
+Prior delivery checkpoint: **0320 / owned current-scope projection — 68% (17/25; 8 remaining; +0 points)**.
 [0320](../intent/0320/EVIDENCE.md) keeps one independently authorized current-scope
 content lease around each drafting validation phase. Development records/key
 comparison precedes final scope records/key comparison; current purpose permissions

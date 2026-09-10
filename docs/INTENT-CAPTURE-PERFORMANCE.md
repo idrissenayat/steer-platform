@@ -7,6 +7,29 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Exact caller identity in shared source review — 0321
+
+[0321](../intent/0321/EVIDENCE.md) removes duplicate invocation of one identical
+caller at the same boundary. Every read retains fresh caller checks, independent
+callbacks remain independent, and draft/evidence/policy work is unchanged.
+
+| Authenticated synthetic action | 0320 attempts | 0321 attempts |
+| --- | ---: | ---: |
+| Save review, either direction | 211 | 174 |
+| New-distinct preview | 330 | 293 |
+| New-distinct confirmation / recovery / repeat | 853 / 825 / 823 | 779 / 751 / 749 |
+| Continuation preview | 440 | 403 |
+| Continuation confirmation / recovery / repeat | 1,073 / 1,045 / 1,043 | 999 / 971 / 969 |
+
+Save review removes 37 attempts (17.54%) and is below 200 in this functional
+sample. Preparation, drafting start and the other measured actions are unchanged.
+Exact samples and verification scope are in [verification](../intent/0321/VERIFICATION.json).
+All identity/token attempts count. Undelayed shared-host timings are not warmed
+p95, UI speed or live-model acceptance. Remaining preparation/start/confirmation
+validation must fit the same ceiling before the full 20-warm/3-cold/4-concurrent
+protocol in both directions, with 20 ms per attempt, five-second p95 and negatives.
+**68% (17/25; eight remaining; +0 percentage points).**
+
 ## Owned current-scope projection — 0320
 
 [0320](../intent/0320/EVIDENCE.md) joins the complete scope content lease with

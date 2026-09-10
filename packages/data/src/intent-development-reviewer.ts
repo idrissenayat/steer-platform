@@ -92,7 +92,10 @@ export function createIntentDevelopmentReviewer(rawConfiguration: unknown, deps:
         .some((port, i) => port !== ports[i])) throw unavailable(); };
     const current = async () => {
       guard(); if (await outerCurrent() !== undefined) throw unavailable(); guard();
-      if (childCurrent && await childCurrent() !== undefined) throw unavailable(); guard();
+      // The session may preserve the exact same guarded caller at both edges.
+      // With no IO/policy between them, one invocation covers that boundary.
+      // Independent, wrapped or merely similar callbacks still run separately.
+      if (childCurrent && childCurrent !== outerCurrent && await childCurrent() !== undefined) throw unavailable(); guard();
     };
     const readState = async (read: () => Promise<unknown>) => {
       const draft = freeze(await readDraft(input, current)), sources = await readEvidence(input, current, read);

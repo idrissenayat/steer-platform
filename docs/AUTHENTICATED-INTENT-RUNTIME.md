@@ -62,6 +62,20 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Exact caller identity in shared source review — 0321
+
+[0321](../intent/0321/EVIDENCE.md) passes the same immutable owner-guarded function
+to a registered source session only when its parent and child supply the exact
+same original caller. The source owner calls that function once per boundary.
+Independent, bound, wrapped or marker-copied callers remain separate; unregistered
+readers retain the full fallback. No grant, principal or permission result is cached.
+
+Fresh checks around draft/evidence IO, every source policy, final full source/draft
+comparison, scope/method guards and actual pending-work drainage remain. Five
+focused negative/counting cases cover identity, ownership and late revocation.
+Save review reaches 174 synthetic attempts; confirmation remains above the fixed
+budget, and full performance plus actual signed-in UI/save acceptance remain open.
+
 ### Owned current-scope projection during drafting start — 0320
 
 [0320](../intent/0320/EVIDENCE.md) privately registers only the exact constructed

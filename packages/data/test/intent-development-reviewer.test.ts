@@ -88,6 +88,47 @@ test('constructed source phase lazily shares initial review and reopens complete
   assert.equal(windows, 2);
   assert.deepEqual(state, { reads: 6, evidenceReads: 4, authorizations: 6 }); service.close();
 });
+
+test('identical caller composition removes duplicate invocation without changing source, draft or policy work', async () => {
+  const measure = async (shared: boolean) => {
+    const { f, state, service, deps } = await setup(); let parentCalls = 0, childCalls = 0;
+    const parent = async () => { parentCalls++; }, child = async () => { childCalls++; await parent(); };
+    deps.withEvidenceRead = async (_input, current, work) => {
+      await current(); const value = await work(async () => { state.evidenceReads++; await current(); return f.evidence; });
+      await current(); return value;
+    };
+    try {
+      await withReviewReadSession(service, f.input, parent, async read => {
+        for (let n = 0; n < 3; n++) assert.deepEqual(await read(shared ? parent : child), f.review);
+      }, pending => pending, () => {});
+      return { parentCalls, childCalls, state };
+    } finally { service.close(); }
+  };
+  const shared = await measure(true), independent = await measure(false);
+  assert.deepEqual(shared.state, independent.state); assert.deepEqual(shared.state, { reads: 3, evidenceReads: 2, authorizations: 4 });
+  assert.equal(shared.childCalls, 0); assert.ok(independent.childCalls > 0);
+  assert.ok(shared.parentCalls < independent.parentCalls);
+  assert.equal(independent.parentCalls - shared.parentCalls, independent.childCalls - 6,
+    'Only duplicate source-owner calls disappear; before/after consumption checks stay');
+});
+
+test('identical source caller still rejects revocation during draft or evidence IO and at final closure', async () => {
+  for (const mode of ['draft', 'evidence', 'final-corpus', 'between-consumptions']) {
+    const { f, deps, service } = await setup(); let allowed = true, returned = false;
+    const caller = async () => { if (!allowed) throw new Error('PRIVATE revoked exact caller'); };
+    const draft = deps.drafts.read;
+    deps.drafts.read = async (...args) => { const value = await draft(...args); if (mode === 'draft') allowed = false; return value; };
+    deps.withEvidenceRead = async (_input, current, work) => {
+      const value = await work(async () => { if (mode === 'evidence') allowed = false; await current(); return f.evidence; });
+      if (mode === 'final-corpus') allowed = false; await current(); return value;
+    };
+    try {
+      await assert.rejects(withReviewReadSession(service, f.input, caller, async read => {
+        await read(caller); if (mode === 'between-consumptions') { allowed = false; await read(caller); }
+      }, pending => pending, () => {}).then(() => { returned = true; })); assert.equal(returned, false);
+    } finally { service.close(); }
+  }
+});
 test('final corpus callback cannot hide a changed draft, key loss, hold, swapped port or revoked caller', async () => {
   for (const mode of ['draft', 'content', 'key', 'hold', 'draft-port', 'authority-port', 'hook', 'caller', 'closed']) {
     const { f, deps, service } = await setup(); let ended = false, valid = true;

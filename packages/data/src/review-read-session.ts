@@ -26,6 +26,9 @@ export async function withReviewReadSession(reader: { scope: unknown; review: Fu
       || (registered && registered.scopeDigest !== scopeDigest)) throw fail();
   };
   const present = async (callback: Current) => { check(); if (typeof callback !== 'function' || await callback() !== undefined) throw fail(); check(); };
+  // Preserve the identity of this exact owner-guarded caller for a constructed
+  // child session. This carries no decision or result and reruns on every use.
+  const parentCurrent = Object.freeze(() => present(current));
   const run = (read: Read) => {
     if (invoked || typeof read !== 'function') { failed = true; const rejected = Promise.reject(fail()); void rejected.catch(() => {}); return rejected; }
     invoked = true;
@@ -34,7 +37,7 @@ export async function withReviewReadSession(reader: { scope: unknown; review: Fu
       reading = true; reads++;
       const task = Promise.resolve().then(async () => {
         await present(callback);
-        const value = await read(() => present(callback));
+        const value = await read(registered && callback === current ? parentCurrent : () => present(callback));
         await present(callback); return value;
       }).catch(error => { failed = true; throw error; });
       pending.add(task); void task.finally(() => { reading = false; pending.delete(task); }).catch(() => {});
@@ -53,7 +56,7 @@ export async function withReviewReadSession(reader: { scope: unknown; review: Fu
   };
   try {
     await present(current);
-    const task = Promise.resolve().then(() => registered ? registered.run(input, () => present(current), run)
+    const task = Promise.resolve().then(() => registered ? registered.run(input, parentCurrent, run)
       : run(callback => Reflect.apply(method, reader, [input, callback])));
     void task.catch(() => {});
     if (await track(task) !== undefined || await task !== undefined) throw fail();

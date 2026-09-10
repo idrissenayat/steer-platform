@@ -7053,6 +7053,25 @@ live model/key access, spending, runtime GitHub save, deployment, profile/record
 activation, signature or human UI acceptance. User drafts, signed artifacts and
 roadmap/outputs remain unchanged. **68% (17/25; eight remaining; +0 points).**
 
+## 0321 — Exact caller identity in shared source review
+
+[0321](../intent/0321/EVIDENCE.md) carries one immutable guarded caller through
+the private source-review session when the original callbacks are exactly equal.
+Independent callers still run separately. Every draft/evidence read, source policy,
+complete final validation and actual drainage remains; no authorization is cached.
+
+Authenticated synthetic save review falls 211→174 attempts; new-distinct preview/
+confirmation 330/853→293/779; continuation 440/1,073→403/999. Both native joined
+save/recovery/reopen selections and native development preparation pass. Exact
+test counts, source hashes and sample scope are in [verification](../intent/0321/VERIFICATION.json).
+Other action counts remain unchanged; these are not the complete C22 benchmark.
+
+**Progress: 68% (17/25; eight remaining; +0 percentage points).** Next consolidate
+remaining preparation/start/confirmation validation, then the unchanged full
+performance protocol. No live model spend, runtime GitHub artifact save, records
+activation, deployment, release, deletion or signature is implied. Signed/protected
+artifacts and the user's roadmap/outputs remain untouched.
+
 ## 0320 — Owned current-scope projection for drafting start
 
 [0320](../intent/0320/EVIDENCE.md) keeps one actual current-scope records/key lease

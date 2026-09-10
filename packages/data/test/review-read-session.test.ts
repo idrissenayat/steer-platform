@@ -103,3 +103,46 @@ test('tracker rejection closes the window while its owner retains the actual hel
   await assert.rejects(result); assert.ok(owned.size > 0);
   release(); await Promise.allSettled([...owned]); assert.equal(owned.size, 0);
 });
+
+test('constructed sessions preserve exact guarded caller identity only for the identical original callback', async () => {
+  const port = reader(); let shared = 0, separate = 0, calls = 0;
+  const caller = async () => { calls++; };
+  registerReviewReadSession(port.review, port.scope, async (_input, parent, work) => {
+    assert.equal(Object.isFrozen(parent), true);
+    await work(async child => { if (child === parent) shared++; else separate++; await child(); return 'shared'; });
+  });
+  await withReviewReadSession(port, {}, caller, async read => {
+    await read(caller); await read(caller);
+    for (const other of [async () => caller(), caller.bind(null), Object.assign(async () => caller(), { current: caller })]) await read(other);
+  }, track, guard);
+  assert.equal(shared, 2); assert.equal(separate, 3); assert.equal(calls, 17);
+});
+
+test('shared guarded caller is fresh after dependency IO and denies owner, method or caller changes', async () => {
+  for (const mode of ['caller', 'owner', 'method', 'nonvoid']) {
+    const port = reader(); let permitted = true, open = true;
+    const caller = async () => { if (!permitted) throw new Error('revoked'); if (!open && mode === 'nonvoid') return true as never; };
+    registerReviewReadSession(port.review, port.scope, async (_input, parent, work) => {
+      await work(async child => {
+        assert.equal(child, parent); await child();
+        if (mode === 'caller') permitted = false;
+        if (mode === 'method') port.review = async () => 'changed';
+        open = false; await child(); return 'must not return';
+      });
+    });
+    await assert.rejects(withReviewReadSession(port, {}, caller, async read => { await read(caller); }, track,
+      () => { if (!open && mode === 'owner') throw new Error('closed'); }));
+  }
+});
+
+test('shared caller cannot escape its completed owner or silently authorize an independent child', async () => {
+  const port = reader(); let escaped: (() => Promise<void>) | undefined, independent = 0;
+  registerReviewReadSession(port.review, port.scope, async (_input, parent, work) => {
+    escaped = parent; await work(async child => { await child(); return 'shared'; });
+  });
+  await withReviewReadSession(port, {}, current, async read => { await read(current); }, track, guard);
+  await assert.rejects(escaped!());
+  await assert.rejects(withReviewReadSession(port, {}, current, async read => {
+    await read(async () => { independent++; throw new Error('Independent authority denied'); });
+  }, track, guard)); assert.equal(independent, 1);
+});
