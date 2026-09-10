@@ -197,7 +197,7 @@ export function authenticatedCandidateConfirmation(f: Fixture, native: ReturnTyp
         assert.deepEqual(await rows(), encrypted); assert.deepEqual(await snapshot(), stored);
       console.log(`PASS authenticated ${direction} corrected package: stale assessment denied, two fresh recorded scope batches, exact edited-document lineage, human confirmation, discarded HTTP acknowledgement and reconstructed idempotent original recovery; six synthetic model calls/reservations, no candidate-save scheduling or Git save`);
         console.log('Synthetic authenticated corrected-package request measurements: ' + JSON.stringify(measurements));
-        return { reference: recovered.reference, documents: draft.content.documents };
+        return { reference: recovered.reference, documents: draft.content.documents, scopeReference: admitted.reference };
       } finally { enabled = false; }
     },
   };

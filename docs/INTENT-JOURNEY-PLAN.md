@@ -9,7 +9,24 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0299 / corpus protocol experiment — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0300 / native records experiment — 68% (17/25; 8 remaining; +0 points)**.
+The test-only bounded records reader reconstructs 20 encrypted records and checks
+four scope plus two development SDK exchanges after the unchanged authenticated
+native save/reopen journey. It uses 22 simulated provider attempts including OIDC
+and Git-grant bootstrap, four role-scoped transactions, 34 SQL statements and a
+full final readback. Source prompts, predecessor and human confirmation are bound
+to their exact originals. See [specification](../intent/0300/SPEC.md) and
+[evidence](../intent/0300/EVIDENCE.md).
+
+This is not the full application correction: independent production records/source
+policies, owner drainage, outer callbacks and write-separated phases remain to
+integrate and measure. The fixture uses one physical key and synthetic policies;
+their production cost is not presumed zero. Full confirmation remains 7,637.
+Next complete the combined corpus/records/outer-boundary feasibility under
+[0298](../intent/0298/REQUEST-BUDGET-PLAN.md), then integrate the coherent correction
+and run the unchanged benchmark. No checkpoint, activation or new ETA is claimed.
+
+Prior delivery checkpoint: **0299 / corpus protocol experiment — 68% (17/25; 8 remaining; +0 points)**.
 The test-only batch experiment consumes all 42 distinct physical files and returns
 the same 34 semantic sources as the existing collector. Five bounded dependency
 queries plus metadata, head and token reads produce 27 simulated provider attempts;

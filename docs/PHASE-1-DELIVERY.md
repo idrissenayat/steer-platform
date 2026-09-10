@@ -6845,3 +6845,34 @@ No production change, model use or runtime authority is introduced. Progress sta
 **68% (17/25; 8 remaining; +0 percentage points)**; this is the same 0299 experiment.
 Follow-up audit: 18 recorded source-hash entries, four protected hashes, 426
 relative links, unchanged 17/25 tracker, 95 kit artifacts and workflow scopes pass.
+
+## 0300 — Native records read-set feasibility, no production change
+
+The [records experiment](../intent/0300/EVIDENCE.md) follows the existing authenticated
+native generation/correction/confirmation/save/reopen assertions. It collects and
+fully rechecks the two draft revisions, two scope originals/eight observations,
+one development original/two results/four observations, one candidate original,
+and their execution/reservation metadata. Twenty encrypted records are decoded
+once; four scope and two development exchanges use the actual SDK verifiers.
+The development renderer reconstructs exact role prompts and the predecessor;
+candidate input planning includes the human confirmation digest.
+
+The records portion uses 22 simulated provider attempts, including OIDC/Git-grant
+bootstrap, four role-scoped transactions, 34 SQL statements and two key-provider
+calls for the fixture's one distinct physical key. Fixture metadata policy calls
+and retained-source checks are counted separately. These are not full-confirmation
+costs: independent production policies, key-provider equivalence, owner drainage,
+all outer callbacks and write-separated phases remain unproven. The whole-request
+correction remains governed by [0298](../intent/0298/REQUEST-BUDGET-PLAN.md).
+
+The focused selection is not the full SQL suite or C22 benchmark. Relevant unit
+tests, all typechecks, native selection results and prior failures are recorded
+in the evidence. No production source, activation, real-model call, live repository
+write, signed artifact or user draft changes. User roadmap/outputs are preserved.
+**Intent capture: 68% (17/25; 8 remaining; +0 percentage points).** Next complete
+combined corpus/records/outer-boundary feasibility, then coherent integration and
+the unchanged full performance benchmark. No new optimistic completion date.
+
+0300 final audit: 17 focused tests, native joined/records selection and all types
+pass; 14 source hashes, four protected hashes, 430 relative links, 17/25 tracker,
+95 required kit artifacts, workflow scopes and diff whitespace checks pass.

@@ -106,6 +106,11 @@ try {
     await testAuthenticatedGeneration({admin,connect,check},'candidate-revision');
     assert.equal(passed,2);
     console.log(`FOCUSED authenticated candidate revision result: ${passed-1} joined check passed plus idempotent migration check; full suite NOT RUN.`);
+  }else if(selection.mode==='records-readset-feasibility'){
+    console.log('FOCUSED records read-set feasibility after the unchanged authenticated native journey; NOT full C22 or production installation.');
+    await testAuthenticatedGeneration({admin,connect,check},'new-distinct',false,false,true);
+    assert.equal(passed,2);
+    console.log('FOCUSED records readset: joined journey and feasibility assertions plus idempotent migrations passed; full suite NOT RUN.');
   }else if(selection.mode==='journey-request-profile'){
     console.log('FOCUSED synthetic authenticated identity call-chain attribution; changes no production behavior; NOT C22 or full integration suite.');
     await testAuthenticatedGeneration({admin,connect,check},'new-distinct',false,true);

@@ -27,6 +27,7 @@ import { authenticatedJourneyChoice, authenticatedJourneyItem, type Authenticate
 import { createIntentPerformanceProbe } from './intent-performance-probe.ts';
 import { testAuthenticatedPerformancePrefix } from './authenticated-performance-prefix.integration.ts';
 import { createIdentityRequestProfile } from './identity-request-profile.ts';
+import { testRecordsReadsetFeasibility } from './records-readset-feasibility.integration.ts';
 
 /** Signed synthetic JWT + native Git grants, real API constructor graph, SQL and
  * recorded SDK roles. No real issuer, model transport, live migration or external Git write.
@@ -34,8 +35,9 @@ import { createIdentityRequestProfile } from './identity-request-profile.ts';
  * This check does not claim real provider authority or signed-in UI acceptance. */
 export async function testAuthenticatedGeneration({ admin, connect, check }: {
   admin: Pool; connect(role: string): Pool; check(name: string, run: () => Promise<void>): Promise<void>;
-}, direction: AuthenticatedJourneyDirection = 'new-distinct', performanceOnly = false, profileRequests = false) {
+}, direction: AuthenticatedJourneyDirection = 'new-distinct', performanceOnly = false, profileRequests = false, recordsFeasibility = false) {
   if (profileRequests && performanceOnly) throw new Error('Attribution overhead must not be mixed with performance acceptance.');
+  if (recordsFeasibility && (profileRequests || performanceOnly)) throw new Error('Records feasibility must be an isolated test selection.');
   const itemId = authenticatedJourneyItem(direction);
   const name = performanceOnly ? `bounded authenticated ${direction} performance prefix preserves records and reports incomplete/failed benchmark honestly`
     : direction === 'new-distinct' ? 'concrete authenticated journey binds native multi-batch scope, both SDK roles, corrected confirmation and fixed save/reopen through restart'
@@ -266,6 +268,9 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
           toolGrants: identity.grant.toolGrants.filter(tool => tool !== 'intent.candidate.read') }) });
       assert.equal(modelCalls, 6); assert.equal(native.git.mutations(), 1);
       await runtime.shutdown(); assert.equal(constructions, 4); assert.equal(closures, 4);
+      if (recordsFeasibility) await testRecordsReadsetFeasibility(f, identity, profiles, { draftId: f.draftId,
+        operationIds: [reference.operationId, confirmed.reference.operationId], reviewIds: [scopePrepared.reference!.reviewId, confirmed.scopeReference.reviewId],
+        revisions: [1, 2], budgetId: f.execution.budget.budgetId }, authority);
     } finally {
       try { await Promise.all(runtimes.map(value => value.shutdown())); }
       finally { f.drafts.close(); f.lifecycle.close(); f.key.bytes.fill(0); await Promise.all(pools.filter(pool => !pool.ending).map(pool => pool.end())); }

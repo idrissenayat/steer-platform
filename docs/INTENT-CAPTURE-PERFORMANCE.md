@@ -7,6 +7,19 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Records protocol experiment — 0300
+
+The [native records experiment](../intent/0300/EVIDENCE.md) reads and fully rechecks
+the actual synthetic journey's records through existing PostgreSQL runtime roles.
+It reconstructs 20 encrypted records and six SDK exchanges using 22 simulated
+provider attempts (including identity/bootstrap), four transactions and 34 SQL
+statements. This is a records portion, **not a 22-request confirmation action**.
+The current confirmation still costs 7,637 attempts. Fixture policy calls are
+counted but production per-purpose policies, all outer callbacks/effects and owner
+drainage are not integrated. A single local elapsed sample is not delayed p95.
+The records allocation and whole C22 remain unaccepted. Next prove the combined
+boundary plan, integrate the coherent correction and run the full protocol below.
+
 ## Representative interactive budget
 
 Use the existing authenticated 34-source journey, both new-distinct and proposal
@@ -57,7 +70,7 @@ do not exclude expensive identity traffic or weaken checks to meet the number.
 
 ## Current gap and next work
 
-Latest: [0299](../intent/0299/EVIDENCE.md) verifies a test-only corpus batch protocol:
+Prior: [0299](../intent/0299/EVIDENCE.md) verifies a test-only corpus batch protocol:
 42 distinct files, the same 34 semantic sources, five dependency queries and 27
 simulated provider attempts, including separate identity and repository tokens.
 All 126 per-source policy calls execute. Metadata authorities are synthetic and

@@ -62,6 +62,21 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Native records experiment, no runtime installation — 0300
+
+The [bounded read-set experiment](../intent/0300/EVIDENCE.md) follows the unchanged
+authenticated synthetic native save/reopen journey. Existing draft/execution SQL
+roles, RLS, encryption, prompt reconstruction and SDK verifiers cover 20 encrypted
+records, with a complete final snapshot comparison. The records portion emits 22
+simulated provider attempts including actual OIDC and Git-grant bootstrap. This
+does not install a history service, change authority or fix application performance.
+
+The fixture's policy and single physical key are not proof that independent
+production authorities/providers can be collapsed. Per-purpose policies, owner
+drainage, outer callbacks and write-separated phases must still be included in the
+combined feasibility and integrated correction. Confirmation remains 7,637;
+progress stays 68% (17/25; eight remaining; +0). No live model or runtime write.
+
 ### Corpus protocol experiment, no runtime installation — 0299
 
 The [test-only experiment](../intent/0299/EVIDENCE.md) collects all 42 distinct

@@ -17,6 +17,7 @@ export function parseIntegrationSelection(args:readonly string[]) {
   if(args.length===1&&args[0]==='--candidate-journey')return {mode:'candidate-journey' as const};
   if(args.length===1&&args[0]==='--journey-runtime')return {mode:'journey-runtime' as const};
   if(args.length===1&&args[0]==='--journey-request-profile')return {mode:'journey-request-profile' as const};
+  if(args.length===1&&args[0]==='--records-readset-feasibility')return {mode:'records-readset-feasibility' as const};
   if(args.length===1&&args[0]==='--journey-performance')return {mode:'journey-performance' as const};
   if(args.length===1&&args[0]==='--journey-runtime-revision')return {mode:'journey-runtime-revision' as const};
   if(args.length===1&&args[0]==='--journey-runtime-linked')return {mode:'journey-runtime-linked' as const};
@@ -24,7 +25,7 @@ export function parseIntegrationSelection(args:readonly string[]) {
   if(args.length===1&&args[0]==='--journey-runtime-continuation')return {mode:'journey-runtime-continuation' as const};
   if(![2,4].includes(args.length)||!['--clarification-repro','--candidate-recovery-repro'].includes(args[0]!)||!/^([1-9]|1[0-9]|20)$/.test(args[1]!)
     ||(args.length===4&&(args[2]!=='--query-delay-ms'||! /^[0-5]$/.test(args[3]!))))
-    throw new Error('Use no arguments for the full suite, --scope-runtime, --development-history, --development-history-records, --development-start, --development-prepare, --run-discovery, --admission-discovery, --candidate-save, --candidate-start, --candidate-journey, --journey-runtime, --journey-request-profile, --journey-performance, --journey-runtime-revision, --journey-runtime-linked, --journey-runtime-amendment, --journey-runtime-continuation, or --clarification-repro / --candidate-recovery-repro 1-20 [--query-delay-ms 0-5].');
+    throw new Error('Use no arguments for the full suite, --scope-runtime, --development-history, --development-history-records, --development-start, --development-prepare, --run-discovery, --admission-discovery, --candidate-save, --candidate-start, --candidate-journey, --journey-runtime, --journey-request-profile, --records-readset-feasibility, --journey-performance, --journey-runtime-revision, --journey-runtime-linked, --journey-runtime-amendment, --journey-runtime-continuation, or --clarification-repro / --candidate-recovery-repro 1-20 [--query-delay-ms 0-5].');
   return {mode:args[0]==='--candidate-recovery-repro'?'candidate-recovery-repro' as const:'clarification-repro' as const,iterations:Number(args[1]),queryDelayMs:args.length===4?Number(args[3]):0};
 }
 type Phase='connect'|'commit'|'rollback'|'observation-write'|'result-write'|'execution-write'|'query';
