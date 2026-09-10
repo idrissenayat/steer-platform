@@ -6,7 +6,7 @@ import { createOidcContextAuthenticator } from '@steer/adapters/identity';
 import { createNativeRequestMeter } from './native-request-metrics.ts';
 import type { recordedRuntimeFixture } from './recorded-runtime-fixture.ts';
 import type { scopeDraftIntegrationFixture } from '../../../packages/data/test/scope-originals.integration.ts';
-import { readRecordsReadsetPrototype } from '../../../packages/data/test/records-readset-prototype.ts';
+import { readRecordsReadsetPrototype, assertRecordsReadsetsUsable } from '../../../packages/data/test/records-readset-prototype.ts';
 import { decodeRecordsReadsetPrototype } from './records-readset-decode.ts';
 import type { createRecordedMastraVerifier } from '@steer/agents/recorded-mastra';
 import type { DraftKey } from '../../../packages/data/src/draft-envelope.ts';
@@ -35,15 +35,23 @@ export async function testRecordsReadsetFeasibility(f: Awaited<ReturnType<typeof
     await originalSourcePolicy!(ref);
     if (lateSourceDenied) { lateSourceDenials++; throw new Error('Synthetic source revoked after records readback.'); }
   };
-  const policy = async () => { await authorize(); if (denied) throw new Error('Synthetic records policy denied.'); recordPolicies++; };
-  const run = async (alter?: (phase: 'decoded' | 'keys-rechecked' | 'records-rechecked') => Promise<void>, changeKey = false) => resolve.withinRequest(async () => {
+  let lateExpiryReached = false, lateExpiryDenied = false;
+  const run = async (alter?: (phase: 'decoded' | 'keys-rechecked' | 'records-rechecked') => Promise<void>, changeKey = false,
+    expireAfterRecords = false) => resolve.withinRequest(async () => {
     const request = new Request('https://steer.example/synthetic-records-feasibility', { headers: { authorization: `Bearer ${await identity.issueBearer()}` } });
     const started = performance.now(), before = traffic.snapshot(), beforeJwks = jwks, beforePolicies = recordPolicies, beforeSources = retainedSourcePolicies, beforeKeys = keyCalls, beforeChecks = checks;
-    const current = async () => { checks++; const context = await authenticate(request);
+    const snapshots: Awaited<ReturnType<typeof readRecordsReadsetPrototype>>[] = [];
+    let elapsedOffset = 0;
+    const clock = () => performance.now() + elapsedOffset;
+    const usable = () => { if (snapshots.length) try { assertRecordsReadsetsUsable(...snapshots); }
+      catch (error) { if (expireAfterRecords && lateExpiryReached) lateExpiryDenied = true; throw error; } };
+    const policy = async () => { usable(); await authorize(); usable(); if (denied) throw new Error('Synthetic records policy denied.'); recordPolicies++; };
+    const current = async () => { usable(); checks++; const context = await authenticate(request);
       if (!context || context.principal.subject !== f.config.subject || context.principal.organizationId !== f.config.organizationId
-        || context.principal.type !== 'human' || !context.principal.toolGrants.includes('intent.development.history')) throw new Error('Synthetic caller denied.'); };
+        || context.principal.type !== 'human' || !context.principal.toolGrants.includes('intent.development.history')) throw new Error('Synthetic caller denied.'); usable(); };
     await current(); await policy();
-    const first = await readRecordsReadsetPrototype(f.pools, f.config, target, current), keys = new Map<string, DraftKey>();
+    const first = await readRecordsReadsetPrototype(f.pools, f.config, target, current, new AbortController().signal, clock), keys = new Map<string, DraftKey>();
+    snapshots.push(first); usable();
     try {
       for (const [group, rows] of Object.entries(first.data)) for (const row of rows) { await policy(); assert.equal(row.subject, f.config.subject); assert.ok(group); }
       for (const ref of first.keys) {
@@ -67,13 +75,15 @@ export async function testRecordsReadsetFeasibility(f: Awaited<ReturnType<typeof
         await alter?.('keys-rechecked');
         for (const rows of Object.values(first.data)) for (const _row of rows) await policy();
         for (const original of decoded.decoded.scope_originals!) for (const _source of original.value.evidence.inventory) { await policy(); retainedSourcePolicies++; }
-        last = await readRecordsReadsetPrototype(f.pools, f.config, target, current);
+        last = await readRecordsReadsetPrototype(f.pools, f.config, target, current, new AbortController().signal, clock);
+        snapshots.push(last); usable();
         assert.equal(last.digest, first.digest); await policy(); await current();
         await alter?.('records-rechecked');
+        if (expireAfterRecords) { elapsedOffset = 8 * 24 * 60 * 60 * 1000; lateExpiryReached = true; }
       };
       const historicalCorpus = native ? await inspectHistoricalCorpusCost(native, identity, decoded.decoded, current, strategy, recheckDependents) : undefined;
       if (!native) await recheckDependents();
-      assert.ok(last);
+      assert.ok(last); usable();
       const after = traffic.snapshot();
       const providerAttempts = Object.values(after).reduce((a, b) => a + b, 0) - Object.values(before).reduce((a, b) => a + b, 0)
         + jwks - beforeJwks + (historicalCorpus?.repositoryAttempts ?? 0);
@@ -84,7 +94,7 @@ export async function testRecordsReadsetFeasibility(f: Awaited<ReturnType<typeof
         recordPolicyCalls: recordPolicies - beforePolicies - (retainedSourcePolicies - beforeSources), retainedSourcePolicyCalls: retainedSourcePolicies - beforeSources,
         groups: Object.fromEntries(Object.entries(first.data).map(([name, rows]) => [name, rows.length])),
         byteLength: Buffer.byteLength(JSON.stringify(first.data)), ...decoded.counts, ...(historicalCorpus ? { historicalCorpus } : {}),
-        httpRegistryIntegrated: false, actualRecordsPoliciesIntegrated: false, ownerDrainAndAllEffectsVerified: false,
+        elapsedLifetimeCheckedThroughReturn: true, httpRegistryIntegrated: false, actualRecordsPoliciesIntegrated: false, ownerDrainAndAllEffectsVerified: false,
         wholeJourneyPerformanceAccepted: false, productionInstalled: false };
     } finally { for (const key of keys.values()) key.bytes.fill(0); }
   });
@@ -106,6 +116,8 @@ export async function testRecordsReadsetFeasibility(f: Awaited<ReturnType<typeof
       await rejectAfter('records-rechecked', async () => { lateSourceDenied = true; });
       assert.ok(lateSourceDenials > 0, 'The final source policy must observe post-record revocation.');
       lateSourceDenied = false;
+      await assert.rejects(run(undefined, false, true));
+      assert.equal(lateExpiryReached, true); assert.equal(lateExpiryDenied, true);
     }
     await rejectAfter('decoded', async () => { denied = true; }); denied = false;
     const beforeKeyLoss = keyCalls; await assert.rejects(run(undefined, true)); assert.equal(keyCalls - beforeKeyLoss, initial.keyCalls);

@@ -9,7 +9,21 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0301 / combined revision graph experiment — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0302 / combined read-set lifetime — 68% (17/25; 8 remaining; +0 points)**.
+The [lifetime experiment](../intent/0302/EVIDENCE.md) retains the first and final
+snapshots' earliest draft/candidate expiry through the combined return path.
+Invalid database times, backward clocks, copied lifetime metadata and expiry after
+records readback reject. The native selection and 15 focused tests pass, with
+provider traffic unchanged at 52 for this test-only combined portion. Full
+confirmation is still 7,637; no application performance improvement is claimed.
+
+Elapsed validity is not current hold/grant authority. Independent production
+policy/key-provider integration, complete lifecycle/authority closure, ownership
+and all effect-separated phases remain under [0298](../intent/0298/REQUEST-BUDGET-PLAN.md).
+Continue the coherent application integration and unchanged complete benchmark;
+do not treat this as C18/C22 completion or a fix for the unexplained 0289 recovery.
+
+Prior delivery checkpoint: **0301 / combined revision graph experiment — 68% (17/25; 8 remaining; +0 points)**.
 The [combined native experiment](../intent/0301/EVIDENCE.md) discovers two retained
 Git revisions across three original contexts. Separate revision readers cost 74
 simulated provider attempts for the records/source portion. A bounded invocation-

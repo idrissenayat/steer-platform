@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
 import test from 'node:test';
 import type { PoolClient } from 'pg';
-import { readRecordsReadsetPrototype, recordsReadsetGroups } from './records-readset-prototype.ts';
+import { readRecordsReadsetPrototype, recordsReadsetGroups, assertRecordsReadsetsUsable } from './records-readset-prototype.ts';
 import type { DatabasePool } from '../src/runtime-pool.ts';
 
 // Query/control tests only; the separate integration selection proves native SQL.
@@ -95,4 +95,50 @@ test('physical key references are deduplicated without losing record membership'
   const result = await readRecordsReadsetPrototype(f.pools, f.config, f.target, async () => {});
   assert.equal(result.keys.length, 1); assert.deepEqual(result.keys[0]!.records, ['revisions:0', 'scope_originals:0']);
   assert.equal(result.plaintextVerified, false); // Envelopes above are deliberately not real ciphertext.
+});
+
+test('private lifetime reaches the exact deadline and cannot be extended by a later snapshot or copied metadata', async () => {
+  const f = fixture(); let now = 100;
+  f.header.use_until = new Date(Number(f.header.clock_ms) + 1000);
+  const read = () => readRecordsReadsetPrototype(f.pools, f.config, f.target, async () => {}, new AbortController().signal, () => now);
+  const first = await read(); now = 1099; assertRecordsReadsetsUsable(first);
+  f.header.clock_ms = Number(f.header.clock_ms) - 500; const second = await read();
+  now = 1100; assertRecordsReadsetsUsable(second);
+  assert.throws(() => assertRecordsReadsetsUsable(first, second));
+  assert.throws(() => assertRecordsReadsetsUsable({ ...second }));
+  assert.throws(() => assertRecordsReadsetsUsable());
+  now = 100; assert.throws(() => assertRecordsReadsetsUsable(first));
+});
+
+test('candidate use deadline remains effective while later work runs', async () => {
+  const f = fixture(); let now = 50;
+  f.data.candidate_originals = [{ ...f.data.revisions![0], draft_id: f.target.draftId, held: false,
+    configuration_digest: f.header.configuration_digest, draft_created_at: f.header.created_at.toISOString(),
+    use_until: new Date(Number(f.header.clock_ms) + 100).toISOString(), retention_deadline: f.header.use_until.toISOString() }];
+  const snapshot = await readRecordsReadsetPrototype(f.pools, f.config, f.target, async () => {}, new AbortController().signal, () => now);
+  now = 149; assertRecordsReadsetsUsable(snapshot); now = 150; assert.throws(() => assertRecordsReadsetsUsable(snapshot));
+});
+
+test('invalid database times fail closed instead of creating a non-expiring NaN deadline', async () => {
+  for (const clock of [undefined, null, '', 'NaN', '1.5', '-1', NaN, Infinity, -1, 0.5, Number.MAX_SAFE_INTEGER + 1]) {
+    const f = fixture(); f.header.clock_ms = clock as number;
+    await assert.rejects(readRecordsReadsetPrototype(f.pools, f.config, f.target, async () => {}));
+    assert.deepEqual(f.released, [true]);
+  }
+  for (const field of ['created_at', 'use_until'] as const) {
+    const f = fixture(); f.header[field] = new Date(NaN);
+    await assert.rejects(readRecordsReadsetPrototype(f.pools, f.config, f.target, async () => {}));
+  }
+  const regressed = fixture(); regressed.mutate(sql => { if (sql.startsWith('WITH requested')) regressed.header.clock_ms--; });
+  await assert.rejects(readRecordsReadsetPrototype(regressed.pools, regressed.config, regressed.target, async () => {}));
+  assert.deepEqual(regressed.released, [true]);
+});
+
+test('clock regression or invalidity permanently invalidates a captured lifetime', async () => {
+  for (const changed of [99, NaN, Infinity]) {
+    const f = fixture(); let now = 100;
+    const snapshot = await readRecordsReadsetPrototype(f.pools, f.config, f.target, async () => {}, new AbortController().signal, () => now);
+    now = changed; assert.throws(() => assertRecordsReadsetsUsable(snapshot));
+    now = 101; assert.throws(() => assertRecordsReadsetsUsable(snapshot));
+  }
 });

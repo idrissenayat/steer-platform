@@ -62,6 +62,16 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Combined lifetime experiment, no runtime installation — 0302
+
+The [lifetime follow-on](../intent/0302/EVIDENCE.md) rejects expiry after dependent
+records readback and keeps the initial snapshot's earliest deadline effective
+even if a later database clock would extend it. Invalid/regressing clocks and
+copied metadata deny. Native/focused/type checks pass with the same 52 simulated
+attempts for this test-only combined portion. It is not hold/grant authority or
+production activation. Independent policies/key providers, owner drainage and
+all outer effect phases remain to integrate; full confirmation stays 7,637.
+
 ### Combined revision graph experiment, no runtime installation — 0301
 
 The [combined experiment](../intent/0301/EVIDENCE.md) preserves the authenticated

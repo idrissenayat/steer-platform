@@ -152,3 +152,9 @@ cost is 52; post-record source revocation rejects. This does not yet establish
 complete lifecycle/authority closure, independently configured policies/providers,
 owner drainage or full outer/effect integration. The original 50 measurement and
 allocation comparison are historical, not a complete production budget acceptance.
+
+The [0302 lifetime check](../0302/EVIDENCE.md) retains earliest first/final snapshot
+expiry through return and rejects invalid/backward clocks without adding provider
+requests (combined portion remains 52). Elapsed validity is not a substitute for
+current lifecycle/hold authority, independent production policies/key providers,
+owner drainage or complete outer/effect integration. Those remain before full C22.

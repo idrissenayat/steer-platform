@@ -7,6 +7,28 @@ import { developmentRecordsConfigurationSchema } from '../src/development-origin
 // TEST ONLY: bounded storage/topology experiment, not an installed history reader.
 // It returns encrypted rows to its test caller, never an HTTP/application result.
 const uuid = z.uuid(), fail = () => new Error('Synthetic records read set unavailable.');
+const lifetimes = new WeakMap<object, { deadline: number; last: number; clock: () => number; invalid: boolean }>();
+const databaseClock = (raw: unknown) => {
+  if (typeof raw !== 'number' && !(typeof raw === 'string' && /^(0|[1-9][0-9]*)$/.test(raw))) throw fail();
+  const value = Number(raw); if (!Number.isSafeInteger(value) || value < 0) throw fail(); return value;
+};
+const milliseconds = (value: Date | string) => {
+  const time = value instanceof Date ? value.getTime() : typeof value === 'string' ? Date.parse(value) : NaN;
+  if (!Number.isSafeInteger(time) || time < 0) throw fail(); return time;
+};
+/** Test-only elapsed validity, not current hold/grant authority. The initial
+ * snapshot keeps its own deadline; a reread can shorten but cannot extend it. */
+export function assertRecordsReadsetsUsable(...snapshots: object[]) {
+  if (!snapshots.length || snapshots.length > 2) throw fail();
+  for (const snapshot of snapshots) {
+    const proof = lifetimes.get(snapshot); if (!proof || proof.invalid) throw fail();
+    try {
+      const now = proof.clock();
+      if (!Number.isFinite(now) || now < proof.last || now >= proof.deadline) throw fail();
+      proof.last = now;
+    } catch { proof.invalid = true; throw fail(); }
+  }
+}
 const targetsSchema = z.strictObject({ draftId: uuid, operationIds: z.array(uuid).min(1).max(8),
   reviewIds: z.array(uuid).min(1).max(8), revisions: z.array(z.number().int().min(1).max(1000)).min(1).max(16), budgetId: uuid });
 type Target = z.infer<typeof targetsSchema>;
@@ -44,13 +66,18 @@ const clear = (role: 'drafts' | 'execution') => `SELECT ${
     .map(name => `set_config('steer.${name}','',false)`).join(',')}`;
 
 export async function readRecordsReadsetPrototype(pools: { drafts: DatabasePool; execution: DatabasePool }, configuration: unknown,
-  rawTarget: unknown, current: () => Promise<void>, signal: AbortSignal = new AbortController().signal) {
+  rawTarget: unknown, current: () => Promise<void>, signal: AbortSignal = new AbortController().signal,
+  clock: () => number = () => performance.now()) {
   const config = Object.freeze(developmentRecordsConfigurationSchema.parse(configuration)), target = targetsSchema.parse(rawTarget);
   if (!config.organizationId.startsWith('authenticated-generation-')) throw fail();
   for (const values of [target.operationIds, target.reviewIds, target.revisions]) if (new Set<string | number>(values).size !== values.length) throw fail();
   const configDigest = hash(config), pinned = [pools.drafts, pools.execution, pools.drafts.connect, pools.execution.connect];
   const metrics = { statements: 0, roleTransactions: 0, callerChecks: 0 };
-  const guard = () => { signal.throwIfAborted();
+  let lastClock = -Infinity, lastDatabaseClock = -Infinity;
+  const observeDatabaseClock = (raw: unknown) => { const now = databaseClock(raw);
+    if (now < lastDatabaseClock) throw fail(); lastDatabaseClock = now; return now; };
+  const monotonic = () => { const now = clock(); if (!Number.isFinite(now) || now < 0 || now < lastClock) throw fail(); lastClock = now; return now; };
+  const guard = () => { signal.throwIfAborted(); if (monotonic() >= monotonicUseDeadline) throw fail();
     if ([pools.drafts, pools.execution, pools.drafts.connect, pools.execution.connect].some((p, i) => p !== pinned[i])) throw fail(); };
   const fresh = async () => { guard(); metrics.callerChecks++; if (await current() !== undefined) throw fail(); guard(); };
   const values = [config.organizationId, target.draftId, target.operationIds, target.reviewIds, target.revisions, target.budgetId];
@@ -72,17 +99,20 @@ export async function readRecordsReadsetPrototype(pools: { drafts: DatabasePool;
       if (!actor || actor.rolname !== expectedRole || actor.login_role !== expectedRole || actor.rolsuper || actor.rolbypassrls || actor.owns_objects) throw fail();
       if (role === 'drafts') {
         await query("SELECT set_config('steer.draft_organization',$1,true),set_config('steer.draft_subject',$2,true),set_config('steer.draft_product',$3,true)", [config.organizationId, config.subject, config.productId]);
-        const started = performance.now();
+        const started = monotonic();
         const row = (await query(`SELECT *,floor(extract(epoch FROM clock_timestamp())*1000)::bigint AS clock_ms
           FROM steer_drafts.draft_lifecycles WHERE organization_id=$1 AND draft_id=$2 FOR UPDATE`, [config.organizationId, target.draftId])).rows[0];
         if (!row || row.subject !== config.subject || row.product_id !== config.productId || row.configuration_digest !== configDigest
-          || row.held || row.created_at.getTime() > Number(row.clock_ms) || row.use_until.getTime() <= Number(row.clock_ms)) throw fail();
+          || row.held !== false) throw fail();
+        const observed = observeDatabaseClock(row.clock_ms), expiry = milliseconds(row.use_until);
+        if (milliseconds(row.created_at) > observed || expiry <= observed) throw fail();
         const { clock_ms, ...header } = row; lifecycle = JSON.parse(JSON.stringify(header));
-        monotonicUseDeadline = started + row.use_until.getTime() - Number(clock_ms);
+        monotonicUseDeadline = started + expiry - observed;
       } else await query("SELECT set_config('steer.execution_organization',$1,true),set_config('steer.execution_subject',$2,true),set_config('steer.execution_product',$3,true),set_config('steer.usage_organization',$1,true),set_config('steer.usage_subject',$2,true),set_config('steer.usage_budget',$4,true)", [config.organizationId, config.subject, config.productId, target.budgetId]);
       const groups = role === 'drafts' ? draftGroups : executionGroups;
-      const readStarted = performance.now(), aggregate = (await query(queryFor(groups), values)).rows[0], value = aggregate?.data;
+      const readStarted = monotonic(), aggregate = (await query(queryFor(groups), values)).rows[0], value = aggregate?.data;
       if (!value || Buffer.byteLength(JSON.stringify(value)) > 16 * 1024 * 1024) throw fail();
+      const observed = observeDatabaseClock(aggregate.clock_ms);
       for (const group of groups) {
         const rows = value[group.name]; if (!Array.isArray(rows) || rows.length > group.max) throw fail();
         for (const row of rows) if (row.organization_id !== config.organizationId || row.subject !== config.subject
@@ -90,10 +120,10 @@ export async function readRecordsReadsetPrototype(pools: { drafts: DatabasePool;
         data[group.name] = rows;
       }
       if (role === 'drafts') for (const row of data.candidate_originals!) {
-        const now = Number(aggregate.clock_ms), expiry = Date.parse(row.use_until);
-        if (!Number.isSafeInteger(now) || !Number.isFinite(expiry) || row.held !== false || Date.parse(row.draft_created_at) > now
-          || expiry <= now || expiry > Date.parse(row.retention_deadline) || row.configuration_digest !== configDigest) throw fail();
-        monotonicUseDeadline = Math.min(monotonicUseDeadline, readStarted + expiry - now);
+        const expiry = milliseconds(row.use_until);
+        if (row.held !== false || milliseconds(row.draft_created_at) > observed
+          || expiry <= observed || expiry > milliseconds(row.retention_deadline) || row.configuration_digest !== configDigest) throw fail();
+        monotonicUseDeadline = Math.min(monotonicUseDeadline, readStarted + expiry - observed);
       }
       await query('COMMIT'); await query(clear(role)); guard();
     } catch (error) { broken = true; if (client) try { await client.query('ROLLBACK'); await client.query(clear(role)); } catch {}
@@ -102,7 +132,7 @@ export async function readRecordsReadsetPrototype(pools: { drafts: DatabasePool;
     finally { client?.release(broken); }
     await fresh();
   }
-  if (performance.now() >= monotonicUseDeadline || data.revisions!.length !== target.revisions.length
+  if (monotonic() >= monotonicUseDeadline || data.revisions!.length !== target.revisions.length
     || data.latest_revision!.length !== 1 || data.operations!.length !== target.operationIds.length || data.scope_runs!.length !== target.reviewIds.length
     || data.scope_originals!.length !== target.reviewIds.length) throw fail();
   const keys = new Map<string, { draftId: string; keyId: string; records: string[] }>();
@@ -116,6 +146,8 @@ export async function readRecordsReadsetPrototype(pools: { drafts: DatabasePool;
     }
   }
   guard();
-  return { target: target as Target, data, lifecycle, digest: hash({ data, lifecycle }), keys: [...keys.values()], metrics,
+  const result = { target: target as Target, data, lifecycle, digest: hash({ data, lifecycle }), keys: [...keys.values()], metrics,
     plaintextVerified: false as const, recordsPoliciesVerified: false as const, productionInstalled: false as const };
+  lifetimes.set(result, { deadline: monotonicUseDeadline, last: lastClock, clock, invalid: false });
+  assertRecordsReadsetsUsable(result); return result;
 }

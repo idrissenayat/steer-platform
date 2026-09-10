@@ -6914,3 +6914,22 @@ as do the native joined/combined selection, all types, kit and workflow checks.
 See [follow-up evidence](../intent/0301/FINAL-SOURCE-CLOSURE.json). Complete lifecycle/
 authority closure, independent policies, ownership and outer effect integration
 are still unproven. No application installation or completed C22; **68% (17/25; +0)**.
+
+## 0302 — Retain combined read-set lifetime, no production change
+
+The [lifetime experiment](../intent/0302/EVIDENCE.md) keeps the earliest draft/
+candidate deadline bound to actual first/final snapshots through the combined
+return. Invalid time fields, backward clocks, copied proofs and post-record expiry
+deny; the latter is explicitly exercised in the native journey fixture without
+changing the host clock or real records. Existing source/key/hold/revision and
+authenticated save/recovery/reopen assertions remain intact.
+
+Fifteen focused tests, final native selection, prototype/eight package types, kit
+and workflow checks pass. The combined portion still costs 52 provider attempts;
+full confirmation remains 7,637. Earlier and final native samples and their exact
+verification scope are retained. This is not installed performance, operational
+records adoption or a fix for the unexplained 0289 failure. Independent production
+policy/key-provider and owned effect integration remain the next coherent work.
+
+No signed document, user draft/roadmap/outputs, credential, model call, real runtime
+GitHub write, deployment or release changed. **68% (17/25; eight remaining; +0)**.

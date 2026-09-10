@@ -1,0 +1,150 @@
+{
+  "kind": "steer-combined-readgraph-lifetime/v1",
+  "baseCommit": "a995e3d0ae08f2d9402de7fd50cf135050e02c86",
+  "node": "24.19.0",
+  "command": "node packages/data/test/postgres.integration.ts --combined-readgraph-feasibility",
+  "environment": "Disposable native Git/PostgreSQL and local Temporal; synthetic model/provider transports. No host clock or live records changed.",
+  "metrics": {
+    "providerAttempts": 52,
+    "elapsedMs": 1534,
+    "jwksAttempts": 1,
+    "callerChecks": 34,
+    "providerKinds": {
+      "head": 35,
+      "commit": 1,
+      "tree": 1,
+      "blob": 1,
+      "token": 1,
+      "mutation": 0,
+      "other": 0
+    },
+    "roleTransactions": 4,
+    "sqlStatements": 34,
+    "keyReferences": 1,
+    "keyCalls": 2,
+    "recordPolicyCalls": 82,
+    "retainedSourcePolicyCalls": 136,
+    "groups": {
+      "revisions": 2,
+      "latest_revision": 1,
+      "scope_originals": 2,
+      "scope_observations": 8,
+      "development_originals": 1,
+      "development_results": 2,
+      "development_observations": 4,
+      "candidate_originals": 1,
+      "operations": 2,
+      "steps": 3,
+      "scope_runs": 2,
+      "scope_batches": 4,
+      "reservations": 6,
+      "budget": 1,
+      "scope_terms": 1
+    },
+    "byteLength": 607629,
+    "plaintextRows": 20,
+    "scopeSdkExchanges": 4,
+    "developmentSdkExchanges": 2,
+    "historicalCorpus": {
+      "strategy": "graph",
+      "revisionCount": 2,
+      "originalContexts": 3,
+      "measurements": [
+        {
+          "semanticSources": 34,
+          "physicalFiles": 42,
+          "repositoryAttempts": null,
+          "sourcePolicyCalls": 126
+        },
+        {
+          "semanticSources": 34,
+          "physicalFiles": 42,
+          "repositoryAttempts": null,
+          "sourcePolicyCalls": 126
+        }
+      ],
+      "repositoryAttempts": 12,
+      "graph": {
+        "waves": [
+          {
+            "name": "roots-and-pointers",
+            "paths": 68,
+            "fetchedObjects": 34,
+            "batches": 3
+          },
+          {
+            "name": "manifests",
+            "paths": 4,
+            "fetchedObjects": 2,
+            "batches": 1
+          },
+          {
+            "name": "bundle-documents",
+            "paths": 12,
+            "fetchedObjects": 4,
+            "batches": 1
+          }
+        ],
+        "requests": 12,
+        "sourcePolicyQueries": 252
+      },
+      "uniqueBlobObjects": 40,
+      "blobObjectsSharedAcrossRevisions": 40,
+      "sourceMetadataPolicySynthetic": true,
+      "finalSourcesAfterDependentReadback": true,
+      "wholePhaseAccepted": false,
+      "productionInstalled": false
+    },
+    "elapsedLifetimeCheckedThroughReturn": true,
+    "httpRegistryIntegrated": false,
+    "actualRecordsPoliciesIntegrated": false,
+    "ownerDrainAndAllEffectsVerified": false,
+    "wholeJourneyPerformanceAccepted": false,
+    "productionInstalled": false
+  },
+  "verification": {
+    "nativeExitCode": 0,
+    "unchangedJourneyPassed": true,
+    "lateExpiryInjectionReached": true,
+    "lateExpiryDeniedByLifetime": true,
+    "postRecordSourceLossStillDenied": true,
+    "existingRecordKeyOwnerRevisionHoldDenialsPassed": true,
+    "ownedCleanupObserved": true,
+    "focusedTests": 15,
+    "focusedDurationMs": 180.587958,
+    "prototypeTypecheckPassed": true,
+    "typecheckPackages": 8,
+    "typecheckCached": 5,
+    "typecheckDurationSeconds": 2.46,
+    "kitArtifacts": 95,
+    "workflowScopeAuditPassed": true,
+    "fullSqlSuiteRun": false,
+    "fullC22Run": false,
+    "broadBuildRun": false,
+    "browserRun": false,
+    "modelCallsLive": false,
+    "realGithubRuntimeWrite": false
+  },
+  "priorRun": {
+    "nativeExitCode": 0,
+    "providerAttempts": 52,
+    "elapsedMs": 1876,
+    "note": "Passed before additional within-snapshot database-clock regression rejection; full selection repeated on final source."
+  },
+  "unchangedWholeConfirmationAttempts": 7637,
+  "limits": [
+    "Elapsed validity only: not current hold/grant authorization or a cross-request proof.",
+    "No complete distributed lifecycle/authority atomicity, independent production policy/key-provider integration, owner-drain or outer effect-phase proof.",
+    "Test-only; no production module/factory/profile installation or application performance improvement.",
+    "Single local elapsed sample is not delayed p95 or a complete interactive action.",
+    "0289 unexplained recovery observation remains unresolved; this is not claimed as its fix."
+  ],
+  "sourceSha256": {
+    "packages/data/test/records-readset-prototype.ts": "b19434a8d87de33efedc1e553bde5de6a9fedeef8d7d14ac641c6061c41a2fbe",
+    "packages/data/test/records-readset-prototype.test.ts": "a69121a37a7e6ab791f5af1564aa1cbddff30764c7da06adbcc3cd6994937e83",
+    "apps/api/test/records-readset-feasibility.integration.ts": "e0f7e32660e1e7944eb1da6d770b83f95110f43bb0693635fb8835c0e72c7e76",
+    "apps/api/test/corpus-history-feasibility.ts": "1185d3a227a1d930d02bcb66d99c82f122fc8ce70c2c2511babb05c51ef91938",
+    "apps/api/test/corpus-readgraph-prototype.ts": "863b613095064b831cc5e591ad2817ab6c3333c3db7fca4d5bafece7cd65681f",
+    "apps/api/test/records-readset-decode.ts": "6213c9736a02402b1f12e7a23429d5241bfd546f4ea3d09d5c5006c6deb73fc9"
+  }
+}

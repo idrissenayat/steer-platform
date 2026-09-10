@@ -7,6 +7,16 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Combined lifetime experiment — 0302
+
+The [final native lifetime check](../intent/0302/EVIDENCE.md) keeps the earliest
+draft/candidate deadline effective through final source checks and return. Late
+expiry, invalid times and regressing clocks reject without a new provider read.
+The combined experiment still uses 52 attempts; application confirmation still
+uses 7,637. The 1,534 ms local sample is not delayed p95 or a full action. Independent
+production policies, ownership and outer effect integration remain unproven. C22
+and all fixed request/latency acceptance limits are unchanged.
+
 ## Combined records and multi-revision graph experiment — 0301
 
 The [combined native comparison](../intent/0301/EVIDENCE.md) measures the same
