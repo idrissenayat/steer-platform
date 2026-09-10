@@ -2,7 +2,7 @@ import { candidateSaveReviewInputSchema, describeCandidateSaveReview, type Candi
 import { intentDraftReadOutputSchema, type IntentDraftService } from '@steer/tool-registry/intent-draft-contracts';
 import { intentDevelopmentReviewInputSchema, verifyDevelopmentReview, type IntentDevelopmentReviewReader } from '@steer/tool-registry/intent-development-review-contracts';
 import { fingerprintIntentScope } from '@steer/tool-registry/intent-revision-contracts';
-import type { IntentScopeReader } from '@steer/tool-registry/intent-scope-read-contracts';
+import type { IntentScopeReader, IntentScopeReadInput } from '@steer/tool-registry/intent-scope-read-contracts';
 import { draftRecordsConfigurationSchema } from './draft-revisions.ts';
 import { resolveDevelopmentScopeReview } from './development-scope-review.ts';
 import { freezeOriginal as freeze } from './development-original-contracts.ts';
@@ -14,11 +14,15 @@ const fail = () => new Error('Final save review is unavailable; nothing was save
 export function createCandidateSaveReviewer(configuration: unknown, deps: {
   drafts: IntentDraftService; sources: IntentDevelopmentReviewReader; scopeReview?: IntentScopeReader;
   authorizeReview(input: Readonly<Parameters<CandidateSaveReviewer['review']>[0]>): Promise<void>;
+  // Trusted read-only current projection. The producer owns full final native
+  // records/key validation and drainage after work; no effects belong inside it.
+  withScopeRead?(input: IntentScopeReadInput, current: () => Promise<void>, work: (reader: IntentScopeReader) => Promise<void>): Promise<void>;
 }) {
   const config = freeze(draftRecordsConfigurationSchema.parse(configuration));
   const { organizationId, subject, productId, repository, branch, configurationRevision } = config;
   const scope = freeze({ organizationId, subject, productId, repository, branch, configurationRevision });
   if ([deps.drafts?.read, deps.sources?.review, deps.authorizeReview].some(v => typeof v !== 'function')) throw fail();
+  if (deps.withScopeRead !== undefined && typeof deps.withScopeRead !== 'function') throw fail();
   const lifetime = new AbortController(); let active = 0;
   async function review(raw: unknown, revalidate: () => Promise<void>,
     readWork?: (read: (present: () => Promise<void>) => Promise<Awaited<ReturnType<typeof describeCandidateSaveReview>>>) => Promise<void>) {
@@ -26,11 +30,13 @@ export function createCandidateSaveReviewer(configuration: unknown, deps: {
       if (active >= 4 || lifetime.signal.aborted || typeof revalidate !== 'function') throw fail();
       active++; let pending = 0, finished = false, released = false;
       const tasks = new Set<Promise<unknown>>();
-      const ports = [deps.drafts, deps.drafts.read, deps.sources, deps.sources.review, deps.scopeReview, deps.scopeReview?.read, deps.authorizeReview];
+      const withScopeRead = deps.withScopeRead;
+      let scopeReader = deps.scopeReview;
+      const ports = [deps.drafts, deps.drafts.read, deps.sources, deps.sources.review, deps.scopeReview, deps.scopeReview?.read, deps.authorizeReview, withScopeRead];
       const signal = AbortSignal.any([lifetime.signal, AbortSignal.timeout(60000)]);
       const release = () => { if (finished && pending === 0 && !released) { released = true; active--; } };
       const guard = () => {
-        if ([deps.drafts, deps.drafts.read, deps.sources, deps.sources.review, deps.scopeReview, deps.scopeReview?.read, deps.authorizeReview]
+        if ([deps.drafts, deps.drafts.read, deps.sources, deps.sources.review, deps.scopeReview, deps.scopeReview?.read, deps.authorizeReview, deps.withScopeRead]
           .some((port, index) => port !== ports[index])) throw fail();
         signal.throwIfAborted(); if (finished || (['organizationId', 'productId', 'repository', 'configurationRevision'] as const).some(k => input[k] !== scope[k])
           || (['organizationId', 'subject', 'productId', 'repository'] as const).some(k => deps.drafts.scope[k] !== scope[k] || deps.sources.scope[k] !== scope[k])
@@ -62,7 +68,7 @@ export function createCandidateSaveReviewer(configuration: unknown, deps: {
         const { output: sources } = await verifyDevelopmentReview(sourceInput, await bounded(() => readSource(current)));
         await current();
         if (sources.configurationRevision !== configurationRevision || sources.sourceSnapshotDigest !== input.sourceSnapshotDigest) throw fail();
-        const binding = await bounded(() => resolveDevelopmentScopeReview(input.scopeReview, sources.evidence, { ...sourceInput, subject }, deps.scopeReview, current));
+        const binding = await bounded(() => resolveDevelopmentScopeReview(input.scopeReview, sources.evidence, { ...sourceInput, subject }, scopeReader, current));
         const output = await describeCandidateSaveReview(input, subject, branch, draft.content.documents, sources.evidence, binding);
         await current(); return { draft, sources, binding, output };
       };
@@ -70,6 +76,7 @@ export function createCandidateSaveReviewer(configuration: unknown, deps: {
         let output: Awaited<ReturnType<typeof describeCandidateSaveReview>> | undefined;
         const run = async (readSource: (current: () => Promise<void>) => Promise<unknown>) => {
           let initial: Awaited<ReturnType<typeof readState>> | undefined;
+          const validate = async () => {
           if (readWork) {
             let reading = false, consumed = false, ended = false, invalid = false;
             const read = async (present: () => Promise<void>) => {
@@ -95,6 +102,24 @@ export function createCandidateSaveReviewer(configuration: unknown, deps: {
           if (!initial) throw fail();
           await authorized(); const latest = await readState(readSource);
           if (JSON.stringify(initial) !== JSON.stringify(latest)) throw fail();
+          };
+          if (withScopeRead && input.scopeReview.kind === 'recorded') {
+            const selected = input.scopeReview;
+            let invoked = false, completed = false, invalid = false;
+            await authorized();
+            await bounded(async () => {
+              const returned = await withScopeRead({ organizationId, productId, repository, reviewId: selected.reviewId,
+                preparationDigest: selected.preparationDigest }, current, async reader => {
+                guard(); if (invoked || invalid || !reader || typeof reader.read !== 'function') { invalid = true; throw fail(); }
+                invoked = true; scopeReader = reader;
+                try { await validate(); completed = true; } finally { scopeReader = deps.scopeReview; }
+              });
+              guard(); if (returned !== undefined || !invoked || !completed || invalid) throw fail();
+            });
+          } else await validate();
+          if (!initial) throw fail();
+          // Full scope records/keys have now rechecked. A late edit or key/hold
+          // change must still invalidate the draft, followed by outer source closure.
           await authorized(); if (JSON.stringify(await readDraft()) !== JSON.stringify(initial.draft)) throw fail();
           await current(); output = initial.output;
         };

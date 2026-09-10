@@ -7053,6 +7053,26 @@ live model/key access, spending, runtime GitHub save, deployment, profile/record
 activation, signature or human UI acceptance. User drafts, signed artifacts and
 roadmap/outputs remain unchanged. **68% (17/25; eight remaining; +0 points).**
 
+## 0322 — Owned current assessment during final save review
+
+[0322](../intent/0322/EVIDENCE.md) holds one exact current assessment lease per
+read-only final review. Full native scope records/key comparison precedes final
+draft/source closure, and selected purpose grants stay current through final IO.
+Unknown/wrapped readers retain the prior path; independent callers, actual
+drainage and separate pre-/post-effect phases remain.
+
+Native assessment-key reads halve four→two. Save review falls 174→166 attempts;
+new-distinct preview/confirmation 293/779→285/763; continuation 403/999→395/983.
+Eleven added native parity/late-denial/drain scenarios pass. Exact final source,
+test counts and sample limits are in [verification](../intent/0322/VERIFICATION.json).
+This is a modest partial C22 improvement, not full performance or live acceptance.
+
+**Progress: 68% (17/25; eight remaining; +0 percentage points).** Next consolidate
+remaining preparation/start/confirmation validation, then the unchanged full
+benchmark. No model spend, runtime GitHub artifact saving, real records/profile
+activation, deployment, release, deletion or signature occurred. Protected
+artifacts and the user's roadmap/outputs remain unchanged.
+
 ## 0321 — Exact caller identity in shared source review
 
 [0321](../intent/0321/EVIDENCE.md) carries one immutable guarded caller through

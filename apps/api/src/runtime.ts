@@ -42,7 +42,7 @@ import { createIntentDevelopmentHistoryReader } from '@steer/data/intent-develop
 import { createDevelopmentObservationStore } from '@steer/data/development-observations';
 import { createIntentDevelopmentStarter } from '@steer/data/intent-development-starter';
 import { withCurrentScopeReadWindow } from '@steer/data/current-scope-read-window';
-import { withCurrentScopeProjection } from './current-scope-projection.ts';
+import { withCurrentScopeProjection, withLazyCurrentScopeProjection } from './current-scope-projection.ts';
 import { intentDevelopmentStartInputSchema } from '@steer/tool-registry/intent-development-start-contracts';
 import { createIntentDevelopmentPreparer } from '@steer/data/intent-development-preparer';
 import { intentOperationConfigurationSchema } from '@steer/data/intent-operations';
@@ -283,8 +283,27 @@ export function createRecordedCandidateSavePreviewer(pools: Parameters<typeof cr
 /** Final-draft review only. No default installation, confirmation or allocation.
  * The source reviewer and pinned recorded scope reader must be supplied by the
  * existing corpus/records factories; input contains references, never findings. */
-export function createRecordedCandidateSaveReviewer(configuration: unknown, dependencies: Parameters<typeof createCandidateSaveReviewer>[1]) {
-  return createCandidateSaveReviewer(configuration, dependencies);
+export function createRecordedCandidateSaveReviewer(configuration: unknown,
+  dependencies: Omit<Parameters<typeof createCandidateSaveReviewer>[1], 'withScopeRead'>) {
+  const scope = dependencies.scopeReview, method = scope?.read, identity = hash(scope?.scope ?? null);
+  const projection = scope ? currentScopeProjections.get(scope) : undefined;
+  const pinned = () => {
+    if (dependencies.scopeReview !== scope || scope?.read !== method || hash(scope?.scope ?? null) !== identity
+      || (projection && (projection.read !== method || projection.scopeDigest !== identity))) throw historyUnavailable();
+  };
+  if (!projection) return createCandidateSaveReviewer(configuration, dependencies);
+  pinned();
+  return createCandidateSaveReviewer(configuration, {
+    get drafts() { return dependencies.drafts; },
+    get sources() { return dependencies.sources; },
+    get scopeReview() { pinned(); return scope!; },
+    get authorizeReview() { return dependencies.authorizeReview; },
+    withScopeRead: async (input, current, work) => {
+      // Data owner's current() reads the pinned dependency getters at every
+      // boundary. Preserve its identity through the private producer.
+      pinned(); await withLazyCurrentScopeProjection(scope!.scope, input, current, pinned, projection.withRead, work); pinned();
+    },
+  });
 }
 /** Read-only recovery from adopted, encrypted originals and verified native Git
  * receipts. Explicit factory only: no records activation, workflow or dispatch.
@@ -524,9 +543,11 @@ function createOwnedScopeReadProjection(pools: Parameters<typeof createScopeRevi
       if (typeof revalidate !== 'function' || (['organizationId', 'productId', 'repository'] as const).some(k => input[k] !== scope[k])) throw historyUnavailable();
       const target = freeze({ reviewId: input.reviewId, preparationDigest: input.preparationDigest });
       let checkReviewLifetime = () => {};
+      let grantSelected = async () => {};
       const current = async () => {
         pinned(); checkReviewLifetime(); if (await revalidate() !== undefined) throw historyUnavailable(); pinned(); checkReviewLifetime();
         if (await originals.authorize(freeze({ configuration: config, target, action: 'read' })) !== undefined) throw historyUnavailable(); pinned(); checkReviewLifetime();
+        await grantSelected(); pinned(); checkReviewLifetime();
       };
       const reading = reader.startReadSet({ kind: 'scope-review', mode: historical ? 'history' : 'current', ...target }, current, async lease => {
         const saved = historyOnly(lease.contents.decoded.scope_originals);
@@ -534,6 +555,25 @@ function createOwnedScopeReadProjection(pools: Parameters<typeof createScopeRevi
         const original = saved.value, source = original.source, expired = lease.hasExpired(original.configuration.expiresAt);
         if (original.configuration.budget.budgetId !== lease.snapshot.target.budgetId) throw historyUnavailable();
         if (!historical && !expired) checkReviewLifetime = () => { if (lease.hasExpired(original.configuration.expiresAt)) throw historyUnavailable(); };
+        if (consume) {
+          const context = { configuration: config, target: lease.snapshot.target }, plan = inspectEncryptedRecords(lease.snapshot, config);
+          const selected = Object.entries(lease.snapshot.data).flatMap(([group, rows]) => rows.map(({ encrypted_value: _ciphertext, ...metadata }) =>
+            freeze({ ...context, group: group as keyof typeof recordPolicies, metadata })));
+          // A borrowed projection keeps every selected purpose live through
+          // dependent work and the final key/SQL readback, not only at entry.
+          grantSelected = async () => {
+            pinned(); lease.check(); checkReviewLifetime();
+            for (const record of selected) {
+              if (await Reflect.apply(recordPolicies[record.group], recordPolicies, [record]) !== undefined) throw historyUnavailable();
+              pinned(); lease.check(); checkReviewLifetime();
+            }
+            for (const record of plan) {
+              const service = keyServices[record.group];
+              if (await Reflect.apply(service.authorize, service, [freeze({ ...context, group: record.group, metadata: record.metadata, keyId: record.keyId })]) !== undefined) throw historyUnavailable();
+              pinned(); lease.check(); checkReviewLifetime();
+            }
+          };
+        }
         historyEqual(original.profile, profile);
         const grantSources = async () => {
           pinned(); lease.check();
@@ -587,8 +627,12 @@ function createOwnedScopeReadProjection(pools: Parameters<typeof createScopeRevi
         let captured: ReturnType<typeof output> | undefined;
         if (consume) {
           if (historical || expired) throw historyUnavailable(); captured = output();
-          const present = async () => { await grantReview(); await grantSources(); await current(); lease.check(); checkReviewLifetime(); };
-          await withCurrentScopeProjection(captured, present, () => { pinned(); lease.check(); checkReviewLifetime(); }, consume);
+          const purposes = async () => {
+            await grantReview(); await grantSources();
+            if (await originals.authorize(freeze({ configuration: config, target, action: 'read' })) !== undefined) throw historyUnavailable();
+            await grantSelected(); pinned(); lease.check(); checkReviewLifetime();
+          };
+          await withCurrentScopeProjection(captured, revalidate, () => { pinned(); lease.check(); checkReviewLifetime(); }, consume, purposes);
         }
         await lease.recheck(); await grantReview(); await grantSources(); lease.check();
         const final = output(); if (captured && hash(final) !== hash(captured)) throw historyUnavailable();

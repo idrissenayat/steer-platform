@@ -3,7 +3,7 @@ import test from 'node:test';
 import { scopeReviewFixture } from '../../../packages/tool-registry/test/intent-scope-review.fixture.ts';
 import { validateIntentScopeBatchResults } from '@steer/tool-registry/intent-scope-batches';
 import type { IntentScopeReader } from '@steer/tool-registry/intent-scope-read-contracts';
-import { withCurrentScopeProjection as project } from '../src/current-scope-projection.ts';
+import { withCurrentScopeProjection as project, withLazyCurrentScopeProjection as lazy } from '../src/current-scope-projection.ts';
 
 async function fixture() {
   const f = await scopeReviewFixture(), input = { organizationId: f.scope.organizationId, productId: f.scope.productId,
@@ -90,5 +90,90 @@ test('final caller or lease loss rejects a consumed projection before the produc
     await assert.rejects(project(f.output, f.current, f.check, async reader => {
       await reader.read(f.input, f.source); if (mode === 'caller') f.revoke(); else f.expire();
     }));
+  }
+});
+
+test('metadata purposes run before each exact caller boundary; independent callbacks keep both owner checks', async () => {
+  const f = await fixture();
+  const purposes = async () => { f.events.push('purposes'); };
+  await project(f.output, f.current, f.check, async reader => {
+    let offset = f.events.length; await reader.read(f.input, f.current);
+    assert.deepEqual(f.events.slice(offset), ['purposes', 'current']);
+    offset = f.events.length; await reader.read(f.input, f.source);
+    assert.deepEqual(f.events.slice(offset), ['purposes', 'current', 'source', 'purposes', 'current']);
+    offset = f.events.length; await reader.read(f.input, f.current.bind(null));
+    assert.deepEqual(f.events.slice(offset), ['purposes', 'current', 'current', 'purposes', 'current']);
+  }, purposes);
+  assert.deepEqual(f.events.slice(0, 2), ['purposes', 'current']);
+  assert.deepEqual(f.events.slice(-2), ['purposes', 'current']);
+});
+
+test('same-caller composition never skips a failing purpose or caller recheck after metadata IO', async () => {
+  for (const mode of ['purpose-deny', 'purpose-nonvoid', 'caller', 'lease', 'final']) {
+    const f = await fixture(); let calls = 0, received = false;
+    await assert.rejects(project(f.output, f.current, f.check, async reader => {
+      await reader.read(f.input, f.current); received = true;
+    }, async () => {
+      if (++calls !== (mode === 'final' ? 3 : 2)) return;
+      if (mode === 'purpose-deny' || mode === 'final') throw new Error('PRIVATE purpose denied');
+      if (mode === 'purpose-nonvoid') return true as never;
+      if (mode === 'caller') f.revoke();
+      if (mode === 'lease') f.expire();
+    }));
+    assert.equal(received, mode === 'final');
+  }
+});
+
+test('lazy scope opens only on consumption and completes native closure after dependent work', async () => {
+  const f = await fixture(), events: string[] = []; let escaped: IntentScopeReader | undefined;
+  const scope = { organizationId: f.output.organizationId, subject: f.output.subject, productId: f.output.productId, repository: f.output.repository };
+  await lazy(scope, f.input, f.current, f.check, async (input, current, work) => {
+    events.push('open'); assert.deepEqual(input, f.input); assert.equal(current, f.current);
+    await project(f.output, current, f.check, work); events.push('final-native');
+  }, async reader => {
+    assert.equal(events.length, 0); escaped = reader; events.push('authorized');
+    await reader.read(f.input, f.current); await reader.read(f.input, f.source); events.push('dependent-done');
+  });
+  assert.deepEqual(events, ['authorized', 'open', 'dependent-done', 'final-native']);
+  await assert.rejects(escaped!.read(f.input, f.current));
+});
+
+test('lazy scope rejects producer misuse and never opens after denied, skipped or foreign consumption', async () => {
+  for (const mode of ['denied', 'skipped', 'foreign', 'producer-skipped', 'producer-twice', 'producer-nonvoid', 'changed-scope']) {
+    const f = await fixture(); let opens = 0;
+    const scope = { organizationId: f.output.organizationId, subject: f.output.subject, productId: f.output.productId, repository: f.output.repository };
+    await assert.rejects(lazy(scope, f.input, f.current, f.check, async (_input, current, work) => {
+      opens++; if (mode === 'producer-skipped') return;
+      await project(f.output, current, f.check, async reader => {
+        if (mode === 'changed-scope') { await work({ ...reader, scope: { ...reader.scope, subject: 'foreign' } }); return; }
+        await work(reader); if (mode === 'producer-twice') try { await work(reader); } catch {}
+      });
+      if (mode === 'producer-nonvoid') return true as never;
+    }, async reader => {
+      if (mode === 'denied') throw new Error('Denied before reading');
+      if (mode === 'skipped') return;
+      await reader.read(mode === 'foreign' ? { ...f.input, productId: 'foreign' } : f.input, f.current);
+    }), /unavailable/, mode);
+    assert.equal(opens, ['denied', 'skipped', 'foreign'].includes(mode) ? 0 : 1);
+  }
+});
+
+test('lazy scope retains failed or abandoned reads and final native closure until actual work drains', async () => {
+  for (const mode of ['read', 'final']) {
+    const f = await fixture(); let release!: () => void, entered!: () => void, returned!: () => void, settled = false;
+    const scope = { organizationId: f.output.organizationId, subject: f.output.subject, productId: f.output.productId, repository: f.output.repository };
+    const held = new Promise<void>(resolve => { release = resolve; }), reached = new Promise<void>(resolve => { entered = resolve; });
+    const workReturned = new Promise<void>(resolve => { returned = resolve; });
+    const result = lazy(scope, f.input, f.current, f.check, async (_input, current, work) => {
+      await project(f.output, current, f.check, work);
+      if (mode === 'final') { entered(); await held; f.expire(); }
+    }, async reader => {
+      if (mode === 'read') {
+        void reader.read(f.input, async () => { entered(); await held; }).catch(() => {}); await reached;
+      } else await reader.read(f.input, f.current);
+      returned();
+    }).finally(() => { settled = true; }); void result.catch(() => {});
+    await workReturned; await reached; await new Promise(resolve => setImmediate(resolve)); assert.equal(settled, false);
+    release(); await assert.rejects(result); assert.equal(settled, true);
   }
 });

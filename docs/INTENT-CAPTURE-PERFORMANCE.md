@@ -7,6 +7,31 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Owned current assessment during final review — 0322
+
+[0322](../intent/0322/EVIDENCE.md) shares the exact current assessment projection
+inside one final-review phase. Full scope records/key comparison precedes final
+draft/source closure; selected purpose grants remain fresh through final IO.
+Native key reads halve four→two per review, with identical wrapped-reader output.
+
+| Authenticated synthetic action | 0321 attempts | 0322 attempts |
+| --- | ---: | ---: |
+| Save review, either direction | 174 | 166 |
+| New-distinct preview | 293 | 285 |
+| New-distinct confirmation / recovery / repeat | 779 / 751 / 749 | 763 / 735 / 733 |
+| Continuation preview | 403 | 395 |
+| Continuation confirmation / recovery / repeat | 999 / 971 / 969 | 983 / 955 / 953 |
+
+This removes eight requests per review/preview and sixteen per confirmation.
+Other measured actions are unchanged. The improvement is modest against the
+whole-action target: first confirmation still needs 763/983 attempts, not 200.
+Exact final-source samples and checks are in [verification](../intent/0322/VERIFICATION.json).
+Undelayed shared-host samples do not establish p95 or a browser speedup. Preserve
+the 20 ms/200-attempt/five-second targets and full 20-warm/3-cold/4-concurrent
+protocol in both directions plus negatives. Consolidate remaining preparation/
+start/confirmation validation before that full benchmark; live acceptance stays
+separate. **68% (17/25; eight remaining; +0 percentage points).**
+
 ## Exact caller identity in shared source review — 0321
 
 [0321](../intent/0321/EVIDENCE.md) removes duplicate invocation of one identical

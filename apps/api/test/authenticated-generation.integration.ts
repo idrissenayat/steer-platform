@@ -96,7 +96,8 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
     fixture.config.candidate = { ...f.config, action: 'candidate-save', expiresAt: f.execution.expiresAt, budget: null };
     fixture.config.retrievalConfigurationRevision = 'synthetic-native-corpus-r1';
     const workflows = authenticatedModelWorkflows(executionAuthority);
-    const candidate = authenticatedCandidateConfirmation(f, native, authority, scopeRecords, workflows,identityTraffic,direction);
+    const candidate = authenticatedCandidateConfirmation(f, native, authority, scopeRecords, workflows,identityTraffic,direction,
+      !performanceOnly && !profileRequests && !recordsFeasibility ? fixture.config.developmentProfiles : undefined);
     const save = authenticatedCandidateSave(f, native, fixture.config, authority,direction);
     const profiles = fixture.config.developmentProfiles;
     const { recordedScheduling: _unused, ...base } = identity.profile;

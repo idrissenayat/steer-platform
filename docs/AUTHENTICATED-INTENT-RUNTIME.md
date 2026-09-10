@@ -62,6 +62,24 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Owned current assessment during final review — 0322
+
+[0322](../intent/0322/EVIDENCE.md) installs the existing private current-scope
+projection in final review only for the exact factory-constructed reader, pinned
+method and scope. Ordinary/wrapped readers retain the previous path; no public
+tool or flag can select it. The lease opens lazily on the first assessment read,
+after dependent preview authorization. It stays inside the source-review phase and
+does not span admission, persistence or scheduling. Full final scope records/key
+comparison precedes the final draft read and enclosing source/corpus closure.
+
+The projection helper runs metadata-purpose queries then the exact caller before
+reuse. Independent callbacks retain both owner boundaries. Every selected record
+and key purpose is re-granted through the final native IO; nothing is a permission
+cache. Callback misuse, late draft/source/key/records/caller changes and replaced
+ports deny, and actual held work drains before the owner closes. Native parity
+checks halve scope-key reads four→two; total request reductions are modest, so
+C22 and real signed-in UI/save acceptance remain pending.
+
 ### Exact caller identity in shared source review — 0321
 
 [0321](../intent/0321/EVIDENCE.md) passes the same immutable owner-guarded function

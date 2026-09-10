@@ -9,6 +9,7 @@ import { createMcpEndpoint, mcpProtocolVersion } from '../src/mcp.ts';
 import { candidateSaveReviewFixture } from '../../../packages/tool-registry/test/candidate-save-review.fixture.ts';
 import { describeCandidateSaveReview, verifyCandidateSaveReview } from '@steer/tool-registry/candidate-save-review-contracts';
 import { withReviewReadSession } from '../../../packages/data/src/review-read-session.ts';
+import { createCandidateSaveReviewer } from '../../../packages/data/src/candidate-save-reviewer.ts';
 
 const tool = 'intent.candidate.save.review';
 async function setup(count = 4) {
@@ -211,4 +212,75 @@ test('forgotten final-review consumption retains ownership while its caller call
     release(); await result;
     assert.equal(s.state.scopeReads, 1);
   } finally { release(); s.service.close(); await result; }
+});
+
+test('owned assessment closes before the final draft check and uses only the supplied current port', async () => {
+  for (const mode of ['success', 'late-draft', 'late-caller', 'replaced-port']) {
+    const s = await setup(); let phases = 0, reads = 0, closed = false, allowed = true;
+    const deps = { drafts: s.drafts, sources: s.sources, scopeReview: s.scopeReview, authorizeReview: async () => {},
+      withScopeRead: async (_input: unknown, current: () => Promise<void>, work: (reader: typeof s.scopeReview) => Promise<void>) => {
+        phases++; await current(); const observation = structuredClone(s.state.observation);
+        await work({ scope: s.scopeReview.scope, read: async () => { reads++; await current(); return observation; } });
+        closed = true;
+        if (mode === 'late-draft') s.state.draft = { ...s.state.draft, latestRevision: 2 };
+        if (mode === 'late-caller') allowed = false;
+        if (mode === 'replaced-port') deps.scopeReview = { ...s.scopeReview };
+      } };
+    const service = createCandidateSaveReviewer({ ...s.f.scope, recordsPolicyDigest: 'b'.repeat(64) }, deps);
+    const current = async () => { if (!allowed) throw new Error('PRIVATE caller'); };
+    try {
+      if (mode === 'success') {
+        assert.deepEqual(await service.review(s.f.input, current), s.f.output);
+        assert.equal(closed, true); assert.equal(s.state.reads, 3); assert.equal(reads, 2); assert.equal(s.state.scopeReads, 0);
+      } else await assert.rejects(service.review(s.f.input, current), /unavailable/, mode);
+      assert.equal(phases, 1);
+    } finally { service.close(); s.service.close(); }
+  }
+});
+
+test('malformed current assessment phases cannot skip, replay, swallow failure or outlive their owner', async () => {
+  for (const mode of ['skipped', 'twice', 'overlap', 'nonvoid', 'foreign', 'history', 'replaced-phase']) {
+    const s = await setup(); let escaped: (() => Promise<void>) | undefined;
+    const deps = { drafts: s.drafts, sources: s.sources, scopeReview: s.scopeReview, authorizeReview: async () => {},
+      withScopeRead: async (_input: unknown, _current: () => Promise<void>, work: (reader: typeof s.scopeReview) => Promise<void>) => {
+        const reader = { scope: { ...s.scopeReview.scope, ...(mode === 'foreign' ? { subject: 'foreign' } : {}) }, read: async () =>
+          mode === 'history' ? { ...s.state.observation, kind: 'steer-scope-review-history/v1', historical: true } : s.state.observation };
+        escaped = () => work(reader as typeof s.scopeReview);
+        if (mode === 'skipped') return;
+        if (mode === 'replaced-phase') deps.withScopeRead = async () => {};
+        if (mode === 'overlap') { await Promise.allSettled([escaped(), escaped()]); return; }
+        try { await escaped(); } catch { /* A producer cannot bless swallowed child failure. */ }
+        if (mode === 'twice') try { await escaped(); } catch {}
+        if (mode === 'nonvoid') return 'unexpected' as unknown as void;
+      } };
+    const service = createCandidateSaveReviewer({ ...s.f.scope, recordsPolicyDigest: 'b'.repeat(64) }, deps);
+    try { await assert.rejects(service.review(s.f.input, async () => {}), /unavailable/, mode); if (escaped) await assert.rejects(escaped()); }
+    finally { service.close(); s.service.close(); }
+  }
+});
+
+test('owned assessment waits for final read drainage and never opens when review authority denies or scope is empty', async () => {
+  const s = await setup(); let entered!: () => void, release!: () => void, settled = false;
+  const reached = new Promise<void>(resolve => { entered = resolve; }), held = new Promise<void>(resolve => { release = resolve; });
+  const service = createCandidateSaveReviewer({ ...s.f.scope, recordsPolicyDigest: 'b'.repeat(64) }, {
+    drafts: s.drafts, sources: s.sources, scopeReview: s.scopeReview, authorizeReview: async () => {},
+    withScopeRead: async (_input, current, work) => { await work(s.scopeReview); entered(); await held; await current(); },
+  });
+  const result = withReviewReadSession(service, s.f.input, async () => {}, async read => { await read(async () => {}); }, task => task, () => {})
+    .then(() => assert.fail('Closed owner returned'), () => {}).finally(() => { settled = true; });
+  try {
+    await reached; service.close(); await new Promise(resolve => setTimeout(resolve, 5)); assert.equal(settled, false);
+    release(); await result;
+  } finally { release(); service.close(); s.service.close(); await result; }
+  for (const mode of ['denied', 'empty']) {
+    const f = await setup(mode === 'empty' ? 0 : 4); let opened = 0;
+    const check = createCandidateSaveReviewer({ ...f.f.scope, recordsPolicyDigest: 'b'.repeat(64) }, {
+      drafts: f.drafts, sources: f.sources, scopeReview: f.scopeReview,
+      authorizeReview: async () => { if (mode === 'denied') throw new Error('PRIVATE review policy'); },
+      withScopeRead: async () => { opened++; assert.fail('No current scope phase'); },
+    });
+    try { if (mode === 'empty') assert.deepEqual(await check.review(f.f.input, async () => {}), f.f.output);
+      else await assert.rejects(check.review(f.f.input, async () => {})); assert.equal(opened, 0); }
+    finally { check.close(); f.service.close(); }
+  }
 });

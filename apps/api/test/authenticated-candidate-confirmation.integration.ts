@@ -16,6 +16,7 @@ import { createScopeStepRuntime } from '../../worker/src/scope-step-runtime.ts';
 import type { authenticatedModelWorkflows } from '../../worker/test/authenticated-model-workflows.integration.ts';
 import { summarizeNativeRequests,subtractNativeRequests,type createNativeRequestMeter } from './native-request-metrics.ts';
 import { authenticatedJourneyChoice, authenticatedJourneyItem, type AuthenticatedJourneyDirection } from './authenticated-journey-direction.fixture.ts';
+import { testOwnedSaveReview } from './owned-save-review.integration.ts';
 
 type Fixture = Awaited<ReturnType<typeof scopeDraftIntegrationFixture>>;
 /** Continue the SAME signed-identity/SQL/recorded-generation test after correction.
@@ -24,7 +25,8 @@ type Fixture = Awaited<ReturnType<typeof scopeDraftIntegrationFixture>>;
  * Candidate-save scheduling, Git writing and publication remain unavailable. */
 export function authenticatedCandidateConfirmation(f: Fixture, native: ReturnType<typeof nativeCandidateJourneyFixture>,
   authority: () => Promise<void>, scopeRecords: IntentJourneyFactoryDependencies['scope']['records']['originals'],
-  workflows: ReturnType<typeof authenticatedModelWorkflows>,identityTraffic:ReturnType<typeof createNativeRequestMeter>, direction: AuthenticatedJourneyDirection = 'new-distinct') {
+  workflows: ReturnType<typeof authenticatedModelWorkflows>,identityTraffic:ReturnType<typeof createNativeRequestMeter>, direction: AuthenticatedJourneyDirection = 'new-distinct',
+  profiles?: Parameters<typeof testOwnedSaveReview>[2]) {
   let enabled = false;
   const current = async () => { await authority(); if (!enabled) throw new Error('PRIVATE candidate confirmation policy denied'); };
   const records = { authorize: current, lifecycle: f.lifecycle.lifecycle, keyForDraft: f.deps.keyForDraft };
@@ -109,6 +111,7 @@ export function authenticatedCandidateConfirmation(f: Fixture, native: ReturnTyp
         assert.equal(assessed.semanticQualityVerified, false); assert.ok(assessed.review);
         const finalInput = { ...preparation, choice, scopeReview: { kind: 'recorded' as const, ...admitted.reference, resultsDigest: assessed.review.resultsDigest } };
         const finalReview = await verifyCandidateSaveReview(finalInput, await read('intent.candidate.save.review', finalInput), draft.content.documents);
+        if (profiles) await testOwnedSaveReview(f, native, profiles, finalInput, finalReview);
         const previewInput = { ...finalInput, reviewDigest: finalReview.reviewDigest, generation: input.generation, itemId: authenticatedJourneyItem(direction),
           proposalId: direction === 'proposal-continuation' ? native.proposalId : null };
         const preview = await verifyCandidateSavePreview(previewInput, await read('intent.candidate.save.preview', previewInput), draft.content.documents);

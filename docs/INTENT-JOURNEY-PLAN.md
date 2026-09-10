@@ -9,7 +9,21 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0321 / exact caller identity in shared source review — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0322 / owned current assessment during save review — 68% (17/25; 8 remaining; +0 points)**.
+[0322](../intent/0322/EVIDENCE.md) keeps one current assessment records/key lease
+through each read-only final review, opening only at the first assessment read.
+Complete scope comparison precedes the final
+draft check and outer source/corpus closure. Exact constructed readers opt in;
+wrapped and ordinary readers retain their full path. Every selected record/key
+purpose stays current through final IO, with real drainage after cancellation.
+
+Native assessment-key reads halve four→two per review. Save review falls 174→166
+attempts; new-distinct preview/confirmation 293/779→285/763; continuation
+403/999→395/983. This is a modest whole-action reduction, not C22 completion.
+Remaining preparation/start/confirmation validation and the full unchanged
+performance protocol are next; actual model quality and signed-in UI/save remain.
+
+Prior delivery checkpoint: **0321 / exact caller identity in shared source review — 68% (17/25; 8 remaining; +0 points)**.
 [0321](../intent/0321/EVIDENCE.md) preserves one guarded callback only when parent
 and child supply the exact same original caller. The source owner invokes it once
 at each boundary; independent callers, fresh checks around reads, complete final
