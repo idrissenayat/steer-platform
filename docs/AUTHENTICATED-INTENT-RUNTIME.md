@@ -62,6 +62,25 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Owned current-original reads for drafting start — 0317
+
+[0317](../intent/0317/EVIDENCE.md) adds an explicit `development.ownedCurrent`
+binding. It requires `authorizeDevelopmentOriginalDiscovery`, separate from
+historical discovery, and current key/record purposes. Original-only reads select
+the exact draft/latest revision, development original, operation and budget; they
+exclude changing steps/results/observations/reservations and reject expired runs
+before ciphertext. Profiles, configuration, human direction and source stay exact.
+
+Initial binding and first authorization share a records phase only on the owned
+path. Current scope validation finishes inside it, followed by complete records/
+key readback and another exact current-scope read. Fresh selected record/key
+permissions remain active through that final source read and return, covering
+revocation in either direction. The data service still verifies current scope;
+historical/expired scope cannot satisfy start. Every scheduler-requested or
+post-effect check opens a fresh phase. The ordinary fallback preserves its first
+policy/admission ordering; invalid current bindings never fall back to history.
+No request flag, live activation, model call, retry grant or signature is added.
+
 ### Owned current-original reads for scope start — 0316
 
 [0316](../intent/0316/EVIDENCE.md) binds scope start to the factory's explicit

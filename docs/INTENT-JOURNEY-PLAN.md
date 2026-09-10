@@ -9,7 +9,21 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0316 / owned scope-start originals — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0317 / owned drafting-start originals — 68% (17/25; 8 remaining; +0 points)**.
+[0317](../intent/0317/EVIDENCE.md) connects independently authorized current
+originals to drafting start. Exact records/source/profile/direction checks remain,
+with fresh phases around scheduling. Complete records/key readback is followed by
+another current-scope check under fresh selected record/key-purpose permissions,
+covering late grant loss in both directions. History cannot authorize current start.
+
+Synthetic drafting start falls 1,407→989 attempts; recovery/repeat fall
+1,594→1,127. These still exceed 200. Next consolidate joint current-scope/original
+validation and surrounding caller traversal without weakening final closure, then
+remaining preparation/confirmation controls and the unchanged full benchmark.
+The ordinary fallback's first-policy ordering is preserved. C22, governed real
+model/runtime activation and signed-in UI/save acceptance remain open; no ETA.
+
+Prior delivery checkpoint: **0316 / owned scope-start originals — 68% (17/25; 8 remaining; +0 points)**.
 [0316](../intent/0316/EVIDENCE.md) connects the actual factory's explicit current
 records/key service to scope start. Exact original/draft/manifest state is shared
 only within read-only phases, with fresh independent grants and full final records/

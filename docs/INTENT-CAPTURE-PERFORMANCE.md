@@ -7,6 +7,34 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Owned current-original drafting start — 0317
+
+[0317](../intent/0317/EVIDENCE.md) shares retained drafting inputs within explicit
+current-only records phases. It preserves current scope validation, final complete
+records/key readback and a closing current-scope read with fresh record/key-purpose
+permissions. Neither historical grants nor changing generated results enable start.
+
+| Authenticated synthetic action | 0316 attempts | 0317 attempts |
+| --- | ---: | ---: |
+| Drafting start | 1,407 | 989 |
+| Drafting start recovery / repeat | 1,594 / 1,594 | 1,127 / 1,127 |
+| Scope start / recovery / repeat | 195 / 221 / 221 | 195 / 221 / 221 |
+
+First drafting start removes 418 attempts (29.71%); recovery/repeat remove 467
+(29.30%). The intermediate 884 / 1,007 / 1,007 sample predates the added final
+scope/purpose closure and is not the delivered result. Scope preparation remains
+292, drafting preparation 532 / 487, save review 211, new-distinct preview/
+confirmation 330 / 853 and continuation 440 / 1,073. C22 remains open.
+
+Exact samples and verification timing: [0317 verification](../intent/0317/VERIFICATION.json).
+All attempts, including identity/token calls, count. These undelayed synthetic
+functional runs on a shared host are not p95, UI or live-provider acceptance.
+Next consolidate joint current-scope/original validation and surrounding caller
+traversal while retaining final checks in both directions, then remaining
+preparation/confirmation controls and the unchanged complete warm/cold/concurrent
+benchmark. Limits remain 200 attempts, 20 ms per attempt and five-second p95.
+**68% (17/25; eight remaining; +0 percentage points).**
+
 ## Owned current-original scope start — 0316
 
 [0316](../intent/0316/EVIDENCE.md) consolidates original reconstruction within

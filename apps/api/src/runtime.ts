@@ -41,6 +41,7 @@ import { createIntentDevelopmentReader } from '@steer/data/intent-development-re
 import { createIntentDevelopmentHistoryReader } from '@steer/data/intent-development-history-reader';
 import { createDevelopmentObservationStore } from '@steer/data/development-observations';
 import { createIntentDevelopmentStarter } from '@steer/data/intent-development-starter';
+import { intentDevelopmentStartInputSchema } from '@steer/tool-registry/intent-development-start-contracts';
 import { createIntentDevelopmentPreparer } from '@steer/data/intent-development-preparer';
 import { intentOperationConfigurationSchema } from '@steer/data/intent-operations';
 import { createAppJwtSigner, createGitHubReader, artifactSelectionSchema, type ArtifactReader } from '@steer/adapters/github';
@@ -69,7 +70,8 @@ import { renderDevelopmentRequest } from '@steer/data/development-requests';
 import { intentOperationCodec } from '@steer/data/intent-operations';
 import { scopeReviewOperationCodec } from '@steer/data/scope-review-operations';
 import { createRecordsContentReader, type RecordsContentLease } from '@steer/data/records-content-reader';
-import { recordValuesEqual, type DecodedRecordContents } from '@steer/data/records-content-codecs';
+import { recordValuesEqual, inspectEncryptedRecords, type DecodedRecordContents } from '@steer/data/records-content-codecs';
+import { bindRecordedIntentScope, intentScopeSelectionFor } from '@steer/tool-registry/intent-scope-selection';
 import { intentDevelopmentHistoryInputSchema, verifyIntentDevelopmentHistoryOutput, type IntentDevelopmentHistoryReader } from '@steer/tool-registry/intent-development-history-contracts';
 
 type RecordedHistoryProfiles = Parameters<typeof createRecordedMastraExchangeVerifier>[0];
@@ -632,8 +634,112 @@ export function createAssessedRecordedDevelopmentPreparer(pools: Parameters<type
 }
 /** Explicit uninstalled composition; no queue, authority or records fallback. */
 export function createRecordedDevelopmentStarter(pools: Parameters<typeof createIntentDevelopmentStarter>[0], configuration: unknown,
-  dependencies: Parameters<typeof createIntentDevelopmentStarter>[2]) {
-  return createIntentDevelopmentStarter(pools, configuration, dependencies);
+  dependencies: Parameters<typeof createIntentDevelopmentStarter>[2] & { ownedRead?: OwnedDevelopmentOriginalBinding; profiles?: unknown }) {
+  if (dependencies.ownedRead === undefined) return createIntentDevelopmentStarter(pools, configuration, dependencies);
+  if (!dependencies.ownedRead || dependencies.withOriginalRead !== undefined) throw historyUnavailable();
+  const reader = createOwnedDevelopmentOriginalRead(pools, configuration, dependencies);
+  try {
+    const starter = createIntentDevelopmentStarter(pools, configuration, { ...dependencies, withOriginalRead: reader.withRead });
+    return { ...starter, close() { starter.close(); reader.close(); }, async shutdown() { starter.close(); await reader.shutdown(); } };
+  } catch (error) { reader.close(); throw error; }
+}
+
+type OwnedDevelopmentOriginalBinding = {
+  authority: Parameters<typeof createRecordsContentReader>[2] & Required<Pick<Parameters<typeof createRecordsContentReader>[2], 'authorizeDevelopmentOriginalDiscovery'>>;
+  keys: Parameters<typeof createRecordsContentReader>[3];
+};
+/** Current inputs only, under independently supplied current discovery/key grants.
+ * The data service completes current scope validation inside this records phase;
+ * complete records/key readback follows that work before any scheduling effect. */
+function createOwnedDevelopmentOriginalRead(pools: Parameters<typeof createIntentDevelopmentStarter>[0], configuration: unknown,
+  dependencies: Parameters<typeof createRecordedDevelopmentStarter>[2]) {
+  const config = freeze(draftRecordsConfigurationSchema.parse(configuration)), profiles = freeze(developmentOriginalSchema.shape.profiles.parse(dependencies.profiles));
+  const records = dependencies.records, binding = dependencies.ownedRead!, authority = binding.authority, keys = binding.keys;
+  const scopeReader = records.scopeReview, scopeRead = scopeReader?.read, scopeIdentity = hash(scopeReader?.scope ?? null);
+  const ports = ['authorize', 'authorizeOriginal', 'authorizeOperation', 'authorizeDraft', 'keyForDraft'].map(name => ({ name, value: Reflect.get(records, name) }));
+  if (typeof authority?.authorizeDevelopmentOriginalDiscovery !== 'function') throw historyUnavailable();
+  const pinned = () => {
+    if (dependencies.records !== records || dependencies.ownedRead !== binding || binding.authority !== authority || binding.keys !== keys
+      || records.scopeReview !== scopeReader || scopeReader?.read !== scopeRead || hash(scopeReader?.scope ?? null) !== scopeIdentity
+      || ports.some(port => typeof port.value !== 'function' || Reflect.get(records, port.name) !== port.value)) throw historyUnavailable();
+  };
+  pinned(); const reader = createRecordsContentReader(pools, config, authority, keys);
+  return { async withRead(raw, revalidate, work) {
+    pinned(); const input = intentDevelopmentStartInputSchema.parse(raw), target = freeze({ operationId: input.operationId, inputDigest: input.inputDigest });
+    if (typeof work !== 'function' || typeof revalidate !== 'function'
+      || (['organizationId', 'productId', 'repository'] as const).some(k => input[k] !== config[k])) throw historyUnavailable();
+    let original: Parameters<Parameters<typeof createIntentDevelopmentStarter>[2]['authorizeStart']>[0] | undefined;
+    let checkLease = () => {}, grantSelected = async () => {}, ended = false;
+    const current = async () => {
+      pinned(); if (ended) throw historyUnavailable(); checkLease();
+      if (await revalidate() !== undefined) throw historyUnavailable(); pinned(); checkLease();
+      if (await records.authorize(freeze({ configuration: config, target, action: 'read' })) !== undefined) throw historyUnavailable();
+      if (original) {
+        if (await records.authorizeDraft(freeze({ configuration: config, draftId: input.draftId, action: 'read' })) !== undefined
+          || await records.authorizeOriginal(freeze({ original, action: 'read' })) !== undefined
+          || await records.authorizeOperation(freeze({ configuration: original.configuration, request: target })) !== undefined) throw historyUnavailable();
+      }
+      await grantSelected();
+      pinned(); checkLease();
+    };
+    const reading = reader.startReadSet({ kind: 'development-original', ...target }, current, async lease => {
+      const saved = historyOnly(lease.contents.decoded.development_originals);
+      if (!saved || saved.metadata.operationId !== target.operationId || saved.metadata.inputDigest !== target.inputDigest
+        || saved.metadata.draftId !== input.draftId || saved.metadata.draftRevision !== input.revision
+        || saved.metadata.draftRevisionDigest !== input.revisionDigest
+        || Number(lease.snapshot.data.latest_revision[0]?.revision) !== input.revision) throw historyUnavailable();
+      original = saved.value; historyEqual(original.profiles, profiles);
+      if (original.configuration.budget?.budgetId !== lease.snapshot.target.budgetId) throw historyUnavailable();
+      checkLease = () => { lease.check(); if (lease.hasExpired(original!.configuration.expiresAt)) throw historyUnavailable(); };
+      const plan = inspectEncryptedRecords(lease.snapshot, config), context = { configuration: config, target: lease.snapshot.target };
+      const selectedRecords = Object.entries(lease.snapshot.data).flatMap(([group, rows]) => rows.map(({ encrypted_value: _ciphertext, ...metadata }) =>
+        freeze({ ...context, group: group as keyof typeof authority.records, metadata })));
+      // Re-grant every selected purpose through the final source read. These are
+      // metadata permissions, not another key lookup, content read or cache.
+      grantSelected = async () => {
+        for (const selected of selectedRecords) {
+          checkLease(); if (await Reflect.apply(authority.records[selected.group], authority.records, [selected]) !== undefined) throw historyUnavailable();
+        }
+        for (const record of plan) {
+          checkLease(); const service = keys[record.group];
+          if (await Reflect.apply(service.authorize, service, [freeze({ ...context, group: record.group, metadata: record.metadata, keyId: record.keyId })]) !== undefined) throw historyUnavailable();
+        }
+        checkLease();
+      };
+      const value = freeze({ original, latestDraftRevision: input.revision, operationExpired: false,
+        executionAuthorized: false, retryAuthorized: false, gateSigned: false });
+      let closed = false, failed = false, consuming = false, consumed = false;
+      const pending = new Set<Promise<unknown>>();
+      const read = () => {
+        if (closed || failed || consuming) { failed = true; const denied = Promise.reject(historyUnavailable()); void denied.catch(() => {}); return denied; }
+        consuming = true;
+        const task = Promise.resolve().then(async () => { await current(); if (closed || failed) throw historyUnavailable(); consumed = true; return value; })
+          .catch(error => { failed = true; throw error; }).finally(() => { consuming = false; });
+        pending.add(task); void task.finally(() => pending.delete(task)).catch(() => {}); return task;
+      };
+      try {
+        await current(); let returned: unknown;
+        try { returned = await work(read); } finally { closed = true; }
+        if (returned !== undefined || failed || !consumed || consuming || pending.size) throw historyUnavailable();
+        await current(); await lease.recheck(); await current();
+        const bound = original.direction.scopeReview;
+        if (bound?.kind === 'recorded') {
+          if (!scopeReader) throw historyUnavailable();
+          const result = await scopeReader.read({ organizationId: config.organizationId, productId: config.productId,
+            repository: config.repository, reviewId: bound.reviewId, preparationDigest: bound.preparationDigest }, current);
+          const source = original.source;
+          historyEqual(await bindRecordedIntentScope(intentScopeSelectionFor(bound), result, original.evidence, {
+            organizationId: config.organizationId, subject: config.subject, productId: config.productId, repository: config.repository,
+            draftId: source.draftId, revision: source.revision, revisionDigest: source.revisionDigest, scopeInputDigest: source.scopeInputDigest,
+          }), bound);
+        }
+        await current(); checkLease();
+      } finally { closed = true; await Promise.allSettled([...pending]); }
+    });
+    try { const result = await reading.result; if (result.value !== undefined) throw historyUnavailable(); pinned(); }
+    catch { throw historyUnavailable(); }
+    finally { ended = true; await reading.drained; }
+  }, close: reader.close, shutdown: reader.shutdown } satisfies { withRead: NonNullable<Parameters<typeof createIntentDevelopmentStarter>[2]['withOriginalRead']>; close(): void; shutdown(): Promise<void> };
 }
 /** Explicit uninstalled reader composition. Current profile allowlists are
  * required, but no gateway secret, model transport or dispatch capability exists. */
@@ -1245,6 +1351,8 @@ export interface IntentJourneyFactoryDependencies {
     /** Independent records/key authority for retained development reads. Requires
      * the separately authorized scope-history binding; never enables execution. */
     ownedHistory?: Pick<OwnedDevelopmentHistoryBinding, 'authority' | 'keys'>;
+    /** Separate current-original grant/key binding; history access is insufficient. */
+    ownedCurrent?: OwnedDevelopmentOriginalBinding;
     authorizeReview: Parameters<typeof createCorpusRecordedDevelopmentReviewer>[3]['authorizeReview'];
     authorizePreparation: Parameters<typeof createAssessedRecordedDevelopmentPreparer>[3]['authorizePreparation'];
     scheduler: Parameters<typeof createRecordedDevelopmentStarter>[2]['scheduler'];
@@ -1292,6 +1400,8 @@ export async function createOwnedIntentJourney(expected: IntentJourneyConfigurat
     if (deps.scope.ownedReads !== undefined && (!deps.scope.ownedReads?.current || !deps.scope.ownedReads?.history)) throw fail();
     if (deps.development.ownedHistory !== undefined && (!deps.development.ownedHistory?.authority
       || !deps.development.ownedHistory?.keys || !deps.scope.ownedReads?.history)) throw fail();
+    if (deps.development.ownedCurrent !== undefined && (!deps.development.ownedCurrent?.keys
+      || typeof deps.development.ownedCurrent?.authority?.authorizeDevelopmentOriginalDiscovery !== 'function')) throw fail();
     const binding = resources.reader.binding;
     const publication = describeCandidatePublication(binding, config.publication);
     for (const execution of [config.scope, config.development, config.candidate])
@@ -1363,7 +1473,8 @@ export async function createOwnedIntentJourney(expected: IntentJourneyConfigurat
           scopeInputDigest: input.scopeInputDigest }, current)).evidence,
       })),
       intentDevelopmentStarter: own(createRecordedDevelopmentStarter(pools, records, { records: originalRecords,
-        scheduler: deps.development.scheduler, authorizeStart: deps.development.authorizeStart })),
+        scheduler: deps.development.scheduler, authorizeStart: deps.development.authorizeStart,
+        ...(deps.development.ownedCurrent ? { ownedRead: deps.development.ownedCurrent, profiles } : {}) })),
       intentDevelopmentReader: own(createVerifiedDevelopmentReader(pools, records, { records: developmentRecords, profiles: config.developmentProfiles })),
       intentDevelopmentHistoryReader: developmentHistory,
       candidateSaveReviewer: review, candidateSavePreviewer: previewer,

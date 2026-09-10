@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import type { createVerifiedScopeReviewReader, createVerifiedDevelopmentHistoryReader } from '../src/runtime.ts';
+import type { createVerifiedScopeReviewReader, createVerifiedDevelopmentHistoryReader, createRecordedDevelopmentStarter } from '../src/runtime.ts';
 import { encryptedRecordGroups } from '../../../packages/data/src/records-content-codecs.ts';
 import { recordsReadsetGroups } from '../../../packages/data/test/records-readset-prototype.ts';
 
@@ -44,6 +44,21 @@ export function ownedDevelopmentReadFixture(budgetId: string,
       assert.deepEqual(context.target.reviewIds, []); assert.equal(context.target.budgetId, budgetId);
       return { permissionsRevision: state.revision }; },
     records: scope.records,
+  };
+  return { authority, keys, state };
+}
+
+/** Separate current-original discovery; deliberately has no history grant. */
+export function ownedDevelopmentOriginalFixture(budgetId: string,
+  keyForDraft: Parameters<typeof createRecordedDevelopmentStarter>[2]['records']['keyForDraft'],
+  authorize: () => Promise<void> = async () => {}) {
+  const { authority: history, keys, state } = ownedDevelopmentReadFixture(budgetId, keyForDraft, authorize);
+  state.revision = 'synthetic-independent-development-original-r1';
+  type Binding = NonNullable<Parameters<typeof createRecordedDevelopmentStarter>[2]['ownedRead']>;
+  const authority: Binding['authority'] = {
+    async authorizeDevelopmentOriginalDiscovery(context) { await authorize(); state.discovery++;
+      assert.equal(context.request.kind, 'development-original'); return { permissionsRevision: state.revision, budgetId }; },
+    authorize: history.authorize, records: history.records,
   };
   return { authority, keys, state };
 }

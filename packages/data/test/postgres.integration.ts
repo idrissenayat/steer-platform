@@ -155,8 +155,8 @@ try {
       'draft hold or source change during last start authority check blocks the scheduler callback',
       'lost development scheduling ACK remains unknown; post-dispatch grant revocation withholds it without another scheduling call',
     ]);
-    await testDevelopmentObservations({admin,connect,check:async(name,run)=>{if(names.has(name))await check(name,run);}});
-    assert.equal(passed,5);
+    await testDevelopmentObservations({admin,connect,check:async(name,run)=>{if(names.has(name)||name.startsWith('owned drafting start '))await check(name,run);}});
+    assert.equal(passed,10);
     console.log(`FOCUSED development start result: ${passed-1} checks passed plus idempotent migration check; full suite NOT RUN.`);
   }else if(selection.mode==='candidate-start'){
     console.log('FOCUSED candidate HTTP start to SQL/Temporal/native-Git; NOT the full integration suite.');

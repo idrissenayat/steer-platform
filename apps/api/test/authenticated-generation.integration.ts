@@ -29,8 +29,9 @@ import { testAuthenticatedPerformancePrefix } from './authenticated-performance-
 import { createIdentityRequestProfile } from './identity-request-profile.ts';
 import { testRecordsReadsetFeasibility } from './records-readset-feasibility.integration.ts';
 import { testOwnedRecordsReadset } from './records-owned-readset.integration.ts';
-import { ownedScopeReadFixture, ownedDevelopmentReadFixture } from './owned-scope-read.fixture.ts';
+import { ownedScopeReadFixture, ownedDevelopmentReadFixture, ownedDevelopmentOriginalFixture } from './owned-scope-read.fixture.ts';
 import { testOwnedDevelopmentHistoryProjection } from './owned-development-history.integration.ts';
+import { testOwnedDevelopmentStartClosure } from './owned-development-start.integration.ts';
 
 /** Signed synthetic JWT + native Git grants, real API constructor graph, SQL and
  * recorded SDK roles. No real issuer, model transport, live migration or external Git write.
@@ -122,6 +123,7 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
           deps.development.records = { originals: originalRecords, results, authorize: authority };
           deps.development.history = { originals: originalRecords, results, authorize: authority, authorizeHistoricalRead: authority };
           deps.development.ownedHistory = ownedDevelopmentReadFixture(f.execution.budget.budgetId, f.deps.keyForDraft, authority);
+          deps.development.ownedCurrent = ownedDevelopmentOriginalFixture(f.execution.budget.budgetId, f.deps.keyForDraft, authority);
           historyFixture = { records: { ...deps.development.history }, profiles,
             ownedRead: { ...deps.development.ownedHistory, scope: { records: deps.scope.history,
               ownedRead: deps.scope.ownedReads.history, profile: fixture.config.scopeProfile } } };
@@ -247,6 +249,7 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
       if (architect.role !== 'architect' || testAgent.role !== 'test-agent') throw new Error('Role order mismatch');
       assert.deepEqual({ brief: architect.output.brief, spec: architect.output.spec, exam: testAgent.output.exam }, documents);
       const complete = await snapshot(); assert.equal(complete.reservations, '4'); assert.equal(complete.operations, '1'); assert.equal(modelCalls, 4);
+      if (!performanceOnly && !recordsFeasibility) await testOwnedDevelopmentStartClosure(f.pools, f.config, historyFixture, target);
       await runtime.shutdown(); runtime = await make();
       assert.deepEqual(await read('intent.development.read', target), output); assert.deepEqual(await snapshot(), complete);
       const correction = { ...f.content, documents: { ...documents, brief: documents.brief + '\r\nHuman correction: preserve exact words.' } };

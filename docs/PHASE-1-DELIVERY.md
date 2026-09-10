@@ -7053,6 +7053,28 @@ live model/key access, spending, runtime GitHub save, deployment, profile/record
 activation, signature or human UI acceptance. User drafts, signed artifacts and
 roadmap/outputs remain unchanged. **68% (17/25; eight remaining; +0 points).**
 
+## 0317 — Owned current-original reads for drafting start
+
+[0317](../intent/0317/EVIDENCE.md) adds independently authorized current-original
+discovery and key purposes to drafting start. History-only bindings deny. Exact
+draft/latest revision, original, operation, budget, profile and human direction
+are preserved; changing generated results are excluded. Each read-only phase
+finishes full current-scope validation, records/key readback and a final current-
+scope read under fresh record/key-purpose grants. Scheduling stays outside phases.
+
+Synthetic drafting start falls 1,407→989 attempts (29.71%); recovery/repeat
+1,594→1,127. Other actions are unchanged. Native complete-scope closure tests
+cover late permission loss in both directions. The ordinary fallback's initial
+policy order was restored after two existing regression checks caught an extra
+early caller check; expectations and limits were preserved. Exact final checks,
+intermediate failures and native-run timing: [verification](../intent/0317/VERIFICATION.json).
+
+Next consolidate joint scope/original validation and caller traversal, retaining
+two-way final checks, then remaining preparation/confirmation and the unchanged
+complete benchmark. No live model/spend, runtime GitHub save, records/profile
+activation, deployment, release or signature. Real UI acceptance remains separate.
+**68% (17/25; eight remaining; +0 percentage points).**
+
 ## 0316 — Owned current-original reads for scope start
 
 [0316](../intent/0316/EVIDENCE.md) wires the actual authenticated factory's

@@ -6,6 +6,8 @@ import type { createDraftLifecycleStore } from '@steer/data/draft-lifecycle';
 import type { DevelopmentScheduler } from '@steer/tool-registry/intent-development-start-contracts';
 import { createRecordedDevelopmentStarter } from '../src/runtime.ts';
 import { createApi } from '../src/app.ts';
+import { createDevelopmentOriginalStore } from '@steer/data/development-originals';
+import { ownedDevelopmentOriginalFixture, ownedDevelopmentReadFixture } from './owned-scope-read.fixture.ts';
 
 interface Fixture {
   config: { organizationId: string; subject: string; productId: string; repository: string; branch: string; configurationRevision: string; recordsPolicyDigest: string };
@@ -31,6 +33,14 @@ export function createDevelopmentStartHarness(f: Fixture, scheduler: Development
 /** Real HTTP + encrypted SQL. Scheduler here is synthetic; actual Temporal
  * composition/recovery is separately exercised in development-workflow.integration. */
 export async function testDevelopmentStart(setup: () => Promise<Fixture>, check: (name: string, run: () => Promise<void>) => Promise<void>, admin: Pool) {
+  const owned = async (f: Fixture, keyForDraft = f.deps.originals.keyForDraft) => {
+    const store = createDevelopmentOriginalStore(f.pools, f.config, f.deps.originals);
+    try { const { original } = await store.read(f.target);
+      if (!original.configuration.budget) throw new Error('Fixture needs a model budget');
+      return { ownedRead: ownedDevelopmentOriginalFixture(original.configuration.budget.budgetId, keyForDraft), profiles: original.profiles,
+        budgetId: original.configuration.budget.budgetId };
+    } finally { store.close(); }
+  };
   const snapshots = async (f: Fixture) => (await admin.query(`SELECT
     (SELECT count(*) FROM steer_execution.intent_steps WHERE operation_id=$1) AS steps,
     (SELECT count(*) FROM steer_drafts.development_originals WHERE operation_id=$1) AS originals,
@@ -86,5 +96,68 @@ export async function testDevelopmentStart(setup: () => Promise<Fixture>, check:
         if (!revoke) assert.equal((await response.json()).receipt.outcome, 'unknown'); assert.equal(calls, 1);
       } finally { app.service.close(); }
     }
+  });
+  await check('owned drafting start matches ordinary receipts with final current records before scheduling and no history grant', async () => {
+    const f = await setup(), binding = await owned(f), before = await snapshots(f); let calls = 0;
+    const scheduler: DevelopmentScheduler = { start: async (_input, current) => { await current(); calls++; return { outcome: 'unknown' }; } };
+    const ordinary = createDevelopmentStartHarness(f, scheduler), native = createDevelopmentStartHarness(f, scheduler, binding);
+    try {
+      const expected = await (await ordinary.post()).json(), actual = await (await native.post()).json();
+      assert.deepEqual(actual, expected); assert.equal(calls, 2); assert.equal(actual.documentsReady, false);
+      assert.ok(binding.ownedRead.state.discovery > 0); assert.equal(binding.ownedRead.state.reads, 6);
+      assert.equal(binding.ownedRead.authority.authorizeDevelopmentDiscovery, undefined);
+      assert.deepEqual(await snapshots(f), before);
+    } finally { ordinary.service.close(); native.service.close(); }
+  });
+  await check('owned drafting start rejects history-only discovery or foreign profiles instead of falling back', async () => {
+    const f = await setup(), binding = await owned(f); let calls = 0;
+    const scheduler: DevelopmentScheduler = { start: async () => { calls++; return { outcome: 'unknown' }; } };
+    assert.throws(() => createDevelopmentStartHarness(f, scheduler, { profiles: binding.profiles,
+      ownedRead: ownedDevelopmentReadFixture(binding.budgetId, f.deps.originals.keyForDraft) as never }));
+    const a = createDevelopmentStartHarness(f, scheduler, { ...binding, profiles: { ...binding.profiles,
+      architect: { ...binding.profiles.architect, configurationRevision: 'foreign-profile' } } });
+    try { assert.equal((await a.post()).status, 503); assert.equal(calls, 0); } finally { a.service.close(); }
+  });
+  await check('owned drafting start denies late draft hold edit key record source scope or method loss before scheduling', async () => {
+    for (const change of ['hold', 'edit', 'key', 'records', 'source', 'scope', 'method']) {
+      const f = await setup(); let allowed = true, calls = 0, changed = false;
+      const binding = await owned(f, async (...args) => {
+        if (change === 'key' && !allowed) throw new Error('PRIVATE lost key'); return f.deps.originals.keyForDraft(...args);
+      });
+      const records = { ...f.deps.originals, authorizeOriginal: async (context: Parameters<typeof f.deps.originals.authorizeOriginal>[0]) => {
+        if (change === 'source' && !allowed) throw new Error('PRIVATE lost source'); return f.deps.originals.authorizeOriginal(context);
+      } };
+      const a = createDevelopmentStartHarness(f, { start: async () => { calls++; return { outcome: 'unknown' }; } }, { ...binding, records,
+        authorizeStart: async () => {
+          if (changed) return; changed = true; allowed = false;
+          if (change === 'hold') assert.equal((await f.lifecycle.hold({ draftId: f.draftId, holdReference: randomUUID() })).outcome, 'ok');
+          if (change === 'edit') assert.equal((await f.drafts.append({ draftId: f.draftId, mutationId: randomUUID(), expectedRevision: 1,
+            expectedDigest: f.saved.reference.revisionDigest, content: { ...f.content, originalText: 'Changed during owned drafting start' } })).outcome, 'acknowledged');
+          if (change === 'records') binding.ownedRead.state.deniedRecord = 'development_originals';
+          if (change === 'scope') records.scopeReview = { scope: { ...f.config }, read: async () => { throw new Error('PRIVATE replaced scope reader'); } };
+          if (change === 'method') binding.ownedRead.authority.authorizeDevelopmentOriginalDiscovery = async () => { throw new Error('Replaced'); };
+        } });
+      try { const response = await a.post(); assert.equal(response.status, 503, change); assert.equal(changed, true); assert.equal(calls, 0);
+        assert.doesNotMatch(await response.text(), /PRIVATE/);
+      } finally { a.service.close(); }
+    }
+  });
+  await check('owned drafting start reopens current key authority after scheduler work without redispatch', async () => {
+    const f = await setup(), binding = await owned(f), before = await snapshots(f); let calls = 0;
+    const a = createDevelopmentStartHarness(f, { start: async (_input, current) => {
+      await current(); calls++; binding.ownedRead.state.deniedKey = 'development_originals'; return { outcome: 'unknown' };
+    } }, binding);
+    try { assert.equal((await a.post()).status, 503); assert.equal(calls, 1); assert.deepEqual(await snapshots(f), before); }
+    finally { a.service.close(); }
+  });
+  await check('owned drafting start shutdown drains an actual held key and never schedules late work', async () => {
+    const f = await setup(); let release!: () => void, entered!: () => void, calls = 0;
+    const held = new Promise<void>(resolve => { release = resolve; }), started = new Promise<void>(resolve => { entered = resolve; });
+    const binding = await owned(f, async (...args) => { entered(); await held; return f.deps.originals.keyForDraft(...args); });
+    const a = createDevelopmentStartHarness(f, { start: async () => { calls++; return { outcome: 'unknown' }; } }, binding);
+    const response = a.post(); await started; let stopped = false;
+    if (!('shutdown' in a.service)) throw new Error('Owned reader needs shutdown');
+    const stop = a.service.shutdown().then(() => { stopped = true; }); await new Promise(resolve => setImmediate(resolve)); assert.equal(stopped, false);
+    release(); await stop; assert.equal((await response).status, 503); assert.equal(calls, 0); assert.equal(stopped, true);
   });
 }

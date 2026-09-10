@@ -24,3 +24,19 @@ test('timed-out starter keeps bounded admission until authority drains and never
   await assert.rejects(service.start(input, async () => {})); service.close(); release();
   await new Promise(resolve => setImmediate(resolve)); assert.equal(calls, 0);
 });
+
+test('drafting start rejects malformed or replaced original-read phases before storage or scheduling', async () => {
+  let sql = 0, scheduled = 0;
+  const pool = { connect: async () => { sql++; throw new Error(); } }, base = { records, authorizeStart: async () => {},
+    scheduler: { start: async () => { scheduled++; } } };
+  assert.throws(() => createIntentDevelopmentStarter({ drafts: pool, execution: pool }, config, { ...base, withOriginalRead: true } as never));
+  for (const withOriginalRead of [async () => {}, async (_input: unknown, _current: unknown, work: any) => { await work(async () => ({})).catch(() => {}); },
+    async () => true as never]) {
+    const service = createIntentDevelopmentStarter({ drafts: pool, execution: pool }, config, { ...base, withOriginalRead });
+    try { await assert.rejects(service.start(input, async () => {})); } finally { service.close(); }
+  }
+  const deps = { ...base, withOriginalRead: async () => {} }, service = createIntentDevelopmentStarter({ drafts: pool, execution: pool }, config, deps);
+  try { await assert.rejects(service.start(input, async () => { deps.withOriginalRead = async () => {}; })); }
+  finally { service.close(); }
+  assert.equal(sql, 0); assert.equal(scheduled, 0);
+});
