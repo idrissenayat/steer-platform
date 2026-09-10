@@ -9,7 +9,22 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0310 / owned development history — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0311 / shared preview generation phase — 68% (17/25; 8 remaining; +0 points)**.
+The [preview generation phase](../intent/0311/EVIDENCE.md) now shares the verified
+retained original and history inside one actual read-only preview. It rechecks
+both independent records/key leases after dependent work and drains forgotten
+reads. The private capability is pinned to the exact history method/configuration;
+it is not exposed as a tool or carried across confirmation effects.
+
+The measured reduction is modest: new-distinct preview 509→485 attempts and
+confirmation 1,211→1,163; continuation preview 799→775 and confirmation
+1,791→1,743. Most remaining traffic is surrounding validation, not generation
+reconstruction. Next integrate the repeated current-draft/source/scope review
+phases and destination/preparation controls, preserving final source closure and
+separate effect boundaries. C22 still fails its unchanged request ceiling; no
+new ETA, checklist point, live activation or UI performance claim is made.
+
+Prior delivery checkpoint: **0310 / owned development history — 68% (17/25; 8 remaining; +0 points)**.
 The [development history integration](../intent/0310/EVIDENCE.md) connects the actual
 factory's retained-generation service to one owned development read and, only when
 its original names one, a separately authorized retained scope read. Actual

@@ -8,7 +8,7 @@ import { RECORDED_MASTRA_REVISION, recordedRoleRequestSchema } from '@steer/agen
 import { createVerifiedCandidateBundleReader } from './candidate-reader.ts';
 import { manageIntentJourney, type ManagedRuntimeIntentJourney, type IntentJourneyConfiguration } from './intent-journey-services.ts';
 import { candidateSaveStatusScopeSchema } from '@steer/tool-registry/candidate-save-status-contracts';
-import { createCandidateSavePreviewer } from '@steer/data/candidate-save-previewer';
+import { createCandidateSavePreviewer, type CandidateGenerationReadPair, type CandidateGenerationReadSession } from '@steer/data/candidate-save-previewer';
 import { createCandidateSavePreparer } from '@steer/data/candidate-save-preparer';
 import { createCandidateSaveStarter } from '@steer/data/candidate-save-starter';
 import { createCandidatePublicationRecorder } from '@steer/data/candidate-publication-recorder';
@@ -595,7 +595,8 @@ export function createVerifiedDevelopmentHistoryExchangeReader(pools: Parameters
 /** Explicit, uninstalled human history projection. Raw SDK exchanges stay inside
  * the records reader; the public service returns parsed documents and lineage. */
 export function createVerifiedDevelopmentHistoryReader(pools:Parameters<typeof createIntentDevelopmentHistoryReader>[0],configuration:unknown,
-  dependencies:Parameters<typeof createVerifiedDevelopmentHistoryExchangeReader>[2] & { ownedRead?: OwnedDevelopmentHistoryBinding }): ReturnType<typeof createIntentDevelopmentHistoryReader> & { shutdown?(): Promise<void> } {
+  dependencies:Parameters<typeof createVerifiedDevelopmentHistoryExchangeReader>[2] & { ownedRead?: OwnedDevelopmentHistoryBinding }): ReturnType<typeof createIntentDevelopmentHistoryReader> & {
+    shutdown?(): Promise<void>; withGenerationRead?: CandidateGenerationReadSession['withRead'] } {
   if(dependencies.ownedRead !== undefined) {
     if(!dependencies.ownedRead)throw historyUnavailable();
     return createOwnedDevelopmentHistoryProjection(pools,configuration,dependencies);
@@ -694,10 +695,11 @@ function createOwnedDevelopmentHistoryProjection(pools: Parameters<typeof create
   catch(error) { reader.close(); throw error; }
   const verifier = createRecordedHistoryVerifier(dependencies.profiles);
   const scope = freeze({ organizationId: config.organizationId, subject: config.subject, productId: config.productId, repository: config.repository });
-  return { scope, async read(raw: unknown, revalidate: () => Promise<void>) {
+  async function run<T>(raw: unknown, revalidate: () => Promise<void>, use: (read: () => Promise<CandidateGenerationReadPair>) => Promise<T>, drain: boolean) {
     try {
       pinned(); const input = intentDevelopmentHistoryInputSchema.parse(raw), target = freeze({ operationId: input.operationId, inputDigest: input.inputDigest });
-      if (typeof revalidate !== 'function' || (['organizationId', 'productId', 'repository'] as const).some(key => input[key] !== scope[key])) throw historyUnavailable();
+      if (typeof revalidate !== 'function' || typeof use !== 'function'
+        || (['organizationId', 'productId', 'repository'] as const).some(key => input[key] !== scope[key])) throw historyUnavailable();
       let lifetime = () => {};
       const current = async () => {
         pinned(); lifetime(); if (await revalidate() !== undefined) throw historyUnavailable(); pinned(); lifetime();
@@ -706,7 +708,7 @@ function createOwnedDevelopmentHistoryProjection(pools: Parameters<typeof create
           if (await r.authorizeHistoricalRead!(freeze({ configuration: config, target: { ...target, stepId } })) !== undefined) throw historyUnavailable();
         pinned(); lifetime();
       };
-      const read = await reader.withReadSet({ kind: 'development-history', ...target }, current, async development => {
+      const reading = reader.startReadSet({ kind: 'development-history', ...target }, current, async development => {
         const saved = historyOnly(development.contents.decoded.development_originals);
         if (!saved || saved.metadata.operationId !== target.operationId || saved.metadata.inputDigest !== target.inputDigest
           || saved.value.configuration.budget?.budgetId !== development.snapshot.target.budgetId) throw historyUnavailable();
@@ -722,9 +724,7 @@ function createOwnedDevelopmentHistoryProjection(pools: Parameters<typeof create
         const project = async (records: Parameters<ReturnType<typeof createRecordedHistoryVerifier>['verify']>[0], recheck: () => Promise<void>, finalScopeGrant = async () => {}) => {
           await sourceGrant(); const history = historyOnly((await verifier.verify(records)).developments);
           if (!history || history.operationId !== target.operationId || history.inputDigest !== target.inputDigest) throw historyUnavailable();
-          await recheck(); await sourceGrant(); await finalScopeGrant(); development.check();
           const operationExpired = development.hasExpired(original.configuration.expiresAt);
-          if (!operationExpired) lifetime = () => { if (development.hasExpired(original.configuration.expiresAt)) throw historyUnavailable(); };
           const outputs = history.roles.filter(role => role.checkpointVerified).map(role => {
             const record = historyOnly(development.contents.decoded.development_results.filter(result => result.metadata.stepId === role.role));
             if (!record || !role.result) throw historyUnavailable();
@@ -735,10 +735,30 @@ function createOwnedDevelopmentHistoryProjection(pools: Parameters<typeof create
           const questions = architect?.result.role === 'architect' && architect.result.output.questions.length > 0;
           const status = steps.some(step => ['outcome-unknown', 'failed-known'].includes(step.state)) ? 'attention-required'
             : questions ? 'needs-clarification' : outputs.length === 2 ? 'complete' : outputs.length === 1 ? 'partial' : 'pending';
-          return freeze(await verifyIntentDevelopmentHistoryOutput({ kind: 'steer-development-history/v1', ...input, historical: true, operationExpired,
+          const output = freeze(await verifyIntentDevelopmentHistoryOutput({ kind: 'steer-development-history/v1', ...input, historical: true, operationExpired,
             source: { draftId: source.draftId, revision: source.revision, revisionDigest: source.revisionDigest,
               scopeInputDigest: source.scopeInputDigest, latestRevision: Number(development.snapshot.data.latest_revision[0]!.revision) },
             status, steps, results: outputs, savedToGit: false, gateSigned: false, executionAuthorized: false, retryAuthorized: false, semanticQualityVerified: false }));
+          const pair: CandidateGenerationReadPair = freeze({ history: output, retained: { original,
+            latestDraftRevision: output.source.latestRevision, operationExpired, historical: true,
+            executionAuthorized: false, retryAuthorized: false, gateSigned: false } });
+          let consuming = true, invalid = false, consumed = false, pending: Promise<CandidateGenerationReadPair> | undefined;
+          lifetime = () => { if (invalid || (!operationExpired && development.hasExpired(original.configuration.expiresAt))) throw historyUnavailable(); };
+          const readPair = () => {
+            try {
+              development.check(); lifetime(); if (!consuming || pending) throw historyUnavailable();
+              pending = Promise.resolve().then(async () => {
+                await current(); await sourceGrant(); await finalScopeGrant(); development.check(); lifetime();
+                if (!consuming) throw historyUnavailable(); consumed = true; return pair;
+              }).catch(error => { invalid = true; throw error; }).finally(() => { pending = undefined; });
+              void pending.catch(() => {}); return pending;
+            } catch { invalid = true; return Promise.reject(historyUnavailable()); }
+          };
+          try {
+            const value = await use(readPair); consuming = false;
+            if (!consumed || invalid || pending) throw historyUnavailable();
+            await recheck(); await sourceGrant(); await finalScopeGrant(); development.check(); lifetime(); return value;
+          } finally { consuming = false; await pending?.catch(() => {}); }
         };
         if (bound?.kind !== 'recorded') return project(development, development.recheck);
         const scopeTarget = freeze({ reviewId: bound.reviewId, preparationDigest: bound.preparationDigest });
@@ -767,10 +787,14 @@ function createOwnedDevelopmentHistoryProjection(pools: Parameters<typeof create
         try { return (await nested.result).value; }
         finally { await nested.drained; }
       });
-      pinned(); return read.value;
+      try { const read = await reading.result; pinned(); return read.value; }
+      finally { if (drain) await reading.drained; }
     } catch { throw new Error('Development history is unavailable.'); }
-  }, close() { reader.close(); scopeReader.close(); }, async shutdown() { reader.close(); scopeReader.close(); await Promise.all([reader.shutdown(), scopeReader.shutdown()]); }
-  } satisfies IntentDevelopmentHistoryReader & { close(): void; shutdown(): Promise<void> };
+  }
+  return { scope, read: (input, current) => run(input, current, async read => (await read()).history, false),
+    withGenerationRead: (input, current, work) => run(input, current, work, true),
+    close() { reader.close(); scopeReader.close(); }, async shutdown() { reader.close(); scopeReader.close(); await Promise.all([reader.shutdown(), scopeReader.shutdown()]); }
+  } satisfies IntentDevelopmentHistoryReader & { close(): void; shutdown(): Promise<void>; withGenerationRead: CandidateGenerationReadSession['withRead'] };
 }
 const databaseSchema = z.strictObject({ host: text, port: z.number(), database: text,
   transport: z.discriminatedUnion('kind', [z.strictObject({ kind: z.literal('tls'), ca: text }),
@@ -1236,12 +1260,15 @@ export async function createOwnedIntentJourney(expected: IntentJourneyConfigurat
       { records: historyRecords, profiles: config.developmentProfiles,
         ...(deps.development.ownedHistory ? { ownedRead: { ...deps.development.ownedHistory,
           scope: { records: deps.scope.history, ownedRead: deps.scope.ownedReads!.history, profile: config.scopeProfile } } } : {}) }));
+    if (deps.development.ownedHistory && typeof developmentHistory.withGenerationRead !== 'function') throw fail();
     const review = own(createRecordedCandidateSaveReviewer(records, { drafts, sources: sourceReview,
       scopeReview: scopeReader, authorizeReview: deps.candidate.authorizeReview }));
     const destination = own(createCandidateSaveDestination(resources.reader,
       { ...candidateScope, configurationRevision: records.configurationRevision }, deps.candidate.destination));
     const previewer = own(createRecordedCandidateSavePreviewer(pools, { ...records, serviceCommitter: config.publication.serviceCommitter },
-      { drafts, review, history: developmentHistory, originals: historicalOriginals, destination, authorizePreview: deps.candidate.authorizePreview }));
+      { drafts, review, history: developmentHistory, originals: historicalOriginals, destination, authorizePreview: deps.candidate.authorizePreview,
+        ...(developmentHistory.withGenerationRead ? { generationRead: { configuration: records, historyRead: developmentHistory.read,
+          withRead: developmentHistory.withGenerationRead } } : {}) }));
     const candidateConfiguration = { records, execution: config.candidate };
     const services = {
       intentDrafts: drafts,

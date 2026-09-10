@@ -7,8 +7,21 @@ import { intentDraftReadOutputSchema, type IntentDraftService } from '@steer/too
 import { verifyIntentDevelopmentHistoryOutput, type IntentDevelopmentHistoryReader } from '@steer/tool-registry/intent-development-history-contracts';
 import { createDevelopmentOriginalStore } from './development-originals.ts';
 import { draftRecordsConfigurationSchema } from './draft-revisions.ts';
-import { describeDevelopmentOriginal, freezeOriginal as freeze } from './development-original-contracts.ts';
+import { describeDevelopmentOriginal, developmentOriginalHash as hash, freezeOriginal as freeze } from './development-original-contracts.ts';
 import { withReviewReadSession } from './review-read-session.ts';
+import type { HistoricalOriginalSnapshot } from './historical-original-read-window.ts';
+
+export type CandidateGenerationReadPair = Readonly<{ retained: HistoricalOriginalSnapshot;
+  history: Awaited<ReturnType<typeof verifyIntentDevelopmentHistoryOutput>> }>;
+/** Trusted server-only read phase. The provider owns final record/key/source
+ * verification and actual drain AFTER work, and forbids escaped/parallel reads.
+ * No action, public tool or execution authority is represented by this port. */
+export interface CandidateGenerationReadSession {
+  readonly configuration: unknown;
+  readonly historyRead: IntentDevelopmentHistoryReader['read'];
+  withRead<T>(input: Parameters<IntentDevelopmentHistoryReader['read']>[0], current: () => Promise<void>,
+    work: (read: () => Promise<CandidateGenerationReadPair>) => Promise<T>): Promise<T>;
+}
 
 const configurationSchema = draftRecordsConfigurationSchema.extend({ serviceCommitter: z.string().min(1).max(200) });
 const fail = () => new Error('Candidate package preview is unavailable; nothing was confirmed or saved.');
@@ -20,6 +33,7 @@ export function createCandidateSavePreviewer(pools: Parameters<typeof createDeve
   review: CandidateSaveReviewer;
   history: IntentDevelopmentHistoryReader;
   originals: Parameters<typeof createDevelopmentOriginalStore>[2];
+  generationRead?: CandidateGenerationReadSession;
   destination: {
     readonly scope: CandidateSaveReviewer['scope'];
     resolve(input: CandidateSavePreviewInput, review: CandidateSaveReviewOutput, current: () => Promise<void>): Promise<unknown>;
@@ -30,6 +44,14 @@ export function createCandidateSavePreviewer(pools: Parameters<typeof createDeve
   const { recordsPolicyDigest: _policy, ...scope } = recordsConfig;
   if ([deps.drafts?.read, deps.review?.review, deps.history?.read, deps.destination?.resolve, deps.authorizePreview,
     deps.originals?.authorizeHistoricalRead].some(v => typeof v !== 'function')) throw fail();
+  const generationRead = deps.generationRead, historyRead = deps.history.read, generationMethod = generationRead?.withRead;
+  const generationPinned = () => {
+    if (deps.generationRead !== generationRead || (generationRead !== undefined && (!generationRead
+      || generationRead.withRead !== generationMethod || typeof generationMethod !== 'function'
+      || generationRead.historyRead !== historyRead || deps.history.read !== historyRead
+      || hash(generationRead.configuration) !== hash(recordsConfig)))) throw fail();
+  };
+  generationPinned();
   let active = 0; const lifetime = new AbortController();
   return { scope: freeze(scope),
     async preview(rawInput, revalidate) {
@@ -39,6 +61,7 @@ export function createCandidateSavePreviewer(pools: Parameters<typeof createDeve
       const signal = AbortSignal.any([lifetime.signal, AbortSignal.timeout(60000)]);
       const release = () => { if (finished && !pending && !released) { released = true; active--; } };
       const guard = () => {
+        generationPinned();
         signal.throwIfAborted();
         if (finished || (['organizationId', 'productId', 'repository', 'configurationRevision'] as const).some(k => input[k] !== scope[k])) throw fail();
         for (const port of [deps.drafts, deps.review, deps.history, deps.destination])
@@ -70,17 +93,19 @@ export function createCandidateSavePreviewer(pools: Parameters<typeof createDeve
         let output: Awaited<ReturnType<typeof describeCandidateSavePreview>>['output'] | undefined;
         await withReviewReadSession(deps.review, reviewInput, current, async readReviewed => {
         await authorize();
-        originals = createDevelopmentOriginalStore(pools, recordsConfig, deps.originals);
+        if (!generationRead) originals = createDevelopmentOriginalStore(pools, recordsConfig, deps.originals);
         const draft = await readDraft();
         const readReview = async () => verifyCandidateSaveReview(reviewInput, await bounded(() => readReviewed(current)), draft.content.documents);
         const review = await readReview();
         if (review.subject !== scope.subject || review.branch !== scope.branch || review.reviewDigest !== input.reviewDigest) throw fail();
-        const retained = await bounded(() => originals!.readHistorical(target));
+        const build = async (readPair?: () => Promise<CandidateGenerationReadPair>) => {
+        const readOriginal = () => bounded(async () => readPair ? (await readPair()).retained : originals!.readHistorical(target));
+        const retained = await readOriginal();
         const described = await describeDevelopmentOriginal(retained.original), original = described.original;
         if (described.inputDigest !== target.inputDigest || retained.latestDraftRevision !== input.revision
           || (Object.keys(recordsConfig) as Array<keyof typeof recordsConfig>).some(k => original.configuration[k] !== recordsConfig[k])) throw fail();
-        const readHistory = async () => verifyIntentDevelopmentHistoryOutput(await bounded(() => deps.history.read({ organizationId: scope.organizationId,
-          productId: scope.productId, repository: scope.repository, ...target }, current)));
+        const readHistory = async () => verifyIntentDevelopmentHistoryOutput(await bounded(async () => readPair ? (await readPair()).history
+          : deps.history.read({ organizationId: scope.organizationId, productId: scope.productId, repository: scope.repository, ...target }, current)));
         const history = await readHistory();
         if (history.status !== 'complete' || history.operationId !== target.operationId || history.inputDigest !== target.inputDigest
           || (['organizationId', 'productId', 'repository'] as const).some(k => history[k] !== scope[k])
@@ -102,11 +127,15 @@ export function createCandidateSavePreviewer(pools: Parameters<typeof createDeve
         const { operationExpired: _initialExpiry, ...initialHistory } = history;
         const { operationExpired: _finalExpiry, ...finalHistory } = await readHistory();
         if (JSON.stringify(initialHistory) !== JSON.stringify(finalHistory)) throw fail();
-        const finalOriginal = await bounded(() => originals!.readHistorical(target));
+        const finalOriginal = await readOriginal();
         if (JSON.stringify(finalOriginal.original) !== JSON.stringify(original) || finalOriginal.latestDraftRevision !== input.revision
           || JSON.stringify(await readReview()) !== JSON.stringify(review) || JSON.stringify(await readDestination()) !== JSON.stringify(destination)
           || JSON.stringify(await readDraft()) !== JSON.stringify(draft)) throw fail();
         await authorize(); output = prepared.output;
+        };
+        if (generationRead) await bounded(() => generationRead.withRead({ organizationId: scope.organizationId,
+          productId: scope.productId, repository: scope.repository, ...target }, current, build));
+        else await build();
         }, task => bounded(() => task), guard);
         await current(); if (!output) throw fail(); return output;
       } catch { throw fail(); }

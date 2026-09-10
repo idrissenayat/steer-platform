@@ -7,6 +7,44 @@ import { candidateSavePreviewFixture } from '../../../packages/tool-registry/tes
 import { createRecordedCandidateSavePreviewer } from '../src/runtime.ts';
 
 const tool = 'intent.candidate.save.preview';
+test('generation read phase requires the exact private history method and configuration, never invalid-binding fallback', async () => {
+  const f = await candidateSavePreviewFixture(), config = { ...f.scope, recordsPolicyDigest: 'a'.repeat(64) };
+  const deny = async () => { throw new Error('PRIVATE unexpected access'); };
+  const history = { scope: f.scope, read: deny }, generation = { configuration: config, historyRead: history.read, withRead: deny };
+  const deps = { drafts: { scope: f.scope, create: deny, append: deny, read: deny }, review: { scope: f.scope, review: deny }, history,
+    destination: { scope: f.scope, resolve: deny }, originals: { authorize: deny, authorizeOperation: deny, authorizeOriginal: deny,
+      authorizeDraft: deny, keyForDraft: deny, authorizeHistoricalRead: deny }, authorizePreview: async () => {} };
+  for (const generationRead of [null, {}, { ...generation, withRead: undefined }, { ...generation, historyRead: async () => {} },
+    { ...generation, configuration: { ...config, subject: 'foreign' } }])
+    assert.throws(() => createRecordedCandidateSavePreviewer({ drafts: { connect: deny }, execution: { connect: deny } },
+      { ...config, serviceCommitter: 'app:synthetic' }, { ...deps, generationRead: generationRead as any }));
+  for (const change of [(g: typeof generation) => { g.configuration = { ...config, recordsPolicyDigest: 'b'.repeat(64) }; },
+    (g: typeof generation) => { g.historyRead = async () => { throw new Error('changed'); }; },
+    (g: typeof generation) => { g.withRead = async () => { throw new Error('changed'); }; }]) {
+    const binding = { ...generation }, reader = createRecordedCandidateSavePreviewer({ drafts: { connect: deny }, execution: { connect: deny } },
+      { ...config, serviceCommitter: 'app:synthetic' }, { ...deps, generationRead: binding });
+    try { change(binding); await assert.rejects(reader.preview(f.previewInput, async () => {})); } finally { reader.close(); }
+  }
+});
+
+test('owned preview enters its read-only phase without opening a recursive original store or public history reader', async () => {
+  const f = await candidateSavePreviewFixture(), config = { ...f.scope, recordsPolicyDigest: 'a'.repeat(64) };
+  let entered = 0, forbidden = 0;
+  const deny = async () => { forbidden++; throw new Error('PRIVATE fallback or execution access'); };
+  const history = { scope: f.scope, read: deny };
+  const reader = createRecordedCandidateSavePreviewer({ drafts: { connect: deny }, execution: { connect: deny } },
+    { ...config, serviceCommitter: 'app:synthetic' }, {
+      drafts: { scope: f.scope, create: deny, append: deny, read: async () => f.draft }, review: { scope: f.scope, review: async () => f.output }, history,
+      destination: { scope: f.scope, resolve: deny }, originals: { authorize: deny, authorizeOperation: deny, authorizeOriginal: deny,
+        authorizeDraft: deny, keyForDraft: deny, authorizeHistoricalRead: deny }, authorizePreview: async () => {},
+      generationRead: { configuration: config, historyRead: history.read, withRead: async (_input, current) => {
+        entered++; await current(); throw new Error('PRIVATE held phase unavailable');
+      } },
+    });
+  try { await assert.rejects(reader.preview(f.previewInput, async () => {})); assert.equal(entered, 1); assert.equal(forbidden, 0); }
+  finally { reader.close(); }
+});
+
 test('authenticated HTTP/MCP expose a no-store read-only package preview, not human consent or provider dispatch', async () => {
   const f = await candidateSavePreviewFixture(); let calls = 0;
   const principal = { organizationId: f.scope.organizationId, subject: f.scope.subject, type: 'human', hats: [], toolGrants: [tool], expiresAt: new Date(Date.now() + 300000).toISOString() };

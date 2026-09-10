@@ -7053,6 +7053,32 @@ live model/key access, spending, runtime GitHub save, deployment, profile/record
 activation, signature or human UI acceptance. User drafts, signed artifacts and
 roadmap/outputs remain unchanged. **68% (17/25; eight remaining; +0 points).**
 
+## 0311 — One owned generation phase in candidate preview
+
+[0311](../intent/0311/EVIDENCE.md) shares the verified retained original and history
+inside one actual read-only preview. The server-only capability pins the records
+configuration and history method; invalid or failed bindings never fall back.
+Every consumption checks current source authority, and both real records/key
+leases are rechecked after dependent preview reads. Final source closure and
+separate confirmation/effect phases remain. Escaped, parallel, skipped and failed
+reads reject; forgotten work is drained before the private phase can finish.
+
+The reduction is modest: new-distinct preview 509→485 attempts and confirmation
+1,211→1,163; continuation preview 799→775 and confirmation 1,791→1,743. Both
+native authenticated save/reopen journeys pass, including the added private-phase
+denial/drain matrix in continuation. Nine native retained-record checks, 1,504
+broad regressions, 59 focused checks, 88 prototype tests, all types, kit and scope
+audit pass. Exact scope/timing, samples and hashes are in
+[verification](../intent/0311/VERIFICATION.json).
+
+Most remaining traffic is surrounding validation. Next integrate repeated
+current-draft/source/scope review and destination/preparation controls while
+preserving final source closure and pre-/post-effect separation. C22 and actual
+signed-in UI/live repository acceptance remain pending. No model usage/spending,
+runtime GitHub save, live profile/records activation, deployment or signature.
+Protected artifacts and user-owned files remain unchanged.
+**68% (17/25; eight remaining; +0 percentage points).**
+
 ## 0308 — Application corpus integration
 
 The [actual API composition](../intent/0308/EVIDENCE.md) now uses the owned native

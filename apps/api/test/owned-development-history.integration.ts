@@ -41,6 +41,52 @@ export async function testOwnedDevelopmentHistoryProjection(
     assert.ok(baseline.development.state.discovery > 0); assert.ok(baseline.scope.state.discovery > 0);
     assert.equal(baseline.development.state.reads, 2); assert.equal(baseline.scope.state.reads, 2);
   } finally { await normal.shutdown!(); }
+  const phase = make(), phaseReader = phase.open(); let escaped: (() => Promise<unknown>) | undefined;
+  try {
+    const value = await phaseReader.withGenerationRead!(input, async () => {}, async read => {
+      escaped = read; const first = await read(), second = await read();
+      assert.deepEqual(first, second); assert.deepEqual(first.history, expected);
+      assert.equal(first.retained.original.source.draftId, first.history.source.draftId);
+      assert.equal(first.retained.latestDraftRevision, first.history.source.latestRevision);
+      assert.equal(phase.development.state.reads, 1); assert.equal(phase.scope.state.reads, 1);
+      return first.history;
+    });
+    assert.deepEqual(value, expected); assert.equal(phase.development.state.reads, 2); assert.equal(phase.scope.state.reads, 2);
+    await assert.rejects(escaped!()); assert.deepEqual(await phaseReader.read(input, async () => {}), expected);
+  } finally { await phaseReader.shutdown!(); }
+  for (const failure of ['development-record', 'scope-record', 'development-key', 'scope-key', 'development-revision',
+    'scope-revision', 'source', 'scope-source', 'parallel', 'unconsumed', 'close'] as const) {
+    const f = make(); let revoked = false;
+    f.records.originals.authorizeOriginal = async () => { if (revoked && failure === 'source') throw new Error('PRIVATE late original policy loss'); };
+    f.binding.scope.records.originals.authorizeOriginal = async () => { if (revoked && failure === 'scope-source') throw new Error('PRIVATE late scope policy loss'); };
+    const owned = f.open();
+    try {
+      await assert.rejects(owned.withGenerationRead!(input, async () => {}, async read => {
+        if (failure === 'unconsumed') return 'no read';
+        if (failure === 'parallel') { const first = read(), second = read(); await Promise.all([assert.rejects(first), assert.rejects(second)]); return 'caught errors'; }
+        await read(); revoked = true;
+        if (failure === 'development-record') f.development.state.deniedRecord = 'development_results';
+        if (failure === 'scope-record') f.scope.state.deniedRecord = 'scope_originals';
+        if (failure === 'development-key') f.development.state.deniedKey = 'development_originals';
+        if (failure === 'scope-key') f.scope.state.deniedKey = 'scope_observations';
+        if (failure === 'development-revision') f.development.state.revision = 'changed-after-consumer';
+        if (failure === 'scope-revision') f.scope.state.revision = 'changed-after-consumer';
+        if (failure === 'close') owned.close();
+        return 'must be withheld after dependent work';
+      }), { message: 'Development history is unavailable.' });
+    } finally { await owned.shutdown!(); }
+  }
+  const forgotten = make(), forgottenReader = forgotten.open(), gateRead = deferred(), readEntered = deferred();
+  let holdCurrent = false, finished = false;
+  const pendingPhase = forgottenReader.withGenerationRead!(input, async () => {
+    if (holdCurrent) { readEntered.resolve(); await gateRead.promise; }
+  }, async read => { holdCurrent = true; void read().catch(() => {}); return 'forgotten pending read'; });
+  const phaseRejected = assert.rejects(pendingPhase).then(() => { finished = true; });
+  try {
+    await readEntered.promise; forgottenReader.close(); await tick(); assert.equal(finished, false);
+    gateRead.resolve(); await phaseRejected; assert.equal(finished, true);
+  } finally { gateRead.resolve(); await phaseRejected; await forgottenReader.shutdown!(); }
+  console.log('PASS owned generation phase: one shared original/history, fresh per-read policy, final dependent-work closure, escaped/parallel/unconsumed denial and forgotten-read drain');
   for (const change of [
     (f: ReturnType<typeof make>) => { f.development.state.deniedRecord = 'development_originals'; },
     (f: ReturnType<typeof make>) => { f.development.state.deniedKey = 'development_results'; },

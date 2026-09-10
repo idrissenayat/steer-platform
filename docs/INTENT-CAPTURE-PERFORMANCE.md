@@ -7,6 +7,30 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Shared generation phase in preview — 0311
+
+[0311](../intent/0311/EVIDENCE.md) shares one owned original/history computation
+through the dependent reads of a single preview, with fresh per-consumption
+policies, final records/key/source readback and actual pending-work drain. Each
+separate confirmation validation still opens a new phase. No authority crosses
+admission, persistence, scheduling or publication effects.
+
+| Authenticated synthetic action | 0310 attempts | 0311 attempts |
+| --- | ---: | ---: |
+| New-distinct preview | 509 | 485 |
+| New-distinct confirmation / recovery / repeat | 1,211 / 1,183 / 1,181 | 1,163 / 1,135 / 1,133 |
+| Proposal-continuation preview | 799 | 775 |
+| Proposal-continuation confirmation / recovery / repeat | 1,791 / 1,763 / 1,761 | 1,743 / 1,715 / 1,713 |
+
+This is a small improvement, not a resolution of C22. The new-distinct preview
+still has 463 identity-head attempts out of 485 total; save review alone remains
+224 attempts. Repeated surrounding current-draft/source/scope reviews and
+destination/preparation checks remain the next integration target. Do not infer
+that removing additional original reads alone will meet the whole-action budget.
+Exact samples and verification are in [0311](../intent/0311/VERIFICATION.json).
+These undelayed functional runs are not the required p95 protocol or UI acceptance.
+Overall remains **68% (17/25; eight remaining; +0 points)**.
+
 ## Owned development history integration — 0310
 
 [0310](../intent/0310/EVIDENCE.md) connects retained development history to the

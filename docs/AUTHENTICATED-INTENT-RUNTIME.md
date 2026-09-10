@@ -62,6 +62,35 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Private generation phase in candidate preview — 0311
+
+[0311](../intent/0311/EVIDENCE.md) connects an explicitly typed server-only
+`withGenerationRead` computation from the owned history constructor to candidate
+preview. Its `generationRead` dependency pins the exact records configuration and
+history method. Absence keeps the established path; a missing/replaced/malformed
+capability or failed read never falls back. The managed public service still
+exposes only its existing history `read` method, not this private callback or raw
+original. No live profile, new tool or environment switch is added.
+
+After initial draft/review validation, one owned development/scope read produces
+the immutable original/history pair. Every consumption rechecks current caller
+and independent original/result/scope source policies. Dependent preview reads
+finish before BOTH records/key leases and final source policies are rechecked;
+the surrounding corpus owner still closes its source validation afterward. The
+original/history bodies are shared only within the read-only invocation, not
+permissions or results across effects, requests or revisions.
+
+Escaped, overlapping, skipped and caught-failed reads reject. Forgotten unfinished
+reads retain ownership until they settle. Private composition awaits actual drain
+on cancellation; ordinary public history may reject promptly while shutdown
+continues draining. Existing four-call, history/preview deadline and lifecycle
+bounds remain. Confirmation's separate pre-/post-effect previews are not merged.
+
+Both actual synthetic save/reopen directions pass, but the provider-count decrease
+is modest: 24 fewer attempts per preview and 48 per first confirmation. Surrounding
+current draft/source/scope review and destination/preparation controls remain the
+larger target. No full C22, real provider authority or signed-in UI claim is made.
+
 ### Owned retained development history — 0310
 
 [0310](../intent/0310/EVIDENCE.md) adds the trusted factory binding
