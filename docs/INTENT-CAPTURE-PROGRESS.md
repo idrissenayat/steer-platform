@@ -7,21 +7,49 @@ the priority to intent capture, understanding, duplicate review, document
 generation, and human review/approval. These eight milestones enumerate that
 whole user-facing workflow; they do not add eight new features.
 
-**Initial actual-application baseline: pending verification.** Existing code and
-test coverage remain; do not imply that development restarts at zero. The first
-resumed run must verify which milestones already work in the actual application,
-then publish the evidenced N/8 baseline. Do not carry forward the old 68%.
+**Actual-application acceptance baseline, 2026-09-10: 0% (0/8 verified).**
+This measures the usable end-to-end workflow, not implementation effort. Existing
+code and test coverage remain; development is not restarting from zero. Actual
+Chrome sign-in now reaches the workspace, but it explicitly reports draft
+preservation, repository search and live-agent setup as unconfigured. No whole
+workflow milestone below is available for acceptance yet. Do not carry forward
+the historical 68% as actual-application acceptance.
 
 | ID | User-visible workflow milestone | Acceptance evidence required | Status |
 | --- | --- | --- | --- |
-| W01 | Capture natural-language intent | Actual UI accepts free text without a mandatory questionnaire, preserves the submitted intent and can reopen it. | Awaiting actual-UI baseline |
-| W02 | Understand intent and clarify only what is needed | Real agent responds to the submitted intent; necessary questions can be answered and the workflow continues without losing source context. | Awaiting actual-UI baseline |
-| W03 | Check duplicates, overlap and related intent | Actual workflow searches permitted existing content, presents useful matches/evidence and uncertainty, and lets the user resolve the relationship without silent merging or false claims from incomplete search. | Awaiting actual-UI baseline |
-| W04 | Generate Intent Brief | Real model produces a useful source-faithful Brief visible in the actual application, not a fixture or an unrelated preview. | Awaiting actual-UI baseline |
-| W05 | Generate Intent Spec | Real model produces a useful Spec consistent with the intent and Brief, visible in the same workflow. | Awaiting actual-UI baseline |
-| W06 | Generate Intent Exam | Separate fresh-context Test Agent produces a relevant Exam from the accepted source context; visible alongside Brief and Spec. | Awaiting actual-UI baseline |
-| W07 | Review and correct the documents | The user can read all three documents, make corrections and retain/reopen the resulting revision without losing their changes. | Awaiting actual-UI baseline |
-| W08 | Explicitly approve for implementation | The actual user approves the exact reviewed revision in STEER; the approval is retained and visible, and the user accepts the complete journey. Agents do not fabricate signatures or begin deployment. | Awaiting actual-UI baseline |
+| W01 | Capture natural-language intent | Actual UI accepts free text without a mandatory questionnaire, preserves the submitted intent and can reopen it. | Partial UI only: free-text field present; preservation/reopen not configured |
+| W02 | Understand intent and clarify only what is needed | Real agent responds to the submitted intent; necessary questions can be answered and the workflow continues without losing source context. | Blocked: live-agent connection disabled; Review my intent disabled |
+| W03 | Check duplicates, overlap and related intent | Actual workflow searches permitted existing content, presents useful matches/evidence and uncertainty, and lets the user resolve the relationship without silent merging or false claims from incomplete search. | Blocked: repository search not configured; Check existing scope disabled |
+| W04 | Generate Intent Brief | Real model produces a useful source-faithful Brief visible in the actual application, not a fixture or an unrelated preview. | Blocked upstream: no live drafting run |
+| W05 | Generate Intent Spec | Real model produces a useful Spec consistent with the intent and Brief, visible in the same workflow. | Blocked upstream: no live drafting run |
+| W06 | Generate Intent Exam | Separate fresh-context Test Agent produces a relevant Exam from the accepted source context; visible alongside Brief and Spec. | Blocked upstream: no live drafting run |
+| W07 | Review and correct the documents | The user can read all three documents, make corrections and retain/reopen the resulting revision without losing their changes. | Blocked upstream: no generated/preserved document revision |
+| W08 | Explicitly approve for implementation | The actual user approves the exact reviewed revision in STEER; the approval is retained and visible, and the user accepts the complete journey. Agents do not fabricate signatures or begin deployment. | Pending actual user review and acceptance; no approval inferred |
+
+### Actual browser evidence — 2026-09-10
+
+After the user completed the approved local password reset, sign-in returned to
+the application but the gateway displayed `The request could not be served.`
+The owned renderer had started on September 7; its on-disk build was dated
+September 9. A direct diagnostic using synthetic display-only headers reproduced
+HTTP 500 on that renderer, while a temporary fresh renderer of the same current
+build returned HTTP 200. The diagnostic renderer was stopped afterward.
+
+The verified owned gateway/renderer were gracefully restarted with the existing
+profile and credentials. The actual Chrome tab then displayed `Your workspace.`,
+organization `steer-local-idrissenayat`, and Org Admin, Product Lead and Product
+Designer hats. The recovery-administrator browser session was signed out first.
+No password, TLS trust, database schema, runtime grant or model budget was changed
+by the restart. No model call or application GitHub write was made.
+
+The same page explicitly reports that draft preservation, repository search and
+live-agent setup are unconfigured. `local-workspace.mjs start` does not install
+the managed intent-journey factory/policy binding or enable its editor/agent flags;
+the private profile has no intent-journey binding. This is the next concrete
+integration target, not the old C22 optimization work. The proposed D1 records
+amendment remains unsigned/inactive; the $5 test budget does not adopt it.
+Connect existing services within those boundaries; do not fabricate activation
+authority or enable a second preview. Sign-in repair earns no W01–W08 points.
 
 ### Current reporting contract
 

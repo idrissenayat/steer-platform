@@ -27,6 +27,18 @@ Report progress against W01–W08 in [the workflow tracker](INTENT-CAPTURE-PROGR
 not the historical 17/25 broader-delivery count. Verify the existing actual UI
 first, then close the missing workflow steps without expanding scope.
 
+2026-09-10 actual-UI baseline: the user's password reset and real sign-in were
+observed. A stale running renderer returned HTTP 500 for the workspace; a fresh
+renderer of the current build succeeded. Restarting only the owned gateway/web
+processes fixed the actual browser error without changing credentials, schema,
+TLS trust or grants. Chrome now shows the correct organization and three hats.
+The same screen shows unconfigured draft preservation, repository search and
+live-agent setup, so acceptance is **0/8 workflow milestones verified**, not a
+claim that no implementation exists. Existing local startup does not mount the
+managed journey. Connect that existing path next, respecting the still-inactive
+D1 records amendment and independent runtime authority. Exact observations are
+in the [workflow tracker](INTENT-CAPTURE-PROGRESS.md#actual-browser-evidence--2026-09-10).
+
 Live-test spending approval, 2026-09-10: the user replied **"Approve up to $5 total"**
 to the explicit request for a one-time $5 USD cap for live OpenAI intent-review
 and Brief/Spec/Exam tests across all loop runs, stopping at the cap, excluding

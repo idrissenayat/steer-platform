@@ -16,8 +16,16 @@ complete their own profile as well as choosing a new password.
 
 The real account and databases exist. Verified TLS requests reach STEER, create a
 durable PKCE login transaction and reach the real Keycloak password form.
-**The intended user's completed first login has not been observed.** Browser
-certificate trust is now verified in both browsers; personal password setup remains.
+**Completed real-user sign-in was observed on 2026-09-10.** After the user reset
+their own password, the running renderer failed on the signed-in page. It had
+started before the current on-disk build. Restarting only the owned gateway and
+renderer fixed the error: Chrome displayed `Your workspace.`, organization
+`steer-local-idrissenayat`, and Org Admin, Product Lead and Product Designer hats.
+No credentials, trust, database schema or grants were changed by that restart.
+The temporary recovery-administrator browser session was signed out afterward,
+before returning to the normal application. This verifies sign-in, not completion
+of the intent workflow; preservation, search and live-agent setup remain disabled.
+Browser certificate trust is verified in both browsers.
 Never click through a certificate warning or disable certificate validation.
 
 Initially, following the user's separate approval, the original certificate was installed in
@@ -43,7 +51,9 @@ are 0600. It contains the deployment descriptor, server-only TLS leaf certificat
 private keys, database/client/session secrets, realm bootstrap and `FIRST-LOGIN.txt`.
 The browser-only pair is `browser-tls/server.crt` and `browser-tls/server.key`;
 `tls.crt`/`tls.key` remain the separately pinned database pair.
-The latter holds a temporary password that Keycloak requires the user to replace.
+`FIRST-LOGIN.txt` holds only the original temporary setup password. The user has
+replaced it; it is not a current login credential. The new password remains
+user-managed and must be entered only in the identity-provider page.
 Do not paste any of these files into chat, issue trackers or Git.
 
 The existing runtime App key is read from its already approved private path; it
@@ -171,8 +181,11 @@ These commands never change keychain trust themselves.
 
 ## Remaining before the usable journey
 
-Browser trust is verified. The user must now select their password. Next verify that actual
-sign-in displays the correct organization/hats and current Git-backed grants.
+Browser trust and actual sign-in displaying the correct organization/hats are
+verified. Next connect the managed intent workflow to this same local runtime,
+subject to its records/runtime prerequisites; the existing startup still lacks
+draft preservation, repository search and agent configuration. Follow the current
+[actual-UI baseline](INTENT-CAPTURE-PROGRESS.md#actual-browser-evidence--2026-09-10).
 Sessions currently expire with the short-lived access token (180 seconds); this
 bootstrap does not invent a refresh-token/session-renewal implementation.
 

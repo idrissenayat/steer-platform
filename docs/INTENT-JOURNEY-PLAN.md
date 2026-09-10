@@ -37,8 +37,12 @@ and the pink/orange design. Real model spending and governed GitHub writes still
 require their specific approvals; this reset grants neither.
 
 Progress reporting now uses the eight user-workflow milestones W01–W08 in the
-[delivery tracker](INTENT-CAPTURE-PROGRESS.md). First establish the actual-UI
-baseline, reusing existing working behavior rather than rebuilding it. After
+[delivery tracker](INTENT-CAPTURE-PROGRESS.md). The September 10 actual-UI
+baseline is **0/8 workflow milestones verified**: real sign-in works after an
+owned web-process restart, but draft preservation, repository search and live
+agent setup are not connected in the running application. This is acceptance,
+not the percentage of code implemented. Reuse existing behavior rather than
+rebuilding it. After
 each verified completion show the percentage, completed N/8, remaining items,
 evidence level, change and next step. Partial coding does not earn acceptance
 points; show implemented/tested work separately from actual-application proof.
@@ -56,6 +60,24 @@ verify that reservations, usage and uncertain in-flight requests cannot exceed
 the aggregate cap. Stop further calls at the cap; do not renew it automatically.
 This approval does not authorize deployment or application GitHub writes, waive
 other required runtime/records prerequisites, or permit credential recreation.
+
+### Current concrete blocker — real runtime connection, 2026-09-10
+
+The user completed a local password reset; actual Chrome sign-in now shows the
+verified workspace and correct organization/hats. A stale running Next renderer
+caused the post-login gateway error. Restarting only the owned web processes with
+the existing profile fixed it; account data, credentials and schema were preserved.
+See the [baseline evidence](INTENT-CAPTURE-PROGRESS.md#actual-browser-evidence--2026-09-10).
+
+The actual startup still mounts only the sign-in configuration. Its profile has
+no managed intent-journey binding, and the startup supplies neither the existing
+journey factory/policy service nor draft-editor/agent configuration. The browser
+therefore disables submission and scope search and warns that text is not saved.
+Next connect the existing workflow to this same runtime, beginning with authorized
+draft preservation/reopen. The [D1 amendment](architecture/DRAFT-RECORDS-AMENDMENT.md)
+is still unsigned/inactive; its required adoption and demonstrated controls are
+separate from the approved $5 model-test cap. Do not bypass those requirements or
+resume unrelated performance work while preparing the integration.
 
 Last verified implementation checkpoint before the pause: **0329 / shared draft graph across save reviews — 68% (17/25; 8 remaining; +0 points)**.
 [0329](../intent/0329/EVIDENCE.md) lends one exact owned draft phase through
