@@ -6978,3 +6978,28 @@ Next integrate the owned records reader and independent policy/key services acro
 outer effect-separated phases. The factory/profile, signed artifacts, user drafts,
 roadmap/outputs, actual records adoption, model spend, runtime GitHub writes and
 deployment remain unchanged. **68% (17/25; eight remaining; +0 points).**
+
+## 0305 — Owned metadata-first records reader, no factory switch
+
+The [production-source records owner](../intent/0305/EVIDENCE.md) reads scoped
+metadata, checks every group's independent record policy, then retrieves encrypted
+contents and verifies exact metadata equality. A mandatory one-use recheck verifies
+all complete rows and lifecycle after trusted crypto/key/source work and before
+final corpus closure. First expiry cannot extend, and cancelled connect/SQL/policy/
+verifier/recheck work retains admission until it settles; shutdown drains it.
+
+Thirty focused tests, final native synthetic journey/owned records assertions,
+prototype/eight package types, kit validation and workflow scope audit pass. The
+first native rejection exposed an incorrect model-budget requirement on candidate-
+save steps; the native null-budget contract and a regression test are retained.
+The existing test crypto/SDK oracle verifies 20 rows and six exchanges in the owned
+records/corpus portion at 56 simulated attempts. Its single undelayed sample is
+not p95 or a complete application action. Exact failed/final evidence and source
+hashes are in [verification](../intent/0305/VERIFICATION.json).
+
+Application confirmation/recovery/repeat remain 7,637 / 7,609 / 7,607. Next compose
+canonical production codecs and independently scoped key/policy services into the
+owned outer action/effect paths, then run the unchanged full C22 benchmark. No
+factory/profile switch, actual records adoption, model spending, runtime GitHub
+save, UI completion, signed-document change or 0289 root-cause claim is made.
+User drafts and roadmap/outputs are preserved. **68% (17/25; eight remaining; +0).**

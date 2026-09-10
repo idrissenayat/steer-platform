@@ -9,7 +9,21 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0304 / owned native corpus graph — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0305 / owned records reader — 68% (17/25; 8 remaining; +0 points)**.
+The [production-source records owner](../intent/0305/EVIDENCE.md) retrieves metadata
+before independently granting every record and fetching encrypted contents. It
+compares the complete authorized metadata, requires awaited final records/lifecycle
+readback and holds admission until cancelled SQL/verifier work actually drains.
+Native save-step null budgets retain their existing no-model-spend semantics.
+
+The corrected native records/corpus portion passes at 56 simulated provider
+attempts, with unchanged crypto/SDK/source checks; 30 focused checks and all types
+pass. This is not installed in the application factory: actual synthetic
+confirmation remains 7,637. Next connect canonical production codecs, independent
+key/policy services and owned outer action/effect phases, then measure the full
+unchanged C22 protocol. No new ETA, completed C18/C22, live authority or UI claim.
+
+Prior delivery checkpoint: **0304 / owned native corpus graph — 68% (17/25; 8 remaining; +0 points)**.
 The [owned production-source collector](../intent/0304/EVIDENCE.md) connects the
 native batch reader to exact current/historical roots, pointer/manifest/document
 dependencies and final source closure after dependent records readback. Four-call

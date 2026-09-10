@@ -7,6 +7,23 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Owned metadata-first records reader — 0305
+
+The [production-source records owner](../intent/0305/EVIDENCE.md) replaces the
+test-only SQL reader in the combined native experiment. Explicit per-group grants
+precede ciphertext retrieval, and full final rows/lifecycle remain mandatory.
+The portion uses 56 simulated provider attempts (12 source repository, 43 identity,
+one JWKS), 38 caller checks, 13 metadata grants, 80 record policies, six role
+transactions/51 SQL statements and two checks of one physical key. Twenty encrypted
+rows and six recorded SDK exchanges pass, with final source revocation and expiry
+denials. The initial native null-budget mismatch and its correction are retained.
+
+Its single undelayed 1,592 ms sample is not p95 or an accepted allocation. Policy
+services and the crypto oracle are still synthetic/test-only. The application
+factory is unchanged: confirmation/recovery/repeat remain 7,637 / 7,609 / 7,607.
+Complete production codec/key-policy and outer-action/effect integration before
+the full unchanged C22 benchmark; this portion alone earns no progress point.
+
 ## Owned native corpus graph — 0304
 
 The [production-source graph](../intent/0304/EVIDENCE.md) owns current/historical

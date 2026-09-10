@@ -13,9 +13,9 @@ import { renderDevelopmentRequest } from '../../../packages/data/src/development
 import { intentRoleResultSchema } from '@steer/tool-registry/intent-role-result';
 import { createRecordedMastraVerifier, createRecordedScopeMastraVerifier } from '@steer/agents/recorded-mastra';
 import { planCandidateBundle } from '@steer/tool-registry/candidate-bundle-contracts';
-import type { readRecordsReadsetPrototype } from '../../../packages/data/test/records-readset-prototype.ts';
-
-type Snapshot = Awaited<ReturnType<typeof readRecordsReadsetPrototype>>;
+// Both prototype and owned production-source readers are checked by this same
+// test-only crypto/SDK oracle. No production reader imports this decoder.
+type Snapshot = { data: Readonly<Record<string, readonly any[]>> };
 const hash = (v: unknown) => createHash('sha256').update(JSON.stringify(v)).digest('hex');
 // TEST ONLY canonical field ordering for private metadata codecs. Hash/AEAD and
 // original SDK verifiers detect disagreement; these are not production exports.

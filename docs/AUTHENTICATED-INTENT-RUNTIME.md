@@ -62,6 +62,23 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Owned records reader, no factory switch — 0305
+
+[0305](../intent/0305/EVIDENCE.md) adds internal metadata-first records composition
+for retained review/development/save history. A present enumeration grant and
+separate per-group policies precede encrypted reads; exact metadata, complete final
+rows/lifecycle, one-use awaited recheck and current grant-revision closure remain.
+The trusted decoder/source callback is read-only and cannot dispatch or save.
+The owner retains cancelled connect/SQL/policy/verifier/recheck work until it drains.
+Native null-budget candidate-save steps do not gain model-spending authority.
+
+The local native experiment uses this production-source reader with the existing
+test-only cryptographic/SDK oracle, synthetic independent policies and owned corpus
+graph. Its 56-attempt portion is not application performance or records adoption.
+Canonical production codecs, key/policy services and outer effect-separated paths
+still need to be composed before switching the factory. Real startup/profile,
+records adoption, model budget and actual runtime GitHub write grants are unchanged.
+
 ### Owned native corpus graph, no factory switch — 0304
 
 [0304](../intent/0304/EVIDENCE.md) composes the actual batch adapter into an owned

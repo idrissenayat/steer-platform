@@ -28,6 +28,7 @@ import { createIntentPerformanceProbe } from './intent-performance-probe.ts';
 import { testAuthenticatedPerformancePrefix } from './authenticated-performance-prefix.integration.ts';
 import { createIdentityRequestProfile } from './identity-request-profile.ts';
 import { testRecordsReadsetFeasibility } from './records-readset-feasibility.integration.ts';
+import { testOwnedRecordsReadset } from './records-owned-readset.integration.ts';
 
 /** Signed synthetic JWT + native Git grants, real API constructor graph, SQL and
  * recorded SDK roles. No real issuer, model transport, live migration or external Git write.
@@ -35,7 +36,7 @@ import { testRecordsReadsetFeasibility } from './records-readset-feasibility.int
  * This check does not claim real provider authority or signed-in UI acceptance. */
 export async function testAuthenticatedGeneration({ admin, connect, check }: {
   admin: Pool; connect(role: string): Pool; check(name: string, run: () => Promise<void>): Promise<void>;
-}, direction: AuthenticatedJourneyDirection = 'new-distinct', performanceOnly = false, profileRequests = false, recordsFeasibility = false, combinedFeasibility: false | 'separate' | 'graph' | 'native-graph' = false) {
+}, direction: AuthenticatedJourneyDirection = 'new-distinct', performanceOnly = false, profileRequests = false, recordsFeasibility = false, combinedFeasibility: false | 'separate' | 'graph' | 'native-graph' | 'owned-records' = false) {
   if (profileRequests && performanceOnly) throw new Error('Attribution overhead must not be mixed with performance acceptance.');
   if (recordsFeasibility && (profileRequests || performanceOnly)) throw new Error('Records feasibility must be an isolated test selection.');
   if (combinedFeasibility && !recordsFeasibility) throw new Error('Combined feasibility requires native records.');
@@ -269,7 +270,10 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
           toolGrants: identity.grant.toolGrants.filter(tool => tool !== 'intent.candidate.read') }) });
       assert.equal(modelCalls, 6); assert.equal(native.git.mutations(), 1);
       await runtime.shutdown(); assert.equal(constructions, 4); assert.equal(closures, 4);
-      if (recordsFeasibility) await testRecordsReadsetFeasibility(f, identity, profiles, { draftId: f.draftId,
+      if (combinedFeasibility === 'owned-records') await testOwnedRecordsReadset(f, identity, profiles, { draftId: f.draftId,
+        operationIds: [reference.operationId, confirmed.reference.operationId], reviewIds: [scopePrepared.reference!.reviewId, confirmed.scopeReference.reviewId],
+        revisions: [1, 2], budgetId: f.execution.budget.budgetId }, authority, native);
+      else if (recordsFeasibility) await testRecordsReadsetFeasibility(f, identity, profiles, { draftId: f.draftId,
         operationIds: [reference.operationId, confirmed.reference.operationId], reviewIds: [scopePrepared.reference!.reviewId, confirmed.scopeReference.reviewId],
         revisions: [1, 2], budgetId: f.execution.budget.budgetId }, authority, combinedFeasibility ? native : undefined, combinedFeasibility || 'separate');
     } finally {

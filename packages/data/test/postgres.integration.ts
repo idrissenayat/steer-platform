@@ -106,6 +106,11 @@ try {
     await testAuthenticatedGeneration({admin,connect,check},'candidate-revision');
     assert.equal(passed,2);
     console.log(`FOCUSED authenticated candidate revision result: ${passed-1} joined check passed plus idempotent migration check; full suite NOT RUN.`);
+  }else if(selection.mode==='owned-records-readset'){
+    console.log('FOCUSED owned metadata-first records reader with native corpus and crypto/SDK oracle; NOT factory installation or C22.');
+    await testAuthenticatedGeneration({admin,connect,check},'new-distinct',false,false,true,'owned-records');
+    assert.equal(passed,2);
+    console.log('FOCUSED owned records: preceding joined journey, owned records/source assertions and idempotent migrations passed; full suite NOT RUN.');
   }else if(selection.mode==='combined-native-readgraph-feasibility'){
     console.log('FOCUSED owned application corpus graph with actual native reader and records experiment; NOT factory installation or C22.');
     await testAuthenticatedGeneration({admin,connect,check},'new-distinct',false,false,true,'native-graph');
