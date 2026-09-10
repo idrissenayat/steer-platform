@@ -1,11 +1,12 @@
 # Brief: Synthetic GitHub editor verification
 
 Author: Synthetic test fixture; no Product Lead approval
+
 Status: draft
 
 ## Problem
 
-Synthetic fixture used only to verify document editing. No user requirements are asserted.
+Synthetic fixture used only to verify document editing. N Synthetic verification: saved through the document editor.o user requirements are asserted.
 
 ## Proposed outcome
 
@@ -25,7 +26,7 @@ Verify an explicit edit creates a readable GitHub revision.
 
 ## Constraints
 
--
+- 
 
 ## Sizing and scoping
 
@@ -44,4 +45,6 @@ reliability, irreversible-operations, integrations.
 
 ## Open questions
 
--
+- 
+
+
