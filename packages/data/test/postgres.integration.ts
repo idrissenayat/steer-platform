@@ -35,6 +35,7 @@ import { testIntentDraftApi } from '../../../apps/api/test/intent-drafts.integra
 import { testManagedIntentJourneyRuntime } from '../../../apps/api/test/intent-journey-runtime.integration.ts';
 import { testAuthenticatedGeneration } from '../../../apps/api/test/authenticated-generation.integration.ts';
 import { testDevelopmentPreparation } from '../../../apps/api/test/intent-development-prepare.integration.ts';
+import { testLocalRecordsUpgrade } from './local-records-upgrade.integration.ts';
 
 const exec = promisify(execFile);
 const selection=parseIntegrationSelection(process.argv.slice(2));
@@ -71,16 +72,23 @@ try {
   };
   const admin = connect('postgres');
   // These roles and generated credentials exist only in this disposable container.
-  for (const role of ['steer_app', 'steer_projector', 'steer_auth_runtime', 'steer_draft_runtime']) {
+  for (const role of ['steer_app', 'steer_projector', 'steer_auth_runtime', ...(selection.mode === 'local-records-upgrade' ? [] : ['steer_draft_runtime'])]) {
     await admin.query(`CREATE ROLE ${role} LOGIN PASSWORD '${password}' NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS`);
   }
   const migrationsFolder = fileURLToPath(new URL('../migrations/', import.meta.url));
-  await check('versioned Drizzle migrations apply twice without replay effects', async () => {
+  if (selection.mode === 'local-records-upgrade') {
+    await testLocalRecordsUpgrade({ admin, connect, check, migrationsFolder, provisionDraftRole: async () => {
+      await admin.query(`CREATE ROLE steer_draft_runtime LOGIN PASSWORD '${password}' NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS`);
+    } });
+  } else await check('versioned Drizzle migrations apply twice without replay effects', async () => {
     await migrate(drizzle(admin), { migrationsFolder });
     await migrate(drizzle(admin), { migrationsFolder });
     assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 28);
   });
-  if(selection.mode==='draft-read-phase'){
+  if(selection.mode==='local-records-upgrade'){
+    assert.equal(passed, 5);
+    console.log('FOCUSED local records upgrade: 5 checks passed on disposable PostgreSQL; real migration, external key/backup proof, independent D1 Exam and full suite NOT RUN.');
+  }else if(selection.mode==='draft-read-phase'){
     console.log('FOCUSED native draft revisions and owned read phases; NOT the full integration suite.');
     await testDraftRevisions({admin,connect,check});
     console.log(`FOCUSED draft read phase result: ${passed-1} checks passed plus idempotent migration check; full suite NOT RUN.`);

@@ -186,6 +186,15 @@ it reads no application content and ends with rollback. Errors withhold results
 without printing private details. It neither applies migrations nor inventories
 all host/volume/key backup paths, and it is not proof of recovery or activation.
 
+The separate development command
+`pnpm --filter @steer/data test:integration --local-records-upgrade` rehearses the
+observed five-to-28 migration upgrade in the existing disposable PostgreSQL
+harness only. It uses synthetic sessions/content/keys, checks failure rollback
+and successful upgrade/reapply, and removes only its own temporary artifacts.
+It does not read the actual private profile, apply the real schema, change the
+migration boundary, establish external key/backup recovery, or authorize activation.
+See [the scoped evidence](INTENT-CAPTURE-PROGRESS.md#disposable-schema-upgrade-rehearsal--2026-09-10).
+
 `verify-github` reads the real App and installation permission records and the
 current Git-backed subject grant. It checks that the actual membership matches
 the approved local bootstrap and that an unknown subject has no grant. It writes

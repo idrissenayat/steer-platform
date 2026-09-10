@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+test('local records upgrade is an explicit isolated rehearsal and cannot combine with another focus',()=>{
+  assert.deepEqual(parseIntegrationSelection(['--local-records-upgrade']),{mode:'local-records-upgrade'});
+  for(const args of [['--local-records-upgrade','extra'],['--local-records-upgrade','--journey-runtime'],['--local-records-upgrade','--query-delay-ms','1']])
+    assert.throws(()=>parseIntegrationSelection(args));
+});
+
 test('original preservation selection is explicit and cannot combine with another suite or delay flag',()=>{
   assert.deepEqual(parseIntegrationSelection(['--original-preservation']),{mode:'original-preservation'});
   for(const args of [['--original-preservation','extra'],['--original-preservation','--journey-runtime'],['--original-preservation','--query-delay-ms','1']])

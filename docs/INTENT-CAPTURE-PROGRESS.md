@@ -102,6 +102,43 @@ five-migration database rather than an assumed baseline.
 Acceptance remains **0% (0/8; W01–W08 remaining; +0 percentage points)**. This
 inventory identifies a concrete installation gap; it does not deliver saved drafts.
 
+### Disposable schema-upgrade rehearsal — 2026-09-10
+
+The existing integration harness now reproduces the observed five-migration
+starting state in its own synthetic PostgreSQL database. Run
+`pnpm --filter @steer/data test:integration --local-records-upgrade`.
+Five focused checks passed:
+
+- Reconstruct the exact 0000–0004 baseline with encrypted session/login and
+  projection canaries, without the separate draft role.
+- Inject a failure at the end of a test-only migration copy: all 23 pending
+  migrations roll back, leaving the five-entry journal and existing bytes intact.
+- Apply the unmodified 0005–0027 migrations and reapply without replay or loss
+  of the existing session/projection data. All 15 operational tables force RLS.
+- Verify no budget, reservation, operation or draft was created by the upgrade,
+  and preserve draft/auth/projection/execution role isolation.
+- Use the existing draft service to preserve exact Unicode, whitespace and CRLF
+  text, reconstruct the service and reopen the same revision. A retry does not
+  duplicate it, another owner is denied and stored rows contain ciphertext.
+
+Migration-set SHA-256 (ordered `{tag,hash}` JSON):
+`6b3fda42f4fdc9577d084804b84084b9c55350563429dcc5e76f53bdca3fc046`.
+This uses synthetic identities, policy callbacks and an in-memory test key.
+It is not an independent D1 Exam run, real key/backup or process-crash recovery
+proof, an RPO/RTO claim, or UI acceptance. The harness removed only its owned
+temporary SQL copies and disposable database/container. No actual database,
+credential, migration boundary, runtime grant or provider was changed.
+Data typecheck, 21 focused diagnostic/approval/inventory/startup/boundary tests,
+the 95-artifact kit check, workflow token-scope audit and whitespace check pass.
+The full integration suite was not run for this focused increment.
+
+The remaining concrete connection requires a real external per-draft key and
+storage/recovery binding meeting the approved D1 contract, protected Exam
+incorporation and applicable exact activation authority. Existing plaintext
+local operator secret files and synthetic key callbacks are not that binding.
+Then apply the authorized schema and mount the existing managed journey.
+Acceptance remains **0% (0/8; W01–W08 remaining; +0 percentage points)**.
+
 ### Current reporting contract
 
 After each verified completed increment report:

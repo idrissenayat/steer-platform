@@ -62,6 +62,17 @@ kit and token-scope audits pass. No schema, key, grant, model or application Git
 effect occurred. Next verify the exact storage/key/recovery binding against the
 independent contract; workflow acceptance stays **0/8 (0%; +0 points)**.
 
+2026-09-10 disposable schema-upgrade rehearsal: five focused checks now reproduce
+the actual five-migration baseline and exercise the 23 pending migrations using
+the existing isolated PostgreSQL harness. A deliberately failing test-only copy
+rolls back completely; the unmodified upgrade and reapply retain encrypted
+sessions and projection bytes. Forced RLS/role isolation and the existing draft
+service's exact-text save/reopen/idempotency are verified with synthetic keys and
+policy callbacks. See [the evidence and limits](INTENT-CAPTURE-PROGRESS.md#disposable-schema-upgrade-rehearsal--2026-09-10).
+No real migration or runtime activation occurred. External per-draft key/copy/
+recovery binding and independent D1 incorporation remain; actual workflow
+acceptance stays **0/8 (0%; +0 points)**.
+
 Live-test spending approval, 2026-09-10: the user replied **"Approve up to $5 total"**
 to the explicit request for a one-time $5 USD cap for live OpenAI intent-review
 and Brief/Spec/Exam tests across all loop runs, stopping at the cap, excluding
