@@ -7053,6 +7053,25 @@ live model/key access, spending, runtime GitHub save, deployment, profile/record
 activation, signature or human UI acceptance. User drafts, signed artifacts and
 roadmap/outputs remain unchanged. **68% (17/25; eight remaining; +0 points).**
 
+## 0329 — One owned draft graph across nested reviews
+
+[0329](../intent/0329/EVIDENCE.md) lends the source review's exact draft phase
+through final review and preview, retaining fresh caller/purpose checks and full
+final native validation after source closure. Private tokens bind exact service
+and input, close on consumer return and retain actual failure/drainage ownership.
+Ordinary readers keep full reads; no loan crosses requests or effects.
+
+Actual factory HTTP checks prove two draft-key lookups per complete review/preview
+in both directions. Native ordinary/shared parity, thirteen final-key denial
+cases, 55 focused/1,589 broad checks, both native save/recovery/reopen selections
+and types pass. Final review falls 150→129, new-distinct preview/confirmation
+265/685→230/615 and continuation 375/905→340/835. This is a measurable graph
+reduction, not C22 or live acceptance. Remaining confirmation/preservation and
+caller/read-set costs, including drafting start, are next under unchanged limits.
+
+**68% (17/25; eight remaining; +0 points).** No live model spending, runtime
+GitHub write, records/profile activation, deployment/release or signature.
+
 ## 0328 — Complete preparation draft validation
 
 [0328](../intent/0328/EVIDENCE.md) owns one exact draft snapshot per preparation

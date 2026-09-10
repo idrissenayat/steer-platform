@@ -7,6 +7,7 @@ import { developmentRecordsConfigurationSchema } from './development-originals.t
 import { developmentOriginalHash as hash, freezeOriginal as freeze } from './development-original-contracts.ts';
 import { registerCallerBracketedReviewReadSession } from './review-read-session.ts';
 import { withDraftReadSession } from './draft-read-session.ts';
+import { lendReviewDraftRead } from './review-draft-read.ts';
 
 const unavailable = () => new Error('Current source review is unavailable; this does not establish new intent.');
 /** Read-only composition over the existing owner-bound SQL draft service and a
@@ -134,7 +135,9 @@ export function createIntentDevelopmentReviewer(rawConfiguration: unknown, deps:
         };
         try {
           let returned: unknown;
-          try { returned = await work(read); } finally { consumptionsClosed = true; }
+          const draft = lendReviewDraftRead(deps.drafts, { organizationId, productId, repository, draftId: input.draftId, revision: input.revision }, readDraftValue,
+            () => { guard(); if (consumptionsClosed) throw unavailable(); });
+          try { returned = await work(read, draft); } finally { consumptionsClosed = true; }
           if (returned !== undefined || !consumed || reading || !initial) throw unavailable();
           guard(); const final = await readState(evidenceFor);
           if (hash(final) !== hash(initial)) throw unavailable(); await current(); completed = true;

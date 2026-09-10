@@ -7,6 +7,28 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Shared draft graph across nested reviews — 0329
+
+[0329](../intent/0329/EVIDENCE.md) shares one native draft phase through the
+source/final/preview graph, with fresh permissions and complete final validation.
+The actual factory asserts two draft-key lookups per successful review/preview;
+wrapped-source parity requires ten instead. Scope/history key purposes remain
+independent, and no loan crosses a request or effect boundary.
+
+| Authenticated synthetic action | 0328 attempts | 0329 attempts |
+| --- | ---: | ---: |
+| Final review | 150 | 129 |
+| New-distinct preview / confirmation | 265 / 685 | 230 / 615 |
+| Continuation preview / confirmation | 375 / 905 | 340 / 835 |
+
+Confirmation/recovery/repeat all fall by 70. Other preparation/start actions and
+the 155-attempt outside-preview confirmation control are unchanged. First-save
+reductions of 10.22% / 7.73% do not satisfy 200 attempts. Next consolidate remaining
+confirmation/preservation and caller/read-set costs without deleting either
+preview phase. Keep the full delayed warmed/cold/concurrent protocol unchanged;
+functional native samples do not establish p95 or live human usability.
+**68% (17/25; eight remaining; +0 percentage points).**
+
 ## Preparation draft closure — 0328
 
 [0328](../intent/0328/EVIDENCE.md) halves draft key lookups across the three

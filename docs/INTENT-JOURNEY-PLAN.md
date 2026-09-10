@@ -9,7 +9,21 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0328 / preparation draft validation — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0329 / shared draft graph across save reviews — 68% (17/25; 8 remaining; +0 points)**.
+[0329](../intent/0329/EVIDENCE.md) lends one exact owned draft phase through
+nested source/final/preview reviews, with fresh consumer and draft permissions,
+lexical lifetime/drainage and full final native validation after source closure.
+Ordinary readers remain full; no snapshot crosses confirmation or other effects.
+
+Both synthetic directions assert two draft-key lookups per complete review and
+preview. Final review falls 150→129 attempts, new-distinct preview/confirmation
+265/685→230/615 and continuation 375/905→340/835. Both native save/recovery/reopen
+journeys and 1,589 regressions pass. C22 remains over budget: next consolidate
+remaining confirmation/preservation controls and the current-caller/read-set
+graph, including drafting start. The unchanged full benchmark and governed
+live/model/UI acceptance remain separate.
+
+Prior delivery checkpoint: **0328 / preparation draft validation — 68% (17/25; 8 remaining; +0 points)**.
 [0328](../intent/0328/EVIDENCE.md) keeps one exact draft snapshot per preparation
 recheck, with full final draft/key/lifecycle verification after evidence closure.
 Three fresh phases bracket admission and preservation. Native tests verify 36

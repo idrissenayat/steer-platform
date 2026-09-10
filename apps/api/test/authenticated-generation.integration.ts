@@ -77,7 +77,7 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
     const connection = (role: string) => { const pool = connect(role); pools.push(pool); return pool; };
     const f = await scopeDraftIntegrationFixture({ admin, connect: connection }, false, 3600000, { sourceCount: 32,
       organizationId: identity.grant.organizationId, branch: native.branch, repositoryEvidence: native.repositoryEvidence });
-    let allowed = true, executionAllowed = true, constructions = 0, closures = 0, modelCalls = 0;
+    let allowed = true, executionAllowed = true, constructions = 0, closures = 0, modelCalls = 0, draftKeyReads = 0;
     const authority = async () => { if (!allowed) throw new Error('PRIVATE current records denied'); };
     const executionAuthority = async () => { await authority(); if (!executionAllowed) throw new Error('PRIVATE execution denied'); };
     const scopeRecords = { ...f.deps, authorize: authority, authorizeOriginal: authority,
@@ -112,7 +112,9 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
           const drafts = connection('steer_draft_runtime'), execution = connection('steer_app'); constructions++;
           deps.resources = { pools: { drafts, execution }, reader: native.reader(f.config.organizationId),
             shutdown: async () => { await Promise.all([drafts.end(), execution.end()]); closures++; } };
-          deps.drafts = { lifecycle: { authorize: authority }, revisions: { authorize: authority, keyForDraft: f.deps.keyForDraft } };
+          deps.drafts = { lifecycle: { authorize: authority }, revisions: { authorize: authority, keyForDraft: async (...args) => {
+            draftKeyReads++; return f.deps.keyForDraft(...args);
+          } } };
           deps.corpus = native.corpusAuthority;
           deps.scope.records = { originals: scopeRecords, authorize: authority };
           deps.scope.history = { originals: scopeRecords, authorize: authority, authorizeHistoricalRead: authority, authorizeHistoricalReview: authority };
@@ -138,10 +140,16 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
     };
     let runtime: Awaited<ReturnType<typeof createIdentityRuntime>>;
     const post = async (name: string, input: unknown) => {
-      const trace = attribution?.begin(), identityBefore = identityTraffic.snapshot();
-      try { return await runtime.fetch(new Request(`https://steer.example/v1/tools/${name}`, {
+      const trace = attribution?.begin(), identityBefore = identityTraffic.snapshot(), beforeDraftKeys = draftKeyReads;
+      try { const response = await runtime.fetch(new Request(`https://steer.example/v1/tools/${name}`, {
       method: 'POST', headers: { authorization: `Bearer ${await identity.issueBearer()}`, 'content-type': 'application/json' }, body: JSON.stringify(input),
-      })); } finally {
+      }));
+        if (response.status === 200 && ['intent.candidate.save.review', 'intent.candidate.save.preview'].includes(name)) {
+          assert.equal(draftKeyReads - beforeDraftKeys, 2, `${name} must share one native draft lease across all nested reviews`);
+          console.log('Synthetic authenticated shared draft proof: ' + JSON.stringify({ tool: name, draftKeyReads: draftKeyReads - beforeDraftKeys, direction }));
+        }
+        return response;
+      } finally {
         if (trace) {
           const profile = trace.finish(), counts = subtractNativeRequests(identityTraffic.snapshot(), identityBefore);
           assert.equal(profile.attempts, Object.values(counts).reduce((a,b) => a+b,0));

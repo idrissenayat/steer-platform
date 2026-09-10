@@ -9,6 +9,7 @@ import { createDevelopmentOriginalStore } from './development-originals.ts';
 import { draftRecordsConfigurationSchema } from './draft-revisions.ts';
 import { describeDevelopmentOriginal, developmentOriginalHash as hash, freezeOriginal as freeze } from './development-original-contracts.ts';
 import { withReviewReadSession } from './review-read-session.ts';
+import { readReviewDraft, type ReviewDraftRead } from './review-draft-read.ts';
 import type { HistoricalOriginalSnapshot } from './historical-original-read-window.ts';
 
 export type CandidateGenerationReadPair = Readonly<{ retained: HistoricalOriginalSnapshot;
@@ -81,17 +82,19 @@ export function createCandidateSavePreviewer(pools: Parameters<typeof createDeve
       const authorize = async () => { await current(); if (await bounded(() => deps.authorizePreview(input)) !== undefined) throw fail(); await current(); };
       let originals: ReturnType<typeof createDevelopmentOriginalStore> | undefined;
       const { reviewDigest: _reviewDigest, generation: target, itemId: _item, proposalId: _proposal, ...reviewInput } = input;
+      let draftRead: ReviewDraftRead | undefined;
       const readDraft = async () => {
         await current();
-        const draft = intentDraftReadOutputSchema.parse(await bounded(() => deps.drafts.read({ organizationId: scope.organizationId,
-          productId: scope.productId, repository: scope.repository, draftId: input.draftId, revision: input.revision }, current)));
+        const selected = { organizationId: scope.organizationId, productId: scope.productId, repository: scope.repository, draftId: input.draftId, revision: input.revision };
+        const draft = intentDraftReadOutputSchema.parse(await bounded(() => readReviewDraft(draftRead, deps.drafts, selected, () => deps.drafts.read(selected, current))));
         if (draft.latestRevision !== input.revision || !draft.content.documents
           || (['draftId', 'revision', 'revisionDigest', 'scopeInputDigest'] as const).some(k => draft[k] !== input[k])) throw fail();
         await current(); return freeze(draft);
       };
       try {
         let output: Awaited<ReturnType<typeof describeCandidateSavePreview>>['output'] | undefined;
-        await withReviewReadSession(deps.review, reviewInput, current, async readReviewed => {
+        await withReviewReadSession(deps.review, reviewInput, current, async (readReviewed, borrowedDraft) => {
+        draftRead = borrowedDraft;
         await authorize();
         if (!generationRead) originals = createDevelopmentOriginalStore(pools, recordsConfig, deps.originals);
         const draft = await readDraft();

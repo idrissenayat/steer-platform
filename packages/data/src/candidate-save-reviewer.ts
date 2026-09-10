@@ -7,6 +7,7 @@ import { draftRecordsConfigurationSchema } from './draft-revisions.ts';
 import { resolveDevelopmentScopeReview } from './development-scope-review.ts';
 import { freezeOriginal as freeze } from './development-original-contracts.ts';
 import { registerCallerBracketedReviewReadSession, withReviewReadSession } from './review-read-session.ts';
+import { readReviewDraft, type ReviewDraftRead } from './review-draft-read.ts';
 
 const fail = () => new Error('Final save review is unavailable; nothing was saved or confirmed.');
 /** Read-only final review. No original/operation allocation, profile or authorship
@@ -25,7 +26,7 @@ export function createCandidateSaveReviewer(configuration: unknown, deps: {
   if (deps.withScopeRead !== undefined && typeof deps.withScopeRead !== 'function') throw fail();
   const lifetime = new AbortController(); let active = 0;
   async function review(raw: unknown, revalidate: () => Promise<void>,
-    readWork?: (read: (present: () => Promise<void>) => Promise<Awaited<ReturnType<typeof describeCandidateSaveReview>>>) => Promise<void>) {
+    readWork?: (read: (present: () => Promise<void>) => Promise<Awaited<ReturnType<typeof describeCandidateSaveReview>>>, draft?: ReviewDraftRead) => Promise<void>) {
       const input = freeze(candidateSaveReviewInputSchema.parse(raw));
       if (active >= 4 || lifetime.signal.aborted || typeof revalidate !== 'function') throw fail();
       active++; let pending = 0, finished = false, released = false;
@@ -52,9 +53,10 @@ export function createCandidateSaveReviewer(configuration: unknown, deps: {
       };
       const current = async () => { if (await bounded(revalidate) !== undefined) throw fail(); guard(); };
       const authorized = async () => { await current(); if (await bounded(() => deps.authorizeReview(input)) !== undefined) throw fail(); await current(); };
-      const readDraft = async () => {
+      const readDraft = async (draftRead?: ReviewDraftRead) => {
         await current();
-        const draft = intentDraftReadOutputSchema.parse(await bounded(() => deps.drafts.read({ organizationId, productId, repository, draftId: input.draftId, revision: input.revision }, current)));
+        const selected = { organizationId, productId, repository, draftId: input.draftId, revision: input.revision };
+        const draft = intentDraftReadOutputSchema.parse(await bounded(() => readReviewDraft(draftRead, deps.drafts, selected, () => deps.drafts.read(selected, current))));
         await current();
         if (draft.latestRevision !== input.revision || (['draftId', 'revision', 'revisionDigest', 'scopeInputDigest'] as const).some(k => draft[k] !== input[k]) || !draft.content.documents) throw fail();
         const fingerprint = await fingerprintIntentScope({ organizationId, productId, repository, draftId: draft.draftId, sourceRevision: draft.sourceRevision,
@@ -63,8 +65,8 @@ export function createCandidateSaveReviewer(configuration: unknown, deps: {
       };
       const sourceInput = intentDevelopmentReviewInputSchema.parse({ organizationId, productId, repository,
         draftId: input.draftId, revision: input.revision, revisionDigest: input.revisionDigest, scopeInputDigest: input.scopeInputDigest });
-      const readState = async (readSource: (current: () => Promise<void>) => Promise<unknown>) => {
-        const draft = await readDraft();
+      const readState = async (readSource: (current: () => Promise<void>) => Promise<unknown>, draftRead?: ReviewDraftRead) => {
+        const draft = await readDraft(draftRead);
         const { output: sources } = await verifyDevelopmentReview(sourceInput, await bounded(() => readSource(current)));
         await current();
         if (sources.configurationRevision !== configurationRevision || sources.sourceSnapshotDigest !== input.sourceSnapshotDigest) throw fail();
@@ -74,7 +76,7 @@ export function createCandidateSaveReviewer(configuration: unknown, deps: {
       };
       try {
         let output: Awaited<ReturnType<typeof describeCandidateSaveReview>> | undefined;
-        const run = async (readSource: (current: () => Promise<void>) => Promise<unknown>) => {
+        const run = async (readSource: (current: () => Promise<void>) => Promise<unknown>, draftRead?: ReviewDraftRead) => {
           let initial: Awaited<ReturnType<typeof readState>> | undefined;
           const validate = async () => {
           if (readWork) {
@@ -87,7 +89,7 @@ export function createCandidateSaveReviewer(configuration: unknown, deps: {
               return bounded(async () => {
                 try {
                   if (await present() !== undefined) throw fail();
-                  guard(); await authorized(); initial ??= freeze(await readState(readSource));
+                  guard(); await authorized(); initial ??= freeze(await readState(readSource, draftRead));
                   await authorized();
                   if (await present() !== undefined) throw fail();
                   guard(); consumed = true; return initial.output;
@@ -96,11 +98,11 @@ export function createCandidateSaveReviewer(configuration: unknown, deps: {
               });
             };
             try {
-              if (await bounded(() => readWork(read)) !== undefined || reading || invalid || !consumed) throw fail();
+              if (await bounded(() => readWork(read, draftRead)) !== undefined || reading || invalid || !consumed) throw fail();
             } finally { ended = true; }
-          } else { await authorized(); initial = await readState(readSource); }
+          } else { await authorized(); initial = await readState(readSource, draftRead); }
           if (!initial) throw fail();
-          await authorized(); const latest = await readState(readSource);
+          await authorized(); const latest = await readState(readSource, draftRead);
           if (JSON.stringify(initial) !== JSON.stringify(latest)) throw fail();
           };
           if (withScopeRead && input.scopeReview.kind === 'recorded') {
@@ -118,9 +120,10 @@ export function createCandidateSaveReviewer(configuration: unknown, deps: {
             });
           } else await validate();
           if (!initial) throw fail();
-          // Full scope records/keys have now rechecked. A late edit or key/hold
-          // change must still invalidate the draft, followed by outer source closure.
-          await authorized(); if (JSON.stringify(await readDraft()) !== JSON.stringify(initial.draft)) throw fail();
+          // Full scope records/keys have now rechecked. Ordinary readers reopen
+          // here; loans compare the exact snapshot with fresh read permission.
+          // Their owner performs full native draft validation after source closure.
+          await authorized(); if (JSON.stringify(await readDraft(draftRead)) !== JSON.stringify(initial.draft)) throw fail();
           await current(); output = initial.output;
         };
         await withReviewReadSession(deps.sources, sourceInput, current, run, task => bounded(() => task), guard);

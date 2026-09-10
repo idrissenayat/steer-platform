@@ -1,0 +1,219 @@
+{
+  "kind": "steer-intent-verification/v1",
+  "item": "0329",
+  "date": "2026-09-10",
+  "base": "66c48ca5a804c62701e937c42d47db7d862507c7",
+  "environment": {
+    "node": "v24.19.0",
+    "native": "Owned disposable Postgres/native Git with recorded SDK/Temporal and synthetic authority. No live model or runtime GitHub writes."
+  },
+  "progress": {
+    "verified": 17,
+    "total": 25,
+    "remaining": 8,
+    "percent": 68,
+    "deltaPercentagePoints": 0
+  },
+  "finalArtifactAudit": {
+    "sourceAndProtectedHashesVerified": 15,
+    "conservedRequestSamples": 28,
+    "factoryDraftKeyProofs": 4,
+    "localMarkdownLinksVerified": 603,
+    "fixedChecklist": "25 rows: 17 verified, 8 pending; 68 percent",
+    "history": "0328 and 0329 rows contiguous",
+    "whitespaceCheck": "pass",
+    "kitAndWorkflowScopeAuditRerun": "pass"
+  },
+  "checks": [
+    {
+      "command": "node --test packages/data/test/review-draft-read.test.ts packages/data/test/review-read-session.test.ts packages/data/test/intent-development-reviewer.test.ts packages/data/test/draft-read-session.test.ts tests/package-boundaries.test.mjs",
+      "exitCode": 0,
+      "tests": 55,
+      "failures": 0,
+      "skips": 0,
+      "cancellations": 0,
+      "durationMs": 486.412875
+    },
+    {
+      "command": "node --test --test-concurrency=4 packages/*/test/*.test.ts packages/domain/test/*.test.mjs apps/api/test/*.test.ts apps/worker/test/*.test.ts apps/web/test/*.test.mjs tests/package-boundaries.test.mjs",
+      "exitCode": 0,
+      "tests": 1589,
+      "failures": 0,
+      "skips": 0,
+      "cancellations": 0,
+      "durationMs": 348193.539541
+    },
+    {
+      "command": "pnpm typecheck",
+      "exitCode": 0,
+      "scope": "Prototype and all eight apps/packages",
+      "durationSeconds": 2.614
+    },
+    {
+      "command": "node packages/data/test/postgres.integration.ts --journey-runtime",
+      "exitCode": 0,
+      "nativeChecks": 3,
+      "idempotentMigrations": true,
+      "fullSuite": false
+    },
+    {
+      "command": "node packages/data/test/postgres.integration.ts --journey-runtime-continuation",
+      "exitCode": 0,
+      "nativeChecks": 1,
+      "idempotentMigrations": true,
+      "fullSuite": false
+    },
+    {
+      "command": "pnpm kit:check",
+      "exitCode": 0,
+      "requiredArtifacts": 95
+    },
+    {
+      "command": "pnpm security:check",
+      "exitCode": 0,
+      "workflowTokenContents": "read only"
+    }
+  ],
+  "additionalCoverage": {
+    "newUnitTests": 6,
+    "scopeFinalKeyDenials": 8,
+    "draftFinalKeyDenials": 5,
+    "finalFaultCallbackCountAsserted": true,
+    "wrappedSourceOutputParity": true,
+    "draftKeyLookups": {
+      "shared": 2,
+      "ordinaryWrappedSource": 10
+    },
+    "scopeKeyLookups": {
+      "owned": 2,
+      "ordinaryWrapped": 4
+    },
+    "heldScopeDrainage": true,
+    "factoryHttpProofs": [
+      {
+        "tool": "intent.candidate.save.review",
+        "draftKeyReads": 2,
+        "direction": "new-distinct"
+      },
+      {
+        "tool": "intent.candidate.save.preview",
+        "draftKeyReads": 2,
+        "direction": "new-distinct"
+      },
+      {
+        "tool": "intent.candidate.save.review",
+        "draftKeyReads": 2,
+        "direction": "proposal-continuation"
+      },
+      {
+        "tool": "intent.candidate.save.preview",
+        "draftKeyReads": 2,
+        "direction": "proposal-continuation"
+      }
+    ]
+  },
+  "iterationNotes": [
+    "Initial 39 focused checks/types and both native journeys passed. Native wrapper/key-denial cases and actual factory key counters were then added, followed by final full types, broad regression, focused checks and both native selections.",
+    "A final comment-only clarification in candidate-save-reviewer.ts distinguishes ordinary rereads from final native verification by the loan owner. Executable behavior was unchanged; source hashes below identify the final comment.",
+    "Focused and broad scopes overlap. No failures were observed in executed verification; native selections are not the full Postgres suite."
+  ],
+  "limitations": [
+    "No build, browser, signed-in UI, human acceptance or full delayed C22 benchmark was run.",
+    "All sampled identity/repository/token/retry traffic is counted. Undelayed shared-host timings are not p95 or live UX acceptance.",
+    "Preparation/start costs and 155-attempt outside-preview confirmation control are unchanged. Preview/confirmation still exceed 200.",
+    "No activation, live model call/spend, runtime GitHub write, deployment/release, signature or real-data deletion.",
+    "User-owned docs/REAL-USER-ROADMAP.md and outputs/ remain untouched."
+  ],
+  "sources": [
+    {
+      "path": "packages/data/src/review-draft-read.ts",
+      "sha256": "422d714a768a33f898a41f60bdddac6725bcbea53b755b52ab9e274a154bf6a9"
+    },
+    {
+      "path": "packages/data/src/review-read-session.ts",
+      "sha256": "6c96e78631589956400ec250d624dfc0f0670a4bf898dcb5afb343eddd6dccc7"
+    },
+    {
+      "path": "packages/data/src/intent-development-reviewer.ts",
+      "sha256": "076c203046eaef1578a45aef7dd582886ec1526a6ee4d7320f01a14b2f43ee7c"
+    },
+    {
+      "path": "packages/data/src/candidate-save-reviewer.ts",
+      "sha256": "e359eec977ead215ad73d1d5838e9c45a6f3852b3ce603a18551265ff3c61d4c"
+    },
+    {
+      "path": "packages/data/src/candidate-save-previewer.ts",
+      "sha256": "849471aecf739e70ad2e6c4f99167c9c776ae8ec7735fc2910368d30e0db11f4"
+    },
+    {
+      "path": "packages/data/src/draft-read-session.ts",
+      "sha256": "3770321acb8b537ac4a92fb4743bd07f3ff289ae0a4936cd4cd949e0c135ca0d"
+    },
+    {
+      "path": "packages/data/src/draft-revisions.ts",
+      "sha256": "12b5a112a0f7cd41d69d664eee594eb829307dc2052c90a48a8bbb8181410d86"
+    },
+    {
+      "path": "packages/data/src/intent-draft-service.ts",
+      "sha256": "f7e09c0e9541d1ed5b50a7d443997f044eb43a4a69c6b0ccb107ee7c85d4a966"
+    },
+    {
+      "path": "packages/data/test/review-draft-read.test.ts",
+      "sha256": "aba955ec0f9ed799bd3879390b3eff5c05031f1c3b91d2f45ec7546b81110ebf"
+    },
+    {
+      "path": "apps/api/test/owned-save-review.integration.ts",
+      "sha256": "7873929ec91369728d82263b8b4915070f9d94124de00f95d9e0a112dc79f0a1"
+    },
+    {
+      "path": "apps/api/test/authenticated-generation.integration.ts",
+      "sha256": "141a0af8c9f8be9818f746f907cc0220164280b1fe42a9f2aecaba91a24bdec1"
+    },
+    {
+      "path": "intent/0001/ARCHITECTURE.md",
+      "sha256": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65"
+    },
+    {
+      "path": "intent/0001/EXAM.md",
+      "sha256": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f"
+    },
+    {
+      "path": "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md",
+      "sha256": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32"
+    },
+    {
+      "path": "intent/0289/PERFORMANCE.json",
+      "sha256": "d0371c364bbfb103b70675faf911499bffb91afe8a5e6950718c87a171e9e302"
+    }
+  ],
+  "samples": [
+    {"direction":"new-distinct","tool":"intent.development.prepare","ms":8321,"nativeRequests":517,"requestKinds":{"head":486,"commit":5,"tree":5,"blob":21,"token":0,"mutation":0,"other":0},"origins":{"identity":{"head":478,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":8,"commit":4,"tree":4,"blob":20,"token":0,"mutation":0,"other":0}}},
+    {"direction":"new-distinct","tool":"intent.development.prepare","ms":8373,"nativeRequests":472,"requestKinds":{"head":441,"commit":5,"tree":5,"blob":21,"token":0,"mutation":0,"other":0},"origins":{"identity":{"head":433,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":8,"commit":4,"tree":4,"blob":20,"token":0,"mutation":0,"other":0}}},
+    {"direction":"new-distinct","tool":"intent.draft.read","ms":1437,"nativeRequests":19,"requestKinds":{"head":16,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"origins":{"identity":{"head":16,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":0,"commit":0,"tree":0,"blob":0,"token":0,"mutation":0,"other":0}}},
+    {"direction":"new-distinct","tool":"intent.development.review","ms":2525,"nativeRequests":70,"requestKinds":{"head":59,"commit":2,"tree":2,"blob":6,"token":1,"mutation":0,"other":0},"origins":{"identity":{"head":57,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":2,"commit":1,"tree":1,"blob":5,"token":1,"mutation":0,"other":0}}},
+    {"direction":"new-distinct","tool":"intent.scope.prepare","ms":7220,"nativeRequests":277,"requestKinds":{"head":246,"commit":5,"tree":5,"blob":21,"token":0,"mutation":0,"other":0},"origins":{"identity":{"head":238,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":8,"commit":4,"tree":4,"blob":20,"token":0,"mutation":0,"other":0}}},
+    {"direction":"new-distinct","tool":"intent.scope.start","ms":1413,"nativeRequests":195,"requestKinds":{"head":192,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"origins":{"identity":{"head":192,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":0,"commit":0,"tree":0,"blob":0,"token":0,"mutation":0,"other":0}}},
+    {"direction":"new-distinct","tool":"intent.scope.start","ms":1478,"nativeRequests":221,"requestKinds":{"head":218,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"origins":{"identity":{"head":218,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":0,"commit":0,"tree":0,"blob":0,"token":0,"mutation":0,"other":0}}},
+    {"direction":"new-distinct","tool":"intent.scope.start","ms":1451,"nativeRequests":221,"requestKinds":{"head":218,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"origins":{"identity":{"head":218,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":0,"commit":0,"tree":0,"blob":0,"token":0,"mutation":0,"other":0}}},
+    {"direction":"new-distinct","tool":"intent.scope.read","ms":835,"nativeRequests":25,"requestKinds":{"head":22,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"origins":{"identity":{"head":22,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":0,"commit":0,"tree":0,"blob":0,"token":0,"mutation":0,"other":0}}},
+    {"direction":"new-distinct","tool":"intent.candidate.save.review","ms":2603,"nativeRequests":129,"requestKinds":{"head":119,"commit":2,"tree":2,"blob":6,"token":0,"mutation":0,"other":0},"origins":{"identity":{"head":117,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":2,"commit":1,"tree":1,"blob":5,"token":0,"mutation":0,"other":0}}},
+    {"direction":"new-distinct","tool":"intent.candidate.save.preview","ms":4188,"nativeRequests":230,"requestKinds":{"head":216,"commit":4,"tree":4,"blob":6,"token":0,"mutation":0,"other":0},"origins":{"identity":{"head":208,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":8,"commit":3,"tree":3,"blob":5,"token":0,"mutation":0,"other":0}}},
+    {"direction":"new-distinct","tool":"intent.candidate.save.prepare (discarded reply)","ms":8831,"nativeRequests":615,"requestKinds":{"head":590,"commit":7,"tree":7,"blob":11,"token":0,"mutation":0,"other":0},"origins":{"identity":{"head":574,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":16,"commit":6,"tree":6,"blob":10,"token":0,"mutation":0,"other":0}}},
+    {"direction":"new-distinct","tool":"intent.candidate.save.prepare","ms":7441,"nativeRequests":587,"requestKinds":{"head":560,"commit":7,"tree":7,"blob":11,"token":2,"mutation":0,"other":0},"origins":{"identity":{"head":544,"commit":1,"tree":1,"blob":1,"token":1,"mutation":0,"other":0},"repository":{"head":16,"commit":6,"tree":6,"blob":10,"token":1,"mutation":0,"other":0}}},
+    {"direction":"new-distinct","tool":"intent.candidate.save.prepare","ms":8031,"nativeRequests":585,"requestKinds":{"head":560,"commit":7,"tree":7,"blob":11,"token":0,"mutation":0,"other":0},"origins":{"identity":{"head":544,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":16,"commit":6,"tree":6,"blob":10,"token":0,"mutation":0,"other":0}}},
+    {"direction":"proposal-continuation","tool":"intent.development.prepare","ms":8466,"nativeRequests":517,"requestKinds":{"head":486,"commit":5,"tree":5,"blob":21,"token":0,"mutation":0,"other":0},"origins":{"identity":{"head":478,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":8,"commit":4,"tree":4,"blob":20,"token":0,"mutation":0,"other":0}}},
+    {"direction":"proposal-continuation","tool":"intent.development.prepare","ms":8387,"nativeRequests":472,"requestKinds":{"head":441,"commit":5,"tree":5,"blob":21,"token":0,"mutation":0,"other":0},"origins":{"identity":{"head":433,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":8,"commit":4,"tree":4,"blob":20,"token":0,"mutation":0,"other":0}}},
+    {"direction":"proposal-continuation","tool":"intent.draft.read","ms":817,"nativeRequests":19,"requestKinds":{"head":16,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"origins":{"identity":{"head":16,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":0,"commit":0,"tree":0,"blob":0,"token":0,"mutation":0,"other":0}}},
+    {"direction":"proposal-continuation","tool":"intent.development.review","ms":3051,"nativeRequests":70,"requestKinds":{"head":59,"commit":2,"tree":2,"blob":6,"token":1,"mutation":0,"other":0},"origins":{"identity":{"head":57,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":2,"commit":1,"tree":1,"blob":5,"token":1,"mutation":0,"other":0}}},
+    {"direction":"proposal-continuation","tool":"intent.scope.prepare","ms":7406,"nativeRequests":277,"requestKinds":{"head":246,"commit":5,"tree":5,"blob":21,"token":0,"mutation":0,"other":0},"origins":{"identity":{"head":238,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":8,"commit":4,"tree":4,"blob":20,"token":0,"mutation":0,"other":0}}},
+    {"direction":"proposal-continuation","tool":"intent.scope.start","ms":1632,"nativeRequests":195,"requestKinds":{"head":192,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"origins":{"identity":{"head":192,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":0,"commit":0,"tree":0,"blob":0,"token":0,"mutation":0,"other":0}}},
+    {"direction":"proposal-continuation","tool":"intent.scope.start","ms":1456,"nativeRequests":221,"requestKinds":{"head":218,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"origins":{"identity":{"head":218,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":0,"commit":0,"tree":0,"blob":0,"token":0,"mutation":0,"other":0}}},
+    {"direction":"proposal-continuation","tool":"intent.scope.start","ms":1544,"nativeRequests":221,"requestKinds":{"head":218,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"origins":{"identity":{"head":218,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":0,"commit":0,"tree":0,"blob":0,"token":0,"mutation":0,"other":0}}},
+    {"direction":"proposal-continuation","tool":"intent.scope.read","ms":965,"nativeRequests":25,"requestKinds":{"head":22,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"origins":{"identity":{"head":22,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":0,"commit":0,"tree":0,"blob":0,"token":0,"mutation":0,"other":0}}},
+    {"direction":"proposal-continuation","tool":"intent.candidate.save.review","ms":2480,"nativeRequests":129,"requestKinds":{"head":119,"commit":2,"tree":2,"blob":6,"token":0,"mutation":0,"other":0},"origins":{"identity":{"head":117,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":2,"commit":1,"tree":1,"blob":5,"token":0,"mutation":0,"other":0}}},
+    {"direction":"proposal-continuation","tool":"intent.candidate.save.preview","ms":6060,"nativeRequests":340,"requestKinds":{"head":308,"commit":6,"tree":6,"blob":20,"token":0,"mutation":0,"other":0},"origins":{"identity":{"head":300,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":8,"commit":5,"tree":5,"blob":19,"token":0,"mutation":0,"other":0}}},
+    {"direction":"proposal-continuation","tool":"intent.candidate.save.prepare (discarded reply)","ms":11456,"nativeRequests":835,"requestKinds":{"head":774,"commit":11,"tree":11,"blob":39,"token":0,"mutation":0,"other":0},"origins":{"identity":{"head":758,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":16,"commit":10,"tree":10,"blob":38,"token":0,"mutation":0,"other":0}}},
+    {"direction":"proposal-continuation","tool":"intent.candidate.save.prepare","ms":11969,"nativeRequests":807,"requestKinds":{"head":744,"commit":11,"tree":11,"blob":39,"token":2,"mutation":0,"other":0},"origins":{"identity":{"head":728,"commit":1,"tree":1,"blob":1,"token":1,"mutation":0,"other":0},"repository":{"head":16,"commit":10,"tree":10,"blob":38,"token":1,"mutation":0,"other":0}}},
+    {"direction":"proposal-continuation","tool":"intent.candidate.save.prepare","ms":10399,"nativeRequests":805,"requestKinds":{"head":744,"commit":11,"tree":11,"blob":39,"token":0,"mutation":0,"other":0},"origins":{"identity":{"head":728,"commit":1,"tree":1,"blob":1,"token":0,"mutation":0,"other":0},"repository":{"head":16,"commit":10,"tree":10,"blob":38,"token":0,"mutation":0,"other":0}}}
+  ]
+}

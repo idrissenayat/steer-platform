@@ -62,6 +62,27 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Shared draft graph through nested reviews — 0329
+
+[0329](../intent/0329/SPEC.md) explicitly forwards a private draft loan from
+the owned source-review phase to its final-review and preview consumers. Exact
+service identity and parsed revision input are required. Forged tokens, other
+instances/revisions and ordinary services retain complete fallback reads; a changed
+original owner/method/scope denies. There is no ambient cache or public capability.
+
+Each forwarding boundary keeps its own lifetime, failure and actual-work tracking.
+Loans close on consumer return, including during later producer verification.
+Caught errors, overlapping review/draft consumption and forgotten awaits cannot
+release a result. Both concrete consumers retain before/after caller checks and
+all schema/provenance/subject/revision validation. Every native draft consumption
+reauthorizes; its original owner performs full final key/row/latest/lifecycle
+checks after the whole source/review graph closes. Scope/history/destination
+permissions remain independent. No loan spans confirmation, admission or saving.
+
+Both authenticated synthetic directions assert two native draft-key lookups for
+each complete review/preview, with ordinary-path parity and final-key denial
+evidence. This changes no runtime activation, records policy, model budget or UI.
+
 ### Effect-separated preparation draft phases — 0328
 
 [0328](../intent/0328/SPEC.md) extends the existing private draft-read owner to

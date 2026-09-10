@@ -1,8 +1,9 @@
 import { developmentOriginalHash as hash } from './development-original-contracts.ts';
+import { forwardReviewDraftRead, type ReviewDraftRead } from './review-draft-read.ts';
 
 type Current = () => Promise<void>;
 type Read = (current: Current) => Promise<unknown>;
-type Work = (read: Read) => Promise<void>;
+type Work = (read: Read, draft?: ReviewDraftRead) => Promise<void>;
 type Run = (input: unknown, current: Current, work: Work) => Promise<void>;
 type Track = <T>(pending: Promise<T>) => Promise<T>;
 const sessions = new WeakMap<Function, { scopeDigest: string; run: Run }>();
@@ -31,7 +32,7 @@ export async function withReviewReadSession(reader: { scope: unknown; review: Fu
   current: Current, work: Work, track: Track, guard: () => void): Promise<void> {
   const method = reader.review, scope = reader.scope, scopeDigest = hash(scope), registered = sessions.get(method);
   const bracketed = callerBracketOwners.has(method);
-  let closed = false, failed = false, invoked = false, completed = false, reading = false, reads = 0;
+  let closed = false, failed = false, invoked = false, completed = false, reading = false, draftReading = false, consumptionsClosed = false, reads = 0;
   const pending = new Set<Promise<unknown>>();
   const check = () => {
     guard(); if (closed || failed || reader.review !== method || reader.scope !== scope || hash(reader.scope) !== scopeDigest
@@ -50,11 +51,11 @@ export async function withReviewReadSession(reader: { scope: unknown; review: Fu
   // Preserve the identity of this exact owner-guarded caller for a constructed
   // child session. This carries no decision or result and reruns on every use.
   const parentCurrent = Object.freeze(() => present(current));
-  const run = (read: Read) => {
+  const run = (read: Read, draft?: ReviewDraftRead) => {
     if (invoked || typeof read !== 'function') { failed = true; const rejected = Promise.reject(fail()); void rejected.catch(() => {}); return rejected; }
     invoked = true;
     const readCurrent: Read = callback => {
-      if (reading) { failed = true; const rejected = Promise.reject(fail()); void rejected.catch(() => {}); return rejected; }
+      if (reading || draftReading || consumptionsClosed) { failed = true; const rejected = Promise.reject(fail()); void rejected.catch(() => {}); return rejected; }
       reading = true; reads++;
       const task = Promise.resolve().then(async () => {
         check(); if (typeof callback !== 'function') throw fail();
@@ -77,9 +78,21 @@ export async function withReviewReadSession(reader: { scope: unknown; review: Fu
         .catch(error => { failed = true; throw error; });
       void tracked.catch(() => {}); return tracked;
     };
+    const draftRead = forwardReviewDraftRead(draft, work => {
+      if (reading || draftReading || consumptionsClosed) { failed = true; const rejected = Promise.reject(fail()); void rejected.catch(() => {}); return rejected; }
+      draftReading = true;
+      const task = Promise.resolve().then(async () => { check(); const value = await work(); check(); return value; })
+        .catch(error => { failed = true; throw error; });
+      pending.add(task); void task.finally(() => { draftReading = false; pending.delete(task); }).catch(() => {});
+      const tracked = (async () => { await track(task); const value = await task; check(); return value; })()
+        .catch(error => { failed = true; throw error; });
+      void tracked.catch(() => {}); return tracked;
+    });
     const task = Promise.resolve().then(async () => {
-      check(); if (await work(readCurrent) !== undefined) throw fail(); check();
-      if (reading) throw fail(); completed = true;
+      check(); let returned: unknown;
+      try { returned = await work(readCurrent, draftRead); } finally { consumptionsClosed = true; }
+      if (returned !== undefined) throw fail(); check();
+      if (reading || draftReading) throw fail(); completed = true;
     }).catch(error => { failed = true; throw error; });
     pending.add(task); void task.finally(() => pending.delete(task)).catch(() => {});
     const tracked = (async () => { if (await track(task) !== undefined) throw fail(); await task; check(); })()
@@ -92,6 +105,6 @@ export async function withReviewReadSession(reader: { scope: unknown; review: Fu
       : run(callback => Reflect.apply(method, reader, [input, callback])));
     void task.catch(() => {});
     if (await track(task) !== undefined || await task !== undefined) throw fail();
-    check(); if (!invoked || !completed || !reads || reading || pending.size) throw fail(); await present(current);
+    check(); if (!invoked || !completed || !reads || reading || draftReading || pending.size) throw fail(); await present(current);
   } finally { closed = true; }
 }
