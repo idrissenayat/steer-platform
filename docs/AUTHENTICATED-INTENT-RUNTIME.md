@@ -62,6 +62,39 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Owned current/history scope services — 0309
+
+[0309](../intent/0309/EVIDENCE.md) adds explicit trusted
+`scope.ownedReads.current` and `scope.ownedReads.history` capabilities to the actual
+factory. Both bindings are required if the option is supplied. Each supplies
+independent records/key services; existing original, draft, review/batch and source
+policies remain. No public request or environment flag supplies these services.
+Absent bindings retain the established readers; failures never trigger fallback.
+No live runtime configuration is changed by this implementation.
+
+The metadata-discovery grant is separately revisioned and scoped to the exact
+review, preparation digest and current/history purpose. Its retained budget ID
+is checked against the decoded original, not treated as spending authority.
+The RLS execution query discovers the real draft/revision; subsequent complete
+metadata must match. Scope-only snapshots have no development operation IDs.
+Independent per-record grants precede ciphertext; independent key-purpose grants
+precede key lookup. Sharing a physical key requires the exact provider identity.
+
+Actual codecs and SDK/worker checks reconstruct the existing public DTOs. Only
+matching succeeded checkpoints contribute findings. History never renews expired
+execution. Expired current reads omit observation, batch and reservation retrieval;
+they return the existing expired metadata shape. Database/monotonic expiry and
+final caller checks prevent returning stale current results or historical flags.
+Final source checks follow key/records readback. Four-slot admission lasts through
+actual cancellation drain, and factory shutdown drains the private preparation
+reader as well as public readers before disposing pools.
+
+This removes repeated scope reconstruction from actual drafting and confirmation
+paths under the explicit bindings. Development originals/results/history and
+remaining effect-separated controls still need integration. Synthetic policy
+fixtures do not adopt real records, authorize keys or writes, approve model usage,
+activate a profile, sign a gate or establish human UI acceptance.
+
 ### Current corpus wired into application services — 0308
 
 [0308](../intent/0308/EVIDENCE.md) selects the owned batch graph by native reader

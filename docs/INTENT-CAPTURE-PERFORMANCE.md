@@ -7,6 +7,33 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Owned scope service integration — 0309
+
+[0309](../intent/0309/EVIDENCE.md) connects current/history scope projections to
+the owned metadata-first records reader, canonical codecs and SDK verification.
+The actual constructor graph uses explicit separate records/key authorities; no
+permission cache, raised deadline or relaxed source check is introduced.
+
+| Authenticated synthetic action | 0308 attempts | 0309 attempts |
+| --- | ---: | ---: |
+| Scope read | 227 | 25 |
+| Drafting preparation, first / recovery | 3,826 / 3,376 | 594 / 548 |
+| Drafting start, first / recovery / repeat | 7,871 / 8,866 / 8,866 | 1,407 / 1,594 / 1,594 |
+| Final save review | 628 | 224 |
+| New-distinct preview | 3,447 | 1,815 |
+| New-distinct confirmation / recovery / repeat | 7,087 / 7,059 / 7,057 | 3,823 / 3,795 / 3,793 |
+
+Source review remains 75; scope preparation 320; scope start 596 / 676 / 676.
+Proposal-continuation has its own destination-read cost and must not be compared
+with the new-distinct baseline. Exact verification, samples and failed iterations
+are retained in [verification](../intent/0309/VERIFICATION.json).
+Undelayed samples and passing synthetic functional journeys are not the complete
+20 ms / 200-attempt / five-second p95 warm/cold/concurrent acceptance protocol.
+
+Next integrate development originals/results/history and remaining effect-separated
+action boundaries. C22 remains pending, with the original denominator and limits.
+No live model, actual runtime GitHub save, profile activation or UI claim is made.
+
 ## Application corpus integration — 0308
 
 [0308](../intent/0308/EVIDENCE.md) connects the owned native corpus to the actual

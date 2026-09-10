@@ -29,6 +29,7 @@ import { testAuthenticatedPerformancePrefix } from './authenticated-performance-
 import { createIdentityRequestProfile } from './identity-request-profile.ts';
 import { testRecordsReadsetFeasibility } from './records-readset-feasibility.integration.ts';
 import { testOwnedRecordsReadset } from './records-owned-readset.integration.ts';
+import { ownedScopeReadFixture } from './owned-scope-read.fixture.ts';
 
 /** Signed synthetic JWT + native Git grants, real API constructor graph, SQL and
  * recorded SDK roles. No real issuer, model transport, live migration or external Git write.
@@ -111,6 +112,10 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
           deps.corpus = native.corpusAuthority;
           deps.scope.records = { originals: scopeRecords, authorize: authority };
           deps.scope.history = { originals: scopeRecords, authorize: authority, authorizeHistoricalRead: authority, authorizeHistoricalReview: authority };
+          deps.scope.ownedReads = {
+            current: ownedScopeReadFixture(f.execution.budget.budgetId, f.deps.keyForDraft, authority),
+            history: ownedScopeReadFixture(f.execution.budget.budgetId, f.deps.keyForDraft, authority),
+          };
           deps.scope.authorizePreparation = executionAuthority;
           deps.development.records = { originals: originalRecords, results, authorize: authority };
           deps.development.history = { originals: originalRecords, results, authorize: authority, authorizeHistoricalRead: authority };

@@ -10,7 +10,7 @@ const names: RecordsReadSetGroup[] = ['revisions', 'latest_revision', 'scope_ori
 const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
 const deferred = () => { let resolve = () => {}; const promise = new Promise<void>(r => { resolve = r; }); return { promise, resolve }; };
 const tick = () => new Promise<void>(r => setImmediate(r));
-function fixture() {
+function fixture(scopeOnly = false) {
   const config = { organizationId: `records-owner-${randomUUID()}`, subject: 'synthetic-human', productId: 'synthetic-product',
     repository: 'github:52', branch: 'codex/fixture', configurationRevision: 'test-r1', recordsPolicyDigest: 'a'.repeat(64) };
   const target = { draftId: randomUUID(), operationIds: [randomUUID()], reviewIds: [randomUUID()], revisions: [1], budgetId: randomUUID() };
@@ -35,11 +35,21 @@ function fixture() {
     reservations: [{ ...subjectOwner, operation_id: target.operationIds[0], reservation_id: randomUUID(), budget_id: target.budgetId }],
     budget: [{ ...subjectOwner, budget_id: target.budgetId }], scope_terms: [{ ...subjectOwner, budget_id: target.budgetId }],
   };
+  const scopeRequest = { kind: 'scope-review', mode: 'history', reviewId: target.reviewIds[0], preparationDigest: 'b'.repeat(64) };
+  if (scopeOnly) {
+    target.operationIds = [];
+    for (const name of ['operations', 'steps', 'development_originals', 'development_results', 'development_observations', 'candidate_originals', 'reservations'] as const) data[name] = [];
+    Object.assign(data.scope_runs[0], { draft_revision: 1, preparation_digest: scopeRequest.preparationDigest, expires_at: header.use_until });
+  }
   const queries: string[] = [], releases: boolean[] = [], grants: RecordsReadSetGroup[] = [];
   let connects = 0, callerChecks = 0, now = 100, permissionsRevision = 'records-grants-1', denied: RecordsReadSetGroup | undefined;
   let onQuery: ((sql: string) => Promise<void>) | undefined, onConnect: (() => Promise<void>) | undefined;
   let actor: Record<string, unknown> = {}, beforeGrant: ((group: RecordsReadSetGroup) => Promise<void>) | undefined;
   const authority: RecordsReadSetAuthority = {
+    ...(scopeOnly ? { async authorizeScopeDiscovery(context: any) {
+      assert.deepEqual(context, { configuration: config, request: scopeRequest });
+      return { permissionsRevision, budgetId: target.budgetId };
+    } } : {}),
     async authorize(context) { assert.deepEqual(context, { configuration: config, target }); return { permissionsRevision }; },
     records: Object.fromEntries(names.map(group => [group, async function(this: unknown, context: any) {
       assert.equal(this, authority.records); assert.equal(context.group, group); assert.deepEqual(context.target, target);
@@ -53,18 +63,24 @@ function fixture() {
       queries.push(sql); await onQuery?.(sql);
       if (sql.includes('FROM pg_roles')) return { rows: [{ rolname: expected, login_role: expected, rolsuper: false, rolbypassrls: false, owns_objects: false, ...actor }] };
       if (sql.includes('FROM steer_drafts.draft_lifecycles')) return { rows: [clone(header)] };
+      if (sql.includes('SELECT to_jsonb(r) AS metadata,')) {
+        assert.deepEqual(args, [config.organizationId, scopeRequest.reviewId, scopeRequest.preparationDigest]);
+        return { rows: data.scope_runs.map(row => ({ metadata: clone(row), clock_ms: header.clock_ms })) };
+      }
       if (sql.startsWith('WITH requested')) {
         assert.deepEqual(args, [config.organizationId, target.draftId, target.operationIds, target.reviewIds, target.revisions, target.budgetId]);
         assert.ok(!sql.includes(target.draftId)); assert.ok(!sql.includes(config.organizationId));
         const metadata = sql.includes("to_jsonb(selected) - 'encrypted_value'");
-        if (!metadata) assert.ok(names.every(name => grants.includes(name)), 'Ciphertext dispatch requires every independent row policy.');
+        if (!metadata) assert.ok(names.filter(name => data[name].length && !(sql.includes('expired current scope')
+          && ['scope_observations', 'scope_batches', 'reservations'].includes(name))).every(name => grants.includes(name)), 'Ciphertext dispatch requires every independent row policy.');
         return { rows: [{ clock_ms: header.clock_ms, data: Object.fromEntries(Object.entries(data).filter(([name]) => sql.includes(`'${name}',`))
-          .map(([name, rows]) => [name, clone(rows).map(row => { if (metadata) delete row.encrypted_value; return row; })])) }] };
+          .map(([name, rows]) => [name, sql.includes('expired current scope') && ['scope_observations', 'scope_batches', 'reservations'].includes(name) ? []
+            : clone(rows).map(row => { if (metadata) delete row.encrypted_value; return row; })])) }] };
       }
       assert.ok(sql === 'COMMIT' || sql === 'ROLLBACK' || sql.startsWith('BEGIN ') || sql.startsWith('SELECT set_config(')); return { rows: [] };
     }, release(broken = false) { releases.push(broken); } } as unknown as PoolClient;
   } } as DatabasePool])) as { drafts: DatabasePool; execution: DatabasePool };
-  return { config, target, header, data, queries, releases, grants, pools, authority,
+  return { config, target, scopeRequest, header, data, queries, releases, grants, pools, authority,
     owner: () => createRecordsReadSetReader(pools, config, authority, { monotonicNow: () => now }),
     current: async () => { callerChecks++; }, connects: () => connects, callerChecks: () => callerChecks,
     clock: (v: number) => { now = v; }, revision: (v: string) => { permissionsRevision = v; }, deny: (v: RecordsReadSetGroup) => { denied = v; },
@@ -72,6 +88,73 @@ function fixture() {
     actor: (v: typeof actor) => { actor = v; }, grant: (v: typeof beforeGrant) => { beforeGrant = v; } };
 }
 const consume = async (lease: RecordsReadSetLease) => { await lease.recheck(); return lease.snapshot.digest; };
+
+test('scope-only discovery uses its independent grant and exact RLS run metadata, with no placeholder operation', async () => {
+  const f = fixture(true), owner = f.owner();
+  try {
+    const result = await owner.withReadSet(f.scopeRequest, f.current, async lease => {
+      assert.deepEqual(lease.snapshot.target, f.target); assert.deepEqual(lease.snapshot.target.operationIds, []);
+      assert.equal(lease.hasExpired(new Date(f.header.clock_ms + 500).toISOString()), false);
+      f.clock(601); assert.equal(lease.hasExpired(new Date(f.header.clock_ms + 500).toISOString()), true);
+      await lease.recheck(); return 'scope only';
+    });
+    assert.equal(result.value, 'scope only'); assert.equal(result.metrics.roleTransactions, 7);
+    assert.equal(f.queries.filter(q => q.includes('SELECT to_jsonb(r) AS metadata')).length, 1);
+    assert.equal(f.releases.length, 7); assert.ok(f.releases.every(broken => !broken));
+  } finally { await owner.shutdown(); }
+});
+
+test('scope discovery denies missing/replaced grants, malformed or changing metadata before any ciphertext', async () => {
+  for (const change of [
+    (f: ReturnType<typeof fixture>) => { delete f.authority.authorizeScopeDiscovery; },
+    (f: ReturnType<typeof fixture>) => { f.authority.authorizeScopeDiscovery = async () => ({ permissionsRevision: 'unversioned' }) as any; },
+    (f: ReturnType<typeof fixture>) => { f.data.scope_runs[0].subject = 'foreign'; },
+    (f: ReturnType<typeof fixture>) => { f.data.scope_runs[0].draft_revision = 0; },
+    (f: ReturnType<typeof fixture>) => { f.data.scope_runs[0].preparation_digest = 'a'.repeat(64); },
+    (f: ReturnType<typeof fixture>) => { f.data.scope_runs[0].encrypted_value = {}; },
+    (f: ReturnType<typeof fixture>) => { f.data.scope_runs = []; },
+    (f: ReturnType<typeof fixture>) => { f.data.scope_runs.push(clone(f.data.scope_runs[0])); },
+    (f: ReturnType<typeof fixture>) => { f.query(async sql => { if (sql.startsWith('WITH requested')) f.data.scope_runs[0].changed = true; }); },
+  ]) {
+    const f = fixture(true); change(f); const owner = f.owner(); let used = false;
+    try { await assert.rejects(owner.withReadSet(f.scopeRequest, f.current, async () => { used = true; })); assert.equal(used, false);
+      assert.ok(f.queries.filter(q => q.startsWith('WITH requested')).every(q => q.includes(" - 'encrypted_value'")));
+    } finally { await owner.shutdown(); }
+  }
+  const f = fixture(true), owner = f.owner();
+  try {
+    await assert.rejects(owner.withReadSet(f.scopeRequest, f.current, async lease => { f.revision('revoked'); await lease.recheck(); }));
+    f.authority.authorizeScopeDiscovery = async () => ({ permissionsRevision: 'new', budgetId: f.target.budgetId });
+    const before = f.connects(); await assert.rejects(owner.withReadSet(f.scopeRequest, f.current, consume)); assert.equal(f.connects(), before);
+  } finally { await owner.shutdown(); }
+});
+
+test('scope discovery held SQL retains all four cancelled admissions until actual drain', async () => {
+  const f = fixture(true), held = deferred();
+  f.query(async sql => { if (sql.includes('SELECT to_jsonb(r) AS metadata')) await held.promise; });
+  const owner = f.owner(), cancellations = Array.from({ length: 4 }, () => new AbortController());
+  const jobs = cancellations.map(c => owner.withReadSet(f.scopeRequest, f.current, consume, c.signal));
+  while (f.queries.filter(q => q.includes('SELECT to_jsonb(r) AS metadata')).length < 4) await tick();
+  cancellations.forEach(c => c.abort()); await Promise.all(jobs.map(p => assert.rejects(p)));
+  await assert.rejects(owner.withReadSet(f.scopeRequest, f.current, consume)); assert.equal(f.connects(), 4);
+  let stopped = false; const stop = owner.shutdown().then(() => { stopped = true; }); await tick(); assert.equal(stopped, false);
+  held.resolve(); await stop; assert.equal(f.releases.length, 4); assert.equal(stopped, true);
+});
+
+test('expired current scope never fetches observation ciphertext or exposes batch state, while history remains distinct', async () => {
+  const f = fixture(true); f.scopeRequest.mode = 'current'; f.data.scope_runs[0].expires_at = new Date(f.header.clock_ms - 1).toISOString();
+  const owner = f.owner();
+  try {
+    const result = await owner.withReadSet(f.scopeRequest, f.current, async lease => {
+      assert.deepEqual(lease.snapshot.data.scope_observations, []); assert.deepEqual(lease.snapshot.data.scope_batches, []);
+      assert.deepEqual(lease.snapshot.data.reservations, []); assert.equal(lease.hasExpired(f.data.scope_runs[0].expires_at), true);
+      await lease.recheck(); return 'expired metadata';
+    });
+    assert.equal(result.value, 'expired metadata');
+    assert.ok(f.queries.filter(sql => sql.startsWith('WITH requested')).every(sql => sql.includes('expired current scope')));
+    assert.equal(f.grants.includes('scope_observations'), false);
+  } finally { await owner.shutdown(); }
+});
 
 test('native non-model candidate-save step requires a null budget; model steps still require the exact budget', async () => {
   const f = fixture(), owner = f.owner();

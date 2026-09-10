@@ -214,6 +214,11 @@ try {
     await testDevelopmentObservations({admin,connect,check:selectedCheck});
     assert.ok(passed>1,'No historical development checks selected');
     console.log(`FOCUSED development history result: ${passed-1} checks passed plus idempotent migration check; full suite NOT RUN.`);
+  }else if(selection.mode==='scope-read'){
+    console.log('FOCUSED current/historical scope read SQL, SDK, HTTP and owned-reader equivalence; NOT the full integration suite.');
+    await testScopeReviewReader({admin,connect,check});
+    assert.ok(passed>1,'No scope reader checks selected');
+    console.log(`FOCUSED scope read result: ${passed-1} checks passed plus idempotent migration check; full suite NOT RUN.`);
   }else if(selection.mode==='scope-runtime'){
     console.log('FOCUSED scope preparation/SQL/recorded SDK/Temporal execution; NOT the full integration suite.');
     await testScopePreparation({admin,connect,check});

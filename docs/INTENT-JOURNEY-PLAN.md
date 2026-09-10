@@ -9,7 +9,21 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0308 / application corpus integration — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0309 / owned scope service integration — 68% (17/25; 8 remaining; +0 points)**.
+The [scope service integration](../intent/0309/EVIDENCE.md) connects current and
+historical scope reads to the owned records/content/SDK reader through explicit
+independent authority bindings. Metadata-only discovery uses exact review references
+and no invented operation IDs. Expired current reads exclude observations; history
+remains historical. Cancellation and final policy/key/source/lifecycle checks remain.
+
+Actual synthetic scope reads fall from 227 to 25 attempts; drafting preparation
+from 3,826 to 594; drafting start from 7,871 to 1,407; new-distinct preview from
+3,447 to 1,815 and confirmation from 7,087 to 3,823. These are provider-count
+improvements, not full C22, a live activation or a user-interface speed claim.
+Next integrate development originals/results/history and remaining action/effect
+boundaries, then run the unchanged complete C22 protocol. No new ETA is implied.
+
+Prior delivery checkpoint: **0308 / application corpus integration — 68% (17/25; 8 remaining; +0 points)**.
 The [application wiring](../intent/0308/EVIDENCE.md) now uses the owned native graph
 for source review and scope/development preparation, preserving the existing
 evidence contract and incomplete-search warnings. Loading remains lazy after

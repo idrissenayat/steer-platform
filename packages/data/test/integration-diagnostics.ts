@@ -6,6 +6,7 @@ import {setTimeout as delay} from 'node:timers/promises';
 export function parseIntegrationSelection(args:readonly string[]) {
   if(!args.length)return {mode:'full' as const};
   if(args.length===1&&args[0]==='--scope-runtime')return {mode:'scope-runtime' as const};
+  if(args.length===1&&args[0]==='--scope-read')return {mode:'scope-read' as const};
   if(args.length===1&&args[0]==='--development-history')return {mode:'development-history' as const};
   if(args.length===1&&args[0]==='--development-history-records')return {mode:'development-history-records' as const};
   if(args.length===1&&args[0]==='--development-start')return {mode:'development-start' as const};

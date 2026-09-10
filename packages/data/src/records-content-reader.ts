@@ -18,7 +18,7 @@ export type RecordsKeyServices = { [G in EncryptedRecordGroup]: {
   provider: RecordsKeyProvider;
 } };
 export type RecordsContentLease = Readonly<{ snapshot: RecordsReadSetSnapshot; contents: DecodedRecordContents;
-  check(): void; recheck(): Promise<void> }>;
+  check(): void; recheck(): Promise<void>; hasExpired(expiresAt: string): boolean }>;
 const fail = () => new Error('The complete record contents could not be verified.');
 
 /** Internal, invocation-owned content reader. Trusted read-only consumers must
@@ -87,7 +87,7 @@ export function createRecordsContentReader(pools: { drafts: DatabasePool; execut
             }).catch(() => { invalid = true; throw fail(); });
             void rechecking.catch(() => {}); return rechecking;
           };
-          const value = await use(freeze({ snapshot: lease.snapshot, contents, check, recheck }));
+          const value = await use(freeze({ snapshot: lease.snapshot, contents, check, recheck, hasExpired: lease.hasExpired }));
           check(); if (!rechecked) throw fail(); return value;
         } finally {
           // Drain even a forgotten recheck before wiping keys or releasing admission.

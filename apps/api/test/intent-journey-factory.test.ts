@@ -27,6 +27,8 @@ test('factory rejects crossed records, publication, budget and scope-profile bin
     (f: ReturnType<typeof intentJourneyFactoryFixture>) => { f.config.scope.scopeTerms.profileDigest = 'f'.repeat(64); },
     (f: ReturnType<typeof intentJourneyFactoryFixture>) => { (f.config as any).evidence = 'PRIVATE invented result'; },
     (f: ReturnType<typeof intentJourneyFactoryFixture>) => { (f.expected as any).documents = 'PRIVATE injected scope'; },
+    (f: ReturnType<typeof intentJourneyFactoryFixture>) => { (f.deps.scope as any).ownedReads = null; },
+    (f: ReturnType<typeof intentJourneyFactoryFixture>) => { (f.deps.scope as any).ownedReads = { current: {} }; },
   ];
   for (const change of mutations) {
     const f = intentJourneyFactoryFixture(); change(f);

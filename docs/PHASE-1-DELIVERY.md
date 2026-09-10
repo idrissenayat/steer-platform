@@ -7083,3 +7083,27 @@ pre-/post-effect controls. Other actions still exceed the unchanged budget. No l
 profile/records activation, credentials, model spending, runtime GitHub write,
 deployment or signature. User drafts, signed artifacts, roadmap and outputs are
 preserved. **68% (17/25; eight remaining; +0 percentage points).**
+
+## 0309 — Owned scope services in the actual journey
+
+[0309](../intent/0309/EVIDENCE.md) connects current/historical scope projections
+to the owned records/content/SDK reader under separate trusted record/key bindings.
+Metadata-only discovery uses the exact retained review and no invented operation
+IDs. Existing current source/profile/draft/review policies remain. Expired current
+reads exclude observations; historical evidence never renews execution. Final
+key/records/source/lifecycle checks, four-call cancellation ownership and shutdown
+drain remain in place. Read phases do not absorb any scheduling or save effect.
+
+Actual synthetic scope reads fall 227→25 attempts, drafting preparation
+3,826→594, drafting start 7,871→1,407, new-distinct preview 3,447→1,815 and
+confirmation 7,087→3,823. Default and proposal-continuation save/reopen pass.
+Scope SQL/SDK/HTTP equivalence and negative checks pass, alongside the 1,497-test
+broad regression, final focused/type checks, prototype tests and kit/scope audit.
+Exact verification timing, retained failures and hashes are in
+[verification](../intent/0309/VERIFICATION.json). No UI or full C22 pass is claimed.
+
+Next integrate development originals/results/history and remaining action/effect
+controls before the complete unchanged performance protocol. No live profile,
+records adoption, model usage/spending, runtime GitHub write, deployment or signature.
+Signed artifacts and user-owned roadmap/outputs remain unchanged.
+**68% (17/25; eight remaining; +0 percentage points).**

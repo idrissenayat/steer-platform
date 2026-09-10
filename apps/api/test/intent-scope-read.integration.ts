@@ -7,13 +7,15 @@ import type {createDraftLifecycleStore} from '@steer/data/draft-lifecycle';
 import {scopeReviewProfileSchema} from '@steer/tool-registry/intent-scope-review';
 import {createVerifiedScopeReviewReader,createVerifiedScopeReviewHistoryReader} from '../src/runtime.ts';
 import {createApi} from '../src/app.ts';
+import { ownedScopeReadFixture } from './owned-scope-read.fixture.ts';
+import { intentJourneyFactoryFixture } from './intent-journey-factory.fixture.ts';
 
 type Dependencies=Parameters<typeof createVerifiedScopeReviewReader>[2];
 interface Fixture {
   config:{organizationId:string;subject:string;productId:string;repository:string};
   pools:Parameters<typeof createVerifiedScopeReviewReader>[0]; records:Dependencies['records'];
   input:{original:{profile:unknown}};target:{reviewId:string;preparationDigest:string};
-  execution:{expiresAt:string};draftId:string;saved:{reference:{revisionDigest:string}};
+  execution:{expiresAt:string;budget:{budgetId:string}};draftId:string;saved:{reference:{revisionDigest:string}};
   drafts:ReturnType<typeof createDraftRevisionStore>;lifecycle:ReturnType<typeof createDraftLifecycleStore>;reviews:ReturnType<typeof createScopeReviewOperationStore>;
   content:{originalText:string;clarificationTurns:string[];documents:unknown};
   produce(index:number,options?:{checkpoint?:boolean;relation?:'related-distinct'|'no-match-in-assessed-scope'|'insufficient-evidence'}):Promise<{batchId:string;inputDigest:string;event:{owner:string;fencingToken:number}}>;
@@ -43,6 +45,76 @@ export async function testIntentScopeRead(setup:(options?:{sourceCount?:number;i
     const post=(override={})=>app.request('/v1/tools/intent.scope.history',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...input,...override})});
     return{reader,state,input,post};
   };
+  const owned=(f:Fixture)=>({ ...ownedScopeReadFixture(f.execution.budget.budgetId,f.records.originals.keyForDraft),
+    profiles:intentJourneyFactoryFixture().config.developmentProfiles });
+  await check('owned scope HTTP matches established current/history results from pending through complete, superseded and expired',async()=>{
+    const f=await setup({sourceCount:34,ttl:10000}),currentBinding=owned(f),historyBinding=owned(f);
+    const current=api(f,{ownedRead:currentBinding}),history=historyApi(f,{ownedRead:historyBinding});
+    const compare=async()=>{
+      const before=await f.rows(),keyPolicies=currentBinding.state.keys,response=await current.post(),retained=await history.post();
+      assert.equal(response.status,200,await response.clone().text());assert.equal(retained.status,200,await retained.clone().text());
+      const output=await response.json();if(output.status==='expired')assert.equal(currentBinding.state.keys-keyPolicies,4,'Only the draft and original are decrypted, not expired observations.');
+      assert.deepEqual(output,await (await api(f).post()).json());
+      assert.deepEqual(await retained.json(),await (await historyApi(f).post()).json());assert.deepEqual(await f.rows(),before);
+    };
+    await compare();await f.produce(0);await compare();await f.produce(1);await compare();
+    assert.equal((await f.drafts.append({draftId:f.draftId,mutationId:randomUUID(),expectedRevision:1,expectedDigest:f.saved.reference.revisionDigest,
+      content:{...f.content,originalText:'Owned snapshot preserves earlier source'}})).outcome,'acknowledged');
+    await compare();await delay(Math.max(0,Date.parse(f.execution.expiresAt)-Date.now()+50));await compare();
+    assert.equal(currentBinding.state.discovery>0,true);assert.equal(historyBinding.state.discovery>0,true);
+    assert.equal(f.calls(),2);assert.equal(await f.reservations(),2);
+  });
+  await check('owned scope denies independent record/key/source grants and never promotes an uncheckpointed response',async()=>{
+    const f=await setup(),step=await f.produce(0,{checkpoint:false});
+    assert.equal((await f.reviews.transition({...f.target,batchId:step.batchId,inputDigest:step.inputDigest,
+      event:{type:'outcome-unknown',owner:step.event.owner,fencingToken:step.event.fencingToken}})).outcome,'ok');
+    const binding=owned(f),a=api(f,{ownedRead:binding}),response=await a.post();assert.equal(response.status,200,await response.clone().text());
+    const result=await response.json();assert.equal(result.status,'attention-required');assert.equal(result.review.results.length,0);
+    for(const group of ['revisions','scope_originals','scope_observations','scope_runs','scope_batches','reservations','budget','scope_terms']){
+      binding.state.deniedRecord=group;const keys=binding.state.reads;assert.equal((await a.post()).status,503);assert.equal(binding.state.reads,keys);
+    }
+    binding.state.deniedRecord='';
+    for(const group of ['revisions','scope_originals','scope_observations']){
+      binding.state.deniedKey=group;const keys=binding.state.reads;assert.equal((await a.post()).status,503);assert.equal(binding.state.reads,keys);
+    }
+    binding.state.deniedKey='';assert.equal((await a.post()).status,200);
+    const sourceDenied=api(f,{ownedRead:owned(f),records:{...f.records,originals:{...f.records.originals,
+      authorizeOriginal:async()=>{throw new Error('PRIVATE source permission denied');}}}});
+    const denied=await sourceDenied.post();assert.equal(denied.status,503);assert.equal((await denied.text()).includes('PRIVATE'),false);
+    const wrongBudget=owned(f);wrongBudget.authority.authorizeScopeDiscovery=async()=>({permissionsRevision:'synthetic-other-budget',budgetId:randomUUID()});
+    assert.equal((await api(f,{ownedRead:wrongBudget}).post()).status,503);assert.equal(f.calls(),1);
+  });
+  await check('owned scope final readback rejects late records/key/lifecycle changes and pins the trusted service binding',async()=>{
+    const f=await setup();await f.produce(0);const before=await f.rows();
+    for(const mode of ['records','keys','binding','policy','profile'] as const){
+      const binding=owned(f);let calls=0;
+      const records={...f.records,originals:{...f.records.originals,authorizeOriginal:async()=>{
+        if(++calls!==1)return;
+        if(mode==='records')binding.state.revision='synthetic-revoked';
+        if(mode==='keys')binding.state.deniedKey='scope_originals';
+        if(mode==='binding')binding.authority={...binding.authority};
+        if(mode==='policy')binding.authority.records.scope_runs=async()=>{};
+      }}};
+      const a=api(f,{ownedRead:binding,records,...(mode==='profile'?{profile:{...scopeReviewProfileSchema.parse(f.input.original.profile),modelRoute:'changed-model-route'}}:{})});
+      assert.equal((await a.post()).status,503);
+    }
+    let held=false;const binding=owned(f),a=api(f,{ownedRead:binding,records:{...f.records,originals:{...f.records.originals,authorizeOriginal:async()=>{
+      if(!held){held=true;assert.equal((await f.lifecycle.hold({draftId:f.draftId,holdReference:randomUUID()})).outcome,'ok');}
+    }}}});
+    assert.equal((await a.post()).status,503);assert.equal(held,true);assert.deepEqual(await f.rows(),before);assert.equal(f.calls(),1);
+  });
+  await check('owned scope expiry during the final caller check withholds stale current or historical flags',async()=>{
+    for(const historical of [false,true]){
+      const f=await setup({ttl:2200}),binding=owned(f);let sourceChecks=0,finalCheck=false;
+      const records={...f.records,authorizeHistoricalRead:async()=>{},authorizeHistoricalReview:async()=>{},
+        originals:{...f.records.originals,authorizeOriginal:async()=>{sourceChecks++;}}};
+      const a=historical?historyApi(f,{ownedRead:binding,records}):api(f,{ownedRead:binding,records});
+      await assert.rejects(a.reader.read(a.input,async()=>{
+        if(sourceChecks>=2){finalCheck=true;await delay(Math.max(0,Date.parse(f.execution.expiresAt)-Date.now()+50));}
+      }));
+      assert.equal(finalCheck,true);assert.equal(f.calls(),0);assert.equal(await f.reservations(),0);
+    }
+  });
   await check('historical scope HTTP restores expired superseded exact SDK findings without renewing execution or changing SQL',async()=>{
     const f=await setup({sourceCount:34,ttl:10000});await f.produce(0);await f.produce(1);
     assert.equal((await f.drafts.append({draftId:f.draftId,mutationId:randomUUID(),expectedRevision:1,expectedDigest:f.saved.reference.revisionDigest,

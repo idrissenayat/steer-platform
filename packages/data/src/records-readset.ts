@@ -5,10 +5,13 @@ import { applyRuntimeQueryLimits, type DatabasePool } from './runtime-pool.ts';
 import { developmentRecordsConfigurationSchema } from './development-originals.ts';
 
 const uuid = z.uuid().refine(value => value === value.toLowerCase());
-const targetSchema = z.strictObject({ draftId: uuid, operationIds: z.array(uuid).min(1).max(8),
+const resolvedTargetSchema = z.strictObject({ draftId: uuid, operationIds: z.array(uuid).max(8),
   reviewIds: z.array(uuid).min(1).max(8), revisions: z.array(z.number().int().min(1).max(1000)).min(1).max(16), budgetId: uuid });
+const targetSchema = resolvedTargetSchema.extend({ operationIds: z.array(uuid).min(1).max(8) });
+const scopeTargetSchema = z.strictObject({ kind: z.literal('scope-review'), mode: z.enum(['current', 'history']), reviewId: uuid,
+  preparationDigest: z.string().regex(/^[a-f0-9]{64}(?![\s\S])/) });
 type Configuration = z.infer<typeof developmentRecordsConfigurationSchema>;
-export type RecordsReadSetTarget = z.infer<typeof targetSchema>;
+export type RecordsReadSetTarget = z.infer<typeof resolvedTargetSchema>;
 type Row = Readonly<Record<string, unknown>>;
 const draftGroups = [
   { name: 'revisions', table: 'draft_revisions', filter: 'r.draft_id=q.draft AND r.revision=ANY(q.revisions)', order: 'r.revision', max: 16, identity: ['revision'] },
@@ -34,13 +37,18 @@ export type RecordsReadSetGroup = Group['name'];
 type Data = Readonly<Record<RecordsReadSetGroup, readonly Row[]>>;
 type Context = Readonly<{ configuration: Configuration; target: RecordsReadSetTarget }>;
 export type RecordsReadSetAuthority = {
+  /** Separate present grant for metadata-only scope target discovery. No stored
+   * execution approval or configuration string can supply this revision. The
+   * trusted records resolver binds the retained budget ID, which must match the
+   * decoded original; it is not a new budget or a spending permission. */
+  authorizeScopeDiscovery?(context: Readonly<{ configuration: Configuration; request: z.infer<typeof scopeTargetSchema> }>): Promise<{ permissionsRevision: string; budgetId: string }>;
   /** Present metadata-enumeration grant. Revision covers every independent records grant. */
   authorize(context: Context): Promise<{ permissionsRevision: string }>;
   records: { [G in RecordsReadSetGroup]: (context: Context & Readonly<{ group: G; metadata: Row }>) => Promise<void> };
 };
 export type RecordsReadSetSnapshot = Readonly<{ target: RecordsReadSetTarget; data: Data; lifecycle: Row; digest: string;
   keys: readonly Readonly<{ draftId: string; keyId: string; records: readonly string[] }>[]; plaintextVerified: false }>;
-export type RecordsReadSetLease = Readonly<{ snapshot: RecordsReadSetSnapshot; check(): void; recheck(): Promise<void> }>;
+export type RecordsReadSetLease = Readonly<{ snapshot: RecordsReadSetSnapshot; check(): void; recheck(): Promise<void>; hasExpired(expiresAt: string): boolean }>;
 const groups: readonly Group[] = [...draftGroups, ...executionGroups];
 const fail = () => new Error('The complete records read set could not be verified.');
 const hash = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
@@ -58,12 +66,13 @@ const milliseconds = (raw: unknown) => {
   const value = raw instanceof Date ? raw.getTime() : typeof raw === 'string' ? Date.parse(raw) : NaN;
   if (!Number.isSafeInteger(value) || value < 0) throw fail(); return value;
 };
-const queryFor = (selectedGroups: readonly Group[], metadata: boolean) => `WITH requested AS
+const queryFor = (selectedGroups: readonly Group[], metadata: boolean, expiredScope = false) => `WITH requested AS
   (SELECT $1::text AS org,$2::uuid AS draft,$3::uuid[] AS ops,$4::uuid[] AS reviews,$5::int[] AS revisions,$6::uuid AS budget)
   SELECT jsonb_build_object(${selectedGroups.map(g => `'${g.name}',(SELECT COALESCE(jsonb_agg(to_jsonb(selected)${metadata ? " - 'encrypted_value'" : ''}),'[]'::jsonb)
     FROM (SELECT ${g.name === 'latest_revision' ? 'r.organization_id,r.subject,r.product_id,r.revision' : 'r.*'}
       FROM ${'schema' in g ? g.schema : 'steer_drafts'}.${g.table} r,requested q
-      WHERE r.organization_id=q.org AND ${g.filter} ORDER BY ${g.order} LIMIT ${g.max + (g.name === 'latest_revision' ? 0 : 1)}) selected)`).join(',')}) AS data,
+      WHERE r.organization_id=q.org AND ${g.filter}${expiredScope && ['scope_observations', 'scope_batches', 'reservations'].includes(g.name) ? ' AND FALSE /* expired current scope */' : ''}
+      ORDER BY ${g.order} LIMIT ${g.max + (g.name === 'latest_revision' ? 0 : 1)}) selected)`).join(',')}) AS data,
     floor(extract(epoch FROM clock_timestamp())*1000)::bigint AS clock_ms`;
 const clear = (role: 'drafts' | 'execution') => `SELECT ${
   (role === 'drafts' ? ['draft_organization', 'draft_subject', 'draft_product']
@@ -83,30 +92,46 @@ export function createRecordsReadSetReader(pools: { drafts: DatabasePool; execut
   const configuration = freeze(developmentRecordsConfigurationSchema.parse(rawConfiguration)), configurationDigest = hash(configuration);
   const clock = options.monotonicNow ?? (() => performance.now()), lifetime = new AbortController(), pending = new Set<Promise<unknown>>();
   const connections = { drafts: pools.drafts.connect, execution: pools.execution.connect }, boundPools = { ...pools };
-  const authorize = authority.authorize, records = authority.records, policies = { ...records };
+  const authorize = authority.authorize, discover = authority.authorizeScopeDiscovery, records = authority.records, policies = { ...records };
   if (typeof authorize !== 'function' || groups.some(g => typeof policies[g.name] !== 'function')
     || Object.keys(records).length !== groups.length || Object.values(connections).some(p => typeof p !== 'function')) throw fail();
   const pinned = () => {
-    if (lifetime.signal.aborted || authority.authorize !== authorize || authority.records !== records
+    if (lifetime.signal.aborted || authority.authorize !== authorize || authority.authorizeScopeDiscovery !== discover || authority.records !== records
       || groups.some(g => records[g.name] !== policies[g.name]) || Object.keys(records).length !== groups.length
       || (['drafts', 'execution'] as const).some(role => pools[role] !== boundPools[role] || pools[role].connect !== connections[role])) throw fail();
   };
   async function withReadSet<T>(rawTarget: unknown, current: () => Promise<void>, use: (lease: RecordsReadSetLease) => Promise<T>, externalSignal?: AbortSignal) {
-    pinned(); const target = freeze(targetSchema.parse(rawTarget)), context = freeze({ configuration, target });
+    pinned(); const requested = freeze(z.union([targetSchema, scopeTargetSchema]).parse(rawTarget));
+    const scopeRequest = 'kind' in requested ? requested : undefined;
+    let target: RecordsReadSetTarget = scopeRequest ? undefined! : requested as RecordsReadSetTarget;
+    let context: Context = scopeRequest ? undefined! : freeze({ configuration, target });
     if (pending.size >= 4 || typeof current !== 'function' || typeof use !== 'function'
-      || [target.operationIds, target.reviewIds, target.revisions].some(values => new Set<string | number>(values).size !== values.length)) throw fail();
+      || (scopeRequest ? typeof discover !== 'function'
+        : [target.operationIds, target.reviewIds, target.revisions].some(values => new Set<string | number>(values).size !== values.length))) throw fail();
     const signal = AbortSignal.any([lifetime.signal, AbortSignal.timeout(30000), ...(externalSignal ? [externalSignal] : [])]);
     const metrics = { statements: 0, roleTransactions: 0, callerChecks: 0, metadataGrants: 0, recordPolicyChecks: 0 };
     let finished = false, invalid = false, lastClock = -Infinity, lastDatabaseClock = -Infinity, deadline = Infinity;
-    let permissionsRevision: string | undefined, rechecking: Promise<void> | undefined, rechecked = false, using = false;
+    let permissionsRevision: string | undefined, discoveryRevision: string | undefined, discoveryBudget: string | undefined, discoveredRun: Row | undefined;
+    let expiredScope = false;
+    let databaseObservedAt = Infinity, rechecking: Promise<void> | undefined, rechecked = false, using = false;
     const monotonic = () => { const now = clock(); if (!Number.isFinite(now) || now < 0 || now < lastClock) throw fail(); lastClock = now; return now; };
     const guard = () => {
       try { pinned(); signal.throwIfAborted(); if (invalid || finished || monotonic() >= deadline) throw fail(); }
       catch { invalid = true; throw fail(); }
     };
-    const observeDatabase = (raw: unknown) => { const now = databaseClock(raw); if (now < lastDatabaseClock) throw fail(); lastDatabaseClock = now; return now; };
+    const observeDatabase = (raw: unknown, started = monotonic()) => {
+      const now = databaseClock(raw); if (now < lastDatabaseClock) throw fail(); lastDatabaseClock = now; databaseObservedAt = started; return now;
+    };
+    const discoveryGrant = async () => {
+      if (!scopeRequest) return;
+      guard(); const grant = z.strictObject({ permissionsRevision: z.string().min(1).max(256), budgetId: uuid }).parse(
+        await Reflect.apply(discover!, authority, [freeze({ configuration, request: scopeRequest })]));
+      guard(); if (discoveryRevision !== undefined && (grant.permissionsRevision !== discoveryRevision || grant.budgetId !== discoveryBudget)) throw fail();
+      discoveryRevision = grant.permissionsRevision; discoveryBudget = grant.budgetId;
+    };
     const fresh = async () => {
       guard(); metrics.callerChecks++; if (await current() !== undefined) throw fail(); guard(); metrics.metadataGrants++;
+      await discoveryGrant();
       const grant = z.strictObject({ permissionsRevision: z.string().min(1).max(256) }).parse(await Reflect.apply(authorize, authority, [context]));
       guard(); if (permissionsRevision !== undefined && grant.permissionsRevision !== permissionsRevision) throw fail(); permissionsRevision = grant.permissionsRevision;
     };
@@ -137,16 +162,16 @@ export function createRecordsReadSetReader(pools: { drafts: DatabasePool; execut
             if (result.rows.length !== 1) throw fail(); const row = rowValue(result.rows[0]);
             if (row.organization_id !== configuration.organizationId || row.draft_id !== target.draftId || row.subject !== configuration.subject
               || row.product_id !== configuration.productId || row.configuration_digest !== configurationDigest || row.held !== false) throw fail();
-            const observed = observeDatabase(row.clock_ms), expiry = milliseconds(row.use_until);
+            const observed = observeDatabase(row.clock_ms, started), expiry = milliseconds(row.use_until);
             if (milliseconds(row.created_at) > observed || expiry <= observed) throw fail();
             deadline = Math.min(deadline, started + expiry - observed); const { clock_ms: _clock, ...header } = row;
             lifecycle = JSON.parse(JSON.stringify(header)) as Row;
           } else await query("SELECT set_config('steer.execution_organization',$1,true),set_config('steer.execution_subject',$2,true),set_config('steer.execution_product',$3,true),set_config('steer.usage_organization',$1,true),set_config('steer.usage_subject',$2,true),set_config('steer.usage_budget',$4,true)", [configuration.organizationId, configuration.subject, configuration.productId, target.budgetId]);
           const selectedGroups = role === 'drafts' ? draftGroups : executionGroups, started = monotonic();
-          const result = await query(queryFor(selectedGroups, metadata), [configuration.organizationId, target.draftId, target.operationIds, target.reviewIds, target.revisions, target.budgetId]);
+          const result = await query(queryFor(selectedGroups, metadata, expiredScope), [configuration.organizationId, target.draftId, target.operationIds, target.reviewIds, target.revisions, target.budgetId]);
           if (result.rows.length !== 1) throw fail(); const aggregate = rowValue(result.rows[0]), value = rowValue(aggregate.data);
           if (Buffer.byteLength(JSON.stringify(value)) > 16 * 1024 * 1024 || Object.keys(value).length !== selectedGroups.length) throw fail();
-          const observed = observeDatabase(aggregate.clock_ms);
+          const observed = observeDatabase(aggregate.clock_ms, started);
           for (const g of selectedGroups) {
             const rawRows = value[g.name]; if (!Array.isArray(rawRows) || rawRows.length > g.max) throw fail();
             const rows: Row[] = rawRows.map(rowValue), identities = new Set<string>();
@@ -164,6 +189,7 @@ export function createRecordsReadSetReader(pools: { drafts: DatabasePool; execut
               if (role === 'drafts' && g.name !== 'latest_revision' && !metadata && !row.encrypted_value) throw fail();
             }
             data[g.name] = rows;
+            if (expiredScope && ['scope_observations', 'scope_batches', 'reservations'].includes(g.name) && rows.length) throw fail();
           }
           if (role === 'drafts') for (const row of data.candidate_originals!) {
             const expiry = milliseconds(row.use_until);
@@ -187,7 +213,48 @@ export function createRecordsReadSetReader(pools: { drafts: DatabasePool; execut
     };
     const work = Promise.resolve().then(async () => {
       try {
-        deadline = monotonic() + 30000; guard(); const metadata = await read(true); await grantRecords(metadata.data);
+        deadline = monotonic() + 30000; guard();
+        if (scopeRequest) {
+          // The run table has no ciphertext. Discover only this exact reference
+          // under the execution role; never invent a development operation ID.
+          metrics.callerChecks++; if (await current() !== undefined) throw fail(); guard(); await discoveryGrant();
+          let client: PoolClient | undefined, broken = false;
+          try {
+            client = await Reflect.apply(connections.execution, boundPools.execution, []); guard(); metrics.roleTransactions++;
+            const query = async (sql: string, args?: unknown[]) => { guard(); metrics.statements++; const result = await client!.query(sql, args); guard(); return result; };
+            await applyRuntimeQueryLimits({ query } as PoolClient); await query(clear('execution')); await query('BEGIN ISOLATION LEVEL READ COMMITTED');
+            const actor = (await query(`SELECT r.rolname,session_user AS login_role,r.rolsuper,r.rolbypassrls,
+              EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+              WHERE n.nspname=ANY($1::text[]) AND c.relowner=r.oid) AS owns_objects FROM pg_roles r WHERE r.rolname=current_user`,
+            [['steer_execution', 'steer_usage']])).rows[0];
+            if (!actor || actor.rolname !== 'steer_app' || actor.login_role !== 'steer_app'
+              || actor.rolsuper !== false || actor.rolbypassrls !== false || actor.owns_objects !== false) throw fail();
+            await query("SELECT set_config('steer.execution_organization',$1,true),set_config('steer.execution_subject',$2,true),set_config('steer.execution_product',$3,true)",
+              [configuration.organizationId, configuration.subject, configuration.productId]);
+            const started = monotonic(), result = await query(`SELECT to_jsonb(r) AS metadata,
+              floor(extract(epoch FROM clock_timestamp())*1000)::bigint AS clock_ms FROM steer_execution.scope_review_runs r
+              WHERE r.organization_id=$1 AND r.review_id=$2 AND r.preparation_digest=$3 LIMIT 2`,
+              [configuration.organizationId, scopeRequest.reviewId, scopeRequest.preparationDigest]);
+            if (result.rows.length !== 1) throw fail(); discoveredRun = freeze(rowValue(result.rows[0].metadata));
+            if (Buffer.byteLength(JSON.stringify(discoveredRun)) > 65536 || 'encrypted_value' in discoveredRun
+              || discoveredRun.organization_id !== configuration.organizationId || discoveredRun.subject !== configuration.subject
+              || discoveredRun.product_id !== configuration.productId || discoveredRun.review_id !== scopeRequest.reviewId
+              || discoveredRun.preparation_digest !== scopeRequest.preparationDigest) throw fail();
+            const observed = observeDatabase(result.rows[0].clock_ms, started), expiry = milliseconds(discoveredRun.expires_at);
+            if (scopeRequest.mode === 'current') {
+              expiredScope = expiry <= observed;
+              if (!expiredScope) deadline = Math.min(deadline, started + expiry - observed);
+            }
+            target = freeze(resolvedTargetSchema.parse({ draftId: discoveredRun.draft_id, operationIds: [], reviewIds: [scopeRequest.reviewId],
+              revisions: [discoveredRun.draft_revision], budgetId: discoveryBudget }));
+            context = freeze({ configuration, target });
+            await query('COMMIT'); await query(clear('execution'));
+          } catch { broken = true; if (client) try { await client.query('ROLLBACK'); await client.query(clear('execution')); } catch {} throw fail(); }
+          finally { client?.release(broken); }
+        }
+        const metadata = await read(true);
+        if (discoveredRun && hash(metadata.data.scope_runs) !== hash([discoveredRun])) throw fail();
+        await grantRecords(metadata.data);
         const first = await read(false);
         if (hash({ data: metadataOf(first.data), lifecycle: first.lifecycle }) !== hash(metadata)) throw fail();
         const keyRefs = new Map<string, { draftId: string; keyId: string; records: string[] }>();
@@ -211,7 +278,11 @@ export function createRecordsReadSetReader(pools: { drafts: DatabasePool; execut
           // The owner drains this child even when a trusted verifier forgets to await it.
           void rechecking.catch(() => {}); return rechecking;
         };
-        using = true; const value = await use(freeze({ snapshot, check: guard, recheck })); using = false;
+        const hasExpired = (expiresAt: string) => {
+          guard(); if (!Number.isFinite(lastDatabaseClock) || !Number.isFinite(databaseObservedAt)) throw fail();
+          return lastDatabaseClock + monotonic() - databaseObservedAt >= milliseconds(expiresAt);
+        };
+        using = true; const value = await use(freeze({ snapshot, check: guard, recheck, hasExpired })); using = false;
         if (!rechecked || invalid) throw fail(); await fresh(); guard(); return { value, metrics: freeze({ ...metrics }) };
       } finally { using = false; await rechecking?.catch(() => {}); }
     });
