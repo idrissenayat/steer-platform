@@ -1,96 +1,29 @@
 import { connection } from 'next/server';
-import { headers } from 'next/headers';
-import { identityView, sessionView, repositoryView, draftProductView } from './identity-view';
-import ProjectionPanel from './projection-panel';
-import BriefLibrary from './brief-library';
 import BriefAuthor from './brief-author';
 import IntentConversation from './intent-conversation';
-import ReviewWorkspace from './review-workspace';
 import LearnHub from './learn-hub';
-import CandidateBundle from './candidate-bundle';
-import CandidateSaveStatus from './candidate-save-status';
 import learnCorpus from './generated/learn.json';
 import type { LearnCorpus } from './learn-reader';
 
+/** The actual workspace, temporarily single-user. No login or identity headers.
+ * The owned server is bound to this computer only. */
 export default async function FoundationPage() {
   await connection();
-  const configured = identityView(process.env.STEER_WEB_AUTH, process.env.STEER_WEB_AUTH_ORIGIN, process.env.STEER_WEB_IDENTITY_ISSUER);
-  const incoming = await headers();
-  const session = configured ? sessionView(incoming.get('x-steer-session-view')) : null;
-  const repository = session ? repositoryView(incoming.get('x-steer-repository-view')) : null;
-  if (session) return (
-    <main className="access-shell workspace-shell">
-      <header className="access-brand"><span className="brand-mark" aria-hidden="true">S</span><span>STEER</span><span className="brand-caption">Human direction. Agent execution.</span></header>
-      <div className="workspace-heading"><div><div className="eyebrow">Session verified</div><h1>Your workspace.</h1><p className="lede">One place to frame intent, steer the work, and review the evidence.</p></div>
-        <form action="/auth/logout" method="post"><button className="access-secondary" type="submit">Sign out</button></form></div>
-      <section className="access-card workspace-session" aria-labelledby="session-title">
-        <div><span className="access-label">CURRENT ACCESS</span><h2 id="session-title">Your verified session</h2><p>This page reflects your current session and Git-backed workspace permissions.</p>
-          <a className="session-refresh" href="/">Refresh access</a></div>
-        <dl><div><dt>Organization</dt><dd data-testid="session-organization">{session.organizationId}</dd></div>
-          <div><dt>Account ID</dt><dd data-testid="session-subject">{session.subject}</dd></div>
-          <div><dt>Active hats</dt><dd>{session.hats.length ? session.hats.map((hat) => <span className="hat-label" key={hat}>{hat.split('-').map((word) => word[0]!.toUpperCase() + word.slice(1)).join(' ')}</span>) : 'No hats assigned'}</dd></div>
-          <div><dt>Session expires (UTC)</dt><dd><time dateTime={session.expiresAt}>{new Date(session.expiresAt).toISOString().replace('T', ' ').replace('.000Z', ' UTC')}</time></dd></div></dl>
-        <p className="access-hint session-snapshot">Checked for this page load. Refresh to recheck access. Every action is authorized again; this display is not a gate signature.</p>
-      </section>
-      <IntentConversation key={`agent:${session.subject}:${session.organizationId}:${session.expiresAt}`} organizationId={session.organizationId} subject={session.subject} expiresAt={session.expiresAt}
-        enabled={process.env.STEER_WEB_INTENT_AGENT === 'enabled'} repository={repository}
-        draftProductId={draftProductView(process.env.STEER_WEB_DRAFT_EDITOR, process.env.STEER_WEB_DRAFT_PRODUCT_ID)} />
-      {repository && <CandidateBundle key={`candidate:${session.subject}:${session.organizationId}:${repository}:${session.expiresAt}`}
-        organizationId={session.organizationId} repository={repository} expiresAt={session.expiresAt} />}
-      {repository && <CandidateSaveStatus key={`candidate-status:${session.subject}:${session.organizationId}:${repository}:${session.expiresAt}`}
-        organizationId={session.organizationId} repository={repository} expiresAt={session.expiresAt} />}
-      <details className="workspace-diagnostics"><summary>Manual Brief tools</summary>
-        <BriefAuthor key={`author:${session.subject}:${session.organizationId}:${session.expiresAt}`} organizationId={session.organizationId} subject={session.subject} expiresAt={session.expiresAt}
-          submissionEnabled={process.env.STEER_WEB_BRIEF_SUBMISSION === 'enabled'} />
-      </details>
-      {repository ? <BriefLibrary key={`${session.subject}:${session.organizationId}:${repository}:${session.expiresAt}`}
-        organizationId={session.organizationId} repository={repository} expiresAt={session.expiresAt} /> :
-        <p className="access-note">Brief discovery is not configured for this workspace. No repository access has been enabled by this page.</p>}
-      {repository && <ReviewWorkspace key={`review:${session.subject}:${session.organizationId}:${repository}:${session.expiresAt}`}
-        organizationId={session.organizationId} repository={repository} expiresAt={session.expiresAt} />}
-      <details className="workspace-diagnostics"><summary>Developer diagnostics</summary>
-        <ProjectionPanel key={`${session.subject}:${session.organizationId}:${session.expiresAt}`} organizationId={session.organizationId} expiresAt={session.expiresAt} />
-      </details>
-      <LearnHub key={`learn:${session.subject}:${session.organizationId}:${session.expiresAt}`} corpus={learnCorpus as LearnCorpus} expiresAt={session.expiresAt} />
-      <section className="workspace-surfaces" aria-labelledby="surfaces-title"><h2 id="surfaces-title">Your operating surfaces</h2><p className="access-hint">Session access is connected. These production work surfaces are still being built.</p>
-        <ul>{[['Intent backlog', 'Frame outcomes and boundaries before work is pulled.'], ['Flight board', 'Follow work through its lifecycle and evidence gates.'], ['Inbox', 'Review the decisions that need your attention.']].map(([name, description]) =>
-          <li key={name}><h3>{name}</h3><p>{description}</p><span>Not connected yet</span></li>)}</ul></section>
-      <footer className="access-footer"><span>Foundation preview · formal release gates remain open</span><a href="https://github.com/idrissenayat/steer-platform">Project repository</a></footer>
-    </main>
-  );
-  return (
-    <main className="access-shell">
-      <header className="access-brand"><span className="brand-mark" aria-hidden="true">S</span><span>STEER</span><span className="brand-caption">Human direction. Agent execution.</span></header>
-      <div className="access-grid">
-        <section className="access-intro" aria-labelledby="access-title">
-          <div className="eyebrow">Your operating space</div>
-          <h1 id="access-title">Good work starts<br />with intent.</h1>
-          <p className="lede">Bring the direction. Let your agents do the work. Keep the decisions that matter in human hands.</p>
-          <ol className="access-principles">
-            <li><span aria-hidden="true">01</span><div><strong>Set the intent</strong><p>Make the outcome and boundaries clear.</p></div></li>
-            <li><span aria-hidden="true">02</span><div><strong>Steer the work</strong><p>People and agents use one governed process.</p></div></li>
-            <li><span aria-hidden="true">03</span><div><strong>Trust the evidence</strong><p>Every approval belongs to an accountable human.</p></div></li>
-          </ol>
-        </section>
-        <section className="access-card" aria-labelledby="sign-in-title">
-          <span className="access-label">WORKSPACE ACCESS</span>
-          <h2 id="sign-in-title">Welcome to STEER.</h2>
-          <p>Sign in through your organization. Your current workspace permissions are verified separately.</p>
-          {configured ? <>
-            <form action="/auth/login" method="post"><button className="access-primary" type="submit">Sign in</button></form>
-            <p className="access-hint">You’ll continue to your identity provider. STEER never asks for your password here.</p>
-            <div className="access-divider" />
-            <h3>Already using this browser?</h3>
-            <p className="access-hint">End your STEER session on this device. This does not sign you out of your identity provider.</p>
-            <form action="/auth/logout" method="post"><button className="access-secondary" type="submit">Sign out</button></form>
-          </> : <>
-            <button className="access-primary" type="button" disabled aria-describedby="configuration-note">Sign in</button>
-            <p id="configuration-note" className="access-hint">Sign-in is not configured for this workspace. No account access is enabled.</p>
-          </>}
-          <div className="access-note"><strong>Foundation preview</strong><p>This is the production sign-in surface in development. Workspace features and formal release gates are still in progress.</p></div>
-        </section>
-      </div>
-      <footer className="access-footer"><span>Intent → evidence → human decision</span><a href="https://github.com/idrissenayat/steer-platform">Project repository</a></footer>
-    </main>
-  );
+  const organizationId = 'steer-local-idrissenayat', subject = 'local-owner';
+  return <main className="access-shell workspace-shell">
+    <header className="access-brand"><span className="brand-mark" aria-hidden="true">S</span><span>STEER</span><span className="brand-caption">Human direction. Agent execution.</span></header>
+    <div className="workspace-heading"><div><div className="eyebrow">Your operating space</div><h1>Your workspace.</h1>
+      <p className="lede">One place to frame intent, steer the work, and review the evidence.</p></div></div>
+    <p className="access-note">Single-user workspace · authentication is off. Available only on this computer. Anyone using this computer can open it.</p>
+    <IntentConversation organizationId={organizationId} subject={subject} expiresAt={null} enabled={false} />
+    <details className="workspace-diagnostics"><summary>Manual Brief tools</summary>
+      <BriefAuthor organizationId={organizationId} subject={subject} expiresAt={null} submissionEnabled={false} />
+    </details>
+    <LearnHub corpus={learnCorpus as LearnCorpus} expiresAt={null} />
+    <section className="workspace-surfaces" aria-labelledby="surfaces-title"><h2 id="surfaces-title">Your operating surfaces</h2>
+      <p className="access-hint">The workspace opens directly. These work surfaces are still being built.</p>
+      <ul>{[['Intent backlog', 'Frame outcomes and boundaries before work is pulled.'], ['Flight board', 'Follow work through its lifecycle and evidence gates.'], ['Inbox', 'Review the decisions that need your attention.']].map(([name, description]) =>
+        <li key={name}><h3>{name}</h3><p>{description}</p><span>Not connected yet</span></li>)}</ul></section>
+    <footer className="access-footer"><span>STEER · in development</span><a href="https://github.com/idrissenayat/steer-platform">Project repository</a></footer>
+  </main>;
 }

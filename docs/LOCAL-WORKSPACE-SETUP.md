@@ -1,6 +1,36 @@
-# Persistent local sign-in workspace
+# Local STEER workspace
 
-## Authority and current boundary
+## Current mode — authentication removed, 2026-09-10
+
+At the user's explicit request, the actual application at **https://localhost:8443/**
+now opens directly in single-user mode: no sign-in, session or Keycloak dependency.
+It uses the existing Next.js workspace, not the separate browser-storage UX preview.
+Start it with `node apps/api/ops/local-workspace.mjs start`; this path reads only
+the existing browser TLS certificate and key, not identity or provider credentials.
+The gateway and renderer bind to loopback. Anyone using this computer can open
+the workspace; this mode is not suitable for a public or shared deployment.
+
+The owned Keycloak container was stopped and removed. The normal generated Compose
+configuration now excludes Keycloak. Its existing PostgreSQL account data, private
+credentials, certificates and historical identity implementation were retained for
+possible restoration; this change does not authorize deleting records. Historical
+identity setup instructions below are not the current startup procedure and must
+not be used to silently re-enable authentication.
+
+Verified in the actual browser: direct entry and reload without login, an editable
+intent field, and the existing stateless manual Brief formatter returning a result
+without a session. Synthetic test text was cleared afterward. The production web
+build, API/tool-registry typechecks and 288 scoped automated checks passed. The
+health endpoint reports `authentication: "none"` and `intentWorkflow: "not-configured"`.
+
+Live-agent review, repository search, persistent intent drafts, GitHub saving and
+gate signatures are **not enabled** by this change. Local context is labeled as
+unauthenticated and is not represented as a verified human identity. Same-origin
+and loopback restrictions remain. No model calls, database migrations, deployment
+or spending occurred. The implementation loop remains stopped and its automation
+deleted; this was a separately requested, bounded change.
+
+## Historical authority and sign-in configuration
 
 On 2026-09-07 Idriss approved a persistent, localhost-only Keycloak/PostgreSQL
 workspace on this Mac, with his real identity as initial organization administrator.

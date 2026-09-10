@@ -13,8 +13,8 @@ function Block({ block }: { block: LearnBlock }) {
     <tbody>{block.rows.map((row, index) => <tr key={index}>{row.map((cell, column) => <td key={column}>{cell}</td>)}</tr>)}</tbody></table></div>;
 }
 
-export default function LearnHub({ corpus, expiresAt }: { corpus: LearnCorpus; expiresAt: string }) {
-  return <GuideReader corpus={corpus} access={{ kind: 'session', expiresAt }} />;
+export default function LearnHub({ corpus, expiresAt }: { corpus: LearnCorpus; expiresAt: string | null }) {
+  return <GuideReader corpus={corpus} access={expiresAt === null ? { kind: 'local-kit' } : { kind: 'session', expiresAt }} />;
 }
 
 /** Public operational kit only. No session, workspace data or runtime access is accepted. */
@@ -57,7 +57,7 @@ function GuideReader({ corpus, access }: { corpus: LearnCorpus; access: { kind: 
     <div className="learn-heading"><div><span className="access-label">THE OPERATING GUIDE</span><h2 id={`${id}-title`}>Learn STEER</h2><p>Methodology, framework, operating model, and practical guidance.</p></div>
       <span className="hat-label">Kit {corpus.tag}</span></div>
     <p className="access-hint">Built from this checkout’s operational canon. This version label is not a release certification or a gate approval.</p>
-    {localKit && <p className="access-hint">Local reference only. Reading does not sign in, save a draft, run an agent or authorize work. Your current draft stays in the preview while you consult this guide.</p>}
+    {localKit && <p className="access-hint">Local reference only. Reading does not save a draft, run an agent or authorize work. Your current notes stay on this page while you consult the guide.</p>}
     <button ref={button} className="access-secondary" type="button" disabled={expired} aria-expanded={open} aria-controls={`${id}-reader`}
       onClick={() => { if (unavailable()) { setExpired(true); clear(); } else { if (open) clear(); else setOpen(true); } }}>{open ? 'Close guide' : 'Open guide'}</button>
     {expired && <p role="status">Refresh access to reopen the guide.</p>}

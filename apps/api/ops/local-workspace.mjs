@@ -48,9 +48,33 @@ function createBrowserCertificate() {
   if (cert.ca || cert.subjectAltName !== 'DNS:localhost' || !cert.verify(cert.publicKey)) throw new Error('Invalid browser certificate.');
   console.log(JSON.stringify({ browserCertificateSha256: cert.fingerprint256, names: cert.subjectAltName, certificateAuthority: cert.ca, expires: cert.validTo }));
 }
+async function startSingleUser() {
+  privateDirectory(directory);
+  const browserCertificate = privateRead(join(directory, 'browser-tls/server.crt'));
+  const browserCert = new X509Certificate(browserCertificate);
+  if (browserCert.ca || browserCert.subjectAltName !== 'DNS:localhost' || Date.parse(browserCert.validTo) <= Date.now()) throw new Error('Invalid browser certificate scope or expiry.');
+  const { startSingleUserWorkspace } = await import('../src/single-user-workspace.ts');
+  const next = createRequire(new URL('../../web/package.json', import.meta.url)).resolve('next/dist/bin/next');
+  const renderer = spawn(process.execPath, [next, 'start', '-H', '127.0.0.1', '-p', '3100'], {
+    cwd: resolve(root, 'apps/web'), env: { PATH: process.env.PATH, NODE_ENV: 'production', NEXT_TELEMETRY_DISABLED: '1' },
+    stdio: ['ignore', 'ignore', 'ignore'],
+  });
+  let runtime; let stopping = false;
+  const shutdown = async () => { if (stopping) return; stopping = true; renderer.kill('SIGTERM'); await runtime?.shutdown(); };
+  renderer.once('error', () => { void shutdown().finally(() => { process.exitCode = 1; }); });
+  renderer.once('exit', () => { if (!stopping) void shutdown().finally(() => { process.exitCode = 1; }); });
+  try {
+    await new Promise((accept, reject) => { const timer = setTimeout(accept, 1500); renderer.once('exit', () => { clearTimeout(timer); reject(new Error('Renderer startup failed.')); }); });
+    runtime = await startSingleUserWorkspace({ key: privateRead(join(directory, 'browser-tls/server.key')), cert: browserCertificate });
+    process.once('SIGINT', () => { void shutdown(); }); process.once('SIGTERM', () => { void shutdown(); });
+    console.log('STEER is open at https://localhost:8443/. Authentication and Keycloak are disabled. No connected model or GitHub saving.');
+  } catch { await shutdown(); throw new Error('Local workspace startup failed.'); }
+}
+
 async function main() {
   if (!uid || Number(process.versions.node.split('.')[0]) < 24) throw new Error('Use Node 24+ as the non-root workspace owner.');
   if (!['init', 'prepare-browser-tls', 'configure', 'up', 'migrate', 'verify', 'verify-github', 'start', 'status', 'records-status', 'records-inventory', 'stop-services'].includes(action)) throw new Error('Usage: local-workspace.mjs init|prepare-browser-tls|configure|up|migrate|verify|verify-github|start|status|records-status|records-inventory|stop-services');
+  if (action === 'start') { await startSingleUser(); return; }
   if (action === 'records-status') {
     const read = path => readFileSync(resolve(root, path));
     const decision = inspectLocalRecordsApproval(JSON.parse(read('operating/local-mac/records-d1-approval.json')),
@@ -126,7 +150,7 @@ async function main() {
   if (action === 'stop-services') { compose('stop'); console.log('Owned containers stopped. All persistent volumes and private files retained.'); return; }
   if (action === 'up') {
     compose('up', '-d', '--pull', 'never', 'postgres');
-    console.log('Owned PostgreSQL started. Run migrate before starting Keycloak.'); return;
+    console.log('Owned PostgreSQL started. The application starts separately without authentication.'); return;
   }
   if (action === 'verify-github') {
     const assert = (await import('node:assert/strict')).default;
@@ -173,73 +197,16 @@ async function main() {
       if (result.rows[0].count !== 7) throw new Error('Unexpected migration count.');
       console.log('All seven canonical migrations applied over verified TLS; separate least-privilege roles provisioned. No model budget was activated.');
     } finally { await pool.end(); }
-    compose('up', '-d', '--pull', 'never', 'keycloak');
-    console.log('Owned production-mode Keycloak started with persistent PostgreSQL.'); return;
+    console.log('Database migration complete. No authentication service started.'); return;
   }
   if (action === 'verify') {
-    const assert = (await import('node:assert/strict')).default;
-    const { default: pg } = await import('pg');
-    const configuration = { host: 'localhost', port: 55432, database: 'steer', connectionTimeoutMillis: 3000,
-      ssl: { ca: certificate, rejectUnauthorized: true } };
-    const admin = new pg.Pool({ ...configuration, user: 'postgres', password: secrets.databaseAdmin });
-    const auth = new pg.Pool({ ...configuration, user: 'steer_auth_runtime', password: secrets.authDatabase });
-    const keycloak = new pg.Pool({ ...configuration, database: 'steer_keycloak', user: 'steer_keycloak', password: secrets.keycloakDatabase });
-    const plaintext = new pg.Pool({ ...configuration, ssl: false, user: 'steer_auth_runtime', password: secrets.authDatabase });
-    try {
-      assert.equal((await admin.query('SELECT count(*)::int AS n FROM drizzle.__drizzle_migrations')).rows[0].n, 7);
-      const roles = (await admin.query("SELECT rolname, rolsuper, rolbypassrls, rolcreatedb, rolcreaterole FROM pg_roles WHERE rolname = ANY($1)", [['steer_auth_runtime', 'steer_app', 'steer_projector', 'steer_keycloak']])).rows;
-      assert.equal(roles.length, 4); assert.ok(roles.every(role => !role.rolsuper && !role.rolbypassrls && !role.rolcreatedb && !role.rolcreaterole));
-      assert.equal((await auth.query('SELECT current_user')).rows[0].current_user, 'steer_auth_runtime');
-      await assert.rejects(auth.query('SELECT * FROM steer.projection_records'), { code: '42501' });
-      await assert.rejects(plaintext.query('SELECT current_user'), { code: '28000' });
-      const users = (await keycloak.query("SELECT u.id, u.email_verified FROM user_entity u JOIN realm r ON r.id = u.realm_id WHERE r.name = 'steer-local' AND u.username = 'idrissenayat' AND u.enabled = true")).rows;
-      assert.equal(users.length, 1); assert.equal(users[0].id, secrets.subject);
-      const pending = (await keycloak.query("SELECT required_action FROM user_required_action WHERE user_id = $1", [secrets.subject])).rows;
-      console.log(JSON.stringify({ migrations: 7, leastPrivilegeRoles: 4, authBusinessDataDenied: true, plaintextDatabaseDenied: true,
-        persistentRealAccount: true, userPasswordSetupPending: pending.some(row => row.required_action === 'UPDATE_PASSWORD') }));
-    } finally { await Promise.all([admin.end(), auth.end(), keycloak.end(), plaintext.end()]); }
-    const discovery = await fetch('https://localhost:8444/realms/steer-local/.well-known/openid-configuration', { signal: AbortSignal.timeout(10000), redirect: 'error' });
-    assert.equal(discovery.status, 200); assert.equal((await discovery.json()).issuer, 'https://localhost:8444/realms/steer-local');
-    const page = await fetch('https://localhost:8443/', { signal: AbortSignal.timeout(10000), redirect: 'error' });
-    assert.equal(page.status, 200); assert.ok((await page.text()).includes('Sign in'));
-    const login = await fetch('https://localhost:8443/auth/login', { method: 'POST', headers: { Origin: 'https://localhost:8443' },
-      signal: AbortSignal.timeout(10000), redirect: 'manual' });
-    assert.equal(login.status, 303); assert.match(login.headers.get('set-cookie') ?? '', /Secure/);
-    const loginUrl = new URL(login.headers.get('location'));
-    assert.equal(loginUrl.origin, 'https://localhost:8444'); assert.equal(loginUrl.searchParams.get('code_challenge_method'), 'S256');
-    const loginPage = await fetch(loginUrl, { signal: AbortSignal.timeout(10000), redirect: 'error' });
-    assert.equal(loginPage.status, 200); assert.ok((await loginPage.text()).includes('kc-form-login'));
-    console.log('Verified TLS discovery, STEER sign-in page, durable PKCE login transaction and real Keycloak login form. No password submitted.');
-    return;
-  }
-  if (action === 'start') {
-    if (process.env.NODE_EXTRA_CA_CERTS !== join(directory, 'browser-tls/server.crt')) throw new Error('Start with NODE_EXTRA_CA_CERTS pointing to the exact private browser certificate.');
-    const browserCertificate = privateRead(join(directory, 'browser-tls/server.crt'));
-    const browserCert = new X509Certificate(browserCertificate);
-    if (browserCert.ca || browserCert.subjectAltName !== 'DNS:localhost' || Date.parse(browserCert.validTo) <= Date.now()) throw new Error('Invalid browser certificate scope or expiry.');
-    const { startLocalIdentityRuntime } = await import('../src/runtime.ts');
-    const profile = JSON.parse(privateRead(join(directory, 'profile.json')));
-    const next = createRequire(new URL('../../web/package.json', import.meta.url)).resolve('next/dist/bin/next');
-    const renderer = spawn(process.execPath, [next, 'start', '-H', '127.0.0.1', '-p', '3100'], {
-      cwd: resolve(root, 'apps/web'), env: { PATH: process.env.PATH, NODE_ENV: 'production', NEXT_TELEMETRY_DISABLED: '1',
-        STEER_WEB_AUTH: 'enabled', STEER_WEB_AUTH_ORIGIN: 'https://localhost:8443',
-        STEER_WEB_IDENTITY_ISSUER: 'https://localhost:8444/realms/steer-local', STEER_WEB_BRIEF_SUBMISSION: 'disabled' },
-      stdio: ['ignore', 'ignore', 'ignore'],
-    });
-    let runtime; let stopping = false;
-    const shutdown = async () => { if (stopping) return; stopping = true; renderer.kill('SIGTERM'); await runtime?.shutdown(); };
-    renderer.once('error', () => { void shutdown().finally(() => { process.exitCode = 1; }); });
-    renderer.once('exit', () => { if (!stopping) void shutdown().finally(() => { process.exitCode = 1; }); });
-    try {
-      // Do not claim that another process listening on the renderer port is ours.
-      await new Promise((accept, reject) => { const timer = setTimeout(accept, 1500); renderer.once('exit', () => { clearTimeout(timer); reject(new Error('Renderer startup failed.')); }); });
-      runtime = await startLocalIdentityRuntime(profile, { identity: { browserClientSecret: secrets.client,
-        githubPrivateKeyPem: privateRead(runtimeKey), databasePassword: secrets.authDatabase,
-        sessionKeys: { 'local-v1': Uint8Array.from(Buffer.from(secrets.sessionKey, 'base64')) } },
-        tls: { key: privateRead(join(directory, 'browser-tls/server.key')), cert: browserCertificate } });
-      process.once('SIGINT', () => { void shutdown(); }); process.once('SIGTERM', () => { void shutdown(); });
-      console.log('Local HTTPS sign-in gateway listening at https://localhost:8443/. GitHub saving disabled.');
-    } catch { await shutdown(); throw new Error('Local gateway startup failed.'); }
+    const response = await fetch('https://localhost:8443/health/ready', { signal: AbortSignal.timeout(5000), redirect: 'error' });
+    const status = await response.json();
+    if (response.status !== 200 || status.authentication !== 'none') throw new Error('Single-user workspace not ready.');
+    const page = await fetch('https://localhost:8443/', { signal: AbortSignal.timeout(5000), redirect: 'error' });
+    const html = await page.text();
+    if (page.status !== 200 || !html.includes('Your workspace.') || html.includes('action="/auth/login"')) throw new Error('Workspace did not open directly.');
+    console.log(JSON.stringify(status)); return;
   }
 }
 main().catch(() => { console.error('Local workspace operation failed; no secrets printed. Existing private state is retained.'); process.exitCode = 1; });

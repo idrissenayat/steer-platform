@@ -8,7 +8,7 @@ import BriefDestination from './brief-destination';
 import BriefReview from './brief-review';
 import BriefSubmission from './brief-submission';
 
-export default function BriefAuthor({ organizationId, subject, expiresAt, submissionEnabled = false }: { organizationId: string; subject: string; expiresAt: string; submissionEnabled?: boolean }) {
+export default function BriefAuthor({ organizationId, subject, expiresAt, submissionEnabled = false }: { organizationId: string; subject: string; expiresAt: string | null; submissionEnabled?: boolean }) {
   const [answers, setAnswers] = useState(emptyAuthorAnswers);
   const [step, setStep] = useState(0);
   const [preview, setPreview] = useState<BriefPreview | null>(null);
@@ -22,13 +22,14 @@ export default function BriefAuthor({ organizationId, subject, expiresAt, submis
     dispose(); setBusy(false); setPreview(null); setAnswers((current) => ({ ...current, [key]: value }));
     setNotice('Draft changed. Preview again to review the current content.');
   };
+  const accessExpired = () => expiresAt !== null && (!Number.isFinite(Date.parse(expiresAt)) || Date.parse(expiresAt) <= Date.now());
   const render = async () => {
     dispose(); setPreview(null);
     const draft = authorDraft(answers);
     if (!briefPreviewInputSchema.safeParse({ organizationId, draft }).success) {
       setBusy(false); setNotice('Please shorten this draft: at most 20 entries per list and 12,000 UTF-8 bytes in total. Invalid control characters are not accepted. Your facts have been kept.'); return;
     }
-    if (document.hidden || !Number.isFinite(Date.parse(expiresAt)) || Date.parse(expiresAt) <= Date.now()) {
+    if ((expiresAt !== null && document.hidden) || accessExpired()) {
       setEnabled(false); clear('Session display expired or hidden. Refresh access to continue.'); return;
     }
     const current = createBriefAuthorClient({ organizationId, subject }, window.location.origin); owner.current = current;
@@ -36,18 +37,18 @@ export default function BriefAuthor({ organizationId, subject, expiresAt, submis
     try {
       const result = await current.preview(draft);
       if (owner.current !== current) return;
-      if (document.hidden || Date.parse(expiresAt) <= Date.now()) { setEnabled(false); clear('Session display expired. Refresh access to continue.'); return; }
+      if ((expiresAt !== null && document.hidden) || accessExpired()) { setEnabled(false); clear('Session display expired. Refresh access to continue.'); return; }
       setPreview(result); setNotice('Preview ready. Previewing does not save, confirm or sign.');
     } catch { if (owner.current === current) clear('Draft preview could not be verified. Unsaved content cleared. Refresh access and try again.'); }
     finally { if (owner.current === current) { dispose(); setBusy(false); } }
   };
   useEffect(() => {
-    const remaining = Date.parse(expiresAt) - Date.now(); setEnabled(Number.isFinite(remaining) && remaining > 0);
+    const remaining = expiresAt === null ? Infinity : Date.parse(expiresAt) - Date.now(); setEnabled(expiresAt === null || (Number.isFinite(remaining) && remaining > 0));
     const expire = () => { setEnabled(false); clear('Session display expired. Unsaved content cleared. Refresh access to continue.'); };
-    const hide = () => { if (document.hidden) clear('Unsaved content cleared while this page was hidden. Start a new draft when you return.'); };
+    const hide = () => { if (expiresAt !== null && document.hidden) clear('Unsaved content cleared while this page was hidden. Start a new draft when you return.'); };
     const leave = () => clear('Unsaved content cleared after navigation.');
     const restore = (event: PageTransitionEvent) => { if (event.persisted) leave(); };
-    const timer = setTimeout(expire, Number.isFinite(remaining) ? Math.max(0, Math.min(remaining, 2147483647)) : 0);
+    const timer = expiresAt === null ? undefined : setTimeout(expire, Number.isFinite(remaining) ? Math.max(0, Math.min(remaining, 2147483647)) : 0);
     document.addEventListener('visibilitychange', hide); window.addEventListener('pagehide', leave); window.addEventListener('pageshow', restore);
     return () => { dispose(); clearTimeout(timer); document.removeEventListener('visibilitychange', hide); window.removeEventListener('pagehide', leave); window.removeEventListener('pageshow', restore); };
   }, [organizationId, subject, expiresAt]);
@@ -57,7 +58,7 @@ export default function BriefAuthor({ organizationId, subject, expiresAt, submis
   return <section className="access-card brief-author" aria-labelledby="author-section-title">
     <div className="eyebrow">FRAME THE WORK</div><h2 id="author-section-title">Start with your intent.</h2>
     <p>Describe the facts in your own words. Review the draft, then correct anything that does not match your intent.</p>
-    <p className="access-note" id="author-privacy">Guided draft preview, not a connected AI agent. Previewing never saves or signs. Unsaved content clears on refresh, navigation, hiding this page or session expiry. No model is called.</p>
+    <p className="access-note" id="author-privacy">Guided draft preview, not a connected AI agent. Previewing never saves or signs. {expiresAt === null ? 'Unsaved content clears on refresh or navigation.' : 'Unsaved content clears on refresh, navigation, hiding this page or session expiry.'} No model is called.</p>
     <div className="author-grid">
       <form onSubmit={(event) => { event.preventDefault(); if (step < authorFields.length - 1) setStep(step + 1); else void render(); }} aria-describedby="author-privacy">
         <fieldset disabled={!enabled}><legend>Let’s frame your intent</legend>
@@ -89,12 +90,12 @@ export default function BriefAuthor({ organizationId, subject, expiresAt, submis
           <button className="access-secondary" type="button" onClick={() => { setStep(1); document.getElementById('author-problem')?.focus(); }}>Correct the facts</button>
         </> : <p className="author-empty">Your rendered Brief will appear here. Unknown facts stay open for review.</p>}
         <p className="access-hint">{submissionEnabled ? 'Every submission is checked independently by the server. Decision signing is not enabled.' : 'GitHub saving and decision signing are not enabled in this authoring preview.'}</p>
-        <BriefSubmission organizationId={organizationId} subject={subject} expiresAt={expiresAt} render={(submit, attempted) =>
+        {expiresAt !== null && <BriefSubmission organizationId={organizationId} subject={subject} expiresAt={expiresAt} render={(submit, attempted) =>
           <BriefDestination key={`${organizationId}:${subject}:${expiresAt}`} organizationId={organizationId} expiresAt={expiresAt} submissionEnabled={submissionEnabled}
             renderReview={destination => preview ? <BriefReview key={JSON.stringify([preview, destination, expiresAt])} preview={preview} destination={destination} expiresAt={expiresAt}
               submissionEnabled={submissionEnabled} attempted={attempted} onSubmit={path => {
                 if (submissionEnabled) submit({ draft: authorDraft(answers), preview, destination, path });
-              }} /> : null} />} />
+              }} /> : null} />} />}
       </div>
     </div>
   </section>;

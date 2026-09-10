@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node scripts/generate-learn.ts && next dev",
+    "dev": "node scripts/generate-learn.ts && next dev -H 127.0.0.1",
     "build": "node scripts/generate-learn.ts && next build",
-    "start": "next start",
+    "start": "next start -H 127.0.0.1",
     "typecheck": "next typegen && node scripts/generate-learn.ts && tsc --noEmit",
     "test": "node --test",
     "check": "pnpm typecheck && pnpm test && pnpm build"

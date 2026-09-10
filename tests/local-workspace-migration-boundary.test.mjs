@@ -12,7 +12,8 @@ test('new execution migrations cannot silently expand the real local database ba
     assert.throws(() => assertLocalMigrationBoundary({ ...journal, entries }), /Local migration is held/);
 });
 test('migration-set preflight precedes real private-state reads and administrative database creation', () => {
-  const source = readFileSync(new URL('../apps/api/ops/local-workspace.mjs', import.meta.url), 'utf8');
+  const file = readFileSync(new URL('../apps/api/ops/local-workspace.mjs', import.meta.url), 'utf8');
+  const source = file.slice(file.indexOf('async function main()'));
   const guard = source.indexOf("if (action === 'migrate') assertLocalMigrationBoundary");
   assert.ok(guard > 0 && guard < source.indexOf('privateDirectory(directory);'));
   assert.ok(guard < source.indexOf('const secrets = JSON.parse(privateRead'));

@@ -36,8 +36,7 @@ import { agentScopeText } from './agent-contracts.ts';
 export * from './intent-overlap-contracts.ts';
 import { agentInputSchema, agentOutputSchema, type AgentOutput, type IntentAgentService } from './agent-contracts.ts';
 import { readBriefDocument } from '@steer/domain/brief-document';
-import { draftBrief } from '@steer/domain/brief-author';
-import { briefPreviewInputSchema, briefPreviewOutputSchema, type BriefPreview } from './brief-preview.ts';
+import { briefPreviewInputSchema, briefPreviewOutputSchema, renderBriefPreview, type BriefPreview } from './brief-preview.ts';
 export * from './brief-preview.ts';
 import { runBriefSave, BriefSaveError, briefSaveInputSchema, briefSaveStatusInputSchema, briefSaveOutputSchema, type BriefWriter, type ManagedBriefWriter, type BriefSaveOutput } from './brief-save.ts';
 export * from './brief-save.ts';
@@ -729,14 +728,7 @@ const previewQuery = {
   async invoke(raw: unknown, context: InvocationContext): Promise<BriefPreview> {
     const initial = previewAuthorization.invoke(raw, context); const input = briefPreviewInputSchema.parse(raw);
     await freshToolPrincipal(previewAuthorization, input, initial, context);
-    const draft = draftBrief({ ...input.draft, author: `Authenticated subject ${encodeURIComponent(initial.subject)}` });
-    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(draft.markdown));
-    const missing = [...draft.validation.missing, ...(!input.draft.title.trim() ? ['title'] : []),
-      ...(!input.draft.successMeasure.trim() ? ['success measure'] : [])];
-    const result = briefPreviewOutputSchema.parse({ kind: 'brief-preview', organizationId: initial.organizationId,
-      subject: initial.subject, templateVersion: draft.templateVersion, markdown: draft.markdown,
-      contentDigest: [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, '0')).join(''),
-      missing, saved: false, confirmed: false, executionAuthorized: false });
+    const result = await renderBriefPreview(input, initial.subject, `Authenticated subject ${encodeURIComponent(initial.subject)}`);
     await freshToolPrincipal(previewAuthorization, input, initial, context);
     return result;
   },

@@ -1,5 +1,15 @@
 # Intent capture delivery progress
 
+## Latest status — user stopped the loop, 2026-09-10
+
+The later stop instruction supersedes the resumed-loop notes below; its automation
+has been deleted. A subsequent bounded request removed authentication from the
+actual local application. Direct access and the stateless manual Brief formatter
+were browser-verified without login; Keycloak is absent from the running setup.
+This does not complete any W01–W08 milestone or resume their implementation.
+Live-agent review, search and persistent drafts remain unconfigured. See
+[current workspace setup](LOCAL-WORKSPACE-SETUP.md).
+
 ## Current user-workflow tracker — version 2, 2026-09-10
 
 The user explicitly resumed the loop at one-minute intervals after narrowing

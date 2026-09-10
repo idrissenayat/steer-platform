@@ -3,6 +3,12 @@ import assert from 'node:assert/strict';
 import { makeRealm, makeGrant, makeProfile, composeConfiguration, postgresHba } from '../apps/api/ops/local-workspace-config.mjs';
 
 const secret = { subject: 'actual-provider-subject', client: 'private-client-secret', temporaryPassword: 'private-password', createdAt: '2026-09-07T12:00:00.000Z' };
+test('default local startup configuration contains no Keycloak service', () => {
+  const config = composeConfiguration('/private/example', 501);
+  assert.deepEqual(Object.keys(config.services), ['postgres']);
+  assert.doesNotMatch(JSON.stringify(config), /keycloak|8444|keycloak\.env/);
+  assert.ok(config.services.postgres.volumes.includes('database:/var/lib/postgresql/data'));
+});
 test('real local account is password-change gated, without fabricated email or machine flows', () => {
   const realm = makeRealm(secret), client = realm.clients[0], user = realm.users[0];
   assert.equal(realm.registrationAllowed, false); assert.equal(realm.sslRequired, 'all');
@@ -27,7 +33,7 @@ test('runtime uses real TLS and Git binding with held-write path absent', () => 
   for (const field of ['heldBrief', 'briefDestination', 'readModel', 'scheduling', 'recordedScheduling', 'recordedRecovery']) assert.equal(profile.identity[field], undefined);
 });
 test('owned compose is digest-pinned, persistent, loopback only, and production-mode Keycloak', () => {
-  const config = composeConfiguration('/private/example', 501);
+  const config = composeConfiguration('/private/example', 501, { authentication: true });
   for (const service of Object.values(config.services)) {
     assert.match(service.image, /@sha256:[a-f0-9]{64}$/); assert.ok(service.ports.every(port => port.startsWith('127.0.0.1:')));
     assert.equal(service.labels['steer.local-workspace'], 'identity-v1');

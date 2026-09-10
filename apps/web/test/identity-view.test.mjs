@@ -18,9 +18,10 @@ test('public identity view is explicitly enabled only for valid HTTPS configurat
   }
 });
 
-test('sign-in page uses native fixed-path forms, with no browser credential or script dependency', async () => {
+test('current workspace opens directly with no sign-in, session headers or preview fork', async () => {
   const source = await readFile(new URL('../app/page.tsx', import.meta.url), 'utf8');
-  assert.match(source, /action="\/auth\/login" method="post"/); assert.match(source, /action="\/auth\/logout" method="post"/);
+  assert.match(source, /Your workspace\./); assert.match(source, /expiresAt=\{null\}/);
+  assert.doesNotMatch(source, /\/auth\/|sessionView|identityView|x-steer-session|LocalWorkspace|Open UX preview/);
   assert.match(source, /await connection\(\)/);
   assert.doesNotMatch(source, /use client|localStorage|sessionStorage|clientSecret|privateKey|NEXT_PUBLIC_|onSubmit/);
 });

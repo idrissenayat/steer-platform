@@ -8,19 +8,22 @@ const types: Record<string, string> = { css: 'text/css', js: 'application/javasc
   woff2: 'font/woff2', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', svg: 'image/svg+xml', ico: 'image/x-icon' };
 
 /** Native SSR gateway. The renderer receives fixed paths and verified display data, never credentials. */
-export function createIdentityGateway(configuration: { publicOrigin: string; rendererOrigin: string; issuer: string;
+export function createIdentityGateway(configuration: { publicOrigin: string; rendererOrigin: string; issuer?: string; authentication?: 'none';
   workspace?: { organizationId: string; repository: string } },
   dependencies: { identity: { fetch(request: Request): Promise<Response> }; fetch?: typeof fetch }) {
   let publicOrigin: string; let rendererOrigin: string; let issuerOrigin: string;
   let workspace: { organizationId: string; repository: string } | undefined;
   try {
     const publicUrl = new URL(configuration.publicOrigin); const renderer = new URL(configuration.rendererOrigin);
-    const issuer = new URL(configuration.issuer);
+    const issuer = new URL(configuration.issuer ?? configuration.publicOrigin);
     if (publicUrl.protocol !== 'https:' || publicUrl.origin !== configuration.publicOrigin ||
         renderer.protocol !== 'http:' || renderer.hostname !== '127.0.0.1' || !renderer.port ||
         renderer.origin !== configuration.rendererOrigin || issuer.protocol !== 'https:' ||
         issuer.username || issuer.password || issuer.search || issuer.hash ||
-        typeof dependencies.identity.fetch !== 'function') throw new Error();
+        typeof dependencies.identity.fetch !== 'function' ||
+        (configuration.authentication !== undefined && configuration.authentication !== 'none') ||
+        (configuration.authentication !== 'none' && !configuration.issuer) ||
+        (configuration.authentication === 'none' && (!['localhost', '127.0.0.1'].includes(publicUrl.hostname) || configuration.issuer || configuration.workspace))) throw new Error();
     publicOrigin = publicUrl.origin; rendererOrigin = renderer.origin; issuerOrigin = issuer.origin;
     if (configuration.workspace !== undefined) {
       const value = configuration.workspace;
@@ -40,6 +43,7 @@ export function createIdentityGateway(configuration: { publicOrigin: string; ren
     const url = new URL(request.url);
     if (url.origin !== publicOrigin || url.username || url.password || url.hash) return fail(400);
     const path = url.pathname;
+    if (configuration.authentication === 'none' && path.startsWith('/auth/')) return fail(404);
     if (path.startsWith('/auth/') || path.startsWith('/v1/') || path.startsWith('/health/') || path === '/openapi.json' || path === '/mcp') {
       // Auth, cookies, callback query and method checks remain exclusively in the identity service.
       return identityFetch(request);
@@ -49,7 +53,7 @@ export function createIdentityGateway(configuration: { publicOrigin: string; ren
     if (request.method !== 'GET') return fail(405);
     if (url.search || request.body !== null) return fail(400);
     let viewHeader: string | undefined; let repositoryHeader: string | undefined; let viewExpiry = 0;
-    if (path === '/' && !request.headers.has('authorization') &&
+    if (configuration.authentication !== 'none' && path === '/' && !request.headers.has('authorization') &&
         request.headers.get('cookie')?.split(';').some((part) => part.trim().startsWith('__Host-steer-session='))) {
       try {
         // Internal fixed-path query. Browser-supplied view/tenant/hat headers are never consumed.

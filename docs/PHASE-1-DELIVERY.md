@@ -11,6 +11,26 @@ its limitations recorded. Merging, enabling governed writes, and releasing
 remain subject to the existing gate requirements. The infrastructure ceiling
 is not spending authorization.
 
+## Current status — loop stopped; local authentication removed
+
+2026-09-10: the user stopped development; the recurring implementation automation
+was deleted. Their subsequent request was limited to removing Keycloak and
+authentication for now. The actual application at https://localhost:8443/ now
+opens directly in loopback-only single-user mode. No login/session is required;
+the owned Keycloak container was removed and the default Compose no longer
+includes it. Existing account data, credentials and historical identity code are
+retained. No new work loop was started.
+
+Actual-browser verification covered direct entry/reload, free-text input and the
+existing stateless manual Brief formatter. The web production build, API and
+tool-registry typechecks, and 288 scoped automated tests passed. This is not a
+claim that the whole repository test suite or the live intent journey passed.
+The live agent, repository search, persistent drafts and application GitHub writes
+remain unconfigured; no model calls or database migrations were performed.
+See [workspace setup](LOCAL-WORKSPACE-SETUP.md) for the current startup boundary.
+The continuation and next-step instructions below are historical, not authority
+to resume the stopped work.
+
 ## First usable milestone
 
 2026-09-10 user reset: after pausing the old loop, the user explicitly resumed

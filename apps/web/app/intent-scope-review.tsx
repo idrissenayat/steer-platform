@@ -7,7 +7,7 @@ import { briefFragment } from './brief-location';
 
 /** Read-only comparison inside the real conversation. Never a duplicate verdict or save grant. */
 export default function IntentScopeReview({ organizationId, repository, intent, expiresAt, onProposalChange, locked = false, reviewVersion = 0, historical = false }: {
-  organizationId: string; repository: string | null; intent: string; expiresAt: string;
+  organizationId: string; repository: string | null; intent: string; expiresAt: string | null;
   locked?: boolean;
   reviewVersion?: number;
   historical?: boolean;
@@ -27,19 +27,19 @@ export default function IntentScopeReview({ organizationId, repository, intent, 
     owner.current?.close(); owner.current = null; setResult(null); setError(''); setBusy(false); setProposal(null);
     let last = Date.now();
     const clear = () => { owner.current?.close(); owner.current = null; setResult(null); setProposal(null); setAction(''); setTargetPath(''); setReason(''); setBusy(false); setError(''); setExpired(true); };
-    const check = () => { const now = Date.now(), expiry = Date.parse(expiresAt); if (!Number.isFinite(expiry) || now < last || now >= expiry || document.hidden) clear(); last = now; };
+    const check = () => { if (expiresAt === null) return; const now = Date.now(), expiry = Date.parse(expiresAt); if (!Number.isFinite(expiry) || now < last || now >= expiry || document.hidden) clear(); last = now; };
     check(); const timer = setInterval(check, 1000); document.addEventListener('visibilitychange', check);
     return () => { clearInterval(timer); document.removeEventListener('visibilitychange', check); owner.current?.close(); owner.current = null; };
   }, [organizationId, repository, intent, expiresAt, reviewVersion]);
   useEffect(() => { if (review) heading.current?.focus(); }, [review]);
   async function checkScope(choice?: IntentDispositionChoice) {
-    if (locked || !repository || !intent.trim() || owner.current || expired || document.hidden || Date.now() >= Date.parse(expiresAt)) return;
+    if (locked || !repository || !intent.trim() || owner.current || expired || document.hidden || (expiresAt !== null && Date.now() >= Date.parse(expiresAt))) return;
     const current = createIntentScopeReader({ organizationId, repository }, window.location.origin); owner.current = current;
     const previous = review;
     setBusy(true); setError(''); setProposal(null); if (!choice) setResult(null);
     try {
       const value = await current.check(intent);
-      if (owner.current !== current || document.hidden || Date.now() >= Date.parse(expiresAt)) return;
+      if (owner.current !== current || document.hidden || (expiresAt !== null && Date.now() >= Date.parse(expiresAt))) return;
       setResult({ intent, value });
       if (choice && previous) {
         try { setProposal(bindIntentDisposition(previous, value, choice)); }

@@ -37,9 +37,9 @@ export function makeProfile(ca) {
       organizationId, installationId: 159172046, repositoryId: 1349965471, owner: 'idrissenayat', repository: 'steer-platform', branch: 'codex/phase-1-foundation' } },
     database: { host: 'localhost', port: 55432, database: 'steer', transport: { kind: 'tls', ca } }, sessionKeyId: 'local-v1' } };
 }
-export function composeConfiguration(directory, uid) {
+export function composeConfiguration(directory, uid, { authentication = false } = {}) {
   const labels = { 'steer.local-workspace': 'identity-v1' };
-  return { services: {
+  const configuration = { services: {
     postgres: { image: 'postgres:16@sha256:21f6013073bc6b92830a2129570e2f5ec42a6c734b5a985a41e83aa58f54c3c1',
       labels, restart: 'unless-stopped', ports: ['127.0.0.1:55432:5432'], env_file: [`${directory}/postgres.env`],
       volumes: ['database:/var/lib/postgresql/data', `${directory}/tls.key:/steer-key:ro`, `${directory}/tls.crt:/steer-cert:ro`, `${directory}/pg_hba.conf:/steer-hba:ro`],
@@ -54,4 +54,6 @@ export function composeConfiguration(directory, uid) {
       volumes: [`${directory}/browser-tls/server.key:/steer-local/browser.key:ro`, `${directory}/browser-tls/server.crt:/steer-local/browser.crt:ro`, `${directory}/tls.crt:/steer-local/tls.crt:ro`, `${directory}/import:/opt/keycloak/data/import:ro`],
       command: ['start', '--import-realm'], networks: ['identity', 'loopback'] },
   }, volumes: { database: { labels } }, networks: { identity: { internal: true, labels }, loopback: { labels } } };
+  if (!authentication) delete configuration.services.keycloak;
+  return configuration;
 }

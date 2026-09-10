@@ -14,7 +14,7 @@ import type { DevelopmentEditorSource } from './intent-development-editor';
 import type { IntentDevelopmentReadOutput } from '@steer/tool-registry/intent-development-read-contracts';
 
 export default function IntentConversation({ organizationId, subject, expiresAt, enabled, repository = null, draftProductId = null }: {
-  organizationId: string; subject: string; expiresAt: string; enabled: boolean; repository?: string | null; draftProductId?: string | null;
+  organizationId: string; subject: string; expiresAt: string | null; enabled: boolean; repository?: string | null; draftProductId?: string | null;
 }) {
   const [intent, setIntent] = useState(''); const [clarification, setClarification] = useState('');
   const [restoredClarifications, setRestoredClarifications] = useState<string[]>([]);
@@ -47,9 +47,9 @@ export default function IntentConversation({ organizationId, subject, expiresAt,
       setInvalidatedReviews([]); setDocumentRevision(1);
       setRestoredClarifications([]);
     };
-    const check = () => { const now = Date.now(), expiry = Date.parse(expiresAt); if (!Number.isFinite(expiry) || now < last || now >= expiry) expire(); last = now; };
-    const timer = setInterval(check, 1000); check();
-    const hide = () => { if (document.visibilityState === 'hidden') expire(); };
+    const check = () => { if (expiresAt === null) return; const now = Date.now(), expiry = Date.parse(expiresAt); if (!Number.isFinite(expiry) || now < last || now >= expiry) expire(); last = now; };
+    const timer = expiresAt === null ? undefined : setInterval(check, 1000); check();
+    const hide = () => { if (expiresAt !== null && document.visibilityState === 'hidden') expire(); };
     document.addEventListener('visibilitychange', hide); window.addEventListener('pagehide', expire);
     return () => { live.current = false; clearInterval(timer); transport.current?.close(); document.removeEventListener('visibilitychange', hide); window.removeEventListener('pagehide', expire); };
   }, [expiresAt, organizationId, subject, repository, draftProductId]);
@@ -60,7 +60,7 @@ export default function IntentConversation({ organizationId, subject, expiresAt,
     try {
       const output = await current.develop({ organizationId, intent, clarification, disposition });
       if (!live.current || transport.current !== current) return;
-      if (output.organizationId !== organizationId || output.subject !== subject || Date.now() >= Date.parse(expiresAt)) throw new Error('Workspace access changed. Refresh access before continuing.');
+      if (output.organizationId !== organizationId || output.subject !== subject || (expiresAt !== null && Date.now() >= Date.parse(expiresAt))) throw new Error('Workspace access changed. Refresh access before continuing.');
       setResult(output); setSelected('brief'); setDocumentMode('preview');
       setEditedDocuments(output.documents ? { ...output.documents } : null);
       // The initial lexical/interview review never clears newly generated scope.
@@ -122,14 +122,14 @@ export default function IntentConversation({ organizationId, subject, expiresAt,
             <label htmlFor="agent-clarification">Add details in your own words</label>
             <textarea id="agent-clarification" rows={4} maxLength={3000} value={clarification} disabled={busy} onChange={event => setClarification(event.target.value)} /></>}
         </div>}
-        <p className="access-hint">{canPreserve ? 'Draft preservation status is shown below. Unpreserved edits are cleared when this page is hidden or refreshed.' : 'Not saved. Draft preservation is not configured. Hiding or refreshing the page clears this conversation.'} Sending uses the configured model provider.</p>
+        <p className="access-hint">{expiresAt === null ? 'Not saved. Keep this page open; refreshing or closing it clears these notes. Switching tabs does not clear your text.' : canPreserve ? 'Draft preservation status is shown below. Unpreserved edits are cleared when this page is hidden or refreshed.' : 'Not saved. Draft preservation is not configured. Hiding or refreshing the page clears this conversation.'} Sending uses the configured model provider.</p>
         {!canPreserve && <>{!disposition && !editedDocuments && !restoredClarifications.length && <p className="access-hint">Check existing scope and confirm your direction before sending. Added clarification needs a fresh scope review.</p>}
           <button className="access-primary" type="submit" disabled={!enabled || busy || !intent.trim() || !disposition || Boolean(editedDocuments) || restoredClarifications.length > 0 || Boolean(result?.questions.length && !clarification.trim())}>
             {busy ? 'Agent is working…' : result?.questions.length ? 'Continue with these details' : 'Review my intent'}</button></>}
       </form>
       {busy && <p role="status">Reviewing your intent and preparing the next response. This can take up to 90 seconds. Please keep this page open.</p>}
       {error && <p role="alert" className="access-note">{error}</p>}
-      {canPreserve && <IntentDraftPanel organizationId={organizationId} productId={draftProductId!} repository={repository!} subject={subject}
+      {canPreserve && expiresAt !== null && <IntentDraftPanel organizationId={organizationId} productId={draftProductId!} repository={repository!} subject={subject}
         expiresAt={expiresAt} content={draftContent} locked={busy} onRestore={restoreDraft} enabled={enabled} onResult={acceptDevelopment} />}
       {editedDocuments && <div className="intent-documents"><h3 tabIndex={-1} ref={documentHeading}>Your draft documents</h3>
         <p>{result?.documents ? 'Generated candidates' : 'Restored editable drafts — authorship not verified'} · not saved to GitHub · no gate signed · tests not run</p>

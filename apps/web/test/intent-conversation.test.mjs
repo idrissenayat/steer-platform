@@ -124,6 +124,24 @@ test('real conversation component sends free text, follows up and displays three
     assert.doesNotMatch(document.body.textContent, /Human correction|Booking for patients/);
     await act(async () => { Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' }); document.dispatchEvent(new dom.window.Event('visibilitychange')); });
     assert.equal(document.querySelector('textarea'), null); assert.doesNotMatch(document.body.textContent, /Booking for patients/);
+    await act(async () => {
+      Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'visible' });
+      root.render(createElement(Component, { ...props, key: 'single-user', repository: null, expiresAt: null, enabled: false }));
+    });
+    await set('agent-intent', 'My local notes must survive switching tabs.');
+    const originalNow = Date.now;
+    try {
+      Date.now = () => originalNow() + 86400000;
+      await act(async () => {
+        Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' });
+        document.dispatchEvent(new dom.window.Event('visibilitychange'));
+        await new Promise(resolve => setTimeout(resolve, 1100));
+      });
+      assert.equal(document.getElementById('agent-intent').value, 'My local notes must survive switching tabs.');
+      assert.doesNotMatch(document.body.textContent, /session expired|Scope results cleared/);
+      assert.equal(window.localStorage.length, 0);
+      assert.equal(requests.length, 3);
+    } finally { Date.now = originalNow; }
   } finally {
     await act(async () => root.unmount()); dom.window.close();
     for (const key of keys) { if (saved[key]) Object.defineProperty(globalThis, key, saved[key]); else delete globalThis[key]; }

@@ -1,8 +1,20 @@
 # Complete the actual intent journey
 
-Owner: user-directed development. One-minute implementation loop resumed by explicit user request, 2026-09-10.
+Owner: user-directed development. Implementation loop stopped by the user, 2026-09-10.
 Plan origin: `09c3ab8`; current implementation is recorded below. This plan controls delivery sequencing; it does
 not replace signed requirements, alter gates or authorize model spending.
+
+## Current scope — work stopped; authentication removal completed
+
+The user's later instruction to stop supersedes the resumed-loop instructions
+below. The recurring implementation automation has been deleted. The subsequent
+request authorized only removal of Keycloak and authentication for now: the actual
+loopback application now opens directly in single-user mode, verified in the UI.
+See [current workspace setup](LOCAL-WORKSPACE-SETUP.md). Existing account data and
+historical identity implementation are retained, but neither is used by startup.
+This does not resume intent-workflow development, approve new prerequisites or
+complete any W01–W08 milestone. The following reset and sequencing notes are
+historical until the user explicitly resumes that work.
 
 ## Controlling priority — user reset, 2026-09-10
 
