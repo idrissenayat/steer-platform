@@ -7,6 +7,27 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Candidate preservation readback — 0324
+
+[0324](../intent/0324/EVIDENCE.md) consumes the exact verified original already
+recovered by preservation instead of repeating the complete recovery. Legacy
+acknowledgements, current authority/key checks, durable hold/expiry synchronization
+and distinct pre-/post-persistence preview phases remain intact.
+
+| Authenticated synthetic action | 0323 attempts | 0324 attempts |
+| --- | ---: | ---: |
+| New-distinct confirmation / recovery / repeat | 747 / 719 / 717 | 709 / 681 / 679 |
+| Continuation confirmation / recovery / repeat | 967 / 939 / 937 | 929 / 901 / 899 |
+
+The reduction is 38 attempts per confirmation. Control outside previews is now
+155 instead of 193 (19.69% lower); previews remain 277/387 and final review 162.
+Native key lookups fall five→three initially and four→two on repetition, with
+two rather than four lifecycle synchronizations. These all-traffic functional
+samples do not establish p95 or live UI acceptance. Both directions remain far
+over 200. Next consolidate remaining draft/original work under its separate read
+purposes and effect boundaries, then run the unchanged complete protocol.
+**68% (17/25; eight remaining; +0 percentage points).**
+
 ## Review caller-bracket ownership — 0323
 
 [0323](../intent/0323/EVIDENCE.md) removes only additional wrapper checks where

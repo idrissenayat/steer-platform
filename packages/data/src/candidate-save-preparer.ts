@@ -97,9 +97,9 @@ export function createCandidateSavePreparer(pools: { execution: DatabasePool; dr
           keyForDraft: (ref, keyId) => { if (ref.draftId !== input.preview.draftId) throw fail(); return checked(() => deps.records.keyForDraft(ref, keyId)); },
         }));
         await source();
-        const preserved = await records.put(request); guard();
+        const preserved = await records.putAndRead(request); guard();
         if (preserved.outcome !== 'stored') return output('unknown');
-        const original = await records.read(target); guard();
+        const original = preserved.original;
         if (!equal(original, request)) throw fail();
         await recheck(); return output('prepared');
       });

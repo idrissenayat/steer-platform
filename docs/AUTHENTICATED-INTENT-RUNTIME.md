@@ -62,6 +62,18 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Candidate preservation readback — 0324
+
+[0324](../intent/0324/EVIDENCE.md) returns a server-only verified original from
+candidate preservation's existing full recovery. Confirmation compares it to
+the admitted request and retains its complete post-persistence preview/recheck.
+No original accompanies failed/uncertain acknowledgement; legacy `put` remains
+acknowledgement-only. Candidate recovery includes durable hold/expiry updates,
+so it is not generally a read-only lease. Independent reads still fully recover.
+This shared-purpose candidate contract does not collapse distinct `put`/`read`
+permissions in scope or development stores. Synthetic confirmation is 709/929
+attempts, still above the target; live activation and UX acceptance remain open.
+
 ### Review caller-bracket ownership — 0323
 
 [0323](../intent/0323/EVIDENCE.md) lets the exact constructed source/final-review

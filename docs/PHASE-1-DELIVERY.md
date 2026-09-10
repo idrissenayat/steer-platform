@@ -7053,6 +7053,25 @@ live model/key access, spending, runtime GitHub save, deployment, profile/record
 activation, signature or human UI acceptance. User drafts, signed artifacts and
 roadmap/outputs remain unchanged. **68% (17/25; eight remaining; +0 points).**
 
+## 0324 — Verified readback from candidate preservation
+
+[0324](../intent/0324/EVIDENCE.md) returns preservation's verified recovered
+original to confirmation instead of repeating full recovery. Legacy `put`, all
+authority/key checks, durable hold/expiry latching and both preview phases remain.
+Candidate recovery is not generally read-only; this does not collapse separate
+read-purpose grants in scope/development original stores.
+
+Native key lookups fall five→three initially and four→two on repetition;
+lifecycle synchronizations fall four→two. Whole confirmation removes 38 attempts:
+709/681/679 for new-distinct, 929/901/899 for continuation. Outside-preview control
+is 155, but previews remain 277/387. Forty-five native save checks, both native
+journeys, 27 focused and 1,568 broad tests, all types and kit/scope audit pass.
+
+**Progress: 68% (17/25; eight remaining; +0 percentage points).** Remaining
+draft/original read-graph consolidation and full performance/live acceptance stay
+open. No live model spend, runtime GitHub save, activation, deployment, signature
+or live-record deletion. Protected artifacts and user changes are preserved.
+
 ## 0323 — Review caller-bracket ownership
 
 [0323](../intent/0323/EVIDENCE.md) removes duplicate outer caller brackets only

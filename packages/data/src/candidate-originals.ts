@@ -170,8 +170,13 @@ export function createCandidateOriginalStore(pool: DatabasePool, rawConfiguratio
       return decoded.request;
     } finally { lease.bytes.fill(0); }
   }
-  return {
-    async put(raw: unknown): Promise<{ outcome: 'stored' | 'conflict' | 'unknown' | 'unavailable' }> {
+  // Preservation already ends with a complete recovery of the stored ciphertext,
+  // current keys, admitted original and latched lifecycle. Keep that verified
+  // value for callers that need it, without a second recovery/synchronization.
+  // This is one preservation action, not a read cache or a read-only phase:
+  // synchronize() must still commit observed holds and shortened use lifetimes.
+  async function preserve(raw: unknown): Promise<{ outcome: 'stored'; original: Original }
+    | { outcome: 'conflict' | 'unknown' | 'unavailable' }> {
       if (closed || active || pending) return { outcome: 'unavailable' }; active = true;
       try {
         const { request, target } = await validate(raw); await authorize(target); await verify(request);
@@ -183,7 +188,7 @@ export function createCandidateOriginalStore(pool: DatabasePool, rawConfiguratio
         const prior = await transaction(client => select(client, target));
         if (prior) {
           if (hash(prior.metadata) !== hash(metadata)) throw new Conflict();
-          await recover(target, prior); return { outcome: 'stored' };
+          return freeze({ outcome: 'stored', original: await recover(target, prior) });
         }
         if (current.held) throw new DraftStorageError();
         const envelope = sealDraft(request, aad(metadata), await bounded(dependencies.keyForDraft(draftRef(metadata.draftId), null)));
@@ -203,10 +208,16 @@ export function createCandidateOriginalStore(pool: DatabasePool, rawConfiguratio
           const stored = await select(client, target);
           if (!stored || hash(stored.metadata) !== hash(metadata)) throw new Conflict();
         });
-        await recover(target); return { outcome: 'stored' };
+        return freeze({ outcome: 'stored', original: await recover(target) });
       } catch (error) { return { outcome: error instanceof DatabaseCommitOutcomeUnknownError ? 'unknown' : error instanceof Conflict ? 'conflict' : 'unavailable' }; }
       finally { active = false; }
+  }
+  return {
+    // Preserve the existing acknowledgement-only contract for all other callers.
+    async put(raw: unknown): Promise<{ outcome: 'stored' | 'conflict' | 'unknown' | 'unavailable' }> {
+      const result = await preserve(raw); return { outcome: result.outcome };
     },
+    putAndRead: preserve,
     async read(raw: unknown): Promise<Original> {
       if (closed || active || pending) throw new DraftStorageError(); active = true;
       try { return await recover(freeze(targetSchema.parse(raw))); }

@@ -1,0 +1,1097 @@
+{
+  "kind": "steer-local-verification/v1",
+  "intent": "0324",
+  "baseCommit": "ffa9c343495d18253a7cbd081282b31a8b0db60c",
+  "checks": [
+    {
+      "command": "node --test apps/api/test/candidate-save-prepare.test.ts apps/api/test/candidate-save-preview.test.ts apps/api/test/candidate-save-start.test.ts apps/worker/test/candidate-bundle-runtime.test.ts tests/package-boundaries.test.mjs",
+      "exitCode": 0,
+      "tests": 27,
+      "passed": 27,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "durationMs": 1025.58875
+    },
+    {
+      "command": "node --test --test-concurrency=4 packages/*/test/*.test.ts packages/domain/test/*.test.mjs apps/api/test/*.test.ts apps/worker/test/*.test.ts apps/web/test/*.test.mjs tests/package-boundaries.test.mjs",
+      "exitCode": 0,
+      "tests": 1568,
+      "passed": 1568,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "durationMs": 325361.290917
+    },
+    {
+      "command": "pnpm typecheck",
+      "exitCode": 0,
+      "scope": "Prototype and all eight applications/packages."
+    },
+    {
+      "command": "node packages/data/test/postgres.integration.ts --candidate-save",
+      "exitCode": 0,
+      "checks": 45,
+      "idempotentMigrationsPassed": true,
+      "scope": "Five added native checks: exact legacy/joined readback and work comparison, six late-denial modes, lost insert acknowledgement, concurrency and held-key timeout/close."
+    },
+    {
+      "command": "node packages/data/test/postgres.integration.ts --journey-runtime",
+      "exitCode": 0,
+      "joinedChecks": 3,
+      "idempotentMigrationsPassed": true
+    },
+    {
+      "command": "node packages/data/test/postgres.integration.ts --journey-runtime-continuation",
+      "exitCode": 0,
+      "joinedChecks": 1,
+      "idempotentMigrationsPassed": true
+    },
+    {
+      "command": "pnpm kit:check",
+      "exitCode": 0,
+      "requiredArtifacts": 95
+    },
+    {
+      "command": "pnpm security:check",
+      "exitCode": 0,
+      "scope": "Workflow contents-read-only token audit."
+    }
+  ],
+  "sourceAndProtectedHashes": {
+    "packages/data/src/candidate-originals.ts": "c567c2acb7c5f7c340f7f53ff0f72c5f13e02ffff939565c2a9ced04b1c2008b",
+    "packages/data/src/candidate-save-preparer.ts": "87022930864c30c43d0017a0a5a396531c78bd64a7d1752abde5c8e608836172",
+    "apps/worker/test/candidate-originals.integration.ts": "b20fbb08932a82c3148ed46db625e786c4bd36c450cb7c2ebf55c71810ce625f",
+    "intent/0001/ARCHITECTURE.md": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65",
+    "intent/0001/EXAM.md": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f",
+    "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32",
+    "intent/0289/PERFORMANCE.json": "d0371c364bbfb103b70675faf911499bffb91afe8a5e6950718c87a171e9e302"
+  },
+  "measurements": {
+    "new-distinct": [
+      {
+        "tool": "intent.development.prepare",
+        "ms": 6227,
+        "nativeRequests": 532,
+        "requestKinds": {
+          "head": 501,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 493,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 8,
+            "commit": 4,
+            "tree": 4,
+            "blob": 20,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.development.prepare",
+        "ms": 6412,
+        "nativeRequests": 487,
+        "requestKinds": {
+          "head": 456,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 448,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 8,
+            "commit": 4,
+            "tree": 4,
+            "blob": 20,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.development.start",
+        "ms": 2073,
+        "nativeRequests": 552
+      },
+      {
+        "tool": "intent.development.start",
+        "ms": 2233,
+        "nativeRequests": 628
+      },
+      {
+        "tool": "intent.development.start",
+        "ms": 2140,
+        "nativeRequests": 628
+      },
+      {
+        "tool": "intent.draft.read",
+        "ms": 628,
+        "nativeRequests": 19,
+        "requestKinds": {
+          "head": 16,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 16,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.development.review",
+        "ms": 1834,
+        "nativeRequests": 75,
+        "requestKinds": {
+          "head": 64,
+          "commit": 2,
+          "tree": 2,
+          "blob": 6,
+          "token": 1,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 62,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 2,
+            "commit": 1,
+            "tree": 1,
+            "blob": 5,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.prepare",
+        "ms": 6768,
+        "nativeRequests": 292,
+        "requestKinds": {
+          "head": 261,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 253,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 8,
+            "commit": 4,
+            "tree": 4,
+            "blob": 20,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 1413,
+        "nativeRequests": 195,
+        "requestKinds": {
+          "head": 192,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 192,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 1536,
+        "nativeRequests": 221,
+        "requestKinds": {
+          "head": 218,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 218,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 1335,
+        "nativeRequests": 221,
+        "requestKinds": {
+          "head": 218,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 218,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.read",
+        "ms": 843,
+        "nativeRequests": 25,
+        "requestKinds": {
+          "head": 22,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 22,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.review",
+        "ms": 2673,
+        "nativeRequests": 162,
+        "requestKinds": {
+          "head": 152,
+          "commit": 2,
+          "tree": 2,
+          "blob": 6,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 150,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 2,
+            "commit": 1,
+            "tree": 1,
+            "blob": 5,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.preview",
+        "ms": 4553,
+        "nativeRequests": 277,
+        "requestKinds": {
+          "head": 263,
+          "commit": 4,
+          "tree": 4,
+          "blob": 6,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 255,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 8,
+            "commit": 3,
+            "tree": 3,
+            "blob": 5,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare (discarded reply)",
+        "ms": 9352,
+        "nativeRequests": 709,
+        "requestKinds": {
+          "head": 684,
+          "commit": 7,
+          "tree": 7,
+          "blob": 11,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 668,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 16,
+            "commit": 6,
+            "tree": 6,
+            "blob": 10,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "ms": 8465,
+        "nativeRequests": 681,
+        "requestKinds": {
+          "head": 654,
+          "commit": 7,
+          "tree": 7,
+          "blob": 11,
+          "token": 2,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 638,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 16,
+            "commit": 6,
+            "tree": 6,
+            "blob": 10,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "ms": 8359,
+        "nativeRequests": 679,
+        "requestKinds": {
+          "head": 654,
+          "commit": 7,
+          "tree": 7,
+          "blob": 11,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 638,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 16,
+            "commit": 6,
+            "tree": 6,
+            "blob": 10,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      }
+    ],
+    "proposal-continuation": [
+      {
+        "tool": "intent.development.prepare",
+        "ms": 6384,
+        "nativeRequests": 532,
+        "requestKinds": {
+          "head": 501,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 493,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 8,
+            "commit": 4,
+            "tree": 4,
+            "blob": 20,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.development.prepare",
+        "ms": 6474,
+        "nativeRequests": 487,
+        "requestKinds": {
+          "head": 456,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 448,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 8,
+            "commit": 4,
+            "tree": 4,
+            "blob": 20,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.development.start",
+        "ms": 1816,
+        "nativeRequests": 552
+      },
+      {
+        "tool": "intent.development.start",
+        "ms": 2229,
+        "nativeRequests": 628
+      },
+      {
+        "tool": "intent.development.start",
+        "ms": 2173,
+        "nativeRequests": 628
+      },
+      {
+        "tool": "intent.draft.read",
+        "ms": 694,
+        "nativeRequests": 19,
+        "requestKinds": {
+          "head": 16,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 16,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.development.review",
+        "ms": 1846,
+        "nativeRequests": 75,
+        "requestKinds": {
+          "head": 64,
+          "commit": 2,
+          "tree": 2,
+          "blob": 6,
+          "token": 1,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 62,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 2,
+            "commit": 1,
+            "tree": 1,
+            "blob": 5,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.prepare",
+        "ms": 6213,
+        "nativeRequests": 292,
+        "requestKinds": {
+          "head": 261,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 253,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 8,
+            "commit": 4,
+            "tree": 4,
+            "blob": 20,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 1461,
+        "nativeRequests": 195,
+        "requestKinds": {
+          "head": 192,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 192,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 1490,
+        "nativeRequests": 221,
+        "requestKinds": {
+          "head": 218,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 218,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "ms": 1410,
+        "nativeRequests": 221,
+        "requestKinds": {
+          "head": 218,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 218,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.scope.read",
+        "ms": 914,
+        "nativeRequests": 25,
+        "requestKinds": {
+          "head": 22,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 22,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.review",
+        "ms": 2580,
+        "nativeRequests": 162,
+        "requestKinds": {
+          "head": 152,
+          "commit": 2,
+          "tree": 2,
+          "blob": 6,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 150,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 2,
+            "commit": 1,
+            "tree": 1,
+            "blob": 5,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.preview",
+        "ms": 6565,
+        "nativeRequests": 387,
+        "requestKinds": {
+          "head": 355,
+          "commit": 6,
+          "tree": 6,
+          "blob": 20,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 347,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 8,
+            "commit": 5,
+            "tree": 5,
+            "blob": 19,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare (discarded reply)",
+        "ms": 12689,
+        "nativeRequests": 929,
+        "requestKinds": {
+          "head": 868,
+          "commit": 11,
+          "tree": 11,
+          "blob": 39,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 852,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 16,
+            "commit": 10,
+            "tree": 10,
+            "blob": 38,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "ms": 11993,
+        "nativeRequests": 901,
+        "requestKinds": {
+          "head": 838,
+          "commit": 11,
+          "tree": 11,
+          "blob": 39,
+          "token": 2,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 822,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 16,
+            "commit": 10,
+            "tree": 10,
+            "blob": 38,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "ms": 12026,
+        "nativeRequests": 899,
+        "requestKinds": {
+          "head": 838,
+          "commit": 11,
+          "tree": 11,
+          "blob": 39,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 822,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 16,
+            "commit": 10,
+            "tree": 10,
+            "blob": 38,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      }
+    ]
+  },
+  "nativePreservationComparison": {
+    "legacy": {
+      "initialKeyReads": 5,
+      "repeatedKeyReads": 4,
+      "lifecycleSynchronizationsPerInvocation": 4
+    },
+    "joined": {
+      "initialKeyReads": 3,
+      "repeatedKeyReads": 2,
+      "lifecycleSynchronizationsPerInvocation": 2
+    },
+    "equalOriginals": true,
+    "immutableInsertCount": 1,
+    "retentionRenewed": false,
+    "providerDispatches": 0
+  },
+  "progress": {
+    "percentage": 68,
+    "verified": 17,
+    "total": 25,
+    "remaining": 8,
+    "changePercentagePoints": 0
+  },
+  "limits": {
+    "completeC22Benchmark": false,
+    "latencyP95Accepted": false,
+    "liveModelCalls": 0,
+    "liveRuntimeGitHubSaves": 0,
+    "realRecordsActivation": false,
+    "buildOrBrowserAcceptance": false,
+    "fullPostgresIntegrationSuite": false,
+    "gateSigned": false,
+    "prior0289RecoveryObservationUnresolved": true
+  },
+  "iterationNotes": [
+    "No failing run or production correction. Initial candidate-save selection passed 44 checks; rerun on final source with added held-key/close case passed 45.",
+    "The two full preview phases, complete original recovery and durable lifecycle synchronizations remain; only immediately repeated recovery is removed.",
+    "Not transferable to scope/development originals without their distinct read-purpose grants."
+  ]
+}

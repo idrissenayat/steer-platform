@@ -9,7 +9,22 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0323 / review caller-bracket ownership — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0324 / candidate preservation readback — 68% (17/25; 8 remaining; +0 points)**.
+[0324](../intent/0324/EVIDENCE.md) returns the exact verified original already
+recovered by preservation, eliminating the immediate duplicate recovery in
+confirmation. Full key/authority verification, durable hold/expiry updates and
+both preview phases remain. Candidate recovery is not a read-only cache; distinct
+read purposes in scope/development original stores cannot be inferred from puts.
+
+Native key lookups fall five→three initially, four→two on repetition, and lifecycle
+synchronizations four→two. New-distinct confirmation/recovery/repeat is
+709/681/679 attempts; continuation is 929/901/899. Outside-preview control falls
+193→155, but previews remain 277/387. Both native journeys, 45 candidate-save
+checks, 27 focused and 1,568 broad tests, types and kit/scope audit pass. C22 remains
+open. Next consolidate remaining draft/original validation with explicit read
+purposes and effect boundaries, then the unchanged complete performance protocol.
+
+Prior delivery checkpoint: **0323 / review caller-bracket ownership — 68% (17/25; 8 remaining; +0 points)**.
 The [0323 contract](../intent/0323/SPEC.md) lets only the exact constructed source
 and final-review producers own their existing before/after caller checks. Ordinary
 readers retain extra brackets. Independent callers must complete their own checks;

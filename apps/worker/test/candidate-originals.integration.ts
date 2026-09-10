@@ -36,6 +36,112 @@ export async function testCandidateOriginals(setup: () => Promise<Fixture>, admi
     const row = async () => (await admin.query('SELECT * FROM steer_drafts.candidate_originals WHERE organization_id=$1 AND operation_id=$2', [config.organizationId, target.operationId])).rows[0];
     return { f, request, target, config, key, state, pool, make, row, dependencies };
   };
+  await check('preservation returns its exact verified readback with one recovery and unchanged legacy acknowledgement', async () => {
+    for (const joined of [false, true]) {
+      const t = await fresh(); let synchronizations = 0, inserts = 0;
+      const spy: DatabasePool = { async connect() { const c = await t.pool.connect(); return {
+        query: async (sql: string, values?: unknown[]) => {
+          if (sql.startsWith('UPDATE steer_drafts.candidate_originals SET use_until')) synchronizations++;
+          if (sql.startsWith('INSERT INTO steer_drafts.candidate_originals')) inserts++;
+          return c.query(sql, values);
+        }, release: (broken: boolean) => c.release(broken),
+      } as PoolClient; } };
+      const store = t.make({}, spy);
+      try {
+        const run = async () => {
+          if (joined) {
+            const result = await store.putAndRead(t.request); assert.equal(result.outcome, 'stored');
+            if (result.outcome !== 'stored') throw new Error('Expected verified readback');
+            assert.equal(Object.isFrozen(result), true); assert.equal(Object.isFrozen(result.original.bundle.documents), true);
+            return result.original;
+          }
+          assert.deepEqual(await store.put(t.request), { outcome: 'stored' });
+          return store.read(t.target);
+        };
+        assert.deepEqual(await run(), t.request); const row = await t.row();
+        assert.equal(t.state.keyReads, joined ? 3 : 5); assert.equal(synchronizations, joined ? 2 : 4); assert.equal(inserts, 1);
+        const keys = t.state.keyReads; synchronizations = 0;
+        assert.deepEqual(await run(), t.request);
+        assert.equal(t.state.keyReads - keys, joined ? 2 : 4); assert.equal(synchronizations, joined ? 2 : 4);
+        assert.equal(inserts, 1); assert.deepEqual(await t.row(), row);
+        assert.equal(t.f.git.calls.length, 0); assert.equal(t.f.git.mutations(), 0);
+      } finally { store.close(); }
+    }
+  });
+  await check('joined preservation never returns an original after late authority, key, lifecycle or owner loss', async () => {
+    for (const mode of ['authority', 'key-denial', 'key-rotation', 'hold', 'expiry', 'closed'] as const) {
+      const t = await fresh(), lifecycle = { ...t.state.lifecycle }; let checks = 0;
+      const bytes = Buffer.from(t.key.bytes); let store: ReturnType<typeof createCandidateOriginalStore>;
+      store = t.make({ verifyOriginal: async request => {
+        await t.dependencies.verifyOriginal(request);
+        if (++checks !== 3) return; // first recovery, after the insert committed
+        if (mode === 'authority') t.state.denied = true;
+        if (mode === 'key-denial') t.state.keyDenied = true;
+        if (mode === 'key-rotation') t.key.bytes.fill(0);
+        if (mode === 'hold') t.state.lifecycle.held = true;
+        if (mode === 'expiry') t.state.lifecycle.useUntil = new Date(Date.now() - 1).toISOString();
+        if (mode === 'closed') store.close();
+      } });
+      try {
+        const result = await store.putAndRead(t.request);
+        assert.notEqual(result.outcome, 'stored'); assert.equal('original' in result, false);
+        const row = await t.row(); assert.ok(row); assert.equal(t.f.git.calls.length, 0);
+        if (mode === 'hold' || mode === 'expiry') {
+          assert.equal(row.held, mode === 'hold');
+          if (mode === 'expiry') assert.equal(row.use_until.toISOString(), t.state.lifecycle.useUntil);
+          t.state.lifecycle = lifecycle; const other = t.make();
+          try { assert.notEqual((await other.putAndRead(t.request)).outcome, 'stored'); }
+          finally { other.close(); }
+        }
+      } finally { store.close(); bytes.copy(t.key.bytes); bytes.fill(0); }
+    }
+  });
+  await check('joined preservation keeps a lost insert acknowledgement unknown and reconstructs one immutable original', async () => {
+    const t = await fresh(); let lose = true, inserts = 0;
+    const uncertain: DatabasePool = { async connect() { const c = await t.pool.connect(); let inserted = false; return {
+      query: async (sql: string, values?: unknown[]) => {
+        const value = await c.query(sql, values);
+        if (sql.startsWith('INSERT INTO steer_drafts.candidate_originals')) { inserted = true; inserts++; }
+        if (inserted && sql === 'COMMIT' && lose) { lose = false; throw new Error('PRIVATE lost insert acknowledgement'); }
+        return value;
+      }, release: (broken: boolean) => c.release(broken),
+    } as PoolClient; } };
+    const first = t.make({}, uncertain);
+    try { assert.deepEqual(await first.putAndRead(t.request), { outcome: 'unknown' }); } finally { first.close(); }
+    const row = await t.row(); assert.ok(row);
+    const recovered = t.make({}, uncertain);
+    try {
+      assert.deepEqual(await recovered.putAndRead(t.request), { outcome: 'stored', original: t.request });
+      assert.deepEqual(await t.row(), row); assert.equal(inserts, 1); assert.equal(t.f.git.calls.length, 0);
+    } finally { recovered.close(); }
+  });
+  await check('concurrent joined preservation returns the same admitted original without additional inserts or retention renewal', async () => {
+    const t = await fresh();
+    const stores = Array.from({ length: 4 }, () => t.make({}, connect('steer_draft_runtime')));
+    try {
+      const results = await Promise.all(stores.map(store => store.putAndRead(t.request)));
+      for (const result of results) assert.deepEqual(result, { outcome: 'stored', original: t.request });
+      assert.equal((await admin.query('SELECT count(*)::int AS n FROM steer_drafts.candidate_originals WHERE operation_id=$1', [t.target.operationId])).rows[0].n, 1);
+      assert.equal((await t.row()).retention_deadline.toISOString(), new Date(Date.parse(t.state.lifecycle.createdAt) + 7 * 86400000).toISOString());
+      assert.equal(t.f.git.calls.length, 0);
+    } finally { stores.forEach(store => store.close()); }
+  });
+  await check('joined preservation retains admission for a timed-out key and never exposes a late readback after close', async () => {
+    const t = await fresh(), initial = t.make();
+    try { assert.equal((await initial.put(t.request)).outcome, 'stored'); } finally { initial.close(); }
+    let entered!: () => void, release!: () => void, keyCalls = 0;
+    const started = new Promise<void>(resolve => { entered = resolve; });
+    const held = new Promise<void>(resolve => { release = resolve; });
+    const store = t.make({ keyForDraft: async () => { keyCalls++; entered(); await held; return t.key; } });
+    try {
+      const loading = store.putAndRead(t.request); await started;
+      const result = await loading; assert.notEqual(result.outcome, 'stored'); assert.equal('original' in result, false);
+      assert.deepEqual(await store.putAndRead(t.request), { outcome: 'unavailable' }); assert.equal(keyCalls, 1);
+      store.close(); release(); await new Promise(resolve => setImmediate(resolve));
+      assert.deepEqual(await store.putAndRead(t.request), { outcome: 'unavailable' }); assert.equal(keyCalls, 1);
+      assert.equal(t.f.git.calls.length, 0);
+    } finally { store.close(); release(); }
+  });
   await check('encrypted candidate originals survive adapter/pool reconstruction with exact three-document and consent bytes', async () => {
     const t = await fresh(), queries: string[] = []; let transactions = 0;
     const spy: DatabasePool = { async connect() { const c = await t.pool.connect(); return { query: async (sql: string, values?: unknown[]) => {
