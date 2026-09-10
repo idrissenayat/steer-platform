@@ -62,6 +62,26 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Owned final-review phase in candidate preview — 0312
+
+[0312](../intent/0312/EVIDENCE.md) uses the existing private registered session to
+own one read-only final review across the preview's dependent work. No new
+configuration, tool or live profile is installed. First content access remains
+lazy after the preview's own authorization/draft checks. Sequential consumption
+shares immutable initial review data, never permissions; each consumption freshly
+checks its caller and review policy.
+
+After dependent work, the owner re-reads the complete draft/source/scope state,
+then independently re-reads the draft. The enclosing corpus owner retains final
+source closure and draft validation. All ports are pinned per invocation; late
+changes, skipped/overlapping/escaped/caught-failed reads deny. Private cancellation
+waits for actual dependent work and forgotten caller callbacks to drain, while
+ordinary public review keeps its established prompt cancellation and read counts.
+
+Confirmation still uses separate fresh previews around effects. Measured request
+reductions do not establish the whole-action budget or signed-in user acceptance.
+No provider access, model usage, records adoption or runtime save is authorized.
+
 ### Private generation phase in candidate preview — 0311
 
 [0311](../intent/0311/EVIDENCE.md) connects an explicitly typed server-only

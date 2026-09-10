@@ -1,0 +1,285 @@
+{
+  "kind": "steer-implementation-verification/v1",
+  "intent": "0312",
+  "date": "2026-09-10",
+  "baseCommit": "2fe7f7b3e63a125cbbc00c92823432cacd325573",
+  "progress": {
+    "verified": 17,
+    "total": 25,
+    "percentage": 68,
+    "remaining": 8,
+    "percentagePointChange": 0
+  },
+  "checks": [
+    {
+      "command": "node --test apps/api/test/candidate-save-review.test.ts apps/api/test/candidate-save-preview.test.ts packages/data/test/review-read-session.test.ts tests/package-boundaries.test.mjs",
+      "exitCode": 0,
+      "tests": 36,
+      "passed": 36,
+      "failed": 0,
+      "durationMs": 1590.17125
+    },
+    {
+      "command": "node --test --test-concurrency=4 packages/*/test/*.test.ts packages/domain/test/*.test.mjs apps/api/test/*.test.ts apps/worker/test/*.test.ts apps/web/test/*.test.mjs tests/package-boundaries.test.mjs",
+      "exitCode": 0,
+      "tests": 1510,
+      "passed": 1510,
+      "failed": 0,
+      "durationMs": 352447.2785,
+      "scope": "Final production/test source; broad package/application and architectural regression. Not full native PostgreSQL suite or browser acceptance."
+    },
+    {
+      "command": "pnpm typecheck",
+      "exitCode": 0,
+      "scope": "Prototype plus all eight packages/applications; final source."
+    },
+    {
+      "command": "node packages/data/test/postgres.integration.ts --journey-runtime",
+      "exitCode": 0,
+      "joinedChecks": 3,
+      "idempotentMigrationsPassed": true,
+      "fullIntegrationSuiteRun": false,
+      "scope": "Final production/native fixture source. Synthetic authenticated native Git/PostgreSQL, recorded SDK and Temporal corrected new-distinct save, lost acknowledgement, restart, recovery, exact reopen and policy denial. Final focused-only test was added while this ran."
+    },
+    {
+      "command": "node packages/data/test/postgres.integration.ts --journey-runtime-continuation",
+      "exitCode": 0,
+      "joinedChecks": 1,
+      "idempotentMigrationsPassed": true,
+      "fullIntegrationSuiteRun": false,
+      "scope": "Final source; same composed journey for proposal continuation, preserving prior proposal/canonical/unrelated bytes and original target."
+    },
+    {
+      "command": "pnpm kit:check",
+      "exitCode": 0,
+      "requiredArtifacts": 95
+    },
+    {
+      "command": "pnpm security:check",
+      "exitCode": 0,
+      "scope": "Workflow token scope audit: contents read-only."
+    }
+  ],
+  "measurements": {
+    "new-distinct": [
+      {
+        "tool": "intent.candidate.save.review",
+        "durationMs": 2746,
+        "providerAttempts": 224,
+        "identityHeadAttempts": 212,
+        "requestKinds": {
+          "head": 214,
+          "commit": 2,
+          "tree": 2,
+          "blob": 6,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.preview",
+        "durationMs": 4665,
+        "providerAttempts": 343,
+        "identityHeadAttempts": 321,
+        "requestKinds": {
+          "head": 329,
+          "commit": 4,
+          "tree": 4,
+          "blob": 6,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare (discarded reply)",
+        "durationMs": 8347,
+        "providerAttempts": 879,
+        "identityHeadAttempts": 838,
+        "requestKinds": {
+          "head": 854,
+          "commit": 7,
+          "tree": 7,
+          "blob": 11,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "durationMs": 8456,
+        "providerAttempts": 851,
+        "identityHeadAttempts": 808,
+        "requestKinds": {
+          "head": 824,
+          "commit": 7,
+          "tree": 7,
+          "blob": 11,
+          "token": 2,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "durationMs": 9722,
+        "providerAttempts": 849,
+        "identityHeadAttempts": 808,
+        "requestKinds": {
+          "head": 824,
+          "commit": 7,
+          "tree": 7,
+          "blob": 11,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      }
+    ],
+    "proposal-continuation": [
+      {
+        "tool": "intent.candidate.save.review",
+        "durationMs": 2454,
+        "providerAttempts": 224,
+        "identityHeadAttempts": 212,
+        "requestKinds": {
+          "head": 214,
+          "commit": 2,
+          "tree": 2,
+          "blob": 6,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.preview",
+        "durationMs": 20027,
+        "providerAttempts": 633,
+        "identityHeadAttempts": 565,
+        "requestKinds": {
+          "head": 573,
+          "commit": 20,
+          "tree": 20,
+          "blob": 20,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare (discarded reply)",
+        "durationMs": 33622,
+        "providerAttempts": 1459,
+        "identityHeadAttempts": 1326,
+        "requestKinds": {
+          "head": 1342,
+          "commit": 39,
+          "tree": 39,
+          "blob": 39,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "durationMs": 29273,
+        "providerAttempts": 1431,
+        "identityHeadAttempts": 1296,
+        "requestKinds": {
+          "head": 1312,
+          "commit": 39,
+          "tree": 39,
+          "blob": 39,
+          "token": 2,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "durationMs": 29895,
+        "providerAttempts": 1429,
+        "identityHeadAttempts": 1296,
+        "requestKinds": {
+          "head": 1312,
+          "commit": 39,
+          "tree": 39,
+          "blob": 39,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      }
+    ]
+  },
+  "comparison": {
+    "baselineIntent": "0311",
+    "requestsRemovedPerPreview": 142,
+    "requestsRemovedPerConfirmation": 284,
+    "newDistinctPreviewReductionPercent": 29.28,
+    "newDistinctConfirmationReductionPercent": 24.42
+  },
+  "unchangedOverBudget": {
+    "saveReview": 224,
+    "scopePrepare": 320,
+    "scopeStart": [
+      596,
+      676,
+      676
+    ],
+    "developmentPrepare": [
+      594,
+      548
+    ],
+    "developmentStart": [
+      1407,
+      1594,
+      1594
+    ]
+  },
+  "acceptance": {
+    "wholeActionAccepted": false,
+    "providerAttemptLimit": 200,
+    "delayPerAttemptMs": 20,
+    "p95LimitMs": 5000,
+    "warmSamplesRequired": 20,
+    "coldSamplesRequired": 3,
+    "concurrentSamplesRequired": 4,
+    "fullProtocolRun": false,
+    "actualUiVerified": false,
+    "measurementCaveat": "Undelayed synthetic functional runs share the host with regression work. Durations are not p95 or live UI performance."
+  },
+  "failedIterations": [
+    {"check": "git diff --cached --check", "failure": "Extra blank line at the end of the new Brief", "correction": "Removed the extra blank line before commit; no production code change."}
+  ],
+  "sourceHashes": {
+    "packages/data/src/candidate-save-reviewer.ts": "30f5c1214a7c62b25bfdeae3531e4e87d973362fe8ad590fe2846b4d746c0043",
+    "apps/api/test/candidate-save-review.test.ts": "bec608b54e832bfd7302327574b13697dcf35d08d3812835bd16129ff348bef8"
+  },
+  "protectedHashes": {
+    "intent/0001/ARCHITECTURE.md": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65",
+    "intent/0001/EXAM.md": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f",
+    "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32",
+    "intent/0289/PERFORMANCE.json": "d0371c364bbfb103b70675faf911499bffb91afe8a5e6950718c87a171e9e302"
+  },
+  "boundaries": {
+    "liveModelCalls": false,
+    "modelSpending": false,
+    "liveRuntimeGithubSave": false,
+    "recordsAdoption": false,
+    "profileActivation": false,
+    "deployment": false,
+    "gateSignature": false,
+    "protected0289ObservationResolved": false,
+    "cleanup": "Each native harness removed only its own synthetic PostgreSQL container and tmpfs data.",
+    "preservedUserFiles": [
+      "docs/REAL-USER-ROADMAP.md",
+      "outputs/"
+    ]
+  },
+  "next": "Integrate remaining source/draft/destination read phases and effect-separated scope/drafting preparation/start controls; run the full unchanged C22 protocol before claiming the checkpoint."
+}

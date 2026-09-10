@@ -20,13 +20,18 @@ export function createCandidateSaveReviewer(configuration: unknown, deps: {
   const scope = freeze({ organizationId, subject, productId, repository, branch, configurationRevision });
   if ([deps.drafts?.read, deps.sources?.review, deps.authorizeReview].some(v => typeof v !== 'function')) throw fail();
   const lifetime = new AbortController(); let active = 0;
-  async function review(raw: unknown, revalidate: () => Promise<void>, sharedSources?: (current: () => Promise<void>) => Promise<unknown>) {
+  async function review(raw: unknown, revalidate: () => Promise<void>,
+    readWork?: (read: (present: () => Promise<void>) => Promise<Awaited<ReturnType<typeof describeCandidateSaveReview>>>) => Promise<void>) {
       const input = freeze(candidateSaveReviewInputSchema.parse(raw));
       if (active >= 4 || lifetime.signal.aborted || typeof revalidate !== 'function') throw fail();
       active++; let pending = 0, finished = false, released = false;
+      const tasks = new Set<Promise<unknown>>();
+      const ports = [deps.drafts, deps.drafts.read, deps.sources, deps.sources.review, deps.scopeReview, deps.scopeReview?.read, deps.authorizeReview];
       const signal = AbortSignal.any([lifetime.signal, AbortSignal.timeout(60000)]);
       const release = () => { if (finished && pending === 0 && !released) { released = true; active--; } };
       const guard = () => {
+        if ([deps.drafts, deps.drafts.read, deps.sources, deps.sources.review, deps.scopeReview, deps.scopeReview?.read, deps.authorizeReview]
+          .some((port, index) => port !== ports[index])) throw fail();
         signal.throwIfAborted(); if (finished || (['organizationId', 'productId', 'repository', 'configurationRevision'] as const).some(k => input[k] !== scope[k])
           || (['organizationId', 'subject', 'productId', 'repository'] as const).some(k => deps.drafts.scope[k] !== scope[k] || deps.sources.scope[k] !== scope[k])
           || deps.sources.scope.configurationRevision !== configurationRevision) throw fail();
@@ -34,7 +39,7 @@ export function createCandidateSaveReviewer(configuration: unknown, deps: {
       const bounded = async <T>(work: () => Promise<T>): Promise<T> => {
         guard(); pending++; let abort: () => void = () => {};
         const task = Promise.resolve().then(() => { guard(); return work(); });
-        void task.finally(() => { pending--; release(); }).catch(() => {});
+        tasks.add(task); void task.finally(() => { tasks.delete(task); pending--; release(); }).catch(() => {});
         try { return await Promise.race([task, new Promise<never>((_, reject) => {
           abort = () => reject(fail()); signal.addEventListener('abort', abort, { once: true }); if (signal.aborted) abort();
         })]); } finally { signal.removeEventListener('abort', abort); }
@@ -64,26 +69,49 @@ export function createCandidateSaveReviewer(configuration: unknown, deps: {
       try {
         let output: Awaited<ReturnType<typeof describeCandidateSaveReview>> | undefined;
         const run = async (readSource: (current: () => Promise<void>) => Promise<unknown>) => {
-          await authorized(); const initial = await readState(readSource);
+          let initial: Awaited<ReturnType<typeof readState>> | undefined;
+          if (readWork) {
+            let reading = false, consumed = false, ended = false, invalid = false;
+            const read = async (present: () => Promise<void>) => {
+              guard(); if (reading || ended || invalid || typeof present !== 'function') { invalid = true; throw fail(); }
+              reading = true;
+              // Own the entire consumption, including caller callbacks. A lost
+              // await must not let this phase return before the actual work drains.
+              return bounded(async () => {
+                try {
+                  if (await present() !== undefined) throw fail();
+                  guard(); await authorized(); initial ??= freeze(await readState(readSource));
+                  await authorized();
+                  if (await present() !== undefined) throw fail();
+                  guard(); consumed = true; return initial.output;
+                } catch { invalid = true; throw fail(); }
+                finally { reading = false; }
+              });
+            };
+            try {
+              if (await bounded(() => readWork(read)) !== undefined || reading || invalid || !consumed) throw fail();
+            } finally { ended = true; }
+          } else { await authorized(); initial = await readState(readSource); }
+          if (!initial) throw fail();
           await authorized(); const latest = await readState(readSource);
           if (JSON.stringify(initial) !== JSON.stringify(latest)) throw fail();
           await authorized(); if (JSON.stringify(await readDraft()) !== JSON.stringify(initial.draft)) throw fail();
           await current(); output = initial.output;
         };
-        if (sharedSources) await run(sharedSources);
-        else await withReviewReadSession(deps.sources, sourceInput, current, run, task => bounded(() => task), guard);
+        await withReviewReadSession(deps.sources, sourceInput, current, run, task => bounded(() => task), guard);
         await current(); if (!output) throw fail(); return output;
       } catch { throw fail(); }
-      finally { finished = true; release(); }
+      finally {
+        finished = true;
+        // A private composition cannot finish while its dependent preview or
+        // policy work is still running, even if a public timeout has fired.
+        if (readWork) await Promise.allSettled([...tasks]);
+        release();
+      }
   }
   const service = { scope, review: (raw, current) => review(raw, current), close() { lifetime.abort(); } } satisfies CandidateSaveReviewer & { close(): void };
   registerReviewReadSession(service.review, scope, async (raw, current, work) => {
-    const input = freeze(candidateSaveReviewInputSchema.parse(raw));
-    const sourceInput = intentDevelopmentReviewInputSchema.parse({ organizationId, productId, repository,
-      draftId: input.draftId, revision: input.revision, revisionDigest: input.revisionDigest, scopeInputDigest: input.scopeInputDigest });
-    await withReviewReadSession(deps.sources, sourceInput, current,
-      async readSource => work(present => review(input, present, readSource)), pending => pending,
-      () => { lifetime.signal.throwIfAborted(); });
+    await review(raw, current, work);
   });
   return service;
 }

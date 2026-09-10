@@ -7,6 +7,34 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Shared final-review phase in preview — 0312
+
+[0312](../intent/0312/EVIDENCE.md) consolidates repeated full final reviews within
+one read-only preview. Initial validation is lazy, each consumption checks current
+authority, and full draft/source/scope validation follows dependent work. Final
+source closure and separate pre-/post-effect preview phases remain intact.
+
+| Authenticated synthetic action | 0311 attempts | 0312 attempts |
+| --- | ---: | ---: |
+| New-distinct preview | 485 | 343 |
+| New-distinct first confirmation | 1,163 | 879 |
+| Proposal-continuation preview | 775 | 633 |
+| Proposal-continuation first confirmation | 1,743 | 1,459 |
+
+The reduction is 142 attempts per preview and 284 per confirmation, about 29%
+and 24% respectively for new-distinct. All four actions remain above 200. Scope
+preparation/start and drafting preparation/start also remain above the ceiling;
+this change does not address them. New-distinct preview still contains 321
+identity-head checks. Continuation's destination validation adds 290 requests
+relative to new-distinct. Next address remaining source/draft and destination
+read phases plus effect-separated preparation/start controls. Source sharing or
+one more isolated preview reduction cannot establish whole-action acceptance.
+
+Exact verification scope and samples: [0312](../intent/0312/VERIFICATION.json).
+These undelayed, synthetic functional runs shared the host with regression tests
+and are not p95 or UI measurements. The complete unchanged protocol below remains
+required. **68% (17/25; eight remaining; +0 percentage points).**
+
 ## Shared generation phase in preview — 0311
 
 [0311](../intent/0311/EVIDENCE.md) shares one owned original/history computation

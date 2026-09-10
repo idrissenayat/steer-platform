@@ -7053,6 +7053,28 @@ live model/key access, spending, runtime GitHub save, deployment, profile/record
 activation, signature or human UI acceptance. User drafts, signed artifacts and
 roadmap/outputs remain unchanged. **68% (17/25; eight remaining; +0 points).**
 
+## 0312 — One owned final-review phase in candidate preview
+
+[0312](../intent/0312/EVIDENCE.md) consolidates repeated full draft/source/scope
+reviews within each actual preview. Initial content access remains lazy. Every
+consumption checks current authority; complete final state and draft readback
+follow dependent work, and the enclosing source owner retains final closure.
+Pinned ports, late-change/misuse denial and actual held/forgotten callback drain
+remain. Public review and separate confirmation/effect phases are preserved.
+
+New-distinct preview falls 485→343 attempts and confirmation 1,163→879;
+continuation falls 775→633 and 1,743→1,459. Both native authenticated synthetic
+save/recovery/reopen selections, final focused tests, types and kit/scope audit
+pass. Exact broad-regression result, samples and source/protected hashes are in
+[verification](../intent/0312/VERIFICATION.json). These are engineering checks,
+not actual signed-in UI, runtime GitHub or model-quality acceptance.
+
+Next address remaining source/draft/destination read phases and effect-separated
+scope/drafting preparation/start controls, then the complete unchanged benchmark.
+No live profile/records activation, provider access, spending, runtime save,
+deployment, deletion or signature is authorized. Protected and user-owned files
+remain untouched. **68% (17/25; eight remaining; +0 percentage points).**
+
 ## 0311 — One owned generation phase in candidate preview
 
 [0311](../intent/0311/EVIDENCE.md) shares the verified retained original and history
