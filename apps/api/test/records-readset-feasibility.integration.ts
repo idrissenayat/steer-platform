@@ -17,7 +17,7 @@ import type { nativeCandidateJourneyFixture } from './native-candidate-journey.f
  * authenticated synthetic journey; no production service result is substituted. */
 export async function testRecordsReadsetFeasibility(f: Awaited<ReturnType<typeof scopeDraftIntegrationFixture>>,
   identity: Awaited<ReturnType<typeof recordedRuntimeFixture>>, profiles: Parameters<typeof createRecordedMastraVerifier>[0],
-  target: Parameters<typeof readRecordsReadsetPrototype>[2], authorize: () => Promise<void>, native?: ReturnType<typeof nativeCandidateJourneyFixture>, strategy: 'separate' | 'graph' = 'separate') {
+  target: Parameters<typeof readRecordsReadsetPrototype>[2], authorize: () => Promise<void>, native?: ReturnType<typeof nativeCandidateJourneyFixture>, strategy: 'separate' | 'graph' | 'native-graph' = 'separate') {
   const traffic = createNativeRequestMeter(identity.ports.github);
   const reader = createGitHubReader(identity.profile.github.binding, {
     appJwt: createAppJwtSigner(identity.profile.github.appId, identity.secrets.githubPrivateKeyPem), fetch: traffic.transport,
@@ -31,7 +31,7 @@ export async function testRecordsReadsetFeasibility(f: Awaited<ReturnType<typeof
   let denied = false, recordPolicies = 0, retainedSourcePolicies = 0, keyCalls = 0, checks = 0;
   const originalSourcePolicy = native?.corpusAuthority.authorizeSource;
   let lateSourceDenied = false, lateSourceDenials = 0;
-  if (native && strategy === 'graph') native.corpusAuthority.authorizeSource = async ref => {
+  if (native && strategy !== 'separate') native.corpusAuthority.authorizeSource = async ref => {
     await originalSourcePolicy!(ref);
     if (lateSourceDenied) { lateSourceDenials++; throw new Error('Synthetic source revoked after records readback.'); }
   };
@@ -110,9 +110,9 @@ export async function testRecordsReadsetFeasibility(f: Awaited<ReturnType<typeof
     assert.equal(initial.groups.candidate_originals, 1);
     if (!native) assert.ok(initial.providerAttempts <= 30);
     else { assert.ok(initial.historicalCorpus); assert.ok(initial.historicalCorpus.revisionCount >= 2); }
-    if (native && strategy === 'graph') assert.equal(initial.historicalCorpus?.finalSourcesAfterDependentReadback, true);
+    if (native && strategy !== 'separate') assert.equal(initial.historicalCorpus?.finalSourcesAfterDependentReadback, true);
     console.log((native ? 'Synthetic combined readset feasibility: ' : 'Synthetic records readset feasibility: ') + JSON.stringify(initial));
-    if (native && strategy === 'graph') {
+    if (native && strategy !== 'separate') {
       await rejectAfter('records-rechecked', async () => { lateSourceDenied = true; });
       assert.ok(lateSourceDenials > 0, 'The final source policy must observe post-record revocation.');
       lateSourceDenied = false;

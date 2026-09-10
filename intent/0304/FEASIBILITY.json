@@ -1,0 +1,617 @@
+{
+  "kind": "steer-owned-native-corpus-graph/v1",
+  "baseCommit": "ea08950d332810bd0936ecf5a1e4c14eee3426b9",
+  "node": "24.19.0",
+  "command": "node packages/data/test/postgres.integration.ts --combined-native-readgraph-feasibility",
+  "scope": "Owned production-source corpus graph, composed with test-only native records reader and actual OIDC/Git verifier. No application factory/profile installation.",
+  "metrics": {
+    "providerAttempts": 53,
+    "elapsedMs": 1686,
+    "jwksAttempts": 1,
+    "callerChecks": 35,
+    "providerKinds": {
+      "head": 36,
+      "commit": 1,
+      "tree": 1,
+      "blob": 1,
+      "token": 1,
+      "mutation": 0,
+      "other": 0
+    },
+    "roleTransactions": 4,
+    "sqlStatements": 34,
+    "keyReferences": 1,
+    "keyCalls": 2,
+    "recordPolicyCalls": 82,
+    "retainedSourcePolicyCalls": 136,
+    "groups": {
+      "revisions": 2,
+      "latest_revision": 1,
+      "scope_originals": 2,
+      "scope_observations": 8,
+      "development_originals": 1,
+      "development_results": 2,
+      "development_observations": 4,
+      "candidate_originals": 1,
+      "operations": 2,
+      "steps": 3,
+      "scope_runs": 2,
+      "scope_batches": 4,
+      "reservations": 6,
+      "budget": 1,
+      "scope_terms": 1
+    },
+    "byteLength": 607625,
+    "plaintextRows": 20,
+    "scopeSdkExchanges": 4,
+    "developmentSdkExchanges": 2,
+    "historicalCorpus": {
+      "strategy": "native-graph",
+      "revisionCount": 2,
+      "originalContexts": 3,
+      "measurements": [
+        {
+          "semanticSources": 34,
+          "physicalFiles": 42,
+          "repositoryAttempts": null,
+          "sourcePolicyCalls": 126
+        },
+        {
+          "semanticSources": 34,
+          "physicalFiles": 42,
+          "repositoryAttempts": null,
+          "sourcePolicyCalls": 126
+        }
+      ],
+      "repositoryAttempts": 12,
+      "graph": {
+        "waves": null,
+        "requests": 12,
+        "sourcePolicyQueries": 252
+      },
+      "uniqueBlobObjects": 40,
+      "blobObjectsSharedAcrossRevisions": 40,
+      "sourceMetadataPolicySynthetic": true,
+      "finalSourcesAfterDependentReadback": true,
+      "wholePhaseAccepted": false,
+      "productionInstalled": false
+    },
+    "elapsedLifetimeCheckedThroughReturn": true,
+    "httpRegistryIntegrated": false,
+    "actualRecordsPoliciesIntegrated": false,
+    "ownerDrainAndAllEffectsVerified": false,
+    "wholeJourneyPerformanceAccepted": false,
+    "productionInstalled": false
+  },
+  "applicationMeasurements": [
+    {
+      "tool": "intent.draft.read",
+      "ms": 63,
+      "nativeRequests": 19,
+      "requestKinds": {
+        "head": 16,
+        "commit": 1,
+        "tree": 1,
+        "blob": 1,
+        "token": 0,
+        "mutation": 0,
+        "other": 0
+      },
+      "origins": {
+        "identity": {
+          "head": 16,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "repository": {
+          "head": 0,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      }
+    },
+    {
+      "tool": "intent.development.review",
+      "ms": 674,
+      "nativeRequests": 210,
+      "requestKinds": {
+        "head": 161,
+        "commit": 2,
+        "tree": 2,
+        "blob": 44,
+        "token": 1,
+        "mutation": 0,
+        "other": 0
+      },
+      "origins": {
+        "identity": {
+          "head": 155,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "repository": {
+          "head": 6,
+          "commit": 1,
+          "tree": 1,
+          "blob": 43,
+          "token": 1,
+          "mutation": 0,
+          "other": 0
+        }
+      }
+    },
+    {
+      "tool": "intent.scope.prepare",
+      "ms": 2728,
+      "nativeRequests": 844,
+      "requestKinds": {
+        "head": 661,
+        "commit": 5,
+        "tree": 5,
+        "blob": 173,
+        "token": 0,
+        "mutation": 0,
+        "other": 0
+      },
+      "origins": {
+        "identity": {
+          "head": 641,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "repository": {
+          "head": 20,
+          "commit": 4,
+          "tree": 4,
+          "blob": 172,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      }
+    },
+    {
+      "tool": "intent.scope.start",
+      "ms": 661,
+      "nativeRequests": 596,
+      "requestKinds": {
+        "head": 593,
+        "commit": 1,
+        "tree": 1,
+        "blob": 1,
+        "token": 0,
+        "mutation": 0,
+        "other": 0
+      },
+      "origins": {
+        "identity": {
+          "head": 593,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "repository": {
+          "head": 0,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      }
+    },
+    {
+      "tool": "intent.scope.start",
+      "ms": 704,
+      "nativeRequests": 676,
+      "requestKinds": {
+        "head": 673,
+        "commit": 1,
+        "tree": 1,
+        "blob": 1,
+        "token": 0,
+        "mutation": 0,
+        "other": 0
+      },
+      "origins": {
+        "identity": {
+          "head": 673,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "repository": {
+          "head": 0,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      }
+    },
+    {
+      "tool": "intent.scope.start",
+      "ms": 704,
+      "nativeRequests": 676,
+      "requestKinds": {
+        "head": 673,
+        "commit": 1,
+        "tree": 1,
+        "blob": 1,
+        "token": 0,
+        "mutation": 0,
+        "other": 0
+      },
+      "origins": {
+        "identity": {
+          "head": 673,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "repository": {
+          "head": 0,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      }
+    },
+    {
+      "tool": "intent.scope.read",
+      "ms": 444,
+      "nativeRequests": 227,
+      "requestKinds": {
+        "head": 224,
+        "commit": 1,
+        "tree": 1,
+        "blob": 1,
+        "token": 0,
+        "mutation": 0,
+        "other": 0
+      },
+      "origins": {
+        "identity": {
+          "head": 224,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "repository": {
+          "head": 0,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      }
+    },
+    {
+      "tool": "intent.candidate.save.review",
+      "ms": 1594,
+      "nativeRequests": 871,
+      "requestKinds": {
+        "head": 823,
+        "commit": 2,
+        "tree": 2,
+        "blob": 44,
+        "token": 0,
+        "mutation": 0,
+        "other": 0
+      },
+      "origins": {
+        "identity": {
+          "head": 813,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "repository": {
+          "head": 10,
+          "commit": 1,
+          "tree": 1,
+          "blob": 43,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      }
+    },
+    {
+      "tool": "intent.candidate.save.preview",
+      "ms": 7107,
+      "nativeRequests": 3722,
+      "requestKinds": {
+        "head": 3670,
+        "commit": 4,
+        "tree": 4,
+        "blob": 44,
+        "token": 0,
+        "mutation": 0,
+        "other": 0
+      },
+      "origins": {
+        "identity": {
+          "head": 3646,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "repository": {
+          "head": 24,
+          "commit": 3,
+          "tree": 3,
+          "blob": 43,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      }
+    },
+    {
+      "tool": "intent.candidate.save.prepare (discarded reply)",
+      "ms": 14147,
+      "nativeRequests": 7637,
+      "requestKinds": {
+        "head": 7536,
+        "commit": 7,
+        "tree": 7,
+        "blob": 87,
+        "token": 0,
+        "mutation": 0,
+        "other": 0
+      },
+      "origins": {
+        "identity": {
+          "head": 7488,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "repository": {
+          "head": 48,
+          "commit": 6,
+          "tree": 6,
+          "blob": 86,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      }
+    },
+    {
+      "tool": "intent.candidate.save.prepare",
+      "ms": 13713,
+      "nativeRequests": 7609,
+      "requestKinds": {
+        "head": 7506,
+        "commit": 7,
+        "tree": 7,
+        "blob": 87,
+        "token": 2,
+        "mutation": 0,
+        "other": 0
+      },
+      "origins": {
+        "identity": {
+          "head": 7458,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 1,
+          "mutation": 0,
+          "other": 0
+        },
+        "repository": {
+          "head": 48,
+          "commit": 6,
+          "tree": 6,
+          "blob": 86,
+          "token": 1,
+          "mutation": 0,
+          "other": 0
+        }
+      }
+    },
+    {
+      "tool": "intent.candidate.save.prepare",
+      "ms": 13912,
+      "nativeRequests": 7607,
+      "requestKinds": {
+        "head": 7506,
+        "commit": 7,
+        "tree": 7,
+        "blob": 87,
+        "token": 0,
+        "mutation": 0,
+        "other": 0
+      },
+      "origins": {
+        "identity": {
+          "head": 7458,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "repository": {
+          "head": 48,
+          "commit": 6,
+          "tree": 6,
+          "blob": 86,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      }
+    }
+  ],
+  "component": {
+    "revisions": 2,
+    "semanticSourcesPerRevision": 34,
+    "physicalPathsPerRevision": 42,
+    "sourcePolicyCalls": 252,
+    "callerChecks": 19,
+    "allSimulatedProviderAttempts": 32,
+    "queryAliases": [
+      16,
+      16,
+      2,
+      2,
+      6
+    ],
+    "currentCaller": "native Git-head stand-in, not OIDC",
+    "sourcePoliciesSynthetic": true,
+    "fourRevisions": {
+      "semanticSourcesPerRevision": 34,
+      "physicalPathsPerRevision": 42,
+      "sourcePolicyCalls": 504,
+      "queryAliases": [
+        16,
+        16,
+        16,
+        14,
+        2,
+        6
+      ]
+    }
+  },
+  "verification": {
+    "native": {
+      "exitCode": 0,
+      "joinedJourneyAndCombinedCheckPassed": true,
+      "idempotentMigrationsPassed": true,
+      "postRecordsRevocationAndExpiryReachedAndDenied": true,
+      "ownedSyntheticDatabaseCleanupConfirmed": true,
+      "fullSuiteRun": false
+    },
+    "focused": {
+      "actualFiles": [
+        "apps/api/test/corpus-native-read-graph.test.ts",
+        "apps/api/test/corpus-readgraph-prototype.test.ts",
+        "apps/api/test/corpus-batch-prototype.test.ts",
+        "packages/data/test/integration-diagnostics.test.ts"
+      ],
+      "tests": 31,
+      "passed": 31,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "durationMs": 117052.93675,
+      "note": "The multi-file command also named a nonexistent corpus-batch-native-authority.test.ts selector; Node did not run it. The actual authorization suite was discovered and run separately below."
+    },
+    "authorizationRegression": {
+      "command": "node --test apps/api/test/corpus-batch-authorization.test.ts",
+      "tests": 3,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "durationMs": 18668.187583
+    },
+    "changedTestFollowup": {
+      "command": "node --test --test-name-pattern='four cancelled|close promptly' apps/api/test/corpus-native-read-graph.test.ts",
+      "tests": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "durationMs": 10325.982208,
+      "note": "After adding finally-release cleanup to held-callback tests. Subsequent change was indentation only. Not two additional unique tests."
+    },
+    "uniqueFocusedTestsPassed": 34,
+    "typecheck": {
+      "command": "pnpm typecheck",
+      "prototype": "passed",
+      "packages": 8,
+      "passed": 8,
+      "cached": 7,
+      "turboSeconds": 2.846,
+      "source": "after final code/test edits"
+    },
+    "initialCorrections": [
+      "Fixture-only API typecheck mismatch: zero-argument authorize callback invoked with a scope argument; corrected.",
+      "First 26-test run passed 25 and failed an incorrect four-revision partition expectation. Actual reference order yields 32 distinct roots then 28 roots/two pointers. File/source/policy assertions were preserved; final run passed."
+    ],
+    "kit": "95 required artifacts valid",
+    "workflowTokenScopes": "passed"
+  },
+  "sourceSha256": {
+    "packages/adapters/src/code-host/corpus-read-graph.ts": "0e536f18e9ebc27cf1c0eab4abc699d52488e418e6cd023c725e2677b8ee3365",
+    "apps/api/test/corpus-native-read-graph.test.ts": "20fe79a2673872cb7d35d5c3ed9b476d0354b34e9019da369673cc388fed19ed",
+    "apps/api/test/corpus-batch-prototype.fixture.ts": "27b127b79249c397b5423e8f65bfcdcd90440acd12affff6d4a267c9c11660ed",
+    "apps/api/test/corpus-history-feasibility.ts": "5908c54f9ad3e545a51b4f85a531e7d8dc7128ddfb5744f75834202e42685e03",
+    "apps/api/test/records-readset-feasibility.integration.ts": "29271a67be3199c3cc2e48954d23d3a910892cdc7f18414ca491d989f9b5cfe7",
+    "apps/api/test/authenticated-generation.integration.ts": "ba460745045f769c8469d508f48f46cc779853254435947967af00c6a39a2bf1",
+    "packages/data/test/integration-diagnostics.ts": "ade50c49657c3706377e18924d6dceed6e93c6f309bf24835ea690d4568249a4",
+    "packages/data/test/integration-diagnostics.test.ts": "8b0424610ed4d57a589144ef8a4569a06dd00428bd54b74303cc0f1f7ad2e383",
+    "packages/data/test/postgres.integration.ts": "b6920170e9983fd2d52c6af6595d8456776d63015d7965a94ca8fef37ccdbc7f"
+  },
+  "protectedSha256": {
+    "intent/0001/ARCHITECTURE.md": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65",
+    "intent/0001/EXAM.md": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f",
+    "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32",
+    "intent/0289/PERFORMANCE.json": "d0371c364bbfb103b70675faf911499bffb91afe8a5e6950718c87a171e9e302"
+  },
+  "acceptance": {
+    "verified": 17,
+    "total": 25,
+    "percent": 68,
+    "remaining": 8,
+    "changePercentagePoints": 0,
+    "applicationFactoryChanged": false,
+    "wholeJourneyPerformanceAccepted": false,
+    "componentAllocationAccepted": false,
+    "actualUiAcceptance": false,
+    "recordsAdopted": false,
+    "realModelCalled": false,
+    "realRuntimeGitHubWrite": false
+  }
+}

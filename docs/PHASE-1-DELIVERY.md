@@ -6956,3 +6956,25 @@ Next connect the owned multi-revision corpus/records graph with independent poli
 key services, final readback and effect-separated phases, then measure the complete
 unchanged C22 benchmark. User drafts, signed artifacts and roadmap/outputs remain
 untouched. **Intent capture: 68% (17/25; eight remaining; +0 percentage points).**
+
+## 0304 — Owned current/historical corpus graph, no factory switch
+
+The [production-source graph](../intent/0304/EVIDENCE.md) uses the native batch
+adapter for exact roots/pointers, manifests and document dependency waves. Each
+revision/path retains its own source grants; canonical, candidate and amendment
+bytes match the existing collector. Missing or unverified coverage rejects rather
+than imply newness. A dependent records callback completes before final source,
+selection, grants-revision, caller and head closure. Four admitted calls retain
+their slots until actual work drains after cancellation; close/shutdown are owned.
+
+Focused native Git tests and the combined native records selection pass; exact
+verification scope, corrections and source hashes are recorded with the evidence.
+The combined portion costs 53 simulated provider attempts, with 20 encrypted rows,
+six recorded SDK exchanges and final records/key readback. Post-record source loss
+and expiry still deny, as do owner/key/revision/hold changes. Ordinary application
+confirmation/recovery/repeat remain 7,637 / 7,609 / 7,607. No latency or C22 claim.
+
+Next integrate the owned records reader and independent policy/key services across
+outer effect-separated phases. The factory/profile, signed artifacts, user drafts,
+roadmap/outputs, actual records adoption, model spend, runtime GitHub writes and
+deployment remain unchanged. **68% (17/25; eight remaining; +0 points).**

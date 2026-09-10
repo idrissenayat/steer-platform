@@ -62,6 +62,22 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Owned native corpus graph, no factory switch — 0304
+
+[0304](../intent/0304/EVIDENCE.md) composes the actual batch adapter into an owned
+current/historical collector. Exact independent revisions, root selections and all
+consumed document/pointer/manifest grants survive through final closure. A trusted
+read-only callback verifies dependent records before that closure; it cannot stand
+in for records/key policy or contain dispatch/save effects. Up to four admitted
+calls retain their slots while real callbacks drain after timeout/cancel/close.
+Shutdown waits for actual pending work, not merely returned races.
+
+The native records experiment uses this collector, the signed test App JWT and
+actual OIDC/Git resolver and preserves late revocation/expiry/key/hold checks. Its
+53-attempt result remains local/synthetic. No runtime service/profile/factory is
+switched. Next is owned records composition with independent policies/key providers
+and all effect-separated phases; full confirmation still costs 7,637.
+
 ### Native batch adapter, no runtime switch — 0303
 
 [0303](../intent/0303/EVIDENCE.md) registers a private batch read on the actual

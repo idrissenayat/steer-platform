@@ -9,7 +9,23 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0303 / native GitHub batch reader — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0304 / owned native corpus graph — 68% (17/25; 8 remaining; +0 points)**.
+The [owned production-source collector](../intent/0304/EVIDENCE.md) connects the
+native batch reader to exact current/historical roots, pointer/manifest/document
+dependencies and final source closure after dependent records readback. Four-call
+admission stays occupied until actual work drains after cancellation or close;
+shutdown waits for those callbacks. Missing/inaccessible/unresolved/corrupt sources
+reject rather than establish new intent.
+
+Native local verification combines it with existing encrypted records and actual
+OIDC/Git authorization: the records/source portion costs 53 simulated provider
+attempts. This is not installed into the application factory; the preceding actual
+synthetic confirmation still costs 7,637. Next replace recursive records reconstruction
+with the owned records/read-set composition, connect independent policies/key services
+and outer effect phases, then run the unchanged complete benchmark. No new ETA,
+live authority, C18/C22 completion or user-acceptance claim.
+
+Prior delivery checkpoint: **0303 / native GitHub batch reader — 68% (17/25; 8 remaining; +0 points)**.
 The [application adapter primitive](../intent/0303/EVIDENCE.md) now uses the existing
 restricted installation-token path for bounded immutable multi-object reads. Exact
 native inventories prove every revision/path; identical objects share bytes, never

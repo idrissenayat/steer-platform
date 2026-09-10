@@ -7,6 +7,23 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Owned native corpus graph — 0304
+
+The [production-source graph](../intent/0304/EVIDENCE.md) owns current/historical
+source collection and final closure after dependent work. The native records/source
+selection measures 53 simulated attempts (12 source repository, 40 identity-provider
+and one JWKS), with 35 caller checks, 252 revision/path policies and full final
+records/key readback. A single local 1,686 ms sample has no injected latency and is
+not p95. The isolated component's 32-attempt sample uses a simpler caller stand-in;
+it is not directly comparable and does not validate the proposed 30-attempt corpus
+allocation. No component allocation or full-action budget is accepted here.
+
+Ordinary factory/HTTP actions still use the old collectors: confirmation/recovery/
+repeat remain 7,637 / 7,609 / 7,607 in the same native run. Independent production
+records/key policies, full lifecycle authority and owned outer effect phases remain
+to integrate before the complete unchanged C22 protocol. Do not interpret either
+component measurement as an installed application speedup or completed checkpoint.
+
 ## Application GitHub batch primitive — 0303
 
 The [native adapter primitive](../intent/0303/EVIDENCE.md) reads up to 100 distinct

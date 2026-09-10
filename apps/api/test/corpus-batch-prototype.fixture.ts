@@ -4,10 +4,11 @@ import { scopeReviewFixture } from '../../../packages/tool-registry/test/intent-
 import { createGitHubReader } from '@steer/adapters/github';
 import { binding, now } from '../../../packages/adapters/test/github-brief-fixture.ts';
 import { corpusBatchQuery, collectCorpusBatchPrototype } from './corpus-batch-prototype.ts';
+import { corpusArtifactBatchQuery } from '../../../packages/adapters/src/code-host/corpus-artifact-batch.ts';
 
 /** GitHub-shaped synthetic wire replies backed by real disposable Git objects.
  * Local object reads inside this provider emulator are not HTTP attempts. */
-export async function corpusBatchPrototypeFixture(t:{after(run:()=>void):void}){
+export async function corpusBatchPrototypeFixture(t:{after(run:()=>void):void}, options: { nativeBatch?: boolean } = {}){
   const fixtureBinding={...binding};
   const native=nativeCandidateJourneyFixture(t,true), source=await scopeReviewFixture(32);
   const evidence=await native.repositoryEvidence({...source.evidence,branch:native.branch});
@@ -29,7 +30,7 @@ export async function corpusBatchPrototypeFixture(t:{after(run:()=>void):void}){
     assert.equal(init?.method,'POST');assert.equal(new Headers(init?.headers).get('authorization'),'Bearer synthetic-read');
     assert.equal(init?.redirect,'error');assert.equal(init?.cache,'no-store');assert.ok(init?.signal);
     const {query,variables}=JSON.parse(String(init.body));
-    const count=Object.keys(variables).length-2;assert.equal(query,corpusBatchQuery(count));
+    const count=Object.keys(variables).length-2;assert.equal(query,(options.nativeBatch ? corpusArtifactBatchQuery : corpusBatchQuery)(count));
     assert.equal(variables.owner,binding.owner);assert.equal(variables.name,binding.repository);
     assert.deepEqual(Object.keys(variables).sort(),['owner','name',...Array.from({length:count},(_,i)=>`o${i}`)].sort());
     const blobs=Object.fromEntries(Array.from({length:count},(_,i)=>{

@@ -35,7 +35,7 @@ import { testRecordsReadsetFeasibility } from './records-readset-feasibility.int
  * This check does not claim real provider authority or signed-in UI acceptance. */
 export async function testAuthenticatedGeneration({ admin, connect, check }: {
   admin: Pool; connect(role: string): Pool; check(name: string, run: () => Promise<void>): Promise<void>;
-}, direction: AuthenticatedJourneyDirection = 'new-distinct', performanceOnly = false, profileRequests = false, recordsFeasibility = false, combinedFeasibility: false | 'separate' | 'graph' = false) {
+}, direction: AuthenticatedJourneyDirection = 'new-distinct', performanceOnly = false, profileRequests = false, recordsFeasibility = false, combinedFeasibility: false | 'separate' | 'graph' | 'native-graph' = false) {
   if (profileRequests && performanceOnly) throw new Error('Attribution overhead must not be mixed with performance acceptance.');
   if (recordsFeasibility && (profileRequests || performanceOnly)) throw new Error('Records feasibility must be an isolated test selection.');
   if (combinedFeasibility && !recordsFeasibility) throw new Error('Combined feasibility requires native records.');

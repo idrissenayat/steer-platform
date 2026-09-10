@@ -26,6 +26,9 @@ test('integration focus is explicit, bounded and distinct from the full suite',(
   assert.deepEqual(parseIntegrationSelection(['--records-readset-feasibility']),{mode:'records-readset-feasibility'});
   assert.deepEqual(parseIntegrationSelection(['--combined-readset-feasibility']),{mode:'combined-readset-feasibility'});
   assert.deepEqual(parseIntegrationSelection(['--combined-readgraph-feasibility']),{mode:'combined-readgraph-feasibility'});
+  assert.deepEqual(parseIntegrationSelection(['--combined-native-readgraph-feasibility']),{mode:'combined-native-readgraph-feasibility'});
+  assert.throws(()=>parseIntegrationSelection(['--combined-native-readgraph-feasibility','extra']));
+  assert.throws(()=>parseIntegrationSelection(['--combined-native-readgraph-feasibility','--combined-readgraph-feasibility']));
   assert.throws(()=>parseIntegrationSelection(['--combined-readgraph-feasibility','extra']));
   assert.throws(()=>parseIntegrationSelection(['--combined-readgraph-feasibility','--combined-readset-feasibility']));
   assert.throws(()=>parseIntegrationSelection(['--combined-readset-feasibility','extra']));
