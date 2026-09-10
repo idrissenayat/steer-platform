@@ -1,6 +1,6 @@
 /** Explicit, owner-invoked local operations. Never imported by the default API. */
 import { readFileSync, writeFileSync, mkdirSync, lstatSync, chmodSync, existsSync } from 'node:fs';
-import { randomBytes, randomUUID, X509Certificate } from 'node:crypto';
+import { createHash, randomBytes, randomUUID, X509Certificate } from 'node:crypto';
 import { spawnSync, spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { resolve, join } from 'node:path';
@@ -9,6 +9,7 @@ import { createRequire } from 'node:module';
 import { makeRealm, makeGrant, makeProfile, composeConfiguration, postgresHba } from './local-workspace-config.mjs';
 import { assertLocalMigrationBoundary } from './local-migration-boundary.mjs';
 import { inspectLocalRecordsApproval, localD1Decision } from './local-records-approval.mjs';
+import { inspectLocalRecordsInventory } from './local-records-inventory.mjs';
 
 const root = fileURLToPath(new URL('../../../', import.meta.url));
 const directory = join(homedir(), '.config/steer/local-workspace');
@@ -49,7 +50,7 @@ function createBrowserCertificate() {
 }
 async function main() {
   if (!uid || Number(process.versions.node.split('.')[0]) < 24) throw new Error('Use Node 24+ as the non-root workspace owner.');
-  if (!['init', 'prepare-browser-tls', 'configure', 'up', 'migrate', 'verify', 'verify-github', 'start', 'status', 'records-status', 'stop-services'].includes(action)) throw new Error('Usage: local-workspace.mjs init|prepare-browser-tls|configure|up|migrate|verify|verify-github|start|status|records-status|stop-services');
+  if (!['init', 'prepare-browser-tls', 'configure', 'up', 'migrate', 'verify', 'verify-github', 'start', 'status', 'records-status', 'records-inventory', 'stop-services'].includes(action)) throw new Error('Usage: local-workspace.mjs init|prepare-browser-tls|configure|up|migrate|verify|verify-github|start|status|records-status|records-inventory|stop-services');
   if (action === 'records-status') {
     const read = path => readFileSync(resolve(root, path));
     const decision = inspectLocalRecordsApproval(JSON.parse(read('operating/local-mac/records-d1-approval.json')),
@@ -88,6 +89,22 @@ async function main() {
   privateDirectory(directory);
   const secrets = JSON.parse(privateRead(join(directory, 'secrets.json')));
   const certificate = privateRead(join(directory, 'tls.crt'));
+  if (action === 'records-inventory') {
+    const { default: pg } = await import('pg');
+    const journal = JSON.parse(readFileSync(resolve(root, 'packages/data/migrations/meta/_journal.json'), 'utf8'));
+    const known = journal.entries.map(entry => {
+      if (!/^[0-9]{4}_[a-z0-9_]+$/.test(entry.tag)) throw new Error('Invalid migration name.');
+      return { tag: entry.tag, hash: createHash('sha256').update(readFileSync(resolve(root, `packages/data/migrations/${entry.tag}.sql`))).digest('hex') };
+    });
+    const client = new pg.Client({ host: 'localhost', port: 55432, database: 'steer', user: 'postgres', password: secrets.databaseAdmin,
+      ssl: { ca: certificate, rejectUnauthorized: true }, connectionTimeoutMillis: 3000, statement_timeout: 5000 });
+    try {
+      await client.connect();
+      const result = await inspectLocalRecordsInventory(client, known, JSON.parse(privateRead(join(directory, 'profile.json'))));
+      console.log(JSON.stringify(result, null, 2));
+    } finally { await client.end(); }
+    return;
+  }
   if (action === 'prepare-browser-tls') {
     createBrowserCertificate();
     console.log('New localhost-only browser leaf created. Database certificate, identity, data and system trust unchanged.'); return;

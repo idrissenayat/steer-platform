@@ -82,6 +82,14 @@ demonstrated storage/schema/runtime controls remain separate from the approved
 $5 model-test cap. Do not re-request D1 acceptance, bypass those requirements or
 resume unrelated performance work while preparing the integration.
 
+The September 10 read-only storage inventory found only 0000–0004 actually
+installed, not the seven migrations named by the command's unchanged boundary.
+The checkout has 28 migrations; draft, execution and usage tables and the draft
+runtime role are absent. Use [the observed inventory](INTENT-CAPTURE-PROGRESS.md#actual-storage-inventory--2026-09-10)
+as the starting state for the exact binding. The focused independent Test Agent
+was subsequently authorized for D1's saved-intent Exam amendment; that authorship
+does not apply migrations or activate the workflow.
+
 Last verified implementation checkpoint before the pause: **0329 / shared draft graph across save reviews — 68% (17/25; 8 remaining; +0 points)**.
 [0329](../intent/0329/EVIDENCE.md) lends one exact owned draft phase through
 nested source/final/preview reviews, with fresh consumer and draft permissions,

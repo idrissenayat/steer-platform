@@ -71,6 +71,37 @@ the amendment's independent Exam incorporation and exact local key/storage/schem
 and recovery binding, then connect the existing managed journey in the actual UI.
 Do not ask the user to approve this same D1 policy again.
 
+### Actual storage inventory — 2026-09-10
+
+At 14:07:50 UTC, `local-workspace.mjs records-inventory` inspected the actual
+local Postgres over verified TLS with `transaction_read_only=on`. Installed
+migrations are exactly 0000–0004, with matching checkout SQL hashes; the checkout
+contains 28 migrations (0000–0027). The command's seven-migration boundary was
+not evidence of seven installed migrations. No tables were found in `steer_drafts`,
+`steer_execution` or `steer_usage`. The existing app, auth and projector roles
+are non-superuser/non-RLS-bypass; the separate draft runtime role is absent.
+Execution/usage are designed to use the existing app role, not a new execution role.
+
+Database archive mode is off, with zero active replicas and replication slots.
+This reports existing settings without changing them; host/volume snapshots,
+other backups and external key storage were not inventoried and no recovery
+claim follows. The private profile still lacks the managed intent-journey binding.
+No content, migration, grant, model call or application GitHub write occurred.
+
+The user authorized a focused fresh-context Test Agent for the D1 saved-intent
+Exam amendment. It produced [seven independent acceptance groups](architecture/D1-SAVED-INTENT-EXAM.candidate.md),
+SHA-256 `2820012be6f7899bc398641b10a8eacc898d69fd95fba69203f2281e11de2096`,
+and checked the exact source/baseline bindings. Its candidate is separate from
+protected Exam incorporation, gate decisions and running/passing the cases.
+The read-only inventory and existing boundary regression checks pass 14 tests;
+kit and token-scope audits pass. These do not execute the independent D1 cases.
+Next prepare the exact schema/key/
+recovery binding against that independent contract, starting from the observed
+five-migration database rather than an assumed baseline.
+
+Acceptance remains **0% (0/8; W01–W08 remaining; +0 percentage points)**. This
+inventory identifies a concrete installation gap; it does not deliver saved drafts.
+
 ### Current reporting contract
 
 After each verified completed increment report:

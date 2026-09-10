@@ -24,6 +24,9 @@ audit above, the signed execution plan or formal gate status.
   exact approved bytes. Its [D1 adoption successor](architecture/D1-ADOPTION.md)
   records the September 10 decision, architecture data boundary and incorporation;
   the root Word documents and their Learn projections now include that amendment.
+  The explicitly authorized independent Test Agent's [D1 Exam candidate](architecture/D1-SAVED-INTENT-EXAM.candidate.md)
+  supplies the focused acceptance amendment; it is not canonical incorporation,
+  a passing test result or a gate decision.
 - [Current intent journey plan](INTENT-JOURNEY-PLAN.md): I1–I6 implementation and
   the design checkpoint before dependent persistence/publication work.
 - [Phase 1 delivery ledger](PHASE-1-DELIVERY.md): completed development increments

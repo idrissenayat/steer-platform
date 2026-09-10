@@ -108,12 +108,16 @@ matching protected secret bundle; copying only one is not a tested restore.
 
 ## Explicit operation
 
-**Migration hold (0209, extended through 0217):** the development journal contains seventeen migrations.
-New 0007–0016 execution, encrypted-original, lifecycle, revision and role-result migrations run only in disposable tests;
-their real records/schema adoption is still pending. `local-workspace.mjs migrate`
-refuses any set beyond the existing seven-migration baseline, before reading real
+**Migration hold, refreshed 2026-09-10:** the development journal contains 28 migrations
+(0000–0027). A read-only check of the actual local database found only 0000–0004
+installed, matching their checked-in SQL hashes. No tables exist in `steer_usage`,
+`steer_execution` or `steer_drafts`; `steer_draft_runtime` is absent. Execution and
+usage use the existing `steer_app` role, not a new execution role. D1 policy adoption
+is recorded, but exact schema/storage activation is still pending. `local-workspace.mjs migrate`
+refuses any set beyond its existing seven-migration boundary, before reading real
 private state or changing the database. Do not bypass this guard or increase its
-baseline to make setup pass. The sequence below is historical setup guidance, not
+boundary to make setup pass. The boundary is not proof that seven migrations
+were applied. The sequence below is historical setup guidance, not
 permission to migrate the current expanded schema. Existing `start` does not apply
 migrations and is unaffected. See [0209 evidence](../intent/0209/EVIDENCE.md).
 
@@ -138,8 +142,8 @@ are rejected; Keycloak and STEER clients validate the database server certificat
 
 `migrate` starts production-mode Keycloak, not `start-dev`. Both image digests are
 pinned to locally installed images; setup uses `--pull never`. Database changes
-were originally the five canonical migrations; the current local operations
-baseline expects seven; the expanded seventeen-migration set is explicitly held.
+were originally the five canonical migrations, still the observed installed set;
+the local operations boundary expects seven, and the expanded 28-migration set is held.
 No real migration is authorized by this guide. No other project's containers or
 volumes are changed. Published database and identity ports bind IPv4 loopback
 only. A second bridge supplies Docker Desktop loopback publishing; it is not an
@@ -156,6 +160,7 @@ calling sign-in available. Do not rebuild Next while the owned renderer is activ
 ```sh
 node apps/api/ops/local-workspace.mjs status
 node apps/api/ops/local-workspace.mjs records-status
+node apps/api/ops/local-workspace.mjs records-inventory
 node apps/api/ops/local-workspace.mjs verify-github
 NODE_EXTRA_CA_CERTS="$HOME/.config/steer/local-workspace/browser-tls/server.crt" node apps/api/ops/local-workspace.mjs verify
 node apps/api/ops/local-workspace.mjs stop-services
@@ -173,6 +178,13 @@ architecture amendment; that decision is no longer pending. This diagnostic gran
 no runtime authority, reads no credentials and makes no database/provider calls.
 The real migration baseline remains held until exact schema and storage/recovery
 activation conditions are satisfied; D1 policy approval alone does not waive them.
+
+`records-inventory` uses the existing private database credential over verified
+local TLS in an explicitly read-only transaction. It reads migration hashes,
+named-role flags, operational table names and database recovery settings only;
+it reads no application content and ends with rollback. Errors withhold results
+without printing private details. It neither applies migrations nor inventories
+all host/volume/key backup paths, and it is not proof of recovery or activation.
 
 `verify-github` reads the real App and installation permission records and the
 current Git-backed subject grant. It checks that the actual membership matches

@@ -48,6 +48,20 @@ runtime, schema, write, deletion or spending authority. The policy decision need
 not be requested again. Independent Exam incorporation and verified storage/key/
 recovery/runtime binding remain before activation; W01–W08 acceptance stays 0/8.
 
+2026-09-10 focused independent Exam and actual-storage inventory: the explicitly
+authorized fresh-context Test Agent authored [D1's saved-intent Exam candidate](architecture/D1-SAVED-INTENT-EXAM.candidate.md)
+(SHA-256 `2820012be6f7899bc398641b10a8eacc898d69fd95fba69203f2281e11de2096`).
+It preserves the protected Exam and supplies seven focused acceptance groups,
+not a passing implementation or gate ruling. The actual read-only local database
+inventory found only migrations 0000–0004 applied, versus 28 in the checkout.
+Usage, execution and draft tables are absent, as is the draft runtime role;
+the seven-migration command boundary is not installation evidence. Added the
+metadata-only `records-inventory` operator command and corrected setup guidance.
+Four new inventory cases plus ten existing approval/startup/boundary checks pass;
+kit and token-scope audits pass. No schema, key, grant, model or application GitHub
+effect occurred. Next verify the exact storage/key/recovery binding against the
+independent contract; workflow acceptance stays **0/8 (0%; +0 points)**.
+
 Live-test spending approval, 2026-09-10: the user replied **"Approve up to $5 total"**
 to the explicit request for a one-time $5 USD cap for live OpenAI intent-review
 and Brief/Spec/Exam tests across all loop runs, stopping at the cap, excluding
