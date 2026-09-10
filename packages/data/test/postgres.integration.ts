@@ -106,6 +106,16 @@ try {
     await testAuthenticatedGeneration({admin,connect,check},'candidate-revision');
     assert.equal(passed,2);
     console.log(`FOCUSED authenticated candidate revision result: ${passed-1} joined check passed plus idempotent migration check; full suite NOT RUN.`);
+  }else if(selection.mode==='combined-readgraph-feasibility'){
+    console.log('FOCUSED combined native records and multi-revision source graph; NOT production integration or C22.');
+    await testAuthenticatedGeneration({admin,connect,check},'new-distinct',false,false,true,'graph');
+    assert.equal(passed,2);
+    console.log('FOCUSED combined readgraph: joined journey and revision-aware graph assertions plus idempotent migrations passed; full suite NOT RUN.');
+  }else if(selection.mode==='combined-readset-feasibility'){
+    console.log('FOCUSED combined native records and historical corpus cost; NOT production integration or C22.');
+    await testAuthenticatedGeneration({admin,connect,check},'new-distinct',false,false,true,'separate');
+    assert.equal(passed,2);
+    console.log('FOCUSED combined readset: joined journey and revision-aware cost assertions plus idempotent migrations passed; full suite NOT RUN.');
   }else if(selection.mode==='records-readset-feasibility'){
     console.log('FOCUSED records read-set feasibility after the unchanged authenticated native journey; NOT full C22 or production installation.');
     await testAuthenticatedGeneration({admin,connect,check},'new-distinct',false,false,true);

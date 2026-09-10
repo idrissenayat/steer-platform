@@ -24,6 +24,12 @@ test('integration focus is explicit, bounded and distinct from the full suite',(
   assert.deepEqual(parseIntegrationSelection(['--journey-runtime']),{mode:'journey-runtime'});
   assert.deepEqual(parseIntegrationSelection(['--journey-request-profile']),{mode:'journey-request-profile'});
   assert.deepEqual(parseIntegrationSelection(['--records-readset-feasibility']),{mode:'records-readset-feasibility'});
+  assert.deepEqual(parseIntegrationSelection(['--combined-readset-feasibility']),{mode:'combined-readset-feasibility'});
+  assert.deepEqual(parseIntegrationSelection(['--combined-readgraph-feasibility']),{mode:'combined-readgraph-feasibility'});
+  assert.throws(()=>parseIntegrationSelection(['--combined-readgraph-feasibility','extra']));
+  assert.throws(()=>parseIntegrationSelection(['--combined-readgraph-feasibility','--combined-readset-feasibility']));
+  assert.throws(()=>parseIntegrationSelection(['--combined-readset-feasibility','extra']));
+  assert.throws(()=>parseIntegrationSelection(['--combined-readset-feasibility','--records-readset-feasibility']));
   assert.throws(()=>parseIntegrationSelection(['--records-readset-feasibility','extra']));
   assert.throws(()=>parseIntegrationSelection(['--records-readset-feasibility','--journey-performance']));
   assert.throws(()=>parseIntegrationSelection(['--records-readset-feasibility','--journey-request-profile']));

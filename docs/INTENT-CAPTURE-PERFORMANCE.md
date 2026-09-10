@@ -7,6 +7,22 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Combined records and multi-revision graph experiment — 0301
+
+The [combined native comparison](../intent/0301/EVIDENCE.md) measures the same
+records/retained-source portion with separate readers (74 attempts) and one
+bounded revision graph (50 attempts). The two retained revisions share 40 immutable
+objects; each still receives its own membership/selection and 126 path-policy
+checks. The graph's 12 repository plus 16 identity attempts fit the proposed
+30-attempt corpus portion for this fixture. That is not whole-phase acceptance:
+production policies, final cross-component source closure, outer callbacks,
+ownership and separate phases around effects remain unproven. Full confirmation
+still costs 7,637. No production installation or completed C22 is claimed.
+
+Single local samples (3,116 / 1,621 ms) have no injected network delay and are not
+p95, comparable to a records-only sample, or actual user-action latency. The
+200-attempt/5-second limits and full warm/cold/concurrent protocol are unchanged.
+
 ## Records protocol experiment — 0300
 
 The [native records experiment](../intent/0300/EVIDENCE.md) reads and fully rechecks

@@ -10,12 +10,14 @@ import { readRecordsReadsetPrototype } from '../../../packages/data/test/records
 import { decodeRecordsReadsetPrototype } from './records-readset-decode.ts';
 import type { createRecordedMastraVerifier } from '@steer/agents/recorded-mastra';
 import type { DraftKey } from '../../../packages/data/src/draft-envelope.ts';
+import { inspectHistoricalCorpusCost } from './corpus-history-feasibility.ts';
+import type { nativeCandidateJourneyFixture } from './native-candidate-journey.fixture.ts';
 
 /** Native database/crypto/topology feasibility only. Called after the unchanged
  * authenticated synthetic journey; no production service result is substituted. */
 export async function testRecordsReadsetFeasibility(f: Awaited<ReturnType<typeof scopeDraftIntegrationFixture>>,
   identity: Awaited<ReturnType<typeof recordedRuntimeFixture>>, profiles: Parameters<typeof createRecordedMastraVerifier>[0],
-  target: Parameters<typeof readRecordsReadsetPrototype>[2], authorize: () => Promise<void>) {
+  target: Parameters<typeof readRecordsReadsetPrototype>[2], authorize: () => Promise<void>, native?: ReturnType<typeof nativeCandidateJourneyFixture>, strategy: 'separate' | 'graph' = 'separate') {
   const traffic = createNativeRequestMeter(identity.ports.github);
   const reader = createGitHubReader(identity.profile.github.binding, {
     appJwt: createAppJwtSigner(identity.profile.github.appId, identity.secrets.githubPrivateKeyPem), fetch: traffic.transport,
@@ -44,6 +46,7 @@ export async function testRecordsReadsetFeasibility(f: Awaited<ReturnType<typeof
         keys.set(JSON.stringify([ref.draftId, ref.keyId]), { keyId: key.keyId, bytes: Buffer.from(key.bytes) });
       }
       await current(); const decoded = await decodeRecordsReadsetPrototype(first, keys, profiles); await current();
+      const historicalCorpus = native ? await inspectHistoricalCorpusCost(native, identity, decoded.decoded, current, strategy) : undefined;
       for (const original of decoded.decoded.scope_originals!) for (const source of original.value.evidence.inventory) {
         await policy(); assert.ok(source.path); retainedSourcePolicies++;
       }
@@ -60,14 +63,15 @@ export async function testRecordsReadsetFeasibility(f: Awaited<ReturnType<typeof
       const last = await readRecordsReadsetPrototype(f.pools, f.config, target, current);
       assert.equal(last.digest, first.digest); await policy(); await current();
       const after = traffic.snapshot();
-      const providerAttempts = Object.values(after).reduce((a, b) => a + b, 0) - Object.values(before).reduce((a, b) => a + b, 0) + jwks - beforeJwks;
+      const providerAttempts = Object.values(after).reduce((a, b) => a + b, 0) - Object.values(before).reduce((a, b) => a + b, 0)
+        + jwks - beforeJwks + (historicalCorpus?.repositoryAttempts ?? 0);
       return { providerAttempts, elapsedMs: Math.round(performance.now() - started), jwksAttempts: jwks - beforeJwks, callerChecks: checks - beforeChecks,
         providerKinds: Object.fromEntries(Object.entries(after).map(([name, value]) => [name, value - before[name as keyof typeof before]])),
         roleTransactions: first.metrics.roleTransactions + last.metrics.roleTransactions,
         sqlStatements: first.metrics.statements + last.metrics.statements, keyReferences: first.keys.length, keyCalls: keyCalls - beforeKeys,
         recordPolicyCalls: recordPolicies - beforePolicies - (retainedSourcePolicies - beforeSources), retainedSourcePolicyCalls: retainedSourcePolicies - beforeSources,
         groups: Object.fromEntries(Object.entries(first.data).map(([name, rows]) => [name, rows.length])),
-        byteLength: Buffer.byteLength(JSON.stringify(first.data)), ...decoded.counts,
+        byteLength: Buffer.byteLength(JSON.stringify(first.data)), ...decoded.counts, ...(historicalCorpus ? { historicalCorpus } : {}),
         httpRegistryIntegrated: false, actualRecordsPoliciesIntegrated: false, ownerDrainAndAllEffectsVerified: false,
         wholeJourneyPerformanceAccepted: false, productionInstalled: false };
     } finally { for (const key of keys.values()) key.bytes.fill(0); }
@@ -81,8 +85,10 @@ export async function testRecordsReadsetFeasibility(f: Awaited<ReturnType<typeof
     const initial = await run(); assert.equal(initial.scopeSdkExchanges, 4); assert.equal(initial.developmentSdkExchanges, 2);
     assert.equal(initial.groups.revisions, 2); assert.equal(initial.groups.scope_originals, 2);
     assert.equal(initial.groups.development_observations, 4); assert.equal(initial.groups.scope_observations, 8);
-    assert.equal(initial.groups.candidate_originals, 1); assert.ok(initial.providerAttempts <= 30);
-    console.log('Synthetic records readset feasibility: ' + JSON.stringify(initial));
+    assert.equal(initial.groups.candidate_originals, 1);
+    if (!native) assert.ok(initial.providerAttempts <= 30);
+    else { assert.ok(initial.historicalCorpus); assert.ok(initial.historicalCorpus.revisionCount >= 2); }
+    console.log((native ? 'Synthetic combined readset feasibility: ' : 'Synthetic records readset feasibility: ') + JSON.stringify(initial));
     await rejectAfter('decoded', async () => { denied = true; }); denied = false;
     const beforeKeyLoss = keyCalls; await assert.rejects(run(undefined, true)); assert.equal(keyCalls - beforeKeyLoss, initial.keyCalls);
     await assert.rejects(readRecordsReadsetPrototype(f.pools, { ...f.config, subject: 'foreign' }, target, async () => {}));

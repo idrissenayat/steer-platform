@@ -37,8 +37,10 @@ async function json(response:Response){
   }finally{reader.releaseLock();}
 }
 export async function collectCorpusBatchPrototype(rawBinding:GitHubBinding, productId:string, transport:typeof fetch,
-  authority:IntentCorpusAuthority, revalidate:()=>Promise<void>, signal:AbortSignal=new AbortController().signal){
+  authority:IntentCorpusAuthority, revalidate:()=>Promise<void>, signal:AbortSignal=new AbortController().signal,
+  historicalRevision?:string){
   const binding=Object.freeze({...rawBinding}), bindingSnapshot=JSON.stringify(binding);
+  const requestedRevision=historicalRevision===undefined?undefined:oid.parse(historicalRevision);
   if(binding.owner!=='synthetic'||binding.repository!=='fixture'||binding.repositoryId!==52||typeof transport!=='function')throw fail();
   const scope=Object.freeze({organizationId:binding.organizationId,productId,repository:`github:${binding.repositoryId}`,branch:binding.branch});
   const ports={authorize:authority.authorize,select:authority.select,authorizeSource:authority.authorizeSource};
@@ -69,7 +71,7 @@ export async function collectCorpusBatchPrototype(rawBinding:GitHubBinding, prod
   const io=async<T>(work:()=>Promise<T>)=>{await current();const result=await work();await current();return result;};
   const head=()=>request(`${repo}/git/ref/heads/${binding.branch}`).then(raw=>{
     if(raw.ref!==`refs/heads/${binding.branch}`||raw.object.type!=='commit')throw fail();return oid.parse(raw.object.sha);});
-  const revision=await io(head);
+  const observedHead=await io(head),revision=requestedRevision??observedHead;
   const {tree,sizes}=await io(async()=>{
     const commit=await request(`${repo}/git/commits/${revision}`);if(commit.sha!==revision)throw fail();
     const treeOid=oid.parse(commit.tree.sha),raw=await request(`${repo}/git/trees/${treeOid}?recursive=1`);
@@ -149,7 +151,7 @@ export async function collectCorpusBatchPrototype(rawBinding:GitHubBinding, prod
   }
   for(const s of selections){guard();if(JSON.stringify(await authority.select(s.context))!==JSON.stringify(s.value))throw fail();guard();}
   for(const path of captured.keys())await sourceGrant(path,revision);
-  if(await io(head)!==revision)throw fail();guard();
+  if(await io(head)!==observedHead)throw fail();guard();
   return {revision,semantic,waves,files:[...captured.values()],requests,sourcePolicyQueries,
     productionInstalled:false as const,semanticQualityVerified:false as const};
 }

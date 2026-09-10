@@ -35,9 +35,10 @@ import { testRecordsReadsetFeasibility } from './records-readset-feasibility.int
  * This check does not claim real provider authority or signed-in UI acceptance. */
 export async function testAuthenticatedGeneration({ admin, connect, check }: {
   admin: Pool; connect(role: string): Pool; check(name: string, run: () => Promise<void>): Promise<void>;
-}, direction: AuthenticatedJourneyDirection = 'new-distinct', performanceOnly = false, profileRequests = false, recordsFeasibility = false) {
+}, direction: AuthenticatedJourneyDirection = 'new-distinct', performanceOnly = false, profileRequests = false, recordsFeasibility = false, combinedFeasibility: false | 'separate' | 'graph' = false) {
   if (profileRequests && performanceOnly) throw new Error('Attribution overhead must not be mixed with performance acceptance.');
   if (recordsFeasibility && (profileRequests || performanceOnly)) throw new Error('Records feasibility must be an isolated test selection.');
+  if (combinedFeasibility && !recordsFeasibility) throw new Error('Combined feasibility requires native records.');
   const itemId = authenticatedJourneyItem(direction);
   const name = performanceOnly ? `bounded authenticated ${direction} performance prefix preserves records and reports incomplete/failed benchmark honestly`
     : direction === 'new-distinct' ? 'concrete authenticated journey binds native multi-batch scope, both SDK roles, corrected confirmation and fixed save/reopen through restart'
@@ -270,7 +271,7 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
       await runtime.shutdown(); assert.equal(constructions, 4); assert.equal(closures, 4);
       if (recordsFeasibility) await testRecordsReadsetFeasibility(f, identity, profiles, { draftId: f.draftId,
         operationIds: [reference.operationId, confirmed.reference.operationId], reviewIds: [scopePrepared.reference!.reviewId, confirmed.scopeReference.reviewId],
-        revisions: [1, 2], budgetId: f.execution.budget.budgetId }, authority);
+        revisions: [1, 2], budgetId: f.execution.budget.budgetId }, authority, combinedFeasibility ? native : undefined, combinedFeasibility || 'separate');
     } finally {
       try { await Promise.all(runtimes.map(value => value.shutdown())); }
       finally { f.drafts.close(); f.lifecycle.close(); f.key.bytes.fill(0); await Promise.all(pools.filter(pool => !pool.ending).map(pool => pool.end())); }

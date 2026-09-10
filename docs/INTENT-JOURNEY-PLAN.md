@@ -9,7 +9,24 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0300 / native records experiment — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0301 / combined revision graph experiment — 68% (17/25; 8 remaining; +0 points)**.
+The [combined native experiment](../intent/0301/EVIDENCE.md) discovers two retained
+Git revisions across three original contexts. Separate revision readers cost 74
+simulated provider attempts for the records/source portion. A bounded invocation-
+local object graph reduces that portion to 50, preserving both revisions' exact
+34-source results, 252 revision/path policy checks, 20 encrypted records, six SDK
+exchanges and complete final records readback. Forty immutable objects are shared;
+permissions are not. Both selectors preserve the preceding authenticated journey.
+
+This is test-only and not a 50-request confirmation or a UI latency result.
+Application confirmation still costs 7,637. Production per-purpose policies,
+final cross-component source closure, ownership/drainage and outer effect phases
+remain unproven. Continue [0298's bounded correction](../intent/0298/REQUEST-BUDGET-PLAN.md)
+through those boundaries and coherent integration; then run the unchanged full
+benchmark. Do not restart isolated micro-optimizations, inflate checklist coverage
+or infer a new delivery date from this partial cost measurement.
+
+Prior delivery checkpoint: **0300 / native records experiment — 68% (17/25; 8 remaining; +0 points)**.
 The test-only bounded records reader reconstructs 20 encrypted records and checks
 four scope plus two development SDK exchanges after the unchanged authenticated
 native save/reopen journey. It uses 22 simulated provider attempts including OIDC

@@ -62,6 +62,22 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Combined revision graph experiment, no runtime installation — 0301
+
+The [combined experiment](../intent/0301/EVIDENCE.md) preserves the authenticated
+native journey, then reads the records and their two distinct historical Git
+revisions. Sharing 40 immutable objects within one invocation reduces this portion
+from 74 to 50 simulated provider attempts. Both revisions keep all membership,
+selection and path policies; records retain decryption/SDK verification and full
+final readback. Denial at one revision does not inherit another revision's grant.
+
+No application factory, profile or service is changed. This is not complete
+production policy integration, final cross-component source closure, owner
+drainage, outer effect-boundary integration or C22. Actual confirmation remains
+7,637; overall stays 68% (17/25; eight remaining; +0). Live authority and spending
+prerequisites are unchanged. The next integration must retain those boundaries;
+the prototype is not a drop-in production service.
+
 ### Native records experiment, no runtime installation — 0300
 
 The [bounded read-set experiment](../intent/0300/EVIDENCE.md) follows the unchanged

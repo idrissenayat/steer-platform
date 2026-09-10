@@ -1,0 +1,252 @@
+{
+  "kind": "steer-combined-readgraph-feasibility/v1",
+  "baseCommit": "5baedfe54e764e965d3858ae3617cdea5cd70dad",
+  "node": "24.19.0",
+  "environment": "Disposable native Git and PostgreSQL; fixed local Temporal workflows; synthetic model and provider transports.",
+  "baseline": {
+    "command": "node packages/data/test/postgres.integration.ts --combined-readset-feasibility",
+    "metrics": {
+      "providerAttempts": 74,
+      "elapsedMs": 3116,
+      "jwksAttempts": 1,
+      "callerChecks": 48,
+      "providerKinds": {
+        "head": 49,
+        "commit": 1,
+        "tree": 1,
+        "blob": 1,
+        "token": 1,
+        "mutation": 0,
+        "other": 0
+      },
+      "roleTransactions": 4,
+      "sqlStatements": 34,
+      "keyReferences": 1,
+      "keyCalls": 2,
+      "recordPolicyCalls": 82,
+      "retainedSourcePolicyCalls": 136,
+      "groups": {
+        "revisions": 2,
+        "latest_revision": 1,
+        "scope_originals": 2,
+        "scope_observations": 8,
+        "development_originals": 1,
+        "development_results": 2,
+        "development_observations": 4,
+        "candidate_originals": 1,
+        "operations": 2,
+        "steps": 3,
+        "scope_runs": 2,
+        "scope_batches": 4,
+        "reservations": 6,
+        "budget": 1,
+        "scope_terms": 1
+      },
+      "byteLength": 607624,
+      "plaintextRows": 20,
+      "scopeSdkExchanges": 4,
+      "developmentSdkExchanges": 2,
+      "historicalCorpus": {
+        "revisionCount": 2,
+        "originalContexts": 3,
+        "measurements": [
+          {
+            "semanticSources": 34,
+            "physicalFiles": 42,
+            "repositoryAttempts": 10,
+            "sourcePolicyCalls": 126
+          },
+          {
+            "semanticSources": 34,
+            "physicalFiles": 42,
+            "repositoryAttempts": 10,
+            "sourcePolicyCalls": 126
+          }
+        ],
+        "repositoryAttempts": 20,
+        "uniqueBlobObjects": 40,
+        "blobObjectsSharedAcrossRevisions": 40,
+        "sourceMetadataPolicySynthetic": true,
+        "wholePhaseAccepted": false,
+        "productionInstalled": false
+      },
+      "httpRegistryIntegrated": false,
+      "actualRecordsPoliciesIntegrated": false,
+      "ownerDrainAndAllEffectsVerified": false,
+      "wholeJourneyPerformanceAccepted": false,
+      "productionInstalled": false
+    },
+    "note": "Observed before graph helper addition; separate-reader path preserved. Not a whole action."
+  },
+  "graph": {
+    "command": "node packages/data/test/postgres.integration.ts --combined-readgraph-feasibility",
+    "metrics": {
+      "providerAttempts": 50,
+      "elapsedMs": 1621,
+      "jwksAttempts": 1,
+      "callerChecks": 32,
+      "providerKinds": {
+        "head": 33,
+        "commit": 1,
+        "tree": 1,
+        "blob": 1,
+        "token": 1,
+        "mutation": 0,
+        "other": 0
+      },
+      "roleTransactions": 4,
+      "sqlStatements": 34,
+      "keyReferences": 1,
+      "keyCalls": 2,
+      "recordPolicyCalls": 82,
+      "retainedSourcePolicyCalls": 136,
+      "groups": {
+        "revisions": 2,
+        "latest_revision": 1,
+        "scope_originals": 2,
+        "scope_observations": 8,
+        "development_originals": 1,
+        "development_results": 2,
+        "development_observations": 4,
+        "candidate_originals": 1,
+        "operations": 2,
+        "steps": 3,
+        "scope_runs": 2,
+        "scope_batches": 4,
+        "reservations": 6,
+        "budget": 1,
+        "scope_terms": 1
+      },
+      "byteLength": 607624,
+      "plaintextRows": 20,
+      "scopeSdkExchanges": 4,
+      "developmentSdkExchanges": 2,
+      "historicalCorpus": {
+        "strategy": "graph",
+        "revisionCount": 2,
+        "originalContexts": 3,
+        "measurements": [
+          {
+            "semanticSources": 34,
+            "physicalFiles": 42,
+            "repositoryAttempts": null,
+            "sourcePolicyCalls": 126
+          },
+          {
+            "semanticSources": 34,
+            "physicalFiles": 42,
+            "repositoryAttempts": null,
+            "sourcePolicyCalls": 126
+          }
+        ],
+        "repositoryAttempts": 12,
+        "graph": {
+          "waves": [
+            {
+              "name": "roots-and-pointers",
+              "paths": 68,
+              "fetchedObjects": 34,
+              "batches": 3
+            },
+            {
+              "name": "manifests",
+              "paths": 4,
+              "fetchedObjects": 2,
+              "batches": 1
+            },
+            {
+              "name": "bundle-documents",
+              "paths": 12,
+              "fetchedObjects": 4,
+              "batches": 1
+            }
+          ],
+          "requests": 12,
+          "sourcePolicyQueries": 252
+        },
+        "uniqueBlobObjects": 40,
+        "blobObjectsSharedAcrossRevisions": 40,
+        "sourceMetadataPolicySynthetic": true,
+        "wholePhaseAccepted": false,
+        "productionInstalled": false
+      },
+      "httpRegistryIntegrated": false,
+      "actualRecordsPoliciesIntegrated": false,
+      "ownerDrainAndAllEffectsVerified": false,
+      "wholeJourneyPerformanceAccepted": false,
+      "productionInstalled": false
+    },
+    "note": "Observed after graph implementation, before test-only type correction and selector usage text. No runtime core changed afterwards."
+  },
+  "negativeCases": [
+    "revision-specific denial before blob dispatch",
+    "late caller/source/global grants/head/method/binding/abort",
+    "malformed partial truncated corrupt oversized blob replies",
+    "empty symbolic duplicate oversized revision sets",
+    "late records policy loss",
+    "changed key bytes on final reread",
+    "foreign subject",
+    "new draft revision after decode",
+    "new hold before final readback"
+  ],
+  "unchangedJoinedJourney": {
+    "bothPassed": true,
+    "syntheticModelCalls": 6,
+    "modelReservations": 6,
+    "nativeGitMutations": 1,
+    "fullConfirmationRequests": 7637,
+    "firstRecoveredConfirmationRequests": 7609,
+    "repeatedConfirmationRequests": 7607
+  },
+  "verification": {
+    "corpusOidcAndDiagnostics": {
+      "tests": 17,
+      "passed": 17,
+      "durationMs": 52691.38275
+    },
+    "finalGraphAndDiagnostics": {
+      "tests": 10,
+      "passed": 10,
+      "durationMs": 33190.231959
+    },
+    "uniqueFocusedTests": 22,
+    "note": "Five diagnostics tests occur in both selections; do not sum as 27 unique tests.",
+    "prototypeTypecheckPassed": true,
+    "typecheckPackages": 8,
+    "typecheckCached": 7,
+    "typecheckDurationSeconds": 1.011,
+    "fullSqlSuiteRun": false,
+    "broadBuildRun": false,
+    "fullC22Run": false,
+    "browserRun": false,
+    "modelCallsLive": false,
+    "realGithubRuntimeWrite": false
+  },
+  "limitations": [
+    "Test-only helpers, no production imports, factory or profile installation.",
+    "Policies remain fixture callbacks, not complete production per-purpose authority.",
+    "One physical fixture key does not establish interchangeability of independent key providers.",
+    "No final cross-component source closure after subsequent records/key work, no owner-drain proof or complete outer/effect-phase integration.",
+    "Single local sample has no injected network delay and is not p95 or user-action latency.",
+    "50 combined-stage attempts cannot be compared as the same workload as 7637 whole-confirmation attempts.",
+    "Whole-action 200-attempt ceiling and unchanged C22 protocol remain unproven."
+  ],
+  "sourceSha256": {
+    "apps/api/test/corpus-readgraph-prototype.ts": "f97fed79e3afadd1f16cd171aa30aacc0fdba74677bd8cdc5e9505bba3703711",
+    "apps/api/test/corpus-readgraph-prototype.test.ts": "df94ef366fe284d091a8db12d8aa586d35be95aaa7883279071902e55c454f5c",
+    "apps/api/test/corpus-history-feasibility.ts": "768329b85d6512b9c175ff373a28fa6be915a73febee5aa78c85809bb7e51851",
+    "apps/api/test/corpus-batch-prototype.ts": "6975ef1f797212fee78a72c3cc591f82c032b7a22c2b4f673821774dffb210dc",
+    "apps/api/test/corpus-batch-prototype.test.ts": "afe1e07d0b28e9b47bad2d1d81a73da80dac5ea19b198a2ef82d3aa56e7531de",
+    "apps/api/test/corpus-batch-prototype.fixture.ts": "7e46a9a7fe54ccf75f8dc2e0857a2c7aa7667d7c65c4980355aa7266d9f46c11",
+    "apps/api/test/records-readset-feasibility.integration.ts": "4f2d52b73ef8e8e7839b69f68d94558cb92230a0b9daa6f648265aa5b82f0846",
+    "apps/api/test/records-readset-decode.ts": "6213c9736a02402b1f12e7a23429d5241bfd546f4ea3d09d5c5006c6deb73fc9",
+    "packages/data/test/records-readset-prototype.ts": "e3a330144b71c1827d20fb432a37d041e9cc3a421e27aad0d9468a76c01dd6ef",
+    "apps/api/test/authenticated-generation.integration.ts": "bc76f6afd7fd729449072fd1011ad402e9e511d30477965651d5cad3e901cdc0",
+    "apps/api/test/authenticated-candidate-confirmation.integration.ts": "c766b8bf7ecb44ec7cfdb6373a0877606652ecea5958db7ec108b3b36be463cf",
+    "apps/api/test/native-candidate-journey.fixture.ts": "3c34a180df249076e795e9e88cc42a15619431b83ed9fc81fb789f5b2bb177fe",
+    "apps/api/test/recorded-runtime-fixture.ts": "6f48d20179cc3179778f2023df7453188eacb0d071879c3eaa2f449e8ef1406c",
+    "packages/data/test/postgres.integration.ts": "3c7692d282f5227dc9665da8533d6a65ebda128a8f4c7f0a73dcaa9e2a0b6623",
+    "packages/data/test/integration-diagnostics.ts": "17cd3b8e7754d0f936d8a2a6de2611e33820177b66f5a1607ef8745418e66b94",
+    "packages/data/test/integration-diagnostics.test.ts": "facec00a159be45d09d1037f500a650c89255d55ba67b51720cfe89d4f68e1ec"
+  }
+}

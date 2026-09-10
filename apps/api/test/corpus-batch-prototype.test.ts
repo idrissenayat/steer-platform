@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createHash } from 'node:crypto';
 import { corpusBatchPrototypeFixture } from './corpus-batch-prototype.fixture.ts';
-import { partitionCorpusBatch, corpusBatchQuery } from './corpus-batch-prototype.ts';
+import { partitionCorpusBatch, corpusBatchQuery, collectCorpusBatchPrototype } from './corpus-batch-prototype.ts';
 
 test('bounded corpus query is read-only with fixed aliases and worst-case response-size partitions',()=>{
   for(const invalid of [0,17,1.5,NaN])assert.throws(()=>corpusBatchQuery(invalid));
@@ -37,6 +37,23 @@ test('source denial prevents content dispatch and incomplete lifecycle selection
   const f=await corpusBatchPrototypeFixture(t);f.state.source=false;await assert.rejects(f.run());assert.equal(f.queries.length,0);
   f.state.source=true;f.authority.select=async c=>({...c,selection:'inaccessible',authorityDigest:'e'.repeat(64)});
   await assert.rejects(f.run());assert.equal(f.queries.length,0);
+});
+test('pinned historical revision preserves old source bytes while current head and source grants still revalidate', async t => {
+  const f = await corpusBatchPrototypeFixture(t), prior = await f.run();
+  f.native.git.add([{ path: 'items/0003-existing/BRIEF.md', content: '# Different current source\nDo not substitute these bytes into history.\n' }]);
+  assert.notEqual(f.native.git.head(), prior.revision);
+  const retained = await collectCorpusBatchPrototype(f.binding, f.evidence.productId, f.repository, f.authority,
+    async () => { if (!f.state.caller) throw new Error('Synthetic caller denied'); }, undefined, prior.revision);
+  assert.deepEqual(retained.semantic, prior.semantic); assert.equal(retained.revision, prior.revision);
+  f.state.source = false;
+  await assert.rejects(collectCorpusBatchPrototype(f.binding, f.evidence.productId, f.repository, f.authority, async () => {}, undefined, prior.revision));
+  f.state.source = true; let changed = false;
+  f.afterQuery(() => { if (!changed) { changed = true; f.native.git.add([{ path: 'history-test-race.md', content: 'changed during history read\n' }]); } });
+  await assert.rejects(collectCorpusBatchPrototype(f.binding, f.evidence.productId, f.repository, f.authority, async () => {}, undefined, prior.revision));
+  assert.equal(changed, true);
+  const before = f.wire.length;
+  await assert.rejects(collectCorpusBatchPrototype(f.binding, f.evidence.productId, f.repository, f.authority, async () => {}, undefined, 'HEAD'));
+  assert.equal(f.wire.length, before);
 });
 test('changed caller, source, all-grants revision or source head during a batch prevents release',async t=>{
   const f=await corpusBatchPrototypeFixture(t);

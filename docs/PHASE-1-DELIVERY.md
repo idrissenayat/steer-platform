@@ -6876,3 +6876,31 @@ the unchanged full performance benchmark. No new optimistic completion date.
 0300 final audit: 17 focused tests, native joined/records selection and all types
 pass; 14 source hashes, four protected hashes, 430 relative links, 17/25 tracker,
 95 required kit artifacts, workflow scopes and diff whitespace checks pass.
+
+## 0301 — Combined retained-source graph feasibility, no production change
+
+The [combined experiment](../intent/0301/EVIDENCE.md) reads two actual retained Git
+revisions across three original contexts inside the native records experiment.
+Separate collectors cost 74 simulated provider attempts; one invocation-local
+immutable-object graph reduces this records/source portion to 50. Forty object
+bodies are shared, but both revisions keep exact tree membership, root selection
+and all 252 revision/path policy checks. Twenty encrypted records, six SDK exchanges,
+four role transactions and complete final records/key readback remain intact.
+
+Both focused native selectors pass the preceding unchanged authenticated journey
+and late-denial/race checks. Corpus/OIDC/diagnostic and final graph/diagnostic runs
+cover 22 unique tests; final prototype/eight package types pass. The evidence retains
+the baseline, correction, test-only type fix, exact command/timing scope and limits.
+Source hashes describe final code; no retrospective final-source baseline claim.
+
+No application service or runtime profile is changed. This is not a 50-request
+confirmation or measured UI latency. Full confirmation remains 7,637. Final
+cross-component source closure, independent production policies/key providers,
+ownership/drainage and all outer effect phases remain under
+[0298's coherent correction](../intent/0298/REQUEST-BUDGET-PLAN.md). Do not restart
+isolated production micro-optimizations or infer a new delivery date.
+
+**Intent capture: 68% (17/25; eight remaining; +0 percentage points).** Next complete
+those boundaries, integrate the correction and run the unchanged full benchmark.
+No signed document, credential, real user draft, records adoption, live model call,
+runtime GitHub write, deployment, release or user roadmap/outputs changed.

@@ -127,3 +127,21 @@ an overall progress point. The estimate is not reset to a new optimistic date:
 a revised forecast requires the executable plan and first whole-action result.
 The user's existing approval boundaries remain unchanged; the current engineering
 failure is not attributed to an unsigned gate or unapproved model budget.
+
+## 0301 measured design correction
+
+The [combined experiment](../0301/EVIDENCE.md) finds two historical Git revisions
+across three retained original contexts. Separate single-revision source readers
+make the records/source portion cost 74 attempts; their source portion alone is
+52 against the proposed 30. One multi-revision immutable-object graph reduces the
+combined portion to 50 and its source portion to 28 (12 repository + 16 identity).
+Both revisions keep independent membership, selection and path-policy checks;
+40 shared blob objects are not shared permissions. No evidence survives the
+read-only invocation and no signed requirement or stack changes.
+
+This resolves the measured multi-revision source-budget contradiction for this
+fixture, not the complete executable boundary plan or application action. Final
+cross-component source closure, independent production records/source/key policies,
+ownership/drainage, outer callbacks and write-separated phases remain to integrate
+and measure. The old 204-attempt confirmation control outside previews also needs
+correction. Replacing only the source and records readers cannot close C22.
