@@ -9,7 +9,22 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0318 / joint current-scope/original validation — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0319 / current-scope permission-query composition — 68% (17/25; 8 remaining; +0 points)**.
+[0319](../intent/0319/EVIDENCE.md) gives explicitly constructed current-source
+permission queries the existing metadata-only ownership pattern: authenticate
+at window entry, run each actual policy, then freshly validate the caller before
+scope IO or continued consumption. Unknown, generic, historical and differently
+scoped callbacks retain the full path. Ordinary source calls still bracket policy.
+Final scope/records/key checks, separate scheduler phases and actual drain remain.
+
+Synthetic drafting start falls 938→699 attempts and recovery/repeat 1,069→796,
+about 25%. All other measured action counts are unchanged. C22 still exceeds its
+200-attempt limit. Next consolidate remaining current-source/caller and records
+traversal in preparation/start/confirmation, then run the unchanged full benchmark.
+Real model quality, governed activation and signed-in UI/save acceptance remain
+separate prerequisites; no checkpoint or new ETA is inferred from these tests.
+
+Prior delivery checkpoint: **0318 / joint current-scope/original validation — 68% (17/25; 8 remaining; +0 points)**.
 [0318](../intent/0318/EVIDENCE.md) places full final current-scope validation
 after dependent development records/key comparison in one owned read-only phase.
 The data owner still verifies every consumed original against the current scope.

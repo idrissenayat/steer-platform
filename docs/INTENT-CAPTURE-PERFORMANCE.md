@@ -7,6 +7,34 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Current-scope permission-query composition — 0319
+
+[0319](../intent/0319/EVIDENCE.md) applies a private permission-query pattern
+to drafting start's current-source callback. Initial authentication and every
+actual policy remain; each metadata query ends with fresh caller validation before
+scope IO/continuation. Full first/final scope reads and final record/key checks
+remain. Generic, historical, wrapped/copied and different-caller paths do not opt in.
+
+| Authenticated synthetic action | 0318 attempts | 0319 attempts |
+| --- | ---: | ---: |
+| Drafting start | 938 | 699 |
+| Drafting start recovery / repeat | 1,069 / 1,069 | 796 / 796 |
+
+First start removes 239 attempts (25.48%); recovery/repeat remove 273 (25.54%).
+Other measured action counts are unchanged. A complete captured pre-change trace
+of repeated drafting start attributes 348 attempts to pre-policy caller checks and
+348 to post-policy checks, out of 1,069. The diagnostic retains only a complete
+sample and documents partial tool-output capture; it is not a full latency trace.
+See [profile](../intent/0319/PROFILE.json) and
+[final verification](../intent/0319/VERIFICATION.json).
+
+All identity/token attempts count. These undelayed shared-host synthetic runs do
+not establish p95, real-model quality or signed-in acceptance. C22 remains open
+under the unchanged 200-attempt, 20 ms/attempt, five-second p95, 20-warm/3-cold/
+4-concurrent protocol in both directions plus negatives. Next reduce remaining
+current-source/caller and records traversal across preparation/start/confirmation.
+**68% (17/25; eight remaining; +0 percentage points).**
+
 ## Joint current-scope/original validation — 0318
 
 [0318](../intent/0318/EVIDENCE.md) reduces full current-scope reads from nine

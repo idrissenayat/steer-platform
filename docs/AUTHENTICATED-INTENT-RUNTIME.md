@@ -62,6 +62,21 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Current-source permission-query composition — 0319
+
+[0319](../intent/0319/EVIDENCE.md) marks drafting start's read-only original
+source policy through a private constructor. Ordinary calls keep the before/after
+caller bracket. Only an already-authenticated current-scope window with the exact
+same caller identity may run the actual metadata policy and then freshly validate
+the caller before any scope IO or content continuation. No content/key IO or
+mutation belongs in that policy; every policy and caller check still reruns.
+
+Genuine forwarding retains fixed arguments, intrinsic invocation and all owner
+tracking/guards. Copied, bound, generic, historical and differently scoped callbacks
+cannot select this path. No package/HTTP configuration option or permission cache
+is added. Final current-scope/records/key validation, scheduler separation,
+ordinary fallback ordering and actual drain ownership stay unchanged.
+
 ### Joint current-scope/original validation for drafting start — 0318
 
 [0318](../intent/0318/EVIDENCE.md) changes the owned phase ordering below:

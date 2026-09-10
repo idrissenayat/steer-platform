@@ -7053,6 +7053,30 @@ live model/key access, spending, runtime GitHub save, deployment, profile/record
 activation, signature or human UI acceptance. User drafts, signed artifacts and
 roadmap/outputs remain unchanged. **68% (17/25; eight remaining; +0 points).**
 
+## 0319 — Current-scope permission-query composition
+
+[0319](../intent/0319/EVIDENCE.md) targets the dominant current-source caller
+brackets found in the diagnostic trace. A private constructor/forwarding proof
+lets the already-authenticated current-scope window run the actual metadata policy
+then freshly validate its exact caller before IO or continued consumption. Ordinary
+calls retain both brackets; unknown/historical/copied/different-caller functions
+cannot opt in. Full first/final scope reads and final records/key/source checks,
+separate scheduler phases and actual pending ownership remain unchanged.
+
+Synthetic drafting start falls 938→699 attempts (25.48%); recovery/repeat fall
+1,069→796 (25.54%). Other action counts are unchanged. Exact current/history proof
+separation, ordering, nonvoid/revoked outcome and held-work tests, native start and
+both synthetic save/recovery/reopen directions are recorded in
+[verification](../intent/0319/VERIFICATION.json). The retained pre-change
+[profile](../intent/0319/PROFILE.json) is diagnostic, not p95 or full C22.
+
+Next consolidate remaining current-source/caller and records traversal across
+preparation/start/confirmation, then the complete unchanged benchmark. C22 and
+governed live records/model/UI/save acceptance remain open. No model spend, runtime
+GitHub artifact save, activation, deployment, release or signature. Protected
+artifacts and user-owned roadmap/outputs remain unchanged.
+**68% (17/25; eight remaining; +0 percentage points).**
+
 ## 0318 — Joint current-scope/original drafting-start validation
 
 [0318](../intent/0318/EVIDENCE.md) moves full final current-scope validation

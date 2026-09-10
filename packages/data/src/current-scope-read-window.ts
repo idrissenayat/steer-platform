@@ -1,7 +1,7 @@
 import { intentScopeReadInputSchema, verifyIntentScopeReadOutput,
   type IntentScopeReader, type IntentScopeReadInput, type IntentScopeReadOutput } from '@steer/tool-registry/intent-scope-read-contracts';
 import { developmentOriginalHash as hash, freezeOriginal as freeze } from './development-original-contracts.ts';
-import { currentReadAuthorityCovers } from './current-read-authority.ts';
+import { currentReadAuthorityCovers, currentReadPolicyQuery } from './current-read-authority.ts';
 
 const unavailable = () => new Error('Current scope validation is unavailable.');
 /** ONE private, read-only pre-effect validation. A full current read brackets
@@ -17,6 +17,11 @@ export async function withCurrentScopeReadWindow<T>(reader: IntentScopeReader | 
   const guard = () => { if (closed || failed || (reader && (reader.scope !== scope || hash(reader.scope) !== pinned || reader.read !== read))) throw unavailable(); };
   const check = async (callback: () => Promise<void>) => { guard(); if (typeof callback !== 'function' || await callback() !== undefined) throw unavailable(); guard(); };
   const present = async (callback: () => Promise<void>) => {
+    // Entry already authenticated. Only an explicitly constructed permission-only
+    // query may omit a redundant pre-policy caller check. Its fresh post-policy
+    // caller check must finish before any scope IO or reuse can continue.
+    const query = currentReadPolicyQuery(callback, current);
+    if (query) { await check(query); return; }
     // Only this exact constructed callback already performs both caller checks.
     // All independent/unknown policies retain the complete outer barrier.
     if (currentReadAuthorityCovers(callback, current)) await check(callback);

@@ -4,7 +4,7 @@ import { createDevelopmentOriginalStore, developmentRecordsConfigurationSchema }
 import { createIntentOperationStore } from './intent-operations.ts';
 import { describeDevelopmentOriginal, developmentOriginalHash as hash, freezeOriginal as freeze, type DevelopmentOriginal } from './development-original-contracts.ts';
 import { withCurrentScopeReadWindow } from './current-scope-read-window.ts';
-import { bracketCurrentReadAuthority, forwardCurrentReadAuthority } from './current-read-authority.ts';
+import { bracketCurrentReadPolicyAuthority, forwardCurrentReadAuthority } from './current-read-authority.ts';
 import { createReadPolicyAuthority } from './read-policy-authority.ts';
 import { withPreparationEvidence, type PreparationEvidenceWindow } from './preparation-evidence-window.ts';
 import { revalidateDevelopmentScopeReview } from './development-scope-review.ts';
@@ -49,7 +49,7 @@ export function createIntentDevelopmentStarter(pools: Parameters<typeof createDe
       const secured: Records = {
         ...(sourceScope ? { scopeReview: { scope: sourceScope.scope, read: (input, current) => scopeReader!.read(input, current) } } : {}),
         authorize: c => authority(c.action, () => r.authorize(c)),
-        authorizeOriginal: bracketCurrentReadAuthority(current, async (c: Parameters<Records['authorizeOriginal']>[0]) => {
+        authorizeOriginal: bracketCurrentReadPolicyAuthority(current, async (c: Parameters<Records['authorizeOriginal']>[0]) => {
           if (c.action !== 'read') throw unavailable(); return r.authorizeOriginal(c);
         }, track, guard),
         authorizeDraft: c => authority(c.action, () => r.authorizeDraft(c)),

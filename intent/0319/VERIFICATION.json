@@ -1,0 +1,613 @@
+{
+  "kind": "steer-implementation-verification/v1",
+  "intent": "0319",
+  "date": "2026-09-10",
+  "baseCommit": "72d62e6878474170cff0754a56467db38b9adee2",
+  "progress": {
+    "verified": 17,
+    "total": 25,
+    "percentage": 68,
+    "remaining": 8,
+    "percentagePointChange": 0
+  },
+  "checks": [
+    {
+      "command": "node --test packages/data/test/current-read-authority.test.ts packages/data/test/current-scope-read-window.test.ts packages/data/test/historical-read-authority.test.ts packages/data/test/intent-development-starter.test.ts packages/data/test/read-policy-owners.test.ts tests/package-boundaries.test.mjs",
+      "exitCode": 0,
+      "tests": 64,
+      "passed": 64,
+      "failed": 0,
+      "durationMs": 397.882334,
+      "scope": "Final source including malformed-caller guard. Focused cases overlap the broad suite."
+    },
+    {
+      "command": "node --test --test-concurrency=4 packages/*/test/*.test.ts packages/domain/test/*.test.mjs apps/api/test/*.test.ts apps/worker/test/*.test.ts apps/web/test/*.test.mjs tests/package-boundaries.test.mjs",
+      "exitCode": 0,
+      "tests": 1542,
+      "passed": 1542,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "durationMs": 344832.651333,
+      "scope": "Final source. Focused tests overlap this suite and are not additional distinct tests."
+    },
+    {
+      "command": "pnpm typecheck",
+      "exitCode": 0,
+      "scope": "Final prototype and all eight packages/applications."
+    },
+    {
+      "command": "pnpm kit:check",
+      "exitCode": 0,
+      "requiredArtifacts": 95
+    },
+    {
+      "command": "pnpm security:check",
+      "exitCode": 0,
+      "scope": "Workflow token-scope audit: contents read-only."
+    },
+    {
+      "command": "node packages/data/test/postgres.integration.ts --development-start",
+      "exitCode": 0,
+      "checks": 9,
+      "idempotentMigrationsPassed": true,
+      "fullIntegrationSuiteRun": false,
+      "scope": "Final source; four ordinary and five owned HTTP/SQL checks, with seven late-change variants, receipt equality, current/history/profile denial and real owned-key drainage."
+    },
+    {
+      "command": "node packages/data/test/postgres.integration.ts --journey-runtime",
+      "exitCode": 0,
+      "joinedChecks": 3,
+      "idempotentMigrationsPassed": true,
+      "fullIntegrationSuiteRun": false,
+      "scope": "Final production/test source and all fifteen joint-scope scenarios. Synthetic authenticated HTTP/native Git/PostgreSQL/recorded SDK/Temporal save, restart, lost-acknowledgement recovery and exact reopen."
+    },
+    {
+      "command": "node packages/data/test/postgres.integration.ts --journey-runtime-continuation",
+      "exitCode": 0,
+      "joinedChecks": 1,
+      "idempotentMigrationsPassed": true,
+      "fullIntegrationSuiteRun": false,
+      "scope": "Same final verification for continuation; preserves canonical, prior proposal, original target and unrelated bytes."
+    }
+  ],
+  "measurements": {
+    "new-distinct": [
+      {
+        "tool": "intent.development.prepare",
+        "providerAttempts": 532,
+        "durationMs": 8935,
+        "identityHeadAttempts": 493,
+        "requestKinds": {
+          "head": 501,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.development.prepare",
+        "providerAttempts": 487,
+        "durationMs": 8096,
+        "identityHeadAttempts": 448,
+        "requestKinds": {
+          "head": 456,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.development.start",
+        "providerAttempts": 699,
+        "durationMs": 2760
+      },
+      {
+        "tool": "intent.development.start",
+        "providerAttempts": 796,
+        "durationMs": 3013
+      },
+      {
+        "tool": "intent.development.start",
+        "providerAttempts": 796,
+        "durationMs": 2870
+      },
+      {
+        "tool": "intent.draft.read",
+        "providerAttempts": 19,
+        "durationMs": 847,
+        "identityHeadAttempts": 16,
+        "requestKinds": {
+          "head": 16,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.development.review",
+        "providerAttempts": 75,
+        "durationMs": 2341,
+        "identityHeadAttempts": 62,
+        "requestKinds": {
+          "head": 64,
+          "commit": 2,
+          "tree": 2,
+          "blob": 6,
+          "token": 1,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.prepare",
+        "providerAttempts": 292,
+        "durationMs": 7449,
+        "identityHeadAttempts": 253,
+        "requestKinds": {
+          "head": 261,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "providerAttempts": 195,
+        "durationMs": 1354,
+        "identityHeadAttempts": 192,
+        "requestKinds": {
+          "head": 192,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "providerAttempts": 221,
+        "durationMs": 1452,
+        "identityHeadAttempts": 218,
+        "requestKinds": {
+          "head": 218,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "providerAttempts": 221,
+        "durationMs": 1723,
+        "identityHeadAttempts": 218,
+        "requestKinds": {
+          "head": 218,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.read",
+        "providerAttempts": 25,
+        "durationMs": 852,
+        "identityHeadAttempts": 22,
+        "requestKinds": {
+          "head": 22,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.review",
+        "providerAttempts": 211,
+        "durationMs": 2626,
+        "identityHeadAttempts": 199,
+        "requestKinds": {
+          "head": 201,
+          "commit": 2,
+          "tree": 2,
+          "blob": 6,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.preview",
+        "providerAttempts": 330,
+        "durationMs": 4334,
+        "identityHeadAttempts": 308,
+        "requestKinds": {
+          "head": 316,
+          "commit": 4,
+          "tree": 4,
+          "blob": 6,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare (discarded reply)",
+        "providerAttempts": 853,
+        "durationMs": 8808,
+        "identityHeadAttempts": 812,
+        "requestKinds": {
+          "head": 828,
+          "commit": 7,
+          "tree": 7,
+          "blob": 11,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "providerAttempts": 825,
+        "durationMs": 9696,
+        "identityHeadAttempts": 782,
+        "requestKinds": {
+          "head": 798,
+          "commit": 7,
+          "tree": 7,
+          "blob": 11,
+          "token": 2,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "providerAttempts": 823,
+        "durationMs": 8445,
+        "identityHeadAttempts": 782,
+        "requestKinds": {
+          "head": 798,
+          "commit": 7,
+          "tree": 7,
+          "blob": 11,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      }
+    ],
+    "proposal-continuation": [
+      {
+        "tool": "intent.development.prepare",
+        "providerAttempts": 532,
+        "durationMs": 9101,
+        "identityHeadAttempts": 493,
+        "requestKinds": {
+          "head": 501,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.development.prepare",
+        "providerAttempts": 487,
+        "durationMs": 8346,
+        "identityHeadAttempts": 448,
+        "requestKinds": {
+          "head": 456,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.development.start",
+        "providerAttempts": 699,
+        "durationMs": 2771
+      },
+      {
+        "tool": "intent.development.start",
+        "providerAttempts": 796,
+        "durationMs": 3199
+      },
+      {
+        "tool": "intent.development.start",
+        "providerAttempts": 796,
+        "durationMs": 3006
+      },
+      {
+        "tool": "intent.draft.read",
+        "providerAttempts": 19,
+        "durationMs": 817,
+        "identityHeadAttempts": 16,
+        "requestKinds": {
+          "head": 16,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.development.review",
+        "providerAttempts": 75,
+        "durationMs": 2361,
+        "identityHeadAttempts": 62,
+        "requestKinds": {
+          "head": 64,
+          "commit": 2,
+          "tree": 2,
+          "blob": 6,
+          "token": 1,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.prepare",
+        "providerAttempts": 292,
+        "durationMs": 7588,
+        "identityHeadAttempts": 253,
+        "requestKinds": {
+          "head": 261,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "providerAttempts": 195,
+        "durationMs": 1418,
+        "identityHeadAttempts": 192,
+        "requestKinds": {
+          "head": 192,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "providerAttempts": 221,
+        "durationMs": 1429,
+        "identityHeadAttempts": 218,
+        "requestKinds": {
+          "head": 218,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.start",
+        "providerAttempts": 221,
+        "durationMs": 1349,
+        "identityHeadAttempts": 218,
+        "requestKinds": {
+          "head": 218,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.scope.read",
+        "providerAttempts": 25,
+        "durationMs": 924,
+        "identityHeadAttempts": 22,
+        "requestKinds": {
+          "head": 22,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.review",
+        "providerAttempts": 211,
+        "durationMs": 2568,
+        "identityHeadAttempts": 199,
+        "requestKinds": {
+          "head": 201,
+          "commit": 2,
+          "tree": 2,
+          "blob": 6,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.preview",
+        "providerAttempts": 440,
+        "durationMs": 6492,
+        "identityHeadAttempts": 400,
+        "requestKinds": {
+          "head": 408,
+          "commit": 6,
+          "tree": 6,
+          "blob": 20,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare (discarded reply)",
+        "providerAttempts": 1073,
+        "durationMs": 11815,
+        "identityHeadAttempts": 996,
+        "requestKinds": {
+          "head": 1012,
+          "commit": 11,
+          "tree": 11,
+          "blob": 39,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "providerAttempts": 1045,
+        "durationMs": 12908,
+        "identityHeadAttempts": 966,
+        "requestKinds": {
+          "head": 982,
+          "commit": 11,
+          "tree": 11,
+          "blob": 39,
+          "token": 2,
+          "mutation": 0,
+          "other": 0
+        }
+      },
+      {
+        "tool": "intent.candidate.save.prepare",
+        "providerAttempts": 1043,
+        "durationMs": 11150,
+        "identityHeadAttempts": 966,
+        "requestKinds": {
+          "head": 982,
+          "commit": 11,
+          "tree": 11,
+          "blob": 39,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        }
+      }
+    ]
+  },
+  "benchmark": {
+    "passed": false,
+    "completeProtocolRun": false,
+    "maxProviderAttemptsPerAction": 200,
+    "providerAttemptLatencyMs": 20,
+    "maxP95Ms": 5000,
+    "warmSamplesPerDirection": 20,
+    "coldSamplesPerDirection": 3,
+    "concurrentSamplesPerDirection": 4,
+    "negativeCasesRequired": true,
+    "identityAndTokenAttemptsIncluded": true,
+    "limitation": "Undelayed synthetic functional samples on a shared host, not warmed p95, live model quality, signed-in UI or runtime GitHub saving."
+  },
+  "diagnosticProfile": {
+    "command": "node --import ./apps/api/test/identity-request-profile-hooks.ts packages/data/test/postgres.integration.ts --journey-request-profile",
+    "exitCode": 0,
+    "baseCommit": "72d62e6878474170cff0754a56467db38b9adee2",
+    "joinedChecks": 1,
+    "idempotentMigrationsPassed": true,
+    "artifact": "PROFILE.json",
+    "completeSelectedRepeatStartAttempts": 1069,
+    "prePolicyAttempts": 348,
+    "postPolicyAttempts": 348,
+    "captureLimitation": "Only eight complete sample lines and two partial lines were recovered from large tool output. The retained complete selected sample conserves counts; no full 45-call captured trace is claimed."
+  },
+  "iterations": [
+    {
+      "stage": "initial implementation",
+      "focusedPassed": 64,
+      "broadPassed": 1542,
+      "broadDurationMs": 343561.830416,
+      "developmentStartChecks": 9,
+      "journeyJoinedChecks": 3,
+      "continuationJoinedChecks": 1,
+      "typecheckPassed": true
+    },
+    {
+      "stage": "final review hardening",
+      "change": "Require metadata presence before exact-caller comparison. An unknown callback and undefined malformed caller previously returned a query that threw when invoked; now no query is returned. Added explicit malformed-input assertions; no successful grant was observed."
+    },
+    {
+      "stage": "final exact-source verification",
+      "scope": "All checks listed above rerun after the final guard change. Initial checks are not additional distinct tests."
+    }
+  ],
+  "sourceHashes": {
+    "packages/data/src/current-read-authority.ts": "f5878ca79c8bcfdf4cb06e20f7d9d14fee277f8d1f44abb881031a138ad6ad83",
+    "packages/data/src/current-scope-read-window.ts": "c39f662953333ade95ff049210f90908c9d9bec5454f839a0e9701a0f9a67d1f",
+    "packages/data/src/intent-development-starter.ts": "b011e0230fa745c3b8d45382ec365bb5c900464ae23af9e719c17e415ac1d495",
+    "packages/data/test/current-read-authority.test.ts": "33cbe5dbad44b7f072ddb361f9093f38793662af89b5390d905fba5d89a78780",
+    "packages/data/test/current-scope-read-window.test.ts": "43ad99f7979bc7a343742f5f55ebe68ec05665b05ea7eae75c0f7000a1157701"
+  },
+  "protectedHashes": {
+    "intent/0001/ARCHITECTURE.md": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65",
+    "intent/0001/EXAM.md": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f",
+    "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32",
+    "intent/0289/PERFORMANCE.json": "d0371c364bbfb103b70675faf911499bffb91afe8a5e6950718c87a171e9e302"
+  },
+  "artifactIntegrity": {
+    "sourceFiles": 5,
+    "protectedFiles": 4,
+    "fixedCheckpointRows": 25,
+    "verifiedCheckpointRows": 17,
+    "localDocumentLinks": 545
+  },
+  "boundaries": {
+    "liveModelCalls": false,
+    "modelSpending": false,
+    "runtimeGitHubArtifactSave": false,
+    "recordsOrProfileActivation": false,
+    "deployment": false,
+    "release": false,
+    "liveRecordDeletion": false,
+    "gateSignature": false,
+    "browserVerification": false,
+    "cleanup": "Only synthetic harness-owned PostgreSQL containers and tmpfs data.",
+    "preservedUserPaths": [
+      "docs/REAL-USER-ROADMAP.md",
+      "outputs/"
+    ],
+    "priorFailure": "Passing synthetic recovery does not explain or replace the retained 0289 performance failure."
+  },
+  "next": "Consolidate remaining current-source/caller and records traversal across preparation, start and confirmation, then run the unchanged full benchmark. Governed model/runtime activation and actual signed-in UI/save acceptance remain required."
+}

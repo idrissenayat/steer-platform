@@ -4,7 +4,8 @@ import { scopeReviewFixture } from '../../tool-registry/test/intent-scope-review
 import { validateIntentScopeBatchResults } from '@steer/tool-registry/intent-scope-batches';
 import { verifyIntentScopeReadOutput, type IntentScopeReader } from '@steer/tool-registry/intent-scope-read-contracts';
 import { withCurrentScopeReadWindow as window } from '../src/current-scope-read-window.ts';
-import { bracketCurrentReadAuthority as bracket, forwardCurrentReadAuthority as forward } from '../src/current-read-authority.ts';
+import { bracketCurrentReadAuthority as bracket, bracketCurrentReadPolicyAuthority as metadata,
+  forwardCurrentReadAuthority as forward } from '../src/current-read-authority.ts';
 import { bracketHistoricalReadAuthority as historical } from '../src/historical-read-authority.ts';
 
 async function fixture() {
@@ -193,5 +194,49 @@ test('a single intermediate permission check still rejects fresh source loss wit
       await port!.read(f.input, source); returned++;
     }));
     assert.equal(returned, 0); assert.equal(f.state.reads, 1);
+  }
+});
+
+test('explicit current metadata source keeps every policy and full read while removing only its pre-policy caller traversal', async () => {
+  const measured = async (optimized: boolean) => {
+    const f = await fixture(), constructor = optimized ? metadata : bracket;
+    const callback = forward(constructor(f.current, f.source, p => p, () => {}), [], p => p, () => {});
+    await window(f.reader, f.current, async port => { for (let n = 0; n < 6; n++) assert.deepEqual(await port!.read(f.input, callback), f.output); });
+    return f.state;
+  };
+  const full = await measured(false), fast = await measured(true);
+  assert.equal(fast.reads, 2); assert.equal(full.reads, fast.reads);
+  assert.equal(fast.source, full.source); assert.equal(full.caller - fast.caller, fast.source);
+});
+
+test('metadata scope queries authenticate entry and reject policy-time caller loss before any scope IO', async () => {
+  for (const revoke of ['entry', 'policy', 'final-policy']) {
+    const f = await fixture(); let final = false, policies = 0, effects = 0;
+    const current = async () => { await f.current(); };
+    const source = forward(metadata(current, async () => {
+      policies++; await f.source(); if (revoke === 'policy' || final) f.state.permitted = false;
+    }, p => p, () => {}), [], p => p, () => {});
+    if (revoke === 'entry') f.state.permitted = false;
+    await assert.rejects((async () => {
+      await window(f.reader, current, async port => { await port!.read(f.input, source); final = true; }); effects++;
+    })());
+    assert.equal(effects, 0); assert.equal(f.state.reads, revoke === 'final-policy' ? 1 : 0);
+    if (revoke === 'entry') assert.equal(policies, 0);
+  }
+});
+
+test('metadata scope keeps final records/source/expiry checks and closes escaped current ports', async () => {
+  for (const failure of ['records', 'source', 'expired', 'changed', 'history']) {
+    const f = await fixture(); let escaped: IntentScopeReader | undefined;
+    const callback = forward(metadata(f.current, f.source, p => p, () => {}), [], p => p, () => {});
+    await assert.rejects(window(f.reader, f.current, async port => {
+      escaped = port; await port!.read(f.input, callback);
+      if (failure === 'records') f.state.recordsPermitted = false;
+      else if (failure === 'source') f.state.sourcePermitted = false;
+      else if (failure === 'expired') f.state.output = { ...f.output, status: 'expired', batches: null, review: null };
+      else if (failure === 'history') f.state.output = { ...f.output, kind: 'steer-scope-review-history/v1', historical: true };
+      else f.output.source.revisionDigest = 'f'.repeat(64);
+    }));
+    await assert.rejects(escaped!.read(f.input, callback));
   }
 });

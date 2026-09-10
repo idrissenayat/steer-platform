@@ -1,0 +1,899 @@
+{
+  "kind": "steer-synthetic-request-attribution/v1",
+  "intent": "0319",
+  "baseCommit": "72d62e6878474170cff0754a56467db38b9adee2",
+  "command": "node --import ./apps/api/test/identity-request-profile-hooks.ts packages/data/test/postgres.integration.ts --journey-request-profile",
+  "exitCode": 0,
+  "scope": "Before this increment. One complete repeated drafting-start identity sample, with count conservation. Diagnostic instrumentation does not alter guards or request flow. Not p95 or whole C22.",
+  "capture": {
+    "completeSamplesRecovered": 8,
+    "incompleteLines": 2,
+    "note": "Some large tool-output lines were truncated. Only the complete selected sample below is used; no complete 45-call trace capture is claimed."
+  },
+  "selected": {
+    "tool": "intent.development.start",
+    "counts": {
+      "head": 1066,
+      "commit": 1,
+      "tree": 1,
+      "blob": 1,
+      "token": 0,
+      "mutation": 0,
+      "other": 0
+    },
+    "attempts": 1069,
+    "captureErrors": 0,
+    "overflow": 0,
+    "groups": [
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976"
+        ],
+        "origins": [
+          "packages/data/src/intent-development-starter.ts:45",
+          "packages/data/src/current-read-authority.ts:12",
+          "packages/data/src/current-read-authority.ts:27"
+        ],
+        "counts": {
+          "head": 348,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 348
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976"
+        ],
+        "origins": [
+          "packages/data/src/intent-development-starter.ts:45",
+          "packages/data/src/current-read-authority.ts:16"
+        ],
+        "counts": {
+          "head": 348,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 348
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976"
+        ],
+        "origins": [
+          "packages/data/src/intent-development-starter.ts:45",
+          "packages/data/src/records-content-reader.ts:47",
+          "packages/data/src/records-readset.ts:151",
+          "packages/data/src/records-readset.ts:165",
+          "packages/data/src/records-readset.ts:288"
+        ],
+        "counts": {
+          "head": 32,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 32
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976"
+        ],
+        "origins": [
+          "packages/data/src/intent-development-starter.ts:45",
+          "packages/data/src/records-content-reader.ts:47",
+          "packages/data/src/records-readset.ts:151",
+          "packages/data/src/records-readset.ts:223",
+          "packages/data/src/records-readset.ts:288"
+        ],
+        "counts": {
+          "head": 32,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 32
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976"
+        ],
+        "origins": [
+          "packages/data/src/intent-development-starter.ts:45",
+          "packages/data/src/records-content-reader.ts:47",
+          "packages/data/src/records-readset.ts:151",
+          "packages/data/src/records-readset.ts:165",
+          "packages/data/src/records-readset.ts:291"
+        ],
+        "counts": {
+          "head": 32,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 32
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976"
+        ],
+        "origins": [
+          "packages/data/src/intent-development-starter.ts:45",
+          "packages/data/src/records-content-reader.ts:47",
+          "packages/data/src/records-readset.ts:151",
+          "packages/data/src/records-readset.ts:223",
+          "packages/data/src/records-readset.ts:291"
+        ],
+        "counts": {
+          "head": 32,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 32
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976"
+        ],
+        "origins": [
+          "packages/data/src/intent-development-starter.ts:45",
+          "packages/data/src/records-content-reader.ts:47",
+          "packages/data/src/records-readset.ts:151",
+          "packages/data/src/records-readset.ts:165",
+          "packages/data/src/records-readset.ts:308"
+        ],
+        "counts": {
+          "head": 32,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 32
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976"
+        ],
+        "origins": [
+          "packages/data/src/intent-development-starter.ts:45",
+          "packages/data/src/records-content-reader.ts:47",
+          "packages/data/src/records-readset.ts:151",
+          "packages/data/src/records-readset.ts:223",
+          "packages/data/src/records-readset.ts:308"
+        ],
+        "counts": {
+          "head": 32,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 32
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976"
+        ],
+        "origins": [
+          "packages/data/src/intent-development-starter.ts:45"
+        ],
+        "counts": {
+          "head": 25,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 25
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976"
+        ],
+        "origins": [
+          "packages/data/src/intent-development-starter.ts:45",
+          "packages/data/src/records-content-reader.ts:47",
+          "packages/data/src/records-readset.ts:241"
+        ],
+        "counts": {
+          "head": 16,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 16
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976"
+        ],
+        "origins": [
+          "packages/data/src/intent-development-starter.ts:45",
+          "packages/data/src/records-content-reader.ts:91",
+          "packages/data/src/records-readset.ts:318"
+        ],
+        "counts": {
+          "head": 16,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 16
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976"
+        ],
+        "origins": [
+          "packages/data/src/intent-development-starter.ts:45",
+          "packages/data/src/current-scope-read-window.ts:18",
+          "packages/data/src/current-scope-read-window.ts:51",
+          "packages/data/src/records-content-reader.ts:91",
+          "packages/data/src/records-readset.ts:318"
+        ],
+        "counts": {
+          "head": 16,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 16
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976"
+        ],
+        "origins": [
+          "packages/data/src/intent-development-starter.ts:45",
+          "packages/data/src/intent-development-starter.ts:46",
+          "packages/data/src/intent-development-starter.ts:97",
+          "packages/data/src/intent-development-starter.ts:107",
+          "packages/data/src/preparation-evidence-window.ts:28",
+          "packages/data/src/intent-development-starter.ts:44"
+        ],
+        "counts": {
+          "head": 16,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 16
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976"
+        ],
+        "origins": [
+          "packages/data/src/intent-development-starter.ts:45",
+          "packages/data/src/read-policy-authority.ts:21",
+          "packages/data/src/intent-development-starter.ts:56"
+        ],
+        "counts": {
+          "head": 16,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 16
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976"
+        ],
+        "origins": [
+          "packages/data/src/intent-development-starter.ts:45",
+          "packages/data/src/current-scope-read-window.ts:51",
+          "packages/data/src/records-content-reader.ts:91",
+          "packages/data/src/records-readset.ts:318"
+        ],
+        "counts": {
+          "head": 16,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 16
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976"
+        ],
+        "origins": [
+          "packages/data/src/intent-development-starter.ts:45",
+          "packages/data/src/records-content-reader.ts:47",
+          "packages/data/src/records-readset.ts:151",
+          "packages/data/src/records-readset.ts:319"
+        ],
+        "counts": {
+          "head": 16,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 16
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976"
+        ],
+        "origins": [
+          "packages/data/src/intent-development-starter.ts:45",
+          "packages/data/src/intent-development-starter.ts:103",
+          "packages/data/src/intent-development-starter.ts:107",
+          "packages/data/src/preparation-evidence-window.ts:28",
+          "packages/data/src/intent-development-starter.ts:44"
+        ],
+        "counts": {
+          "head": 8,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 8
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976"
+        ],
+        "origins": [
+          "packages/data/src/intent-development-starter.ts:45",
+          "packages/data/src/current-scope-read-window.ts:27",
+          "packages/data/src/current-scope-read-window.ts:55",
+          "packages/data/src/records-content-reader.ts:91",
+          "packages/data/src/records-readset.ts:318"
+        ],
+        "counts": {
+          "head": 8,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 8
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976"
+        ],
+        "origins": [
+          "packages/data/src/intent-development-starter.ts:45",
+          "packages/data/src/current-scope-read-window.ts:18",
+          "packages/data/src/current-scope-read-window.ts:56",
+          "packages/data/src/records-content-reader.ts:91",
+          "packages/data/src/records-readset.ts:318"
+        ],
+        "counts": {
+          "head": 8,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 8
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976"
+        ],
+        "origins": [
+          "packages/data/src/intent-development-starter.ts:45",
+          "packages/data/src/intent-development-starter.ts:96",
+          "packages/data/src/intent-development-starter.ts:107",
+          "packages/data/src/intent-development-starter.ts:80",
+          "packages/data/src/preparation-evidence-window.ts:28",
+          "packages/data/src/intent-development-starter.ts:44"
+        ],
+        "counts": {
+          "head": 7,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 7
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976"
+        ],
+        "origins": [],
+        "counts": {
+          "head": 3,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 3
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "apps/api/src/app.ts:37",
+          "apps/api/src/app.ts:29",
+          "apps/api/src/browser.ts:78",
+          "apps/api/src/request-boundary.ts:32",
+          "packages/adapters/src/identity/authorization.ts:71",
+          "apps/api/src/identity-service.ts:60"
+        ],
+        "origins": [],
+        "counts": {
+          "head": 1,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 1
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:248",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:41",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "apps/api/src/app.ts:37",
+          "apps/api/src/app.ts:29",
+          "apps/api/src/browser.ts:78",
+          "apps/api/src/request-boundary.ts:32",
+          "packages/adapters/src/identity/authorization.ts:71",
+          "apps/api/src/identity-service.ts:60"
+        ],
+        "origins": [],
+        "counts": {
+          "head": 0,
+          "commit": 1,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 1
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:251",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:41",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "apps/api/src/app.ts:37",
+          "apps/api/src/app.ts:29",
+          "apps/api/src/browser.ts:78",
+          "apps/api/src/request-boundary.ts:32",
+          "packages/adapters/src/identity/authorization.ts:71",
+          "apps/api/src/identity-service.ts:60"
+        ],
+        "origins": [],
+        "counts": {
+          "head": 0,
+          "commit": 0,
+          "tree": 1,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 1
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:152",
+          "packages/adapters/src/code-host/github.ts:256",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:41",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "apps/api/src/app.ts:37",
+          "apps/api/src/app.ts:29",
+          "apps/api/src/browser.ts:78",
+          "apps/api/src/request-boundary.ts:32",
+          "packages/adapters/src/identity/authorization.ts:71",
+          "apps/api/src/identity-service.ts:60"
+        ],
+        "origins": [],
+        "counts": {
+          "head": 0,
+          "commit": 0,
+          "tree": 0,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 1
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:53",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "apps/api/src/app.ts:37",
+          "apps/api/src/app.ts:29",
+          "apps/api/src/browser.ts:78",
+          "apps/api/src/request-boundary.ts:32",
+          "packages/adapters/src/identity/authorization.ts:71",
+          "apps/api/src/identity-service.ts:60"
+        ],
+        "origins": [],
+        "counts": {
+          "head": 1,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 1
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976",
+          "packages/tool-registry/src/index.ts:979",
+          "apps/api/src/app.ts:57",
+          "apps/api/src/app.ts:29",
+          "apps/api/src/browser.ts:78",
+          "apps/api/src/request-boundary.ts:32",
+          "packages/adapters/src/identity/authorization.ts:71",
+          "apps/api/src/identity-service.ts:60"
+        ],
+        "origins": [],
+        "counts": {
+          "head": 1,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 1
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976"
+        ],
+        "origins": [
+          "packages/data/src/intent-development-starter.ts:45",
+          "packages/data/src/intent-development-starter.ts:63"
+        ],
+        "counts": {
+          "head": 1,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 1
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976"
+        ],
+        "origins": [
+          "packages/data/src/intent-development-starter.ts:45",
+          "packages/data/src/intent-development-starter.ts:96",
+          "packages/data/src/intent-development-starter.ts:107",
+          "packages/data/src/preparation-evidence-window.ts:28",
+          "packages/data/src/intent-development-starter.ts:44"
+        ],
+        "counts": {
+          "head": 1,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 1
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976",
+          "packages/tool-registry/src/index.ts:981",
+          "apps/api/src/app.ts:57",
+          "apps/api/src/app.ts:29",
+          "apps/api/src/browser.ts:78",
+          "apps/api/src/request-boundary.ts:32",
+          "packages/adapters/src/identity/authorization.ts:71",
+          "apps/api/src/identity-service.ts:60"
+        ],
+        "origins": [],
+        "counts": {
+          "head": 1,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 1
+      },
+      {
+        "frames": [
+          "packages/adapters/src/code-host/github.ts:120",
+          "packages/adapters/src/code-host/github.ts:192",
+          "packages/adapters/src/code-host/github.ts:147",
+          "packages/adapters/src/identity/authorization.ts:36",
+          "packages/adapters/src/identity/oidc.ts:98",
+          "apps/api/src/browser.ts:139",
+          "packages/tool-registry/src/index.ts:265",
+          "packages/tool-registry/src/index.ts:976",
+          "packages/tool-registry/src/index.ts:985",
+          "apps/api/src/app.ts:57",
+          "apps/api/src/app.ts:29",
+          "apps/api/src/browser.ts:78",
+          "apps/api/src/request-boundary.ts:32",
+          "packages/adapters/src/identity/authorization.ts:71",
+          "apps/api/src/identity-service.ts:60"
+        ],
+        "origins": [],
+        "counts": {
+          "head": 1,
+          "commit": 0,
+          "tree": 0,
+          "blob": 0,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "attempts": 1
+      }
+    ]
+  }
+}

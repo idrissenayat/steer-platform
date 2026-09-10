@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { bracketCurrentReadAuthority as bracket, forwardCurrentReadAuthority as forward,
-  currentReadAuthorityCovers as covers } from '../src/current-read-authority.ts';
-import { bracketHistoricalReadAuthority as historical } from '../src/historical-read-authority.ts';
+  currentReadAuthorityCovers as covers, bracketCurrentReadPolicyAuthority as metadata,
+  currentReadPolicyQuery as query } from '../src/current-read-authority.ts';
+import { bracketHistoricalReadAuthority as historical, bracketHistoricalReadPolicyAuthority as historicalMetadata } from '../src/historical-read-authority.ts';
 const track = <T>(pending: Promise<T>) => pending;
 const guard = () => {};
 
@@ -78,5 +79,68 @@ test('owner tracker failure denies and observes the actual late policy rejection
     const callback = form === 'bracket' ? bracket(async () => {}, () => held, failed, guard) : forward(() => held, [], failed, guard);
     await assert.rejects(callback(), { message: 'owner expired' }); reject(new Error('late failed policy'));
     await new Promise(r => setImmediate(r));
+  }
+});
+
+test('only exact current permission construction and forwarding select metadata queries without caching decisions', async () => {
+  const events: string[] = [], current = async () => { events.push('current'); };
+  const callback = metadata(current, async (value: string) => { events.push(value); }, track, guard);
+  const args: [string] = ['source'], first = forward(callback, args, track, guard), second = forward(first, [], track, guard);
+  args[0] = 'changed';
+  await second(); assert.deepEqual(events, ['current', 'source', 'current']); events.length = 0;
+  const permitted = query(second, current)!;
+  assert.equal(Object.isFrozen(permitted), true); await permitted(); await permitted();
+  assert.deepEqual(events, ['source', 'current', 'source', 'current']);
+  assert.equal(query(second, async () => current()), undefined);
+  assert.equal(query(async () => {}, undefined as never), undefined);
+  assert.equal(query(undefined as never, undefined as never), undefined);
+  for (const other of [async () => second(), second.bind(null), Object.assign(async () => second(), { current, metadata: true }),
+    bracket(current, async () => {}, track, guard), historicalMetadata(current, async () => {}, track, guard)]) {
+    assert.equal(query(other, current), undefined); assert.equal(query(forward(other, [], track, guard), current), undefined);
+  }
+  assert.equal(covers(second, current), true); assert.deepEqual(Object.keys(second), []);
+});
+
+test('current metadata forwarding retains every owner guard and intrinsic invocation', async () => {
+  let closed = false, calls = 0, currents = 0; const current = async () => { currents++; };
+  const policy = async (value: string) => { assert.equal(value, 'exact'); calls++; };
+  Object.assign(policy, { apply: async () => assert.fail('forged policy apply') });
+  const made = metadata(current, policy, track, guard);
+  assert.throws(() => Object.defineProperty(made, 'apply', { value: async () => {} }), TypeError);
+  const wrapped = forward(forward(made, ['exact'], track, guard), [], track, () => { if (closed) throw new Error('closed'); });
+  await query(wrapped, current)!(); assert.equal(calls, 1); assert.equal(currents, 1);
+  closed = true; await assert.rejects(query(wrapped, current)!()); assert.equal(calls, 1);
+});
+
+test('current metadata queries reject failed/nonvoid policy or caller before any continuation', async () => {
+  for (const failure of ['policy', 'policy-nonvoid', 'caller', 'caller-nonvoid']) {
+    let allowed = true, currents = 0, effects = 0;
+    const current = async () => { currents++; if (!allowed) throw new Error('revoked'); if (failure === 'caller-nonvoid') return true as never; };
+    const made = metadata(current, async () => {
+      if (failure === 'policy') throw new Error('denied');
+      if (failure === 'policy-nonvoid') return true;
+      if (failure === 'caller') allowed = false;
+    }, track, guard);
+    await assert.rejects((async () => { await query(forward(made, [], track, guard), current)!(); effects++; })());
+    assert.equal(effects, 0); assert.equal(currents, failure.startsWith('policy') ? 0 : 1);
+  }
+});
+
+test('current metadata keeps actual held work despite premature trackers and late closure', async () => {
+  let entered!: () => void, release!: () => void, closed = false, returned = false, currents = 0;
+  const held = new Promise<void>(resolve => { release = resolve; }), reached = new Promise<void>(resolve => { entered = resolve; });
+  const premature = (async () => undefined) as typeof track, current = async () => { currents++; };
+  const made = metadata(current, async () => { entered(); await held; }, premature, () => { if (closed) throw new Error('closed'); });
+  const work = query(forward(made, [], premature, guard), current)!().then(() => { returned = true; }); void work.catch(() => {});
+  await reached; assert.equal(returned, false); closed = true; release(); await assert.rejects(work); assert.equal(currents, 0);
+});
+
+test('current metadata observes late rejection after either owner tracker fails', async () => {
+  for (const layer of ['policy', 'forward']) {
+    let reject!: (error: Error) => void; const held = new Promise<void>((_, fail) => { reject = fail; });
+    const failed = (() => { throw new Error('expired'); }) as typeof track, current = async () => {};
+    const made = metadata(current, () => held, layer === 'policy' ? failed : track, guard);
+    await assert.rejects(query(forward(made, [], layer === 'forward' ? failed : track, guard), current)!());
+    reject(new Error('late failure')); await new Promise(resolve => setImmediate(resolve));
   }
 });
