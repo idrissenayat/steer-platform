@@ -7,6 +7,26 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Exact-parent current-read policy composition — 0325
+
+[0325](../intent/0325/EVIDENCE.md) composes only constructed metadata policies
+with the same exact caller. Both policies run freshly, followed by one fresh
+caller check and all owner guards; opaque and independently parented callbacks
+retain their full path. The owned drafting phase preserves that construction
+through source binding. Final records/keys/source checks and effect barriers stay.
+
+Drafting start falls **552→458**, recovery/repeat **628→521** attempts in both
+native directions (17.03% / 17.04%). This advances one action, not the full budget.
+Scope start remains 195/221/221; drafting preparation 532/487; final review 162;
+new-distinct preview/confirmation 277/709 and continuation 387/929. Identity,
+repository and token attempts remain counted. Undelayed shared-host timing is not
+a p95 result. Final test status and source hashes are in the linked evidence.
+
+Next consolidate remaining draft/original preparation and confirmation work under
+distinct purpose grants and complete effect-separated closure, then run the
+unchanged all-action 20-warm/3-cold/4-concurrent protocol. No higher limit or
+live-acceptance substitution. **68% (17/25; eight remaining; +0 points).**
+
 ## Candidate preservation readback — 0324
 
 [0324](../intent/0324/EVIDENCE.md) consumes the exact verified original already

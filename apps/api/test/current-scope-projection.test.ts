@@ -4,6 +4,8 @@ import { scopeReviewFixture } from '../../../packages/tool-registry/test/intent-
 import { validateIntentScopeBatchResults } from '@steer/tool-registry/intent-scope-batches';
 import type { IntentScopeReader } from '@steer/tool-registry/intent-scope-read-contracts';
 import { withCurrentScopeProjection as project, withLazyCurrentScopeProjection as lazy } from '../src/current-scope-projection.ts';
+import { registerCurrentReadPolicyOwner as register, bracketCurrentReadPolicyAuthority as metadata,
+  combineCurrentReadPolicyQueries as combine } from '../../../packages/data/src/current-read-authority.ts';
 
 async function fixture() {
   const f = await scopeReviewFixture(), input = { organizationId: f.scope.organizationId, productId: f.scope.productId,
@@ -20,6 +22,50 @@ async function fixture() {
     check: () => { if (!valid) throw new Error('PRIVATE lease'); },
     source: async () => { events.push('source'); } };
 }
+
+test('constructed common-parent projection runs all owner, source and selected purposes with one final caller check', async () => {
+  const f = await fixture(), purpose = async () => { f.events.push('owner'); };
+  const owner = async () => { await f.current(); await purpose(); };
+  register(owner, f.current, purpose, f.check);
+  const source = metadata(f.current, async () => { f.events.push('source'); }, task => task, f.check);
+  await project(f.output, owner, f.check, async reader => {
+    for (let i = 0; i < 2; i++) {
+      const offset = f.events.length;
+      assert.deepEqual(await reader.read(f.input, source), f.output);
+      assert.deepEqual(f.events.slice(offset), ['selected', 'owner', 'source', 'current']);
+    }
+    const offset = f.events.length; await reader.read(f.input, source.bind(null));
+    assert.deepEqual(f.events.slice(offset), ['selected', 'current', 'owner', 'current', 'source', 'current', 'selected', 'current', 'owner']);
+  }, async () => { f.events.push('selected'); }, combine);
+});
+
+test('composed projection rejects policy-time revocation and late owner expiry, poisoning caught failures', async () => {
+  for (const mode of ['owner', 'source', 'selected', 'lease']) {
+    const f = await fixture(); let armed = false, released = false;
+    const purposes = async () => { if (armed && mode === 'owner') throw new Error('private owner'); };
+    const owner = async () => { await f.current(); await purposes(); }; register(owner, f.current, purposes, f.check);
+    const source = metadata(f.current, async () => {
+      if (mode === 'source') f.revoke(); if (mode === 'lease') f.expire();
+    }, task => task, f.check);
+    await assert.rejects(project(f.output, owner, f.check, async reader => {
+      armed = true; await assert.rejects(reader.read(f.input, source)); released = true;
+    }, async () => { if (armed && mode === 'selected') throw new Error('private selected purpose'); }, combine));
+    assert.equal(released, true);
+  }
+});
+
+test('composed projection drains an unawaited independent policy and closes the borrowed read after failure', async () => {
+  const f = await fixture(); let release!: () => void, entered!: () => void, done!: () => void, settled = false;
+  const held = new Promise<void>(resolve => { release = resolve; }), reached = new Promise<void>(resolve => { entered = resolve; });
+  const returned = new Promise<void>(resolve => { done = resolve; });
+  const owner = async () => { await f.current(); }; register(owner, f.current, async () => {}, f.check);
+  const source = metadata(f.current, async () => { entered(); await held; }, task => task, f.check);
+  const result = project(f.output, owner, f.check, async reader => {
+    void reader.read(f.input, source).catch(() => {}); await reached; done();
+  }, undefined, combine).finally(() => { settled = true; }); void result.catch(() => {});
+  await returned; await new Promise(resolve => setImmediate(resolve)); assert.equal(settled, false);
+  release(); await assert.rejects(result); assert.equal(settled, true);
+});
 
 test('current projection pins exact immutable output, reruns caller/source checks and closes the borrowed port', async () => {
   const f = await fixture(); let escaped: IntentScopeReader | undefined;

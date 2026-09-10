@@ -41,7 +41,7 @@ import { createIntentDevelopmentReader } from '@steer/data/intent-development-re
 import { createIntentDevelopmentHistoryReader } from '@steer/data/intent-development-history-reader';
 import { createDevelopmentObservationStore } from '@steer/data/development-observations';
 import { createIntentDevelopmentStarter } from '@steer/data/intent-development-starter';
-import { withCurrentScopeReadWindow } from '@steer/data/current-scope-read-window';
+import { withCurrentScopeReadWindow, registerCurrentReadPolicyOwner, combineCurrentReadPolicyQueries } from '@steer/data/current-scope-read-window';
 import { withCurrentScopeProjection, withLazyCurrentScopeProjection } from './current-scope-projection.ts';
 import { intentDevelopmentStartInputSchema } from '@steer/tool-registry/intent-development-start-contracts';
 import { createIntentDevelopmentPreparer } from '@steer/data/intent-development-preparer';
@@ -632,7 +632,8 @@ function createOwnedScopeReadProjection(pools: Parameters<typeof createScopeRevi
             if (await originals.authorize(freeze({ configuration: config, target, action: 'read' })) !== undefined) throw historyUnavailable();
             await grantSelected(); pinned(); lease.check(); checkReviewLifetime();
           };
-          await withCurrentScopeProjection(captured, revalidate, () => { pinned(); lease.check(); checkReviewLifetime(); }, consume, purposes);
+          await withCurrentScopeProjection(captured, revalidate, () => { pinned(); lease.check(); checkReviewLifetime(); }, consume, purposes,
+            combineCurrentReadPolicyQueries);
         }
         await lease.recheck(); await grantReview(); await grantSources(); lease.check();
         const final = output(); if (captured && hash(final) !== hash(captured)) throw historyUnavailable();
@@ -747,9 +748,9 @@ function createOwnedDevelopmentOriginalRead(pools: Parameters<typeof createInten
       || (['organizationId', 'productId', 'repository'] as const).some(k => input[k] !== config[k])) throw historyUnavailable();
     let original: Parameters<Parameters<typeof createIntentDevelopmentStarter>[2]['authorizeStart']>[0] | undefined;
     let checkLease = () => {}, grantSelected = async () => {}, ended = false;
-    const current = async () => {
+    const checkOwner = () => { pinned(); if (ended) throw historyUnavailable(); checkLease(); };
+    const purposes = async () => {
       pinned(); if (ended) throw historyUnavailable(); checkLease();
-      if (await revalidate() !== undefined) throw historyUnavailable(); pinned(); checkLease();
       if (await records.authorize(freeze({ configuration: config, target, action: 'read' })) !== undefined) throw historyUnavailable();
       if (original) {
         if (await records.authorizeDraft(freeze({ configuration: config, draftId: input.draftId, action: 'read' })) !== undefined
@@ -759,6 +760,10 @@ function createOwnedDevelopmentOriginalRead(pools: Parameters<typeof createInten
       await grantSelected();
       pinned(); checkLease();
     };
+    const current = Object.freeze(async () => {
+      checkOwner(); if (await revalidate() !== undefined) throw historyUnavailable(); checkOwner(); await purposes();
+    });
+    registerCurrentReadPolicyOwner(current, revalidate, purposes, checkOwner);
     const reading = reader.startReadSet({ kind: 'development-original', ...target }, current, async lease => {
       const saved = historyOnly(lease.contents.decoded.development_originals);
       if (!saved || saved.metadata.operationId !== target.operationId || saved.metadata.inputDigest !== target.inputDigest

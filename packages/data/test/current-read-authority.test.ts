@@ -2,10 +2,79 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { bracketCurrentReadAuthority as bracket, forwardCurrentReadAuthority as forward,
   currentReadAuthorityCovers as covers, bracketCurrentReadPolicyAuthority as metadata,
-  currentReadPolicyQuery as query } from '../src/current-read-authority.ts';
+  currentReadPolicyQuery as query, registerCurrentReadPolicyOwner as register,
+  combineCurrentReadPolicyQueries as combine } from '../src/current-read-authority.ts';
 import { bracketHistoricalReadAuthority as historical, bracketHistoricalReadPolicyAuthority as historicalMetadata } from '../src/historical-read-authority.ts';
 const track = <T>(pending: Promise<T>) => pending;
 const guard = () => {};
+
+test('combined exact-parent queries run both independent purposes then one fresh caller, without caching', async () => {
+  const events: string[] = [], current = async () => { events.push('current'); };
+  const ownerPolicy = async () => { events.push('owner'); };
+  const owner = async () => { await current(); await ownerPolicy(); };
+  register(owner, current, ownerPolicy, guard);
+  const child = forward(metadata(current, async (value: string) => { events.push(value); }, track, guard), ['child'], track, guard);
+  const combined = combine(owner, query(child, current)!)!;
+  assert.equal(Object.isFrozen(combined), true); assert.equal(covers(owner, current), false);
+  for (let n = 0; n < 2; n++) await combined();
+  assert.deepEqual(events, ['owner', 'child', 'current', 'owner', 'child', 'current']);
+  events.length = 0; await owner(); await child();
+  assert.deepEqual(events, ['current', 'owner', 'current', 'child', 'current']);
+  assert.throws(() => register(owner, current, ownerPolicy, guard));
+  assert.throws(() => register(current, current, ownerPolicy, guard));
+});
+
+test('composition cannot infer policy or shared-parent identity from generic, copied, bound or historical callbacks', async () => {
+  const current = async () => {}, owner = metadata(current, async () => {}, track, guard);
+  for (const other of [current, async () => owner(), owner.bind(null), Object.assign(async () => {}, { current, policy: owner }),
+    bracket(current, async () => {}, track, guard), historicalMetadata(current, async () => {}, track, guard),
+    metadata(async () => current(), async () => {}, track, guard)]) {
+    assert.equal(combine(owner, other), undefined); assert.equal(combine(other, owner), undefined);
+    assert.equal(combine(owner, forward(other, [], track, guard)), undefined);
+  }
+  assert.equal(combine(undefined as never, owner), undefined);
+});
+
+test('combined permission denial, nonvoid results, parent revocation and late owner closure never release a value', async () => {
+  for (const mode of ['owner-deny', 'owner-nonvoid', 'child-deny', 'child-nonvoid', 'parent-deny', 'parent-nonvoid', 'owner-close', 'child-close']) {
+    let allowed = true, ownerClosed = false, childClosed = false, received = false, parents = 0;
+    const current = async () => { parents++; if (!allowed) throw new Error('parent revoked');
+      if (mode === 'parent-nonvoid') return true as never;
+      if (mode === 'owner-close') ownerClosed = true; if (mode === 'child-close') childClosed = true; };
+    const owner = metadata(current, async () => {
+      if (mode === 'owner-deny') throw new Error('owner denied'); if (mode === 'owner-nonvoid') return true;
+    }, track, () => { if (ownerClosed) throw new Error('owner closed'); });
+    const child = metadata(current, async () => {
+      if (mode === 'child-deny') throw new Error('child denied'); if (mode === 'child-nonvoid') return true;
+      if (mode === 'parent-deny') allowed = false;
+    }, track, () => { if (childClosed) throw new Error('child closed'); });
+    await assert.rejects((async () => { await combine(owner, child)!(); received = true; })());
+    assert.equal(received, false); assert.equal(parents, mode.startsWith('owner-') && mode !== 'owner-close'
+      || mode.startsWith('child-') && mode !== 'child-close' ? 0 : 1);
+  }
+});
+
+test('composed forwarding retains exact arguments, all guards and actual drainage despite premature bookkeeping', async () => {
+  let release!: () => void, entered!: () => void, closed = false, completed = false, parents = 0;
+  const held = new Promise<void>(resolve => { release = resolve; }), reached = new Promise<void>(resolve => { entered = resolve; });
+  const current = async () => { parents++; }, premature = (async () => undefined) as typeof track;
+  const first = metadata(current, async () => {}, track, guard);
+  const args: [string] = ['exact'];
+  const child = forward(metadata(current, async (value: string) => { assert.equal(value, 'exact'); entered(); await held; }, premature, guard),
+    args, premature, () => { if (closed) throw new Error('closed'); }); args[0] = 'changed';
+  const result = combine(first, query(child, current)!)!().then(() => { completed = true; }); void result.catch(() => {});
+  await reached; await new Promise(resolve => setImmediate(resolve)); assert.equal(completed, false);
+  closed = true; release(); await assert.rejects(result); assert.equal(parents, 0);
+});
+
+test('nested composition keeps every distinct policy and one parent, without granting a different current authority', async () => {
+  const events: string[] = [], current = async () => { events.push('current'); };
+  const make = (name: string) => metadata(current, async () => { events.push(name); }, track, guard);
+  const joined = combine(make('a'), make('b'))!;
+  await combine(forward(query(joined, current)!, [], track, guard), make('c'))!();
+  assert.deepEqual(events, ['a', 'b', 'c', 'current']);
+  assert.equal(query(joined, async () => current()), undefined);
+});
 
 test('exact current construction is immutable and only genuine forwarding preserves its barrier', async () => {
   const events: string[] = [], current = async () => { events.push('current'); };

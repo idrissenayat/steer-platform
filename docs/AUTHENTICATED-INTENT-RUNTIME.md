@@ -62,6 +62,23 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Exact-parent current-read policy composition — 0325
+
+[0325](../intent/0325/SPEC.md) adds private construction metadata for a caller's
+independent permission queries and exact parent. Only same-parent constructed
+queries may compose: every policy still runs, followed by one fresh parent check
+and both owner guards before read-only consumption. No identity or permission
+result is cached. Forwarding retains the proof and guard; copied, bound, generic,
+historical or differently parented callbacks retain full ordinary checks.
+
+The API composition root registers the current development-original owner and
+injects the composition into current-scope projection; the helper does not import
+data-layer implementation. No public request flag or new package export path is
+introduced. Original validation remains separate from scheduling, with complete
+final development records/keys before final current-scope records/keys. Eight
+new component checks cover ordering, fallback, revocation and actual drainage.
+Native drafting-start attempts are 458/521/521, still over the whole-action cap.
+
 ### Candidate preservation readback — 0324
 
 [0324](../intent/0324/EVIDENCE.md) returns a server-only verified original from

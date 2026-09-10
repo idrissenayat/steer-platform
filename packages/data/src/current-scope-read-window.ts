@@ -1,7 +1,9 @@
 import { intentScopeReadInputSchema, verifyIntentScopeReadOutput,
   type IntentScopeReader, type IntentScopeReadInput, type IntentScopeReadOutput } from '@steer/tool-registry/intent-scope-read-contracts';
 import { developmentOriginalHash as hash, freezeOriginal as freeze } from './development-original-contracts.ts';
-import { currentReadAuthorityCovers, currentReadPolicyQuery } from './current-read-authority.ts';
+import { currentReadAuthorityCovers, currentReadPolicyQuery, forwardCurrentReadAuthority } from './current-read-authority.ts';
+// Server composition root only; no HTTP/MCP flag or caller-supplied proof.
+export { registerCurrentReadPolicyOwner, combineCurrentReadPolicyQueries } from './current-read-authority.ts';
 
 const unavailable = () => new Error('Current scope validation is unavailable.');
 /** ONE private, read-only pre-effect validation. A full current read brackets
@@ -29,7 +31,11 @@ export async function withCurrentScopeReadWindow<T>(reader: IntentScopeReader | 
   };
   const inspect = async (input: IntentScopeReadInput, callback: () => Promise<void>) => {
     await present(callback);
-    const value = await verifyIntentScopeReadOutput(await Reflect.apply(read!, reader, [input, () => present(callback)]));
+    // Preserve construction identity only for the exact metadata query. The
+    // forwarding guard keeps this window alive; ordinary callbacks stay opaque.
+    const query = currentReadPolicyQuery(callback, current);
+    const during = query ? forwardCurrentReadAuthority(query, [], task => task, guard) : () => present(callback);
+    const value = await verifyIntentScopeReadOutput(await Reflect.apply(read!, reader, [input, during]));
     await present(callback);
     if (value.subject !== scope!.subject || value.status !== 'review-available' || value.source.latestRevision !== value.source.revision
       || (['organizationId', 'productId', 'repository', 'reviewId', 'preparationDigest'] as const).some(k => value[k] !== input[k])) throw unavailable();

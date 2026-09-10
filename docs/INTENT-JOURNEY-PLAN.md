@@ -9,7 +9,21 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0324 / candidate preservation readback — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0325 / exact-parent current-read policies — 68% (17/25; 8 remaining; +0 points)**.
+[0325](../intent/0325/EVIDENCE.md) composes constructed metadata-only checks with
+the same parent, preserving every independent purpose and one fresh caller check
+before consumption. Unrecognized/different-parent callbacks keep full ordinary
+checks. The owned drafting phase retains that identity through source binding;
+full final records/key/source validation and scheduler-separated phases remain.
+
+Drafting start falls 552→458 and recovery/repeat 628→521 attempts (about 17%).
+Other action counts are unchanged: preview/confirmation remain 277/709 for
+new-distinct and 387/929 for continuation. This is partial C22, not a complete
+performance or live-user checkpoint. Next consolidate remaining draft/original
+preparation and confirmation work, then run the unchanged all-action benchmark.
+Verification levels and exact source evidence remain explicit in the artifact.
+
+Prior delivery checkpoint: **0324 / candidate preservation readback — 68% (17/25; 8 remaining; +0 points)**.
 [0324](../intent/0324/EVIDENCE.md) returns the exact verified original already
 recovered by preservation, eliminating the immediate duplicate recovery in
 confirmation. Full key/authority verification, durable hold/expiry updates and

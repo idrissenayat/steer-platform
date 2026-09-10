@@ -4,7 +4,7 @@ import { createDevelopmentOriginalStore, developmentRecordsConfigurationSchema }
 import { createIntentOperationStore } from './intent-operations.ts';
 import { describeDevelopmentOriginal, developmentOriginalHash as hash, freezeOriginal as freeze, type DevelopmentOriginal } from './development-original-contracts.ts';
 import { withCurrentScopeReadWindow } from './current-scope-read-window.ts';
-import { bracketCurrentReadPolicyAuthority, forwardCurrentReadAuthority } from './current-read-authority.ts';
+import { bracketCurrentReadPolicyAuthority, forwardCurrentReadAuthority, currentReadPolicyQuery } from './current-read-authority.ts';
 import { createReadPolicyAuthority } from './read-policy-authority.ts';
 import { withPreparationEvidence, type PreparationEvidenceWindow } from './preparation-evidence-window.ts';
 import { revalidateDevelopmentScopeReview } from './development-scope-review.ts';
@@ -68,8 +68,15 @@ export function createIntentDevelopmentStarter(pools: Parameters<typeof createDe
             || s.revision !== input.revision || s.revisionDigest !== input.revisionDigest || described.inputDigest !== target.inputDigest
             || Object.keys(config).some(k => Reflect.get(described.original.configuration, k) !== Reflect.get(config, k))
             || found.operationExpired !== false || found.executionAuthorized !== false || found.retryAuthorized !== false || found.gateSigned !== false) throw unavailable();
-          if (originalWindow) await revalidateDevelopmentScopeReview(described.original, scopeReader,
-            forwardCurrentReadAuthority(secured.authorizeOriginal, [freeze({ original: described.original, action: 'read' as const })], track, guard, secured));
+          if (originalWindow) {
+            const sourceCurrent = forwardCurrentReadAuthority(secured.authorizeOriginal,
+              [freeze({ original: described.original, action: 'read' as const })], track, guard, secured);
+            // The exact owned original read authenticated this phase. Keep the
+            // source policy and fresh post-policy caller at every scope barrier;
+            // do not restore duplicate pre-policy traversal in nested bind checks.
+            await revalidateDevelopmentScopeReview(described.original, scopeReader,
+              currentReadPolicyQuery(sourceCurrent, current) ?? sourceCurrent);
+          }
           guard(); return described.original;
         };
         const withReads = (work: (read: () => Promise<DevelopmentOriginal>) => Promise<void>) => withPreparationEvidence(

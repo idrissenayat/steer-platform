@@ -7053,6 +7053,26 @@ live model/key access, spending, runtime GitHub save, deployment, profile/record
 activation, signature or human UI acceptance. User drafts, signed artifacts and
 roadmap/outputs remain unchanged. **68% (17/25; eight remaining; +0 points).**
 
+## 0325 — Exact-parent current-read policy composition
+
+[0325](../intent/0325/EVIDENCE.md) preserves independent metadata policies while
+composing their identical caller at a read-only boundary. Every purpose runs
+freshly, followed by the common caller and all owner guards. Unknown, copied,
+bound, historical and different-parent callbacks retain the ordinary path.
+The server root owns registration/injection; no data-layer import is added to
+the helper, and no request flag or new package export path selects the behavior.
+
+Owned drafting start also retains the metadata query through source binding.
+Whole-action attempts fall 552→458 initially and 628→521 on recovery/repetition.
+Other actions are unchanged. Full development records/key closure still precedes
+final current-scope records/keys, with fresh phases around scheduling and retained
+drainage after failures. The artifact records final verification and limitations.
+
+**68% (17/25; eight remaining; +0 points).** C22 remains over budget; remaining
+preparation/confirmation consolidation and the unchanged complete benchmark are
+next. No live model spending, runtime GitHub write, activation, deployment,
+release, signature or real-record deletion. Protected artifacts remain unchanged.
+
 ## 0324 — Verified readback from candidate preservation
 
 [0324](../intent/0324/EVIDENCE.md) returns preservation's verified recovered

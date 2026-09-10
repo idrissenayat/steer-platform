@@ -10,7 +10,9 @@ function freeze<T>(value: T): T {
  * records, keys, policies and source after this resolves, before returning from
  * its enclosing phase. Never use the callback for scheduling or other effects. */
 export async function withCurrentScopeProjection(raw: unknown, current: () => Promise<void>, check: () => void,
-  work: (reader: IntentScopeReader) => Promise<void>, authorize?: () => Promise<void>): Promise<void> {
+  work: (reader: IntentScopeReader) => Promise<void>, authorize?: () => Promise<void>,
+  // Optional construction-only policy composition, supplied by runtime.ts.
+  combine?: (owner: () => Promise<void>, child: () => Promise<void>) => (() => Promise<void>) | undefined): Promise<void> {
   let closed = false, failed = false, reading = false, consumed = false;
   const tasks = new Set<Promise<unknown>>();
   const guard = () => { if (closed || failed) throw unavailable(); check(); };
@@ -23,7 +25,7 @@ export async function withCurrentScopeProjection(raw: unknown, current: () => Pr
   const ownerCurrent = async () => { if (authorize) await present(authorize); await present(current); };
   try {
     if (typeof current !== 'function' || typeof check !== 'function' || typeof work !== 'function'
-      || (authorize !== undefined && typeof authorize !== 'function')) throw unavailable();
+      || (authorize !== undefined && typeof authorize !== 'function') || (combine !== undefined && typeof combine !== 'function')) throw unavailable();
     await ownerCurrent();
     const value = freeze(await verifyIntentScopeReadOutput(raw)); guard();
     if (value.status !== 'review-available' || value.source.latestRevision !== value.source.revision) throw unavailable();
@@ -36,10 +38,19 @@ export async function withCurrentScopeProjection(raw: unknown, current: () => Pr
       const task = Promise.resolve().then(async () => {
         guard(); const requested = intentScopeReadInputSchema.parse(input);
         if ((['organizationId', 'productId', 'repository', 'reviewId', 'preparationDigest'] as const).some(key => requested[key] !== target[key])) throw unavailable();
-        await ownerCurrent();
-        // The exact parent callback just ran here. Unknown or independent
-        // callbacks still run between two freshly authorized owner boundaries.
-        if (callback !== current) { await present(callback); await ownerCurrent(); }
+        const combined = combine?.(current, callback);
+        if (combined) {
+          // Entry authenticated this phase. These exact server-owned callbacks
+          // share a parent, but not a policy: run every purpose, then one fresh
+          // parent check, with all owner guards before releasing the projection.
+          if (authorize) await present(authorize);
+          await present(combined);
+        } else {
+          await ownerCurrent();
+          // The exact parent callback just ran here. Unknown or independent
+          // callbacks still run between two freshly authorized owner boundaries.
+          if (callback !== current) { await present(callback); await ownerCurrent(); }
+        }
         consumed = true; return value;
       }).catch(() => { failed = true; throw unavailable(); }).finally(() => { reading = false; });
       tasks.add(task); void task.finally(() => tasks.delete(task)).catch(() => {}); return task;
