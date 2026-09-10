@@ -1,15 +1,47 @@
 # Complete the actual intent journey
 
-Owner: STEER implementation loop. User-approved direction: 2026-09-07.
+Owner: user-directed development. Implementation loop paused at the user's request, 2026-09-10.
 Plan origin: `09c3ab8`; current implementation is recorded below. This plan controls delivery sequencing; it does
 not replace signed requirements, alter gates or authorize model spending.
+
+## Controlling priority — user reset, 2026-09-10
+
+The user approved pausing the recurring implementation loop and focusing on the
+requirements they give. Do not resume it without their explicit instruction.
+This section supersedes the optimization-first sequencing and historical
+"next" statements below; existing evidence and broader release requirements remain.
+
+The next usable milestone is the user's actual application journey:
+
+1. Submit the intent in natural language through an open text box or conversation.
+2. The agent understands the request and checks permitted existing intents and
+   documents for duplicates, overlap and related work. Show matches and uncertainty;
+   incomplete search does not establish that an intent is new.
+3. Ask only necessary clarification questions; let the user resolve ambiguous
+   matches without silently merging or discarding their intent.
+4. Produce source-faithful Intent Brief and Intent Spec drafts, plus the separate
+   Test Agent's Intent Exam, in the actual application.
+5. Present the documents for the user to review, correct and explicitly approve
+   for implementation. Preparing documents does not manufacture that approval.
+
+Completion requires a demonstrated real-model journey in the actual UI and the
+user's acceptance, not a separate preview or synthetic responses. Work directly
+on missing behavior that prevents this journey. Do not add architecture changes,
+performance micro-optimizations or broader hardening work unless necessary for
+these requirements; explain a blocking prerequisite before expanding scope.
+Preserve existing auth, tenant boundaries, durable drafts, signed requirements
+and the pink/orange design. Real model spending and governed GitHub writes still
+require their specific approvals; this reset grants neither.
+
+The prior 25-checkpoint percentage remains a broader delivery measure, not a
+percentage of usable functionality. This planning change earns no checkpoint.
 
 Progress reporting: use the [fixed 25-checkpoint delivery tracker](INTENT-CAPTURE-PROGRESS.md)
 after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0329 / shared draft graph across save reviews — 68% (17/25; 8 remaining; +0 points)**.
+Last verified implementation checkpoint before the pause: **0329 / shared draft graph across save reviews — 68% (17/25; 8 remaining; +0 points)**.
 [0329](../intent/0329/EVIDENCE.md) lends one exact owned draft phase through
 nested source/final/preview reviews, with fresh consumer and draft permissions,
 lexical lifetime/drainage and full final native validation after source closure.

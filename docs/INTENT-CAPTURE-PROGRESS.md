@@ -4,6 +4,12 @@ Checklist version: 1. Established 2026-09-09 at the user's request.
 
 **Overall: 68% — 17 of 25 acceptance checkpoints verified.**
 
+2026-09-10: the user paused the implementation loop and reset the next priority to
+the [actual intent-to-documents journey](INTENT-JOURNEY-PLAN.md#controlling-priority--user-reset-2026-09-10).
+Historical C22-first sequencing below is superseded. The fixed broader checklist
+and its pending checkpoints remain unchanged; this plan reset earns no progress
+points and does not make the application journey 68% usable.
+
 This measures completion of the fixed delivery checklist below, not elapsed time,
 remaining engineering effort, production readiness or the number of tests/commits.
 Each checkpoint contributes four percentage points. Component and synthetic

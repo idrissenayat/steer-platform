@@ -13,10 +13,21 @@ is not spending authorization.
 
 ## First usable milestone
 
-A human signs in through Keycloak, creates an intent through a guided
-conversation, confirms the proposed artifact, sees it committed through the
-GitHub App and projected onto the board, and reviews a revision-bound decision
-inside STEER. Every surface uses the same registry and tenant authorization.
+2026-09-10 user reset: the recurring implementation loop is **paused** and must
+not restart without the user's explicit instruction. The controlling priority is
+the [intent journey plan](INTENT-JOURNEY-PLAN.md#controlling-priority--user-reset-2026-09-10):
+natural-language intent, agent understanding and duplicate/overlap review,
+necessary clarification, actual Brief/Spec/Exam generation, then human review,
+correction and explicit approval for implementation in the actual application.
+Further optimization or broader hardening is not the next milestone unless it
+is necessary to make that requested journey work. No checkpoint is completed by
+this sequencing change, and model spending or governed writes are not authorized.
+
+The prior broader Phase 1 target remains: Keycloak sign-in, authorized GitHub App
+commit, board projection and a revision-bound decision inside STEER. It is not
+the prerequisite definition of the narrower first usable authoring demonstration.
+Every surface retains the same registry and tenant authorization. Historical
+sequencing and "next" statements below do not override the 2026-09-10 user reset.
 
 ## Delivery sequence
 
