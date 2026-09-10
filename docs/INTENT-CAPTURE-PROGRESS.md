@@ -139,6 +139,36 @@ local operator secret files and synthetic key callbacks are not that binding.
 Then apply the authorized schema and mount the existing managed journey.
 Acceptance remains **0% (0/8; W01–W08 remaining; +0 percentage points)**.
 
+### Next local infrastructure decision — 2026-09-10
+
+Source inspection confirms that `draft-revisions.ts` requires a trusted
+`keyForDraft` binding; `draft-envelope.ts` encrypts/decrypts but deliberately has
+no key persistence. The encrypted-file secret adapter requires an external key
+unwrapper and neither provisions draft keys nor implements their lifecycle.
+The current local operator-secret files are not a D1 draft-key provider.
+
+Proposed next step, **not yet authorized or installed**: add a local-only Vault
+key service behind the existing secret/KMS interface, with credentials outside
+Git, isolated storage and scoped runtime access. This is a local infrastructure
+addition, not a stack replacement or a request to accept unchanged D1 again.
+No paid hosting, production deployment, model spending or application GitHub
+writes are included. The existing actual migration boundary and disabled draft
+runtime stay unchanged until their separate conditions and authority are met.
+
+Vault provides [key/encryption APIs](https://developer.hashicorp.com/vault/api-docs/secret/transit)
+and [storage snapshot/restore APIs](https://developer.hashicorp.com/vault/api-docs/system/storage/raft).
+Those capabilities are not proof of D1 compliance: the selected binding must
+still demonstrate the exact expiry, held/pending preservation, key-copy inventory
+and restored-state/accounting controls. Do not substitute a reversible access
+flag for the approved expired-key recovery condition, silently disable backups,
+destroy keys or alter the accepted policy to make activation pass. No claim that
+this proposed binding already satisfies those conditions is made.
+
+The user is being asked once for the local-service addition. While awaiting that
+decision, do not install/configure it, activate saved drafts, repeat the unchanged
+question or substitute unrelated hardening work. Actual workflow acceptance is
+unchanged: **0% (0/8; W01–W08 remaining; +0 percentage points)**.
+
 ### Current reporting contract
 
 After each verified completed increment report:

@@ -90,6 +90,12 @@ as the starting state for the exact binding. The focused independent Test Agent
 was subsequently authorized for D1's saved-intent Exam amendment; that authorship
 does not apply migrations or activate the workflow.
 
+The [next local infrastructure decision](INTENT-CAPTURE-PROGRESS.md#next-local-infrastructure-decision--2026-09-10)
+is approval to add the missing external draft-key service using the existing
+secret/KMS seam. A local-only Vault binding is proposed, not selected as verified
+or installed. Preserve the accepted D1 rules and actual migration/runtime hold;
+do not repeat the policy-acceptance question or invent key/backup evidence.
+
 Last verified implementation checkpoint before the pause: **0329 / shared draft graph across save reviews — 68% (17/25; 8 remaining; +0 points)**.
 [0329](../intent/0329/EVIDENCE.md) lends one exact owned draft phase through
 nested source/final/preview reviews, with fresh consumer and draft permissions,
