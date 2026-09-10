@@ -7052,3 +7052,34 @@ and separate read/effect phases, then run the unchanged complete benchmark. No
 live model/key access, spending, runtime GitHub save, deployment, profile/records
 activation, signature or human UI acceptance. User drafts, signed artifacts and
 roadmap/outputs remain unchanged. **68% (17/25; eight remaining; +0 points).**
+
+## 0308 — Application corpus integration
+
+The [actual API composition](../intent/0308/EVIDENCE.md) now uses the owned native
+graph for source review and scope/development preparation. Valid evidence matches
+the previous collector; partial search retains explicit aggregate gaps. Source
+loading follows draft validation, and full final caller/head/selection/path closure
+precedes return. Separate phases remain around effects. Application admission now
+follows actual nested graph drain, not only its public timeout; shutdown drains
+before resources close. SDK/history wiring is moved into the existing runtime
+composition root with explicit data exports and narrow server-only equality use.
+
+Authenticated synthetic source review falls from 210 to 75 attempts; scope
+preparation from 844 to 320; new-distinct preview from 3,722 to 3,447; confirmation
+from 7,637 to 7,087. Both delayed draft/source prefixes pass, and native default
+and proposal-continuation save/reopen pass. These are not the complete C22 protocol
+or live UI/provider acceptance. Exact tests, failed iterations, final source hashes
+and limitations are recorded in [verification](../intent/0308/VERIFICATION.json).
+
+The final broad run passes 1,493 tests, including architectural import boundaries;
+88 prototype tests, all types, kit and scope checks pass. The final native history
+selection verifies 20 records, six SDK exchanges and all 37 isolation cases with
+the inherited late-denial checks. Earlier fixture/audit failures are retained and
+corrected, not omitted. No build or live browser acceptance is claimed.
+
+Next bind the shared records/history reader to actual services through authorized
+stage-specific discovery, preserving independent record/key/source grants and
+pre-/post-effect controls. Other actions still exceed the unchanged budget. No live
+profile/records activation, credentials, model spending, runtime GitHub write,
+deployment or signature. User drafts, signed artifacts, roadmap and outputs are
+preserved. **68% (17/25; eight remaining; +0 percentage points).**

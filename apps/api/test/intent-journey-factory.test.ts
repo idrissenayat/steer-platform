@@ -52,10 +52,11 @@ test('missing late-stage policy capabilities clean up transferred resources and 
   }
 });
 test('cleanup completion is shared, failures are sanitized, and a pending owner cannot be reported closed', async () => {
-  const f = intentJourneyFactoryFixture(); let release!: () => void;
-  f.deps.resources.shutdown = async () => { f.state.closed++; await new Promise<void>(resolve => { release = resolve; }); throw new Error('PRIVATE owner'); };
+  const f = intentJourneyFactoryFixture(); let release!: () => void, entered!: () => void;
+  const ready = new Promise<void>(resolve => { entered = resolve; });
+  f.deps.resources.shutdown = async () => { f.state.closed++; entered(); await new Promise<void>(resolve => { release = resolve; }); throw new Error('PRIVATE owner'); };
   const owned = await createOwnedIntentJourney(f.expected, f.config, f.deps), stop = owned.shutdown();
-  assert.equal(stop, owned.shutdown()); assert.equal(f.state.closed, 1); let ended = false; void stop.catch(() => { ended = true; });
+  assert.equal(stop, owned.shutdown()); await ready; assert.equal(f.state.closed, 1); let ended = false; void stop.catch(() => { ended = true; });
   await Promise.resolve(); assert.equal(ended, false); release();
   await assert.rejects(stop, /^Error: Intent journey construction cleanup failed\.$/); assert.equal(f.state.closed, 1);
   const invalid = intentJourneyFactoryFixture(); invalid.config.publication.branch = 'foreign';

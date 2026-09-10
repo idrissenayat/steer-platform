@@ -31,7 +31,7 @@ import { createRecordedScopeMastraVerifier } from '@steer/agents/recorded-mastra
 import { createIntentDraftDiscovery } from '@steer/data/intent-draft-discovery';
 import { createIntentDevelopmentReviewer } from '@steer/data/intent-development-reviewer';
 import { draftRecordsConfigurationSchema } from '@steer/data/draft-revisions';
-import { createIntentCorpusEvidence, type IntentCorpusAuthority } from '@steer/adapters/intent-corpus-evidence';
+import { createIntentCorpusEvidence, createApplicationIntentCorpusEvidence, type IntentCorpusAuthority } from '@steer/adapters/intent-corpus-evidence';
 import type { IntentAgentService } from '@steer/tool-registry/agent-contracts';
 import { createIntentDevelopment, type DevelopmentPermit } from '@steer/agents';
 import { createMastraDevelopmentRuntime } from '@steer/agents/mastra';
@@ -59,6 +59,192 @@ import { createProjectionJob, createRecordedBriefProjectionJob } from '@steer/ad
 import { ingestVerifiedArtifact, projectionKey } from '@steer/data/ingestion';
 import { readProjection } from '@steer/data';
 import { createHeldGitBriefWriterFactory, heldGitBriefConfigurationSchema, type HeldBriefAssessment } from '@steer/adapters/held-brief-writer';
+
+import { createRecordedMastraExchangeVerifier } from '@steer/agents/recorded-mastra';
+import type { intentScopeAssessmentSchema } from '@steer/tool-registry/intent-evidence-contracts';
+import { prepareIntentScopeReview } from '@steer/tool-registry/intent-scope-review';
+import { validateIntentScopeBatchResults } from '@steer/tool-registry/intent-scope-batches';
+import { renderDevelopmentRequest } from '@steer/data/development-requests';
+import { intentOperationCodec } from '@steer/data/intent-operations';
+import { scopeReviewOperationCodec } from '@steer/data/scope-review-operations';
+import { createRecordsContentReader, type RecordsContentLease } from '@steer/data/records-content-reader';
+import { recordValuesEqual, type DecodedRecordContents } from '@steer/data/records-content-codecs';
+
+type RecordedHistoryProfiles = Parameters<typeof createRecordedMastraExchangeVerifier>[0];
+type RecordedHistoryStep = ReturnType<typeof scopeReviewOperationCodec.step.parse>;
+type RecordedHistoryState = RecordedHistoryStep['state'] | 'pending';
+type RecordedHistoryRole = 'architect' | 'test-agent';
+type RecordedHistoryRoleResult = DecodedRecordContents['decoded']['development_results'][number]['value'];
+type RecordedScopeHistorySummary = { reviewId: string; preparationDigest: string;
+  batches: Array<{ batchId: string; state: RecordedHistoryState; requestVerified: boolean; responseVerified: boolean; checkpointVerified: boolean }>;
+  review: Awaited<ReturnType<typeof validateIntentScopeBatchResults>> };
+type RecordedDevelopmentHistorySummary = { operationId: string; inputDigest: string;
+  roles: Array<{ role: RecordedHistoryRole; state: RecordedHistoryState; requestVerified: boolean; responseVerified: boolean; checkpointVerified: boolean; result: RecordedHistoryRoleResult | null }> };
+const historyUnavailable = () => new Error('Recorded history could not be verified.');
+const historyEqual = (actual: unknown, expected: unknown) => { if (!recordValuesEqual(actual, expected)) throw historyUnavailable(); };
+const historyOnly = <T,>(rows: readonly T[]): T | undefined => { if (rows.length > 1) throw historyUnavailable(); return rows[0]; };
+const historyTime = (raw: unknown) => { const value = raw instanceof Date ? raw.getTime() : typeof raw === 'string' ? Date.parse(raw) : NaN;
+  if (!Number.isSafeInteger(value) || value < 0) throw historyUnavailable(); return value; };
+const historyOwnership = (metadata: { owner: string; fencingToken: number; reservationId: string; stepInputDigest: string }, step: RecordedHistoryStep) => {
+  if (metadata.owner !== step.owner || metadata.fencingToken !== step.fencingToken || metadata.reservationId !== step.reservationId
+    || metadata.stepInputDigest !== step.binding.inputDigest) throw historyUnavailable();
+};
+
+/** Pure production SDK/lineage verification over already-authorized, decoded
+ * records. It has no transport, secret or authority service. A request/response
+ * match is neither provider authorship nor semantic accuracy or current consent. */
+export function createRecordedHistoryVerifier(profiles: RecordedHistoryProfiles) {
+  const sdk = createRecordedMastraExchangeVerifier(profiles);
+  return Object.freeze({ async verify(lease: Pick<RecordsContentLease, 'snapshot' | 'contents' | 'check'>) {
+    try {
+      const { snapshot, contents, check } = lease, decoded = contents.decoded;
+      check(); const scopeReviews: RecordedScopeHistorySummary[] = [], developments: RecordedDevelopmentHistorySummary[] = [];
+      const counts = { scopeRequests: 0, scopeSdkExchanges: 0, developmentRequests: 0, developmentSdkExchanges: 0, developmentResults: 0 };
+      const seenScope = new Set<string>(), seenDevelopment = new Set<string>(), scopeSnapshots = new Map<string, string>();
+      for (const saved of decoded.scope_originals) {
+        check(); const original = saved.value, c = original.configuration, reviewId = saved.metadata.reviewId;
+        if (seenScope.has(reviewId)) throw historyUnavailable(); seenScope.add(reviewId);
+        const run = historyOnly(snapshot.data.scope_runs.filter(row => row.review_id === reviewId));
+        if (!run || run.configuration_digest !== hash(c) || run.preparation_digest !== saved.metadata.preparationDigest
+          || historyTime(run.expires_at) !== Date.parse(c.expiresAt) || run.draft_id !== original.source.scope.draftId
+          || Number(run.draft_revision) !== original.source.revision) throw historyUnavailable();
+        const prepared = await prepareIntentScopeReview(original.source.scope, original.evidence, original.profile); check();
+        if (prepared.preparationDigest !== saved.metadata.preparationDigest) throw historyUnavailable();
+        const verifier = await createRecordedScopeMastraVerifier({ scope: original.source.scope, evidence: original.evidence, profile: original.profile }); check();
+        const steps = snapshot.data.scope_batches.filter(row => row.review_id === reviewId), observations = decoded.scope_observations.filter(row => row.metadata.reviewId === reviewId);
+        if (steps.some(row => !prepared.batches.some(batch => batch.metadata.batchId === row.batch_id))) throw historyUnavailable();
+        const batches: RecordedScopeHistorySummary['batches'] = [], receipts: Array<{ planDigest: string; batchId: string; assessment: z.infer<typeof intentScopeAssessmentSchema> }> = [];
+        let used = 0;
+        for (const batch of prepared.batches) {
+          check(); const batchId = batch.metadata.batchId, row = historyOnly(steps.filter(row => row.batch_id === batchId));
+          const step = row ? scopeReviewOperationCodec.step.parse(row.record) : undefined;
+          if (step) {
+            historyEqual(step.binding, { organizationId: c.organizationId, operationId: reviewId, stepId: batchId, subject: c.subject,
+              draftId: original.source.scope.draftId, draftRevision: original.source.revision, inputDigest: batch.inputDigest, configurationRevision: c.configurationRevision });
+            if (row!.budget_id !== c.budget.budgetId || row!.reservation_id !== step.reservationId) throw historyUnavailable();
+          }
+          const request = historyOnly(observations.filter(row => row.metadata.batchId === batchId && row.metadata.stage === 'request'));
+          const response = historyOnly(observations.filter(row => row.metadata.batchId === batchId && row.metadata.stage === 'response'));
+          if ((request || response) && (!step || step.state === 'claimed')) throw historyUnavailable();
+          for (const observation of [request, response]) if (observation) {
+            used++; historyOwnership(observation.metadata, step!);
+            if (observation.metadata.preparationDigest !== saved.metadata.preparationDigest || observation.metadata.draftRevision !== original.source.revision) throw historyUnavailable();
+          }
+          if (request) {
+            if (request.value.stage !== 'request') throw historyUnavailable(); historyEqual(request.value.rendered, batch.packet);
+            verifier.verifyRequest(batchId, request.value); counts.scopeRequests++;
+          }
+          if (response) {
+            if (!request || request.value.stage !== 'request' || response.value.stage !== 'response'
+              || response.value.requestDigest !== request.metadata.payloadDigest) throw historyUnavailable();
+            verifier.verify(batchId, request.value, response.value); counts.scopeSdkExchanges++;
+          }
+          const completed = step?.state === 'succeeded';
+          if (completed) {
+            if (!response || response.value.stage !== 'response' || response.metadata.payloadDigest !== step.resultDigest) throw historyUnavailable();
+            receipts.push({ planDigest: response.value.result.planDigest, batchId, assessment: response.value.result.output });
+          }
+          batches.push({ batchId, state: step?.state ?? 'pending', requestVerified: Boolean(request), responseVerified: Boolean(response), checkpointVerified: completed });
+        }
+        if (used !== observations.length) throw historyUnavailable();
+        const review = await validateIntentScopeBatchResults(original.evidence, receipts, original.profile.profileRevision); check();
+        if (review.planDigest !== prepared.plan.planDigest) throw historyUnavailable();
+        scopeReviews.push({ reviewId, preparationDigest: saved.metadata.preparationDigest, batches, review });
+        scopeSnapshots.set(reviewId, prepared.plan.sourceSnapshotDigest);
+      }
+      for (const saved of decoded.development_originals) {
+        check(); const original = saved.value, c = original.configuration, source = original.source, operationId = saved.metadata.operationId;
+        if (seenDevelopment.has(operationId) || decoded.candidate_originals.some(row => row.metadata.operationId === operationId)) throw historyUnavailable(); seenDevelopment.add(operationId);
+        const bound = original.direction.scopeReview;
+        if (bound?.kind === 'recorded') {
+          const sourceReview = historyOnly(decoded.scope_originals.filter(row => row.metadata.reviewId === bound.reviewId));
+          const verifiedReview = historyOnly(scopeReviews.filter(row => row.reviewId === bound.reviewId));
+          if (!sourceReview || !verifiedReview || verifiedReview.preparationDigest !== bound.preparationDigest
+            || sourceReview.value.source.scope.draftId !== source.draftId || sourceReview.value.source.revision !== source.revision
+            || sourceReview.value.source.revisionDigest !== source.revisionDigest || sourceReview.metadata.scopeInputDigest !== source.scopeInputDigest
+            || sourceReview.value.evidence.head !== original.evidence.head || scopeSnapshots.get(bound.reviewId) !== original.direction.sourceSnapshotDigest) throw historyUnavailable();
+          for (const field of ['organizationId', 'subject', 'productId', 'repository', 'branch'] as const) if (sourceReview.value.configuration[field] !== c[field]) throw historyUnavailable();
+          historyEqual(sourceReview.value.evidence.inventory, original.evidence.inventory); historyEqual(verifiedReview.review, bound.results);
+        }
+        const operation = historyOnly(snapshot.data.operations.filter(row => row.operation_id === operationId));
+        if (!operation || operation.action !== 'develop' || operation.configuration_revision !== c.configurationRevision
+          || historyTime(operation.expires_at) !== Date.parse(c.expiresAt) || operation.draft_id !== source.draftId || Number(operation.draft_revision) !== source.revision) throw historyUnavailable();
+        const binding = intentOperationCodec.binding.parse(operation.binding);
+        historyEqual(binding, { draftId: source.draftId, draftRevision: source.revision, inputDigest: saved.metadata.inputDigest, configurationDigest: hash(c) });
+        const steps = snapshot.data.steps.filter(row => row.operation_id === operationId), observations = decoded.development_observations.filter(row => row.metadata.operationId === operationId);
+        const results = decoded.development_results.filter(row => row.metadata.operationId === operationId);
+        if (steps.some(row => !['architect', 'test-agent'].includes(String(row.step_id)))) throw historyUnavailable();
+        const roles: RecordedDevelopmentHistorySummary['roles'] = [];
+        // Predecessor is assembled historyOnly after validating the succeeded Architect.
+        let architect: { checkpoint: { binding: RecordedHistoryStep['binding']; resultRef: string; resultDigest: string; recordsPolicyDigest: string }; result: RecordedHistoryRoleResult } | null = null;
+        let usedObservations = 0, usedResults = 0;
+        for (const role of ['architect', 'test-agent'] as const) {
+          check(); const row = historyOnly(steps.filter(row => row.step_id === role));
+          const stored = row ? intentOperationCodec.storedStep(row, c, { ...binding, operationId }, role) : null;
+          const request = historyOnly(observations.filter(row => row.metadata.stepId === role && row.metadata.stage === 'request'));
+          const response = historyOnly(observations.filter(row => row.metadata.stepId === role && row.metadata.stage === 'response'));
+          const result = historyOnly(results.filter(row => row.metadata.stepId === role));
+          if (role === 'test-agent' && !architect) {
+            if (stored || request || response || result) throw historyUnavailable();
+            roles.push({ role, state: 'pending', requestVerified: false, responseVerified: false, checkpointVerified: false, result: null }); continue;
+          }
+          const predecessor = role === 'architect' ? null : architect;
+          const prepared = await renderDevelopmentRequest({ original, operationId, role, predecessor }); check();
+          const step = stored ? intentOperationCodec.step.parse(stored.record) : undefined;
+          if (step && (step.binding.inputDigest !== prepared.stepReference.stepInputDigest || stored!.predecessorResultDigest !== prepared.stepReference.predecessorResultDigest)) throw historyUnavailable();
+          if ((request || response || result) && (!step || step.state === 'claimed')) throw historyUnavailable();
+          for (const observation of [request, response]) if (observation) {
+            usedObservations++; historyOwnership(observation.metadata, step!);
+            if (observation.metadata.inputDigest !== saved.metadata.inputDigest || observation.metadata.draftRevision !== source.revision) throw historyUnavailable();
+          }
+          if (request) {
+            if (request.value.stage !== 'request') throw historyUnavailable(); historyEqual(request.value.rendered, prepared.rendered);
+            sdk.verifyRequest(role, prepared.rendered.request, request.value as RecordedRequest); counts.developmentRequests++;
+          }
+          if (response) {
+            if (!request || request.value.stage !== 'request' || response.value.stage !== 'response' || response.value.requestDigest !== request.metadata.payloadDigest) throw historyUnavailable();
+            sdk.verify(role, prepared.rendered.request, request.value as RecordedRequest, response.value); counts.developmentSdkExchanges++;
+          }
+          if (result) {
+            usedResults++; historyOwnership(result.metadata, step!);
+            if (!response || response.value.stage !== 'response' || result.metadata.predecessorResultDigest !== prepared.stepReference.predecessorResultDigest) throw historyUnavailable();
+            historyEqual(response.value.result, result.value);
+          }
+          const completed = step?.state === 'succeeded';
+          if (completed && (!result || stored!.resultRef !== result.metadata.resultRef || step.resultDigest !== result.row.result_digest)) throw historyUnavailable();
+          if (role === 'architect' && completed && result?.value.role === 'architect' && result.value.output.questions.length === 0
+            && result.value.output.brief !== null && result.value.output.spec !== null) architect = {
+            checkpoint: { binding: step.binding, resultRef: result.metadata.resultRef, resultDigest: String(result.row.result_digest), recordsPolicyDigest: c.recordsPolicyDigest }, result: result.value };
+          roles.push({ role, state: step?.state ?? 'pending', requestVerified: Boolean(request), responseVerified: Boolean(response), checkpointVerified: completed, result: completed ? result!.value : null });
+        }
+        if (usedObservations !== observations.length || usedResults !== results.length) throw historyUnavailable(); counts.developmentResults += usedResults;
+        developments.push({ operationId, inputDigest: saved.metadata.inputDigest, roles });
+      }
+      if (seenScope.size !== snapshot.data.scope_runs.length || decoded.scope_originals.length !== snapshot.data.scope_originals.length
+        || decoded.development_originals.length !== snapshot.data.development_originals.length
+        || counts.scopeRequests + counts.scopeSdkExchanges !== decoded.scope_observations.length
+        || counts.developmentRequests + counts.developmentSdkExchanges !== decoded.development_observations.length
+        || counts.developmentResults !== decoded.development_results.length) throw historyUnavailable();
+      check(); return freeze({ scopeReviews, developments, counts, sdkConsistencyVerified: true as const,
+        sourcePermissionsVerified: false as const, profileApprovalVerified: false as const, semanticQualityVerified: false as const,
+        candidateExecutionVerified: false as const, executionAuthorized: false as const, retryAuthorized: false as const, gateSigned: false as const });
+    } catch { throw historyUnavailable(); }
+  } });
+}
+
+/** Read-historyOnly production composition. The enclosing owner still requires awaited
+ * key/records recheck; source authority and public tool projection remain separate. */
+export function createVerifiedRecordsContentReader(pools: Parameters<typeof createRecordsContentReader>[0], config: unknown,
+  authority: Parameters<typeof createRecordsContentReader>[2], keys: Parameters<typeof createRecordsContentReader>[3], profiles: RecordedHistoryProfiles,
+  options: Parameters<typeof createRecordsContentReader>[4] = {}) {
+  const verifier = createRecordedHistoryVerifier(profiles), reader = createRecordsContentReader(pools, config, authority, keys, options);
+  return { async withReadSet<T>(target: unknown, current: () => Promise<void>, use: (lease: RecordsContentLease & {
+    history: Awaited<ReturnType<typeof verifier.verify>> }) => Promise<T>, signal?: AbortSignal) {
+    return reader.withReadSet(target, current, async lease => {
+      const history = await verifier.verify(lease); lease.check(); return use(freeze({ ...lease, history }));
+    }, signal);
+  }, close: reader.close, shutdown: reader.shutdown };
+}
 
 const text = z.string().min(1);
 /** Explicit, uninstalled reference-only start. No provider client is created;
@@ -144,13 +330,14 @@ export function createCorpusRecordedScopePreparer(reader: Parameters<typeof crea
   pools: Parameters<typeof createIntentScopePreparer>[0], configuration: unknown, profile: unknown, retrievalConfigurationRevision: string,
   dependencies: Omit<Parameters<typeof createIntentScopePreparer>[3], 'evidenceFor' | 'withEvidenceRead'> & { authority: IntentCorpusAuthority }) {
   const config = scopeReviewConfigurationSchema.parse(configuration), { organizationId, productId, repository, branch } = config;
-  const corpus = createIntentCorpusEvidence(reader, { organizationId, productId, repository, branch, retrievalConfigurationRevision }, dependencies.authority);
+  const corpus = createApplicationIntentCorpusEvidence(reader, { organizationId, productId, repository, branch, retrievalConfigurationRevision }, dependencies.authority);
   try {
     const preparer = createIntentScopePreparer(pools, config, profile, { records: dependencies.records, authorizePreparation: dependencies.authorizePreparation,
       withEvidenceRead: (input, current, work) => corpus.withReadSession({ organizationId, productId, repository, branch, scopeInputDigest: input.scopeInputDigest }, current,
         read => work(async () => (await read()).evidence)),
       evidenceFor: async (input, current) => (await corpus.collect({ organizationId, productId, repository, branch, scopeInputDigest: input.scopeInputDigest }, current)).evidence });
-    return { scope: preparer.scope, prepare: preparer.prepare, close() { preparer.close(); corpus.close(); } };
+    return { scope: preparer.scope, prepare: preparer.prepare, close() { preparer.close(); corpus.close(); },
+      async shutdown() { preparer.close(); await corpus.shutdown(); } };
   } catch (error) { corpus.close(); throw error; }
 }
 /** Explicit read-only composition. The server supplies the current exact profile
@@ -205,13 +392,14 @@ export function createVerifiedScopeReviewHistoryReader(pools: Parameters<typeof 
 export function createCorpusRecordedDevelopmentReviewer(reader: Parameters<typeof createIntentCorpusEvidence>[0], configuration: unknown,
   retrievalConfigurationRevision: string, dependencies: Omit<Parameters<typeof createIntentDevelopmentReviewer>[1], 'evidenceFor' | 'withEvidenceRead'> & { authority: IntentCorpusAuthority }) {
   const config = draftRecordsConfigurationSchema.parse(configuration), { organizationId, productId, repository, branch } = config;
-  const corpus = createIntentCorpusEvidence(reader, { organizationId, productId, repository, branch, retrievalConfigurationRevision }, dependencies.authority);
+  const corpus = createApplicationIntentCorpusEvidence(reader, { organizationId, productId, repository, branch, retrievalConfigurationRevision }, dependencies.authority);
   try {
     const reviewer = createIntentDevelopmentReviewer(config, { drafts: dependencies.drafts, authorizeReview: dependencies.authorizeReview,
       withEvidenceRead: (input, current, work) => corpus.withReadSession({ organizationId, productId, repository, branch, scopeInputDigest: input.scopeInputDigest }, current,
         read => work(async () => (await read()).evidence)),
       evidenceFor: async (input, current) => (await corpus.collect({ organizationId, productId, repository, branch, scopeInputDigest: input.scopeInputDigest }, current)).evidence });
-    return { scope: reviewer.scope, review: reviewer.review, close() { reviewer.close(); corpus.close(); } };
+    return { scope: reviewer.scope, review: reviewer.review, close() { reviewer.close(); corpus.close(); },
+      async shutdown() { reviewer.close(); await corpus.shutdown(); } };
   } catch (error) { corpus.close(); throw error; }
 }
 /** Owner-bound discovery is metadata only and remains uninstalled by default. */
@@ -697,12 +885,13 @@ const fail = () => new Error('Intent journey construction is unavailable.');
 export async function createOwnedIntentJourney(expected: IntentJourneyConfiguration, raw: unknown,
   deps: IntentJourneyFactoryDependencies): Promise<ManagedRuntimeIntentJourney> {
   if (typeof deps.resources?.shutdown !== 'function') throw fail();
-  const resources = deps.resources, owned: Array<{ close(): void }> = [];
+  const resources = deps.resources, owned: Array<{ close(): void; shutdown?(): Promise<void> }> = [];
   const stopResources = resources.shutdown.bind(resources);
   let stopped: Promise<void> | undefined;
   const shutdown = () => stopped ??= (async () => {
     let failed = false;
     for (const service of [...owned].reverse()) try { service.close(); } catch { failed = true; }
+    for (const service of [...owned].reverse()) if (service.shutdown) try { await service.shutdown(); } catch { failed = true; }
     try { await stopResources(); } catch { failed = true; }
     if (failed) throw new Error('Intent journey construction cleanup failed.');
   })();
@@ -738,7 +927,7 @@ export async function createOwnedIntentJourney(expected: IntentJourneyConfigurat
     const drafts = own(createIntentDraftService(pools.drafts, records, deps.drafts));
     const sourceReview = own(createCorpusRecordedDevelopmentReviewer(resources.reader, records, config.retrievalConfigurationRevision,
       { drafts, authority: deps.corpus, authorizeReview: deps.development.authorizeReview }));
-    const corpus = own(createIntentCorpusEvidence(resources.reader, { organizationId, productId, repository, branch,
+    const corpus = own(createApplicationIntentCorpusEvidence(resources.reader, { organizationId, productId, repository, branch,
       retrievalConfigurationRevision: config.retrievalConfigurationRevision }, deps.corpus));
     // Derive preserved role profiles from the same allowlisted SDK profiles used
     // by current and historical readers. There is no independently mutable copy.

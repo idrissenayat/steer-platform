@@ -43,7 +43,10 @@ const time = (raw: unknown) => { const value = raw instanceof Date ? raw.getTime
   if (!Number.isSafeInteger(value) || value < 0) throw fail(); return value; };
 // JSONB can reorder object keys. Stored cryptographic hashes still use their
 // original canonical codecs; structural readback equality must not rehash JSONB.
-const equal = (actual: unknown, expected: unknown) => { if (!isDeepStrictEqual(actual, expected)) throw fail(); };
+// JSONB object key order is not semantic. Keep exact structural comparison at
+// this Node-only codec edge; schemas and cryptographic digests stay mandatory.
+export const recordValuesEqual = isDeepStrictEqual;
+const equal = (actual: unknown, expected: unknown) => { if (!recordValuesEqual(actual, expected)) throw fail(); };
 const columns = { organizationId: 'organization_id', subject: 'subject', productId: 'product_id', draftId: 'draft_id',
   operationId: 'operation_id', reviewId: 'review_id', stepId: 'step_id', batchId: 'batch_id', stage: 'stage',
   payloadDigest: 'payload_digest', resultRef: 'result_ref' } as const;

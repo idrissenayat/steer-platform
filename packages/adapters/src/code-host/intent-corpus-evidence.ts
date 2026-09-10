@@ -7,6 +7,8 @@ import type { ArtifactSnapshot, CorpusRepositoryReader } from './github.ts';
 import { bracketRepositoryRead } from './repository-read-authority.ts';
 import { readCorpusArtifact } from './corpus-artifact-read.ts';
 
+export { createApplicationIntentCorpusEvidence } from './application-corpus-evidence.ts';
+
 const shape = intentEvidenceInputSchema.shape;
 const scopeSchema = intentEvidenceInputSchema.pick({ organizationId: true, productId: true, repository: true, branch: true });
 const configurationSchema = scopeSchema.extend({ retrievalConfigurationRevision: z.string().min(1).max(100) });

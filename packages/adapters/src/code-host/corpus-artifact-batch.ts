@@ -18,6 +18,10 @@ export function registerCorpusArtifactBatch(reader: CorpusRepositoryReader, read
   registrations.set(reader, { read, inventory: reader.readScopeInventory, artifact: reader.readArtifact, binding: JSON.stringify(reader.binding) });
 }
 
+/** Constructor identity only. A replaced native port is still native and must
+ * fail its pinned checks; it never silently falls back to a different reader. */
+export function hasCorpusArtifactBatch(reader: CorpusRepositoryReader) { return registrations.has(reader); }
+
 /** Caller owns product/root selection, lifecycle and final phase closure. Every
  * callback here is trusted read-only authority, never a browser-supplied grant. */
 export async function readCorpusArtifactBatch(reader: CorpusRepositoryReader, raw: readonly CorpusBatchReference[], boundary: {

@@ -9,7 +9,27 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0307 / production SDK and recorded-history verification — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0308 / application corpus integration — 68% (17/25; 8 remaining; +0 points)**.
+The [application wiring](../intent/0308/EVIDENCE.md) now uses the owned native graph
+for source review and scope/development preparation, preserving the existing
+evidence contract and incomplete-search warnings. Loading remains lazy after
+preceding draft validation; cancelled graph work keeps its application admission
+until actual drain. History/SDK composition is also placed at the declared API
+runtime root with explicit data exports, preserving the package boundaries.
+
+The authenticated synthetic source review drops from 210 to 75 attempts; scope
+preparation from 844 to 320; new-distinct preview from 3,722 to 3,447 and confirmation
+from 7,637 to 7,087. The delayed draft/source prefix passes in both directions,
+but is not the complete warm/cold/concurrent protocol for every action. There is
+no accepted C22, UI speed claim, live model call or runtime GitHub save.
+
+Next connect the shared records/history reader to actual current/historical service
+projections and stage-appropriate authorized target discovery. Keep all independent
+record/key/source policies and separate pre-/post-effect phases. Scope and drafting
+start plus confirmation controls still exceed the unchanged request budget. No
+placeholder operation IDs, cached grants, raised deadline or new ETA is permitted.
+
+Prior delivery checkpoint: **0307 / production SDK and recorded-history verification — 68% (17/25; 8 remaining; +0 points)**.
 The [production history composition](../intent/0307/EVIDENCE.md) checks actual SDK
 requests/responses, worker checkpoints and exact recorded scope-to-development
 lineage over the owned content reader. Pending/unknown outcomes remain incomplete;

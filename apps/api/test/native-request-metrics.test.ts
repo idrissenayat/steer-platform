@@ -43,3 +43,12 @@ test('failed or malformed transport requests preserve original failures and part
   for(const partial of [{...zero,head:1},{...zero,tree:-1},{...zero,other:NaN},{...zero,blob:0.5}])
     assert.throws(()=>subtractNativeRequests(zero,partial),{message:'Invalid diagnostic partition.'});
 });
+
+test('native immutable GraphQL batches count once as blob reads, never as mutations or leaked query content',async()=>{
+  const body=JSON.stringify({query:'query SteerCorpusArtifactBatch($owner: String!) { repository { databaseId } }',variables:{owner:'PRIVATE'}});
+  const meter=createNativeRequestMeter(async()=>Response.json({}));
+  await meter.transport('https://api.github.com/graphql',{method:'POST',body});
+  const captured=summarize([{path:'/graphql',method:'POST',corpusQuery:true}]);
+  assert.deepEqual(meter.snapshot(),captured);assert.equal(captured.blob,1);assert.equal(captured.mutation,0);
+  assert.equal(Object.values(captured).reduce((a,b)=>a+b,0),1);assert.doesNotMatch(JSON.stringify(captured),/PRIVATE|query/);
+});

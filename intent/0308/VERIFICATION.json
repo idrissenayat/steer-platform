@@ -1,0 +1,2779 @@
+{
+  "checkpoint": "0308",
+  "baseCommit": "6852cf7218014c4eba23355a80462c5c72767148",
+  "date": "2026-09-10",
+  "scope": "Current corpus integrated into application source-review and preparation constructors; records/history service binding remains pending; all providers/authority in verification synthetic",
+  "verification": {
+    "broad": {
+      "command": "node --test --test-concurrency=4 packages/*/test/*.test.ts packages/domain/test/*.test.mjs apps/api/test/*.test.ts apps/worker/test/*.test.ts apps/web/test/*.test.mjs tests/package-boundaries.test.mjs",
+      "exitCode": 0,
+      "tests": 1493,
+      "passed": 1493,
+      "failed": 0,
+      "durationMs": 351481.351792
+    },
+    "prototype": {
+      "command": "pnpm test",
+      "tests": 88,
+      "files": 17,
+      "passed": 88,
+      "failed": 0
+    },
+    "types": {
+      "command": "pnpm typecheck",
+      "prototype": "pass",
+      "packageApplications": "8/8 pass"
+    },
+    "kit": {
+      "requiredArtifacts": 95,
+      "result": "pass"
+    },
+    "workflowTokenScopes": "contents read-only pass",
+    "build": "not run for this server-side increment",
+    "browser": "not run; no live runtime profile activation"
+  },
+  "native": {
+    "final": {
+      "command": "node packages/data/test/postgres.integration.ts --owned-history-readset",
+      "exitCode": 0,
+      "assertions": [
+        "PASS versioned Drizzle migrations apply twice without replay effects",
+        "FOCUSED owned-history-readset with native corpus and crypto/SDK comparison oracle; NOT factory installation or C22.",
+        "PASS authenticated scope workflow: denied start, one fixed lost-acknowledgement start, ordered single-attempt activities, reference-only history, replay/repeated start without model or reservation duplication, owned worker shutdown",
+        "PASS authenticated development workflow: denied start, one fixed lost-acknowledgement start, ordered single-attempt activities, reference-only history, replay/repeated start without model or reservation duplication, owned worker shutdown",
+        "PASS authenticated concrete factory: 34 native sources, two recorded scope batches, separate Brief/Spec and Exam roles, exact result restart, editable durable draft and historical lineage after correction; four synthetic calls/reservations, no Git save",
+        "PASS authenticated scope workflow: denied start, one fixed lost-acknowledgement start, ordered single-attempt activities, reference-only history, replay/repeated start without model or reservation duplication, owned worker shutdown",
+        "PASS authenticated new-distinct corrected package: stale assessment denied, two fresh recorded scope batches, exact edited-document lineage, human confirmation, discarded HTTP acknowledgement and reconstructed idempotent original recovery; six synthetic model calls/reservations, no candidate-save scheduling or Git save",
+        "PASS authenticated factory new-distinct confirmed save: denied start, lost scheduler acknowledgement, one fixed Temporal activity/native commit, replay without resend, identity/factory restart, read-only HTTP receipt recovery, separate reconciliation, exact older-commit reopen and current policy/Git-grant denial; prior bundle and unrelated source preservation checked for revisions; no added originals or model reservations",
+        "PASS production recorded-history isolation: 37 SDK/lineage/partial-state/cancellation cases; no provider calls, current authority or execution proof.",
+        "PASS owned records: native metadata-first/independent policies, exact crypto/SDK/source closure and final records; every early group denial and late policy/key/source/expiry/revision/hold denial. Not factory installation or C22.",
+        "PASS concrete authenticated journey binds native multi-batch scope, both SDK roles, corrected confirmation and fixed save/reopen through restart",
+        "FOCUSED owned records: preceding joined journey, owned records/source assertions and idempotent migrations passed; full suite NOT RUN.",
+        "Removed only this run's synthetic PostgreSQL container and tmpfs data."
+      ],
+      "measurements": [
+        {
+          "tool": "intent.scope.start",
+          "ms": 1720,
+          "nativeRequests": 596
+        },
+        {
+          "tool": "intent.scope.start",
+          "ms": 1803,
+          "nativeRequests": 676
+        },
+        {
+          "tool": "intent.scope.start",
+          "ms": 1734,
+          "nativeRequests": 676
+        },
+        {
+          "tool": "intent.development.prepare",
+          "ms": 13045,
+          "nativeRequests": 3826,
+          "requestKinds": {
+            "head": 3795,
+            "commit": 5,
+            "tree": 5,
+            "blob": 21,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 3787,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 8,
+              "commit": 4,
+              "tree": 4,
+              "blob": 20,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.development.prepare",
+          "ms": 11918,
+          "nativeRequests": 3376,
+          "requestKinds": {
+            "head": 3345,
+            "commit": 5,
+            "tree": 5,
+            "blob": 21,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 3337,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 8,
+              "commit": 4,
+              "tree": 4,
+              "blob": 20,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.development.start",
+          "ms": 10251,
+          "nativeRequests": 7871
+        },
+        {
+          "tool": "intent.development.start",
+          "ms": 11409,
+          "nativeRequests": 8866
+        },
+        {
+          "tool": "intent.development.start",
+          "ms": 11712,
+          "nativeRequests": 8866
+        },
+        {
+          "tool": "intent.draft.read",
+          "ms": 691,
+          "nativeRequests": 19,
+          "requestKinds": {
+            "head": 16,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 16,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 0,
+              "commit": 0,
+              "tree": 0,
+              "blob": 0,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.development.review",
+          "ms": 2037,
+          "nativeRequests": 75,
+          "requestKinds": {
+            "head": 64,
+            "commit": 2,
+            "tree": 2,
+            "blob": 6,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 62,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 2,
+              "commit": 1,
+              "tree": 1,
+              "blob": 5,
+              "token": 1,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.scope.prepare",
+          "ms": 6572,
+          "nativeRequests": 320,
+          "requestKinds": {
+            "head": 289,
+            "commit": 5,
+            "tree": 5,
+            "blob": 21,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 281,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 8,
+              "commit": 4,
+              "tree": 4,
+              "blob": 20,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.scope.start",
+          "ms": 1488,
+          "nativeRequests": 596
+        },
+        {
+          "tool": "intent.scope.start",
+          "ms": 1488,
+          "nativeRequests": 596,
+          "requestKinds": {
+            "head": 593,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 593,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 0,
+              "commit": 0,
+              "tree": 0,
+              "blob": 0,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.scope.start",
+          "ms": 1724,
+          "nativeRequests": 676
+        },
+        {
+          "tool": "intent.scope.start",
+          "ms": 1724,
+          "nativeRequests": 676,
+          "requestKinds": {
+            "head": 673,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 673,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 0,
+              "commit": 0,
+              "tree": 0,
+              "blob": 0,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.scope.start",
+          "ms": 1725,
+          "nativeRequests": 676
+        },
+        {
+          "tool": "intent.scope.start",
+          "ms": 1725,
+          "nativeRequests": 676,
+          "requestKinds": {
+            "head": 673,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 673,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 0,
+              "commit": 0,
+              "tree": 0,
+              "blob": 0,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.scope.read",
+          "ms": 1462,
+          "nativeRequests": 227,
+          "requestKinds": {
+            "head": 224,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 224,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 0,
+              "commit": 0,
+              "tree": 0,
+              "blob": 0,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.candidate.save.review",
+          "ms": 3214,
+          "nativeRequests": 628,
+          "requestKinds": {
+            "head": 618,
+            "commit": 2,
+            "tree": 2,
+            "blob": 6,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 616,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 2,
+              "commit": 1,
+              "tree": 1,
+              "blob": 5,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.candidate.save.preview",
+          "ms": 10660,
+          "nativeRequests": 3447,
+          "requestKinds": {
+            "head": 3433,
+            "commit": 4,
+            "tree": 4,
+            "blob": 6,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 3425,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 8,
+              "commit": 3,
+              "tree": 3,
+              "blob": 5,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.candidate.save.prepare (discarded reply)",
+          "ms": 20639,
+          "nativeRequests": 7087,
+          "requestKinds": {
+            "head": 7062,
+            "commit": 7,
+            "tree": 7,
+            "blob": 11,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 7046,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 16,
+              "commit": 6,
+              "tree": 6,
+              "blob": 10,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.candidate.save.prepare",
+          "ms": 20800,
+          "nativeRequests": 7059,
+          "requestKinds": {
+            "head": 7032,
+            "commit": 7,
+            "tree": 7,
+            "blob": 11,
+            "token": 2,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 7016,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 1,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 16,
+              "commit": 6,
+              "tree": 6,
+              "blob": 10,
+              "token": 1,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.candidate.save.prepare",
+          "ms": 23174,
+          "nativeRequests": 7057,
+          "requestKinds": {
+            "head": 7032,
+            "commit": 7,
+            "tree": 7,
+            "blob": 11,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 7016,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 16,
+              "commit": 6,
+              "tree": 6,
+              "blob": 10,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        }
+      ],
+      "ownedHistoricalPortion": {
+        "providerAttempts": 52,
+        "elapsedMs": 4046,
+        "jwksAttempts": 1,
+        "callerChecks": 34,
+        "providerKinds": {
+          "head": 35,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 1,
+          "mutation": 0,
+          "other": 0
+        },
+        "roleTransactions": 6,
+        "sqlStatements": 51,
+        "readerCallerChecks": 13,
+        "recordPolicyCalls": 80,
+        "metadataGrants": 13,
+        "retainedSourcePolicyCalls": 136,
+        "keyCalls": 2,
+        "keyPolicyCalls": 40,
+        "historicalCorpus": {
+          "strategy": "native-graph",
+          "revisionCount": 2,
+          "originalContexts": 3,
+          "measurements": [
+            {
+              "semanticSources": 34,
+              "physicalFiles": 42,
+              "repositoryAttempts": null,
+              "sourcePolicyCalls": 126
+            },
+            {
+              "semanticSources": 34,
+              "physicalFiles": 42,
+              "repositoryAttempts": null,
+              "sourcePolicyCalls": 126
+            }
+          ],
+          "repositoryAttempts": 12,
+          "graph": {
+            "waves": null,
+            "requests": 12,
+            "sourcePolicyQueries": 252
+          },
+          "uniqueBlobObjects": 40,
+          "blobObjectsSharedAcrossRevisions": 40,
+          "sourceMetadataPolicySynthetic": true,
+          "finalSourcesAfterDependentReadback": true,
+          "wholePhaseAccepted": false,
+          "productionInstalled": false
+        },
+        "groups": {
+          "revisions": 2,
+          "latest_revision": 1,
+          "scope_originals": 2,
+          "scope_observations": 8,
+          "development_originals": 1,
+          "development_results": 2,
+          "development_observations": 4,
+          "candidate_originals": 1,
+          "operations": 2,
+          "steps": 3,
+          "scope_runs": 2,
+          "scope_batches": 4,
+          "reservations": 6,
+          "budget": 1,
+          "scope_terms": 1
+        },
+        "byteLength": 607627,
+        "keyReferences": 1,
+        "plaintextRows": 20,
+        "scopeSdkExchanges": 4,
+        "developmentSdkExchanges": 2,
+        "metadataBeforeCiphertext": true,
+        "productionSourceReader": true,
+        "independentPoliciesSynthetic": true,
+        "cryptoDecoderTestOnly": false,
+        "productionContentReader": true,
+        "productionHistoryVerifier": true,
+        "sdkVerifierTestOnly": false,
+        "additionalOracleDecodedRows": 20,
+        "elapsedLifetimeCheckedThroughReturn": true,
+        "httpRegistryIntegrated": false,
+        "actualRecordsPoliciesIntegrated": false,
+        "wholeJourneyPerformanceAccepted": false,
+        "productionInstalled": false
+      },
+      "historyIsolationCases": 37
+    },
+    "managedAndDefault": {
+      "command": "node packages/data/test/postgres.integration.ts --journey-runtime",
+      "exitCode": 0,
+      "assertions": [
+        "PASS versioned Drizzle migrations apply twice without replay effects",
+        "FOCUSED managed identity runtime with native authorization, encrypted SQL drafts and recorded generation; NOT the full integration suite.",
+        "PASS managed inventory authenticated journey retains exact encrypted draft across lost acknowledgement and runtime reconstruction with current policy and Git revocation",
+        "PASS concrete factory authenticated journey retains exact encrypted draft across lost acknowledgement and runtime reconstruction with current policy and Git revocation",
+        "PASS authenticated scope workflow: denied start, one fixed lost-acknowledgement start, ordered single-attempt activities, reference-only history, replay/repeated start without model or reservation duplication, owned worker shutdown",
+        "PASS authenticated development workflow: denied start, one fixed lost-acknowledgement start, ordered single-attempt activities, reference-only history, replay/repeated start without model or reservation duplication, owned worker shutdown",
+        "PASS authenticated concrete factory: 34 native sources, two recorded scope batches, separate Brief/Spec and Exam roles, exact result restart, editable durable draft and historical lineage after correction; four synthetic calls/reservations, no Git save",
+        "PASS authenticated scope workflow: denied start, one fixed lost-acknowledgement start, ordered single-attempt activities, reference-only history, replay/repeated start without model or reservation duplication, owned worker shutdown",
+        "PASS authenticated new-distinct corrected package: stale assessment denied, two fresh recorded scope batches, exact edited-document lineage, human confirmation, discarded HTTP acknowledgement and reconstructed idempotent original recovery; six synthetic model calls/reservations, no candidate-save scheduling or Git save",
+        "PASS authenticated factory new-distinct confirmed save: denied start, lost scheduler acknowledgement, one fixed Temporal activity/native commit, replay without resend, identity/factory restart, read-only HTTP receipt recovery, separate reconciliation, exact older-commit reopen and current policy/Git-grant denial; prior bundle and unrelated source preservation checked for revisions; no added originals or model reservations",
+        "PASS concrete authenticated journey binds native multi-batch scope, both SDK roles, corrected confirmation and fixed save/reopen through restart",
+        "FOCUSED journey runtime result: 3 joined checks passed plus idempotent migration check; full suite NOT RUN.",
+        "Removed only this run's synthetic PostgreSQL container and tmpfs data."
+      ],
+      "scope": "After synthetic query support, before final nested-drain/root-composition correction; native final selection above rechecks corrected source."
+    },
+    "continuation": {
+      "command": "node packages/data/test/postgres.integration.ts --journey-runtime-continuation",
+      "exitCode": 0,
+      "assertions": [
+        "PASS versioned Drizzle migrations apply twice without replay effects",
+        "FOCUSED authenticated proposal continuation through native corpus, recorded roles, confirmation and fixed save/reopen; NOT the full integration suite.",
+        "PASS authenticated scope workflow: denied start, one fixed lost-acknowledgement start, ordered single-attempt activities, reference-only history, replay/repeated start without model or reservation duplication, owned worker shutdown",
+        "PASS authenticated development workflow: denied start, one fixed lost-acknowledgement start, ordered single-attempt activities, reference-only history, replay/repeated start without model or reservation duplication, owned worker shutdown",
+        "PASS authenticated concrete factory: 34 native sources, two recorded scope batches, separate Brief/Spec and Exam roles, exact result restart, editable durable draft and historical lineage after correction; four synthetic calls/reservations, no Git save",
+        "PASS authenticated scope workflow: denied start, one fixed lost-acknowledgement start, ordered single-attempt activities, reference-only history, replay/repeated start without model or reservation duplication, owned worker shutdown",
+        "PASS authenticated proposal-continuation corrected package: stale assessment denied, two fresh recorded scope batches, exact edited-document lineage, human confirmation, discarded HTTP acknowledgement and reconstructed idempotent original recovery; six synthetic model calls/reservations, no candidate-save scheduling or Git save",
+        "PASS authenticated factory proposal-continuation confirmed save: denied start, lost scheduler acknowledgement, one fixed Temporal activity/native commit, replay without resend, identity/factory restart, read-only HTTP receipt recovery, separate reconciliation, exact older-commit reopen and current policy/Git-grant denial; prior bundle and unrelated source preservation checked for revisions; no added originals or model reservations",
+        "PASS concrete authenticated proposal-continuation journey binds native multi-batch scope, both SDK roles, corrected confirmation and fixed save/reopen through restart",
+        "FOCUSED authenticated proposal continuation result: 1 joined check passed plus idempotent migration check; full suite NOT RUN.",
+        "Removed only this run's synthetic PostgreSQL container and tmpfs data."
+      ],
+      "measurements": [
+        {
+          "tool": "intent.scope.start",
+          "ms": 1698,
+          "nativeRequests": 596
+        },
+        {
+          "tool": "intent.scope.start",
+          "ms": 1787,
+          "nativeRequests": 676
+        },
+        {
+          "tool": "intent.scope.start",
+          "ms": 2231,
+          "nativeRequests": 676
+        },
+        {
+          "tool": "intent.development.prepare",
+          "ms": 13771,
+          "nativeRequests": 3826,
+          "requestKinds": {
+            "head": 3795,
+            "commit": 5,
+            "tree": 5,
+            "blob": 21,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 3787,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 8,
+              "commit": 4,
+              "tree": 4,
+              "blob": 20,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.development.prepare",
+          "ms": 12373,
+          "nativeRequests": 3376,
+          "requestKinds": {
+            "head": 3345,
+            "commit": 5,
+            "tree": 5,
+            "blob": 21,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 3337,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 8,
+              "commit": 4,
+              "tree": 4,
+              "blob": 20,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.development.start",
+          "ms": 11402,
+          "nativeRequests": 7871
+        },
+        {
+          "tool": "intent.development.start",
+          "ms": 11621,
+          "nativeRequests": 8866
+        },
+        {
+          "tool": "intent.development.start",
+          "ms": 10598,
+          "nativeRequests": 8866
+        },
+        {
+          "tool": "intent.draft.read",
+          "ms": 1043,
+          "nativeRequests": 19,
+          "requestKinds": {
+            "head": 16,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 16,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 0,
+              "commit": 0,
+              "tree": 0,
+              "blob": 0,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.development.review",
+          "ms": 1823,
+          "nativeRequests": 75,
+          "requestKinds": {
+            "head": 64,
+            "commit": 2,
+            "tree": 2,
+            "blob": 6,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 62,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 2,
+              "commit": 1,
+              "tree": 1,
+              "blob": 5,
+              "token": 1,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.scope.prepare",
+          "ms": 5283,
+          "nativeRequests": 320,
+          "requestKinds": {
+            "head": 289,
+            "commit": 5,
+            "tree": 5,
+            "blob": 21,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 281,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 8,
+              "commit": 4,
+              "tree": 4,
+              "blob": 20,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.scope.start",
+          "ms": 1308,
+          "nativeRequests": 596
+        },
+        {
+          "tool": "intent.scope.start",
+          "ms": 1308,
+          "nativeRequests": 596,
+          "requestKinds": {
+            "head": 593,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 593,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 0,
+              "commit": 0,
+              "tree": 0,
+              "blob": 0,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.scope.start",
+          "ms": 1402,
+          "nativeRequests": 676
+        },
+        {
+          "tool": "intent.scope.start",
+          "ms": 1402,
+          "nativeRequests": 676,
+          "requestKinds": {
+            "head": 673,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 673,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 0,
+              "commit": 0,
+              "tree": 0,
+              "blob": 0,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.scope.start",
+          "ms": 1292,
+          "nativeRequests": 676
+        },
+        {
+          "tool": "intent.scope.start",
+          "ms": 1293,
+          "nativeRequests": 676,
+          "requestKinds": {
+            "head": 673,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 673,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 0,
+              "commit": 0,
+              "tree": 0,
+              "blob": 0,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.scope.read",
+          "ms": 974,
+          "nativeRequests": 227,
+          "requestKinds": {
+            "head": 224,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 224,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 0,
+              "commit": 0,
+              "tree": 0,
+              "blob": 0,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.candidate.save.review",
+          "ms": 2602,
+          "nativeRequests": 628,
+          "requestKinds": {
+            "head": 618,
+            "commit": 2,
+            "tree": 2,
+            "blob": 6,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 616,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 2,
+              "commit": 1,
+              "tree": 1,
+              "blob": 5,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.candidate.save.preview",
+          "ms": 19432,
+          "nativeRequests": 3737,
+          "requestKinds": {
+            "head": 3677,
+            "commit": 20,
+            "tree": 20,
+            "blob": 20,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 3669,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 8,
+              "commit": 19,
+              "tree": 19,
+              "blob": 19,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.candidate.save.prepare (discarded reply)",
+          "ms": 38572,
+          "nativeRequests": 7667,
+          "requestKinds": {
+            "head": 7550,
+            "commit": 39,
+            "tree": 39,
+            "blob": 39,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 7534,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 16,
+              "commit": 38,
+              "tree": 38,
+              "blob": 38,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.candidate.save.prepare",
+          "ms": 38008,
+          "nativeRequests": 7639,
+          "requestKinds": {
+            "head": 7520,
+            "commit": 39,
+            "tree": 39,
+            "blob": 39,
+            "token": 2,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 7504,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 1,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 16,
+              "commit": 38,
+              "tree": 38,
+              "blob": 38,
+              "token": 1,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        },
+        {
+          "tool": "intent.candidate.save.prepare",
+          "ms": 35332,
+          "nativeRequests": 7637,
+          "requestKinds": {
+            "head": 7520,
+            "commit": 39,
+            "tree": 39,
+            "blob": 39,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "origins": {
+            "identity": {
+              "head": 7504,
+              "commit": 1,
+              "tree": 1,
+              "blob": 1,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            },
+            "repository": {
+              "head": 16,
+              "commit": 38,
+              "tree": 38,
+              "blob": 38,
+              "token": 0,
+              "mutation": 0,
+              "other": 0
+            }
+          }
+        }
+      ],
+      "scope": "Application/graph behavior final, before mechanical history-root relocation and parser-only generic commas."
+    }
+  },
+  "performance": {
+    "command": "node packages/data/test/postgres.integration.ts --journey-performance",
+    "exitCode": 0,
+    "reports": [
+      {
+        "kind": "synthetic-authenticated-performance-prefix/v1",
+        "direction": "new-distinct",
+        "delayMs": 20,
+        "maxAttempts": 200,
+        "sourceCount": 34,
+        "primer": {
+          "ms": 1104.6562920000006,
+          "attempts": 20,
+          "dispatched": 20,
+          "peakPending": 1,
+          "outstandingAtReturn": 0,
+          "limited": false,
+          "delayMs": 20,
+          "maxAttempts": 200,
+          "returned": true
+        },
+        "groups": {
+          "warm": {
+            "complete": true,
+            "healthy": true,
+            "p95Ms": 1102.820584000001,
+            "maximumMs": 1119.6318329999995,
+            "withinTarget": true,
+            "samples": [
+              {
+                "ms": 1090.0974160000005,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1093.2898749999986,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1046.2087919999994,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 996.1494170000005,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1039.3732919999984,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1042.8493749999998,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1057.4563340000004,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1052.6156250000004,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1012.198292000001,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1034.3435419999987,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1017.5050840000004,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1013.6799580000006,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1119.6318329999995,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1025.0207919999993,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1067.8486660000017,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1064.6259580000005,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1059.9799999999996,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1041.1262500000012,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1089.5703329999997,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1102.820584000001,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              }
+            ]
+          },
+          "cold": {
+            "complete": true,
+            "healthy": true,
+            "p95Ms": 1093.445083999999,
+            "maximumMs": 1093.445083999999,
+            "withinTarget": true,
+            "samples": [
+              {
+                "ms": 1093.445083999999,
+                "attempts": 20,
+                "dispatched": 20,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1079.9491669999989,
+                "attempts": 20,
+                "dispatched": 20,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1075.3082920000015,
+                "attempts": 20,
+                "dispatched": 20,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              }
+            ]
+          },
+          "concurrent": {
+            "complete": true,
+            "healthy": true,
+            "p95Ms": 3087.8385830000043,
+            "maximumMs": 3087.8385830000043,
+            "withinTarget": true,
+            "samples": [
+              {
+                "ms": 3076.4878750000025,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 3066.2358330000025,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 3087.8385830000043,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 3076.595250000002,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              }
+            ]
+          }
+        },
+        "sourceReview": {
+          "status": 200,
+          "sample": {
+            "ms": 3587.709791999994,
+            "attempts": 75,
+            "dispatched": 75,
+            "peakPending": 1,
+            "outstandingAtReturn": 0,
+            "limited": false,
+            "delayMs": 20,
+            "maxAttempts": 200,
+            "returned": true
+          }
+        },
+        "boundary": "prefix-only",
+        "prefixTargetsMet": true,
+        "completeBenchmark": false,
+        "modelCalls": 0,
+        "providerSaves": 0,
+        "liveAcceptance": false
+      },
+      {
+        "kind": "synthetic-authenticated-performance-prefix/v1",
+        "direction": "proposal-continuation",
+        "delayMs": 20,
+        "maxAttempts": 200,
+        "sourceCount": 34,
+        "primer": {
+          "ms": 1112.6514169999937,
+          "attempts": 20,
+          "dispatched": 20,
+          "peakPending": 1,
+          "outstandingAtReturn": 0,
+          "limited": false,
+          "delayMs": 20,
+          "maxAttempts": 200,
+          "returned": true
+        },
+        "groups": {
+          "warm": {
+            "complete": true,
+            "healthy": true,
+            "p95Ms": 1126.1476249999978,
+            "maximumMs": 1142.385209,
+            "withinTarget": true,
+            "samples": [
+              {
+                "ms": 1034.5757499999963,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1060.252708,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1126.1476249999978,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1089.528041000005,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1010.0802919999987,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1088.2035409999953,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1117.771041,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1090.1702500000029,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1120.0387499999997,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1085.5557909999989,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1058.5687920000055,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1073.9241660000043,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1036.318542000001,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1098.6890419999982,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1068.3836670000019,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1090.6347079999978,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1142.385209,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1094.1332500000062,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1079.052582999997,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1052.2518750000017,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              }
+            ]
+          },
+          "cold": {
+            "complete": true,
+            "healthy": true,
+            "p95Ms": 1134.174291000003,
+            "maximumMs": 1134.174291000003,
+            "withinTarget": true,
+            "samples": [
+              {
+                "ms": 1131.5295000000042,
+                "attempts": 20,
+                "dispatched": 20,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1134.174291000003,
+                "attempts": 20,
+                "dispatched": 20,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1070.6643750000076,
+                "attempts": 20,
+                "dispatched": 20,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              }
+            ]
+          },
+          "concurrent": {
+            "complete": true,
+            "healthy": true,
+            "p95Ms": 3164.0554170000105,
+            "maximumMs": 3164.0554170000105,
+            "withinTarget": true,
+            "samples": [
+              {
+                "ms": 3141.780083999998,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 3149.850000000006,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 3149.675375000006,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 3164.0554170000105,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              }
+            ]
+          }
+        },
+        "sourceReview": {
+          "status": 200,
+          "sample": {
+            "ms": 3459.5092090000107,
+            "attempts": 75,
+            "dispatched": 75,
+            "peakPending": 1,
+            "outstandingAtReturn": 0,
+            "limited": false,
+            "delayMs": 20,
+            "maxAttempts": 200,
+            "returned": true
+          }
+        },
+        "boundary": "prefix-only",
+        "prefixTargetsMet": true,
+        "completeBenchmark": false,
+        "modelCalls": 0,
+        "providerSaves": 0,
+        "liveAcceptance": false
+      }
+    ],
+    "earlierReports": [
+      {
+        "kind": "synthetic-authenticated-performance-prefix/v1",
+        "direction": "new-distinct",
+        "delayMs": 20,
+        "maxAttempts": 200,
+        "sourceCount": 34,
+        "primer": {
+          "ms": 1292.6533329999993,
+          "attempts": 20,
+          "dispatched": 20,
+          "peakPending": 1,
+          "outstandingAtReturn": 0,
+          "limited": false,
+          "delayMs": 20,
+          "maxAttempts": 200,
+          "returned": true
+        },
+        "groups": {
+          "warm": {
+            "complete": true,
+            "healthy": true,
+            "p95Ms": 1508.3626250000016,
+            "maximumMs": 1748.5496669999993,
+            "withinTarget": true,
+            "samples": [
+              {
+                "ms": 1224.8348750000005,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1186.266125,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1294.717666999999,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1407.4853750000002,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1274.051125,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1315.0767500000002,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1472.0811250000006,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1299.2683339999967,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1275.799332999999,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1271.5758749999986,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1748.5496669999993,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1508.3626250000016,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1197.2612500000032,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1186.986458000003,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1218.5366670000003,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1195.0616669999981,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1243.5922500000015,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1300.6834999999992,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1309.8344169999982,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1194.7777920000008,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              }
+            ]
+          },
+          "cold": {
+            "complete": true,
+            "healthy": true,
+            "p95Ms": 1289.6792080000014,
+            "maximumMs": 1289.6792080000014,
+            "withinTarget": true,
+            "samples": [
+              {
+                "ms": 1231.825791000003,
+                "attempts": 20,
+                "dispatched": 20,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1234.9852500000052,
+                "attempts": 20,
+                "dispatched": 20,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1289.6792080000014,
+                "attempts": 20,
+                "dispatched": 20,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              }
+            ]
+          },
+          "concurrent": {
+            "complete": true,
+            "healthy": true,
+            "p95Ms": 4440.204749999997,
+            "maximumMs": 4440.204749999997,
+            "withinTarget": true,
+            "samples": [
+              {
+                "ms": 4425.801041999999,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 4417.370834000001,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 4425.508415999997,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 4440.204749999997,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              }
+            ]
+          }
+        },
+        "sourceReview": {
+          "status": 200,
+          "sample": {
+            "ms": 4124.452125000003,
+            "attempts": 75,
+            "dispatched": 75,
+            "peakPending": 1,
+            "outstandingAtReturn": 0,
+            "limited": false,
+            "delayMs": 20,
+            "maxAttempts": 200,
+            "returned": true
+          }
+        },
+        "boundary": "prefix-only",
+        "prefixTargetsMet": true,
+        "completeBenchmark": false,
+        "modelCalls": 0,
+        "providerSaves": 0,
+        "liveAcceptance": false
+      },
+      {
+        "kind": "synthetic-authenticated-performance-prefix/v1",
+        "direction": "proposal-continuation",
+        "delayMs": 20,
+        "maxAttempts": 200,
+        "sourceCount": 34,
+        "primer": {
+          "ms": 1430.0249170000025,
+          "attempts": 20,
+          "dispatched": 20,
+          "peakPending": 1,
+          "outstandingAtReturn": 0,
+          "limited": false,
+          "delayMs": 20,
+          "maxAttempts": 200,
+          "returned": true
+        },
+        "groups": {
+          "warm": {
+            "complete": true,
+            "healthy": true,
+            "p95Ms": 1699.7081659999967,
+            "maximumMs": 1876.414499999999,
+            "withinTarget": true,
+            "samples": [
+              {
+                "ms": 1203.2082909999954,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1395.1563339999993,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1153.826165999999,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1226.8830830000006,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1876.414499999999,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1224.1627080000035,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1345.614959000006,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1250.8057079999999,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1159.1732080000002,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1170.0993749999907,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1197.097167,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1196.5019579999935,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1172.9834589999955,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1189.4332080000022,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1264.5074170000007,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1171.0920420000039,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1266.2883750000037,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1319.692750000002,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1518.676833000005,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1699.7081659999967,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              }
+            ]
+          },
+          "cold": {
+            "complete": true,
+            "healthy": true,
+            "p95Ms": 1313.5648329999967,
+            "maximumMs": 1313.5648329999967,
+            "withinTarget": true,
+            "samples": [
+              {
+                "ms": 1313.5648329999967,
+                "attempts": 20,
+                "dispatched": 20,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1255.6956250000076,
+                "attempts": 20,
+                "dispatched": 20,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 1269.8132920000062,
+                "attempts": 20,
+                "dispatched": 20,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              }
+            ]
+          },
+          "concurrent": {
+            "complete": true,
+            "healthy": true,
+            "p95Ms": 3671.7085829999996,
+            "maximumMs": 3671.7085829999996,
+            "withinTarget": true,
+            "samples": [
+              {
+                "ms": 3660.392875000005,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 3649.600250000003,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 3653.7300839999953,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              },
+              {
+                "ms": 3671.7085829999996,
+                "attempts": 19,
+                "dispatched": 19,
+                "peakPending": 1,
+                "outstandingAtReturn": 0,
+                "limited": false,
+                "delayMs": 20,
+                "maxAttempts": 200,
+                "returned": true
+              }
+            ]
+          }
+        },
+        "sourceReview": {
+          "status": 200,
+          "sample": {
+            "ms": 4086.3360419999954,
+            "attempts": 75,
+            "dispatched": 75,
+            "peakPending": 1,
+            "outstandingAtReturn": 0,
+            "limited": false,
+            "delayMs": 20,
+            "maxAttempts": 200,
+            "returned": true
+          }
+        },
+        "boundary": "prefix-only",
+        "prefixTargetsMet": true,
+        "completeBenchmark": false,
+        "modelCalls": 0,
+        "providerSaves": 0,
+        "liveAcceptance": false
+      }
+    ],
+    "scope": "Unchanged prefix only: 20 warm, 3 cold and 4 concurrent draft reads plus one source review per direction. Latest prefix follows nested-drain correction and precedes mechanical history-root relocation; no corpus behavior was changed afterwards. Not source-review p95 or the full C22 protocol.",
+    "completeC22": false
+  },
+  "priorFailures": [
+    {
+      "run": "first focused/types",
+      "tests": 43,
+      "passed": 42,
+      "failed": 1,
+      "cause": "Old cleanup assertion required synchronous resource closure; now waits for the observed resource-shutdown entry after graph drain."
+    },
+    {
+      "run": "first new corpus/factory tests",
+      "tests": 13,
+      "passed": 11,
+      "failed": 2,
+      "cause": "Synthetic Git fixture has an explicit branch head, not HEAD; changed-selection test accidentally reused the existing digest. Corrected fixture inputs."
+    },
+    {
+      "run": "first native journey runtime",
+      "exitCode": 1,
+      "cause": "Synthetic Git provider had no read-only GraphQL handler. Added existing native query support and blob-size metadata; retained write checks."
+    },
+    {
+      "run": "first broad regression",
+      "tests": 1479,
+      "passed": 1478,
+      "failed": 1,
+      "cause": "Old test expected two REST blob reads; current contract performs one native batch for both exact documents. Updated assertion and reverified all cases in final broad run."
+    },
+    {
+      "run": "first focused architectural audit",
+      "tests": 42,
+      "passed": 41,
+      "failed": 1,
+      "cause": "Generic arrows were ambiguous to the JSX-capable audit parser. Explicit trailing commas disambiguate."
+    },
+    {
+      "run": "follow-up architectural audit",
+      "cause": "Earlier 0306/0307 helpers bypassed package exports and the API composition root. Relocated history composition to runtime, declared data exports, scoped Node structural equality to the canonical data codec, added negative boundary tests. Final audit passes."
+    }
+  ],
+  "reviewCorrections": [
+    "Keep repository loading lazy after preceding draft validation.",
+    "Keep application admission until actual nested graph work drains, not merely until its public timeout rejects; dedicated four-call regression."
+  ],
+  "sourceHashes": {
+    "apps/api/src/recorded-history-verifier.ts": "b9a414519bcae539b83154f60a09b81a49a598519cffecf1d77a16588d5ed1f9",
+    "apps/api/src/runtime.ts": "b1e033987ba4f4ec266c7c9f0181f3b907fc200951f21fe9216869afa0f45cf2",
+    "apps/api/test/intent-corpus-review.test.ts": "8cba3b9fedfed1ab9dafa09e9f0d3b6a82e74d8fcbff0064e6209fd981ab27df",
+    "apps/api/test/intent-journey-factory.test.ts": "d2c194a9b838f84813c819bec27ef82034a243f7584d9b9fbb792100b88cb365",
+    "apps/api/test/native-request-metrics.test.ts": "520a97ac0355d9d6d16474fe5d9c9e0a31072726330ed021b11ed4db3f5838b4",
+    "apps/api/test/native-request-metrics.ts": "2fa548eba4e28f2b5a10d6154dbdabdce913f138d2547ea10ea39b7d7db49778",
+    "packages/adapters/src/code-host/corpus-artifact-batch.ts": "02c080f3fe4d140c095cb043d4418393a5fbd4b25b8c58b24eeb8aaea37c9bb3",
+    "packages/adapters/src/code-host/corpus-read-graph.ts": "68163c5a3c23f301c8b51b5b857f244f75f345807f32cfdcd4c08538c74258da",
+    "packages/adapters/src/code-host/intent-corpus-evidence.ts": "d12f29fedb69af6645b43c0eefd9076aea537143bf973529c5f6a5b68ef1c66d",
+    "packages/adapters/test/github-brief-fixture.ts": "b56b557c9c9c6aff9d07e7636235d143cdfcb50b8150676784426b00889c88c2",
+    "packages/data/package.json": "489dc0740b75c1de94f09b2e1037d51cd348f5e695b76f4a3f89dc0f9932d271",
+    "packages/data/src/records-content-codecs.ts": "fb78b040a9fdb0e8f9dea9f9d496cf952dd4e6c13d2f644d2f94385ea9329f55",
+    "tests/package-boundaries.test.mjs": "10d5981ebc4e01af84b81275c035d9a382260d552bc0d3d2fec5c71199691587",
+    "packages/adapters/src/code-host/application-corpus-evidence.ts": "b39de648f537ca115d32748991236d406db1a559dcc49f371adc449f7b9b2676",
+    "apps/api/test/application-corpus-evidence.test.ts": "95c390fe9f35cab4b9d57854bd046757f650b4dc2637108380d39dc4d48a1402"
+  },
+  "protectedHashes": {
+    "intent/0001/ARCHITECTURE.md": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65",
+    "intent/0001/EXAM.md": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f",
+    "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32",
+    "intent/0289/PERFORMANCE.json": "d0371c364bbfb103b70675faf911499bffb91afe8a5e6950718c87a171e9e302"
+  },
+  "acceptance": {
+    "percent": 68,
+    "verified": 17,
+    "total": 25,
+    "pending": 8,
+    "changePoints": 0,
+    "currentCorpusFactoryIntegrated": true,
+    "recordsHistoryServiceIntegrated": false,
+    "currentRecordsPoliciesLive": false,
+    "wholeJourneyPerformance": false,
+    "realModelCalls": 0,
+    "liveRuntimeGitHubWrites": 0,
+    "liveRuntimeProfileActivation": false,
+    "spending": false,
+    "gateSigned": false
+  },
+  "next": "Bind owned records/history to current/historical services with stage-appropriate authorized target discovery and all independent policies; preserve pre/post-effect phases and reduce remaining action controls, then run full unchanged C22."
+}

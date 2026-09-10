@@ -62,6 +62,33 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Current corpus wired into application services — 0308
+
+[0308](../intent/0308/EVIDENCE.md) selects the owned batch graph by native reader
+constructor identity in the existing source-review and scope/development preparation
+composition. Unknown adapters retain their established contract, with no fallback
+after a native failure. Current evidence preserves aggregate incomplete-search
+warnings and the exact valid envelope; retained history still rejects incomplete
+sources. Native loading is lazy, so preceding draft denial causes no source prefetch.
+
+The graph owns the complete read-only dependent phase and final caller/head/
+selection/source closure. The application owns pre-evidence work as well, and
+holds admission until the exact inner graph drains even after its public timeout.
+Factory shutdown closes consumers and drains graphs before disposing resources.
+Writes, admissions and scheduler effects remain outside independent read phases.
+
+The package audit also relocates SDK/storage history composition to the existing
+API runtime root, through declared data exports. The former internal module is a
+compatibility re-export, not another provider composition entry. Structural JSONB
+comparison is restricted to the canonical Node-only codec. Browser/core import
+restrictions, current authority and existing activation prerequisites are unchanged.
+
+The shared records/history reader is still not bound to actual service projections.
+Next implement authorized stage-specific discovery and those current/historical
+contracts, then the remaining outer-action controls and complete C22 benchmark.
+This does not restart or activate a live runtime profile, adopt records, grant keys,
+call a model, sign a gate, authorize spending or prove actual signed-in UI acceptance.
+
 ### Production SDK and recorded history, no factory switch — 0307
 
 [0307](../intent/0307/EVIDENCE.md) adds an internal API composition that uses the

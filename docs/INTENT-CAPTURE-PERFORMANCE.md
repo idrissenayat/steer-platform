@@ -7,6 +7,31 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Application corpus integration — 0308
+
+[0308](../intent/0308/EVIDENCE.md) connects the owned native corpus to the actual
+source-review and scope/development preparation constructors. Unknown adapters
+retain compatibility; a failed native read never selects fallback. Current partial
+search remains explicit and historical verification remains strict. Blob batches
+count as provider read attempts, not mutations, with all identity traffic included.
+
+Authenticated synthetic counts are now source review **75** (was 210), scope
+preparation **320** (was 844), new-distinct save review **628** (was 871), preview
+**3,447** (was 3,722), and confirmation/recovery/repeat **7,087 / 7,059 / 7,057**
+(was 7,637 / 7,609 / 7,607). Drafting preparation is 3,826 / 3,376; scope start,
+scope read and drafting start retain their prior counts. These are whole-action
+counts in the authenticated synthetic journey, not a live UI measurement.
+
+The unchanged delayed prefix passes for both new-distinct and proposal-continuation:
+20 warm, three cold and four concurrent draft reads, plus one source review each.
+Each source review uses 75 attempts. Single source-review samples are not its p95;
+the full multi-action C22 benchmark still has not passed. Exact samples, earlier
+failures and final verification scope are in [verification](../intent/0308/VERIFICATION.json).
+
+Next bind records/history, authorized discovery and remaining action/effect controls.
+Neither the fixed 200-attempt/5-second limits nor the 25-checkpoint denominator
+changes. Source-only integration is insufficient to close the remaining bottleneck.
+
 ## Production SDK and recorded-history verification — 0307
 
 [0307](../intent/0307/EVIDENCE.md) uses actual production SDK and worker schemas

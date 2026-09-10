@@ -15,7 +15,8 @@ const rules = {
   'packages/adapters': { folders: ['src'], packages: ['@steer/tool-registry', 'jose', 'zod'], builtins: ['node:crypto', 'node:fs', 'node:fs/promises', 'node:path', 'node:async_hooks'],
     builtinEntryOnly: { 'node:fs': 'src/secrets/file.ts', 'node:fs/promises': 'src/secrets/file.ts', 'node:path': 'src/secrets/file.ts',
       'node:async_hooks': 'src/identity/authorization.ts' } },
-  'packages/data': { folders: ['src'], packages: ['@steer/domain', '@steer/tool-registry', 'drizzle-orm', 'pg', 'zod'], builtins: ['node:crypto'],
+  'packages/data': { folders: ['src'], packages: ['@steer/domain', '@steer/tool-registry', 'drizzle-orm', 'pg', 'zod'], builtins: ['node:crypto', 'node:util'],
+    builtinEntryOnly: { 'node:util': 'src/records-content-codecs.ts' },
     entryOnly: { '@steer/domain': ['src/intent-operations.ts', 'src/scope-review-operations.ts'] }, specifiersOnly: { '@steer/domain': ['@steer/domain/intent-step'] } },
   'apps/api': { folders: ['src'], packages: ['@steer/agents', '@steer/adapters', '@steer/data', '@steer/tool-registry', '@hono/node-server', '@modelcontextprotocol/server', 'hono', 'zod'], builtins: ['node:https'],
     builtinEntryOnly: { 'node:https': 'src/identity-listener.ts' },
@@ -216,5 +217,17 @@ test('API storage/configuration imports are restricted to the explicit compositi
     assert.equal(allowed(specifier, resolve(adapters, 'src/secrets/file.ts'), adapters, rules['packages/adapters']), true);
     assert.equal(allowed(specifier, resolve(adapters, 'src/identity/oidc.ts'), adapters, rules['packages/adapters']), false);
     assert.equal(allowed(specifier, resolve(base, 'src/runtime.ts'), base, rule), false);
+  }
+});
+
+test('JSONB structural equality is scoped to the canonical data codec, while history composition stays at the API root', () => {
+  const data = resolve(root, 'packages/data'), api = resolve(root, 'apps/api');
+  assert.equal(allowed('node:util', resolve(data, 'src/records-content-codecs.ts'), data, rules['packages/data']), true);
+  for (const file of ['src/index.ts', 'src/intent-operations.ts', 'src/records-content-reader.ts'])
+    assert.equal(allowed('node:util', resolve(data, file), data, rules['packages/data']), false);
+  assert.equal(allowed('node:util', resolve(api, 'src/runtime.ts'), api, rules['apps/api']), false);
+  for (const name of ['@steer/agents/recorded-mastra', '@steer/data/records-content-reader', '@steer/data/records-content-codecs', 'zod']) {
+    assert.equal(allowed(name, resolve(api, 'src/runtime.ts'), api, rules['apps/api']), true);
+    assert.equal(allowed(name, resolve(api, 'src/recorded-history-verifier.ts'), api, rules['apps/api']), false);
   }
 });

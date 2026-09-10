@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { corpusArtifactBatchQuery } from '../src/code-host/corpus-artifact-batch.ts';
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -58,9 +59,12 @@ export function fixture(t: { after(run: () => void): void }, mutationProfile: 'b
     contentBlobSha: git(['hash-object', '--stdin'], content), operationPath: `.steer/authoring/operations/${ref.idempotencyKey}.json` };
   let mutations = 0, approvals = 0, lostAck = false, deny = false, advanceAtDispatch = false, changeProof = (v: unknown) => v;
   let override: Override = (_url, _init, result) => result;
-  const calls: { path: string; method: string }[] = [];
+  const calls: { path: string; method: string; corpusQuery?: boolean }[] = [];
   const transport: typeof globalThis.fetch = async (input, init) => {
-    const url = new URL(String(input)); calls.push({ path: url.pathname, method: init?.method ?? '' });
+    const url = new URL(String(input));
+    let corpusQuery = false;
+    if (typeof init?.body === 'string') try { corpusQuery = /^query SteerCorpusArtifactBatch\(/.test(JSON.parse(init.body).query); } catch {}
+    calls.push({ path: url.pathname, method: init?.method ?? '', ...(corpusQuery ? { corpusQuery: true } : {}) });
     assert.equal(url.origin, 'https://api.github.com'); assert.equal(init?.redirect, 'error');
     assert.equal(init?.cache, 'no-store'); assert.ok(init?.signal);
     const headers = new Headers(init?.headers); assert.equal(headers.get('X-GitHub-Api-Version'), '2026-03-10');
@@ -72,6 +76,17 @@ export function fixture(t: { after(run: () => void): void }, mutationProfile: 'b
       assert.deepEqual(Object.keys(body.permissions), ['contents']);
       result = { token: `synthetic-${level}`, expires_at: new Date(now.getTime() + 3600000).toISOString(),
         repositories: [{ id: 52, full_name: 'synthetic/fixture' }], permissions: { contents: level, metadata: 'read' } };
+    } else if (url.pathname === '/graphql' && headers.get('authorization') === 'Bearer synthetic-read') {
+      assert.equal(init?.method, 'POST');
+      const { query, variables } = JSON.parse(String(init.body)), count = Object.keys(variables).length - 2;
+      assert.equal(query, corpusArtifactBatchQuery(count));
+      assert.equal(variables.owner, binding.owner); assert.equal(variables.name, binding.repository);
+      assert.deepEqual(Object.keys(variables).sort(), ['owner', 'name', ...Array.from({ length: count }, (_, i) => `o${i}`)].sort());
+      const objects = Object.fromEntries(Array.from({ length: count }, (_, i) => {
+        const oid = variables[`o${i}`]; assert.match(oid, /^[a-f0-9]{40}$/); const bytes = readBlob(oid);
+        return [`b${i}`, { __typename: 'Blob', oid, byteSize: bytes.length, isBinary: false, isTruncated: false, text: bytes.toString('utf8') }];
+      }));
+      result = { data: { repository: { databaseId: binding.repositoryId, nameWithOwner: `${binding.owner}/${binding.repository}`, ...objects } } };
     } else if (url.pathname === '/graphql') {
       mutations++; assert.equal(init?.method, 'POST'); assert.equal(headers.get('authorization'), 'Bearer synthetic-write');
       assert.equal(approvals > 0, true);
@@ -100,7 +115,8 @@ export function fixture(t: { after(run: () => void): void }, mutationProfile: 'b
       else if (route.startsWith('/git/trees/')) {
         const sha = route.slice('/git/trees/'.length);
         result = { sha, truncated: false, tree: git(['ls-tree', '-r', '-t', sha]).split('\n').filter(Boolean).map((line) => {
-          const [mode, type, entrySha, path] = line.split(/[\t ]/); return { mode, type, sha: entrySha, path };
+          const [mode, type, entrySha, path] = line.split(/[\t ]/); return { mode, type, sha: entrySha, path,
+            ...(type === 'blob' ? { size: Number(git(['cat-file', '-s', entrySha!])) } : {}) };
         }) };
       } else if (route.startsWith('/git/blobs/')) {
         const sha = route.slice('/git/blobs/'.length), bytes = readBlob(sha);
