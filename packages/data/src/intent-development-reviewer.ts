@@ -6,6 +6,7 @@ import { planIntentScopeBatches } from '@steer/tool-registry/intent-scope-batche
 import { developmentRecordsConfigurationSchema } from './development-originals.ts';
 import { developmentOriginalHash as hash, freezeOriginal as freeze } from './development-original-contracts.ts';
 import { registerCallerBracketedReviewReadSession } from './review-read-session.ts';
+import { withDraftReadSession } from './draft-read-session.ts';
 
 const unavailable = () => new Error('Current source review is unavailable; this does not establish new intent.');
 /** Read-only composition over the existing owner-bound SQL draft service and a
@@ -24,10 +25,10 @@ export function createIntentDevelopmentReviewer(rawConfiguration: unknown, deps:
   if (typeof deps.drafts?.read !== 'function' || typeof deps.evidenceFor !== 'function' || typeof deps.authorizeReview !== 'function') throw unavailable();
   if (deps.withEvidenceRead !== undefined && typeof deps.withEvidenceRead !== 'function') throw unavailable();
   let closed = false, active = 0;
-  const readDraft = async (input: IntentDevelopmentReviewInput, current: () => Promise<void>) => {
+  const readDraft = async (input: IntentDevelopmentReviewInput, current: () => Promise<void>, borrowed?: () => Promise<unknown>) => {
     await current();
-    const draft = intentDraftReadOutputSchema.parse(await deps.drafts.read({ organizationId, productId, repository,
-      draftId: input.draftId, revision: input.revision }, current));
+    const draft = intentDraftReadOutputSchema.parse(await (borrowed ? borrowed() : deps.drafts.read({ organizationId, productId, repository,
+      draftId: input.draftId, revision: input.revision }, current)));
     await current();
     if (draft.draftId !== input.draftId || draft.revision !== input.revision || draft.latestRevision !== input.revision
       || draft.revisionDigest !== input.revisionDigest || draft.scopeInputDigest !== input.scopeInputDigest) throw unavailable();
@@ -57,7 +58,8 @@ export function createIntentDevelopmentReviewer(rawConfiguration: unknown, deps:
           || (['organizationId', 'subject', 'productId', 'repository'] as const).some(k => deps.drafts.scope[k] !== scope[k])) throw unavailable();
       };
       const current = async () => { guard(); if (await revalidate() !== undefined) throw unavailable(); guard(); };
-      const read = () => readDraft(input, current);
+      let borrowed: (() => Promise<unknown>) | undefined;
+      const read = () => readDraft(input, current, borrowed);
       const evidence = (evidenceFor: () => Promise<unknown>) => readEvidence(input, current, evidenceFor);
       const run = async (evidenceFor: () => Promise<unknown>) => {
         const draft = await read(), sources = await evidence(evidenceFor), output = await describe(input, sources);
@@ -65,8 +67,13 @@ export function createIntentDevelopmentReviewer(rawConfiguration: unknown, deps:
         await current(); return freeze(output);
       };
       const work = Promise.resolve().then(async () => {
-        const result = withEvidenceRead ? await withEvidenceRead(input, current, run) : await run(() => deps.evidenceFor(input, current));
-        await current(); return result;
+        let result: Awaited<ReturnType<typeof describe>> | undefined;
+        await withDraftReadSession(deps.drafts, { organizationId, productId, repository, draftId: input.draftId, revision: input.revision }, current,
+          async read => { borrowed = read;
+            try { result = withEvidenceRead ? await withEvidenceRead(input, current, run) : await run(() => deps.evidenceFor(input, current)); }
+            finally { borrowed = undefined; }
+          });
+        await current(); if (!result) throw unavailable(); return result;
       });
       // A timed-out dependency still owns its admission slot until it settles.
       void work.finally(() => { active--; }).catch(() => {});
@@ -98,12 +105,15 @@ export function createIntentDevelopmentReviewer(rawConfiguration: unknown, deps:
       if (childCurrent && childCurrent !== outerCurrent && await childCurrent() !== undefined) throw unavailable(); guard();
     };
     const readState = async (read: () => Promise<unknown>) => {
-      const draft = freeze(await readDraft(input, current)), sources = await readEvidence(input, current, read);
+      const draft = freeze(await readDraft(input, current, borrowed)), sources = await readEvidence(input, current, read);
       const output = await describe(input, sources); await current(); return freeze({ draft, sources, output });
     };
     let initial: Awaited<ReturnType<typeof readState>> | undefined;
+    let borrowed: (() => Promise<unknown>) | undefined;
     try {
       await current();
+      await withDraftReadSession(deps.drafts, { organizationId, productId, repository, draftId: input.draftId, revision: input.revision }, current, async readDraftValue => {
+      borrowed = readDraftValue;
       const result = await window(input, current, evidenceFor => {
         if (invoked || typeof evidenceFor !== 'function') { failed = true; const rejected = Promise.reject(unavailable()); void rejected.catch(() => {}); return rejected; } invoked = true;
         const task = Promise.resolve().then(async () => {
@@ -138,9 +148,10 @@ export function createIntentDevelopmentReviewer(rawConfiguration: unknown, deps:
       // The enclosing corpus performs a final freshness check after all reviews.
       // Re-open the exact draft after that callback too: a late edit, hold or key
       // loss cannot leave the shared preview tied to stale draft metadata.
-      if (hash(await readDraft(input, current)) !== hash(initial.draft)) throw unavailable(); await current();
+      if (hash(await readDraft(input, current, borrowed)) !== hash(initial.draft)) throw unavailable(); await current();
+      });
     } catch { throw unavailable(); }
-    finally { ended = true; await Promise.allSettled([...windows]); await Promise.allSettled([...pending]); active--; }
+    finally { ended = true; borrowed = undefined; await Promise.allSettled([...windows]); await Promise.allSettled([...pending]); active--; }
   });
   return service;
 }

@@ -4,6 +4,9 @@ import type { Pool, PoolClient } from 'pg';
 import { createDraftLifecycleStore } from '../src/draft-lifecycle.ts';
 import { createDraftRevisionStore } from '../src/draft-revisions.ts';
 import type { DatabasePool } from '../src/runtime-pool.ts';
+import { withDraftReadSession } from '../src/draft-read-session.ts';
+import { createIntentDraftService } from '../src/intent-draft-service.ts';
+import { expireAgedDraftLifecycle } from './aged-draft-lifecycle.fixture.ts';
 type Dependencies = Parameters<typeof createDraftRevisionStore>[2];
 const ok = (r: Awaited<ReturnType<ReturnType<typeof createDraftRevisionStore>['append']>>) => {
   assert.equal(r.outcome, 'acknowledged'); if (r.outcome !== 'acknowledged') throw new Error('Synthetic snapshot unavailable'); return r;
@@ -39,6 +42,105 @@ export async function testDraftRevisions({ admin, connect, check }: {
     const count = async () => Number((await admin.query('SELECT count(*) AS n FROM steer_drafts.draft_revisions WHERE draft_id=$1', [draftId])).rows[0].n);
     return { config, pool, lifecycle, draftId, key, content, first, state, dependencies, make, count };
   };
+  await check('owned draft phase matches three ordinary full reads with two native key lookups and unchanged encrypted rows', async () => {
+    const f = await fresh(), store = f.make(); ok(await store.append(f.first)); const target = { draftId: f.draftId, revision: 1 };
+    const before = (await admin.query('SELECT * FROM steer_drafts.draft_revisions WHERE draft_id=$1', [f.draftId])).rows;
+    f.state.keyReads = 0; const expected = await store.read(target); await store.read(target); await store.read(target); assert.equal(f.state.keyReads, 6);
+    f.state.keyReads = 0; let escaped: (() => Promise<unknown>) | undefined;
+    await withDraftReadSession({ scope: f.config, read: store.read }, target, async () => {}, async read => {
+      escaped = read; for (let i = 0; i < 3; i++) assert.deepEqual(await read(), expected);
+      assert.equal((await store.append(f.first)).outcome, 'unavailable'); await assert.rejects(store.read(target));
+    });
+    assert.equal(f.state.keyReads, 2); await assert.rejects(escaped!());
+    assert.deepEqual((await admin.query('SELECT * FROM steer_drafts.draft_revisions WHERE draft_id=$1', [f.draftId])).rows, before);
+    assert.deepEqual(await store.read(target), expected); store.close();
+  });
+  await check('owned draft phase withholds completion after late holds expiry edits grants keys ports or closure', async () => {
+    for (const mode of ['hold', 'expiry', 'edit', 'grant', 'key', 'port', 'close']) {
+      const f = await fresh(mode === 'expiry'), store = f.make(), saved = ok(await store.append(f.first)); let mutated = false;
+      const target = { draftId: f.draftId, revision: 1 };
+      await assert.rejects(withDraftReadSession({ scope: f.config, read: store.read }, target, async () => {}, async read => {
+        await read();
+        if (mode === 'hold') assert.equal((await f.lifecycle.hold({ draftId: f.draftId, holdReference: randomUUID() })).outcome, 'ok');
+        if (mode === 'expiry') await expireAgedDraftLifecycle(admin, f.draftId);
+        if (mode === 'edit') ok(await f.make().append({ ...f.first, mutationId: randomUUID(), expectedRevision: 1, expectedDigest: saved.reference.revisionDigest,
+          content: { ...f.content, originalText: 'A newer exact source' } }));
+        if (mode === 'grant') f.state.denied = true;
+        if (mode === 'key') f.key.bytes.fill(0);
+        if (mode === 'port') store.read = async () => { throw new Error('Changed port'); };
+        if (mode === 'close') store.close(); mutated = true;
+      }));
+      assert.equal(mutated, true, 'Mutation must succeed before the store denies completion');
+      assert.equal(await f.count(), mode === 'edit' ? 2 : 1); store.close();
+    }
+  });
+  await check('owned draft final key boundary rechecks lifecycle latest revision grants key bytes and ports after dependent work', async () => {
+    for (const mode of ['hold', 'expiry', 'edit', 'grant', 'key', 'port', 'close']) {
+      const f = await fresh(mode === 'expiry'), saved = ok(await f.make().append(f.first)); let keys = 0, mutated = false;
+      const store = f.make({ keyForDraft: async () => {
+        if (++keys === 2) {
+          if (mode === 'hold') assert.equal((await f.lifecycle.hold({ draftId: f.draftId, holdReference: randomUUID() })).outcome, 'ok');
+          if (mode === 'expiry') await expireAgedDraftLifecycle(admin, f.draftId);
+          if (mode === 'edit') ok(await f.make().append({ ...f.first, mutationId: randomUUID(), expectedRevision: 1, expectedDigest: saved.reference.revisionDigest,
+            content: { ...f.content, originalText: 'New source at final key boundary' } }));
+          if (mode === 'grant') f.state.denied = true;
+          if (mode === 'key') { mutated = true; return { ...f.key, bytes: randomBytes(32) }; }
+          if (mode === 'port') store.read = async () => { throw new Error('Replaced port'); };
+          if (mode === 'close') store.close(); mutated = true;
+        }
+        return f.key;
+      } });
+      try { await assert.rejects(withDraftReadSession({ scope: f.config, read: store.read }, { draftId: f.draftId, revision: 1 }, async () => {}, async read => { await read(); await read(); }));
+        assert.equal(mutated, true, 'Final-key mutation must succeed'); }
+      finally { store.close(); }
+    }
+  });
+  await check('owned draft phases deny invalid backwards or expired initial SQL clock observations without extending time', async () => {
+    for (const mode of ['invalid', 'backwards', 'expired']) {
+    const f = await fresh(); ok(await f.make().append(f.first)); let observations = 0;
+    const observed: DatabasePool = { async connect() { const client = await f.pool.connect(); return {
+      query: async (sql: string, values?: unknown[]) => {
+        const result = await client.query(sql, values);
+        if (sql.includes('FROM steer_drafts.draft_lifecycles') && ++observations === 1)
+          return { ...result, rows: result.rows.map(row => ({ ...row, clock_ms: mode === 'invalid' ? 'not-a-clock' : row.use_until.getTime() - 1000 })) };
+        return result;
+      }, release: (broken: boolean) => client.release(broken),
+    } as PoolClient; } };
+    const store = f.make({}, observed);
+    try { await assert.rejects(withDraftReadSession({ scope: f.config, read: store.read }, { draftId: f.draftId, revision: 1 }, async () => {}, async read => {
+      await read();
+      if (mode === 'expired') await new Promise(resolve => setTimeout(resolve, 1100));
+    })); assert.equal(observations, mode === 'backwards' ? 2 : 1); } finally { store.close(); }
+    }
+  });
+  await check('four private draft phases do not consume public read slots and the fifth phase is denied', async () => {
+    const f = await fresh(); ok(await f.make().append(f.first));
+    const service = createIntentDraftService(f.pool, f.config, { lifecycle: { authorize: async () => {} }, revisions: f.dependencies });
+    const target = { organizationId: f.config.organizationId, productId: f.config.productId, repository: f.config.repository, draftId: f.draftId, revision: 1 as const };
+    let release!: () => void, entered = 0; const held = new Promise<void>(r => { release = r; });
+    const tasks = Array.from({ length: 4 }, () => withDraftReadSession(service, target, async () => {}, async read => {
+      const first = await read(); entered++; await held;
+      assert.deepEqual(await service.read(target, async () => {}), first); assert.deepEqual(await read(), first);
+    }));
+    const all = Promise.all(tasks); void all.catch(() => {});
+    try {
+      const deadline = performance.now() + 10000;
+      while (entered < 4 && performance.now() < deadline) await new Promise(resolve => setTimeout(resolve, 5));
+      assert.equal(entered, 4);
+      await assert.rejects(withDraftReadSession(service, target, async () => {}, async read => { await read(); }));
+      release(); await all; assert.equal(await f.count(), 1);
+    } finally { release(); service.close(); await Promise.allSettled(tasks); }
+  });
+  await check('closing during owned draft final key lookup withholds completion and drains the actual key callback', async () => {
+    const f = await fresh(); ok(await f.make().append(f.first)); let keys = 0, release!: () => void, entered!: () => void, settled = false;
+    const held = new Promise<void>(r => { release = r; }), reached = new Promise<void>(r => { entered = r; });
+    const store = f.make({ keyForDraft: async () => { if (++keys === 2) { entered(); await held; } return f.key; } });
+    const result = assert.rejects(withDraftReadSession({ scope: f.config, read: store.read }, { draftId: f.draftId, revision: 1 }, async () => {}, async read => { await read(); }))
+      .then(() => { settled = true; });
+    try { await reached; store.close(); await new Promise(resolve => setImmediate(resolve)); assert.equal(settled, false);
+      release(); await result; assert.equal(await f.count(), 1); await assert.rejects(store.read({ draftId: f.draftId, revision: 1 }));
+    } finally { release(); store.close(); await result; }
+  });
   await check('versioned draft content survives pool reconstruction with exact Unicode bytes and no plaintext/key SQL parameters', async () => {
     const f = await fresh(), queries: string[] = []; let transaction = false;
     const spy: DatabasePool = { async connect() { const c = await f.pool.connect(); return { query: async (sql: string, values?: unknown[]) => {

@@ -7,6 +7,35 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Owned source-review draft phase — 0327
+
+[0327](../intent/0327/EVIDENCE.md) reduces repeated draft restoration within one
+read-only source review. A final full key/permission/row/latest-revision/lifecycle
+check follows dependent work and corpus closure. Intermediate reads keep fresh
+permissions; no result is shared across requests or effects. Three native reads
+use two key lookups instead of six. Ordinary reads remain unchanged.
+
+| Authenticated synthetic action | 0326 attempts | 0327 attempts |
+| --- | ---: | ---: |
+| Source review, either direction | 75 | 70 |
+| Save review, either direction | 162 | 150 |
+| New-distinct preview | 277 | 265 |
+| New-distinct confirmation / recovery / repeat | 709 / 681 / 679 | 685 / 657 / 655 |
+| Continuation preview | 387 | 375 |
+| Continuation confirmation / recovery / repeat | 929 / 901 / 899 | 905 / 877 / 875 |
+
+Other measured counts are unchanged: preparation 280 and 520/475, drafting start
+458/521/521, and confirmation control outside the two previews 155. First
+confirmation improves only 3.39% / 2.58%; this is not the whole-action solution.
+All identity/repository/token/retry traffic stays included. Undelayed shared-host
+samples cannot establish warmed p95, the full benchmark or live UI acceptance.
+
+The earlier hold/expiry fixture defect and corrected native evidence are explicit
+in 0327 and the [0326 correction](../intent/0326/EVIDENCE.md). No checkpoint depended
+on those new defective cases. C22 keeps its complete unchanged protocol and limit;
+remaining preparation/start/confirmation costs are still over budget.
+**68% (17/25; eight remaining; +0 percentage points).**
+
 ## Dual-purpose scope/drafting preservation readback — 0326
 
 [0326](../intent/0326/EVIDENCE.md) shares verified original restoration between

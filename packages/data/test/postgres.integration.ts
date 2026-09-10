@@ -80,7 +80,11 @@ try {
     await migrate(drizzle(admin), { migrationsFolder });
     assert.equal((await admin.query('SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations')).rows[0].count, 28);
   });
-  if(selection.mode==='journey-performance'){
+  if(selection.mode==='draft-read-phase'){
+    console.log('FOCUSED native draft revisions and owned read phases; NOT the full integration suite.');
+    await testDraftRevisions({admin,connect,check});
+    console.log(`FOCUSED draft read phase result: ${passed-1} checks passed plus idempotent migration check; full suite NOT RUN.`);
+  }else if(selection.mode==='journey-performance'){
     console.log('FOCUSED synthetic 20ms/200-attempt authenticated prefix; expected limit detection is NOT a complete C22 or full-suite pass.');
     await testAuthenticatedGeneration({admin,connect,check},'new-distinct',true);
     await testAuthenticatedGeneration({admin,connect,check},'proposal-continuation',true);

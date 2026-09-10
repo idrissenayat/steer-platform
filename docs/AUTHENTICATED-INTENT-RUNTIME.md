@@ -62,6 +62,32 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Owned source-review draft phase — 0327
+
+[0327](../intent/0327/SPEC.md) privately registers the exact draft read method
+and scope; copied, wrapped or unregistered readers keep full ordinary calls.
+Only read-only source-review computations consume an owned snapshot. Native
+initial/final key comparison and complete encrypted-row/latest-revision/lifecycle
+recheck bracket dependent work, with fresh intermediate read-purpose checks.
+The earliest monotonic deadline survives later clock observations; invalid or
+backward SQL clocks deny. Full final draft verification follows corpus closure.
+
+The draft service retains four public-call slots and separately bounds private
+read phases at four. This prevents an enclosing review from occupying the public
+slots needed by its nested draft readers. Both categories share the same bounded
+pool, close signal and real pending-work drainage; existing managed-journey and
+review-owner limits remain. No public request capability is added. Only the exact
+service-created native store uses guard-only inner caller boundaries, because
+the service already owns entry/final caller checks, fresh post-policy checks and
+both key-lookup caller edges. Independent native consumers retain full callers.
+
+No phase encloses scheduling, admission, saving or lifecycle mutation. Late
+edits/holds/expiry, permission/key/port loss, malformed consumption and closure
+deny completion; escaped readers close and owned key copies clear after drainage.
+The [evidence](../intent/0327/EVIDENCE.md) also corrects 0326's defective hold/expiry
+fault injections with valid aged test records and asserted successful transitions.
+This does not activate operational records, model usage or a runtime profile.
+
 ### Dual-purpose scope/drafting original readback — 0326
 
 [0326](../intent/0326/SPEC.md) adds server-only `putAndRead` to scope and

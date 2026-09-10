@@ -71,11 +71,11 @@ export async function testOriginalReadback(label: string, setup: () => Promise<O
 
   await check(`joined ${label} preservation denies late lifecycle key source target or owner loss after persistence`, async () => {
     for (const mode of ['hold', 'expire', 'key', 'source', 'target', 'close']) {
-      const f = await setup(); let keys = 0, allowed = true;
+      const f = await setup(); let keys = 0, allowed = true, mutated = false;
       let store: Store;
       store = f.make({ key: async value => {
         if (++keys === 7) {
-          if (mode === 'hold' || mode === 'expire') await f.mutateLifecycle(mode);
+          if (mode === 'hold' || mode === 'expire') { await f.mutateLifecycle(mode); mutated = true; }
           if (mode === 'key') return { ...value, bytes: new Uint8Array(32) };
           if (mode === 'close') store.close(); allowed = false;
         }
@@ -83,6 +83,7 @@ export async function testOriginalReadback(label: string, setup: () => Promise<O
       }, target: async action => { if (action === 'read' && mode === 'target' && !allowed) throw new Error('Synthetic late target denial'); },
       source: async action => { if (action === 'read' && mode === 'source' && !allowed) throw new Error('Synthetic late source denial'); } });
       try { const result = await store.putAndRead(f.input); assert.equal(result.outcome, 'unknown');
+        if (mode === 'hold' || mode === 'expire') assert.equal(mutated, true, 'Lifecycle mutation must succeed before denial');
         assert.equal('recovered' in result, false); assert.ok(await f.row()); }
       finally { store.close(); }
     }

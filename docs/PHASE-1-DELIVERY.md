@@ -7053,6 +7053,33 @@ live model/key access, spending, runtime GitHub save, deployment, profile/record
 activation, signature or human UI acceptance. User drafts, signed artifacts and
 roadmap/outputs remain unchanged. **68% (17/25; eight remaining; +0 points).**
 
+## 0327 — Owned source-review draft phase and lifecycle test repair
+
+[0327](../intent/0327/EVIDENCE.md) keeps one exact draft snapshot within each
+read-only source review, with fresh intermediate permissions and full final key,
+encrypted-row, latest-revision, lifecycle and clock validation after dependent
+work/corpus closure. No phase spans admission or saving. Private construction
+identity, ordinary fallback, real drainage and separate bounded private/public
+admission are specified in the linked contract; no public draft API changes.
+
+Three native reads use two key lookups instead of six. Both synthetic directions
+measure source review 75→70 and save review 162→150; new-distinct preview/
+confirmation 277/709→265/685 and continuation 387/929→375/905. Preparations, starts
+and the 155-attempt outside-preview confirmation control are unchanged. These
+modest reductions do not satisfy the whole-action budget or establish UI speed.
+
+An added expiry test exposed invalid lifecycle fixture SQL. Four new 0326 cases
+could report denial from a fixture error without applying the intended hold or
+expiry. Corrected fixtures use real holds, aged trigger-valid expiry and explicit
+mutation-success assertions. The historical evidence now carries this correction;
+the new native rerun establishes the corrected cases. See exact final checks,
+counts, source hashes and limits in the evidence and verification artifacts.
+
+**68% (17/25; eight remaining; +0 points).** Remaining whole-action costs, the full
+unchanged benchmark, model quality, records adoption, runtime save/reopen and
+human acceptance are open. No live model spending, runtime provider write,
+activation, deployment/release, signature or real-data deletion.
+
 ## 0326 — Dual-purpose original preservation and verified readback
 
 [0326](../intent/0326/EVIDENCE.md) joins preservation and complete verified

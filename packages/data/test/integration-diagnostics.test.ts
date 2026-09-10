@@ -10,6 +10,8 @@ import type {Pool} from 'pg';
 import {createIntegrationDatabaseTrace,parseIntegrationSelection} from './integration-diagnostics.ts';
 
 test('integration focus is explicit, bounded and distinct from the full suite',()=>{
+  assert.deepEqual(parseIntegrationSelection(['--draft-read-phase']),{mode:'draft-read-phase'});
+  for(const args of [['--draft-read-phase','extra'],['--draft-read-phase','--journey-runtime'],['--draft-read-phase','--query-delay-ms','1']])assert.throws(()=>parseIntegrationSelection(args));
   assert.deepEqual(parseIntegrationSelection([]),{mode:'full'});
   assert.deepEqual(parseIntegrationSelection(['--scope-runtime']),{mode:'scope-runtime'});
   assert.deepEqual(parseIntegrationSelection(['--scope-read']),{mode:'scope-read'});

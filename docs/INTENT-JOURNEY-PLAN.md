@@ -9,7 +9,27 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0326 / dual-purpose original readback — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0327 / owned source-review draft phase — 68% (17/25; 8 remaining; +0 points)**.
+[0327](../intent/0327/EVIDENCE.md) shares one exact encrypted-draft snapshot
+through a read-only source review, then performs full final key/permission/row/
+latest-revision/lifecycle verification after dependent work and corpus closure.
+Intermediate reads retain fresh permissions. No phase spans admission or saving.
+Ordinary APIs and unregistered readers retain their existing contracts.
+
+Both synthetic directions measure source review 75→70, save review 162→150,
+new-distinct preview/confirmation 277/709→265/685 and continuation
+387/929→375/905. Native three-read key lookups fall six→two. Preparation and start
+counts are unchanged; whole-action performance still fails the 200-attempt target.
+The increment also corrects four 0326 lifecycle injections that previously could
+pass through fixture SQL errors, with actual state changes and success assertions.
+That correction does not create a new completed acceptance checkpoint.
+
+Next continue whole-action validation consolidation and complete the unchanged
+all-action benchmark. Model quality, governed records/runtime save/reopen and
+signed-in human acceptance remain open. Exact test and measurement scope, the
+fixture failure and its correction are retained in the linked evidence.
+
+Prior delivery checkpoint: **0326 / dual-purpose original readback — 68% (17/25; 8 remaining; +0 points)**.
 [0326](../intent/0326/EVIDENCE.md) joins preservation and verified readback for
 scope/drafting originals while separately requiring put and read permissions.
 Legacy acknowledgements and historical reads stay unchanged. All source/key/

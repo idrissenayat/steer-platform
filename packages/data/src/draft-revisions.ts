@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { describeIntentDraftRevision, intentDraftContentSchema, type IntentDraftContent } from '@steer/tool-registry/intent-draft-content';
 import { applyRuntimeQueryLimits, DatabaseCommitOutcomeUnknownError, type DatabasePool } from './runtime-pool.ts';
 import { draftEnvelopeSchema, DraftStorageError, openDraft, sealDraft, type DraftKey } from './draft-envelope.ts';
+import { registerDraftReadSession } from './draft-read-session.ts';
 
 const id = z.string().min(1).max(200).refine(v => v.trim().length > 0 && !/[\u0000-\u001f\u007f\uD800-\uDFFF]/u.test(v));
 const digest = z.string().regex(/^[a-f0-9]{64}(?![\s\S])/), uuid = z.uuid().length(36).refine(v => v === v.toLowerCase());
@@ -24,7 +25,7 @@ export const draftRevisionMetadataSchema = metadataSchema;
 type Configuration = z.infer<typeof configurationSchema>;
 type Metadata = z.infer<typeof metadataSchema>;
 type Stored = { metadata: Metadata; revisionDigest: string; envelope: z.infer<typeof draftEnvelopeSchema> };
-type Header = { createdAt: string; monotonicExpiry: number };
+type Header = { createdAt: string; monotonicExpiry: number; clock: number };
 type Snapshot = { content: IntentDraftContent; reference: Metadata & { revisionDigest: string }; latestRevision: number };
 class Conflict extends Error {}
 const hash = (v: unknown) => createHash('sha256').update(JSON.stringify(v)).digest('hex');
@@ -81,9 +82,10 @@ export function createDraftRevisionStore(pool: DatabasePool, rawConfiguration: u
     const started = performance.now();
     const row = (await client.query(`SELECT *, floor(extract(epoch FROM clock_timestamp())*1000)::bigint AS clock_ms
       FROM steer_drafts.draft_lifecycles WHERE organization_id=$1 AND draft_id=$2 FOR UPDATE`, [config.organizationId, draftId])).rows[0];
-    if (!row || row.subject !== config.subject || row.product_id !== config.productId || row.configuration_digest !== configurationDigest
-      || row.held || row.created_at.getTime() > Number(row.clock_ms) || row.use_until.getTime() <= Number(row.clock_ms)) throw new DraftStorageError();
-    return { createdAt: row.created_at.toISOString(), monotonicExpiry: started + row.use_until.getTime() - Number(row.clock_ms) };
+    const clock = Number(row?.clock_ms);
+    if (!row || !Number.isSafeInteger(clock) || clock < 0 || row.subject !== config.subject || row.product_id !== config.productId || row.configuration_digest !== configurationDigest
+      || row.held || row.created_at.getTime() > clock || row.use_until.getTime() <= clock) throw new DraftStorageError();
+    return { createdAt: row.created_at.toISOString(), monotonicExpiry: started + row.use_until.getTime() - clock, clock };
   }
   function stored(row: any, draftId: string, h: Header): Stored | null {
     if (!row) return null;
@@ -100,18 +102,22 @@ export function createDraftRevisionStore(pool: DatabasePool, rawConfiguration: u
     const args = [config.organizationId, draftId, ...('mutationId' in selector ? [selector.mutationId] : selector.revision === 'latest' ? [] : [selector.revision])];
     return stored((await client.query(`SELECT * FROM steer_drafts.draft_revisions WHERE organization_id=$1 AND draft_id=$2 ${filter}`, args)).rows[0], draftId, h);
   }
+  async function plaintext(value: Stored, snapshot: DraftKey): Promise<IntentDraftContent> {
+    const content = intentDraftContentSchema.parse(openDraft(value.envelope, aad(value.metadata), snapshot));
+    if (hash(content) !== value.metadata.contentDigest) throw new Conflict();
+    // Recompute at the server-selected source revision; recovered content never
+    // restores review, approval or execution authority.
+    const computed = await describeIntentDraftRevision({ ...config, draftId: value.metadata.draftId }, content,
+      { content, sourceRevision: value.metadata.sourceRevision });
+    if (computed.scopeInputDigest !== value.metadata.scopeInputDigest) throw new Conflict();
+    return content;
+  }
   async function decode(value: Stored): Promise<IntentDraftContent> {
     const originalKey = await key(value.metadata.draftId, value.envelope.keyId);
     if (!(originalKey.bytes instanceof Uint8Array) || originalKey.bytes.byteLength !== 32) throw new DraftStorageError();
     const snapshot = { keyId: originalKey.keyId, bytes: Buffer.from(originalKey.bytes) };
     try {
-      const content = intentDraftContentSchema.parse(openDraft(value.envelope, aad(value.metadata), snapshot));
-      if (hash(content) !== value.metadata.contentDigest) throw new Conflict();
-      // Recompute the scope at its server-selected source revision; no prior
-      // review or approval is restored merely because its content was recovered.
-      const computed = await describeIntentDraftRevision({ ...config, draftId: value.metadata.draftId }, content,
-        { content, sourceRevision: value.metadata.sourceRevision });
-      if (computed.scopeInputDigest !== value.metadata.scopeInputDigest) throw new Conflict();
+      const content = await plaintext(value, snapshot);
       const currentKey = await key(value.metadata.draftId, value.envelope.keyId);
       if (!(currentKey.bytes instanceof Uint8Array) || currentKey.bytes.byteLength !== 32) throw new DraftStorageError();
       const current = Buffer.from(currentKey.bytes);
@@ -131,7 +137,7 @@ export function createDraftRevisionStore(pool: DatabasePool, rawConfiguration: u
       || JSON.stringify(final.row) !== JSON.stringify(current.row)) throw new DraftStorageError();
     return freeze({ content, reference: { ...final.row.metadata, revisionDigest: final.row.revisionDigest }, latestRevision: final.latest.metadata.revision });
   }
-  return {
+  const store = {
     async append(raw: unknown): Promise<{ outcome: 'acknowledged'; reference: Snapshot['reference']; latestRevision: number }
       | { outcome: 'conflict' | 'unknown' | 'unavailable' }> {
       if (closed || active || pending) return { outcome: 'unavailable' }; active = true; let persisted = false;
@@ -182,4 +188,51 @@ export function createDraftRevisionStore(pool: DatabasePool, rawConfiguration: u
     },
     close() { closed = true; },
   };
+  registerDraftReadSession(store.read, config, async (raw, current, work) => {
+    if (closed || active || pending) throw new DraftStorageError(); active = true;
+    const ports = [dependencies.authorize, dependencies.keyForDraft, pool.connect, store.append, store.read, store.close];
+    let ended = false, failed = false, reading = false, consumed = false, expiry = Infinity, observedClock = -1;
+    let lease: { keyId: string; bytes: Buffer } | undefined, captured: Snapshot | undefined, row: Stored | undefined;
+    const tasks = new Set<Promise<unknown>>();
+    const guard = () => { if (closed || ended || failed || (expiry !== Infinity && !Number.isFinite(expiry)) || performance.now() >= expiry
+      || [dependencies.authorize, dependencies.keyForDraft, pool.connect, store.append, store.read, store.close].some((p, i) => p !== ports[i])) throw new DraftStorageError(); };
+    const present = async () => { guard(); if (await current() !== undefined) throw new DraftStorageError(); guard(); };
+    try {
+      const input = freeze(readSchema.parse(raw)); await present();
+      const read = () => {
+        if (reading || ended || failed) { failed = true; const denied = Promise.reject(new DraftStorageError()); void denied.catch(() => {}); return denied; }
+        reading = true;
+        const task = Promise.resolve().then(async () => {
+          guard(); await authorize(input.draftId, 'read'); await present();
+          if (!captured) {
+            const first = await transaction(async c => { const h = await header(c, input.draftId); return { h,
+              row: await lookup(c, input.draftId, h, { revision: input.revision }), latest: await lookup(c, input.draftId, h, { revision: 'latest' }) }; });
+            if (!first.row || !first.latest) throw new DraftStorageError(); row = first.row; observedClock = first.h.clock; expiry = Math.min(expiry, first.h.monotonicExpiry); guard();
+            const original = await key(input.draftId, row.envelope.keyId); guard();
+            if (!(original.bytes instanceof Uint8Array) || original.bytes.byteLength !== 32) throw new DraftStorageError();
+            lease = { keyId: original.keyId, bytes: Buffer.from(original.bytes) };
+            const content = await plaintext(row, lease); guard();
+            await authorize(input.draftId, 'read'); await present();
+            captured = freeze({ content, reference: { ...row.metadata, revisionDigest: row.revisionDigest }, latestRevision: first.latest.metadata.revision });
+          }
+          guard(); consumed = true; return captured;
+        }).catch(error => { failed = true; throw error; }).finally(() => { reading = false; });
+        tasks.add(task); void task.finally(() => tasks.delete(task)).catch(() => {}); return task;
+      };
+      if (await work(read) !== undefined || reading || tasks.size || !consumed || !captured || !row || !lease) throw new DraftStorageError();
+      await present(); await authorize(input.draftId, 'read');
+      const fresh = await key(input.draftId, row.envelope.keyId); guard();
+      if (!(fresh.bytes instanceof Uint8Array) || fresh.bytes.byteLength !== 32) throw new DraftStorageError();
+      const bytes = Buffer.from(fresh.bytes);
+      try { if (fresh.keyId !== lease.keyId || !bytes.equals(lease.bytes)) throw new DraftStorageError(); } finally { bytes.fill(0); }
+      await authorize(input.draftId, 'read'); await present();
+      const final = await transaction(async c => { const h = await header(c, input.draftId); return { h,
+        row: await lookup(c, input.draftId, h, { revision: captured!.reference.revision }), latest: await lookup(c, input.draftId, h, { revision: 'latest' }) }; });
+      expiry = Math.min(expiry, final.h.monotonicExpiry); guard();
+      if (final.h.clock < observedClock || hash(final.row) !== hash(row) || final.latest?.metadata.revision !== captured.latestRevision) throw new DraftStorageError();
+      await present();
+    } catch { failed = true; throw new DraftStorageError(); }
+    finally { ended = true; await Promise.allSettled([...tasks]); lease?.bytes.fill(0); captured = undefined; row = undefined; active = false; }
+  });
+  return store;
 }

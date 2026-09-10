@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { randomUUID } from 'node:crypto';
 import { createIntentDraftService } from '../src/intent-draft-service.ts';
+import { withDraftReadSession } from '../src/draft-read-session.ts';
 const config = { organizationId: 'org', subject: 'human', productId: 'product', repository: 'github:52', branch: 'codex/synthetic',
   configurationRevision: 'r1', recordsPolicyDigest: 'a'.repeat(64) };
 const scope = { organizationId: config.organizationId, productId: config.productId, repository: config.repository };
@@ -9,6 +10,27 @@ const turn = () => new Promise<void>(resolve => setImmediate(resolve));
 const readInput = () => ({ ...scope, draftId: randomUUID(), revision: 'latest' as const });
 const appendInput = () => ({ ...scope, draftId: randomUUID(), mutationId: randomUUID(), expectedRevision: 0, expectedDigest: null,
   content: { originalText: 'Synthetic scope', clarificationTurns: [], documents: { brief: '', spec: '', exam: '' } } });
+
+test('private draft phase timeout keeps four-slot admission until real policy drainage and denies late SQL', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] }); let release!: () => void, calls = 0, io = 0;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  const service = createIntentDraftService({ connect: async () => { io++; throw new Error('No SQL'); } }, config, {
+    lifecycle: { authorize: async () => {} }, revisions: { authorize: async () => { calls++; await held; }, keyForDraft: async () => { io++; throw new Error('No key'); } },
+  });
+  const run = () => withDraftReadSession(service, readInput(), async () => {}, async read => { await read(); });
+  const pending = Array.from({ length: 4 }, () => assert.rejects(run())); await turn(); assert.equal(calls, 4);
+  t.mock.timers.tick(5001); await Promise.all(pending); await assert.rejects(run()); assert.equal(calls, 4);
+  service.close(); release(); await turn(); assert.equal(io, 0); await assert.rejects(run());
+});
+test('owned phase checks the fresh caller after its independent read purpose before any SQL', async () => {
+  const events: string[] = []; let allowed = true, io = 0;
+  const service = createIntentDraftService({ connect: async () => { io++; throw new Error('No SQL'); } }, config, {
+    lifecycle: { authorize: async () => {} }, revisions: { authorize: async () => { events.push('policy'); allowed = false; }, keyForDraft: async () => { io++; throw new Error('No key'); } },
+  });
+  const current = async () => { events.push('current'); if (!allowed) throw new Error('Denied'); };
+  await assert.rejects(withDraftReadSession(service, readInput(), current, async read => { await read(); }));
+  assert.deepEqual(events, ['current', 'policy', 'current']); assert.equal(io, 0); service.close();
+});
 
 for (const mode of ['read', 'create', 'append'] as const) {
   test(`${mode}: read metadata orders policy before fresh caller; writes retain their before/after caller checks`, async () => {

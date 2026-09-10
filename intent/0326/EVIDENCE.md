@@ -1,5 +1,17 @@
 # 0326 — Dual-purpose original preservation and verified readback
 
+## Follow-up evidence correction — 0327
+
+[0327](../0327/EVIDENCE.md) found that the new shared late-hold/expiry injections
+could pass through a fixture SQL error: directly changing `held` or `use_until`
+violated lifecycle constraints before the intended state change. Those four
+cases (hold and expiry for each store) were not valid lifecycle-enforcement
+evidence in the original 26-check result. The historical run/count and source
+hashes below remain unchanged. The corrected fixtures use actual hold operations
+and aged, trigger-valid expiry, with explicit mutation-success assertions and a
+fresh native rerun. Other prior lifecycle evidence and the fixed 17/25 tracker
+are not replaced by this correction; 0326 never completed an acceptance checkpoint.
+
 Base: `1e8a38d5b5ca53a38c00242e3c9980a96e1fc587`.
 [Brief](BRIEF.md), [Spec](SPEC.md), [verification](VERIFICATION.json).
 

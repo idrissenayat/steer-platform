@@ -10,9 +10,10 @@ import { createDevelopmentOriginalStore } from '../src/development-originals.ts'
 import { createDevelopmentResultStore } from '../src/development-results.ts';
 import { originalFixture } from './development-original.fixture.ts';
 import { testOriginalReadback } from './original-readback.integration.ts';
+import { seedAgedDraftLifecycle, expireAgedDraftLifecycle } from './aged-draft-lifecycle.fixture.ts';
 type Dependencies=Parameters<typeof createDevelopmentOriginalStore>[2];
 export async function testDevelopmentOriginals({admin,connect,check}:{admin:Pool;connect(role:string):Pool;check(name:string,run:()=>Promise<void>):Promise<void>}) {
-  const setup=async(ttl=3600000)=>{
+  const setup=async(ttl=3600000,aged=false)=>{
     const config={organizationId:`original-${randomUUID()}`,subject:'synthetic-human',productId:'product',repository:'github:52',branch:'codex/synthetic',configurationRevision:'originals-r1',recordsPolicyDigest:'a'.repeat(64)};
     const budget={organizationId:config.organizationId,subject:config.subject,configurationRevision:config.configurationRevision,budgetId:randomUUID(),approvalDigest:'b'.repeat(64),capMicrousd:30,architectMicrousd:3,testAgentMicrousd:2};
     await admin.query(`INSERT INTO steer_usage.model_budgets VALUES($1,$2,$3,$4,$5,30,3,2,now()-interval '1 minute',now()+interval '1 hour',true)`,
@@ -23,7 +24,8 @@ export async function testDevelopmentOriginals({admin,connect,check}:{admin:Pool
     const deps:Dependencies={authorize:async ctx=>{assert.deepEqual(Object.keys(ctx.target),['operationId','inputDigest']);if(state.denied)throw new Error('private-access');},
       authorizeOriginal:async()=>{if(state.evidenceDenied)throw new Error('private-source-denial');},authorizeOperation:async()=>{},authorizeDraft:async()=>{},
       keyForDraft:async(_ref,keyId)=>{state.keys++;assert.ok(keyId===null||keyId===key.keyId);return key;}};
-    const lifecycle=createDraftLifecycleStore(pools.drafts,config,{authorize:async()=>{},verifyHold:async()=>{}}),created=await lifecycle.create({requestId:randomUUID()});
+    const lifecycle=createDraftLifecycleStore(pools.drafts,config,{authorize:async()=>{},verifyHold:async()=>{}}),created=aged
+      ? {outcome:'ok' as const,value:{draftId:await seedAgedDraftLifecycle(admin,config)}} : await lifecycle.create({requestId:randomUUID()});
     assert.equal(created.outcome,'ok');if(created.outcome!=='ok')throw new Error();const draftId=created.value.draftId;
     const drafts=createDraftRevisionStore(pools.drafts,config,{authorize:deps.authorizeDraft,keyForDraft:deps.keyForDraft});
     const content={originalText:' Exact human original 🌸\r\n',clarificationTurns:[' Exact clarification '],documents:null};
@@ -38,14 +40,15 @@ export async function testDevelopmentOriginals({admin,connect,check}:{admin:Pool
     return {config,execution,pools,key,state,deps,lifecycle,drafts,draftId,saved,operations,target,input,description,make,count};
   };
   await testOriginalReadback('development',async()=>{
-    const f=await setup();return{input:f.input,target:f.target,table:'development_originals' as const,pools:f.pools,
+    const f=await setup(3600000,true);return{input:f.input,target:f.target,table:'development_originals' as const,pools:f.pools,
       make:(hooks={},pools=f.pools)=>f.make({
         authorize:async c=>{await f.deps.authorize(c);return hooks.target?.(c.action);},
         authorizeOriginal:async c=>{await f.deps.authorizeOriginal(c);return hooks.source?.(c.action);},
         keyForDraft:async(ref,keyId)=>{const value=await f.deps.keyForDraft(ref,keyId);return hooks.key?hooks.key(value,keyId):value;},
       },pools),
       row:async()=>(await admin.query('SELECT * FROM steer_drafts.development_originals WHERE operation_id=$1',[f.target.operationId])).rows[0],
-      mutateLifecycle:async mode=>{await admin.query('UPDATE steer_drafts.draft_lifecycles SET '+(mode==='hold'?'held=true':'use_until=clock_timestamp()')+' WHERE organization_id=$1 AND draft_id=$2',[f.config.organizationId,f.draftId]);},
+      mutateLifecycle:async mode=>{if(mode==='expire')await expireAgedDraftLifecycle(admin,f.draftId);
+        else {const result=await f.lifecycle.hold({draftId:f.draftId,holdReference:randomUUID()});assert.equal(result.outcome,'ok');}},
     };
   },check);
   await check('immutable encrypted development originals restore the full exact source, evidence, direction and prompt/configuration profile using only current records scope',async()=>{
