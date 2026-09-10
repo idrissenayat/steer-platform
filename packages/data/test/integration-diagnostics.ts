@@ -5,6 +5,7 @@ import {setTimeout as delay} from 'node:timers/promises';
  * as the full integration suite, including when inherited environment is dirty. */
 export function parseIntegrationSelection(args:readonly string[]) {
   if(!args.length)return {mode:'full' as const};
+  if(args.length===1&&args[0]==='--scope-prepare')return {mode:'scope-prepare' as const};
   if(args.length===1&&args[0]==='--scope-runtime')return {mode:'scope-runtime' as const};
   if(args.length===1&&args[0]==='--scope-read')return {mode:'scope-read' as const};
   if(args.length===1&&args[0]==='--development-history')return {mode:'development-history' as const};

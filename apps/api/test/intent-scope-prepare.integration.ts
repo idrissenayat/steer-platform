@@ -178,16 +178,27 @@ export async function testScopePreparation({admin,connect,check:checkBase}:{admi
     const stored=await rows(f);assert.equal(stored.runs.length,1);assert.equal(stored.originals.length,1);assert.equal(stored.reservations.length,0);
   });
   await check('private scope preparation windows reduce native body reads while preserving the full fallback and exact original',async()=>{
-    const c=await corpusFixture(),{f,reader,corpus,a}=c,method=reader.readArtifact;let bodies=0;
-    reader.readArtifact=async(...args)=>{bodies++;return method(...args);};
-    const output=await (await a.post()).json();assert.equal(output.outcome,'prepared');assert.equal(bodies,8);
+    const c=await corpusFixture(),{f,corpus,a,git}=c,start=git.calls.length;
+    // Observe the transport, not a replacement method: the actual application
+    // pins its native reader and uses one two-document batch per source phase.
+    const output=await (await a.post()).json();assert.equal(output.outcome,'prepared');
+    const windowCalls=git.calls.slice(start);assert.equal(windowCalls.filter(c=>c.corpusQuery).length,4);
+    assert.equal(windowCalls.filter(c=>c.path.includes('/git/blobs/')).length,0);
     const before=await rows(f),{organizationId,productId,repository,branch}=f.config;
     const fallback=await api(f,{evidenceFor:async(_input,current)=>(await corpus.collect({organizationId,productId,repository,branch,
       scopeInputDigest:f.saved.reference.scopeInputDigest},current)).evidence});
-    bodies=0;assert.deepEqual(await (await fallback.post()).json(),output);assert.equal(bodies,14);
+    const fallbackStart=git.calls.length;assert.deepEqual(await (await fallback.post()).json(),output);
+    const fallbackCalls=git.calls.slice(fallbackStart);assert.equal(fallbackCalls.filter(c=>c.path.includes('/git/blobs/')).length,14);
+    assert.equal(fallbackCalls.filter(c=>c.corpusQuery).length,0);assert.ok(windowCalls.length<fallbackCalls.length);
     assert.deepEqual(await rows(f),before);assert.equal(c.git.mutations(),0);assert.equal(before.reservations.length,0);
     const originals=createScopeReviewOriginalStore(f.pools,f.config,f.deps);services.push(originals);
     assert.deepEqual((await originals.read(output.reference)).original.evidence,c.evidence);
+  });
+  await check('actual scope preparation rejects a replaced native reader before SQL admission',async()=>{
+    const c=await corpusFixture(),method=c.reader.readArtifact;let invoked=0;
+    c.reader.readArtifact=async(...args)=>{invoked++;return method(...args);};
+    const output=await (await c.a.post()).json();assert.equal(output.outcome,'unavailable');assert.equal(invoked,0);
+    assert.deepEqual(await rows(c.f),{runs:[],originals:[],batches:[],reservations:[]});assert.equal(c.git.mutations(),0);
   });
   await check('scope preparation windows close before every admission or original write and reopen with fresh native bodies',async()=>{
     const c=await corpusFixture(),{f,reader,corpus}=c,{organizationId,productId,repository,branch}=f.config;

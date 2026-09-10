@@ -219,6 +219,11 @@ try {
     await testScopeReviewReader({admin,connect,check});
     assert.ok(passed>1,'No scope reader checks selected');
     console.log(`FOCUSED scope read result: ${passed-1} checks passed plus idempotent migration check; full suite NOT RUN.`);
+  }else if(selection.mode==='scope-prepare'){
+    console.log('FOCUSED scope preparation HTTP/SQL, native source windows and effect-boundary checks; NOT the full integration suite.');
+    await testScopePreparation({admin,connect,check});
+    assert.ok(passed>1,'No scope preparation checks selected');
+    console.log(`FOCUSED scope preparation result: ${passed-1} checks passed plus idempotent migration check; full suite NOT RUN.`);
   }else if(selection.mode==='scope-runtime'){
     console.log('FOCUSED scope preparation/SQL/recorded SDK/Temporal execution; NOT the full integration suite.');
     await testScopePreparation({admin,connect,check});

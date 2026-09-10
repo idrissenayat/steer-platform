@@ -62,6 +62,20 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Preparation and scope-start metadata authority — 0315
+
+[0315](../intent/0315/EVIDENCE.md) applies the existing read-policy composition to
+explicit read-only draft/original/records permissions in both preparers and scope
+start. Every policy runs freshly, followed by current caller validation before
+storage or continuation; initial action authentication remains. Rejection, nonvoid
+responses, revocation and closure deny, with actual pending-policy drainage.
+
+Keys, content/evidence IO, preparation approval, admission, original puts and
+scheduling keep full barriers. Preparer operation policies retain their full path
+because their contract does not identify read versus mutation. Development start
+already uses this metadata composition and is unchanged. No permission is cached,
+source comparison is removed, deadline is raised or live configuration is enabled.
+
 ### Owned current-source review phase — 0314
 
 [0314](../intent/0314/EVIDENCE.md) consolidates full source-review reconstruction

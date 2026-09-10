@@ -24,3 +24,32 @@ test('timed-out starter keeps bounded admission until authority drains and never
   await assert.rejects(service.start(input, async () => {})); service.close(); release();
   await new Promise(resolve => setImmediate(resolve)); assert.equal(calls, 0);
 });
+
+test('scope start checks every records policy and current caller before SQL, rejecting policy-time revocation or closure', async () => {
+  for (const mode of ['valid', 'revoked', 'nonvoid', 'rejected', 'closed']) {
+    const events: string[] = []; let revoked = false; let service: ReturnType<typeof createIntentScopeStarter>;
+    const pool = { connect: async () => { events.push('sql'); throw new Error(); } };
+    const policies = { ...records, authorize: async () => {
+      events.push('policy'); if (mode === 'revoked') revoked = true; if (mode === 'closed') service.close();
+      if (mode === 'rejected') throw new Error(); if (mode === 'nonvoid') return true as never;
+    } };
+    service = createIntentScopeStarter({ drafts: pool, execution: pool }, config,
+      { records: policies, authorizeStart: async () => {}, scheduler: { start: async () => { throw new Error('No scheduling'); } } });
+    const current = async () => { events.push('caller'); if (revoked) throw new Error(); };
+    try {
+      await assert.rejects(service.start(input, current));
+      assert.deepEqual(events, mode === 'valid' ? ['caller', 'policy', 'caller', 'sql'] : mode === 'revoked' ? ['caller', 'policy', 'caller'] : ['caller', 'policy']);
+      if (mode === 'valid') { events.length = 0; await assert.rejects(service.start(input, current)); assert.deepEqual(events, ['caller', 'policy', 'caller', 'sql']); }
+    } finally { service.close(); }
+  }
+});
+
+test('scope start owns metadata policies until actual drain after storage timeout and never dispatches late', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] }); let release!: () => void, policies = 0, sql = 0, scheduled = 0;
+  const held = new Promise<void>(r => { release = r; }), pool = { connect: async () => { sql++; throw new Error(); } };
+  const service = createIntentScopeStarter({ drafts: pool, execution: pool }, config,
+    { records: { ...records, authorize: async () => { policies++; await held; } }, authorizeStart: async () => {}, scheduler: { start: async () => { scheduled++; } } });
+  const pending = Array.from({ length: 4 }, () => assert.rejects(service.start(input, async () => {}))); await new Promise(r => setImmediate(r)); assert.equal(policies, 4);
+  t.mock.timers.tick(5001); await Promise.all(pending); await assert.rejects(service.start(input, async () => {}));
+  service.close(); release(); await new Promise(r => setImmediate(r)); assert.equal(sql, 0); assert.equal(scheduled, 0);
+});

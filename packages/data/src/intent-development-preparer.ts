@@ -9,6 +9,7 @@ import { createDevelopmentOriginalStore, developmentRecordsConfigurationSchema }
 import { describeDevelopmentOriginal, developmentOriginalSchema, developmentOriginalHash as hash, freezeOriginal as freeze,
   type DevelopmentOriginal } from './development-original-contracts.ts';
 import { withPreparationEvidence, type PreparationEvidenceWindow } from './preparation-evidence-window.ts';
+import { createReadPolicyAuthority } from './read-policy-authority.ts';
 
 type Records = Parameters<typeof createDevelopmentOriginalStore>[2];
 const unavailable = () => new Error('Development preparation is unavailable.');
@@ -52,6 +53,11 @@ export function createIntentDevelopmentPreparer(pools: Parameters<typeof createD
       const current = async () => { guard(); if (await track(Promise.resolve().then(revalidate)) !== undefined) throw unavailable(); guard(); };
       const checked = async <T>(work: () => Promise<T>) => { await current(); const value = await track(Promise.resolve().then(work)); await current(); return value; };
       const authority = async (work: () => Promise<void>) => { if (await checked(work) !== undefined) throw unavailable(); };
+      const readAuthority = createReadPolicyAuthority(current, track, guard);
+      // Read-only metadata policies still run on every use. Effects, preparation
+      // approval, keys and content keep the complete before/after caller checks.
+      const recordsAuthority = (action: 'put' | 'read', work: () => Promise<void>) =>
+        action === 'read' ? readAuthority(action, work) : authority(work);
       const scopedPools = { drafts: { connect: () => { guard(); return track(pools.drafts.connect()); } },
         execution: { connect: () => { guard(); return track(pools.execution.connect()); } } };
       const own = <T extends { close(): void }>(store: T) => { owned.push(store); children.add(store); return store; };
@@ -63,7 +69,7 @@ export function createIntentDevelopmentPreparer(pools: Parameters<typeof createD
       const work = Promise.resolve().then(async () => {
         await current();
         const sourceAuthority: Records['authorizeDraft'] = async c => {
-          if (c.action !== 'read' || c.draftId !== input.draftId) throw unavailable(); await authority(() => r.authorizeDraft(c));
+          if (c.action !== 'read' || c.draftId !== input.draftId) throw unavailable(); await readAuthority(c.action, () => r.authorizeDraft(c));
         };
         const historicalKey: Records['keyForDraft'] = (ref, keyId) => {
           if (ref.draftId !== input.draftId || keyId === null) throw unavailable(); return checked(() => r.keyForDraft(ref, keyId));
@@ -107,8 +113,8 @@ export function createIntentDevelopmentPreparer(pools: Parameters<typeof createD
           evidenceFor, validate, track, guard);
         const secured: Records = {
           ...(r.scopeReview ? { scopeReview: r.scopeReview } : {}),
-          authorize: async c => { if (!reference || hash(c.target) !== hash(reference)) throw unavailable(); await authority(() => r.authorize(c)); },
-          authorizeOriginal: async c => { if (hash(c.original) !== hash(original)) throw unavailable(); await authority(() => r.authorizeOriginal(c)); },
+          authorize: async c => { if (!reference || hash(c.target) !== hash(reference)) throw unavailable(); await recordsAuthority(c.action, () => r.authorize(c)); },
+          authorizeOriginal: async c => { if (hash(c.original) !== hash(original)) throw unavailable(); await recordsAuthority(c.action, () => r.authorizeOriginal(c)); },
           authorizeOperation: async c => { if (hash(c.request) !== hash(submission) && (!reference || hash(c.request) !== hash(reference))) throw unavailable(); await authority(() => r.authorizeOperation(c)); },
           authorizeDraft: sourceAuthority,
           keyForDraft: (ref, keyId) => { if (ref.draftId !== input.draftId) throw unavailable(); return checked(() => r.keyForDraft(ref, keyId)); },

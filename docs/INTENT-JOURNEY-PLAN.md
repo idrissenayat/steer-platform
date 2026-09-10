@@ -9,7 +9,20 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0314 / owned source-review phase — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0315 / preparation and scope-start authority — 68% (17/25; 8 remaining; +0 points)**.
+[0315](../intent/0315/EVIDENCE.md) integrates read-only metadata permission checks
+in both preparers and scope start, keeping every policy and current caller check
+before continuation. Key/content and effect boundaries remain fully bracketed.
+Synthetic scope preparation falls 320→292 attempts, first scope start 596→406
+and drafting preparation 594→532. Development start and save actions are unchanged.
+
+C22 remains open. Next integrate current-original records reads into preparation/
+start validation phases, preserving independently authorized records/key/source
+checks and separate phases across admission, persistence and scheduling. Whole-
+action confirmation still needs work too; then run the unchanged full benchmark.
+No completed performance checkpoint, live UI acceptance or new ETA is implied.
+
+Prior delivery checkpoint: **0314 / owned source-review phase — 68% (17/25; 8 remaining; +0 points)**.
 The [source-review correction](../intent/0314/EVIDENCE.md) shares the first complete
 draft/evidence review within one lazy read-only phase. Each consumption checks
 current authority; complete final state and exact draft readback follow dependent

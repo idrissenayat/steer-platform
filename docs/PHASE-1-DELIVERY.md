@@ -7053,6 +7053,26 @@ live model/key access, spending, runtime GitHub save, deployment, profile/record
 activation, signature or human UI acceptance. User drafts, signed artifacts and
 roadmap/outputs remain unchanged. **68% (17/25; eight remaining; +0 points).**
 
+## 0315 — Preparation and scope-start read-policy integration
+
+[0315](../intent/0315/EVIDENCE.md) applies the established metadata-only authority
+composition to both preparers and scope start. Each policy still runs, followed by
+fresh caller validation before SQL/continuation. Key/content, approval, admission,
+original-put and scheduler barriers remain. Six new tests cover exact policy order,
+revocation/nonvoid/rejection/closure and real held-policy drainage after timeout.
+
+Synthetic scope preparation falls 320→292 attempts, scope start 596 / 676 / 676
+to 406 / 460 / 460, and drafting preparation 594 / 548 to 532 / 487. Development
+start and save counts are unchanged. An older integration observer replaced an
+already pinned reader method; it was corrected to count native transport batches,
+with explicit rejection coverage for method replacement. Exact verification scope
+and the failed iteration are in [verification](../intent/0315/VERIFICATION.json).
+
+Next integrate current-original read sets into effect-separated preparation/start
+validation, then complete the unchanged whole-action benchmark. No live activation,
+model/spend, runtime GitHub save, deployment or signature. Actual UI acceptance
+remains separate. **68% (17/25; eight remaining; +0 percentage points).**
+
 ## 0314 — One owned current-source review phase
 
 [0314](../intent/0314/EVIDENCE.md) shares the first complete source review inside

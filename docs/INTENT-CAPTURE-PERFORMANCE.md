@@ -7,6 +7,29 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Preparation and scope-start metadata authority — 0315
+
+[0315](../intent/0315/EVIDENCE.md) removes redundant pre-policy caller traversal
+for explicit metadata-only reads. All policies, fresh caller validation before
+storage continuation and full key/content/effect barriers remain.
+
+| Authenticated synthetic action | 0314 attempts | 0315 attempts |
+| --- | ---: | ---: |
+| Scope preparation | 320 | 292 |
+| Scope start / recovery / repeat | 596 / 676 / 676 | 406 / 460 / 460 |
+| Drafting preparation / repeated preparation | 594 / 548 | 532 / 487 |
+| Drafting start / recovery / repeat | 1,407 / 1,594 / 1,594 | 1,407 / 1,594 / 1,594 |
+
+First scope start improves by 190 attempts (31.88%). Save review remains 211;
+new-distinct preview/confirmation remain 330 / 853 and continuation 440 / 1,073.
+Every action above still exceeds 200. No latency or live-UI acceptance is inferred
+from undelayed functional samples on a shared host. Exact samples and tests are in
+[verification](../intent/0315/VERIFICATION.json). Next consolidate current-original
+records reads in preparation/start phases and remaining confirmation controls;
+full independent policy/key/source validation and effect separation must remain.
+The unchanged complete warm/cold/concurrent protocol is still required.
+**68% (17/25; eight remaining; +0 percentage points).**
+
 ## Owned current-source validation phase — 0314
 
 [0314](../intent/0314/EVIDENCE.md) removes repeated complete review reconstruction

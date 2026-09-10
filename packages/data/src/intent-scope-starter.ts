@@ -3,6 +3,7 @@ import { intentScopeStartInputSchema, intentScopeStartOutputSchema, scopeSchedul
 import { createScopeReviewOriginalStore, scopeRecordsConfigurationSchema } from './scope-review-originals.ts';
 import { createScopeReviewOperationStore } from './scope-review-operations.ts';
 import { scopeOriginalHash as hash, freezeScopeOriginal as freeze, type ScopeOriginal } from './scope-original-contracts.ts';
+import { createReadPolicyAuthority } from './read-policy-authority.ts';
 
 type Records = Parameters<typeof createScopeReviewOriginalStore>[2];
 const unavailable = () => new Error('Scope start is unavailable.');
@@ -32,7 +33,9 @@ export function createIntentScopeStarter(pools: Parameters<typeof createScopeRev
       const track = async <T>(work: Promise<T>) => { pending++; try { return await work; } finally { pending--; release(); } };
       const current = async () => { guard(); if (await track(Promise.resolve().then(revalidate)) !== undefined) throw unavailable(); guard(); };
       const checked = async <T>(work: () => Promise<T>) => { await current(); const value = await track(Promise.resolve().then(work)); await current(); return value; };
-      const authority = async (action: string, work: () => Promise<void>) => { if (action !== 'read' || await checked(work) !== undefined) throw unavailable(); };
+      // This service only inspects records. Scheduling/start authority and key IO
+      // remain independently bracketed; every metadata policy still runs freshly.
+      const authority = createReadPolicyAuthority(current, track, guard);
       const secured: Records = {
         authorize: c => authority(c.action, () => r.authorize(c)),
         authorizeOriginal: c => authority(c.action, () => r.authorizeOriginal(c)),
