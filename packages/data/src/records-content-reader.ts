@@ -39,11 +39,12 @@ export function createRecordsContentReader(pools: { drafts: DatabasePool; execut
       || pin.service.provider !== pin.provider || pin.provider.keyForDraft !== pin.keyForDraft) throw fail();
   };
   const owner = createRecordsReadSetReader(pools, configuration, authority, options);
-  async function withReadSet<T>(target: unknown, current: () => Promise<void>, use: (lease: RecordsContentLease) => Promise<T>, signal?: AbortSignal) {
+  async function withReadSet<T>(target: unknown, current: () => Promise<void>, use: (lease: RecordsContentLease) => Promise<T>, signal?: AbortSignal,
+    observeDrain?: (drain: Promise<void>) => void) {
     let keyPolicyChecks = 0, physicalKeyReads = 0;
     try {
       pinned(); if (typeof use !== 'function') throw fail();
-      const result = await owner.withReadSet(target, async () => { pinned(); if (await current() !== undefined) throw fail(); pinned(); }, async lease => {
+      const reading = owner.startReadSet(target, async () => { pinned(); if (await current() !== undefined) throw fail(); pinned(); }, async lease => {
         const keys = new Map<RecordsKeyProvider, Map<string, DraftKey>>();
         let invalid = false, finished = false, rechecking: Promise<void> | undefined, rechecked = false;
         // The enclosing owner performs a final caller check after this callback
@@ -95,8 +96,16 @@ export function createRecordsContentReader(pools: { drafts: DatabasePool; execut
           for (const bucket of keys.values()) for (const key of bucket.values()) key.bytes.fill(0);
         }
       }, signal);
+      observeDrain?.(reading.drained); const result = await reading.result;
       return { value: result.value, metrics: freeze({ ...result.metrics, keyPolicyChecks, physicalKeyReads }) };
     } catch { throw fail(); }
   }
-  return { withReadSet, close: owner.close, shutdown: owner.shutdown };
+  return { withReadSet<T>(target: unknown, current: () => Promise<void>, use: (lease: RecordsContentLease) => Promise<T>, signal?: AbortSignal) {
+      return withReadSet(target, current, use, signal);
+    },
+    startReadSet<T>(target: unknown, current: () => Promise<void>, use: (lease: RecordsContentLease) => Promise<T>, signal?: AbortSignal) {
+      let drained = Promise.resolve();
+      const result = withReadSet(target, current, use, signal, actual => { drained = actual; });
+      return { result, drained };
+    }, close: owner.close, shutdown: owner.shutdown };
 }

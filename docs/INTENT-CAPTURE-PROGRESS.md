@@ -95,6 +95,7 @@ it does not imply that no code exists.
 | 2026-09-09 / 0307 | 17/25 | 68% | +0 percentage points | Production SDK/worker and exact recorded scope-to-development lineage verification, with explicit pending/unknown/clarifying outcomes. Thirty-seven native isolation cases, 44 focused tests and types pass; the owned portion stays at 52 simulated attempts. No factory switch, application speedup, live authority or completed C22. |
 | 2026-09-10 / 0308 | 17/25 | 68% | +0 percentage points | Owned corpus integrated into actual source-review and preparation constructors, with lazy loading, incomplete-search warnings and nested drain ownership. Synthetic source review drops to 75 attempts and the delayed draft/source prefix passes both directions; confirmation remains 7,087. Package composition boundaries are repaired. Full records/history integration, C22 and live acceptance remain open. |
 | 2026-09-10 / 0309 | 17/25 | 68% | +0 percentage points | Owned current/history scope projections connected to actual drafting and confirmation paths under independent record/key grants, with exact metadata-only discovery and expiry protection. Synthetic scope read 227→25, drafting preparation 3,826→594, drafting start 7,871→1,407 and confirmation 7,087→3,823. Functional/equivalence evidence is not full C22 or live acceptance. |
+| 2026-09-10 / 0310 | 17/25 | 68% | +0 percentage points | Owned development history connected to the actual factory with separately authorized retained scope verification and nested shutdown drain. Synthetic new-distinct preview 1,815→509 and confirmation 3,823→1,211; continuation preview 2,105→799 and confirmation 4,403→1,791. Exact history/negative/native evidence is in [0310](../intent/0310/EVIDENCE.md). Counts still exceed C22; no live activation or UI acceptance. |
 
 Next unblocked engineering checkpoint: C22, meet the documented request-load and
 latency bounds without weakening current authority or recovery guarantees.
@@ -113,9 +114,10 @@ cryptographic/SDK decoder remains a test oracle at that checkpoint. 0306 adds
 canonical production decoding and invocation-owned independent key-policy access.
 0307 adds production SDK/worker and exact recorded scope-to-development lineage.
 0308 wires the current corpus into the actual source-review/preparation services.
-The shared records/history reader still needs authorized stage-specific target
-discovery and current/historical service projections. Connect those contracts and
-remaining outer effect controls next, then run the whole-action benchmark.
+0309 wires current/history scope projections with exact stage-specific discovery.
+0310 wires retained development history with independent development and scope
+read ownership. Remaining original/preparation/confirmation read phases and outer
+effect controls still need integration before the whole-action benchmark.
 0303 adds the actual adapter primitive for the upcoming integrated graph, with no
 automatic collector switch and no reduction claimed for installed application actions.
 0302 retains earliest snapshot expiry through return; it adds no provider calls

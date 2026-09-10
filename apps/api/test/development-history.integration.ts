@@ -12,14 +12,17 @@ import {createDevelopmentObservationStore} from '@steer/data/development-observa
 import {createDevelopmentOriginalStore} from '@steer/data/development-originals';
 import {createDevelopmentResultStore} from '@steer/data/development-results';
 import {createExpiredDevelopmentStepReader,createHistoricalDevelopmentStepReader} from '@steer/data/intent-operations';
+import { ownedDevelopmentReadFixture, ownedScopeReadFixture } from './owned-scope-read.fixture.ts';
+import { intentJourneyFactoryFixture } from './intent-journey-factory.fixture.ts';
 
 type Dependencies=Parameters<typeof createVerifiedDevelopmentHistoryExchangeReader>[2];
 export async function testDevelopmentHistory(setup:(ttl?:number)=>Promise<Fixture>,check:(name:string,run:()=>Promise<void>)=>Promise<void>,admin:Pool){
   const captured={architect:{message:'Private Architect message',questions:[],brief:'# Exact Brief 🌸\r\n',spec:'# Exact Spec\n'},testAgent:{exam:'# Exact Exam\r\nNOT RUN'}};
-  const run=async(f:Fixture,role:'architect'|'test-agent',fail=false)=>{
+  const run=async(f:Fixture,role:'architect'|'test-agent',fail=false,questions=false)=>{
     let calls=0;const model=f.recordedModel(async()=>{calls++;if(fail)throw new Error('Synthetic unknown');
       return Response.json({id:'synthetic-history',object:'chat.completion',model:'synthetic-provider-model',
-        choices:[{index:0,message:{role:'assistant',content:JSON.stringify(role==='architect'?captured.architect:captured.testAgent)},finish_reason:'stop'}],
+        choices:[{index:0,message:{role:'assistant',content:JSON.stringify(role==='architect'?(questions
+          ?{message:'Clarify first',questions:['Who is the intended user?'],brief:null,spec:null}:captured.architect):captured.testAgent)},finish_reason:'stop'}],
         usage:{prompt_tokens:2,completion_tokens:1,total_tokens:3}});});
     const runtime=createDevelopmentStepRuntime(f.pools,f.config,f.target,{reader:f.reader,model,authorize:async()=>{}});
     try{const result=await runtime.run(role,new AbortController().signal);assert.equal(calls,1);return result;}finally{runtime.close();model.close();}
@@ -97,6 +100,32 @@ export async function testDevelopmentHistory(setup:(ttl?:number)=>Promise<Fixtur
     const input={organizationId:f.config.organizationId,productId:f.config.productId,repository:f.config.repository,...f.target};
     return{reader,principal,post:(patch={})=>app.request('/v1/tools/intent.development.history',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...input,...patch})})};
   };
+  await check('historical development owned projection preserves legacy unbound pending, partial, complete, clarifying, unknown and expired history',async()=>{
+    const owned = (f:Fixture) => {
+      const fixture=intentJourneyFactoryFixture(),scope=ownedScopeReadFixture(f.execution.budget.budgetId,f.deps.originals.keyForDraft);
+      scope.authority.authorizeScopeDiscovery=async()=>{throw new Error('An unbound original must not discover a scope review');};
+      return createVerifiedDevelopmentHistoryReader(f.pools,f.config,{records:historyRecords(f),profiles:f.gatewayProfiles,
+        ownedRead:{...ownedDevelopmentReadFixture(f.execution.budget.budgetId,f.deps.originals.keyForDraft),
+          scope:{records:fixture.deps.scope.history,ownedRead:scope,profile:fixture.config.scopeProfile}}});
+    };
+    const input=(f:Fixture)=>({organizationId:f.config.organizationId,productId:f.config.productId,repository:f.config.repository,...f.target});
+    const compare=async(f:Fixture,status:string)=>{
+      const api=historyApi(f),reader=owned(f),before=await snapshot(f);
+      try{const response=await api.post();assert.equal(response.status,200);const expected=await response.json();
+        assert.equal(expected.status,status);assert.deepEqual(await reader.read(input(f),async()=>{}),expected);
+        assert.deepEqual(await snapshot(f),before);return expected;
+      }finally{api.reader.close();await reader.shutdown!();}
+    };
+    const f=await setup(30000);await compare(f,'pending');assert.equal((await run(f,'architect')).outcome,'succeeded');
+    await compare(f,'partial');assert.equal((await run(f,'test-agent')).outcome,'succeeded');await compare(f,'complete');
+    assert.equal((await f.drafts.append({draftId:f.draftId,mutationId:randomUUID(),expectedRevision:1,expectedDigest:f.saved.reference.revisionDigest,
+      content:{...f.content,originalText:'Human revision after generation'}})).outcome,'acknowledged');
+    await delay(Math.max(0,Date.parse(f.execution.expiresAt)-Date.now()+50));
+    const expired=await compare(f,'complete');assert.equal(expired.operationExpired,true);assert.equal(expired.source.latestRevision,2);
+    for(const failure of ['clarifying','unknown'] as const){const other=await setup();
+      await run(other,'architect',failure==='unknown',failure==='clarifying');
+      await compare(other,failure==='unknown'?'attention-required':'needs-clarification');}
+  });
   await check('historical development combined HTTP projects pending, partial and linked complete documents without private wire or SQL effects',async()=>{
     const f=await setup(30000),api=historyApi(f);
     try{

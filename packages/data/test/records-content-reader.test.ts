@@ -19,6 +19,18 @@ import { recordsReadsetGroups } from './records-readset-prototype.ts';
 const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
 const deferred = () => { let resolve = () => {}; const promise = new Promise<void>(r => { resolve = r; }); return { promise, resolve }; };
 const tick = () => new Promise<void>(r => setImmediate(r));
+
+test('content startReadSet drain waits for an outstanding key lookup after the result is cancelled', async () => {
+  const f = await fixture(), reader = f.owner(), gate = deferred(), reached = deferred(), signal = new AbortController();
+  f.onKey(async () => { reached.resolve(); await gate.promise; });
+  const read = reader.startReadSet(f.target, async () => {}, async lease => { await lease.recheck(); }, signal.signal);
+  const rejected = assert.rejects(read.result); let drained = false; void read.drained.then(() => { drained = true; });
+  try {
+    await reached.promise; signal.abort(); await rejected; await tick(); assert.equal(drained, false);
+    gate.resolve(); await read.drained; assert.equal(drained, true);
+    assert.deepEqual(f.key.bytes, f.originalKey, 'Provider-owned bytes remain untouched.');
+  } finally { gate.resolve(); await reader.shutdown(); f.key.bytes.fill(0); }
+});
 async function fixture() {
   const f = await scopeReviewFixture(2);
   const config = { organizationId: f.scope.organizationId, subject: 'synthetic-human', productId: f.scope.productId,

@@ -5,6 +5,34 @@ import {createIntentDevelopmentHistoryReader} from '@steer/data/intent-developme
 import {createApi} from '../src/app.ts';
 import {createMcpEndpoint,mcpProtocolVersion} from '../src/mcp.ts';
 import {Client,StreamableHTTPClientTransport} from '@modelcontextprotocol/client';
+import { createVerifiedDevelopmentHistoryReader } from '../src/runtime.ts';
+import { intentJourneyFactoryFixture } from './intent-journey-factory.fixture.ts';
+import { ownedDevelopmentReadFixture, ownedScopeReadFixture } from './owned-scope-read.fixture.ts';
+
+test('owned history is explicit and lazy; invalid binding never falls back and cancelled callers retain admission until drain', async () => {
+  const f=intentJourneyFactoryFixture(),records=f.deps.development.history,config={...f.expected};
+  delete (config as Partial<typeof config>).itemIds;
+  let sql=0; const pool={connect:async()=>{sql++;throw new Error('PRIVATE unexpected SQL');}};
+  const pools={drafts:pool,execution:{...pool}},dependencies={records,profiles:f.config.developmentProfiles};
+  for(const ownedRead of [null,{}, {authority:{},keys:{},scope:{}}])
+    assert.throws(()=>createVerifiedDevelopmentHistoryReader(pools,config,{...dependencies,ownedRead:ownedRead as any}));
+  const reader=createVerifiedDevelopmentHistoryReader(pools,config,{...dependencies,ownedRead:{
+    ...ownedDevelopmentReadFixture(f.config.development.budget!.budgetId,records.originals.keyForDraft),
+    scope:{records:f.deps.scope.history,profile:f.config.scopeProfile,
+      ownedRead:ownedScopeReadFixture(f.config.scope.budget.budgetId,records.originals.keyForDraft)}}});
+  const input={organizationId:f.expected.organizationId,productId:f.expected.productId,repository:f.expected.repository,
+    operationId:'00000000-0000-4000-8000-000000000001',inputDigest:'a'.repeat(64)};
+  await assert.rejects(reader.read({...input,productId:'foreign'},async()=>{}));assert.equal(sql,0);
+  let release=()=>{},entered=0,drained=false;const held=new Promise<void>(resolve=>{release=resolve;});
+  const calls=Array.from({length:4},()=>reader.read(input,async()=>{entered++;await held;}));
+  const rejected=calls.map(call=>assert.rejects(call));
+  try {
+    await new Promise(resolve=>setImmediate(resolve));assert.equal(entered,4);
+    await assert.rejects(reader.read(input,async()=>{}));reader.close();await Promise.all(rejected);
+    const stopped=reader.shutdown!().then(()=>{drained=true;});await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(drained,false);assert.equal(sql,0);release();await stopped;assert.equal(drained,true);assert.equal(sql,0);
+  } finally {release();await reader.shutdown!();await Promise.all(rejected);}
+});
 
 test('combined generation history is lazy, requires separate records authorities and drains closed reads without late SQL',async()=>{
   const f=await developmentHistoryFixture();let sql=0,calls=0;const pool={connect:async()=>{sql++;throw new Error('No SQL');}};

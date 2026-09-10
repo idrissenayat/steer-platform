@@ -9,7 +9,22 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0309 / owned scope service integration — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0310 / owned development history — 68% (17/25; 8 remaining; +0 points)**.
+The [development history integration](../intent/0310/EVIDENCE.md) connects the actual
+factory's retained-generation service to one owned development read and, only when
+its original names one, a separately authorized retained scope read. Actual
+SDK/worker checks preserve both roles, exact predecessor lineage and the existing
+public documents/states. Cancellation drains both reads before resource cleanup.
+
+Synthetic new-distinct preview falls from 1,815 to 509 attempts and confirmation
+from 3,823 to 1,211; continuation preview falls from 2,105 to 799 and confirmation
+from 4,403 to 1,791. These counts still exceed the 200-attempt limit. They are not
+a latency acceptance result or a live UI speed claim. Next address the remaining
+original/preparation/confirmation reads and effect-separated controls, then run
+the complete unchanged C22 protocol. No records/profile activation, model spending,
+actual runtime GitHub save or additional checklist point is authorized or claimed.
+
+Prior delivery checkpoint: **0309 / owned scope service integration — 68% (17/25; 8 remaining; +0 points)**.
 The [scope service integration](../intent/0309/EVIDENCE.md) connects current and
 historical scope reads to the owned records/content/SDK reader through explicit
 independent authority bindings. Metadata-only discovery uses exact review references

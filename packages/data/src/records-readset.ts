@@ -6,10 +6,12 @@ import { developmentRecordsConfigurationSchema } from './development-originals.t
 
 const uuid = z.uuid().refine(value => value === value.toLowerCase());
 const resolvedTargetSchema = z.strictObject({ draftId: uuid, operationIds: z.array(uuid).max(8),
-  reviewIds: z.array(uuid).min(1).max(8), revisions: z.array(z.number().int().min(1).max(1000)).min(1).max(16), budgetId: uuid });
-const targetSchema = resolvedTargetSchema.extend({ operationIds: z.array(uuid).min(1).max(8) });
+  reviewIds: z.array(uuid).max(8), revisions: z.array(z.number().int().min(1).max(1000)).min(1).max(16), budgetId: uuid });
+const targetSchema = resolvedTargetSchema.extend({ operationIds: z.array(uuid).min(1).max(8), reviewIds: z.array(uuid).min(1).max(8) });
 const scopeTargetSchema = z.strictObject({ kind: z.literal('scope-review'), mode: z.enum(['current', 'history']), reviewId: uuid,
   preparationDigest: z.string().regex(/^[a-f0-9]{64}(?![\s\S])/) });
+const developmentTargetSchema = z.strictObject({ kind: z.literal('development-history'), operationId: uuid,
+  inputDigest: z.string().regex(/^[a-f0-9]{64}(?![\s\S])/) });
 type Configuration = z.infer<typeof developmentRecordsConfigurationSchema>;
 export type RecordsReadSetTarget = z.infer<typeof resolvedTargetSchema>;
 type Row = Readonly<Record<string, unknown>>;
@@ -42,6 +44,7 @@ export type RecordsReadSetAuthority = {
    * trusted records resolver binds the retained budget ID, which must match the
    * decoded original; it is not a new budget or a spending permission. */
   authorizeScopeDiscovery?(context: Readonly<{ configuration: Configuration; request: z.infer<typeof scopeTargetSchema> }>): Promise<{ permissionsRevision: string; budgetId: string }>;
+  authorizeDevelopmentDiscovery?(context: Readonly<{ configuration: Configuration; request: z.infer<typeof developmentTargetSchema> }>): Promise<{ permissionsRevision: string; budgetId: string }>;
   /** Present metadata-enumeration grant. Revision covers every independent records grant. */
   authorize(context: Context): Promise<{ permissionsRevision: string }>;
   records: { [G in RecordsReadSetGroup]: (context: Context & Readonly<{ group: G; metadata: Row }>) => Promise<void> };
@@ -92,21 +95,26 @@ export function createRecordsReadSetReader(pools: { drafts: DatabasePool; execut
   const configuration = freeze(developmentRecordsConfigurationSchema.parse(rawConfiguration)), configurationDigest = hash(configuration);
   const clock = options.monotonicNow ?? (() => performance.now()), lifetime = new AbortController(), pending = new Set<Promise<unknown>>();
   const connections = { drafts: pools.drafts.connect, execution: pools.execution.connect }, boundPools = { ...pools };
-  const authorize = authority.authorize, discover = authority.authorizeScopeDiscovery, records = authority.records, policies = { ...records };
+  const authorize = authority.authorize, discover = authority.authorizeScopeDiscovery, discoverDevelopment = authority.authorizeDevelopmentDiscovery,
+    records = authority.records, policies = { ...records };
   if (typeof authorize !== 'function' || groups.some(g => typeof policies[g.name] !== 'function')
     || Object.keys(records).length !== groups.length || Object.values(connections).some(p => typeof p !== 'function')) throw fail();
   const pinned = () => {
     if (lifetime.signal.aborted || authority.authorize !== authorize || authority.authorizeScopeDiscovery !== discover || authority.records !== records
+      || authority.authorizeDevelopmentDiscovery !== discoverDevelopment
       || groups.some(g => records[g.name] !== policies[g.name]) || Object.keys(records).length !== groups.length
       || (['drafts', 'execution'] as const).some(role => pools[role] !== boundPools[role] || pools[role].connect !== connections[role])) throw fail();
   };
-  async function withReadSet<T>(rawTarget: unknown, current: () => Promise<void>, use: (lease: RecordsReadSetLease) => Promise<T>, externalSignal?: AbortSignal) {
-    pinned(); const requested = freeze(z.union([targetSchema, scopeTargetSchema]).parse(rawTarget));
-    const scopeRequest = 'kind' in requested ? requested : undefined;
-    let target: RecordsReadSetTarget = scopeRequest ? undefined! : requested as RecordsReadSetTarget;
-    let context: Context = scopeRequest ? undefined! : freeze({ configuration, target });
+  async function withReadSet<T>(rawTarget: unknown, current: () => Promise<void>, use: (lease: RecordsReadSetLease) => Promise<T>, externalSignal?: AbortSignal,
+    observeWork?: (work: Promise<unknown>) => void) {
+    pinned(); const requested = freeze(z.union([targetSchema, scopeTargetSchema, developmentTargetSchema]).parse(rawTarget));
+    const discoveryRequest = 'kind' in requested ? requested : undefined;
+    const scopeRequest = discoveryRequest?.kind === 'scope-review' ? discoveryRequest : undefined;
+    const developmentRequest = discoveryRequest?.kind === 'development-history' ? discoveryRequest : undefined;
+    let target: RecordsReadSetTarget = discoveryRequest ? undefined! : requested as RecordsReadSetTarget;
+    let context: Context = discoveryRequest ? undefined! : freeze({ configuration, target });
     if (pending.size >= 4 || typeof current !== 'function' || typeof use !== 'function'
-      || (scopeRequest ? typeof discover !== 'function'
+      || (discoveryRequest ? typeof (scopeRequest ? discover : discoverDevelopment) !== 'function'
         : [target.operationIds, target.reviewIds, target.revisions].some(values => new Set<string | number>(values).size !== values.length))) throw fail();
     const signal = AbortSignal.any([lifetime.signal, AbortSignal.timeout(30000), ...(externalSignal ? [externalSignal] : [])]);
     const metrics = { statements: 0, roleTransactions: 0, callerChecks: 0, metadataGrants: 0, recordPolicyChecks: 0 };
@@ -123,9 +131,9 @@ export function createRecordsReadSetReader(pools: { drafts: DatabasePool; execut
       const now = databaseClock(raw); if (now < lastDatabaseClock) throw fail(); lastDatabaseClock = now; databaseObservedAt = started; return now;
     };
     const discoveryGrant = async () => {
-      if (!scopeRequest) return;
+      if (!discoveryRequest) return;
       guard(); const grant = z.strictObject({ permissionsRevision: z.string().min(1).max(256), budgetId: uuid }).parse(
-        await Reflect.apply(discover!, authority, [freeze({ configuration, request: scopeRequest })]));
+        await Reflect.apply((scopeRequest ? discover : discoverDevelopment)!, authority, [freeze({ configuration, request: discoveryRequest })]));
       guard(); if (discoveryRevision !== undefined && (grant.permissionsRevision !== discoveryRevision || grant.budgetId !== discoveryBudget)) throw fail();
       discoveryRevision = grant.permissionsRevision; discoveryBudget = grant.budgetId;
     };
@@ -207,14 +215,15 @@ export function createRecordsReadSetReader(pools: { drafts: DatabasePool; execut
         || complete.latest_revision.length !== 1 || !Number.isInteger(complete.latest_revision[0]!.revision)
         || Number(complete.latest_revision[0]!.revision) < Math.max(...target.revisions)
         || complete.operations.length !== target.operationIds.length || complete.scope_runs.length !== target.reviewIds.length
-        || complete.scope_originals.length !== target.reviewIds.length || complete.budget.length !== 1 || complete.scope_terms.length !== 1
+        || complete.scope_originals.length !== target.reviewIds.length || complete.budget.length !== 1
+        || (target.reviewIds.length > 0 && complete.scope_terms.length !== 1)
         || Buffer.byteLength(JSON.stringify(complete)) > 16 * 1024 * 1024) throw fail();
       guard(); return freeze({ data: complete, lifecycle });
     };
     const work = Promise.resolve().then(async () => {
       try {
         deadline = monotonic() + 30000; guard();
-        if (scopeRequest) {
+        if (discoveryRequest) {
           // The run table has no ciphertext. Discover only this exact reference
           // under the execution role; never invent a development operation ID.
           metrics.callerChecks++; if (await current() !== undefined) throw fail(); guard(); await discoveryGrant();
@@ -231,21 +240,28 @@ export function createRecordsReadSetReader(pools: { drafts: DatabasePool; execut
               || actor.rolsuper !== false || actor.rolbypassrls !== false || actor.owns_objects !== false) throw fail();
             await query("SELECT set_config('steer.execution_organization',$1,true),set_config('steer.execution_subject',$2,true),set_config('steer.execution_product',$3,true)",
               [configuration.organizationId, configuration.subject, configuration.productId]);
-            const started = monotonic(), result = await query(`SELECT to_jsonb(r) AS metadata,
+            const started = monotonic(), result = await query(scopeRequest ? `SELECT to_jsonb(r) AS metadata,
               floor(extract(epoch FROM clock_timestamp())*1000)::bigint AS clock_ms FROM steer_execution.scope_review_runs r
-              WHERE r.organization_id=$1 AND r.review_id=$2 AND r.preparation_digest=$3 LIMIT 2`,
-              [configuration.organizationId, scopeRequest.reviewId, scopeRequest.preparationDigest]);
+              WHERE r.organization_id=$1 AND r.review_id=$2 AND r.preparation_digest=$3 LIMIT 2`
+              : `SELECT to_jsonb(r) AS metadata,floor(extract(epoch FROM clock_timestamp())*1000)::bigint AS clock_ms
+                FROM steer_execution.intent_operations r WHERE r.organization_id=$1 AND r.operation_id=$2
+                AND r.binding->>'inputDigest'=$3 AND r.action='develop' LIMIT 2`,
+              [configuration.organizationId, scopeRequest?.reviewId ?? developmentRequest!.operationId,
+                scopeRequest?.preparationDigest ?? developmentRequest!.inputDigest]);
             if (result.rows.length !== 1) throw fail(); discoveredRun = freeze(rowValue(result.rows[0].metadata));
             if (Buffer.byteLength(JSON.stringify(discoveredRun)) > 65536 || 'encrypted_value' in discoveredRun
               || discoveredRun.organization_id !== configuration.organizationId || discoveredRun.subject !== configuration.subject
-              || discoveredRun.product_id !== configuration.productId || discoveredRun.review_id !== scopeRequest.reviewId
-              || discoveredRun.preparation_digest !== scopeRequest.preparationDigest) throw fail();
+              || (scopeRequest ? discoveredRun.product_id !== configuration.productId || discoveredRun.review_id !== scopeRequest.reviewId
+                || discoveredRun.preparation_digest !== scopeRequest.preparationDigest
+                : discoveredRun.operation_id !== developmentRequest!.operationId || discoveredRun.action !== 'develop'
+                  || rowValue(discoveredRun.binding).inputDigest !== developmentRequest!.inputDigest)) throw fail();
             const observed = observeDatabase(result.rows[0].clock_ms, started), expiry = milliseconds(discoveredRun.expires_at);
-            if (scopeRequest.mode === 'current') {
+            if (scopeRequest?.mode === 'current') {
               expiredScope = expiry <= observed;
               if (!expiredScope) deadline = Math.min(deadline, started + expiry - observed);
             }
-            target = freeze(resolvedTargetSchema.parse({ draftId: discoveredRun.draft_id, operationIds: [], reviewIds: [scopeRequest.reviewId],
+            target = freeze(resolvedTargetSchema.parse({ draftId: discoveredRun.draft_id,
+              operationIds: developmentRequest ? [developmentRequest.operationId] : [], reviewIds: scopeRequest ? [scopeRequest.reviewId] : [],
               revisions: [discoveredRun.draft_revision], budgetId: discoveryBudget }));
             context = freeze({ configuration, target });
             await query('COMMIT'); await query(clear('execution'));
@@ -253,7 +269,7 @@ export function createRecordsReadSetReader(pools: { drafts: DatabasePool; execut
           finally { client?.release(broken); }
         }
         const metadata = await read(true);
-        if (discoveredRun && hash(metadata.data.scope_runs) !== hash([discoveredRun])) throw fail();
+        if (discoveredRun && hash(scopeRequest ? metadata.data.scope_runs : metadata.data.operations) !== hash([discoveredRun])) throw fail();
         await grantRecords(metadata.data);
         const first = await read(false);
         if (hash({ data: metadataOf(first.data), lifecycle: first.lifecycle }) !== hash(metadata)) throw fail();
@@ -287,6 +303,7 @@ export function createRecordsReadSetReader(pools: { drafts: DatabasePool; execut
       } finally { using = false; await rechecking?.catch(() => {}); }
     });
     pending.add(work); void work.finally(() => pending.delete(work)).catch(() => {});
+    observeWork?.(work);
     let abort = () => {};
     try {
       return await Promise.race([work, new Promise<never>((_, reject) => {
@@ -295,5 +312,13 @@ export function createRecordsReadSetReader(pools: { drafts: DatabasePool; execut
     } catch { throw fail(); }
     finally { finished = true; signal.removeEventListener('abort', abort); }
   }
-  return { withReadSet, close() { lifetime.abort(); }, async shutdown() { lifetime.abort(); await Promise.allSettled([...pending]); } };
+  return { withReadSet<T>(target: unknown, current: () => Promise<void>, use: (lease: RecordsReadSetLease) => Promise<T>, signal?: AbortSignal) {
+      return withReadSet(target, current, use, signal);
+    },
+    startReadSet<T>(target: unknown, current: () => Promise<void>, use: (lease: RecordsReadSetLease) => Promise<T>, signal?: AbortSignal) {
+      let drained = Promise.resolve();
+      const result = withReadSet(target, current, use, signal, work => { drained = work.then(() => {}, () => {}); });
+      return { result, drained };
+    },
+    close() { lifetime.abort(); }, async shutdown() { lifetime.abort(); await Promise.allSettled([...pending]); } };
 }

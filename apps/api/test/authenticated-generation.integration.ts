@@ -29,7 +29,8 @@ import { testAuthenticatedPerformancePrefix } from './authenticated-performance-
 import { createIdentityRequestProfile } from './identity-request-profile.ts';
 import { testRecordsReadsetFeasibility } from './records-readset-feasibility.integration.ts';
 import { testOwnedRecordsReadset } from './records-owned-readset.integration.ts';
-import { ownedScopeReadFixture } from './owned-scope-read.fixture.ts';
+import { ownedScopeReadFixture, ownedDevelopmentReadFixture } from './owned-scope-read.fixture.ts';
+import { testOwnedDevelopmentHistoryProjection } from './owned-development-history.integration.ts';
 
 /** Signed synthetic JWT + native Git grants, real API constructor graph, SQL and
  * recorded SDK roles. No real issuer, model transport, live migration or external Git write.
@@ -100,6 +101,7 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
     const { recordedScheduling: _unused, ...base } = identity.profile;
     const profile = { ...base, intentJourney: expected };
     let owned!: ManagedRuntimeIntentJourney;
+    let historyFixture!: Parameters<typeof testOwnedDevelopmentHistoryProjection>[2];
     const make = async () => {
       const runtime = await createIdentityRuntime(profile, identity.secrets, { ...identity.ports,
         authorizeIntentJourney: authority,
@@ -119,6 +121,10 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
           deps.scope.authorizePreparation = executionAuthority;
           deps.development.records = { originals: originalRecords, results, authorize: authority };
           deps.development.history = { originals: originalRecords, results, authorize: authority, authorizeHistoricalRead: authority };
+          deps.development.ownedHistory = ownedDevelopmentReadFixture(f.execution.budget.budgetId, f.deps.keyForDraft, authority);
+          historyFixture = { records: { ...deps.development.history }, profiles,
+            ownedRead: { ...deps.development.ownedHistory, scope: { records: deps.scope.history,
+              ownedRead: deps.scope.ownedReads.history, profile: fixture.config.scopeProfile } } };
           deps.development.authorizeReview = authority; deps.development.authorizePreparation = executionAuthority;
           candidate.configure(deps);
           save.configure(deps);
@@ -252,6 +258,7 @@ export async function testAuthenticatedGeneration({ admin, connect, check }: {
       assert.equal(retained.status, 'complete'); assert.equal(retained.source.latestRevision, 2); assert.equal(retained.source.revision, 1);
       assert.equal(retained.results.length, 2); assert.equal(retained.results[1]!.predecessorResultDigest, retained.results[0]!.resultDigest);
       assert.doesNotMatch(JSON.stringify(retained), /scopeEvidence|instructions|EXAM-MARKER-NOT-FOR-SCOPE|requestBody|responseBody/);
+      if (!performanceOnly && !recordsFeasibility) await testOwnedDevelopmentHistoryProjection(f.pools, f.config, historyFixture, target, retained);
       const exact = await read('intent.draft.read', { ...scope, draftId: f.draftId, revision: 'latest' }); assert.deepEqual(exact.content, correction);
       assert.equal((await post('intent.development.read', { ...target, productId: 'foreign' })).status, 403);
       allowed = false; const denied = await post('intent.development.history', target); assert.equal(denied.status, 503);

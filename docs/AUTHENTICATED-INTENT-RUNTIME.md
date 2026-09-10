@@ -62,6 +62,43 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Owned retained development history — 0310
+
+[0310](../intent/0310/EVIDENCE.md) adds the trusted factory binding
+`development.ownedHistory: { authority, keys }`. It requires the existing separately
+authorized `scope.ownedReads.history` binding. Absence preserves compatibility;
+invalid/partial configuration or an owned read failure never selects a fallback.
+No environment/browser option or real profile activation is introduced.
+
+The development discovery grant independently binds the exact operation/input
+digest and retained budget. An execution-role/RLS metadata query derives the real
+draft/revision and must agree with subsequent complete metadata before ciphertext.
+The original must name that budget and exact source. Only a recorded scope
+reference inside that validated original triggers the second, separately granted
+scope read. Legacy unbound originals never invent a review or discover unrelated
+reviews. Records and key purposes remain separately authorized throughout.
+
+The two same-draft snapshots join privately for the existing strict SDK/worker
+verifier. Shared rows/lifecycle/revisions/budget must agree; exact operation
+reservations cannot collide. This is not a merged permission or lease. Both actual
+leases undergo fresh records/key readback; existing original, result, scope and
+batch-history/source policies still apply. Late scope source closure follows the
+development closure. Public pending/partial/complete/clarifying/attention states,
+exact historical outputs and predecessor digests remain unchanged, as do the
+false execution/retry/semantic-quality/gate flags and sanitized error contract.
+
+An invocation's private start handle separates cancelled public results from
+actual drained work. The parent retains admission until its nested scope read
+and key lookup settle. Factory shutdown drains both readers before pools close.
+Existing four-call and 30-second bounds, holds, final caller checks and truthful
+database/monotonic expiry remain. No history phase performs a scheduling/save effect.
+
+The actual synthetic preview/confirmation paths now use this service; their
+provider counts improve but remain over the unchanged C22 ceiling. Remaining
+original/preparation/confirmation read boundaries and effect controls are next.
+Independent fixture grants are not real records adoption, key authority, model
+approval, runtime GitHub write permission, profile activation or UI acceptance.
+
 ### Owned current/history scope services — 0309
 
 [0309](../intent/0309/EVIDENCE.md) adds explicit trusted

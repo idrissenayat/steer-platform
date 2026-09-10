@@ -7107,3 +7107,28 @@ controls before the complete unchanged performance protocol. No live profile,
 records adoption, model usage/spending, runtime GitHub write, deployment or signature.
 Signed artifacts and user-owned roadmap/outputs remain unchanged.
 **68% (17/25; eight remaining; +0 percentage points).**
+
+## 0310 — Owned development history in the actual journey
+
+[0310](../intent/0310/EVIDENCE.md) connects the factory's retained-generation
+service to independently authorized development and exact referenced scope reads.
+Canonical SDK/worker verification preserves the original roles, source and
+predecessor lineage, public states and exact documents. Both real records/key
+leases and existing source/history policies remain checked. Parent cancellation
+and factory shutdown wait for nested scope/key work to actually drain.
+
+Synthetic new-distinct preview falls 1,815→509 attempts and confirmation
+3,823→1,211; proposal-continuation preview falls 2,105→799 and confirmation
+4,403→1,791. Both native authenticated save/reopen selections pass, with exact
+owned/legacy history comparison, independent early/late denials and nested drain.
+Nine native retained-record checks, 1,502 broad regressions, 59 final focused
+checks, 88 prototype tests, all types, kit and scope audit pass. Exact verification
+timing, failed iterations, samples and hashes are retained in
+[verification](../intent/0310/VERIFICATION.json).
+
+Counts remain over the unchanged C22 ceiling; no latency protocol, live-provider
+or UI acceptance is claimed. Next integrate remaining original/preparation/
+confirmation read phases and effect-separated controls before the whole-action
+benchmark. No live records adoption/profile activation, model usage/spending,
+runtime GitHub save, deployment or signature. Protected artifacts and user-owned
+roadmap/outputs remain unchanged. **68% (17/25; eight remaining; +0 points).**

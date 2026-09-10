@@ -1,0 +1,1293 @@
+{
+  "kind": "steer-implementation-verification/v1",
+  "intent": "0310",
+  "date": "2026-09-10",
+  "baseCommit": "2d66ddfd1cf44a6a249117463b4df111c4d490fe",
+  "progress": {
+    "verified": 17,
+    "total": 25,
+    "percentage": 68,
+    "remaining": 8,
+    "percentagePointChange": 0
+  },
+  "checks": [
+    {
+      "command": "node --test --test-concurrency=4 packages/*/test/*.test.ts packages/domain/test/*.test.mjs apps/api/test/*.test.ts apps/worker/test/*.test.ts apps/web/test/*.test.mjs tests/package-boundaries.test.mjs",
+      "exitCode": 0,
+      "tests": 1502,
+      "passed": 1502,
+      "failed": 0,
+      "durationMs": 365282.837709,
+      "scope": "Broad regression after final production changes. It also reports the last-added explicit/held-caller development-history test as passed. Not the full PostgreSQL suite or browser acceptance."
+    },
+    {
+      "command": "pnpm typecheck",
+      "exitCode": 0,
+      "scope": "Final prototype plus all eight packages/applications, including final typed history service and new integration fixtures."
+    },
+    {
+      "command": "node --test packages/data/test/records-readset.test.ts packages/data/test/records-content-reader.test.ts packages/data/test/integration-diagnostics.test.ts apps/api/test/intent-journey-factory.test.ts apps/api/test/development-history.test.ts tests/package-boundaries.test.mjs",
+      "exitCode": 0,
+      "tests": 59,
+      "passed": 59,
+      "failed": 0,
+      "durationMs": 1120.915417,
+      "scope": "Final focused discovery, independent policy/key, true drain, factory/history and architectural boundary checks."
+    },
+    {
+      "command": "node packages/data/test/postgres.integration.ts --journey-runtime",
+      "exitCode": 0,
+      "joinedChecks": 3,
+      "idempotentMigrationPassed": true,
+      "fullIntegrationSuiteRun": false,
+      "scope": "Final production source. Includes owned/legacy bound-history equality and eleven denial/mutation variants, nested held-key shutdown, actual managed factory and fixed save/reopen.",
+      "assertions": [
+        "PASS versioned Drizzle migrations apply twice without replay effects",
+        "FOCUSED managed identity runtime with native authorization, encrypted SQL drafts and recorded generation; NOT the full integration suite.",
+        "PASS managed inventory authenticated journey retains exact encrypted draft across lost acknowledgement and runtime reconstruction with current policy and Git revocation",
+        "PASS concrete factory authenticated journey retains exact encrypted draft across lost acknowledgement and runtime reconstruction with current policy and Git revocation",
+        "PASS authenticated scope workflow: denied start, one fixed lost-acknowledgement start, ordered single-attempt activities, reference-only history, replay/repeated start without model or reservation duplication, owned worker shutdown",
+        "PASS authenticated development workflow: denied start, one fixed lost-acknowledgement start, ordered single-attempt activities, reference-only history, replay/repeated start without model or reservation duplication, owned worker shutdown",
+        "PASS owned development history: exact legacy DTO and separate scope/development grants, late revocation, profile binding and nested-key shutdown drain",
+        "PASS authenticated concrete factory: 34 native sources, two recorded scope batches, separate Brief/Spec and Exam roles, exact result restart, editable durable draft and historical lineage after correction; four synthetic calls/reservations, no Git save",
+        "PASS authenticated scope workflow: denied start, one fixed lost-acknowledgement start, ordered single-attempt activities, reference-only history, replay/repeated start without model or reservation duplication, owned worker shutdown",
+        "PASS authenticated new-distinct corrected package: stale assessment denied, two fresh recorded scope batches, exact edited-document lineage, human confirmation, discarded HTTP acknowledgement and reconstructed idempotent original recovery; six synthetic model calls/reservations, no candidate-save scheduling or Git save",
+        "PASS authenticated factory new-distinct confirmed save: denied start, lost scheduler acknowledgement, one fixed Temporal activity/native commit, replay without resend, identity/factory restart, read-only HTTP receipt recovery, separate reconciliation, exact older-commit reopen and current policy/Git-grant denial; prior bundle and unrelated source preservation checked for revisions; no added originals or model reservations",
+        "PASS concrete authenticated journey binds native multi-batch scope, both SDK roles, corrected confirmation and fixed save/reopen through restart",
+        "FOCUSED journey runtime result: 3 joined checks passed plus idempotent migration check; full suite NOT RUN.",
+        "Removed only this run's synthetic PostgreSQL container and tmpfs data."
+      ]
+    },
+    {
+      "command": "node packages/data/test/postgres.integration.ts --journey-runtime-continuation",
+      "exitCode": 0,
+      "joinedChecks": 1,
+      "idempotentMigrationPassed": true,
+      "fullIntegrationSuiteRun": false,
+      "scope": "Includes the same bound-history equality/denials/drain and proposal continuation save/reopen. Began before the final direct null-binding guard and return-type refinement; final focused and default-journey checks cover that final revision.",
+      "assertions": [
+        "PASS versioned Drizzle migrations apply twice without replay effects",
+        "FOCUSED authenticated proposal continuation through native corpus, recorded roles, confirmation and fixed save/reopen; NOT the full integration suite.",
+        "PASS authenticated scope workflow: denied start, one fixed lost-acknowledgement start, ordered single-attempt activities, reference-only history, replay/repeated start without model or reservation duplication, owned worker shutdown",
+        "PASS authenticated development workflow: denied start, one fixed lost-acknowledgement start, ordered single-attempt activities, reference-only history, replay/repeated start without model or reservation duplication, owned worker shutdown",
+        "PASS owned development history: exact legacy DTO and separate scope/development grants, late revocation, profile binding and nested-key shutdown drain",
+        "PASS authenticated concrete factory: 34 native sources, two recorded scope batches, separate Brief/Spec and Exam roles, exact result restart, editable durable draft and historical lineage after correction; four synthetic calls/reservations, no Git save",
+        "PASS authenticated scope workflow: denied start, one fixed lost-acknowledgement start, ordered single-attempt activities, reference-only history, replay/repeated start without model or reservation duplication, owned worker shutdown",
+        "PASS authenticated proposal-continuation corrected package: stale assessment denied, two fresh recorded scope batches, exact edited-document lineage, human confirmation, discarded HTTP acknowledgement and reconstructed idempotent original recovery; six synthetic model calls/reservations, no candidate-save scheduling or Git save",
+        "PASS authenticated factory proposal-continuation confirmed save: denied start, lost scheduler acknowledgement, one fixed Temporal activity/native commit, replay without resend, identity/factory restart, read-only HTTP receipt recovery, separate reconciliation, exact older-commit reopen and current policy/Git-grant denial; prior bundle and unrelated source preservation checked for revisions; no added originals or model reservations",
+        "PASS concrete authenticated proposal-continuation journey binds native multi-batch scope, both SDK roles, corrected confirmation and fixed save/reopen through restart",
+        "FOCUSED authenticated proposal continuation result: 1 joined check passed plus idempotent migration check; full suite NOT RUN.",
+        "Removed only this run's synthetic PostgreSQL container and tmpfs data."
+      ]
+    },
+    {
+      "command": "node packages/data/test/postgres.integration.ts --development-history-records",
+      "exitCode": 0,
+      "joinedChecks": 9,
+      "idempotentMigrationPassed": true,
+      "fullIntegrationSuiteRun": false,
+      "scope": "Retained SQL/SDK history selection with new unbound pending/partial/complete/clarifying/unknown/expired equivalence. Began before final direct null-binding guard/type refinement; those are covered by final focused/default checks.",
+      "assertions": [
+        "PASS versioned Drizzle migrations apply twice without replay effects",
+        "FOCUSED retained original/observation history records and HTTP; excludes scope-runtime composition, NOT the full integration suite.",
+        "PASS historical development prerequisites keep request-key, hold and quarantine checks during response acknowledgement",
+        "PASS historical development SDK exchanges preserve both completed roles after edits and expiry without renewing execution or altering records",
+        "PASS historical development denies missing current history, result, source and profile authority instead of returning retained output",
+        "PASS historical development never promotes incomplete, uncertain or quarantined response history",
+        "PASS historical development withholds late verifier results on access loss, key loss, closure and nonvoid verification",
+        "PASS historical development owned projection preserves legacy unbound pending, partial, complete, clarifying, unknown and expired history",
+        "PASS historical development combined HTTP projects pending, partial and linked complete documents without private wire or SQL effects",
+        "PASS historical development combined HTTP refuses a changing role snapshot and late identity loss without silently retrying",
+        "PASS historical development combined projection rechecks earlier role authority and source after all SDK verifiers complete",
+        "FOCUSED development history result: 9 checks passed plus idempotent migration check; full suite NOT RUN.",
+        "Removed only this run's synthetic PostgreSQL container and tmpfs data."
+      ]
+    },
+    {
+      "command": "pnpm test",
+      "exitCode": 0,
+      "tests": 88,
+      "passed": 88,
+      "files": 17
+    },
+    {
+      "command": "pnpm kit:check",
+      "exitCode": 0,
+      "requiredArtifacts": 95
+    },
+    {
+      "command": "pnpm security:check",
+      "exitCode": 0,
+      "scope": "Workflow token scope audit, contents read-only."
+    }
+  ],
+  "smokeMeasurements": {
+    "new-distinct": [
+      {
+        "label": "Synthetic authenticated workflow start:",
+        "tool": "intent.scope.start",
+        "ms": 1810,
+        "nativeRequests": 596
+      },
+      {
+        "label": "Synthetic authenticated workflow start:",
+        "tool": "intent.scope.start",
+        "ms": 1811,
+        "nativeRequests": 676
+      },
+      {
+        "label": "Synthetic authenticated workflow start:",
+        "tool": "intent.scope.start",
+        "ms": 1698,
+        "nativeRequests": 676
+      },
+      {
+        "label": "Synthetic authenticated development preparation:",
+        "tool": "intent.development.prepare",
+        "ms": 8988,
+        "nativeRequests": 594,
+        "requestKinds": {
+          "head": 563,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 555,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 8,
+            "commit": 4,
+            "tree": 4,
+            "blob": 20,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated development preparation:",
+        "tool": "intent.development.prepare",
+        "ms": 8844,
+        "nativeRequests": 548,
+        "requestKinds": {
+          "head": 517,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 509,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 8,
+            "commit": 4,
+            "tree": 4,
+            "blob": 20,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated workflow start:",
+        "tool": "intent.development.start",
+        "ms": 3430,
+        "nativeRequests": 1407
+      },
+      {
+        "label": "Synthetic authenticated workflow start:",
+        "tool": "intent.development.start",
+        "ms": 3518,
+        "nativeRequests": 1594
+      },
+      {
+        "label": "Synthetic authenticated workflow start:",
+        "tool": "intent.development.start",
+        "ms": 3617,
+        "nativeRequests": 1594
+      },
+      {
+        "label": "Synthetic authenticated corrected-package request:",
+        "tool": "intent.draft.read",
+        "ms": 790,
+        "nativeRequests": 19,
+        "requestKinds": {
+          "head": 16,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 16,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated corrected-package request:",
+        "tool": "intent.development.review",
+        "ms": 2125,
+        "nativeRequests": 75,
+        "requestKinds": {
+          "head": 64,
+          "commit": 2,
+          "tree": 2,
+          "blob": 6,
+          "token": 1,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 62,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 2,
+            "commit": 1,
+            "tree": 1,
+            "blob": 5,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated corrected-package request:",
+        "tool": "intent.scope.prepare",
+        "ms": 6975,
+        "nativeRequests": 320,
+        "requestKinds": {
+          "head": 289,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 281,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 8,
+            "commit": 4,
+            "tree": 4,
+            "blob": 20,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated workflow start:",
+        "tool": "intent.scope.start",
+        "ms": 1736,
+        "nativeRequests": 596
+      },
+      {
+        "label": "Synthetic authenticated corrected-package request:",
+        "tool": "intent.scope.start",
+        "ms": 1737,
+        "nativeRequests": 596,
+        "requestKinds": {
+          "head": 593,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 593,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated workflow start:",
+        "tool": "intent.scope.start",
+        "ms": 2446,
+        "nativeRequests": 676
+      },
+      {
+        "label": "Synthetic authenticated corrected-package request:",
+        "tool": "intent.scope.start",
+        "ms": 2446,
+        "nativeRequests": 676,
+        "requestKinds": {
+          "head": 673,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 673,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated workflow start:",
+        "tool": "intent.scope.start",
+        "ms": 1909,
+        "nativeRequests": 676
+      },
+      {
+        "label": "Synthetic authenticated corrected-package request:",
+        "tool": "intent.scope.start",
+        "ms": 1909,
+        "nativeRequests": 676,
+        "requestKinds": {
+          "head": 673,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 673,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated corrected-package request:",
+        "tool": "intent.scope.read",
+        "ms": 912,
+        "nativeRequests": 25,
+        "requestKinds": {
+          "head": 22,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 22,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated corrected-package request:",
+        "tool": "intent.candidate.save.review",
+        "ms": 3276,
+        "nativeRequests": 224,
+        "requestKinds": {
+          "head": 214,
+          "commit": 2,
+          "tree": 2,
+          "blob": 6,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 212,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 2,
+            "commit": 1,
+            "tree": 1,
+            "blob": 5,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated corrected-package request:",
+        "tool": "intent.candidate.save.preview",
+        "ms": 5572,
+        "nativeRequests": 509,
+        "requestKinds": {
+          "head": 495,
+          "commit": 4,
+          "tree": 4,
+          "blob": 6,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 487,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 8,
+            "commit": 3,
+            "tree": 3,
+            "blob": 5,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic discarded confirmation request:",
+        "tool": "intent.candidate.save.prepare (discarded reply)",
+        "ms": 9956,
+        "nativeRequests": 1211,
+        "requestKinds": {
+          "head": 1186,
+          "commit": 7,
+          "tree": 7,
+          "blob": 11,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 1170,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 16,
+            "commit": 6,
+            "tree": 6,
+            "blob": 10,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated corrected-package request:",
+        "tool": "intent.candidate.save.prepare",
+        "ms": 8959,
+        "nativeRequests": 1183,
+        "requestKinds": {
+          "head": 1156,
+          "commit": 7,
+          "tree": 7,
+          "blob": 11,
+          "token": 2,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 1140,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 16,
+            "commit": 6,
+            "tree": 6,
+            "blob": 10,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated corrected-package request:",
+        "tool": "intent.candidate.save.prepare",
+        "ms": 8820,
+        "nativeRequests": 1181,
+        "requestKinds": {
+          "head": 1156,
+          "commit": 7,
+          "tree": 7,
+          "blob": 11,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 1140,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 16,
+            "commit": 6,
+            "tree": 6,
+            "blob": 10,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated saved-operation recovery:",
+        "ms": 1565,
+        "nativeRequests": 17,
+        "outcome": "committed"
+      }
+    ],
+    "proposal-continuation": [
+      {
+        "label": "Synthetic authenticated workflow start:",
+        "tool": "intent.scope.start",
+        "ms": 1186,
+        "nativeRequests": 596
+      },
+      {
+        "label": "Synthetic authenticated workflow start:",
+        "tool": "intent.scope.start",
+        "ms": 1282,
+        "nativeRequests": 676
+      },
+      {
+        "label": "Synthetic authenticated workflow start:",
+        "tool": "intent.scope.start",
+        "ms": 1194,
+        "nativeRequests": 676
+      },
+      {
+        "label": "Synthetic authenticated development preparation:",
+        "tool": "intent.development.prepare",
+        "ms": 5691,
+        "nativeRequests": 594,
+        "requestKinds": {
+          "head": 563,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 555,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 8,
+            "commit": 4,
+            "tree": 4,
+            "blob": 20,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated development preparation:",
+        "tool": "intent.development.prepare",
+        "ms": 6744,
+        "nativeRequests": 548,
+        "requestKinds": {
+          "head": 517,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 509,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 8,
+            "commit": 4,
+            "tree": 4,
+            "blob": 20,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated workflow start:",
+        "tool": "intent.development.start",
+        "ms": 2548,
+        "nativeRequests": 1407
+      },
+      {
+        "label": "Synthetic authenticated workflow start:",
+        "tool": "intent.development.start",
+        "ms": 2830,
+        "nativeRequests": 1594
+      },
+      {
+        "label": "Synthetic authenticated workflow start:",
+        "tool": "intent.development.start",
+        "ms": 2651,
+        "nativeRequests": 1594
+      },
+      {
+        "label": "Synthetic authenticated corrected-package request:",
+        "tool": "intent.draft.read",
+        "ms": 973,
+        "nativeRequests": 19,
+        "requestKinds": {
+          "head": 16,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 16,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated corrected-package request:",
+        "tool": "intent.development.review",
+        "ms": 2398,
+        "nativeRequests": 75,
+        "requestKinds": {
+          "head": 64,
+          "commit": 2,
+          "tree": 2,
+          "blob": 6,
+          "token": 1,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 62,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 2,
+            "commit": 1,
+            "tree": 1,
+            "blob": 5,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated corrected-package request:",
+        "tool": "intent.scope.prepare",
+        "ms": 7664,
+        "nativeRequests": 320,
+        "requestKinds": {
+          "head": 289,
+          "commit": 5,
+          "tree": 5,
+          "blob": 21,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 281,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 8,
+            "commit": 4,
+            "tree": 4,
+            "blob": 20,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated workflow start:",
+        "tool": "intent.scope.start",
+        "ms": 1569,
+        "nativeRequests": 596
+      },
+      {
+        "label": "Synthetic authenticated corrected-package request:",
+        "tool": "intent.scope.start",
+        "ms": 1569,
+        "nativeRequests": 596,
+        "requestKinds": {
+          "head": 593,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 593,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated workflow start:",
+        "tool": "intent.scope.start",
+        "ms": 1634,
+        "nativeRequests": 676
+      },
+      {
+        "label": "Synthetic authenticated corrected-package request:",
+        "tool": "intent.scope.start",
+        "ms": 1634,
+        "nativeRequests": 676,
+        "requestKinds": {
+          "head": 673,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 673,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated workflow start:",
+        "tool": "intent.scope.start",
+        "ms": 1767,
+        "nativeRequests": 676
+      },
+      {
+        "label": "Synthetic authenticated corrected-package request:",
+        "tool": "intent.scope.start",
+        "ms": 1768,
+        "nativeRequests": 676,
+        "requestKinds": {
+          "head": 673,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 673,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated corrected-package request:",
+        "tool": "intent.scope.read",
+        "ms": 939,
+        "nativeRequests": 25,
+        "requestKinds": {
+          "head": 22,
+          "commit": 1,
+          "tree": 1,
+          "blob": 1,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 22,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 0,
+            "commit": 0,
+            "tree": 0,
+            "blob": 0,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated corrected-package request:",
+        "tool": "intent.candidate.save.review",
+        "ms": 2813,
+        "nativeRequests": 224,
+        "requestKinds": {
+          "head": 214,
+          "commit": 2,
+          "tree": 2,
+          "blob": 6,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 212,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 2,
+            "commit": 1,
+            "tree": 1,
+            "blob": 5,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated corrected-package request:",
+        "tool": "intent.candidate.save.preview",
+        "ms": 21373,
+        "nativeRequests": 799,
+        "requestKinds": {
+          "head": 739,
+          "commit": 20,
+          "tree": 20,
+          "blob": 20,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 731,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 8,
+            "commit": 19,
+            "tree": 19,
+            "blob": 19,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic discarded confirmation request:",
+        "tool": "intent.candidate.save.prepare (discarded reply)",
+        "ms": 40778,
+        "nativeRequests": 1791,
+        "requestKinds": {
+          "head": 1674,
+          "commit": 39,
+          "tree": 39,
+          "blob": 39,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 1658,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 16,
+            "commit": 38,
+            "tree": 38,
+            "blob": 38,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated corrected-package request:",
+        "tool": "intent.candidate.save.prepare",
+        "ms": 39795,
+        "nativeRequests": 1763,
+        "requestKinds": {
+          "head": 1644,
+          "commit": 39,
+          "tree": 39,
+          "blob": 39,
+          "token": 2,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 1628,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 16,
+            "commit": 38,
+            "tree": 38,
+            "blob": 38,
+            "token": 1,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated corrected-package request:",
+        "tool": "intent.candidate.save.prepare",
+        "ms": 37142,
+        "nativeRequests": 1761,
+        "requestKinds": {
+          "head": 1644,
+          "commit": 39,
+          "tree": 39,
+          "blob": 39,
+          "token": 0,
+          "mutation": 0,
+          "other": 0
+        },
+        "origins": {
+          "identity": {
+            "head": 1628,
+            "commit": 1,
+            "tree": 1,
+            "blob": 1,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          },
+          "repository": {
+            "head": 16,
+            "commit": 38,
+            "tree": 38,
+            "blob": 38,
+            "token": 0,
+            "mutation": 0,
+            "other": 0
+          }
+        }
+      },
+      {
+        "label": "Synthetic authenticated saved-operation recovery:",
+        "ms": 2845,
+        "nativeRequests": 26,
+        "outcome": "committed"
+      }
+    ]
+  },
+  "retainedFailedIterations": [
+    {
+      "check": "Focused key-drain test",
+      "failure": "The new test called nonexistent fixture.reader/beforeKey helpers. 33 of 34 passed.",
+      "correction": "Use fixture.owner and onKey; final 59 focused and 1502 broad checks pass."
+    },
+    {
+      "check": "Typecheck after native fixture addition",
+      "failure": "Input was typed unknown and inferred common service omitted shutdown.",
+      "correction": "Use the concrete public input and an explicit optional shutdown capability on the service return."
+    },
+    {
+      "check": "Typecheck return-contract refinement",
+      "failure": "Annotating the service as the abstract port widened read results to unknown for existing consumers.",
+      "correction": "Retain the established concrete reader result contract with optional owned shutdown; final all-package types pass."
+    },
+    {
+      "check": "First proposal-continuation with new denial cases",
+      "failure": "An owned read returned the internal verifier error instead of the established sanitized public history error.",
+      "correction": "Restore Development history is unavailable. at the public boundary. Both final native directions and denial cases pass."
+    }
+  ],
+  "artifactIntegrity": {
+    "sourceHashesVerified": 11,
+    "protectedHashesUnchanged": 4,
+    "localDocumentationLinksVerified": 489,
+    "fixedChecklistVerified": "17/25 = 68%",
+    "gitDiffCheckPassed": true
+  },
+  "limitations": {
+    "fullC22Accepted": false,
+    "fullDelayedProtocolRun": false,
+    "liveProfileActivated": false,
+    "realRecordsAdopted": false,
+    "realModelCalls": 0,
+    "realRuntimeGitHubSaves": 0,
+    "newGateSignature": false,
+    "browserAcceptanceRun": false,
+    "buildRun": false,
+    "protected0289RecoveryRootCauseResolved": false,
+    "developmentHistoryFactoryBindingImplemented": true,
+    "remainingActionBoundariesComplete": false,
+    "latencyNote": "Undelayed synthetic functional runs share the host with other verification. Counts include identity and token attempts. No p95, live authority, human UX speed or complete workflow acceptance is claimed."
+  },
+  "sourceSha256": {
+    "apps/api/src/runtime.ts": "7a01ed51ab9f92ab8bba510f1681507c4760d2be2cd174a3e0d6795dbd92ffe5",
+    "packages/data/src/records-readset.ts": "4135af8e56937b2194ec017dffcfe54b76e6a47b8c48ce28c376a55f99549345",
+    "packages/data/src/records-content-reader.ts": "08b45aa0236ccd23f88961d84b9a678f1ec2d87d40d5a1d6f4c064006830c093",
+    "apps/api/test/authenticated-generation.integration.ts": "57c5c25921f71d135f58cf0c79cce1ef5df0ad3b454f54bb59836cf80ec58016",
+    "apps/api/test/development-history.integration.ts": "6090b627d32bdd16b5a58e9333ca2950ce5c893a7642982dc0f6b826a9e21a62",
+    "apps/api/test/development-history.test.ts": "f820ceb951b3df693272e2e9e6b40cd45526781c821cfba6afeff2a52d9cd98c",
+    "apps/api/test/intent-journey-factory.test.ts": "a76ddf92eeefdf5733f9f65d538b428e771fdf699837b291c8abb3ebb9b89576",
+    "apps/api/test/owned-scope-read.fixture.ts": "bbaeb09905a4a94dd34f9b321c1d9d2750afe089b469219da7049b1218d39f54",
+    "apps/api/test/owned-development-history.integration.ts": "d6e0a1ef5281dcdddf418b421e271181121fc365522313f89cdd2efdd446ec23",
+    "packages/data/test/records-readset.test.ts": "2f324a717d33e2166f71d14a7901c1404bbb8f36a0fe6cc07a86806145fdaf55",
+    "packages/data/test/records-content-reader.test.ts": "296454129bc77d0b62f5077226dae2f4213a6e256b6ee5ed3cb80a55c7ba2a42"
+  },
+  "protectedSha256": {
+    "intent/0001/ARCHITECTURE.md": "9e1783a5f9870e8a8a2595d23226efa804902b4c472e309bf9f924d8cf61dc65",
+    "intent/0001/EXAM.md": "84ad1d4c14d6614fe4b53509104e379e9ad6dff0462c96109901eefb1e02fd7f",
+    "intent/0001/reviews/domain/round-2/remediation/RETENTION-AND-RECORDS-POLICY.candidate.md": "f8a9cb9acc90e2943181be428cb03bebcce64758a3ac19bf1243e3bbe3894e32",
+    "intent/0289/PERFORMANCE.json": "d0371c364bbfb103b70675faf911499bffb91afe8a5e6950718c87a171e9e302"
+  }
+}

@@ -7,6 +7,33 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Owned development history integration — 0310
+
+[0310](../intent/0310/EVIDENCE.md) connects retained development history to the
+actual factory, with separately authorized development and scope read sets and
+the existing canonical SDK/worker verifier. Both real leases are rechecked and
+drained; there is no cached permission, deadline increase or weaker lineage check.
+
+| Authenticated synthetic action | 0309 attempts | 0310 attempts |
+| --- | ---: | ---: |
+| New-distinct preview | 1,815 | 509 |
+| New-distinct confirmation / recovery / repeat | 3,823 / 3,795 / 3,793 | 1,211 / 1,183 / 1,181 |
+| Proposal-continuation preview | 2,105 | 799 |
+| Proposal-continuation confirmation / recovery / repeat | 4,403 / 4,375 / 4,373 | 1,791 / 1,763 / 1,761 |
+
+Scope read remains 25; source review 75; scope preparation 320; scope start
+596 / 676 / 676; drafting preparation 594 / 548; drafting start
+1,407 / 1,594 / 1,594; save review 224. These are counted synthetic application
+actions, not actual provider authority or user-visible latency measurements.
+Smoke runs share the host with other verification and are not the fixed latency
+protocol. Exact samples, verification scope and failed iterations are in
+[verification](../intent/0310/VERIFICATION.json).
+
+Next integrate remaining original/preparation/confirmation read phases and their
+effect-separated controls. C22 stays pending: no action over 200 attempts passes,
+and none of these samples substitutes for the full warm/cold/concurrent protocol.
+The fixed completion report remains **68% (17/25; eight remaining; +0 points)**.
+
 ## Owned scope service integration — 0309
 
 [0309](../intent/0309/EVIDENCE.md) connects current/history scope projections to
