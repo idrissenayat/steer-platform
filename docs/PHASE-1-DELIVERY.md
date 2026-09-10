@@ -6933,3 +6933,26 @@ policy/key-provider and owned effect integration remain the next coherent work.
 
 No signed document, user draft/roadmap/outputs, credential, model call, real runtime
 GitHub write, deployment or release changed. **68% (17/25; eight remaining; +0)**.
+
+## 0303 — Native GitHub batch primitive, no collector switch
+
+The [actual adapter primitive](../intent/0303/EVIDENCE.md) uses the reader's private
+inventory proofs and existing restricted installation-token path for bounded
+immutable multi-object queries. Every revision/path keeps its independent source
+permission; shared bytes never become shared authority. Exact hash/size/UTF-8 and
+repository checks, complete response validation, cancellation and refresh-time
+port guards reject incomplete or stale work without partial results.
+
+Fourteen focused and all 444 final-source adapter tests pass, as do prototype/eight
+package types. The existing authenticated synthetic journey passes three joined
+checks plus idempotent migrations; its verification timing is recorded explicitly.
+All confirmation/recovery/repeat counts remain 7,637 / 7,609 / 7,607. Native fixtures
+are cleaned up by their runners. Source/protected hashes and exact test scope are
+in [verification](../intent/0303/VERIFICATION.json).
+
+No public tool/export, collector/factory switch, permission cache, live model call,
+actual runtime GitHub write, records activation or UI improvement is claimed.
+Next connect the owned multi-revision corpus/records graph with independent policy/
+key services, final readback and effect-separated phases, then measure the complete
+unchanged C22 benchmark. User drafts, signed artifacts and roadmap/outputs remain
+untouched. **Intent capture: 68% (17/25; eight remaining; +0 percentage points).**

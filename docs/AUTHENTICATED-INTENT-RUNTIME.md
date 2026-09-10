@@ -62,6 +62,20 @@ The [fixed intent-capture tracker](INTENT-CAPTURE-PROGRESS.md) separates verifie
 component/joined checks from live startup and signed-in human acceptance. Report
 its overall percentage after each verified completion; test count is not progress.
 
+### Native batch adapter, no runtime switch — 0303
+
+[0303](../intent/0303/EVIDENCE.md) registers a private batch read on the actual
+GitHub reader, reusing restricted token acquisition and exact native inventory
+identities. It has no new HTTP tool, package export or factory activation; ordinary
+collectors stay on their current path. Per-revision/path grants bracket bounded
+queries. A refresh-time port/cancellation check prevents content dispatch after
+the captured reader/authority methods change. No cross-call content/grant cache.
+
+The enclosing composition must still own source/root selection, all-grants revision,
+lifecycle/key checks, complete final source/records readback and pending-work
+drainage. A successful batch is not authority for a phase, save, records activation
+or runtime installation. Coherent corpus/records and effect integration remains next.
+
 ### Combined lifetime experiment, no runtime installation — 0302
 
 The [lifetime follow-on](../intent/0302/EVIDENCE.md) rejects expiry after dependent

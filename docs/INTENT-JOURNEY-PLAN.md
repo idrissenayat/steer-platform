@@ -9,7 +9,20 @@ after every verified completion. Its percentage measures verified acceptance
 checkpoints, not time remaining, test count or production readiness. Live human
 acceptance remains a separate required part of the denominator.
 
-Current delivery checkpoint: **0302 / combined read-set lifetime — 68% (17/25; 8 remaining; +0 points)**.
+Current delivery checkpoint: **0303 / native GitHub batch reader — 68% (17/25; 8 remaining; +0 points)**.
+The [application adapter primitive](../intent/0303/EVIDENCE.md) now uses the existing
+restricted installation-token path for bounded immutable multi-object reads. Exact
+native inventories prove every revision/path; identical objects share bytes, never
+permissions. Corruption, incomplete results, revocation, cancellation and replaced
+ports deny. Token refresh is followed by a port/cancellation check before content IO.
+
+This is production-source infrastructure, not an installed collector or faster
+application action. Next connect it to the owned multi-revision corpus/records
+graph with independent policy/key services, complete final readback and separate
+phases around effects, then run the unchanged whole-action benchmark. No new ETA,
+live acceptance, C18/C22 completion or change to the eight remaining checkpoints.
+
+Prior delivery checkpoint: **0302 / combined read-set lifetime — 68% (17/25; 8 remaining; +0 points)**.
 The [lifetime experiment](../intent/0302/EVIDENCE.md) retains the first and final
 snapshots' earliest draft/candidate expiry through the combined return path.
 Invalid database times, backward clocks, copied lifetime metadata and expiry after

@@ -3,6 +3,7 @@ import { SignJWT } from 'jose';
 import { z } from 'zod';
 import { verifyScopeInventory, type ScopeInventory } from './scope-inventory.ts';
 import { registerCorpusArtifactRead } from './corpus-artifact-read.ts';
+import { registerCorpusArtifactBatch, planCorpusArtifactBatches, corpusArtifactBatchQuery, decodeCorpusArtifactBatch } from './corpus-artifact-batch.ts';
 
 const sha = z.string().length(40).regex(/^[a-f0-9]{40}$/);
 const bindingSchema = z.strictObject({
@@ -116,12 +117,13 @@ export function createGitHubReader(rawBinding: GitHubBinding, dependencies: {
   const clock = dependencies.now ?? (() => new Date());
   const repoPath = `/repos/${encodeURIComponent(binding.owner)}/${encodeURIComponent(binding.repository)}`;
   let cached: { token: string; expires: number } | undefined;
-  const request = async (path: string, token: string, body?: unknown) => boundedJson(await transport(`https://api.github.com${path}`, {
-    method: body === undefined ? 'GET' : 'POST', redirect: 'error', cache: 'no-store', signal: AbortSignal.timeout(10000),
+  const request = async (path: string, token: string, body?: unknown, signal?: AbortSignal) => boundedJson(await transport(`https://api.github.com${path}`, {
+    method: body === undefined ? 'GET' : 'POST', redirect: 'error', cache: 'no-store', signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(10000)]) : AbortSignal.timeout(10000),
     headers: { authorization: `Bearer ${token}`, accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2026-03-10', 'content-type': 'application/json', 'cache-control': 'no-cache' },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   }));
-  const token = async () => {
+  const token = async (signal?: AbortSignal) => {
+    signal?.throwIfAborted();
     const now = clock().getTime();
     if (!Number.isFinite(now)) throw new CodeHostError();
     if (cached && cached.expires > now + 60000) return cached.token;
@@ -132,7 +134,7 @@ export function createGitHubReader(rawBinding: GitHubBinding, dependencies: {
       repositories: z.array(z.object({ id: z.number(), full_name: z.string() })),
     }).parse(await request(`/app/installations/${binding.installationId}/access_tokens`, await dependencies.appJwt(), {
       repository_ids: [binding.repositoryId], permissions: { contents: 'read' },
-    }));
+    }, signal));
     const expiry = Date.parse(result.expires_at);
     if (expiry <= now + 60000 || expiry > now + 3660000 || result.repositories.length !== 1 ||
         result.repositories[0]?.id !== binding.repositoryId ||
@@ -144,7 +146,7 @@ export function createGitHubReader(rawBinding: GitHubBinding, dependencies: {
   const safely = async <T>(operation: () => Promise<T>): Promise<T> => {
     try { return await operation(); } catch { cached = undefined; throw new CodeHostError(); }
   };
-  const inventories = new WeakMap<object, { revision: string; entries: Map<string, { objectSha: string; mode: string; type: string }> }>();
+  const inventories = new WeakMap<object, { revision: string; entries: Map<string, { objectSha: string; mode: string; type: string; size?: number | undefined }> }>();
   const readBlob = async (path: string, revision: string, blobSha: string, credential: string): Promise<ArtifactSnapshot> => {
     const blob = z.object({ sha, encoding: z.literal('base64'), size: z.number().int().min(0).max(maxArtifactBytes), content: z.string().max(maxArtifactBytes * 2) }).parse(
       await request(`${repoPath}/git/blobs/${blobSha}`, credential));
@@ -163,7 +165,8 @@ export function createGitHubReader(rawBinding: GitHubBinding, dependencies: {
       sha.parse(revision); const credential = await token();
       const commit = z.object({ sha, tree: z.object({ sha }) }).parse(await request(`${repoPath}/git/commits/${revision}`, credential));
       if (commit.sha !== revision) throw new CodeHostError();
-      const tree = z.object({ sha, truncated: z.literal(false), tree: z.array(z.object({ path: pathSchema, mode: z.string(), type: z.string(), sha })).max(10000) })
+      const tree = z.object({ sha, truncated: z.literal(false), tree: z.array(z.object({ path: pathSchema, mode: z.string(), type: z.string(), sha,
+        size: z.number().int().nonnegative().safe().optional() })).max(10000) })
         .parse(await request(`${repoPath}/git/trees/${commit.tree.sha}?recursive=1`, credential));
       if (tree.sha !== commit.tree.sha || new Set(tree.tree.map(e => e.path)).size !== tree.tree.length) throw new CodeHostError();
       const { roots: _roots, unsupportedRootCount: _unsupported, ...inventory } = verifyScopeInventory({ organizationId: binding.organizationId, repositoryId: binding.repositoryId,
@@ -172,7 +175,8 @@ export function createGitHubReader(rawBinding: GitHubBinding, dependencies: {
       // The collector may reuse this exact immutable commit/tree membership, not
       // permission or source bodies. Copies/foreign snapshots have no proof.
       inventory.entries.forEach(Object.freeze); Object.freeze(inventory.entries); Object.freeze(inventory);
-      inventories.set(inventory, { revision, entries: new Map(inventory.entries.map(entry => [entry.path, { ...entry }])) });
+      const sizes = new Map(tree.tree.map(entry => [entry.path, entry.size]));
+      inventories.set(inventory, { revision, entries: new Map(inventory.entries.map(entry => [entry.path, { ...entry, size: sizes.get(entry.path) }])) });
       return inventory;
     }),
     readCommit: (revision: string) => safely(async () => {
@@ -258,6 +262,25 @@ export function createGitHubReader(rawBinding: GitHubBinding, dependencies: {
     const entry = verified?.entries.get(path);
     if (!verified || verified.revision !== revision || !entry || entry.type !== 'blob' || entry.mode !== '100644') throw new CodeHostError();
     return readBlob(path, revision, entry.objectSha, await token());
+  }));
+  registerCorpusArtifactBatch(reader, (references, boundary, signal) => safely(async () => {
+    const batches = planCorpusArtifactBatches(references, ref => {
+      const verified = ref.inventory && typeof ref.inventory === 'object' ? inventories.get(ref.inventory) : undefined;
+      const entry = verified?.entries.get(ref.path);
+      if (!verified || verified.revision !== ref.revision || !entry || entry.type !== 'blob' || entry.mode !== '100644') throw new CodeHostError();
+      return entry;
+    });
+    await boundary.begin(); const captured: ArtifactSnapshot[] = [];
+    for (const batch of batches) {
+      const refs = batch.flatMap(object => object.refs); await boundary.before(refs);
+      const credential = await token(signal); boundary.check();
+      const raw = await request('/graphql', credential, { query: corpusArtifactBatchQuery(batch.length), variables: {
+        owner: binding.owner, name: binding.repository, ...Object.fromEntries(batch.map((object, i) => [`o${i}`, object.oid])),
+      } }, signal);
+      signal.throwIfAborted(); const snapshots = decodeCorpusArtifactBatch(raw, binding, batch);
+      await boundary.after(refs); captured.push(...snapshots);
+    }
+    return references.map(ref => captured.find(file => file.path === ref.path && file.revision === ref.revision)!);
   }));
   return reader;
 }

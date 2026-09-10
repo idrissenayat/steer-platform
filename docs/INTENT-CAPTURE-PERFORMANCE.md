@@ -7,6 +7,19 @@ amendment, a spending authorization or a production SLA. C22 in the
 below pass. Actual browser usability and live-provider acceptance remain C23–C25
 and C21 respectively; this benchmark cannot substitute for them.
 
+## Application GitHub batch primitive — 0303
+
+The [native adapter primitive](../intent/0303/EVIDENCE.md) reads up to 100 distinct
+revision/path references with at most 16 object aliases per request and a conservative
+2 MiB response budget. A native fixture verifies four references sharing two objects
+in one content query, and 17 distinct small objects in two. These are component
+query counts with synthetic policy callbacks, not all-provider action totals.
+Existing caller, source-policy, scoped-token, immutable-membership and byte checks
+remain mandatory. No collector/factory automatically uses this primitive yet.
+The last whole-confirmation measurement remains 7,637. Complete owned corpus/records
+and outer-effect integration under [0298](../intent/0298/REQUEST-BUDGET-PLAN.md),
+then measure the full unchanged C22 protocol; this component does not close C22.
+
 ## Combined lifetime experiment — 0302
 
 The [final native lifetime check](../intent/0302/EVIDENCE.md) keeps the earliest
