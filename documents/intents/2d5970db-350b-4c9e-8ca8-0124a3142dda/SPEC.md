@@ -1,4 +1,4 @@
-# Spec: Spec: Add 'Copy original intent' Button to Detail View
+# Spec: Add 'Copy original intent' Button to Detail View
 
 Derived from: `documents/intents/2d5970db-350b-4c9e-8ca8-0124a3142dda/BRIEF.md` at `a2f924fa05ceaf8d8c61fd8115c347ab717a47fd`
 Status: draft
