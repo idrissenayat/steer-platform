@@ -56,7 +56,7 @@ Baseline, numerical target and observation window: use only user-supplied values
 
 ## Domain tags
 
-- accessibility
+- Accessibility
 
 ## Open questions
 
